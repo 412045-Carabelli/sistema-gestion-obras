@@ -16,8 +16,6 @@ import { ObraCosto } from '../../../core/models/models';
   styleUrls: ['./obra-costos-table.component.css'],
   imports: [
     ReactiveFormsModule,
-    NgIf,
-    NgFor,
     CardModule,
     TableModule,
     InputTextModule,

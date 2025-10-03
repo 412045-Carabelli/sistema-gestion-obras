@@ -7,22 +7,28 @@ import {ObrasEditComponent} from './features/pages/obras-edit/obras-edit.compone
 export const routes: Routes = [
   {
     path: '',
-    component: ObrasComponent,
+    redirectTo: 'obras',
+    pathMatch: 'full'
   },
   {
     path: 'obras',
-    component: ObrasComponent,
+    loadComponent: () =>
+      import('./features/pages/obras/obras.component').then(m => m.ObrasComponent),
   },
   {
     path: 'obras/nueva',
-    component: ObrasCreateComponent,
+    loadComponent: () =>
+      import('./features/pages/obras-create/obras-create.component').then(m => m.ObrasCreateComponent),
   },
   {
     path: 'obras/editar/:id',
-    component: ObrasEditComponent,
+    loadComponent: () =>
+      import('./features/pages/obras-edit/obras-edit.component').then(m => m.ObrasEditComponent),
   },
   {
     path: 'obras/:id',
-    component: ObrasDetailComponent,
+    loadComponent: () =>
+      import('./features/pages/obras-detail/obras-detail.component').then(m => m.ObrasDetailComponent),
   },
 ];
+
