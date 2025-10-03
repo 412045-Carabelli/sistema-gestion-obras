@@ -1,0 +1,115 @@
+<div class="p-4 space-y-6">
+  <!-- Header -->
+  <div class="flex items-center justify-between flex-wrap gap-4">
+    <div>
+      <h2 class="text-2xl font-bold text-gray-900">Proveedores</h2>
+      <p class="text-sm text-gray-500">
+        Control de progreso por proveedor basado en tareas
+      </p>
+    </div>
+
+    <p-button
+      label="Nuevo Proveedor"
+      icon="pi pi-plus"
+      styleClass="p-button-primary p-button-md"
+    ></p-button>
+  </div>
+
+  <!-- Lista de Proveedores -->
+  <div class="space-y-6">
+    @for (proveedor of proveedores; track proveedor.id) {
+      <div
+        class="rounded-xl border border-gray-200 bg-white shadow-sm p-5 space-y-4"
+      >
+        <!-- Header del proveedor -->
+        <div class="flex justify-between flex-wrap gap-4 items-center">
+          <div>
+            <h3 class="text-lg font-semibold text-gray-800">
+              {{ proveedor.nombre }}
+            </h3>
+            <p class="text-sm text-gray-500">
+              {{ proveedor.tipo }} • {{ proveedor.tareasCompletadas }}/{{ proveedor.tareasTotales }} tareas completadas
+            </p>
+          </div>
+
+          <div class="flex items-center gap-3 flex-wrap">
+            <div class="flex items-center gap-2 text-sm">
+              <span class="font-medium text-gray-700">Progreso:</span>
+              <span class="font-bold text-primary-600">{{ proveedor.progreso }}%</span>
+            </div>
+            <p-button
+              icon="pi pi-plus"
+              label="Nueva Tarea"
+              styleClass="p-button-sm p-button-primary"
+            ></p-button>
+            <p-button
+              icon="pi pi-ellipsis-v"
+              styleClass="p-button-text p-button-rounded"
+            ></p-button>
+          </div>
+        </div>
+
+        <!-- Barra de progreso -->
+        <p-progressBar [value]="proveedor.progreso"></p-progressBar>
+
+        <!-- Metadatos -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm">
+          <div class="flex justify-between sm:justify-start sm:gap-2">
+            <span class="text-gray-500">Fechas:</span>
+            <span class="text-gray-800">{{ proveedor.fechaInicio }} - {{ proveedor.fechaFin }}</span>
+          </div>
+          <div class="flex justify-between sm:justify-start sm:gap-2">
+            <span class="text-gray-500">Presupuesto:</span>
+            <span class="text-gray-800">
+              {{ proveedor.presupuesto | currency }}
+              <span class="text-gray-500 text-xs">
+                ({{ proveedor.gastado | currency }} gastado)
+              </span>
+            </span>
+          </div>
+        </div>
+
+        <!-- Lista de tareas -->
+        <div>
+          <h4 class="text-sm font-semibold text-gray-700 mb-2">
+            Lista de Tareas:
+          </h4>
+
+          <div class="space-y-2">
+            @for (tarea of proveedor.tareas; track tarea.id) {
+              <div
+                class="flex items-center justify-between p-2 rounded-md border cursor-pointer transition
+                @if (tarea.completada) {
+                  bg-green-50 border-green-200
+                } @else {
+                  bg-gray-50 border-gray-200 hover:bg-gray-100
+                }"
+                (click)="toggleTarea(proveedor.id, tarea.id)"
+              >
+                <div class="flex items-center gap-2">
+                  <i
+                    class="pi"
+                    [ngClass]="tarea.completada ? 'pi-check-circle text-green-600' : 'pi-circle text-gray-400'"
+                  ></i>
+                  <span
+                    class="text-sm transition"
+                    [class.line-through]="tarea.completada"
+                  >{{ tarea.nombre }}</span
+                  >
+                </div>
+
+                <div class="flex items-center gap-2" (click)="$event.stopPropagation()">
+                  <p-button
+                    icon="pi pi-trash"
+                    styleClass="p-button-text p-button-sm text-red-500"
+                    (onClick)="eliminarTarea(proveedor.id, tarea.id)"
+                  ></p-button>
+                </div>
+              </div>
+            }
+          </div>
+        </div>
+      </div>
+    }
+  </div>
+</div>

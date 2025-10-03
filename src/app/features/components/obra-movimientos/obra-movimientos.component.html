@@ -1,0 +1,126 @@
+<div class="p-4 space-y-5">
+  <!-- Header -->
+  <div class="flex justify-between items-center flex-wrap gap-3">
+    <div>
+      <h2 class="text-2xl font-bold text-gray-900">Movimientos</h2>
+      <p class="text-gray-500 text-sm mt-1">Pagos y cobros asociados a la obra</p>
+    </div>
+
+    <div class="flex gap-2">
+      <p-button
+        icon="pi pi-plus"
+        label="Nuevo Movimiento"
+        styleClass="p-button-md p-button-primary"
+        (onClick)="nuevoMovimiento()"
+      ></p-button>
+    </div>
+  </div>
+
+  <!-- Tabla de movimientos -->
+  @if (transacciones.length > 0) {
+    <p-table
+      [value]="transacciones"
+      responsiveLayout="scroll"
+      class="text-sm p-datatable-sm border border-gray-200 rounded-lg overflow-hidden"
+    >
+      <!-- Encabezado -->
+      <ng-template pTemplate="header">
+        <tr class="bg-gray-50 text-gray-700">
+          <th class="px-3 py-2"></th>
+          <th class="text-left px-3 py-2 font-semibold">Documento</th>
+          <th class="text-left px-3 py-2 font-semibold">Fecha</th>
+          <th class="text-left px-3 py-2 font-semibold">Monto</th>
+          <th class="text-left px-3 py-2 font-semibold">Estado</th>
+          <th class="px-3 py-2 text-right"></th>
+        </tr>
+      </ng-template>
+
+      <!-- Filas -->
+      <ng-template pTemplate="body" let-t let-rowIndex="rowIndex">
+        <tr
+          class="hover:bg-gray-50 transition"
+          [ngClass]="rowIndex % 2 === 0 ? 'bg-white' : 'bg-gray-50'"
+        >
+          <!-- Etiqueta -->
+          <td class="px-3 py-2">
+            <span
+              class="px-2 py-1 rounded text-xs font-semibold text-white"
+              [ngClass]="{
+                'bg-blue-600': t.etiqueta === 'FC',
+                'bg-green-600': t.etiqueta === 'RBOS'
+              }"
+            >
+              {{ t.etiqueta }}
+            </span>
+          </td>
+
+          <!-- Documento -->
+          <td class="px-3 py-2">
+            @if (t.etiqueta === 'FC') {
+              Factura #{{ t.id_factura }}
+            } @else if (t.etiqueta === 'RBOS') {
+              Recibo #{{ t.id_recibo }}
+            } @else {
+              —
+            }
+          </td>
+
+          <!-- Fecha -->
+          <td class="px-3 py-2">
+            {{ t.fecha | date: 'dd/MM/yyyy' }}
+          </td>
+
+          <!-- Monto -->
+          <td class="px-3 py-2">
+            {{ t.monto | currency:'ARS':'symbol':'1.0-0' }}
+          </td>
+
+          <!-- Estado -->
+          <td class="px-3 py-2 capitalize">
+            {{ t.parcial_o_total }}
+          </td>
+
+          <!-- Acciones -->
+          <td class="px-3 py-2 text-right">
+            <p-button
+              icon="pi pi-file-pdf"
+              styleClass="p-button-rounded p-button-text p-button-sm"
+              pTooltip="Ver PDF"
+              tooltipPosition="top"
+              (onClick)="verPDF(t)"
+            ></p-button>
+
+            <p-button
+              icon="pi pi-trash"
+              styleClass="p-button-rounded p-button-text p-button-danger p-button-sm"
+              pTooltip="Eliminar"
+              tooltipPosition="top"
+              (onClick)="eliminarMovimiento(t)"
+            ></p-button>
+          </td>
+        </tr>
+      </ng-template>
+    </p-table>
+
+    <!-- Resumen -->
+    <div class="mt-4 p-4 bg-gray-50 rounded-lg text-sm space-y-1">
+      <div class="flex justify-between">
+        <span class="font-medium">Total Cobros (FC):</span>
+        <span>{{ totalCobros | currency:'ARS' }}</span>
+      </div>
+      <div class="flex justify-between">
+        <span class="font-medium">Total Pagos (RBOS):</span>
+        <span>{{ totalPagos | currency:'ARS' }}</span>
+      </div>
+      <div class="flex justify-between font-semibold text-base border-t pt-2">
+        <span>Saldo:</span>
+        <span>{{ saldo | currency:'ARS' }}</span>
+      </div>
+    </div>
+  } @else {
+    <div class="text-center text-gray-500 py-10 flex flex-col items-center gap-2">
+      <i class="pi pi-inbox text-4xl"></i>
+      <p>No hay movimientos registrados para esta obra.</p>
+    </div>
+  }
+</div>

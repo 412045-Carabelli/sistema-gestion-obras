@@ -1,0 +1,96 @@
+<div class="p-4 bg-white rounded-lg shadow-sm border border-gray-200">
+  <div class="flex justify-between items-center mb-4">
+    <h2 class="text-lg font-semibold">Matriz de Costos</h2>
+    <p-button icon="pi pi-plus" label="Agregar Fila" (onClick)="nuevaFila()"></p-button>
+  </div>
+
+  @if(costosFormArray.length > 0) {
+    <div class="overflow-x-auto min-h-[300px] max-h-[500px]">
+      <p-table
+        [value]="costosFormArray.controls"
+        [tableStyle]="{ 'min-width': '1000px' }"
+        styleClass="p-datatable-sm"
+      >
+        <ng-template pTemplate="header">
+          <tr>
+            <th></th>
+            <th>Descripción</th>
+            <th>Proveedor</th>
+            <th>Unidad</th>
+            <th>Cantidad</th>
+            <th>Precio Unitario</th>
+            <th>Subtotal</th>
+            <th>Total</th>
+          </tr>
+        </ng-template>
+
+        <ng-template pTemplate="body" let-row let-rowIndex="rowIndex">
+          <tr [formGroup]="row">
+            <!-- Acciones -->
+            <td class="text-center">
+              <p-button
+                icon="pi pi-trash"
+                severity="danger"
+                size="small"
+                (onClick)="eliminarFila(rowIndex)"
+                pTooltip="Eliminar fila"
+              ></p-button>
+            </td>
+
+            <!-- Descripción -->
+            <td>
+              <input
+                pInputText
+                formControlName="descripcion"
+                placeholder="Ej. Ladrillos"
+                class="w-full text-sm"
+              />
+            </td>
+
+            <!-- Proveedor -->
+            <td class="min-w-[180px]">
+              <p-select
+                [options]="proveedores"
+                optionLabel="nombre"
+                optionValue="id_proveedor"
+                formControlName="id_proveedor"
+                placeholder="Seleccionar proveedor"
+                styleClass="w-full text-sm"
+              ></p-select>
+            </td>
+
+            <!-- Unidad -->
+            <td class="w-28">
+              <input pInputText formControlName="unidad" placeholder="m²" class="w-full text-sm" />
+            </td>
+
+            <!-- Cantidad -->
+            <td class="w-24">
+              <input type="number" pInputText formControlName="cantidad" class="w-full text-sm text-right" />
+            </td>
+
+            <!-- Precio Unitario -->
+            <td class="w-32">
+              <input type="number" pInputText formControlName="precio_unitario" class="w-full text-sm text-right" />
+            </td>
+
+            <!-- Subtotal -->
+            <td class="text-right text-sm">
+              {{ row.get('subtotal')?.value | currency:'ARS' }}
+            </td>
+
+            <!-- Total -->
+            <td class="text-right text-sm">
+              {{ row.get('total')?.value | currency:'ARS' }}
+            </td>
+          </tr>
+        </ng-template>
+      </p-table>
+    </div>
+  } @else {
+    <div class="text-center py-6 text-gray-500 border rounded-md">
+      <i class="pi pi-inbox text-3xl mb-2 block"></i>
+      <p>No hay costos cargados aún. Agrega una fila para empezar.</p>
+    </div>
+  }
+</div>

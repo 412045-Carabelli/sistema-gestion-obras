@@ -1,0 +1,25 @@
+/* Personalizaciones opcionales de PrimeNG */
+:host ::ng-deep .p-card {
+  border: 1px solid #e5e7eb;
+  border-radius: 0.5rem;
+  background: #ffffff;
+}
+
+:host ::ng-deep .p-card .p-card-body {
+  padding: 0;
+}
+
+:host ::ng-deep .p-card .p-card-content {
+  padding: 0;
+}
+
+/* Estilos para la barra de progreso */
+:host ::ng-deep .p-progressbar {
+  border-radius: 0.5rem;
+  background: #e5e7eb;
+}
+
+:host ::ng-deep .p-progressbar .p-progressbar-value {
+  background: linear-gradient(90deg, #9333ea 0%, #a855f7 100%);
+  border-radius: 0.5rem;
+}

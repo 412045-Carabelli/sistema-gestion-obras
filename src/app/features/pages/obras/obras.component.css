@@ -1,0 +1,8 @@
+/* Estilos adicionales opcionales si necesitas override de PrimeNG */
+:host ::ng-deep .p-button {
+  font-weight: 500;
+}
+
+:host ::ng-deep .p-button .p-button-icon {
+  font-size: 1rem;
+}

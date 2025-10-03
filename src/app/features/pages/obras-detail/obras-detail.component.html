@@ -1,0 +1,69 @@
+<div class="p-6 space-y-6 max-w-5xl mx-auto bg-white rounded-xl shadow-sm">
+  <!-- Header -->
+  <div class="flex justify-between items-start flex-wrap gap-3">
+    <div>
+      <h1 class="text-2xl font-bold text-gray-900">{{ obra.nombre }}</h1>
+      <p class="text-gray-500 text-sm mt-1">{{ obra.direccion }}</p>
+    </div>
+
+    <div class="flex items-center gap-2">
+      <p-button
+        icon="pi pi-pencil"
+        styleClass="p-button-rounded p-button-text"
+        routerLink="/obras/edit/{{ obra.id_obra }}"
+        pTooltip="Editar"
+        tooltipPosition="top"
+      ></p-button>
+
+      <p-button
+        icon="pi pi-arrow-left"
+        styleClass="p-button-rounded p-button-text"
+        routerLink="/obras"
+        pTooltip="Volver"
+        tooltipPosition="top"
+      ></p-button>
+    </div>
+  </div>
+
+  <!-- Información general -->
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+    <div class="space-y-2">
+      <p><strong>Cliente:</strong> {{ obra.id_cliente }}</p>
+      <p><strong>Estado:</strong> {{ obra.id_estado_obra }}</p>
+      <p><strong>Fecha de inicio:</strong> {{ obra.fecha_inicio | date: 'dd/MM/yyyy' }}</p>
+      <p><strong>Fecha de fin:</strong> {{ obra.fecha_fin | date: 'dd/MM/yyyy' }}</p>
+    </div>
+
+    <div class="space-y-2">
+      <p><strong>Presupuesto:</strong> {{ obra.presupuesto | currency:'ARS' }}</p>
+      <p><strong>Gastado:</strong> {{ obra.gastado | currency:'ARS' }}</p>
+
+      <div>
+        <p class="text-sm text-gray-600 mb-1">Progreso Financiero</p>
+        <p-progressBar [value]="getProgresoFinanciero()" [showValue]="true"></p-progressBar>
+      </div>
+
+      <div>
+        <p class="text-sm text-gray-600 mb-1">Progreso Físico</p>
+        <p-progressBar [value]="getProgresoFisico()" [showValue]="true"></p-progressBar>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tabs -->
+  <p-tabView>
+
+    <p-tabPanel header="Tareas">
+      <app-obra-tareas></app-obra-tareas>
+    </p-tabPanel>
+
+    <p-tabPanel header="Presupuesto">
+      <app-obra-presupuesto [obraId]="obra!.id_obra"></app-obra-presupuesto>
+    </p-tabPanel>
+
+    <p-tabPanel header="Movimientos">
+      <app-obra-movimientos></app-obra-movimientos>
+    </p-tabPanel>
+
+  </p-tabView>
+</div>

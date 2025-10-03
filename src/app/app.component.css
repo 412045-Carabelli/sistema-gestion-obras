@@ -1,0 +1,17 @@
+/* Layout principal */
+:host {
+  display: block;
+  height: 100vh;
+}
+
+/* Margen izquierdo cuando sidebar está visible */
+main.ml-60 {
+  margin-left: 240px;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  main.ml-60 {
+    margin-left: 0;
+  }
+}
