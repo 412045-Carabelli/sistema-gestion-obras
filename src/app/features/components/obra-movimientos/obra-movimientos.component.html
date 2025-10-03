@@ -11,7 +11,7 @@
         icon="pi pi-plus"
         label="Nuevo Movimiento"
         styleClass="p-button-md p-button-primary"
-        (onClick)="nuevoMovimiento()"
+        (onClick)="openModal()"
       ></p-button>
     </div>
   </div>
@@ -123,4 +123,51 @@
       <p>No hay movimientos registrados para esta obra.</p>
     </div>
   }
+
+  <app-modal
+    [visible]="showAddMovementModal"
+    title="Nuevo movimiento"
+    (closed)="cerrarModal()"
+    (confirmed)="openModal()"
+  >
+    <div class="p-3 space-y-3">
+      <label class="block text-sm font-medium">Tipo de movimiento</label>
+      <p-dropdown
+        [options]="tiposTransaccion"
+        [(ngModel)]="nuevoMovimiento.id_tipo_transaccion"
+        optionLabel="nombre"
+        optionValue="id_tipo_transaccion"
+        placeholder="Seleccionar tipo de movimiento"
+        class="w-full"
+        appendTo="body"
+      >
+      </p-dropdown>
+      <label class="block text-sm font-medium">Forma de pago/cobro</label>
+      <p-dropdown
+        [options]="parcial_o_total_options"
+        [(ngModel)]="nuevoMovimiento.parcial_o_total"
+        optionLabel="label"
+        optionValue="value"
+        placeholder="Seleccionar la forma de pago/cobro"
+        class="w-full"
+        appendTo="body"
+      >
+      </p-dropdown>
+      <div class="flex gap-5">
+        <div class="flex flex-col gap-3">
+          <label class="block text-sm font-medium">Monto</label>
+          <p-inputNumber
+            [(ngModel)]="nuevoMovimiento.monto">
+          </p-inputNumber>
+        </div>
+        <div class="flex flex-col gap-3">
+          <label class="block text-sm font-medium">Fecha</label>
+          <p-datePicker
+            appendTo="body"
+            [(ngModel)]="nuevoMovimiento.fecha">
+          </p-datePicker>
+        </div>
+      </div>
+    </div>
+  </app-modal>
 </div>

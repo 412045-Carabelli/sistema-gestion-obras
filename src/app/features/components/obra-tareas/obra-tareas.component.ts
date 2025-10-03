@@ -1,92 +1,113 @@
-import {Component, Input} from '@angular/core';
-import {NgIf, NgFor, CurrencyPipe, NgClass} from '@angular/common';
+import { Component, Input, Output, EventEmitter } from '@angular/core';
+import { NgIf, NgFor, NgClass } from '@angular/common';
 import { ButtonModule } from 'primeng/button';
 import { ProgressBarModule } from 'primeng/progressbar';
-
-interface Tarea {
-  id: number;
-  nombre: string;
-  completada: boolean;
-}
-
-interface Proveedor {
-  id: number;
-  nombre: string;
-  tipo: string;
-  tareas: Tarea[];
-  tareasCompletadas: number;
-  tareasTotales: number;
-  progreso: number;
-  fechaInicio: string;
-  fechaFin: string;
-  presupuesto: number;
-  gastado: number;
-}
+import { DropdownModule } from 'primeng/dropdown';
+import { Proveedor, Tarea } from '../../../core/models/models';
+import { ModalComponent } from '../../../shared/modal/modal.component';
+import {InputText} from 'primeng/inputtext';
+import {FormsModule} from '@angular/forms';
 
 @Component({
   selector: 'app-obra-tareas',
   standalone: true,
-  imports: [NgIf, NgFor, CurrencyPipe, ButtonModule, ProgressBarModule, NgClass],
+  imports: [
+    NgClass,
+    ButtonModule, ProgressBarModule, DropdownModule,
+    ModalComponent, InputText, FormsModule
+  ],
   templateUrl: './obra-tareas.component.html',
 })
 export class ObraTareasComponent {
-  proveedores: Proveedor[] = [
-    {
-      id: 1,
-      nombre: 'Electricidad Córdoba SRL',
-      tipo: 'Electricidad',
-      tareas: [
-        { id: 1, nombre: 'Instalación de tablero principal', completada: true },
-        { id: 2, nombre: 'Cableado de circuitos de iluminación', completada: true },
-        { id: 3, nombre: 'Cableado de circuitos de tomacorrientes', completada: true },
-        { id: 4, nombre: 'Instalación de luminarias', completada: true },
-        { id: 5, nombre: 'Pruebas finales y puesta en marcha', completada: false },
-      ],
-      tareasCompletadas: 4,
-      tareasTotales: 5,
-      progreso: 80,
-      fechaInicio: '14/03/2024',
-      fechaFin: '29/07/2024',
-      presupuesto: 120000,
-      gastado: 96000,
-    },
-  ];
-  @Input() obraId!: number | undefined;
+  @Input() proveedores: Proveedor[] = [];
+  @Input() tareas: Tarea[] = [];
 
-  toggleTarea(proveedorId: number, tareaId: number) {
-    const proveedor = this.proveedores.find((p) => p.id === proveedorId);
-    if (!proveedor) return;
+  /** Notifica al padre (ObrasDetailComponent) para que actualice el progreso físico */
+  @Output() tareasActualizadas = new EventEmitter<Tarea[]>();
 
-    const tarea = proveedor.tareas.find((t) => t.id === tareaId);
-    if (!tarea) return;
+  // --- Modal control ---
+  showAddTaskModal = false;
+  nuevaTarea: Partial<Tarea> = { nombre: '', id_proveedor: undefined };
 
-    tarea.completada = !tarea.completada;
-
-    // Recalcular progreso
-    proveedor.tareasCompletadas = proveedor.tareas.filter((t) => t.completada).length;
-    proveedor.tareasTotales = proveedor.tareas.length;
-    proveedor.progreso = Math.round(
-      (proveedor.tareasCompletadas / proveedor.tareasTotales) * 100
-    );
-
-    // TODO: Llamada a API para actualizar estado de tarea
-    // this.apiService.updateTarea(tarea.id, { completada: tarea.completada }).subscribe(...)
+  abrirModal() {
+    this.nuevaTarea = {
+      nombre: '',
+      id_proveedor: this.proveedores[0]?.id_proveedor
+    };
+    this.showAddTaskModal = true;
   }
 
-  eliminarTarea(proveedorId: number, tareaId: number) {
-    const proveedor = this.proveedores.find((p) => p.id === proveedorId);
-    if (!proveedor) return;
+  cerrarModal() {
+    this.showAddTaskModal = false;
+  }
 
-    proveedor.tareas = proveedor.tareas.filter((t) => t.id !== tareaId);
+  guardarTarea() {
+    if (!this.nuevaTarea.nombre || !this.nuevaTarea.id_proveedor) return;
 
-    // Recalcular progreso
-    proveedor.tareasCompletadas = proveedor.tareas.filter((t) => t.completada).length;
-    proveedor.tareasTotales = proveedor.tareas.length;
-    proveedor.progreso = proveedor.tareasTotales
-      ? Math.round((proveedor.tareasCompletadas / proveedor.tareasTotales) * 100)
-      : 0;
+    const newId = this.tareas.length
+      ? Math.max(...this.tareas.map(t => t.id_tarea)) + 1
+      : 1;
 
-    // TODO: Llamada a API para eliminar tarea
-    // this.apiService.deleteTarea(tareaId).subscribe(...)
+    const nueva: Tarea = {
+      id_tarea: newId,
+      id_obra: this.tareas[0]?.id_obra ?? 1,  // o id de la obra actual
+      id_proveedor: this.nuevaTarea.id_proveedor!,
+      id_estado_tarea: 1, // pendiente
+      nombre: this.nuevaTarea.nombre!,
+      activo: true
+    };
+
+    // Crear NUEVO arreglo (inmutabilidad) para gatillar CD y emitir al padre
+    this.tareas = [...this.tareas, nueva];
+    this.emitirCambios();
+    this.showAddTaskModal = false;
+  }
+
+  // --- Métodos auxiliares ---
+  getTareasByProveedor(proveedorId: number): Tarea[] {
+    return this.tareas.filter(t => t.id_proveedor === proveedorId);
+  }
+
+  getCompletadas(proveedorId: number): number {
+    return this.getTareasByProveedor(proveedorId).filter(t => t.id_estado_tarea === 3).length;
+  }
+
+  getTotales(proveedorId: number): number {
+    return this.getTareasByProveedor(proveedorId).length;
+  }
+
+  getProgresoProveedor(proveedorId: number): number {
+    const tareas = this.getTareasByProveedor(proveedorId);
+    if (!tareas.length) return 0;
+    const completadas = tareas.filter(t => t.id_estado_tarea === 3).length;
+    return Math.round((completadas / tareas.length) * 100);
+  }
+
+  getEstadoClass(tarea: Tarea): string {
+    switch (tarea.id_estado_tarea) {
+      case 3: return 'bg-green-50 border-green-200';
+      case 2: return 'bg-blue-50 border-blue-200';
+      default: return 'bg-gray-50 border-gray-200 hover:bg-gray-100';
+    }
+  }
+
+  toggleTarea(tarea: Tarea) {
+    const nuevoEstado = tarea.id_estado_tarea === 3 ? 1 : 3;
+    // Inmutabilidad: crear nuevo array con la tarea actualizada
+    this.tareas = this.tareas.map(t =>
+      t.id_tarea === tarea.id_tarea ? { ...t, id_estado_tarea: nuevoEstado } : t
+    );
+    this.emitirCambios();
+  }
+
+  eliminarTarea(tareaId: number) {
+    // Inmutabilidad + emitir
+    this.tareas = this.tareas.filter(t => t.id_tarea !== tareaId);
+    this.emitirCambios();
+  }
+
+  private emitirCambios() {
+    // Emitimos una copia para evitar mutaciones externas
+    this.tareasActualizadas.emit([...this.tareas]);
   }
 }

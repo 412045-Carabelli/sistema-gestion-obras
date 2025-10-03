@@ -10,7 +10,7 @@
       <p-button
         icon="pi pi-pencil"
         styleClass="p-button-rounded p-button-text"
-        routerLink="/obras/edit/{{ obra.id_obra }}"
+        routerLink="/obras/editar/{{ obra.id_obra }}"
         pTooltip="Editar"
         tooltipPosition="top"
       ></p-button>
@@ -54,8 +54,13 @@
   <p-tabView>
 
     <p-tabPanel header="Tareas">
-      <app-obra-tareas></app-obra-tareas>
+      <app-obra-tareas
+        [tareas]="tareas"
+        [proveedores]="proveedores"
+        (tareasActualizadas)="onTareasActualizadas($event)">
+      </app-obra-tareas>
     </p-tabPanel>
+
 
     <p-tabPanel header="Presupuesto">
       <app-obra-presupuesto [obraId]="obra!.id_obra"></app-obra-presupuesto>

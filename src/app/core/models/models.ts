@@ -39,7 +39,7 @@ export interface EstadoObra {
 export interface EstadoTarea {
   id_estado_tarea: number;
   nombre: string; // pendiente | en_progreso | completada
-  activo: boolean;
+  activo?: boolean;
 }
 
 export interface TipoTransaccion {
@@ -150,15 +150,15 @@ export interface Recibo {
 }
 
 export interface Transaccion {
-  id_transaccion: number;
+  id_transaccion?: number;
   id_obra: number;
   id_tipo_transaccion: number;
   id_factura?: number;
   id_recibo?: number;
-  fecha: string;
+  fecha?: string;
   monto: number;
   parcial_o_total: 'parcial' | 'total';
-  activo: boolean;
+  activo?: boolean;
 }
 
 // Vista de transacciones rotuladas

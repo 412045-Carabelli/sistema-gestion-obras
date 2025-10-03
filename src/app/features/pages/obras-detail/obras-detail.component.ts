@@ -8,7 +8,7 @@ import { TabViewModule } from 'primeng/tabview';
 import { ProgressBarModule } from 'primeng/progressbar';
 import { TooltipModule } from 'primeng/tooltip';
 
-import { Cliente, Obra, ObraCosto } from '../../../core/models/models';
+import {Cliente, Obra, ObraCosto, Proveedor, Tarea} from '../../../core/models/models';
 import { ObraMovimientosComponent } from '../../components/obra-movimientos/obra-movimientos.component';
 import { ObraTareasComponent } from '../../components/obra-tareas/obra-tareas.component';
 import { ObraPresupuestoComponent } from '../../components/obra-presupuesto/obra-presupuesto.component';
@@ -19,7 +19,6 @@ import { ObraReportComponent } from '../../components/obra-report/obra-report.co
   standalone: true,
   imports: [
     RouterLink,
-    NgIf,
     ButtonModule,
     CardModule,
     TabViewModule,
@@ -28,7 +27,6 @@ import { ObraReportComponent } from '../../components/obra-report/obra-report.co
     ObraMovimientosComponent,
     ObraTareasComponent,
     ObraPresupuestoComponent,
-    ObraReportComponent,
     CurrencyPipe,
     DatePipe
   ],
@@ -37,6 +35,20 @@ import { ObraReportComponent } from '../../components/obra-report/obra-report.co
 })
 export class ObrasDetailComponent implements OnInit {
   obra!: Obra;
+
+  tareas: Tarea[] = [
+    { id_tarea: 1, id_obra: 1, id_proveedor: 1, id_estado_tarea: 2, nombre: 'Cimientos', activo: true },
+    { id_tarea: 2, id_obra: 1, id_proveedor: 2, id_estado_tarea: 2, nombre: 'Levantamiento paredes', activo: true },
+    { id_tarea: 3, id_obra: 1, id_proveedor: 3, id_estado_tarea: 1, nombre: 'Colocación techos', activo: true },
+    { id_tarea: 4, id_obra: 1, id_proveedor: 4, id_estado_tarea: 1, nombre: 'Instalaciones eléctricas', activo: true }
+  ];
+
+  proveedores: Proveedor[] = [
+    { id_proveedor: 1, id_tipo_proveedor: 1, nombre: 'Proveedor A', activo: true },
+    { id_proveedor: 2, id_tipo_proveedor: 1, nombre: 'Proveedor B', activo: true },
+    { id_proveedor: 3, id_tipo_proveedor: 1, nombre: 'Proveedor C', activo: true },
+    { id_proveedor: 4, id_tipo_proveedor: 1, nombre: 'Proveedor D', activo: true }
+  ];
 
   ngOnInit(): void {
     this.cargarMockObra();
@@ -93,15 +105,23 @@ export class ObrasDetailComponent implements OnInit {
       gastado: 638000,
       activo: true
     };
+
+  }
+
+  onTareasActualizadas(tareas: Tarea[]) {
+    this.tareas = tareas;
   }
 
   getProgresoFinanciero(): number {
     return this.obra?.presupuesto
-      ? ((this.obra.gastado ?? 0) / this.obra.presupuesto) * 100
+      ? Math.round(((this.obra.gastado ?? 0) / this.obra.presupuesto) * 100)
       : 0;
   }
 
   getProgresoFisico(): number {
-    return 70; // Mock
+    if (!this.tareas.length) return 0;
+    // supongamos: estado 2 = completada, estado 1 = pendiente
+    const completadas = this.tareas.filter(t => t.id_estado_tarea === 2).length;
+    return Math.round((completadas / this.tareas.length) * 100);
   }
 }
