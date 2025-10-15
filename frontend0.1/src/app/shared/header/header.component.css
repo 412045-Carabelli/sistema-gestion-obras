@@ -1,0 +1,15 @@
+/* Personalizaciones opcionales */
+:host ::ng-deep .p-button.p-button-text {
+  color: #374151;
+}
+
+:host ::ng-deep .p-button.p-button-text:hover {
+  background-color: #f3f4f6;
+}
+
+/* Ocultar texto del logo en móviles */
+@media (max-width: 640px) {
+  .logo-text {
+    display: none;
+  }
+}

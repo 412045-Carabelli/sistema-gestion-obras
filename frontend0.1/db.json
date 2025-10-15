@@ -1,0 +1,380 @@
+{
+  "clientes": [
+    {
+      "id": "1",
+      "nombre": "Rodriguez S.A.",
+      "contacto": "Juan Rodriguez",
+      "cuit": "20-12345678-9",
+      "telefono": "+54 351 123-4567",
+      "email": "juan@rodriguez.com.ar",
+      "activo": true,
+      "creado_en": "2025-01-15T10:30:00Z"
+    },
+    {
+      "id": "2",
+      "nombre": "Inmobiliaria Norte",
+      "contacto": "María González",
+      "cuit": "30-87654321-2",
+      "telefono": "+54 351 987-6543",
+      "email": "maria@inmobiliarianorte.com",
+      "activo": true,
+      "creado_en": "2025-02-05T09:00:00Z"
+    }
+  ],
+  "tipo_proveedor": [
+    {
+      "id": "1",
+      "nombre": "Mano de Obra",
+      "activo": true
+    },
+    {
+      "id": "2",
+      "nombre": "Materiales",
+      "activo": true
+    },
+    {
+      "id": "3",
+      "nombre": "Servicios",
+      "activo": true
+    }
+  ],
+  "proveedores": [
+    {
+      "id": "1",
+      "id_tipo_proveedor": 2,
+      "nombre": "Materiales San Juan",
+      "contacto": "Pedro Gomez",
+      "telefono": "+54 351 111-2222",
+      "email": "pedro@materialessj.com",
+      "activo": true,
+      "creado_en": "2025-02-01T12:00:00Z"
+    },
+    {
+      "id": "2",
+      "id_tipo_proveedor": 1,
+      "nombre": "Construcciones López",
+      "contacto": "Carlos López",
+      "telefono": "+54 351 333-4444",
+      "email": "carlos@lopez.com",
+      "activo": true,
+      "creado_en": "2025-02-10T14:00:00Z"
+    }
+  ],
+  "estado_obra": [
+    {
+      "id": "1",
+      "nombre": "Presupuestada",
+      "activo": true
+    },
+    {
+      "id": "2",
+      "nombre": "Cotizada",
+      "activo": true
+    },
+    {
+      "id": "3",
+      "nombre": "Adjudicada",
+      "activo": true
+    },
+    {
+      "id": "4",
+      "nombre": "Iniciada",
+      "activo": true
+    },
+    {
+      "id": "5",
+      "nombre": "En progreso",
+      "activo": true
+    },
+    {
+      "id": "6",
+      "nombre": "Finalizada",
+      "activo": true
+    },
+    {
+      "id": "8",
+      "nombre": "Perdida",
+      "activo": true
+    }
+  ],
+  "estado_tarea": [
+    {
+      "id": "1",
+      "nombre": "Pendiente",
+      "activo": true
+    },
+    {
+      "id": "2",
+      "nombre": "En progreso",
+      "activo": true
+    },
+    {
+      "id": "3",
+      "nombre": "Completada",
+      "activo": true
+    }
+  ],
+  "tipo_transaccion": [
+    {
+      "id": "1",
+      "nombre": "Cobro",
+      "activo": true
+    },
+    {
+      "id": "2",
+      "nombre": "Pago",
+      "activo": true
+    }
+  ],
+  "obras": [
+    {
+      "id": "1",
+      "id_cliente": 1,
+      "id_estado_obra": 1,
+      "nombre": "Casa Familia Rodriguez",
+      "direccion": "Av. San Martín 1234, Córdoba",
+      "fecha_inicio": "2025-01-20",
+      "fecha_fin": "2025-07-14",
+      "fecha_adjudicada": null,
+      "fecha_perdida": null,
+      "presupuesto": 620000,
+      "beneficio_global": true,
+      "beneficio": 10,
+      "tiene_comision": true,
+      "comision": 20,
+      "activo": true,
+      "creado_en": "2025-02-01T11:00:00Z"
+    },
+    {
+      "id": "2",
+      "id_cliente": 2,
+      "id_estado_obra": 2,
+      "nombre": "Edificio Comercial Norte",
+      "direccion": "Calle Comercio 567, Centro",
+      "fecha_inicio": "2025-02-05",
+      "fecha_fin": "2026-01-15",
+      "presupuesto": 2200000,
+      "beneficio_global": false,
+      "beneficio": 10,
+      "tiene_comision": false,
+      "comision": 0,
+      "activo": true,
+      "creado_en": "2025-02-01T11:00:00Z"
+    }
+  ],
+  "obra_proveedor": [
+    {
+      "id": "1",
+      "id_obra": 1,
+      "id_proveedor": 1
+    },
+    {
+      "id": "2",
+      "id_obra": 1,
+      "id_proveedor": 2
+    },
+    {
+      "id": "3",
+      "id_obra": 2,
+      "id_proveedor": 2
+    }
+  ],
+  "obra_costo": [
+    {
+      "id": "1",
+      "id_obra": 1,
+      "id_proveedor": 1,
+      "descripcion": "Materiales: Cemento y arena",
+      "unidad": "tn",
+      "cantidad": 10,
+      "precio_unitario": 12000,
+      "iva": 21,
+      "beneficio": 5,
+      "estado_pago": 2,
+      "subtotal": 120000,
+      "total": 145200,
+      "activo": true
+    },
+    {
+      "id": "2",
+      "id_obra": 1,
+      "id_proveedor": 2,
+      "descripcion": "Mano de obra: Albañilería",
+      "unidad": "hora",
+      "cantidad": 200,
+      "precio_unitario": 2500,
+      "iva": 21,
+      "beneficio": 10,
+      "id_estado_pago": 1,
+      "subtotal": 500000,
+      "total": 605000,
+      "activo": true
+    }
+  ],
+  "estado_pago": [
+    {
+      "id": "1",
+      "estado": "Pendiente"
+    },
+    {
+      "id": "2",
+      "estado": "Pagado"
+    }
+  ],
+  "tareas": [
+    {
+      "id": "0",
+      "id_obra": 1,
+      "id_proveedor": 1,
+      "id_estado_tarea": 3,
+      "nombre": "Hacer durlock",
+      "activo": true
+    },
+    {
+      "id": "1",
+      "id_obra": 1,
+      "id_proveedor": 2,
+      "id_estado_tarea": 1,
+      "nombre": "Pintar paredes",
+      "activo": true
+    },
+    {
+      "id": "2",
+      "id_obra": 1,
+      "id_proveedor": 1,
+      "id_estado_tarea": 3,
+      "nombre": "Ajustar maderas",
+      "activo": true
+    }
+  ],
+  "cotizaciones": [
+    {
+      "id": "1",
+      "id_obra": 1,
+      "version": 1,
+      "estado": "enviada",
+      "fecha_creacion": "2025-01-25",
+      "fecha_envio": "2025-01-26",
+      "total": 750000,
+      "activo": true
+    }
+  ],
+  "cotizacion_item": [
+    {
+      "id": "1",
+      "id_cotizacion": 1,
+      "descripcion": "Materiales básicos",
+      "unidad": "tn",
+      "cantidad": 5,
+      "precio_unitario": 10000,
+      "iva": 21,
+      "subtotal": 50000,
+      "total": 60500
+    }
+  ],
+  "facturas": [
+    {
+      "id": "1",
+      "id_obra": 1,
+      "numero": "FAC-2025-001",
+      "fecha_emision": "2025-02-15",
+      "total": 200000,
+      "activo": true
+    }
+  ],
+  "recibos": [
+    {
+      "id": "1",
+      "id_obra": 1,
+      "id_proveedor": 1,
+      "numero": "REC-2025-001",
+      "fecha": "2025-02-20",
+      "total": 85000,
+      "activo": true
+    }
+  ],
+  "transacciones": [
+    {
+      "id": "1",
+      "id_obra": 1,
+      "id_tipo_transaccion": 1,
+      "id_factura": 1,
+      "fecha": "2025-02-15",
+      "monto": 200000,
+      "parcial_o_total": "parcial",
+      "activo": true
+    },
+    {
+      "id": "2",
+      "id_obra": 1,
+      "id_tipo_transaccion": 2,
+      "id_recibo": 1,
+      "fecha": "2025-02-20",
+      "monto": 85000,
+      "parcial_o_total": "total",
+      "activo": true
+    },
+    {
+      "id": "de39",
+      "id_tipo_transaccion": "1",
+      "fecha": "2025-10-08T03:00:00.000Z",
+      "id_obra": 1,
+      "monto": 20000,
+      "parcial_o_total": "parcial",
+      "activo": true
+    }
+  ],
+  "documentos": [
+    {
+      "id": "1",
+      "id_obra": 1,
+      "id_tipo_documento": 1,
+      "nombre_archivo": "factura_obra1.pdf",
+      "path_archivo": "uploads/obras/1/factura_obra1.pdf",
+      "fecha": "2025-10-07",
+      "observacion": "Factura inicial proveedor X"
+    },
+    {
+      "id": "dc41",
+      "id_documento": 46491,
+      "id_obra": 1,
+      "id_tipo_documento": "4",
+      "nombre_archivo": "412045_CAR_2025_647330.pdf",
+      "path_archivo": "uploads/obras/1/412045_CAR_2025_647330.pdf",
+      "fecha": "2025-10-08T01:24:41.478Z",
+      "observacion": "Pagare de ejemplo"
+    }
+  ],
+  "tipo_documentos": [
+    {
+      "id": "1",
+      "nombre": "Factura",
+      "activo": true
+    },
+    {
+      "id": "2",
+      "nombre": "Recibo",
+      "activo": true
+    },
+    {
+      "id": "3",
+      "nombre": "Remito",
+      "activo": true
+    },
+    {
+      "id": "4",
+      "nombre": "Pagare",
+      "activo": true
+    },
+    {
+      "id": "5",
+      "nombre": "Comprobante",
+      "activo": true
+    },
+    {
+      "id": "6",
+      "nombre": "Otro",
+      "activo": true
+    }
+  ]
+}

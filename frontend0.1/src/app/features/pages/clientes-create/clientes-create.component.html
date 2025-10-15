@@ -1,0 +1,83 @@
+<p-toast></p-toast>
+
+<div class="p-6 w-full mx-auto bg-white rounded-xl shadow-sm space-y-6">
+  <h2 class="text-2xl font-bold">
+    {{ editing ? 'Editar Cliente' : 'Nuevo Cliente' }}
+  </h2>
+
+  <form [formGroup]="form" (ngSubmit)="onSubmit()" class="space-y-4 flex flex-col gap-5 ">
+    <div class="flex flex-col flex-wrap gap-5">
+      <!-- Nombre y Contacto -->
+      <div class="flex gap-5">
+        <div class="min-h-[72px] w-full">
+          <label class="block text-sm font-medium text-gray-700">Nombre *</label>
+          <input pInputText type="text" formControlName="nombre" class="w-full" />
+          @if (form.get('nombre')?.invalid && form.get('nombre')?.touched) {
+            <small class="text-red-500 text-xs mt-1 h-[16px] block">Campo obligatorio</small>
+          }
+        </div>
+
+        <div class="min-h-[72px] w-full">
+          <label class="block text-sm font-medium text-gray-700">Contacto *</label>
+          <input pInputText type="text" formControlName="contacto" class="w-full" />
+          @if (form.get('contacto')?.invalid && form.get('contacto')?.touched) {
+            <small class="text-red-500 text-xs mt-1 h-[16px] block">Campo obligatorio</small>
+          }
+        </div>
+      </div>
+
+      <!-- CUIT y Teléfono -->
+      <div class="flex gap-5">
+        <div class="w-full">
+          <label class="block text-sm font-medium text-gray-700">CUIT</label>
+          <input pInputText type="text" formControlName="cuit" class="w-full" />
+        </div>
+
+        <div class="min-h-[72px] w-full">
+          <label class="block text-sm font-medium text-gray-700">Teléfono *</label>
+          <input pInputText type="text" formControlName="telefono" class="w-full" />
+          @if (form.get('telefono')?.invalid && form.get('telefono')?.touched) {
+            <small class="text-red-500 text-xs mt-1 h-[16px] block">
+              El teléfono debe tener entre 10 y 15 caracteres
+            </small>
+          }
+        </div>
+      </div>
+
+      <!-- Email y Activo -->
+      <div class="flex gap-5">
+        <div class="min-h-[72px] w-full lg:w-[400px]">
+          <label class="block text-sm font-medium text-gray-700">Email *</label>
+          <input pInputText type="email" formControlName="email" class="w-full" />
+          @if (form.get('email')?.invalid && form.get('email')?.touched) {
+            <small class="text-red-500 text-xs mt-1 h-[16px] block">
+              Ingrese un email válido
+            </small>
+          }
+        </div>
+
+        <div class="flex flex-col gap-2">
+          <label for="activo" class="text-sm font-medium text-gray-700">Activo</label>
+          <p-checkbox inputId="activo" formControlName="activo" binary="true"></p-checkbox>
+        </div>
+      </div>
+    </div>
+
+    <div class="flex justify-end gap-2 pt-4">
+      <p-button
+        label="Cancelar"
+        severity="secondary"
+        icon="pi pi-times"
+        [routerLink]="['/clientes']"
+        styleClass="p-button-text">
+      </p-button>
+      <p-button
+        label="Guardar"
+        icon="pi pi-check"
+        type="submit"
+        [disabled]="form.invalid"
+        styleClass="p-button-primary">
+      </p-button>
+    </div>
+  </form>
+</div>

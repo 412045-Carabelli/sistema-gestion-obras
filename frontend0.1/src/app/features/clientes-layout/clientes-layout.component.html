@@ -1,0 +1,68 @@
+<p-toast position="bottom-right"></p-toast>
+
+<div class="p-5 flex justify-between items-center border-b border-gray-200 bg-white">
+  @switch (true) {
+
+    @case (currentRoute === '/clientes') {
+      <div>
+        <h1 class="text-3xl font-semibold text-gray-800 m-0">Clientes</h1>
+        <p class="mt-1 text-sm text-gray-600">Resumen y gestión de todos los Clientes</p>
+      </div>
+      <p-button
+        label="Nuevo Cliente"
+        icon="pi pi-plus"
+        routerLink="/clientes/nueva"
+        styleClass="p-button-raised p-button-primary">
+      </p-button>
+    }
+
+    @case (currentRoute === '/clientes/nueva') {
+      <div>
+        <h1 class="text-3xl font-semibold text-gray-800 m-0">Nueva Obra</h1>
+        <p class="mt-1 text-sm text-gray-600">Registrar una nueva obra</p>
+      </div>
+      <p-button
+        label="Volver al listado"
+        icon="pi pi-arrow-left"
+        (onClick)="goBack()"
+        styleClass="p-button-outlined">
+      </p-button>
+    }
+
+    @case (currentRoute.includes('/clientes/editar')) {
+      <div>
+        <h1 class="text-3xl font-semibold text-gray-800 m-0">Editar Cliente</h1>
+        <p class="mt-1 text-sm text-gray-600">Actualizar datos</p>
+      </div>
+      <p-button
+        label="Volver al listado"
+        icon="pi pi-arrow-left"
+        (onClick)="goBack()"
+        styleClass="p-button-outlined">
+      </p-button>
+    }
+
+    @case (isDetail()) {
+      <div>
+        <h1 class="text-3xl font-semibold text-gray-800 m-0">Detalle del Cliente</h1>
+        <p class="mt-1 text-sm text-gray-600">Visualiza obras y movimientos</p>
+      </div>
+      <p-button
+        label="Volver al listado"
+        icon="pi pi-arrow-left"
+        (onClick)="goBack()"
+        styleClass="p-button-outlined">
+      </p-button>
+    }
+
+    @default {
+      <div>
+        <h1 class="text-3xl font-semibold text-gray-800 m-0">Gestión de Clientes</h1>
+      </div>
+    }
+  }
+</div>
+
+<div class="p-5 bg-gray-50 min-h-[80vh]">
+  <router-outlet></router-outlet>
+</div>

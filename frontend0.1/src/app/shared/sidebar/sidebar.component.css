@@ -1,0 +1,59 @@
+/* Sidebar fijo */
+.sidebar {
+  width: 240px;
+  height: 100vh;
+  position: fixed;
+  left: 0;
+  top: 60px; /* Altura del header */
+  background-color: #e5e7eb;
+  overflow-y: auto;
+  transition: transform 0.3s ease;
+}
+
+/* Estilos para items de navegación */
+.nav-item {
+  position: relative;
+}
+
+.nav-item:hover {
+  background-color: rgba(0, 0, 0, 0.08);
+}
+
+.nav-item.active-nav-item {
+  background-color: rgba(59, 130, 246, 0.1);
+  color: #1f2937;
+  font-weight: 600;
+}
+
+.nav-item.active-nav-item i {
+  color: #3b82f6;
+}
+
+/* Scrollbar personalizado */
+.sidebar::-webkit-scrollbar {
+  width: 6px;
+}
+
+.sidebar::-webkit-scrollbar-track {
+  background: #e5e7eb;
+}
+
+.sidebar::-webkit-scrollbar-thumb {
+  background: #9ca3af;
+  border-radius: 3px;
+}
+
+.sidebar::-webkit-scrollbar-thumb:hover {
+  background: #6b7280;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .sidebar {
+    transform: translateX(-100%);
+  }
+
+  .sidebar.mobile-open {
+    transform: translateX(0);
+  }
+}

@@ -1,0 +1,179 @@
+<p-toast position="bottom-right"></p-toast>
+<p-confirmDialog></p-confirmDialog>
+
+<div class="p-4 space-y-4">
+  <div class="flex justify-between items-center mb-3">
+    <h2 class="text-xl font-semibold text-gray-800">Documentos</h2>
+    <p-button
+      label="Nuevo Documento"
+      icon="pi pi-plus"
+      styleClass="p-button-primary"
+      (onClick)="abrirModal()"
+    ></p-button>
+  </div>
+
+  <!-- Tabla -->
+  <p-table
+    [value]="documentos"
+    [paginator]="true"
+    [rows]="5"
+    sortField="fecha"
+    [sortOrder]="-1"
+    responsiveLayout="scroll"
+    class="p-datatable-sm border border-gray-200 rounded-lg overflow-hidden"
+  >
+    <ng-template pTemplate="header">
+      <tr>
+        <th pSortableColumn="tipo_documento.nombre">Tipo <p-sortIcon field="tipo_documento.nombre"></p-sortIcon></th>
+        <th>Observación</th>
+        <th pSortableColumn="fecha">Fecha <p-sortIcon field="fecha"></p-sortIcon></th>
+        <th pSortableColumn="nombre_archivo">Archivo <p-sortIcon field="nombre_archivo"></p-sortIcon></th>
+        <th>Acciones</th>
+      </tr>
+    </ng-template>
+
+    <ng-template pTemplate="body" let-d>
+      <tr>
+        <td>{{ d.tipo_documento?.nombre ?? '—' }}</td>
+        <td>{{ d.observacion || '—' }}</td>
+        <td>{{ d.fecha | date: 'dd/MM/yyyy' }}</td>
+        <td>
+          <span class="truncate-text" [title]="d.nombre_archivo">
+          {{ d.nombre_archivo }}
+        </span>
+        </td>
+        <td class="space-x-2">
+          <!-- Botón de descarga -->
+          <p-button
+            icon="pi pi-download"
+            styleClass="p-button-sm p-button-secondary"
+            (onClick)="descargarDocumento(d)"
+            pTooltip="Descargar"
+            tooltipPosition="top"
+          ></p-button>
+
+          <!-- Botón de eliminar -->
+          <p-button
+            icon="pi pi-trash"
+            styleClass="p-button-danger p-button-sm"
+            (onClick)="eliminarDocumento(d)"
+            pTooltip="Eliminar"
+            tooltipPosition="top"
+          ></p-button>
+        </td>
+      </tr>
+    </ng-template>
+  </p-table>
+
+  <!-- Modal -->
+  <p-dialog
+    header="Nuevo Documento"
+    [(visible)]="modalVisible"
+    [modal]="true"
+    [style]="{ width: '450px' }"
+    [draggable]="false"
+    [resizable]="false"
+  >
+    <div class="space-y-4">
+      <div>
+        <label class="block text-sm font-medium mb-1 text-gray-700">Tipo</label>
+        <p-select
+          [options]="tiposDocumento"
+          optionLabel="nombre"
+          optionValue="id"
+          placeholder="Seleccionar tipo"
+          [(ngModel)]="selectedTipo"
+          styleClass="w-full"
+        ></p-select>
+      </div>
+
+      <div>
+        <label class="block text-sm font-medium mb-1 text-gray-700">Observación</label>
+        <input
+          type="text"
+          pInputText
+          [(ngModel)]="observacion"
+          class="w-full"
+          placeholder="Ej. Factura inicial"
+        />
+      </div>
+
+      <div>
+        <label class="block text-sm font-medium mb-1 text-gray-700">Archivo</label>
+        @if (!selectedFile) {
+          <p-fileUpload
+            mode="basic"
+            chooseLabel="Subir archivo"
+            chooseIcon="pi pi-upload"
+            [auto]="false"
+            (onSelect)="onFileSelected($event)"
+            accept=".pdf,.jpg,.jpeg,.png"
+            class="flex flex-start"
+          ></p-fileUpload>
+        } @else {
+          <div class="flex items-center gap-2 text-sm text-gray-700">
+            <span>{{ selectedFile.name }}</span>
+            <button
+              type="button"
+              (click)="quitarArchivo()"
+              class="text-red-500 hover:text-red-700"
+            >
+              ✕
+            </button>
+          </div>
+        }
+      </div>
+    </div>
+
+    <ng-template pTemplate="footer">
+      <p-button
+        label="Cancelar"
+        icon="pi pi-times"
+        styleClass="p-button-text"
+        (onClick)="modalVisible = false"
+      ></p-button>
+
+      <p-button
+        label="Guardar"
+        icon="pi pi-check"
+        styleClass="p-button-primary"
+        (onClick)="guardarDocumento()"
+      ></p-button>
+    </ng-template>
+  </p-dialog>
+
+  <!-- 📌 Modal de confirmación para eliminar documento -->
+  <p-dialog
+    header="Confirmar eliminación"
+    [(visible)]="confirmModalVisible"
+    [modal]="true"
+    [style]="{ width: '400px' }"
+    [draggable]="false"
+    [resizable]="false"
+    [closable]="false"
+  >
+    <div class="space-y-4">
+      <p class="text-gray-800">
+        ¿Estás seguro de que querés eliminar el documento
+        <strong>{{ docAEliminar?.nombre_archivo }}</strong>?
+      </p>
+      <p class="text-sm text-gray-500">Esta acción no se puede deshacer.</p>
+    </div>
+
+    <ng-template pTemplate="footer">
+      <p-button
+        label="Cancelar"
+        icon="pi pi-times"
+        styleClass="p-button-text"
+        (onClick)="cancelarEliminacion()"
+      ></p-button>
+
+      <p-button
+        label="Eliminar"
+        icon="pi pi-trash"
+        styleClass="p-button-danger"
+        (onClick)="confirmarEliminacion()"
+      ></p-button>
+    </ng-template>
+  </p-dialog>
+</div>

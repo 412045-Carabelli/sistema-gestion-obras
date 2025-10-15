@@ -1,0 +1,140 @@
+<p-toast position="bottom-right"></p-toast>
+
+<div class="p-4 space-y-5">
+  <!-- Header -->
+  <div class="flex justify-between items-center flex-wrap gap-3">
+    <div>
+      <h2 class="text-2xl font-bold text-gray-900">Presupuesto</h2>
+      <p class="text-gray-500 text-sm mt-1">
+        Matriz de costos detallada de la obra
+      </p>
+    </div>
+
+    <div class="flex gap-5 items-center">
+      <p class="text-sm text-gray-700">
+        <strong>Beneficio:</strong>
+        {{ usarBeneficioGlobal ? 'Global (' + beneficioGlobal + '%)' : 'Individual' }}
+      </p>
+
+      <p-button
+        icon="pi pi-file-pdf"
+        label="Exportar PDF"
+        styleClass="p-button-md p-button-primary"
+        (onClick)="exportarPDF()"
+      ></p-button>
+    </div>
+  </div>
+
+  <!-- Tabla de costos -->
+  <p-table
+    *ngIf="costosFiltrados.length > 0; else noCostos"
+    [value]="costosFiltrados"
+    responsiveLayout="scroll"
+    class="text-sm p-datatable-sm border border-gray-200 rounded-lg overflow-hidden"
+  >
+    <!-- Encabezado -->
+    <ng-template pTemplate="header">
+      <tr class="bg-gray-50 text-gray-700">
+        <th class="text-left px-3 py-2 font-semibold">Proveedor</th>
+        <th class="text-left px-3 py-2 font-semibold">Descripción</th>
+        <th class="text-left px-3 py-2 font-semibold">Cantidad</th>
+        <th class="text-left px-3 py-2 font-semibold">Precio Unit.</th>
+        <th class="text-left px-3 py-2 font-semibold">Beneficio (%)</th>
+        <th class="text-left px-3 py-2 font-semibold">Estado de pago</th>
+        <th class="text-left px-3 py-2 font-semibold">Total</th>
+      </tr>
+    </ng-template>
+
+    <!-- Filas -->
+    <ng-template pTemplate="body" let-c let-rowIndex="rowIndex">
+      <tr
+        class="hover:bg-gray-50 transition"
+        [ngClass]="rowIndex % 2 === 0 ? 'bg-white' : 'bg-gray-50'"
+      >
+        <td class="px-3 py-2">{{ c.proveedor.nombre ?? '-' }}</td>
+        <td class="px-3 py-2">{{ c.descripcion }}</td>
+        <td class="px-3 py-2">{{ c.cantidad }} {{ c.unidad }}</td>
+        <td class="px-3 py-2 text-right">{{ c.precio_unitario | currency }}</td>
+
+        <td class="px-3 py-2 text-right">
+          <span *ngIf="usarBeneficioGlobal" class="text-gray-500 text-xs">
+            Global ({{ beneficioGlobal }}%)
+          </span>
+          <span *ngIf="!usarBeneficioGlobal">{{ c.beneficio }}%</span>
+        </td>
+
+        <td class="px-3 py-2">
+          <p-select
+            [options]="estadosPago"
+            optionLabel="estado"
+            optionValue="id"
+            [ngModel]="c.estado_pago?.id"
+            (ngModelChange)="actualizarEstadoPago(c, $event)"
+            styleClass="w-32"
+          ></p-select>
+        </td>
+
+        <td class="px-3 py-2 text-right font-semibold">
+          {{ c.total | currency }}
+        </td>
+      </tr>
+    </ng-template>
+
+    <!-- Footer -->
+    <ng-template pTemplate="footer">
+      <tr class="bg-gray-100 font-semibold">
+        <td colspan="6" class="text-right px-3 py-2">Subtotal:</td>
+        <td class="px-3 py-2">{{ calcularTotal() | currency:'ARS' }}</td>
+      </tr>
+
+      <tr *ngIf="usarBeneficioGlobal" class="bg-gray-50 text-sm">
+        <td colspan="6" class="text-right px-3 py-2 text-gray-600">
+          Beneficio Global ({{ beneficioGlobal }}%):
+        </td>
+        <td class="px-3 py-2 text-blue-600 font-medium">
+          {{ (calcularTotal() * (beneficioGlobal / 100)) | currency:'ARS' }}
+        </td>
+      </tr>
+
+      <tr class="bg-gray-50 text-sm">
+        <td colspan="6" class="text-right px-3 py-2 text-gray-600">
+          Comisión ({{ comision }}%):
+        </td>
+        <td class="px-3 py-2 text-indigo-600 font-medium">
+          {{
+            (calcularTotal() *
+              (1 + (usarBeneficioGlobal ? beneficioGlobal / 100 : 0)) *
+              (comision / 100)) | currency:'ARS'
+          }}
+        </td>
+      </tr>
+
+      <tr class="bg-gray-200 font-bold">
+        <td colspan="6" class="text-right px-3 py-2">Presupuesto Total:</td>
+        <td class="px-3 py-2 text-green-700">
+          {{ getPresupuestoTotal() | currency:'ARS' }}
+        </td>
+      </tr>
+
+      <tr class="bg-gray-50 text-sm">
+        <td colspan="6" class="text-right px-3 py-2 text-gray-600">Pagado:</td>
+        <td class="px-3 py-2 text-green-600 font-medium">
+          {{ calcularTotalPorEstado('Pagado') | currency:'ARS' }}
+        </td>
+      </tr>
+
+      <tr class="bg-gray-50 text-sm">
+        <td colspan="6" class="text-right px-3 py-2 text-gray-600">Pendiente:</td>
+        <td class="px-3 py-2 text-amber-600 font-medium">
+          {{ calcularTotalPorEstado('Pendiente') | currency:'ARS' }}
+        </td>
+      </tr>
+    </ng-template>
+  </p-table>
+
+  <ng-template #noCostos>
+    <div class="text-center text-gray-500 py-10">
+      No hay costos cargados para esta obra.
+    </div>
+  </ng-template>
+</div>

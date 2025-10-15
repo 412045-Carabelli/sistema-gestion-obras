@@ -1,0 +1,83 @@
+<p-toast></p-toast>
+<div class="flex flex-col gap-3">
+  <!-- Header -->
+  <div class="flex w-full justify-between items-center">
+    <div class="p-5">
+      <h1 class="text-2xl font-semibold text-black">Gestión de tareas</h1>
+      <p class="text-gray-600">Progreso por proveedor</p>
+    </div>
+    <p-button icon="pi pi-plus" label="Nueva Tarea" (onClick)="abrirModal()"></p-button>
+  </div>
+
+  <!-- Lista por proveedor -->
+  @for (proveedor of proveedores; track proveedor.id) {
+    <div class="rounded-lg p-5 bg-gray-50">
+      <div class="flex justify-between items-center mb-2">
+        <div>
+          <h3 class="font-semibold text-xl text-gray-800">{{ proveedor.nombre }}</h3>
+          <p class="text-sm text-gray-700">
+            {{ getCompletadas(proveedor.id) }} / {{ getTotales(proveedor.id) }} completadas
+          </p>
+        </div>
+      </div>
+
+      <p-progressBar [value]="progreso(proveedor.id)"></p-progressBar>
+
+      <div class="space-y-2 mt-3">
+        @for (tarea of tareasProveedor(proveedor.id); track tarea.id) {
+          <div
+            class="flex justify-between items-center border rounded-md p-2 cursor-pointer"
+            [ngClass]="claseEstado(tarea)"
+            (click)="toggleTarea(tarea)"
+          >
+            <div class="flex items-center gap-2">
+              <i
+                class="pi text-lg"
+                [ngClass]="{
+                  'pi-check-circle text-green-600': tarea.estado_tarea.id === 3,
+                  'pi-circle text-gray-400': tarea.estado_tarea.id !== 3
+                }"
+              ></i>
+              <span [class.line-through]="tarea.estado_tarea.id === 3">
+                {{ tarea.nombre }}
+              </span>
+            </div>
+            <p-button
+              icon="pi pi-trash"
+              styleClass="p-button-text p-button-sm text-red-500"
+              (onClick)="eliminarTarea(tarea.id!); $event.stopPropagation()"
+            ></p-button>
+          </div>
+        }
+      </div>
+    </div>
+  }
+
+  <!-- Modal -->
+  <app-modal
+    [visible]="showAddTaskModal"
+    title="Nueva Tarea"
+    (closed)="cerrarModal()"
+    (confirmed)="guardarTarea()"
+  >
+    <div class="p-3 space-y-3">
+      <label class="block text-sm font-medium">Nombre de la tarea</label>
+      <input
+        type="text"
+        pInputText
+        [(ngModel)]="nuevaTarea.nombre"
+        class="w-full"
+      />
+
+      <label class="block text-sm font-medium">Proveedor</label>
+      <p-select
+        [options]="proveedores"
+        [(ngModel)]="nuevaTarea.proveedor"
+        optionLabel="nombre"
+        placeholder="Seleccionar proveedor"
+        appendTo="body"
+        class="w-full">
+      </p-select>
+    </div>
+  </app-modal>
+</div>

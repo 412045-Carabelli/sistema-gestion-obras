@@ -1,0 +1,65 @@
+@if (loading) {
+  <div class="flex justify-center items-center min-h-[60vh]">
+    <p-progressSpinner
+      styleClass="w-16 h-16"
+      strokeWidth="4"
+      animationDuration=".8s">
+    </p-progressSpinner>
+  </div>
+} @else if (proveedor) {
+  <div class="p-6 space-y-6 max-w-5xl mx-auto bg-white rounded-xl shadow-sm">
+    <div class="flex justify-between items-start flex-wrap gap-3">
+      <div>
+        <h1 class="text-2xl font-bold text-gray-900">{{ proveedor.nombre }}</h1>
+        <p class="text-gray-500 text-sm mt-1">{{ proveedor.tipo_proveedor?.nombre }}</p>
+      </div>
+      <div class="flex items-center gap-2">
+        <p-button
+          icon="pi pi-pencil"
+          styleClass="p-button-rounded p-button-text"
+          [routerLink]="['/proveedores/editar', proveedor.id]"
+          pTooltip="Editar"
+          tooltipPosition="top">
+        </p-button>
+      </div>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div class="space-y-2">
+        <p><strong>Contacto:</strong> {{ proveedor.contacto ?? '—' }}</p>
+        <p><strong>Teléfono:</strong> {{ proveedor.telefono ?? '—' }}</p>
+        <p><strong>Email:</strong> {{ proveedor.email ?? '—' }}</p>
+      </div>
+    </div>
+
+    <!-- Tabs -->
+    <p-tabs value="0">
+      <p-tablist>
+        <p-tab value="0">Tareas</p-tab>
+      </p-tablist>
+
+      <p-tabpanels>
+        <p-tabpanel value="0">
+          <p-table [value]="tareas" class="w-full">
+            <ng-template pTemplate="header">
+              <tr>
+                <th>Obra</th>
+                <th>Descripción</th>
+                <th>Estado</th>
+              </tr>
+            </ng-template>
+
+            <ng-template pTemplate="body" let-tarea>
+              <tr class="cursor-pointer hover:bg-gray-100 transition"
+                  (click)="irADetalleObra(tarea.id_obra)">
+                <td>{{ getNombreObra(tarea.id_obra) }}</td>
+                <td>{{ tarea.descripcion }}</td>
+                <td>{{ tarea.estado_tarea?.nombre }}</td>
+              </tr>
+            </ng-template>
+          </p-table>
+        </p-tabpanel>
+      </p-tabpanels>
+    </p-tabs>
+  </div>
+}

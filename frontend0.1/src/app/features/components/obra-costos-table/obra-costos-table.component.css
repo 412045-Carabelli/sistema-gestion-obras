@@ -1,0 +1,8 @@
+/* obra-costos-table.component.css */
+:host ::ng-deep .p-table-wrapper {
+  min-height: 300px;
+}
+
+:host ::ng-deep .p-dropdown {
+  min-width: 180px;
+}

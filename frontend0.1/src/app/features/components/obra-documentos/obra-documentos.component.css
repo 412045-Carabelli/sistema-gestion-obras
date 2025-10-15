@@ -1,0 +1,8 @@
+.truncate-text {
+  display: inline-block;
+  max-width: 180px;   /* 📏 ajustá el ancho según tu diseño */
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  vertical-align: middle;
+}
