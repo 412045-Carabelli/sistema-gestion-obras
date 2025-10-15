@@ -1,0 +1,4 @@
+com\clientes\ClientesServiceApplication.class
+com\clientes\controller\ClientesController.class
+com\clientes\entity\Cliente.class
+com\clientes\repository\ClienteRepository.class

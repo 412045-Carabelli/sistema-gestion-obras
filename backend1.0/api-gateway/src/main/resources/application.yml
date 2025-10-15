@@ -1,0 +1,55 @@
+server:
+  port: 8080
+
+spring:
+  main:
+    web-application-type: reactive
+  application:
+    name: api-gateway
+  cloud:
+    gateway:
+      routes:
+        - id: obras
+          uri: http://localhost:8081
+          predicates:
+            - Path=/api/obras/**
+        - id: clientes
+          uri: http://localhost:8082
+          predicates:
+            - Path=/api/clientes/**
+        - id: proveedores
+          uri: http://localhost:8083
+          predicates:
+            - Path=/api/proveedores/**
+            - Path=/api/tipos-proveedor/**
+        - id: catalogos
+          uri: http://localhost:8084
+          predicates:
+            - Path=/api/catalogos/**
+        - id: documentos
+          uri: http://localhost:8087
+          predicates:
+            - Path=/api/documentos/**
+        - id: transacciones
+          uri: http://localhost:8086
+          predicates:
+            - Path=/api/transacciones/**
+        - id: reportes
+          uri: http://localhost:8087
+          predicates:
+            - Path=/api/reportes/**
+
+      globalcors:
+        add-to-simple-url-handler-mapping: true
+        corsConfigurations:
+          '[/**]':
+            allowedOrigins:
+              - "http://localhost:4200"
+            allowedMethods: "*"
+            allowedHeaders: "*"
+            allowCredentials: true
+  codec:
+    max-in-memory-size: 10MB
+  webflux:
+    multipart:
+      max-in-memory-size: 10MB
