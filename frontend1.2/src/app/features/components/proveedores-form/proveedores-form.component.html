@@ -1,0 +1,34 @@
+<form (ngSubmit)="onSubmit()" [formGroup]="form" class="space-y-5">
+  <div>
+    <label class="block text-sm font-medium mb-1">Nombre</label>
+    <input class="w-full" formControlName="nombre" pInputText/>
+  </div>
+
+  <div>
+    <label class="block text-sm font-medium mb-1">Tipo</label>
+    <p-select
+      [options]="tipos"
+      appendTo="body"
+      formControlName="tipo_proveedor"
+      optionLabel="nombre"
+      placeholder="Selecciona un tipo">
+    </p-select>
+  </div>
+
+  <div>
+    <label class="block text-sm font-medium mb-1">Contacto</label>
+    <input class="w-full" formControlName="contacto" pInputText/>
+  </div>
+
+  <div>
+    <label class="block text-sm font-medium mb-1">Teléfono</label>
+    <input class="w-full" formControlName="telefono" pInputText/>
+  </div>
+
+  <div>
+    <label class="block text-sm font-medium mb-1">Email</label>
+    <input class="w-full" formControlName="email" pInputText/>
+  </div>
+
+  <p-button [disabled]="form.invalid" icon="pi pi-check" label="Guardar" type="submit"></p-button>
+</form>

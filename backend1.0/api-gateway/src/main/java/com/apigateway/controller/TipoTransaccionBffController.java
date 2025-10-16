@@ -1,6 +1,7 @@
 package com.apigateway.controller;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -16,8 +17,10 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class TipoTransaccionBffController {
 
+    @Value("${services.tipo_transacciones.url}")
+    private String TIPO_TRANSACCIONES_URL;
+
     private final WebClient.Builder webClientBuilder;
-    private final String TIPO_TRANSACCIONES_URL = "http://localhost:8086/api/tipo_transaccion";
 
     @GetMapping
     public Mono<ResponseEntity<List<Map<String, Object>>>> getAllTipos() {

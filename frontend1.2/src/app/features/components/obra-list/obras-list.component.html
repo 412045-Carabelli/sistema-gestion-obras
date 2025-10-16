@@ -1,0 +1,134 @@
+<div class="flex flex-col gap-4">
+  <!-- Filtros -->
+  <div class="bg-white p-4 rounded-lg border border-gray-200">
+    <div class="grid grid-cols-1 md:grid-cols-12 gap-4">
+      <!-- Buscar -->
+      <div class="md:col-span-8">
+        <p-iconfield iconPosition="left" styleClass="w-full">
+          <p-inputicon styleClass="pi pi-search"/>
+          <input
+            (input)="applyFilter()"
+            [(ngModel)]="searchValue"
+            class="w-full"
+            pInputText
+            placeholder="Buscar por nombre, dirección o cliente"
+            type="text"/>
+        </p-iconfield>
+      </div>
+
+      <!-- Estado -->
+      <div class="md:col-span-4">
+        <p-select
+          (onChange)="onEstadoChange()"
+          [(ngModel)]="estadoFiltro"
+          [options]="estadosOptions"
+          optionLabel="label"
+          optionValue="value"
+          placeholder="Filtrar por estado"
+          styleClass="w-full h-full flex items-center">
+          <ng-template let-option pTemplate="selectedItem">
+            <div class="flex items-center gap-2">
+              <i class="pi pi-filter text-sm"></i>
+              <span>{{ option?.label || 'Todos' }}</span>
+            </div>
+          </ng-template>
+        </p-select>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Tabla -->
+  <div class="bg-white rounded-lg border border-gray-200 overflow-hidden">
+    <p-table
+      [paginator]="true"
+      [rowHover]="true"
+      [rowsPerPageOptions]="[10, 25, 50]"
+      [rows]="10"
+      [showCurrentPageReport]="true"
+      [value]="obrasFiltradas"
+      currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} obras"
+      styleClass="p-datatable-sm">
+
+      <!-- Obra -->
+      <ng-template pTemplate="header">
+        <tr>
+          <th class="text-left font-semibold">Obra</th>
+          <th class="text-left font-semibold">Cliente</th>
+          <th class="text-left font-semibold">Estado</th>
+          <th class="text-left font-semibold">Período</th>
+          <th class="text-right font-semibold">Presupuesto</th>
+          <th class="text-center font-semibold">Progreso</th>
+        </tr>
+      </ng-template>
+
+      <ng-template let-obra pTemplate="body">
+        <tr
+          (click)="onRowClick(obra)"
+          class="cursor-pointer hover:bg-gray-50 transition-colors">
+
+          <!-- Obra -->
+          <td>
+            <div class="flex flex-col gap-1">
+              <span class="font-semibold text-gray-900 text-sm">{{ obra.nombre }}</span>
+              <span class="text-xs text-gray-500">{{ obra.direccion }}</span>
+            </div>
+          </td>
+
+          <!-- Cliente -->
+          <td class="text-gray-700">
+            {{ obra.cliente.nombre }}
+          </td>
+
+          <!-- Estado -->
+          <td>
+            <p-tag
+              [severity]="getEstadoSeverity(obra.id_estado_obra)"
+              [value]="obra.obra_estado.nombre"
+              styleClass="text-xs">
+            </p-tag>
+          </td>
+
+          <!-- Fechas -->
+          <td>
+            <div *ngIf="obra.fecha_inicio; else sinFechas" class="flex flex-col gap-1 text-xs text-gray-600">
+              <span>Desde: {{ obra.fecha_inicio | date:'dd/MM/yy' }}</span>
+              <span *ngIf="obra.fecha_fin">Hasta: {{ obra.fecha_fin | date:'dd/MM/yy' }}</span>
+            </div>
+            <ng-template #sinFechas>
+              <span class="text-gray-400 text-sm">—</span>
+            </ng-template>
+          </td>
+
+          <!-- Presupuesto -->
+          <td class="text-right font-medium text-gray-900">
+            {{ obra.presupuesto | currency:'ARS':'symbol-narrow':'1.0-0' }}
+          </td>
+
+          <!-- Progreso -->
+          <td class="text-center">
+            <span
+              class="inline-flex items-center justify-center bg-gray-100 text-gray-700 font-semibold text-sm px-3 py-1 rounded-full">
+              {{ getProgreso(obra) }}%
+            </span>
+          </td>
+
+        </tr>
+      </ng-template>
+
+      <!-- Sin datos -->
+      <ng-template pTemplate="emptymessage">
+        <tr>
+          <td class="text-center py-12" colspan="7">
+            <div class="flex flex-col items-center justify-center gap-3 text-gray-400">
+              <i class="pi pi-inbox text-5xl"></i>
+              <p class="text-lg font-medium">No se encontraron obras</p>
+              <p class="text-sm">Intenta ajustar los filtros de búsqueda</p>
+            </div>
+          </td>
+        </tr>
+      </ng-template>
+
+    </p-table>
+  </div>
+</div>

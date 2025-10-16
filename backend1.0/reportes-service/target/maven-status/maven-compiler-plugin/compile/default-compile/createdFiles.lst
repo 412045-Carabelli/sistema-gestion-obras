@@ -1,0 +1,3 @@
+com\reportes\controller\ReportesController.class
+com\reportes\dto\ReporteDto.class
+com\reportes\ReportesServiceApplication.class

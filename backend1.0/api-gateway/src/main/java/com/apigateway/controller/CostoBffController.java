@@ -1,6 +1,7 @@
 package com.apigateway.controller;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -15,9 +16,10 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class CostoBffController {
 
-    private final WebClient.Builder webClientBuilder;
+    @Value("${services.obras.costos.url}")
+    private String COSTOS_URL;
 
-    private final String COSTOS_URL = "http://localhost:8081/api/obras/costos";
+    private final WebClient.Builder webClientBuilder;
 
     // 🔸 GET /bff/costos/{idObra}
     @GetMapping("/{idObra}")

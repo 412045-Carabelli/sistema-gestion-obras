@@ -1,6 +1,7 @@
 package com.apigateway.controller;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -16,10 +17,10 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class TipoProveedorBffController {
 
-    private final WebClient.Builder webClientBuilder;
+    @Value("${services.proveedores.tipo.url}")
+    private String PROVEEDORES_URL;
 
-    // URL base del microservicio de proveedores
-    private static final String PROVEEDORES_URL = "http://localhost:8083/api/proveedores/tipo_proveedor";
+    private final WebClient.Builder webClientBuilder;
 
     // ===========================
     // 📥 GET - Obtener todos los tipos de proveedor

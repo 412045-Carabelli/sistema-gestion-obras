@@ -1,0 +1,21 @@
+<div class="flex flex-col gap-6 p-6 w-full mx-auto bg-gray-50">
+  <!-- Header -->
+  <div class="flex justify-between items-center">
+    <div>
+      <h1 class="text-3xl font-semibold text-gray-800 m-0">Obras</h1>
+      <p class="mt-1 text-sm text-gray-600">Resumen y gestión de todas las obras</p>
+    </div>
+    <p-button
+      (onClick)="nuevaObra()"
+      icon="pi pi-plus"
+      label="Nueva Obra"
+      styleClass="p-button-raised">
+    </p-button>
+  </div>
+
+  <!-- Listado de obras -->
+  <app-obra-list
+    (obraClick)="verObra($event)">
+  </app-obra-list>
+
+</div>

@@ -1,6 +1,7 @@
 package com.apigateway.controller;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -17,8 +18,10 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class ClienteBffController {
 
+    @Value("${services.clientes.url}")
+    private String CLIENTES_URL;
+
     private final WebClient.Builder webClientBuilder;
-    private final String CLIENTES_URL = "http://localhost:8082/api/clientes";
 
     // ================================
     // 📥 GET - Listar todos los clientes

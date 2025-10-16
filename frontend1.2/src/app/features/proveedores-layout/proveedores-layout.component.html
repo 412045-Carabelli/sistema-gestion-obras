@@ -1,0 +1,58 @@
+<p-toast position="bottom-right"></p-toast>
+
+<div class="p-5 flex justify-between items-center border-b border-gray-200 bg-white">
+  @switch (true) {
+    @case (currentRoute === '/proveedores') {
+      <div>
+        <h1 class="text-3xl font-semibold text-gray-800 m-0">Proveedores</h1>
+        <p class="mt-1 text-sm text-gray-600">Gestión de todos los proveedores</p>
+      </div>
+      <p-button
+        label="Nuevo Proveedor"
+        icon="pi pi-plus"
+        routerLink="/proveedores/nueva"
+        styleClass="p-button-raised p-button-primary">
+      </p-button>
+    }
+    @case (currentRoute === '/proveedores/nueva') {
+      <div>
+        <h1 class="text-3xl font-semibold text-gray-800 m-0">Nuevo Proveedor</h1>
+        <p class="mt-1 text-sm text-gray-600">Registrar un nuevo proveedor</p>
+      </div>
+      <p-button
+        label="Volver al listado"
+        icon="pi pi-arrow-left"
+        (onClick)="goBack()"
+        styleClass="p-button-outlined">
+      </p-button>
+    }
+    @case (currentRoute.includes('/proveedores/editar')) {
+      <div>
+        <h1 class="text-3xl font-semibold text-gray-800 m-0">Editar Proveedor</h1>
+        <p class="mt-1 text-sm text-gray-600">Actualizar datos de contacto</p>
+      </div>
+      <p-button
+        label="Volver al listado"
+        icon="pi pi-arrow-left"
+        (onClick)="goBack()"
+        styleClass="p-button-outlined">
+      </p-button>
+    }
+    @case (isDetail()) {
+      <div>
+        <h1 class="text-3xl font-semibold text-gray-800 m-0">Detalle del Proveedor</h1>
+        <p class="mt-1 text-sm text-gray-600">Información general y obras relacionadas</p>
+      </div>
+      <p-button
+        label="Volver al listado"
+        icon="pi pi-arrow-left"
+        (onClick)="goBack()"
+        styleClass="p-button-outlined">
+      </p-button>
+    }
+  }
+</div>
+
+<div class="p-5 bg-gray-50 min-h-[80vh]">
+  <router-outlet></router-outlet>
+</div>

@@ -1,0 +1,11 @@
+com\documentos\mapper\DocumentosMapper.class
+com\documentos\repository\DocumentoRepository.class
+com\documentos\entity\TipoDocumento.class
+com\documentos\service\DocumentoService.class
+com\documentos\dto\TipoDocumentoDto.class
+com\documentos\dto\DocumentoDto.class
+com\documentos\entity\Documento.class
+com\documentos\DocumentosServiceApplication.class
+com\documentos\controller\TipoDocumentoController.class
+com\documentos\controller\DocumentoController.class
+com\documentos\repository\TipoDocumentoRepository.class

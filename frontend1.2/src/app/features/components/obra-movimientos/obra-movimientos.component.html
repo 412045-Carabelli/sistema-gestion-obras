@@ -1,0 +1,159 @@
+<p-toast position="bottom-right"></p-toast>
+<p-confirmDialog></p-confirmDialog>
+
+<div class="p-4 space-y-5">
+  <!-- 🔹 Título y botón -->
+  <div class="flex justify-between items-center flex-wrap gap-3">
+    <div>
+      <h2 class="text-2xl font-bold text-gray-900">Movimientos</h2>
+      <p class="text-gray-500 text-sm mt-1">
+        Pagos y cobros asociados a la obra
+      </p>
+    </div>
+
+    <p-button
+      (onClick)="openModal()"
+      icon="pi pi-plus"
+      label="Nuevo Movimiento"
+      styleClass="p-button-md p-button-primary"
+    ></p-button>
+  </div>
+
+  <!-- 🔸 Tabla de movimientos -->
+  @if (transacciones.length > 0) {
+    <p-table
+      [value]="transacciones"
+      responsiveLayout="scroll"
+      class="text-sm p-datatable-sm border border-gray-200 rounded-lg overflow-hidden"
+    >
+      <ng-template pTemplate="header">
+        <tr class="bg-gray-50 text-gray-700">
+          <th>Tipo</th>
+          <th>Fecha</th>
+          <th>Forma de pago</th>
+          <th>Monto</th>
+          <th class="text-right"></th>
+        </tr>
+      </ng-template>
+
+      <ng-template pTemplate="body" let-t let-rowIndex="rowIndex">
+        <tr
+          class="hover:bg-gray-50 transition"
+          [ngClass]="rowIndex % 2 === 0 ? 'bg-white' : 'bg-gray-50'"
+        >
+          <td>
+            {{ t.tipo_transaccion?.nombre }}
+          </td>
+
+          <!-- 🔹 Fecha -->
+          <td>{{ t.fecha | date: 'dd/MM/yyyy' }}</td>
+
+          <!-- 🔹 Forma de pago -->
+          <td class="capitalize">{{ t.forma_pago }}</td>
+
+          <!-- 🔹 Monto -->
+          <td>{{ t.monto | currency: 'ARS' }}</td>
+
+          <!-- 🔹 Acciones -->
+          <td class="flex justify-end gap-2 items-center">
+            <!-- Editar -->
+            <p-button
+              icon="pi pi-pencil"
+              styleClass="p-button-rounded p-button-text p-button-sm"
+              (onClick)="openModal(t)"
+              pTooltip="Editar"
+            ></p-button>
+
+            <!-- Eliminar -->
+            <p-button
+              icon="pi pi-trash"
+              styleClass="p-button-rounded p-button-text p-button-danger p-button-sm"
+              pTooltip="Eliminar"
+              (onClick)="eliminarMovimiento(t)"
+            ></p-button>
+          </td>
+        </tr>
+      </ng-template>
+    </p-table>
+
+    <!-- 🔸 Totales -->
+    <div class="mt-4 p-4 bg-gray-50 rounded-lg text-sm space-y-1">
+      <div class="flex justify-between">
+        <span class="font-medium">Total Cobros (FC):</span>
+        <span>{{ totalCobros | currency: 'ARS' }}</span>
+      </div>
+      <div class="flex justify-between">
+        <span class="font-medium">Total Pagos (RBOS):</span>
+        <span>{{ totalPagos | currency: 'ARS' }}</span>
+      </div>
+      <div class="flex justify-between font-semibold text-base border-t pt-2">
+        <span>Saldo:</span>
+        <span>{{ saldo | currency: 'ARS' }}</span>
+      </div>
+    </div>
+  } @else {
+    <div class="text-center text-gray-500 py-10 flex flex-col items-center gap-2">
+      <i class="pi pi-inbox text-4xl"></i>
+      <p>No hay movimientos registrados para esta obra.</p>
+    </div>
+  }
+
+  <!-- 🧾 Modal de creación / edición -->
+  <app-modal
+    (closed)="cerrarModal()"
+    (confirmed)="guardarMovimiento()"
+    [title]="modoEdicion ? 'Editar movimiento' : 'Nuevo movimiento'"
+    [visible]="showAddMovementModal"
+  >
+    <div class="p-3 space-y-3">
+      <!-- 🔸 Tipo de movimiento -->
+      <label class="block text-sm font-medium mb-1 text-gray-700">
+        Tipo de movimiento
+      </label>
+      <p-select
+        [(ngModel)]="nuevoMovimiento.tipo_transaccion.id"
+        [options]="tiposTransaccion"
+        class="w-full"
+        optionLabel="nombre"
+        optionValue="id"
+        placeholder="Seleccionar tipo"
+      ></p-select>
+
+      <!-- 🔸 Forma de pago -->
+      <label class="block text-sm font-medium mb-1 text-gray-700">
+        Forma de pago/cobro
+      </label>
+      <p-select
+        [(ngModel)]="nuevoMovimiento.forma_pago"
+        [options]="parcial_o_total_options"
+        class="w-full"
+        optionLabel="label"
+        optionValue="value"
+      ></p-select>
+
+      <!-- 🔸 Monto y Fecha -->
+      <div class="flex gap-5">
+        <div class="flex flex-col w-1/2">
+          <label class="block text-sm font-medium mb-1 text-gray-700">Monto</label>
+          <p-inputNumber
+            [(ngModel)]="nuevoMovimiento.monto"
+            class="w-full"
+            currency="ARS"
+            locale="es-AR"
+            mode="currency"
+          ></p-inputNumber>
+        </div>
+
+        <div class="flex flex-col w-1/2">
+          <label class="block text-sm font-medium mb-1 text-gray-700">Fecha</label>
+          <p-datepicker
+            [(ngModel)]="nuevoMovimiento.fecha"
+            appendTo="body"
+            class="w-full"
+            dateFormat="dd/mm/yy"
+          ></p-datepicker>
+        </div>
+      </div>
+    </div>
+  </app-modal>
+</div>

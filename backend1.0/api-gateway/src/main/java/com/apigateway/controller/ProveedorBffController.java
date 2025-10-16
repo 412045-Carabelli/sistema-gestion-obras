@@ -1,6 +1,7 @@
 package com.apigateway.controller;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -16,9 +17,10 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class ProveedorBffController {
 
-    private final WebClient.Builder webClientBuilder;
+    @Value("${services.proveedores.url}")
+    private String PROVEEDORES_URL;
 
-    private static final String PROVEEDORES_URL = "http://localhost:8083/api/proveedores";
+    private final WebClient.Builder webClientBuilder;
 
     // ===============================
     // 🔸 GET /bff/proveedores

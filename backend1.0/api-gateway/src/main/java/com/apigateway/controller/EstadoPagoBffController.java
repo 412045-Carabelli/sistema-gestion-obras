@@ -1,6 +1,7 @@
 package com.apigateway.controller;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -17,9 +18,10 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class EstadoPagoBffController {
 
-    private final WebClient.Builder webClientBuilder;
+    @Value("${services.obras.estado_pago.url}")
+    private String ESTADO_PAGO_URL;
 
-    private static final String ESTADO_PAGO_URL = "http://localhost:8081/api/obras/estado_pago";
+    private final WebClient.Builder webClientBuilder;
 
     @GetMapping
     public Mono<ResponseEntity<List<Map<String, Object>>>> getEstadosPago() {

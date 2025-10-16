@@ -1,6 +1,7 @@
 package com.apigateway.controller;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -17,13 +18,22 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class ObraBffController {
 
-    private final WebClient.Builder webClientBuilder;
+    @Value("${services.obras.url}")
+    private String OBRAS_URL;
 
-    private static final String OBRAS_URL = "http://localhost:8081/api/obras";
-    private static final String CLIENTES_URL = "http://localhost:8082/api/clientes";
-    private static final String COSTOS_URL = "http://localhost:8081/api/obras/costos";
-    private static final String TAREAS_URL = "http://localhost:8081/api/obras/tareas";
-    private static final String PROVEEDORES_URL = "http://localhost:8083/api/proveedores";
+    @Value("${services.clientes.url}")
+    private String CLIENTES_URL;
+
+    @Value("${services.obras.costos.url}")
+    private String COSTOS_URL;
+
+    @Value("${services.obras.tareas.url}")
+    private String TAREAS_URL;
+
+    @Value("${services.proveedores.url}")
+    private String PROVEEDORES_URL;
+
+    private final WebClient.Builder webClientBuilder;
 
     // ================================
     // 📥 POST - Crear Obra

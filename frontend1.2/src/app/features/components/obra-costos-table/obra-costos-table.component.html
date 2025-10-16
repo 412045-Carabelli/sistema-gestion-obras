@@ -1,0 +1,102 @@
+<div class="mt-4 rounded-lg overflow-hidden shadow-sm">
+  <p-table
+    [tableStyle]="{ 'min-width': '100%' }"
+    [value]="costos.controls"
+    class="w-full text-sm"
+  >
+    <!-- CABECERA -->
+    <ng-template pTemplate="header">
+      <tr>
+        <th class="px-3 py-2 text-left w-48">Proveedor</th>
+        <th class="px-3 py-2 text-left w-64">Descripción</th>
+        <th class="px-3 py-2 text-right w-20">Cantidad</th>
+        <th class="px-3 py-2 text-right w-20">Uni. Med.</th>
+        <th class="px-3 py-2 text-right w-32">Precio Unitario</th>
+        <th class="px-3 py-2 text-right w-28">Beneficio (%)</th>
+        <th class="px-3 py-2 text-right w-32">Total</th>
+      </tr>
+    </ng-template>
+
+    <!-- CUERPO -->
+    <ng-template let-fila let-rowIndex="rowIndex" pTemplate="body">
+      <tr [formGroup]="costos.at(rowIndex)" class="border-t">
+        <!-- Proveedor -->
+        <td class="px-2 py-1 w-48">
+          @if (!modoEdicion) {
+            <p-select
+              [options]="proveedores"
+              optionLabel="nombre"
+              optionValue="id"
+              formControlName="id_proveedor"
+              placeholder="Seleccionar"
+              appendTo="body"
+              styleClass="w-full"
+            ></p-select>
+          } @else {
+            {{ getProveedorNombre(costos.at(rowIndex).get('id_proveedor')?.value) }}
+          }
+        </td>
+
+        <!-- Descripción -->
+        <td class="px-2 py-1 w-64">
+          @if (!modoEdicion) {
+            <input pInputText formControlName="descripcion" placeholder="Descripción" class="w-full"/>
+          } @else {
+            {{ costos.at(rowIndex).get('descripcion')?.value }}
+          }
+        </td>
+
+        <!-- Cantidad -->
+        <td class="px-2 py-1 text-right w-18">
+          @if (!modoEdicion) {
+            <input type="number" pInputText formControlName="cantidad" class="w-full text-right"/>
+          } @else {
+            {{ costos.at(rowIndex).get('cantidad')?.value }}
+          }
+        </td>
+
+        <!-- Unidad -->
+        <td class="px-2 py-1 w-26">
+          @if (!modoEdicion) {
+            <input pInputText formControlName="unidad" placeholder="Ej. m2" class="w-full"/>
+          } @else {
+            {{ costos.at(rowIndex).get('unidad')?.value }}
+          }
+        </td>
+
+        <!-- Precio Unitario -->
+        <td class="px-2 py-1 text-right w-32">
+          @if (!modoEdicion) {
+            <input type="number" pInputText formControlName="precio_unitario" class="w-full text-right"/>
+          } @else {
+            {{ costos.at(rowIndex).get('precio_unitario')?.value | currency:'ARS' }}
+          }
+        </td>
+
+        <!-- Beneficio -->
+        <td class="px-2 py-1 text-right w-28">
+          @if (!modoEdicion) {
+            <input type="number" pInputText formControlName="beneficio" class="w-full text-right"/>
+          } @else {
+            {{ costos.at(rowIndex).get('beneficio')?.value ?? 0 }}%
+          }
+        </td>
+
+        <!-- Total -->
+        <td class="px-2 py-1 text-right font-semibold text-green-700 w-32">
+          {{ costos.at(rowIndex).get('total')?.value | currency:'ARS' }}
+        </td>
+      </tr>
+    </ng-template>
+
+    <!-- PIE DE TABLA -->
+    <ng-template pTemplate="footer">
+      <tr class="font-semibold border-t bg-gray-50">
+        <td class="text-right px-3 py-2" colspan="6">TOTAL GENERAL:</td>
+        <td class="text-right px-3 py-2 text-green-700">
+          {{ calcularTotalGeneral() | currency:'ARS' }}
+        </td>
+      </tr>
+    </ng-template>
+  </p-table>
+</div>

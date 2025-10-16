@@ -1,6 +1,7 @@
 package com.apigateway.controller;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.http.MediaType;
@@ -21,8 +22,10 @@ import java.util.Map;
 @CrossOrigin(origins = "http://localhost:4200")
 public class DocumentoBffController {
 
+    @Value("${services.documentos.url}")
+    private String DOCUMENTOS_URL;
+
     private final WebClient.Builder webClientBuilder;
-    private static final String DOCUMENTOS_URL = "http://localhost:8087/api/documentos";
 
     // ================================
     // 📤 Crear documento (POST)

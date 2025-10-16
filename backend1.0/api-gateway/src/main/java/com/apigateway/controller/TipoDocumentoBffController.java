@@ -1,6 +1,7 @@
 package com.apigateway.controller;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -17,8 +18,10 @@ import java.util.Map;
 @CrossOrigin(origins = "http://localhost:4200") // ✅ habilitar CORS
 public class TipoDocumentoBffController {
 
+    @Value("${services.documentos.tipo.url}")
+    private String TIPO_DOC_URL;
+
     private final WebClient.Builder webClientBuilder;
-    private final String TIPO_DOC_URL = "http://localhost:8087/api/tipo_documentos";
 
     // ✅ GET /bff/tipo_documentos
     @GetMapping

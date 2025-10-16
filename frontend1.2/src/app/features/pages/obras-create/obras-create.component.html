@@ -1,0 +1,201 @@
+<div class="p-6 space-y-6 max-w-5xl mx-auto bg-white rounded-xl shadow-sm">
+  <form (ngSubmit)="onSubmit()" [formGroup]="form" class="space-y-6">
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <!-- Nombre -->
+      <div class="flex flex-col">
+        <label class="text-sm font-medium mb-1 text-gray-700">Nombre</label>
+        <input class="w-full" formControlName="nombre" pInputText placeholder="Ej. Proyecto X"/>
+        @if (form.get('nombre')?.touched && form.get('nombre')?.hasError('required')) {
+          <small class="text-red-500 text-xs mt-1">Campo obligatorio</small>
+        }
+      </div>
+
+      <!-- Cliente (objeto) -->
+      <div class="flex flex-col">
+        <label class="text-sm font-medium mb-1 text-gray-700">Cliente</label>
+        <p-select
+          [options]="clientes"
+          appendTo="body"
+          class="w-full"
+          formControlName="cliente"
+          optionLabel="nombre"
+          placeholder="Selecciona un cliente"
+        ></p-select>
+        @if (form.get('cliente')?.touched && form.get('cliente')?.hasError('required')) {
+          <small class="text-red-500 text-xs mt-1">Selecciona un cliente</small>
+        }
+      </div>
+
+      <!-- Estado de Obra (objeto) -->
+      <div class="flex flex-col">
+        <label class="text-sm font-medium mb-1 text-gray-700">Estado</label>
+        <p-select
+          [options]="estadosObra"
+          appendTo="body"
+          class="w-full"
+          formControlName="obra_estado"
+          optionLabel="nombre"
+          placeholder="Selecciona un estado"
+        ></p-select>
+        @if (form.get('obra_estado')?.touched && form.get('obra_estado')?.hasError('required')) {
+          <small class="text-red-500 text-xs mt-1">Selecciona un estado</small>
+        }
+      </div>
+
+      <!-- Dirección -->
+      <div class="flex flex-col">
+        <label class="text-sm font-medium mb-1 text-gray-700">Dirección</label>
+        <input class="w-full" formControlName="direccion" pInputText placeholder="Ej. Av. San Martín 1234"/>
+        @if (form.get('direccion')?.touched && form.get('direccion')?.hasError('required')) {
+          <small class="text-red-500 text-xs mt-1">Campo obligatorio</small>
+        }
+      </div>
+
+      <!-- Fechas -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div class="flex flex-col">
+          <label class="text-sm font-medium mb-1 text-gray-700">Fecha de inicio</label>
+          <p-datepicker
+            appendTo="body"
+            class="w-full"
+            dateFormat="dd/mm/yy"
+            formControlName="fecha_inicio"
+            inputId="fechaInicio"
+            showIcon="true"
+          ></p-datepicker>
+          @if (form.get('fecha_inicio')?.touched && form.get('fecha_inicio')?.hasError('required')) {
+            <small class="text-red-500 text-xs mt-1">Campo obligatorio</small>
+          }
+        </div>
+
+        <div class="flex flex-col">
+          <label class="text-sm font-medium mb-1 text-gray-700">Fecha de fin (opcional)</label>
+          <p-datepicker
+            appendTo="body"
+            class="w-full"
+            dateFormat="dd/mm/yy"
+            formControlName="fecha_fin"
+            inputId="fechaFin"
+            showIcon="true"
+          ></p-datepicker>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div class="flex flex-col">
+          <label class="text-sm font-medium mb-1 text-gray-700">Fecha adjudicada (opcional)</label>
+          <p-datepicker
+            appendTo="body"
+            class="w-full"
+            dateFormat="dd/mm/yy"
+            formControlName="fecha_adjudicada"
+            inputId="fechaAdjudicada"
+            showIcon="true"
+          ></p-datepicker>
+        </div>
+
+        <div class="flex flex-col">
+          <label class="text-sm font-medium mb-1 text-gray-700">Fecha perdida (opcional)</label>
+          <p-datepicker
+            appendTo="body"
+            class="w-full"
+            dateFormat="dd/mm/yy"
+            formControlName="fecha_perdida"
+            inputId="fechaPerdida"
+            showIcon="true"
+          ></p-datepicker>
+        </div>
+      </div>
+
+      <!-- Presupuesto -->
+      <div class="flex flex-col">
+        <label class="text-sm font-medium mb-1 text-gray-700">Presupuesto</label>
+        <input class="w-full" formControlName="presupuesto" pInputText readonly/>
+      </div>
+
+      <div class="flex gap-5">
+        <!-- Beneficio Global -->
+        <div class="flex flex-col">
+          <label class="text-sm font-medium mb-1 text-gray-700 flex items-center justify-between">
+            <span>Beneficio Global</span>
+          </label>
+          <div class="flex items-center gap-2">
+            <p-checkbox
+              binary="true"
+              class="py-3"
+              formControlName="beneficio_global"
+              inputId="beneficioGlobal"
+            ></p-checkbox>
+
+            <input
+              class="w-18"
+              formControlName="beneficio"
+              pInputText
+              placeholder="%"
+              type="number"
+            />
+
+            <span class="text-gray-500 text-xs">
+              <strong class="text-xl">%</strong> aplicado a todos los costos
+            </span>
+          </div>
+        </div>
+        <!-- Comisión Global -->
+        <div class="flex flex-col">
+          <label class="text-sm font-medium mb-1 text-gray-700 flex items-center justify-between">
+            <span>Comisión</span>
+          </label>
+
+          <div class="flex items-center gap-2">
+            <p-checkbox
+              binary="true"
+              class="py-3"
+              formControlName="tiene_comision"
+              inputId="tieneComision"
+            ></p-checkbox>
+
+            <input
+              class="w-18"
+              formControlName="comision"
+              pInputText
+              placeholder="%"
+              type="number"
+            />
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tabla de costos (opcional durante creación) -->
+    <div>
+      <h3 class="text-lg font-semibold text-gray-800 mb-3">Matriz de Costos</h3>
+
+      <app-obra-costos-table
+        [costos]="costos"
+        [modoEdicion]="false"
+        [proveedores]="proveedores"
+      ></app-obra-costos-table>
+
+      <div class="mt-3">
+        <p-button
+          (click)="nuevaFilaCosto()"
+          icon="pi pi-plus"
+          label="Agregar fila de costo"
+          styleClass="p-button-sm p-button-outlined"
+          type="button"
+        ></p-button>
+      </div>
+    </div>
+
+    <!-- Botón Guardar -->
+    <div class="flex justify-end mt-6">
+      <p-button
+        [disabled]="form.invalid"
+        icon="pi pi-save"
+        label="Guardar Obra"
+        styleClass="p-button-primary"
+        type="submit"
+      ></p-button>
+    </div>
+  </form>
+</div>
