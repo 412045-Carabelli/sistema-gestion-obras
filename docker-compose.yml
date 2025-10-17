@@ -21,11 +21,17 @@ services:
     depends_on: # El gateway no arrancará hasta que los servicios de los que depende estén listos
       - obras-service
       - clientes-service
-      # ... agrega aquí los demás servicios de los que dependa
+      - proveedores-service
+      - documentos-service
+      - transacciones-service
+      - reportes-service
     environment: # Variables para que el gateway sepa dónde encontrar los otros servicios
       - OBRAS_SERVICE_URL=http://obras-service:8081
       - CLIENTES_SERVICE_URL=http://clientes-service:8082
-      # ... agrega las URLs de los demás servicios
+      - PROVEEDORES_SERVICE_URL=http://proveedores-service:8083
+      - REPORTES_SERVICE_URL=http://reportes-service:8084
+      - TRANSACCIONES_SERVICE_URL=http://transacciones-service:8086
+      - DOCUMENTOS_SERVICE_URL=http://documentos-service:8087
 
   # --- Microservicio de Obras ---
   obras-service:
