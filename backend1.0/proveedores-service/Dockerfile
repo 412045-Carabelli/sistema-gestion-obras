@@ -1,18 +1,19 @@
-# Usamos una imagen base con Java 17 (ajusta la versión si usas otra)
+# Usamos una imagen base con Java 17
 FROM eclipse-temurin:17-jre-alpine
 
-# Argumento para el nombre del JAR, así no tenemos que cambiarlo en cada Dockerfile
 ARG JAR_FILE=target/*.jar
 
-# Creamos un directorio para la aplicación
 WORKDIR /app
 
-# Copiamos el JAR generado por Maven al contenedor
+# 📁 Crear la carpeta donde vivirá la base SQLite
+RUN mkdir -p /app/data
+
+# Copiar la base de datos si ya existe localmente
+COPY data/obras.db /app/data/proveedores.db
+
+# Copiamos el JAR
 COPY ${JAR_FILE} app.jar
 
-# Exponemos el puerto en el que corre el microservicio (ej. 8081, 8082, etc.)
-# Este puerto debe coincidir con el 'server.port' en tu application.properties
-EXPOSE 8083
+EXPOSE 8082
 
-# Comando para ejecutar la aplicación cuando el contenedor inicie
 ENTRYPOINT ["java", "-jar", "/app/app.jar"]
