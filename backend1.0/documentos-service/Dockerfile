@@ -10,6 +10,8 @@ WORKDIR /app
 # Copiamos el JAR generado por Maven al contenedor
 COPY ${JAR_FILE} app.jar
 
+COPY data/documentos.db /app/data/documentos.db
+
 # Exponemos el puerto en el que corre el microservicio (ej. 8081, 8082, etc.)
 # Este puerto debe coincidir con el 'server.port' en tu application.properties
 EXPOSE 8087
