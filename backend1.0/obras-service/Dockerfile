@@ -7,6 +7,8 @@ ARG JAR_FILE=target/*.jar
 # Creamos un directorio para la aplicación
 WORKDIR /app
 
+COPY data/obras.db /app/data/obras.db
+
 # Copiamos el JAR generado por Maven al contenedor
 COPY ${JAR_FILE} app.jar
 
