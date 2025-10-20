@@ -9,7 +9,7 @@ WORKDIR /app
 RUN mkdir -p /app/data
 
 # Copiar la base de datos si ya existe localmente
-COPY data/obras.db /app/data/reportes.db
+COPY data/reportes.db /app/data/reportes.db
 
 # Copiamos el JAR
 COPY ${JAR_FILE} app.jar
