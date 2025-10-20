@@ -1,11 +1,12 @@
 import {Injectable} from '@angular/core';
 import {HttpClient} from '@angular/common/http';
+import {environment} from '../../../enviroments/enviroment';
 
 @Injectable({
   providedIn: 'root'
 })
 export class EstadoObraService {
-  private apiUrl = 'http://localhost:8080/api/obras/estados';
+  private apiUrl = `${environment.apiGateway}${environment.endpoints.estados_obras}`;
 
   constructor(private http: HttpClient) {
   }

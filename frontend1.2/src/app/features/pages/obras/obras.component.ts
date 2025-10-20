@@ -34,6 +34,7 @@ export class ObrasComponent implements OnInit {
 
   ngOnInit() {
     this.obraService.getObras().subscribe(obras => {
+      console.log(obras)
       this.obras = obras;
     });
   }
