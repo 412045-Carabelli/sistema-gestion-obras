@@ -35,25 +35,6 @@ public class ObraBffController {
 
     private final WebClient.Builder webClientBuilder;
 
-    @GetMapping("/list/estados")
-    public Mono<ResponseEntity<List<Map<String, Object>>>> getEstadosObra() {
-        WebClient client = webClientBuilder.build();
-
-        return client.get()
-                .uri(OBRAS_URL + "/estados")
-                .retrieve()
-                .bodyToMono(new ParameterizedTypeReference<List<Map<String, Object>>>() {}) // 👈 parseo directo de la lista
-                .map(ResponseEntity::ok)
-                .onErrorResume(ex -> {
-                    Map<String, Object> err = Map.of(
-                            "error", "No se pudieron obtener los estados",
-                            "detalle", ex.getMessage()
-                    );
-                    return Mono.just(ResponseEntity.internalServerError().body(List.of(err)));
-                });
-    }
-
-
     // ================================
     // 📥 POST - Crear Obra
     // ================================
