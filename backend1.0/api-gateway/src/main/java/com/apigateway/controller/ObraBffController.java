@@ -273,10 +273,15 @@ public class ObraBffController {
         return client.get()
                 .uri(OBRAS_URL + "/estados")
                 .retrieve()
-                .bodyToFlux(new ParameterizedTypeReference<Map<String, Object>>() {})
-                .collectList()
-                .onErrorResume(ex -> Mono.just(List.of()))
-                .map(ResponseEntity::ok);
+                .bodyToMono(new ParameterizedTypeReference<List<Map<String, Object>>>() {}) // 👈 parseo directo de la lista
+                .map(ResponseEntity::ok)
+                .onErrorResume(ex -> {
+                    Map<String, Object> err = Map.of(
+                            "error", "No se pudieron obtener los estados",
+                            "detalle", ex.getMessage()
+                    );
+                    return Mono.just(ResponseEntity.internalServerError().body(List.of(err)));
+                });
     }
 
 }
