@@ -1,95 +1,119 @@
-version: '3.8'
+version: '3.9'
 
 services:
-  # --- Servicio del Frontend ---
-  frontend:
-    build:
-      context: ./frontend1.2 # Directorio donde está el Dockerfile del frontend
-      dockerfile: Dockerfile
-    container_name: frontend_service
-    ports:
-      - "4200:80" # Mapea el puerto 4200 de tu máquina al puerto 80 del contenedor Nginx
-
-  # --- API Gateway ---
-  api-gateway:
-    build:
-      context: ./backend1.0/api-gateway
-      dockerfile: Dockerfile
-    container_name: api_gateway_service
-    ports:
-      - "8080:8080" # Puerto principal de entrada al backend
-    depends_on: # El gateway no arrancará hasta que los servicios de los que depende estén listos
-      - obras-service
-      - clientes-service
-      # ... agrega aquí los demás servicios de los que dependa
-    environment: # Variables para que el gateway sepa dónde encontrar los otros servicios
-      - OBRAS_SERVICE_URL=http://obras-service:8081
-      - CLIENTES_SERVICE_URL=http://clientes-service:8082
-      # ... agrega las URLs de los demás servicios
-
-  # --- Microservicio de Obras ---
   obras-service:
-    build:
-      context: ./backend1.0/obras-service
-      dockerfile: Dockerfile
+    build: ./backend1.0/obras-service
     container_name: obras_service
     ports:
-      - "8081:8081" # Expones el puerto para debug, es opcional
+      - "8081:8081"
     volumes:
-      - ./backend1.0/obras-service/data:/app/data # ¡CRÍTICO! Esto hace que la base de datos sea persistente
+      - ./backend1.0/obras-service/data:/app/data
+    environment:
+      - SPRING_PROFILES_ACTIVE=default
+    restart: always
+    networks:
+      - backend
 
-  # --- Microservicio de Clientes ---
   clientes-service:
-    build:
-      context: ./backend1.0/clientes-service
-      dockerfile: Dockerfile
+    build: ./backend1.0/clientes-service
     container_name: clientes_service
     ports:
       - "8082:8082"
     volumes:
       - ./backend1.0/clientes-service/data:/app/data
+    environment:
+      - SPRING_PROFILES_ACTIVE=default
+    restart: always
+    networks:
+      - backend
 
-  # --- Microservicio de Proveedores ---
   proveedores-service:
-    build:
-      context: ./backend1.0/proveedores-service
-      dockerfile: Dockerfile
+    build: ./backend1.0/proveedores-service
     container_name: proveedores_service
     ports:
       - "8083:8083"
     volumes:
       - ./backend1.0/proveedores-service/data:/app/data
+    environment:
+      - SPRING_PROFILES_ACTIVE=default
+    restart: always
+    networks:
+      - backend
 
-  # --- Microservicio de Transacciones ---
-  transacciones-service:
-    build:
-      context: ./backend1.0/transacciones-service
-      dockerfile: Dockerfile
-    container_name: transacciones_service
-    ports:
-      - "8086:8086"
-    volumes:
-      - ./backend1.0/transacciones-service/data:/app/data
-
-  # --- Microservicio de Reportes ---
-  reportes-service:
-    build:
-      context: ./backend1.0/reportes-service
-      dockerfile: Dockerfile
-    container_name: reportes_service
-    ports:
-      - "8084:8084"
-    volumes:
-      - ./backend1.0/reportes-service/data:/app/data
-
-  # --- Microservicio de Documentos ---
   documentos-service:
-    build:
-      context: ./backend1.0/documentos-service
-      dockerfile: Dockerfile
+    build: ./backend1.0/documentos-service
     container_name: documentos_service
     ports:
       - "8087:8087"
     volumes:
       - ./backend1.0/documentos-service/data:/app/data
+      - ./backend1.0/documentos-service/uploads:/app/uploads
+    environment:
+      - SPRING_PROFILES_ACTIVE=default
+    restart: always
+    networks:
+      - backend
 
+  # reportes-service:
+  #   build: ./backend1.0/reportes-service
+  #   container_name: reportes_service
+  #   ports:
+  #     - "8084:8084"
+  #   volumes:
+  #     - ./backend1.0/reportes-service/data:/app/data
+  #   environment:
+  #     - SPRING_PROFILES_ACTIVE=default
+  #   restart: always
+  #   networks:
+  #     - backend
+
+  transaccion-service:
+    build: ./backend1.0/transacciones-service
+    container_name: transaccion_service
+    ports:
+      - "8086:8086"
+    volumes:
+      - ./backend1.0/transacciones-service/data:/app/data
+    environment:
+      - SPRING_PROFILES_ACTIVE=default
+    restart: always
+    networks:
+      - backend
+
+  api-gateway:
+    build: ./backend1.0/api-gateway
+    container_name: api_gateway
+    ports:
+      - "8080:8080"
+    depends_on:
+      - obras-service
+      - clientes-service
+      - proveedores-service
+      - documentos-service
+      - transaccion-service
+      # - reportes-service
+    environment:
+      - SPRING_PROFILES_ACTIVE=default
+    restart: always
+    networks:
+      - backend
+
+  frontend:
+    build: ./frontend1.2
+    container_name: obras_frontend
+    ports:
+      - "4200:80"
+    depends_on:
+      - obras-service
+      - clientes-service
+      - proveedores-service
+      - documentos-service
+      - transaccion-service
+      # - reportes-service
+    restart: always
+    networks:
+      - backend
+
+networks:
+  backend:
+    driver: bridge
