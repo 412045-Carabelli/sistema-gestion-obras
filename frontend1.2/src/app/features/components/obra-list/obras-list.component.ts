@@ -44,6 +44,7 @@ export class ObrasListComponent implements OnInit {
 
   obras: Obra[] = [];
   obrasFiltradas: Obra[] = [];
+  datosCargados = false;
   clientes: Cliente[] = [];
   estados: EstadoObra[] = [];
 
@@ -73,7 +74,6 @@ export class ObrasListComponent implements OnInit {
 
       this.obrasFiltradas = [...this.obras];
 
-      // opciones de filtro de estado
       this.estadosOptions = [
         {label: 'Todos', value: 'todos'},
         ...this.estados.map(e => ({
@@ -81,6 +81,8 @@ export class ObrasListComponent implements OnInit {
           value: e.nombre.toLowerCase()
         }))
       ];
+
+      this.datosCargados = true;
     });
   }
 

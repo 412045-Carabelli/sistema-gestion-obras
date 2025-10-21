@@ -56,18 +56,17 @@ export class ProveedoresListComponent implements OnInit {
       next: ({proveedores, tipos}) => {
         this.proveedores = proveedores.map(p => ({...p, id: Number(p.id)}));
         this.proveedoresFiltrados = [...this.proveedores];
-        console.log(proveedores);
         this.tipos = tipos;
         this.tipoOptions = [
           {label: 'Todos', value: 'todos'},
           ...tipos.map(t => ({label: t.nombre, value: t.id}))
         ];
-
         this.loading = false;
       },
       error: () => (this.loading = false)
     });
   }
+
 
   applyFilter() {
     this.proveedoresFiltrados = this.proveedores.filter(proveedor => {

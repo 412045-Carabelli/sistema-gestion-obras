@@ -6,60 +6,90 @@
       animationDuration=".8s">
     </p-progressSpinner>
   </div>
-} @else if (proveedor) {
-  <div class="p-6 space-y-6 max-w-5xl mx-auto bg-white rounded-xl shadow-sm">
-    <div class="flex justify-between items-start flex-wrap gap-3">
-      <div>
-        <h1 class="text-2xl font-bold text-gray-900">{{ proveedor.nombre }}</h1>
-        <p class="text-gray-500 text-sm mt-1">{{ proveedor.tipo_proveedor.nombre }}</p>
+} @else {
+  @defer (when proveedor) {
+    <div class="p-6 space-y-6 max-w-5xl mx-auto bg-white rounded-xl shadow-sm">
+      <div class="flex justify-between items-start flex-wrap gap-3">
+        <div>
+          <h1 class="text-2xl font-bold text-gray-900">{{ proveedor.nombre }}</h1>
+          <p class="text-gray-500 text-sm mt-1">{{ proveedor.tipo_proveedor.nombre }}</p>
+        </div>
+        <div class="flex items-center gap-2">
+          <p-button
+            icon="pi pi-pencil"
+            styleClass="p-button-rounded p-button-text"
+            [routerLink]="['/proveedores/editar', proveedor.id]"
+            pTooltip="Editar"
+            tooltipPosition="top">
+          </p-button>
+        </div>
       </div>
-      <div class="flex items-center gap-2">
-        <p-button
-          icon="pi pi-pencil"
-          styleClass="p-button-rounded p-button-text"
-          [routerLink]="['/proveedores/editar', proveedor.id]"
-          pTooltip="Editar"
-          tooltipPosition="top">
-        </p-button>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div class="space-y-2">
+          <p><strong>Contacto:</strong> {{ proveedor.contacto ?? '—' }}</p>
+          <p><strong>Teléfono:</strong> {{ proveedor.telefono ?? '—' }}</p>
+          <p><strong>Email:</strong> {{ proveedor.email ?? '—' }}</p>
+        </div>
+      </div>
+
+      <!-- Tabs -->
+      <p-tabs value="0">
+        <p-tablist>
+          <p-tab value="0">Tareas</p-tab>
+        </p-tablist>
+
+        <p-tabpanels>
+          <p-tabpanel value="0">
+            <p-table [value]="tareas" class="w-full">
+              <ng-template pTemplate="header">
+                <tr>
+                  <th>Obra</th>
+                  <th>Descripción</th>
+                  <th>Estado</th>
+                </tr>
+              </ng-template>
+
+              <ng-template pTemplate="body" let-tarea>
+                <tr class="cursor-pointer hover:bg-gray-100 transition"
+                    (click)="irADetalleObra(tarea.id_obra)">
+                  <td>{{ getNombreObra(tarea.id_obra) }}</td>
+                  <td>{{ tarea.descripcion }}</td>
+                  <td>{{ tarea.estado_tarea?.nombre }}</td>
+                </tr>
+              </ng-template>
+            </p-table>
+          </p-tabpanel>
+        </p-tabpanels>
+      </p-tabs>
+    </div>
+  } @placeholder {
+    <!-- 🦴 Skeleton Placeholder -->
+    <div class="p-6 space-y-6 max-w-5xl mx-auto bg-white rounded-xl shadow-sm animate-pulse">
+      <div class="flex justify-between items-start flex-wrap gap-3">
+        <div class="space-y-2 w-1/2">
+          <div class="h-6 bg-gray-200 rounded w-2/3"></div>
+          <div class="h-4 bg-gray-200 rounded w-1/3"></div>
+        </div>
+        <div class="h-10 w-10 bg-gray-200 rounded-full"></div>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div class="space-y-2">
+          <div class="h-4 bg-gray-200 rounded w-2/3"></div>
+          <div class="h-4 bg-gray-200 rounded w-1/2"></div>
+          <div class="h-4 bg-gray-200 rounded w-1/3"></div>
+        </div>
+      </div>
+
+      <div class="space-y-3">
+        <div class="h-6 bg-gray-200 rounded w-1/4"></div>
+        <div class="border border-gray-200 rounded-lg p-4 space-y-3">
+          <div class="h-4 bg-gray-200 rounded w-full"></div>
+          <div class="h-4 bg-gray-200 rounded w-5/6"></div>
+          <div class="h-4 bg-gray-200 rounded w-2/3"></div>
+        </div>
       </div>
     </div>
-
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-      <div class="space-y-2">
-        <p><strong>Contacto:</strong> {{ proveedor.contacto ?? '—' }}</p>
-        <p><strong>Teléfono:</strong> {{ proveedor.telefono ?? '—' }}</p>
-        <p><strong>Email:</strong> {{ proveedor.email ?? '—' }}</p>
-      </div>
-    </div>
-
-    <!-- Tabs -->
-    <p-tabs value="0">
-      <p-tablist>
-        <p-tab value="0">Tareas</p-tab>
-      </p-tablist>
-
-      <p-tabpanels>
-        <p-tabpanel value="0">
-          <p-table [value]="tareas" class="w-full">
-            <ng-template pTemplate="header">
-              <tr>
-                <th>Obra</th>
-                <th>Descripción</th>
-                <th>Estado</th>
-              </tr>
-            </ng-template>
-
-            <ng-template pTemplate="body" let-tarea>
-              <tr class="cursor-pointer hover:bg-gray-100 transition"
-                  (click)="irADetalleObra(tarea.id_obra)">
-                <td>{{ getNombreObra(tarea.id_obra) }}</td>
-                <td>{{ tarea.descripcion }}</td>
-                <td>{{ tarea.estado_tarea?.nombre }}</td>
-              </tr>
-            </ng-template>
-          </p-table>
-        </p-tabpanel>
-      </p-tabpanels>
-    </p-tabs>
-  </div>
+  }
 }
