@@ -17,7 +17,7 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class TransaccionBffController {
 
-    @Value("${services.tipo_transacciones.url}")
+    @Value("${services.transacciones.url}/tipo_transaccion")
     private String TIPO_TRANSACCIONES_URL;
 
     @Value("${services.transacciones.url}")

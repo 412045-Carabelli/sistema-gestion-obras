@@ -67,9 +67,9 @@ services:
   #   networks:
   #     - backend
 
-  transaccion-service:
+  transacciones-service:
     build: ./backend1.0/transacciones-service
-    container_name: transaccion_service
+    container_name: transacciones_service
     ports:
       - "8086:8086"
     volumes:
@@ -90,7 +90,7 @@ services:
       - clientes-service
       - proveedores-service
       - documentos-service
-      - transaccion-service
+      - transacciones-service
       # - reportes-service
     environment:
       - SPRING_PROFILES_ACTIVE=default
@@ -108,7 +108,7 @@ services:
       - clientes-service
       - proveedores-service
       - documentos-service
-      - transaccion-service
+      - transacciones-service
       # - reportes-service
     restart: always
     networks:

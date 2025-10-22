@@ -13,7 +13,7 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 @RestController
-@RequestMapping("/api/documentos") // Ruta base para la API de documentos
+@RequestMapping("/api/documentos")
 @RequiredArgsConstructor
 public class DocumentoController {
 
