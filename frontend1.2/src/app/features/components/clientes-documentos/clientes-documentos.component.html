@@ -1,0 +1,64 @@
+<p-toast position="bottom-right"></p-toast>
+
+@if (loading) {
+  <div class="flex justify-center items-center min-h-[40vh]">
+    <p-progressSpinner styleClass="w-12 h-12" strokeWidth="4" animationDuration=".8s"></p-progressSpinner>
+  </div>
+} @else {
+  @if (documentos.length > 0) {
+    <p-table
+      [value]="documentos"
+      [paginator]="true"
+      [rows]="5"
+      [sortOrder]="-1"
+      class="p-datatable-sm border border-gray-200 rounded-lg overflow-hidden"
+      responsiveLayout="scroll"
+      sortField="fecha"
+    >
+      <ng-template pTemplate="header">
+        <tr>
+          <th pSortableColumn="tipo_documento.nombre">
+            Tipo
+            <p-sortIcon field="tipo_documento.nombre"></p-sortIcon>
+          </th>
+          <th>Observación</th>
+          <th pSortableColumn="fecha">
+            Fecha
+            <p-sortIcon field="fecha"></p-sortIcon>
+          </th>
+          <th pSortableColumn="nombre_archivo">
+            Archivo
+            <p-sortIcon field="nombre_archivo"></p-sortIcon>
+          </th>
+          <th>Acciones</th>
+        </tr>
+      </ng-template>
+
+      <ng-template let-d pTemplate="body">
+        <tr>
+          <td>{{ d.tipo_documento?.nombre ?? '—' }}</td>
+          <td>{{ d.observacion || '—' }}</td>
+          <td>{{ d.fecha | date: 'dd/MM/yyyy' }}</td>
+          <td>
+            <span [title]="d.nombre_archivo" class="truncate-text">
+              {{ d.nombre_archivo }}
+            </span>
+          </td>
+          <td class="space-x-2">
+            <p-button
+              (onClick)="descargarDocumento(d)"
+              icon="pi pi-download"
+              pTooltip="Descargar"
+              styleClass="p-button-sm p-button-secondary"
+              tooltipPosition="top"
+            ></p-button>
+          </td>
+        </tr>
+      </ng-template>
+    </p-table>
+  } @else {
+    <p class="text-center text-gray-500 py-10">
+      No hay documentos registrados para este cliente.
+    </p>
+  }
+}

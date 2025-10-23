@@ -81,22 +81,14 @@ services:
       - backend
 
   api-gateway:
-    build: ./backend1.0/api-gateway
-    container_name: api_gateway
+    build:
+      context: ./backend1.0/api-gateway
+      dockerfile: Dockerfile
+    container_name: api_gateway_service
     ports:
       - "8080:8080"
-    depends_on:
-      - obras-service
-      - clientes-service
-      - proveedores-service
-      - documentos-service
-      - transacciones-service
-      # - reportes-service
     environment:
-      - SPRING_PROFILES_ACTIVE=default
-    restart: always
-    networks:
-      - backend
+      - SPRING_PROFILES_ACTIVE=prod
 
   frontend:
     build: ./frontend1.2

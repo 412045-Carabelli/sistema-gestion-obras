@@ -102,4 +102,17 @@ public class TransaccionBffController {
                 .bodyToMono(Void.class)
                 .then(Mono.just(ResponseEntity.noContent().build()));
     }
+
+    @GetMapping("/asociado/{tipo}/{id}")
+    public Mono<ResponseEntity<List<Map<String, Object>>>> getTransaccionesPorAsociado(
+            @PathVariable("tipo") String tipo,
+            @PathVariable("id") Long id) {
+
+        return webClientBuilder.build()
+                .get()
+                .uri(TRANSACCIONES_URL + "/asociado/{tipo}/{id}", tipo, id)
+                .retrieve()
+                .bodyToMono(new ParameterizedTypeReference<List<Map<String, Object>>>() {})
+                .map(ResponseEntity::ok);
+    }
 }

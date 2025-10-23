@@ -20,6 +20,12 @@ public class Documento {
     @Column(name = "id_obra", nullable = false)
     private Long idObra;
 
+    @Column(name = "id_asociado")
+    private Long idAsociado;
+
+    @Column(name = "tipo_asociado")
+    private String tipoAsociado;
+
     @Column(name = "nombre_archivo", nullable = false)
     private String nombreArchivo;
 

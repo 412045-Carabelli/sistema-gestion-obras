@@ -41,7 +41,7 @@
             </p-select>
           </div>
           <p><strong>Fecha de inicio:</strong> {{ obra.fecha_inicio | date:'dd/MM/yyyy' }}</p>
-          <p><strong>Fecha de fin:</strong> {{ obra.fecha_fin ? (obra.fecha_fin | date:'dd/MM/yyyy') : '—' }}</p>
+          <p><strong>Fecha de fin:</strong> {{ obra.fecha_fin ? (obra.fecha_fin | date:'dd/MM/yyyy') : 'No hay una fecha de fin definida' }}</p>
         </div>
 
         <div class="space-y-2">
@@ -87,12 +87,22 @@
           </p-tabpanel>
 
           <p-tabpanel value="2">
-            <app-obra-movimientos [obraId]="obra.id!"></app-obra-movimientos>
+            <app-obra-movimientos
+              [clientes]="clientes"
+              [proveedores]="proveedores"
+              [obraId]="obra.id!"
+            >
+            </app-obra-movimientos>
           </p-tabpanel>
 
           <p-tabpanel value="3">
-            <app-obra-documentos [obraId]="obra.id!"></app-obra-documentos>
+            <app-obra-documentos
+              [obraId]="obra.id!"
+              [proveedores]="proveedores"
+              [clientes]="clientes"
+            ></app-obra-documentos>
           </p-tabpanel>
+
         </p-tabpanels>
       </p-tabs>
     </div>

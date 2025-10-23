@@ -60,8 +60,6 @@ export interface Obra {
   tiene_comision?: boolean;
   activo?: boolean;
   creado_en?: string;
-
-  // ✅ Nuevos campos desde DTO backend
   tareas?: Tarea[];
   costos?: ObraCosto[];
 }
@@ -106,6 +104,8 @@ export interface Tarea {
 export interface Transaccion {
   id?: number;
   id_obra: number;
+  id_asociado?: number;
+  tipo_asociado?: string;
   tipo_transaccion: TipoTransaccion;
   fecha?: string | Date;
   monto: number;
@@ -121,6 +121,8 @@ export interface TipoDocumento {
 export interface Documento {
   id_documento: number;
   id_obra: number;
+  id_asociado: number;
+  tipo_asociado: string;
   nombre_archivo: string;
   path_archivo: string;
   fecha: string;

@@ -29,6 +29,7 @@
       <ng-template pTemplate="header">
         <tr class="bg-gray-50 text-gray-700">
           <th>Tipo</th>
+          <th>Asociado</th>
           <th>Fecha</th>
           <th>Forma de pago</th>
           <th>Monto</th>
@@ -43,6 +44,10 @@
         >
           <td>
             {{ t.tipo_transaccion?.nombre }}
+          </td>
+
+          <td>
+            {{ proveedorOCliente(t.id_asociado, t.tipo_asociado) }}
           </td>
 
           <!-- 🔹 Fecha -->
@@ -106,6 +111,59 @@
     [visible]="showAddMovementModal"
   >
     <div class="p-3 space-y-3">
+      <div class="grid grid-cols-5 gap-3">
+        <div class="col-span-2">
+          <label class="block text-sm font-medium mb-1 text-gray-700">
+            Asociar documento a
+          </label>
+          <p-select
+            [(ngModel)]="tipoEntidad"
+            [options]="[
+            { label: 'Proveedor', value: 'PROVEEDOR' },
+            { label: 'Cliente', value: 'CLIENTE' }
+          ]"
+            placeholder="Seleccionar tipo de entidad"
+            styleClass="w-full"
+            (onChange)="cargarDatos()"
+          ></p-select>
+        </div>
+
+        @if (tipoEntidad === 'PROVEEDOR') {
+          <div class="col-span-3">
+            <label class="block text-sm font-medium mb-1 text-gray-700">
+              Proveedor
+            </label>
+            <p-autoComplete
+              [(ngModel)]="selectedProveedor"
+              [suggestions]="filteredProveedores"
+              (completeMethod)="filtrarProveedores($event)"
+              field="nombre"
+              [dropdown]="true"
+              placeholder="Buscar proveedor"
+              styleClass="w-full"
+              (onSelect)="cargarDatos()"
+            ></p-autoComplete>
+          </div>
+        }
+
+        @if (tipoEntidad === 'CLIENTE') {
+          <div class="col-span-3">
+            <label class="block text-sm font-medium mb-1 text-gray-700">
+              Cliente
+            </label>
+            <p-autoComplete
+              [(ngModel)]="selectedCliente"
+              [suggestions]="filteredClientes"
+              (completeMethod)="filtrarClientes($event)"
+              field="nombre"
+              [dropdown]="true"
+              placeholder="Buscar cliente"
+              styleClass="w-full"
+              (onSelect)="cargarDatos()"
+            ></p-autoComplete>
+          </div>
+        }
+      </div>
       <!-- 🔸 Tipo de movimiento -->
       <label class="block text-sm font-medium mb-1 text-gray-700">
         Tipo de movimiento

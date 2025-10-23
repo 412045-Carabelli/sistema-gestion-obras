@@ -81,8 +81,15 @@
           </p-tabpanel>
 
           <p-tabpanel value="1">
-            <h1>Documentos del cliente</h1>
+            @defer (when cliente) {
+              <app-clientes-documentos [clienteId]="cliente.id!"></app-clientes-documentos>
+            } @placeholder {
+              <div class="flex justify-center items-center min-h-[40vh]">
+                <p-progressSpinner styleClass="w-12 h-12" strokeWidth="4" animationDuration=".8s"></p-progressSpinner>
+              </div>
+            }
           </p-tabpanel>
+
         </p-tabpanels>
       </p-tabs>
     </div>

@@ -7,13 +7,15 @@ import {DropdownModule} from 'primeng/dropdown';
 import {FormsModule} from '@angular/forms';
 import {ToastModule} from 'primeng/toast';
 import {ConfirmationService, MessageService} from 'primeng/api';
-import {Documento, TipoDocumento} from '../../../core/models/models';
+import {Cliente, Documento, Proveedor, TipoDocumento} from '../../../core/models/models';
 import {DocumentosService} from '../../../services/documentos/documentos.service';
 import {InputText} from 'primeng/inputtext';
 import {FileUpload} from 'primeng/fileupload';
 import {ConfirmDialogModule} from 'primeng/confirmdialog';
 import {Tooltip} from 'primeng/tooltip';
 import {Select} from 'primeng/select';
+import {AutoCompleteModule} from 'primeng/autocomplete';
+import {forkJoin} from 'rxjs';
 
 @Component({
   selector: 'app-obra-documentos',
@@ -32,49 +34,100 @@ import {Select} from 'primeng/select';
     ConfirmDialogModule,
     Tooltip,
     Select,
+    AutoCompleteModule
   ],
   providers: [MessageService, ConfirmationService],
   templateUrl: './obra-documentos.component.html',
-  styleUrls: ['./obra-documentos.component.css'],
+  styleUrls: ['./obra-documentos.component.css']
 })
 export class ObraDocumentosComponent implements OnInit {
   @Input() obraId!: number;
+  @Input() proveedores: Proveedor[] = [];
+  @Input() clientes: Cliente[] = [];
 
   documentos: Documento[] = [];
   tiposDocumento: TipoDocumento[] = [];
   loading = true;
-
-  // 📄 modal
   modalVisible = false;
   selectedTipo: number | null = null;
   observacion = '';
   selectedFile: File | null = null;
   confirmModalVisible = false;
   docAEliminar: Documento | null = null;
+  tipoEntidad: 'PROVEEDOR' | 'CLIENTE' = 'CLIENTE';
+  selectedProveedor: Proveedor | null = null;
+  selectedCliente: Cliente | null = null;
+  filteredProveedores: Proveedor[] = [];
+  filteredClientes: Cliente[] = [];
 
   constructor(
     private documentosService: DocumentosService,
-    private messageService: MessageService,
-    private confirmationService: ConfirmationService
-  ) {
-  }
+    private messageService: MessageService
+  ) {}
 
   ngOnInit(): void {
-    this.cargarDatos();
+    this.loading = true;
+
+    forkJoin({
+      tipos: this.documentosService.getTiposDocumento()
+    }).subscribe({
+      next: ({ tipos }) => {
+        this.tiposDocumento = tipos;
+        this.loading = false;
+      },
+      error: () => {
+        this.tiposDocumento = [];
+        this.loading = false;
+      }
+    });
+  }
+
+  filtrarProveedores(event: any) {
+    const query = event.query.toLowerCase();
+    this.filteredProveedores = this.proveedores.filter(p =>
+      p.nombre.toLowerCase().includes(query)
+    );
+  }
+
+  filtrarClientes(event: any) {
+    const query = event.query.toLowerCase();
+    this.filteredClientes = this.clientes.filter(c =>
+      c.nombre.toLowerCase().includes(query)
+    );
   }
 
   cargarDatos() {
     this.loading = true;
-    this.documentosService.getDocumentosByObra(this.obraId).subscribe({
-      next: (docs) => {
-        this.documentos = docs;
+
+    const tipoAsociado =
+      this.tipoEntidad === 'PROVEEDOR' && this.selectedProveedor
+        ? 'PROVEEDOR'
+        : this.tipoEntidad === 'CLIENTE' && this.selectedCliente
+          ? 'CLIENTE'
+          : null;
+
+    const idAsociado =
+      this.tipoEntidad === 'PROVEEDOR' && this.selectedProveedor
+        ? this.selectedProveedor.id
+        : this.tipoEntidad === 'CLIENTE' && this.selectedCliente
+          ? this.selectedCliente.id
+          : null;
+
+    if (!tipoAsociado || !idAsociado) {
+      this.documentos = [];
+      this.loading = false;
+      return;
+    }
+
+    this.documentosService.getDocumentosPorAsociado(tipoAsociado, idAsociado).subscribe({
+      next: documentos => {
+        this.documentos = documentos;
         this.loading = false;
       },
-      error: () => (this.loading = false),
-    });
-
-    this.documentosService.getTiposDocumento().subscribe((tipos) => {
-      this.tiposDocumento = tipos;
+      error: () => {
+        this.documentos = [];
+        this.loading = false;
+      }
     });
   }
 
@@ -86,11 +139,7 @@ export class ObraDocumentosComponent implements OnInit {
   }
 
   onFileSelected(event: any) {
-    if (event && event.files && event.files.length > 0) {
-      this.selectedFile = event.files[0];
-    } else {
-      this.selectedFile = null;
-    }
+    this.selectedFile = event?.files?.[0] ?? null;
   }
 
   quitarArchivo() {
@@ -102,44 +151,51 @@ export class ObraDocumentosComponent implements OnInit {
       this.messageService.add({
         severity: 'warn',
         summary: 'Datos incompletos',
-        detail: 'Seleccioná un tipo y un archivo.',
+        detail: 'Seleccioná un tipo y un archivo.'
       });
       return;
     }
 
+    let idAsociado: number | null = null;
+    let tipoAsociado: string | null = null;
+
+    if (this.tipoEntidad === 'PROVEEDOR' && this.selectedProveedor) {
+      idAsociado = this.selectedProveedor.id;
+      tipoAsociado = 'PROVEEDOR';
+    } else if (this.tipoEntidad === 'CLIENTE' && this.selectedCliente) {
+      idAsociado = this.selectedCliente.id;
+      tipoAsociado = 'CLIENTE';
+    }
+
     this.documentosService
-      .uploadDocumento(
+      .uploadDocumentoFlexible(
         this.obraId,
         this.selectedTipo,
         this.observacion ?? '',
-        this.selectedFile
+        this.selectedFile,
+        idAsociado,
+        tipoAsociado
       )
       .subscribe({
-        next: (nuevo) => {
-          // 🔁 Actualizamos la lista sin refrescar la página
+        next: nuevo => {
           this.documentos = [...this.documentos, nuevo];
-
-          // ✅ Cerramos el modal y limpiamos
           this.modalVisible = false;
           this.selectedFile = null;
           this.selectedTipo = null;
           this.observacion = '';
-
-          // 🟢 Notificación de éxito
           this.messageService.add({
             severity: 'success',
             summary: 'Documento subido',
-            detail: nuevo.nombre_archivo,
+            detail: nuevo.nombre_archivo
           });
         },
-        error: (err) => {
-          console.error('Error subiendo documento', err);
+        error: () => {
           this.messageService.add({
             severity: 'error',
             summary: 'Error',
-            detail: 'No se pudo subir el documento.',
+            detail: 'No se pudo subir el documento.'
           });
-        },
+        }
       });
   }
 
@@ -155,19 +211,14 @@ export class ObraDocumentosComponent implements OnInit {
 
   confirmarEliminacion() {
     if (!this.docAEliminar) return;
-
     this.documentosService.deleteDocumento(this.docAEliminar.id_documento).subscribe({
       next: () => {
-        this.documentos = this.documentos.filter(
-          (d) => d.id_documento !== this.docAEliminar?.id_documento
-        );
-
+        this.documentos = this.documentos.filter(d => d.id_documento !== this.docAEliminar?.id_documento);
         this.messageService.add({
           severity: 'success',
           summary: 'Eliminado',
-          detail: 'Documento eliminado correctamente',
+          detail: 'Documento eliminado correctamente'
         });
-
         this.docAEliminar = null;
         this.confirmModalVisible = false;
       },
@@ -175,41 +226,35 @@ export class ObraDocumentosComponent implements OnInit {
         this.messageService.add({
           severity: 'error',
           summary: 'Error',
-          detail: 'No se pudo eliminar el documento.',
+          detail: 'No se pudo eliminar el documento.'
         });
-      },
+      }
     });
   }
 
-
   descargarDocumento(doc: Documento) {
     this.documentosService.downloadDocumento(doc.id_documento).subscribe({
-      next: (fileBlob) => {
+      next: fileBlob => {
         const blob = new Blob([fileBlob]);
         const url = window.URL.createObjectURL(blob);
-
         const a = document.createElement('a');
         a.href = url;
         a.download = doc.nombre_archivo || 'documento';
         a.click();
-
         window.URL.revokeObjectURL(url);
-
         this.messageService.add({
           severity: 'success',
           summary: 'Descarga iniciada',
-          detail: doc.nombre_archivo,
+          detail: doc.nombre_archivo
         });
       },
-      error: (err) => {
-        console.error('Error descargando documento', err);
+      error: () => {
         this.messageService.add({
           severity: 'error',
           summary: 'Error',
-          detail: 'No se pudo descargar el documento.',
+          detail: 'No se pudo descargar el documento.'
         });
-      },
+      }
     });
   }
-
 }
