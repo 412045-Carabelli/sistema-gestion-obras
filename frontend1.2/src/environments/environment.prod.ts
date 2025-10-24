@@ -1,10 +1,9 @@
-// src/environments/environment.ts
+// src/environments/environment.prod.ts
 export const environment = {
-  production: false,
-  apiGateway: 'https://api-gateway-fdlc.onrender.com',
+  production: true,
+  apiGateway: 'https://sistema-gestion-obras.onrender.com',
   endpoints: {
     obras: '/bff/obras',
-    estados_obras: '/bff/estados_obras',
     estado_pago: '/bff/estado_pago',
     clientes: '/bff/clientes',
     proveedores: '/bff/proveedores',
@@ -14,8 +13,6 @@ export const environment = {
     documentos: '/bff/documentos',
     transacciones: '/bff/transacciones',
     tipo_transaccion: '/bff/tipo_transaccion',
-    facturas: '/bff/facturas',
-    recibos: '/bff/recibos',
     reportes: '/bff/reportes'
   }
 };
