@@ -6,6 +6,10 @@
   <component name="ChangeListManager">
     <list default="true" id="09f391ee-47b2-40c2-889e-08846edc6d39" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/api-gateway/target/classes/com/apigateway/controller/HealthBffController$ServiceStatus.class" beforeDir="false" afterPath="$PROJECT_DIR$/api-gateway/target/classes/com/apigateway/controller/HealthBffController$ServiceStatus.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/api-gateway/target/classes/com/apigateway/controller/HealthBffController.class" beforeDir="false" afterPath="$PROJECT_DIR$/api-gateway/target/classes/com/apigateway/controller/HealthBffController.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/api-gateway/target/maven-status/maven-compiler-plugin/compile/default-compile/createdFiles.lst" beforeDir="false" afterPath="$PROJECT_DIR$/api-gateway/target/maven-status/maven-compiler-plugin/compile/default-compile/createdFiles.lst" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/api-gateway/target/maven-status/maven-compiler-plugin/compile/default-compile/inputFiles.lst" beforeDir="false" afterPath="$PROJECT_DIR$/api-gateway/target/maven-status/maven-compiler-plugin/compile/default-compile/inputFiles.lst" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -59,67 +63,68 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent">{
-  &quot;keyToString&quot;: {
-    &quot;Docker...: Compose Deployment.executor&quot;: &quot;Run&quot;,
-    &quot;Maven.Unknown [clean,install].executor&quot;: &quot;Run&quot;,
-    &quot;Maven.gestion-obras [-DskipTests,-P,sqlite...].executor&quot;: &quot;Run&quot;,
-    &quot;Maven.gestion-obras [-v].executor&quot;: &quot;Run&quot;,
-    &quot;Maven.gestion-obras [clean,compile,-pl...].executor&quot;: &quot;Run&quot;,
-    &quot;Maven.gestion-obras [clean,compile].executor&quot;: &quot;Run&quot;,
-    &quot;Maven.gestion-obras [clean,install,-N].executor&quot;: &quot;Run&quot;,
-    &quot;Maven.gestion-obras [clean,install,-U].executor&quot;: &quot;Run&quot;,
-    &quot;Maven.gestion-obras [clean,install,-pl...].executor&quot;: &quot;Run&quot;,
-    &quot;Maven.gestion-obras [clean,install].executor&quot;: &quot;Run&quot;,
-    &quot;Maven.gestion-obras [clean,package,-DskipTests...].executor&quot;: &quot;Run&quot;,
-    &quot;Maven.gestion-obras [clean,package,-DskipTests].executor&quot;: &quot;Run&quot;,
-    &quot;Maven.gestion-obras [clean,package,-pl...].executor&quot;: &quot;Run&quot;,
-    &quot;Maven.gestion-obras [clean,package,api-gateway].executor&quot;: &quot;Run&quot;,
-    &quot;Maven.gestion-obras [clean,package].executor&quot;: &quot;Run&quot;,
-    &quot;Maven.gestion-obras [clean,spring-boot:run,-pl...].executor&quot;: &quot;Run&quot;,
-    &quot;Maven.gestion-obras [clean,spring-boot:run].executor&quot;: &quot;Run&quot;,
-    &quot;Maven.gestion-obras [clean].executor&quot;: &quot;Run&quot;,
-    &quot;Maven.gestion-obras [help:effective-pom,-pl...].executor&quot;: &quot;Run&quot;,
-    &quot;Maven.gestion-obras [spring-boot:run,-pl...].executor&quot;: &quot;Run&quot;,
-    &quot;Maven.gestion-obras [spring-boot:run...].executor&quot;: &quot;Run&quot;,
-    &quot;Maven.gestion-obras [taskkill,/F,/IM,java.exe].executor&quot;: &quot;Run&quot;,
-    &quot;ModuleVcsDetector.initialDetectionPerformed&quot;: &quot;true&quot;,
-    &quot;Notification.DisplayName-DoNotAsk-DatabaseConfigFileWatcher.found&quot;: &quot;Database connection parameters found&quot;,
-    &quot;Notification.DoNotAsk-DatabaseConfigFileWatcher.found&quot;: &quot;true&quot;,
-    &quot;RequestMappingsPanelOrder0&quot;: &quot;0&quot;,
-    &quot;RequestMappingsPanelOrder1&quot;: &quot;1&quot;,
-    &quot;RequestMappingsPanelWidth0&quot;: &quot;75&quot;,
-    &quot;RequestMappingsPanelWidth1&quot;: &quot;75&quot;,
-    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
-    &quot;Spring Boot.Api Gateway.executor&quot;: &quot;Run&quot;,
-    &quot;Spring Boot.Clientes.executor&quot;: &quot;Run&quot;,
-    &quot;Spring Boot.ClientesServiceApplication (1).executor&quot;: &quot;Run&quot;,
-    &quot;Spring Boot.ClientesServiceApplication.executor&quot;: &quot;Run&quot;,
-    &quot;Spring Boot.Documentos.executor&quot;: &quot;Run&quot;,
-    &quot;Spring Boot.Obras.executor&quot;: &quot;Run&quot;,
-    &quot;Spring Boot.ObrasServiceApplication (1).executor&quot;: &quot;Run&quot;,
-    &quot;Spring Boot.ObrasServiceApplication.executor&quot;: &quot;Run&quot;,
-    &quot;Spring Boot.Proveedores.executor&quot;: &quot;Run&quot;,
-    &quot;Spring Boot.Reportes.executor&quot;: &quot;Run&quot;,
-    &quot;Spring Boot.Transacciones.executor&quot;: &quot;Run&quot;,
-    &quot;git-widget-placeholder&quot;: &quot;main&quot;,
-    &quot;last_opened_file_path&quot;: &quot;C:/Users/Usuario/Desktop/my-work/sistema-gestion-obras/backend1.0/build/backend&quot;,
-    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
-    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
-    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
-    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
-    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
-    &quot;project.structure.last.edited&quot;: &quot;Modules&quot;,
-    &quot;project.structure.proportion&quot;: &quot;0.15&quot;,
-    &quot;project.structure.side.proportion&quot;: &quot;0.2&quot;,
-    &quot;run.code.analysis.last.selected.profile&quot;: &quot;pProject Default&quot;,
-    &quot;run.configurations.included.in.services&quot;: &quot;true&quot;,
-    &quot;settings.editor.selected.configurable&quot;: &quot;preferences.pluginManager&quot;,
-    &quot;ts.external.directory.path&quot;: &quot;C:\\Users\\Usuario\\IntelliJ IDEA 2025.1.1.1\\plugins\\javascript-plugin\\jsLanguageServicesImpl\\external&quot;,
-    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "Docker...: Compose Deployment.executor": "Run",
+    "Maven.Unknown [clean,install].executor": "Run",
+    "Maven.gestion-obras [-DskipTests,-P,sqlite...].executor": "Run",
+    "Maven.gestion-obras [-pl,api-gateway...].executor": "Run",
+    "Maven.gestion-obras [-v].executor": "Run",
+    "Maven.gestion-obras [clean,compile,-pl...].executor": "Run",
+    "Maven.gestion-obras [clean,compile].executor": "Run",
+    "Maven.gestion-obras [clean,install,-N].executor": "Run",
+    "Maven.gestion-obras [clean,install,-U].executor": "Run",
+    "Maven.gestion-obras [clean,install,-pl...].executor": "Run",
+    "Maven.gestion-obras [clean,install].executor": "Run",
+    "Maven.gestion-obras [clean,package,-DskipTests...].executor": "Run",
+    "Maven.gestion-obras [clean,package,-DskipTests].executor": "Run",
+    "Maven.gestion-obras [clean,package,-pl...].executor": "Run",
+    "Maven.gestion-obras [clean,package,api-gateway].executor": "Run",
+    "Maven.gestion-obras [clean,package].executor": "Run",
+    "Maven.gestion-obras [clean,spring-boot:run,-pl...].executor": "Run",
+    "Maven.gestion-obras [clean,spring-boot:run].executor": "Run",
+    "Maven.gestion-obras [clean].executor": "Run",
+    "Maven.gestion-obras [help:effective-pom,-pl...].executor": "Run",
+    "Maven.gestion-obras [spring-boot:run,-pl...].executor": "Run",
+    "Maven.gestion-obras [spring-boot:run...].executor": "Run",
+    "Maven.gestion-obras [taskkill,/F,/IM,java.exe].executor": "Run",
+    "ModuleVcsDetector.initialDetectionPerformed": "true",
+    "Notification.DisplayName-DoNotAsk-DatabaseConfigFileWatcher.found": "Database connection parameters found",
+    "Notification.DoNotAsk-DatabaseConfigFileWatcher.found": "true",
+    "RequestMappingsPanelOrder0": "0",
+    "RequestMappingsPanelOrder1": "1",
+    "RequestMappingsPanelWidth0": "75",
+    "RequestMappingsPanelWidth1": "75",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "RunOnceActivity.git.unshallow": "true",
+    "Spring Boot.Api Gateway.executor": "Run",
+    "Spring Boot.Clientes.executor": "Run",
+    "Spring Boot.ClientesServiceApplication (1).executor": "Run",
+    "Spring Boot.ClientesServiceApplication.executor": "Run",
+    "Spring Boot.Documentos.executor": "Run",
+    "Spring Boot.Obras.executor": "Run",
+    "Spring Boot.ObrasServiceApplication (1).executor": "Run",
+    "Spring Boot.ObrasServiceApplication.executor": "Run",
+    "Spring Boot.Proveedores.executor": "Run",
+    "Spring Boot.Reportes.executor": "Run",
+    "Spring Boot.Transacciones.executor": "Run",
+    "git-widget-placeholder": "main",
+    "last_opened_file_path": "C:/Users/Usuario/Desktop/my-work/sistema-gestion-obras/backend1.0/build/backend",
+    "node.js.detected.package.eslint": "true",
+    "node.js.detected.package.tslint": "true",
+    "node.js.selected.package.eslint": "(autodetect)",
+    "node.js.selected.package.tslint": "(autodetect)",
+    "nodejs_package_manager_path": "npm",
+    "project.structure.last.edited": "Modules",
+    "project.structure.proportion": "0.15",
+    "project.structure.side.proportion": "0.2",
+    "run.code.analysis.last.selected.profile": "pProject Default",
+    "run.configurations.included.in.services": "true",
+    "settings.editor.selected.configurable": "preferences.pluginManager",
+    "ts.external.directory.path": "C:\\Users\\Usuario\\IntelliJ IDEA 2025.1.1.1\\plugins\\javascript-plugin\\jsLanguageServicesImpl\\external",
+    "vue.rearranger.settings.migration": "true"
   }
-}</component>
+}]]></component>
   <component name="ReactorSettings">
     <option name="notificationShown" value="true" />
   </component>
@@ -185,6 +190,8 @@
       <command value="mvn clean package -DskipTests api-gateway" />
       <command value="mvn clean package -DskipTests " />
       <command value="mvn spring-boot:run -Dspring-boot.run.profiles=dev " />
+      <command value="mvn spring-boot:run -Dspring-boot.run.profiles=render " />
+      <command value="mvn -pl api-gateway spring-boot:run -Dspring-boot.run.profiles=render " />
     </option>
   </component>
   <component name="RunDashboard">
