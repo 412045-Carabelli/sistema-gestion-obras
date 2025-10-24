@@ -23,6 +23,19 @@
     </properties>
 
     <dependencies>
+        <dependency>
+            <groupId>io.github.resilience4j</groupId>
+            <artifactId>resilience4j-spring-boot3</artifactId>
+            <version>2.2.0</version>
+        </dependency>
+
+        <!-- Soporte para anotaciones @CircuitBreaker y @Retry -->
+        <dependency>
+            <groupId>io.github.resilience4j</groupId>
+            <artifactId>resilience4j-all</artifactId>
+            <version>2.2.0</version>
+        </dependency>
+
         <!-- ✅ WebFlux para controladores reactivos -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
