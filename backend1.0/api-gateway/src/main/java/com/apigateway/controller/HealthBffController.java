@@ -30,6 +30,11 @@ public class HealthBffController {
 
     private static final Duration TIMEOUT = Duration.ofSeconds(3);
 
+    @GetMapping("/ping")
+    public String ping() {
+        return "Gateway vivo";
+    }
+
     @GetMapping
     public Mono<ResponseEntity<Map<String, Object>>> checkAll() {
         Map<String, String> targets = Map.of(

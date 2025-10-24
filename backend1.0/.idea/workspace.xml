@@ -6,8 +6,6 @@
   <component name="ChangeListManager">
     <list default="true" id="09f391ee-47b2-40c2-889e-08846edc6d39" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/api-gateway/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/api-gateway/pom.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/api-gateway/src/main/java/com/apigateway/controller/HealthBffController.java" beforeDir="false" afterPath="$PROJECT_DIR$/api-gateway/src/main/java/com/apigateway/controller/HealthBffController.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
