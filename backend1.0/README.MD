@@ -96,3 +96,9 @@ Cada servicio usa **SQLite** con archivo propio `./data/<servicio>.db` y **no ll
 - **Sin acoplar servicios**: no hay llamadas HTTP entre microservicios.
 - **DTOs simples** que reflejan tus interfaces TS para que puedas **copiar/pegar**.
 
+
+
+## Perfil Render
+- Cada microservicio incluye un `application-render.properties` con configuracin para Render (puertos dinmicos, PostgreSQL y rutas parametrizadas).
+- En Render define `SPRING_PROFILES_ACTIVE=render` junto a las variables `DATABASE_URL`, `DATABASE_USERNAME`, `DATABASE_PASSWORD`, `PORT` (por servicio) y las URLs/URIs que necesites para el gateway.
+- Para el servicio de documentos configura `UPLOAD_DIR` apuntando a un disco persistente o almacenamiento externo.

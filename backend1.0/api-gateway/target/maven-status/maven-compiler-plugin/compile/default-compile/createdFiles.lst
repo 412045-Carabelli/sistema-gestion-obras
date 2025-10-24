@@ -25,9 +25,11 @@ com\apigateway\controller\TareaBffController$2.class
 com\apigateway\ApiGatewayApplication.class
 com\apigateway\controller\TransaccionBffController$5.class
 com\apigateway\controller\ObraBffController$1.class
+com\apigateway\controller\EstadosObraBffController$2.class
 com\apigateway\controller\ObraBffController$5.class
 com\apigateway\controller\ClienteBffController$4.class
 com\apigateway\controller\TipoProveedorBffController.class
+com\apigateway\controller\EstadosObraBffController$1.class
 com\apigateway\controller\TareaBffController$3.class
 com\apigateway\controller\TipoTransaccionBffController$2.class
 com\apigateway\controller\TransaccionBffController$3.class
@@ -47,6 +49,7 @@ com\apigateway\controller\ClienteBffController$2.class
 com\apigateway\controller\TransaccionBffController.class
 com\apigateway\config\CorsGlobalConfig.class
 com\apigateway\controller\TipoDocumentoBffController$4.class
+com\apigateway\controller\EstadosObraBffController.class
 com\apigateway\controller\TipoDocumentoBffController$1.class
 com\apigateway\controller\TipoProveedorBffController$1.class
 com\apigateway\controller\ObraBffController$6.class
