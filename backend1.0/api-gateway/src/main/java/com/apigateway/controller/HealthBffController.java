@@ -22,11 +22,11 @@ public class HealthBffController {
 
     private final WebClient.Builder webClientBuilder;
 
-    @Value("${services.obras}")         private String obras;
-    @Value("${services.clientes}")      private String clientes;
-    @Value("${services.proveedores}")   private String proveedores;
-    @Value("${services.transacciones}") private String transacciones;
-    @Value("${services.documentos}")    private String documentos;
+    @Value("${services.obras.url}")         private String obras;
+    @Value("${services.clientes.url}")      private String clientes;
+    @Value("${services.proveedores.url}")   private String proveedores;
+    @Value("${services.transacciones.url}") private String transacciones;
+    @Value("${services.documentos.url}")    private String documentos;
 
     private static final Duration TIMEOUT = Duration.ofSeconds(3);
 
@@ -44,13 +44,18 @@ public class HealthBffController {
 
         return Flux.fromIterable(targets.entrySet())
                 .flatMap(entry -> ping(client, entry.getKey(), entry.getValue()))
-                .collectMap(ServiceStatus::name, ServiceStatus::toMap)
-                .map(map -> {
-                    boolean allUp = ((Collection<?>) map.get("UP")).size() == targets.size();
+                .collectMultimap(ServiceStatus::name, ServiceStatus::toMap) // 👈 usa collectMultimap en vez de collectMap
+                .map(resultMap -> {
+                    Collection<?> upServices = resultMap.getOrDefault("UP", Collections.emptyList());
+                    boolean allUp = upServices.size() == targets.size();
+
                     Map<String, Object> payload = new LinkedHashMap<>();
                     payload.put("status", allUp ? "UP" : "DEGRADED");
-                    payload.putAll(map);
-                    return ResponseEntity.status(allUp ? HttpStatus.OK : HttpStatus.MULTI_STATUS).body(payload);
+                    payload.putAll(resultMap);
+
+                    return ResponseEntity
+                            .status(allUp ? HttpStatus.OK : HttpStatus.MULTI_STATUS)
+                            .body(payload);
                 });
     }
 
