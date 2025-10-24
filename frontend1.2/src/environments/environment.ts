@@ -13,8 +13,6 @@ export const environment = {
     documentos: '/bff/documentos',
     transacciones: '/bff/transacciones',
     tipo_transaccion: '/bff/tipo_transaccion',
-    facturas: '/bff/facturas',
-    recibos: '/bff/recibos',
     reportes: '/bff/reportes'
   }
 };

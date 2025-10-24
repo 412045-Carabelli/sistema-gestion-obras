@@ -2,7 +2,7 @@ import {Injectable} from '@angular/core';
 import {HttpClient} from '@angular/common/http';
 import {BehaviorSubject, Observable, tap} from 'rxjs';
 import {EstadoTarea, Proveedor, Tarea} from '../../core/models/models';
-import {environment} from '../../../enviroments/enviroment';
+import {environment} from '../../../environments/environment';
 
 export interface TareaPayload {
   id?: number;

@@ -1,10 +1,10 @@
-import {Component} from '@angular/core';
+import {Component, OnInit} from '@angular/core';
 import {CommonModule} from '@angular/common';
 import {RouterOutlet} from '@angular/router';
 import {HeaderComponent} from './shared/header/header.component';
 import {SidebarComponent} from './shared/sidebar/sidebar.component';
 import {HttpClient} from '@angular/common/http';
-import {environment} from '../enviroments/enviroment';
+import {environment} from '../environments/environment';
 import {ServerSleepComponent} from './features/components/server-sleep/server-sleep.component';
 
 @Component({
@@ -20,7 +20,7 @@ import {ServerSleepComponent} from './features/components/server-sleep/server-sl
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.css']
 })
-export class AppComponent {
+export class AppComponent implements OnInit {
   sidebarVisible: boolean = true;
 
   showServerSleep = true;
@@ -29,6 +29,7 @@ export class AppComponent {
 
   ngOnInit() {
     this.wakeUpMicroservices();
+    console.log(environment)
   }
 
   private wakeUpMicroservices() {
