@@ -20,7 +20,6 @@ public class ObraDTO {
     private LocalDateTime fecha_adjudicada;
     private LocalDateTime fecha_perdida;
     private BigDecimal presupuesto;
-    private BigDecimal gastado;
     private Boolean beneficio_global;
     private Boolean tiene_comision;
     private BigDecimal beneficio;

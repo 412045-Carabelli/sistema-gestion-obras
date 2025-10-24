@@ -17,7 +17,7 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class TransaccionBffController {
 
-    @Value("${services.tipo_transacciones.url}")
+    @Value("${services.transacciones.url}/tipo_transaccion")
     private String TIPO_TRANSACCIONES_URL;
 
     @Value("${services.transacciones.url}")
@@ -101,5 +101,18 @@ public class TransaccionBffController {
                 .retrieve()
                 .bodyToMono(Void.class)
                 .then(Mono.just(ResponseEntity.noContent().build()));
+    }
+
+    @GetMapping("/asociado/{tipo}/{id}")
+    public Mono<ResponseEntity<List<Map<String, Object>>>> getTransaccionesPorAsociado(
+            @PathVariable("tipo") String tipo,
+            @PathVariable("id") Long id) {
+
+        return webClientBuilder.build()
+                .get()
+                .uri(TRANSACCIONES_URL + "/asociado/{tipo}/{id}", tipo, id)
+                .retrieve()
+                .bodyToMono(new ParameterizedTypeReference<List<Map<String, Object>>>() {})
+                .map(ResponseEntity::ok);
     }
 }

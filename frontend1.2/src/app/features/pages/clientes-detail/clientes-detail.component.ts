@@ -14,6 +14,7 @@ import {TagModule} from 'primeng/tag';
 import {Cliente, Obra} from '../../../core/models/models';
 import {ClientesService} from '../../../services/clientes/clientes.service';
 import {ObrasService} from '../../../services/obras/obras.service';
+import {ClientesDocumentosComponent} from '../../components/clientes-documentos/clientes-documentos.component';
 
 @Component({
   selector: 'app-clientes-detail',
@@ -30,7 +31,8 @@ import {ObrasService} from '../../../services/obras/obras.service';
     TabPanels,
     TabPanel,
     TableModule,
-    TagModule
+    TagModule,
+    ClientesDocumentosComponent
   ],
   providers: [MessageService],
   templateUrl: './clientes-detail.component.html',

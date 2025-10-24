@@ -13,7 +13,7 @@ import {Select} from 'primeng/select';
 import {MessageService} from 'primeng/api';
 import {ToastModule} from 'primeng/toast';
 
-import {EstadoObra, Obra, ObraCosto, Proveedor, Tarea} from '../../../core/models/models';
+import {Cliente, EstadoObra, Obra, ObraCosto, Proveedor, Tarea} from '../../../core/models/models';
 import {ObraMovimientosComponent} from '../../components/obra-movimientos/obra-movimientos.component';
 import {ObraTareasComponent} from '../../components/obra-tareas/obra-tareas.component';
 import {ObraPresupuestoComponent} from '../../components/obra-presupuesto/obra-presupuesto.component';
@@ -22,6 +22,7 @@ import {ProveedoresService} from '../../../services/proveedores/proveedores.serv
 import {EstadoObraService} from '../../../services/estado-obra/estado-obra.service';
 import {ObraDocumentosComponent} from '../../components/obra-documentos/obra-documentos.component';
 import {Tab, TabList, TabPanel, TabPanels, Tabs} from 'primeng/tabs';
+import {ClientesService} from '../../../services/clientes/clientes.service';
 
 @Component({
   selector: 'app-obra-detail',
@@ -58,6 +59,7 @@ export class ObrasDetailComponent implements OnInit, OnDestroy {
   tareas: Tarea[] = [];
   costos: ObraCosto[] = [];
   proveedores!: Proveedor[];
+  clientes!: Cliente[];
   progresoFisico = 0;
   estadosObra: EstadoObra[] = [];
   loading = true;
@@ -67,6 +69,7 @@ export class ObrasDetailComponent implements OnInit, OnDestroy {
   constructor(
     private route: ActivatedRoute,
     private obraService: ObrasService,
+    private clientesService: ClientesService,
     private proveedoresService: ProveedoresService,
     private estadoObraService: EstadoObraService,
     private messageService: MessageService
@@ -133,9 +136,10 @@ export class ObrasDetailComponent implements OnInit, OnDestroy {
     forkJoin({
       obra: this.obraService.getObraById(idObra),
       estados: this.estadoObraService.getEstados(),
-      proveedores: this.proveedoresService.getProveedores()
+      proveedores: this.proveedoresService.getProveedores(),
+      clientes: this.clientesService.getClientes(),
     }).subscribe({
-      next: ({obra, estados, proveedores}) => {
+      next: ({obra, estados, proveedores, clientes}) => {
         this.obra = {
           ...obra,
           id: Number(obra.id),
@@ -147,6 +151,8 @@ export class ObrasDetailComponent implements OnInit, OnDestroy {
         this.tareas = obra.tareas ?? [];
         this.costos = obra.costos ?? [];
         this.estadosObra = estados.map(e => ({...e, id: Number(e.id)}));
+
+        this.clientes = clientes;
 
         const proveedoresIdsDeObra = (this.costos ?? [])
           .map(costo => costo.proveedor?.id)

@@ -17,7 +17,7 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class TipoProveedorBffController {
 
-    @Value("${services.proveedores.tipo.url}")
+    @Value("${services.proveedores.url}/tipo_proveedor")
     private String PROVEEDORES_URL;
 
     private final WebClient.Builder webClientBuilder;

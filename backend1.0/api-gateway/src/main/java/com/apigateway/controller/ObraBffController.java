@@ -24,10 +24,10 @@ public class ObraBffController {
     @Value("${services.clientes.url}")
     private String CLIENTES_URL;
 
-    @Value("${services.obras.costos.url}")
+    @Value("${services.obras.url}/costos")
     private String COSTOS_URL;
 
-    @Value("${services.obras.tareas.url}")
+    @Value("${services.obras.url}/tareas")
     private String TAREAS_URL;
 
     @Value("${services.proveedores.url}")

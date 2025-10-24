@@ -28,9 +28,7 @@ export class SidebarComponent {
     {label: 'Obras', icon: 'pi-building', path: '/obras'},
     {label: 'Clientes', icon: 'pi-users', path: '/clientes'},
     {label: 'Proveedores', icon: 'pi-truck', path: '/proveedores'},
-    {label: 'Gastos', icon: 'pi-money-bill', path: '/gastos'},
     {label: 'Reportes', icon: 'pi-chart-bar', path: '/reportes'},
-    {label: 'Configuración', icon: 'pi-cog', path: '/configuracion'}
   ];
 
   version: string = 'v1.0';

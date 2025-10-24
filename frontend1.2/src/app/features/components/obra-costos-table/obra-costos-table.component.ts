@@ -20,7 +20,7 @@ import {Proveedor} from '../../../core/models/models';
 })
 export class ObraCostosTableComponent {
   @Input({required: true}) costos!: FormArray<FormGroup>;
-  @Input() proveedores: Proveedor[] = [];
+  @Input({required: true}) proveedores!: Proveedor[];
   @Input() modoEdicion = false;
 
   getProveedorNombre(idProveedor: number | null): string {

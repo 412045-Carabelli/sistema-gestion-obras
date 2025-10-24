@@ -48,13 +48,21 @@ public class DocumentoService {
      * Sube un archivo, lo guarda físicamente y crea el registro en la base de datos.
      */
     public Mono<DocumentoDto> createWithFileReactive(
-            String idObra, String idTipoDocumento, String observacion, FilePart filePart) {
+            String idObra,
+            String idTipoDocumento,
+            String observacion,
+            String idAsociado,
+            String tipoAsociado,
+            FilePart filePart) {
 
-        // 1️⃣ Define la ruta relativa y el directorio de destino
-        String relativePath = "obras/" + idObra + "/" + filePart.filename();
+        // Definir la carpeta según si es obra, cliente o proveedor
+        String folder = (tipoAsociado != null && !tipoAsociado.isEmpty())
+                ? tipoAsociado.toLowerCase() + "s/" + idAsociado
+                : "obras/" + idObra;
+
+        String relativePath = folder + "/" + filePart.filename();
         Path destPath = Paths.get(uploadDirBase, relativePath).normalize().toAbsolutePath();
 
-        // Mono para crear directorios si no existen
         Mono<Void> createDirectoriesMono = Mono.fromRunnable(() -> {
             try {
                 Files.createDirectories(destPath.getParent());
@@ -63,28 +71,37 @@ public class DocumentoService {
             }
         });
 
-        // 2️⃣ Encadenamos las operaciones reactivas
         return createDirectoriesMono
-                .then(filePart.transferTo(destPath)) // Guarda el archivo
+                .then(filePart.transferTo(destPath))
                 .then(
-                        // 3️⃣ Ejecuta la lógica de BD (bloqueante) en un hilo elástico seguro
                         Mono.fromCallable(() -> {
-                                    DocumentoDto dto = new DocumentoDto();
-                                    dto.setId_obra(Long.parseLong(idObra));
-                                    dto.setNombre_archivo(filePart.filename());
-                                    dto.setPath_archivo(relativePath); // ⬅️ ¡Guardamos la ruta relativa!
-                                    dto.setObservacion(observacion);
-                                    dto.setFecha(LocalDate.now().toString());
+                            DocumentoDto dto = new DocumentoDto();
+                            dto.setId_obra(idObra != null ? Long.parseLong(idObra) : null);
+                            dto.setId_asociado(idAsociado != null ? Long.parseLong(idAsociado) : null);
+                            dto.setTipo_asociado(tipoAsociado);
+                            dto.setNombre_archivo(filePart.filename());
+                            dto.setPath_archivo(relativePath);
+                            dto.setObservacion(observacion);
+                            dto.setFecha(LocalDate.now().toString());
 
-                                    TipoDocumento tipo = tipoDocumentoRepository.findById(Long.parseLong(idTipoDocumento))
-                                            .orElseThrow(() -> new RuntimeException("Tipo documento no encontrado"));
+                            TipoDocumento tipo = tipoDocumentoRepository.findById(Long.parseLong(idTipoDocumento))
+                                    .orElseThrow(() -> new RuntimeException("Tipo documento no encontrado"));
 
-                                    Documento entity = DocumentosMapper.toEntity(dto, tipo);
-                                    Documento saved = documentoRepository.save(entity);
-                                    return DocumentosMapper.toDto(saved);
-                                })
-                                .subscribeOn(Schedulers.boundedElastic()) // ⬅️ Clave para no bloquear
+                            Documento entity = DocumentosMapper.toEntity(dto, tipo);
+                            Documento saved = documentoRepository.save(entity);
+                            return DocumentosMapper.toDto(saved);
+                        }).subscribeOn(Schedulers.boundedElastic())
                 );
+    }
+
+    @Transactional(readOnly = true)
+    public Flux<DocumentoDto> findByTipoAsociado(String tipo, Long idAsociado) {
+        return Mono.fromCallable(() -> documentoRepository.findByTipoAsociadoAndIdAsociado(tipo, idAsociado)
+                        .stream()
+                        .map(DocumentosMapper::toDto)
+                        .collect(Collectors.toList()))
+                .flatMapMany(Flux::fromIterable)
+                .subscribeOn(Schedulers.boundedElastic());
     }
 
     /**

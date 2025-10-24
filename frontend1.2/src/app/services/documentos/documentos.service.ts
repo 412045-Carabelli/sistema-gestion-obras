@@ -24,26 +24,27 @@ export class DocumentosService {
     return this.http.get<TipoDocumento[]>(`http://localhost:8080/bff/tipo_documentos`);
   }
 
-  // 📂 Crear un documento
-  uploadDocumento(
-    idObra: number,
+  uploadDocumentoFlexible(
+    idObra: number | null,
     idTipoDocumento: number,
     observacion: string,
-    file: File
+    file: File,
+    idAsociado?: number | null,
+    tipoAsociado?: string | null
   ) {
     const formData = new FormData();
-
-    formData.append('id_obra', idObra.toString());
+    if (idObra) formData.append('id_obra', idObra.toString());
     formData.append('id_tipo_documento', idTipoDocumento.toString());
-    formData.append('observacion', observacion ?? '');
-    formData.append('file', file, file.name);
+    formData.append('observacion', observacion);
+    if (idAsociado) formData.append('id_asociado', idAsociado.toString());
+    if (tipoAsociado) formData.append('tipo_asociado', tipoAsociado);
+    formData.append('file', file);
 
-    console.log('📤 FormData que se envía:', formData.get('id_obra'), formData.get('file'));
+    return this.http.post<Documento>(`${this.apiUrl}`, formData);
+  }
 
-    return this.http.post<Documento>(
-      `${this.apiUrl}`,
-      formData
-    );
+  getDocumentosPorAsociado(tipo: string, id: number) {
+    return this.http.get<Documento[]>(`${this.apiUrl}/asociado/${tipo}/${id}`);
   }
 
   // 🗑️ Eliminar documento

@@ -92,4 +92,16 @@ public class DocumentoBffController {
                 .toEntity(byte[].class);
     }
 
+    @GetMapping("/asociado/{tipo}/{id}")
+    public Mono<ResponseEntity<List<Map<String, Object>>>> getDocumentosPorAsociado(
+            @PathVariable("tipo") String tipo,
+            @PathVariable("id") Long id) {
+
+        return webClientBuilder.build()
+                .get()
+                .uri(DOCUMENTOS_URL + "/asociado/{tipo}/{id}", tipo, id)
+                .retrieve()
+                .bodyToMono(new ParameterizedTypeReference<List<Map<String, Object>>>() {})
+                .map(ResponseEntity::ok);
+    }
 }

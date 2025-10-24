@@ -64,7 +64,6 @@ public class ObraServiceImpl implements ObraService {
         existing.setFechaAdjudicada(dto.getFecha_adjudicada());
         existing.setFechaPerdida(dto.getFecha_perdida());
         existing.setPresupuesto(dto.getPresupuesto());
-        existing.setGastado(dto.getGastado());
         existing.setBeneficioGlobal(dto.getBeneficio_global());
         existing.setTieneComision(dto.getTiene_comision());
         existing.setBeneficio(dto.getBeneficio());
@@ -126,7 +125,6 @@ public class ObraServiceImpl implements ObraService {
         dto.setFecha_adjudicada(entity.getFechaAdjudicada());
         dto.setFecha_perdida(entity.getFechaPerdida());
         dto.setPresupuesto(entity.getPresupuesto());
-        dto.setGastado(entity.getGastado());
         dto.setBeneficio_global(entity.getBeneficioGlobal());
         dto.setTiene_comision(entity.getTieneComision());
         dto.setBeneficio(entity.getBeneficio());
@@ -172,7 +170,6 @@ public class ObraServiceImpl implements ObraService {
         entity.setFechaAdjudicada(dto.getFecha_adjudicada());
         entity.setFechaPerdida(dto.getFecha_perdida());
         entity.setPresupuesto(dto.getPresupuesto());
-        entity.setGastado(dto.getGastado());
         entity.setBeneficioGlobal(dto.getBeneficio_global());
         entity.setTieneComision(dto.getTiene_comision());
         entity.setBeneficio(dto.getBeneficio());

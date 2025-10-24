@@ -12,7 +12,6 @@
     ></p-button>
   </div>
 
-  <!-- Tabla -->
   <p-table
     [paginator]="true"
     [rows]="5"
@@ -24,14 +23,17 @@
   >
     <ng-template pTemplate="header">
       <tr>
-        <th pSortableColumn="tipo_documento.nombre">Tipo
+        <th pSortableColumn="tipo_documento.nombre">
+          Tipo
           <p-sortIcon field="tipo_documento.nombre"></p-sortIcon>
         </th>
         <th>Observación</th>
-        <th pSortableColumn="fecha">Fecha
+        <th pSortableColumn="fecha">
+          Fecha
           <p-sortIcon field="fecha"></p-sortIcon>
         </th>
-        <th pSortableColumn="nombre_archivo">Archivo
+        <th pSortableColumn="nombre_archivo">
+          Archivo
           <p-sortIcon field="nombre_archivo"></p-sortIcon>
         </th>
         <th>Acciones</th>
@@ -45,11 +47,10 @@
         <td>{{ d.fecha | date: 'dd/MM/yyyy' }}</td>
         <td>
           <span [title]="d.nombre_archivo" class="truncate-text">
-          {{ d.nombre_archivo }}
-        </span>
+            {{ d.nombre_archivo }}
+          </span>
         </td>
         <td class="space-x-2">
-          <!-- Botón de descarga -->
           <p-button
             (onClick)="descargarDocumento(d)"
             icon="pi pi-download"
@@ -57,8 +58,6 @@
             styleClass="p-button-sm p-button-secondary"
             tooltipPosition="top"
           ></p-button>
-
-          <!-- Botón de eliminar -->
           <p-button
             (onClick)="eliminarDocumento(d)"
             icon="pi pi-trash"
@@ -71,7 +70,6 @@
     </ng-template>
   </p-table>
 
-  <!-- Modal -->
   <p-dialog
     [(visible)]="modalVisible"
     [draggable]="false"
@@ -80,6 +78,62 @@
     [style]="{ width: '450px' }"
     header="Nuevo Documento"
   >
+    <div class="flex flex-col gap-4 mb-4">
+      <div class="grid grid-cols-5 gap-3">
+        <div class="col-span-2">
+          <label class="block text-sm font-medium mb-1 text-gray-700">
+            Asociar documento a
+          </label>
+          <p-select
+            [(ngModel)]="tipoEntidad"
+            [options]="[
+            { label: 'Proveedor', value: 'PROVEEDOR' },
+            { label: 'Cliente', value: 'CLIENTE' }
+          ]"
+            placeholder="Seleccionar tipo de entidad"
+            styleClass="w-full"
+            (onChange)="cargarDatos()"
+          ></p-select>
+        </div>
+
+        @if (tipoEntidad === 'PROVEEDOR') {
+          <div class="col-span-3">
+            <label class="block text-sm font-medium mb-1 text-gray-700">
+              Proveedor
+            </label>
+            <p-autoComplete
+              [(ngModel)]="selectedProveedor"
+              [suggestions]="filteredProveedores"
+              (completeMethod)="filtrarProveedores($event)"
+              field="nombre"
+              [dropdown]="true"
+              placeholder="Buscar proveedor"
+              styleClass="w-full"
+              (onSelect)="cargarDatos()"
+            ></p-autoComplete>
+          </div>
+        }
+
+        @if (tipoEntidad === 'CLIENTE') {
+          <div class="col-span-3">
+            <label class="block text-sm font-medium mb-1 text-gray-700">
+              Cliente
+            </label>
+            <p-autoComplete
+              [(ngModel)]="selectedCliente"
+              [suggestions]="filteredClientes"
+              (completeMethod)="filtrarClientes($event)"
+              field="nombre"
+              [dropdown]="true"
+              placeholder="Buscar cliente"
+              styleClass="w-full"
+              (onSelect)="cargarDatos()"
+            ></p-autoComplete>
+          </div>
+        }
+      </div>
+    </div>
+
     <div class="space-y-4">
       <div>
         <label class="block text-sm font-medium mb-1 text-gray-700">Tipo</label>
@@ -87,8 +141,9 @@
           [(ngModel)]="selectedTipo"
           [options]="tiposDocumento"
           optionLabel="nombre"
+          appendTo="body"
           optionValue="id"
-          placeholder="Seleccionar tipo"
+          placeholder="Seleccionar tipo de documento"
           styleClass="w-full"
         ></p-select>
       </div>
@@ -138,7 +193,6 @@
         label="Cancelar"
         styleClass="p-button-text"
       ></p-button>
-
       <p-button
         (onClick)="guardarDocumento()"
         icon="pi pi-check"
@@ -148,7 +202,7 @@
     </ng-template>
   </p-dialog>
 
-  <!-- 📌 Modal de confirmación para eliminar documento -->
+
   <p-dialog
     [(visible)]="confirmModalVisible"
     [closable]="false"
@@ -173,7 +227,6 @@
         label="Cancelar"
         styleClass="p-button-text"
       ></p-button>
-
       <p-button
         (onClick)="confirmarEliminacion()"
         icon="pi pi-trash"

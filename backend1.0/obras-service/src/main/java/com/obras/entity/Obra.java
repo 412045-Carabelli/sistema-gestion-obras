@@ -39,7 +39,6 @@ public class Obra {
     private LocalDateTime fechaPerdida;
 
     private BigDecimal presupuesto;
-    private BigDecimal gastado;
 
     private Boolean beneficioGlobal;
     private Boolean tieneComision;

@@ -15,11 +15,12 @@ import {ToastModule} from 'primeng/toast';
 import {MessageService} from 'primeng/api';
 import {Checkbox} from 'primeng/checkbox';
 
-import {Cliente, EstadoObra, Obra, ObraCosto} from '../../../core/models/models';
+import {Cliente, EstadoObra, Obra, ObraCosto, Proveedor} from '../../../core/models/models';
 import {ObraCostosTableComponent} from '../../components/obra-costos-table/obra-costos-table.component';
 import {ObraPayload, ObrasService} from '../../../services/obras/obras.service';
 import {ClientesService} from '../../../services/clientes/clientes.service';
 import {EstadoObraService} from '../../../services/estado-obra/estado-obra.service';
+import {ProveedoresService} from '../../../services/proveedores/proveedores.service';
 
 @Component({
   selector: 'app-obras-edit',
@@ -47,6 +48,7 @@ export class ObrasEditComponent implements OnInit {
 
   clientes: Cliente[] = [];
   estadosObra: EstadoObra[] = [];
+  proveedores: Proveedor[] = [];
   form!: FormGroup;
   loading = true;
   private obraId: number | null = null;
@@ -55,6 +57,7 @@ export class ObrasEditComponent implements OnInit {
     private fb: FormBuilder,
     private obrasService: ObrasService,
     private clienteService: ClientesService,
+    private proveedoresService: ProveedoresService,
     private estadoObraService: EstadoObraService,
     private route: ActivatedRoute,
     private router: Router,
@@ -103,7 +106,6 @@ export class ObrasEditComponent implements OnInit {
       beneficio: raw.beneficio,
       beneficio_global: raw.beneficio_global,
       tareas: [],
-      // 🧭 transformación de costos para backend
       costos: raw.costos.map((c: any) => ({
         ...c,
         id_proveedor: c.proveedor?.id ?? null,
@@ -147,12 +149,15 @@ export class ObrasEditComponent implements OnInit {
     forkJoin({
       clientes: this.clienteService.getClientes(),
       estados: this.estadoObraService.getEstados(),
+      proveedores: this.proveedoresService.getProveedores(),
       obra: this.obrasService.getObraById(idObra),
     }).subscribe({
-      next: ({clientes, estados, obra}) => {
+      next: ({clientes, estados, proveedores, obra}) => {
         this.clientes = clientes;
         this.estadosObra = estados;
+        this.proveedores = proveedores;
         this.obra = {...obra, costos: obra.costos ?? []} as Obra;
+
         this.inicializarFormulario();
         this.loading = false;
       },

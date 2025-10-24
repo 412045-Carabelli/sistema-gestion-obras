@@ -1,19 +1,9 @@
-# Usamos una imagen base con Java 17
-FROM eclipse-temurin:17-jre-alpine
-
-ARG JAR_FILE=target/*.jar
-
+FROM openjdk:17-jdk-slim
 WORKDIR /app
 
-# 📁 Crear la carpeta donde vivirá la base SQLite
-RUN mkdir -p /app/data
+# Copia solo el JAR ya compilado
+COPY target/*.jar app.jar
+COPY data ./data
 
-# Copiar la base de datos si ya existe localmente
-COPY data/transacciones.db /app/data/transacciones.db
-
-# Copiamos el JAR
-COPY ${JAR_FILE} app.jar
-
-EXPOSE 8082
-
-ENTRYPOINT ["java", "-jar", "/app/app.jar"]
+EXPOSE 8086
+ENTRYPOINT ["java", "-jar", "app.jar"]

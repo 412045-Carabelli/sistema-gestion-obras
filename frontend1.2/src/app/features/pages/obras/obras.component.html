@@ -1,4 +1,5 @@
 <div class="flex flex-col gap-6 p-6 w-full mx-auto bg-gray-50">
+
   <!-- Header -->
   <div class="flex justify-between items-center">
     <div>
@@ -13,9 +14,31 @@
     </p-button>
   </div>
 
-  <!-- Listado de obras -->
-  <app-obra-list
-    (obraClick)="verObra($event)">
-  </app-obra-list>
+  @defer (when obrasCargadas) {
+    <!-- ✅ Tabla cargada -->
+    <app-obra-list
+      [obras]="obras"
+      (obraClick)="verObra($event)">
+    </app-obra-list>
+  } @placeholder {
+    <!-- 🦴 Skeleton mientras carga -->
+    <div class="flex flex-col gap-4">
+      <div class="bg-white p-4 rounded-lg border border-gray-200 animate-pulse">
+        <div class="grid grid-cols-1 md:grid-cols-12 gap-4">
+          <div class="md:col-span-8 h-10 bg-gray-200 rounded"></div>
+          <div class="md:col-span-4 h-10 bg-gray-200 rounded"></div>
+        </div>
+      </div>
 
+      <div class="bg-white rounded-lg border border-gray-200 p-4 animate-pulse">
+        <div class="flex flex-col gap-3">
+          <div class="h-4 bg-gray-200 rounded w-full"></div>
+          <div class="h-4 bg-gray-200 rounded w-11/12"></div>
+          <div class="h-4 bg-gray-200 rounded w-10/12"></div>
+          <div class="h-4 bg-gray-200 rounded w-9/12"></div>
+          <div class="h-4 bg-gray-200 rounded w-8/12"></div>
+        </div>
+      </div>
+    </div>
+  }
 </div>

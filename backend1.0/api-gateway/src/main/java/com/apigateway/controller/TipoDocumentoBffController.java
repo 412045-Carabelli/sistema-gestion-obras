@@ -15,10 +15,10 @@ import java.util.Map;
 @RestController
 @RequestMapping("/bff/tipo_documentos")
 @RequiredArgsConstructor
-@CrossOrigin(origins = "http://localhost:4200") // ✅ habilitar CORS
+@CrossOrigin(origins = "http://localhost:4200")
 public class TipoDocumentoBffController {
 
-    @Value("${services.documentos.tipo.url}")
+    @Value("${services.documentos.url}/tipo_documentos")
     private String TIPO_DOC_URL;
 
     private final WebClient.Builder webClientBuilder;

@@ -1,66 +1,89 @@
-<div class="flex flex-col gap-4">
-  <!-- =================== FILTROS =================== -->
-  <div class="bg-white p-4 rounded-lg border border-gray-200">
-    <div class="grid grid-cols-1 md:grid-cols-12 gap-4">
-      <!-- Buscador -->
-      <div class="md:col-span-8">
-        <p-iconfield iconPosition="left" styleClass="w-full">
-          <p-inputicon styleClass="pi pi-search"/>
-          <input
-            (input)="applyFilter()"
-            [(ngModel)]="searchValue"
-            class="w-full"
-            pInputText
-            placeholder="Buscar por nombre, contacto, email o tipo"
-            type="text"/>
-        </p-iconfield>
-      </div>
+@defer (when !loading) {
+  <div class="flex flex-col gap-4">
+    <!-- =================== FILTROS =================== -->
+    <div class="bg-white p-4 rounded-lg border border-gray-200">
+      <div class="grid grid-cols-1 md:grid-cols-12 gap-4">
+        <!-- Buscador -->
+        <div class="md:col-span-8">
+          <p-iconfield iconPosition="left" styleClass="w-full">
+            <p-inputicon styleClass="pi pi-search"/>
+            <input
+              (input)="applyFilter()"
+              [(ngModel)]="searchValue"
+              class="w-full"
+              pInputText
+              placeholder="Buscar por nombre, contacto, email o tipo"
+              type="text"/>
+          </p-iconfield>
+        </div>
 
-      <!-- Filtro tipo de proveedor -->
-      <div class="md:col-span-4">
-        <p-select
-          (onChange)="onTipoChange()"
-          [(ngModel)]="tipoFiltro"
-          [options]="tipoOptions"
-          placeholder="Filtrar por tipo"
-          styleClass="w-full">
-          <ng-template let-option pTemplate="selectedItem">
-            <div class="flex items-center gap-2">
-              <i class="pi pi-filter text-sm"></i>
-              <span>{{ option?.label || 'Todos' }}</span>
-            </div>
-          </ng-template>
-        </p-select>
+        <!-- Filtro tipo de proveedor -->
+        <div class="md:col-span-4">
+          <p-select
+            (onChange)="onTipoChange()"
+            [(ngModel)]="tipoFiltro"
+            [options]="tipoOptions"
+            placeholder="Filtrar por tipo"
+            styleClass="w-full">
+            <ng-template let-option pTemplate="selectedItem">
+              <div class="flex items-center gap-2">
+                <i class="pi pi-filter text-sm"></i>
+                <span>{{ option?.label || 'Todos' }}</span>
+              </div>
+            </ng-template>
+          </p-select>
+        </div>
+      </div>
+    </div>
+
+    <!-- =================== TABLA =================== -->
+    <p-table
+      [tableStyle]="{ 'min-width': '100%' }"
+      [value]="proveedoresFiltrados"
+      class="w-full"
+    >
+      <ng-template pTemplate="header">
+        <tr>
+          <th>Nombre</th>
+          <th>Tipo</th>
+          <th>Contacto</th>
+          <th>Teléfono</th>
+          <th>Email</th>
+        </tr>
+      </ng-template>
+
+      <ng-template let-row pTemplate="body">
+        <tr (click)="irAlDetalle(row)"
+            class="cursor-pointer hover:bg-gray-200 transition">
+          <td>{{ row.nombre }}</td>
+          <td>{{ row.tipo_proveedor?.nombre ?? '—' }}</td>
+          <td>{{ row.contacto ?? '—' }}</td>
+          <td>{{ row.telefono ?? '—' }}</td>
+          <td>{{ row.email ?? '—' }}</td>
+        </tr>
+      </ng-template>
+    </p-table>
+  </div>
+} @placeholder {
+  <!-- 🦴 Skeleton de carga -->
+  <div class="flex flex-col gap-4">
+    <!-- Filtros Skeleton -->
+    <div class="bg-white p-4 rounded-lg border border-gray-200 animate-pulse">
+      <div class="grid grid-cols-1 md:grid-cols-12 gap-4">
+        <div class="md:col-span-8 h-10 bg-gray-200 rounded"></div>
+        <div class="md:col-span-4 h-10 bg-gray-200 rounded"></div>
+      </div>
+    </div>
+
+    <!-- Tabla Skeleton -->
+    <div class="bg-white rounded-lg border border-gray-200 p-4 animate-pulse">
+      <div class="space-y-3">
+        <div class="h-4 bg-gray-200 rounded w-full"></div>
+        <div class="h-4 bg-gray-200 rounded w-11/12"></div>
+        <div class="h-4 bg-gray-200 rounded w-10/12"></div>
+        <div class="h-4 bg-gray-200 rounded w-9/12"></div>
+        <div class="h-4 bg-gray-200 rounded w-8/12"></div>
       </div>
     </div>
   </div>
-
-  <!-- =================== TABLA =================== -->
-  <p-table
-    [loading]="loading"
-    [tableStyle]="{ 'min-width': '100%' }"
-    [value]="proveedoresFiltrados"
-    class="w-full"
-  >
-    <ng-template pTemplate="header">
-      <tr>
-        <th>Nombre</th>
-        <th>Tipo</th>
-        <th>Contacto</th>
-        <th>Teléfono</th>
-        <th>Email</th>
-      </tr>
-    </ng-template>
-
-    <ng-template let-row pTemplate="body">
-      <tr (click)="irAlDetalle(row)"
-          class="cursor-pointer hover:bg-gray-200 transition">
-        <td>{{ row.nombre }}</td>
-        <td>{{ row.tipo_proveedor?.nombre ?? '—' }}</td>
-        <td>{{ row.contacto ?? '—' }}</td>
-        <td>{{ row.telefono ?? '—' }}</td>
-        <td>{{ row.email ?? '—' }}</td>
-      </tr>
-    </ng-template>
-  </p-table>
-</div>
+}

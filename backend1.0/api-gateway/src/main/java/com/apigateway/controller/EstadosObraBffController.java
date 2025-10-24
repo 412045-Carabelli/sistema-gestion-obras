@@ -20,12 +20,11 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class EstadosObraBffController {
 
-    @Value("${services.obras.estado_obra.url}")
+    @Value("${services.obras.url}/estados")
     private String ESTADOS_OBRAS_URL;
 
     private final WebClient.Builder webClientBuilder;
 
-    // ✅ GET /bff/tipo_documentos
     @GetMapping
     public Mono<ResponseEntity<List<Map<String, Object>>>> getAll() {
         WebClient client = webClientBuilder.build();

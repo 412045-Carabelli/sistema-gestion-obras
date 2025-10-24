@@ -2,7 +2,14 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
+      <module fileurl="file://$PROJECT_DIR$/api-gateway/api-gateway.iml" filepath="$PROJECT_DIR$/api-gateway/api-gateway.iml" />
+      <module fileurl="file://$PROJECT_DIR$/clientes-service/clientes-service.iml" filepath="$PROJECT_DIR$/clientes-service/clientes-service.iml" />
+      <module fileurl="file://$PROJECT_DIR$/documentos-service/documentos-service.iml" filepath="$PROJECT_DIR$/documentos-service/documentos-service.iml" />
+      <module fileurl="file://$PROJECT_DIR$/gestion-obras.iml" filepath="$PROJECT_DIR$/gestion-obras.iml" />
       <module fileurl="file://$PROJECT_DIR$/obras-service/obras-service.iml" filepath="$PROJECT_DIR$/obras-service/obras-service.iml" />
+      <module fileurl="file://$PROJECT_DIR$/proveedores-service/proveedores-service.iml" filepath="$PROJECT_DIR$/proveedores-service/proveedores-service.iml" />
+      <module fileurl="file://$PROJECT_DIR$/reportes-service/reportes-service.iml" filepath="$PROJECT_DIR$/reportes-service/reportes-service.iml" />
+      <module fileurl="file://$PROJECT_DIR$/transacciones-service/transacciones-service.iml" filepath="$PROJECT_DIR$/transacciones-service/transacciones-service.iml" />
     </modules>
   </component>
 </project>

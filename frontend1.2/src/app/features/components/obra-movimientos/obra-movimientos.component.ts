@@ -9,12 +9,13 @@ import {ModalComponent} from '../../../shared/modal/modal.component';
 import {InputNumber} from 'primeng/inputnumber';
 import {DatePicker} from 'primeng/datepicker';
 import {FileUploadModule} from 'primeng/fileupload';
-import {TipoTransaccion, Transaccion} from '../../../core/models/models';
+import {Cliente, Proveedor, TipoTransaccion, Transaccion} from '../../../core/models/models';
 import {TransaccionesService} from '../../../services/transacciones/transacciones.service';
 import {Select} from 'primeng/select';
 import {ConfirmationService, MessageService} from 'primeng/api';
 import {ConfirmDialog} from 'primeng/confirmdialog';
 import {Toast} from 'primeng/toast';
+import {AutoComplete} from 'primeng/autocomplete';
 
 @Component({
   selector: 'app-obra-movimientos',
@@ -23,13 +24,15 @@ import {Toast} from 'primeng/toast';
     CurrencyPipe, DatePipe, TableModule, ButtonModule,
     TooltipModule, DropdownModule, FormsModule,
     ModalComponent, InputNumber, DatePicker,
-    FileUploadModule, NgClass, Select, ConfirmDialog, Toast
+    FileUploadModule, NgClass, Select, ConfirmDialog, Toast, AutoComplete
   ],
   providers: [MessageService, ConfirmationService],
   templateUrl: './obra-movimientos.component.html'
 })
 export class ObraMovimientosComponent implements OnInit {
   @Input() obraId!: number;
+  @Input() clientes!: Cliente[];
+  @Input() proveedores!: Proveedor[];
 
   transacciones: Transaccion[] = [];
   tiposTransaccion: TipoTransaccion[] = [];
@@ -39,6 +42,11 @@ export class ObraMovimientosComponent implements OnInit {
     {label: 'Total', value: 'Total'}
   ];
 
+  tipoEntidad: 'PROVEEDOR' | 'CLIENTE' = 'CLIENTE';
+  selectedProveedor: Proveedor | null = null;
+  selectedCliente: Cliente | null = null;
+  filteredProveedores: Proveedor[] = [];
+  filteredClientes: Cliente[] = [];
   showAddMovementModal = false;
   modoEdicion = false;
 
@@ -48,7 +56,9 @@ export class ObraMovimientosComponent implements OnInit {
     fecha: new Date().toISOString().split('T')[0],
     monto: 0,
     forma_pago: 'Total',
-    activo: true
+    activo: true,
+    id_asociado: undefined,
+    tipo_asociado: 'cliente'
   };
 
   constructor(
@@ -56,6 +66,30 @@ export class ObraMovimientosComponent implements OnInit {
     private confirmationService: ConfirmationService,
     private messageService: MessageService
   ) {
+  }
+
+  filtrarProveedores(event: any) {
+    const query = event.query.toLowerCase();
+    this.filteredProveedores = this.proveedores.filter(p =>
+      p.nombre.toLowerCase().includes(query)
+    );
+  }
+
+  filtrarClientes(event: any) {
+    const query = event.query.toLowerCase();
+    this.filteredClientes = this.clientes.filter(c =>
+      c.nombre.toLowerCase().includes(query)
+    );
+  }
+
+  protected proveedorOCliente(id: number, tipoAsociado: string) {
+    if(tipoAsociado === 'CLIENTE'){
+      return this.clientes.find(c => c.id === id)?.nombre
+    }
+    if(tipoAsociado === 'PROVEEDOR'){
+      return this.proveedores.find(c => c.id === id)?.nombre
+    }
+    return "No se encontró un cliente/proveedor asociado"
   }
 
   get totalCobros(): number {
@@ -84,10 +118,12 @@ export class ObraMovimientosComponent implements OnInit {
         ...t,
         etiqueta: t.tipo_transaccion?.id === 1 ? 'FC' : 'RBOS'
       }));
+      console.log(transacciones, this.obraId);
     });
 
     this.transaccionesService.getTipos().subscribe(tipos => {
       this.tiposTransaccion = tipos;
+      console.log(tipos)
     });
   }
 
@@ -101,7 +137,8 @@ export class ObraMovimientosComponent implements OnInit {
         fecha: new Date().toISOString().split('T')[0],
         monto: 0,
         forma_pago: 'Total',
-        activo: true
+        activo: true,
+        tipo_asociado: 'cliente'
       };
     this.showAddMovementModal = true;
   }
@@ -114,10 +151,11 @@ export class ObraMovimientosComponent implements OnInit {
     const mov: any = {
       ...this.nuevoMovimiento,
       id_obra: this.obraId,
-      tipo_transaccion: {id: this.nuevoMovimiento.tipo_transaccion.id}
+      tipo_transaccion: { id: this.nuevoMovimiento.tipo_transaccion.id },
+      id_asociado: this.nuevoMovimiento.id_asociado,
+      tipo_asociado: this.nuevoMovimiento.tipo_asociado
     };
 
-    // Si la fecha es un objeto Date, convertirla a string ISO
     if (mov.fecha instanceof Date) {
       mov.fecha = mov.fecha.toISOString().split('T')[0];
     }

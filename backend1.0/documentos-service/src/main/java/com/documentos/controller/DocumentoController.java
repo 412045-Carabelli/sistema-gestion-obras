@@ -13,45 +13,44 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 @RestController
-@RequestMapping("/api/documentos") // Ruta base para la API de documentos
+@RequestMapping("/api/documentos")
 @RequiredArgsConstructor
 public class DocumentoController {
 
     private final DocumentoService documentoService;
 
-    /**
-     * Endpoint para crear un nuevo documento subiendo un archivo.
-     */
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public Mono<ResponseEntity<DocumentoDto>> create(
-            @RequestPart("id_obra") String idObra,
+            @RequestPart(value = "id_obra", required = false) String idObra,
             @RequestPart("id_tipo_documento") String idTipoDocumento,
+            @RequestPart(value = "id_asociado", required = false) String idAsociado,
+            @RequestPart(value = "tipo_asociado", required = false) String tipoAsociado,
             @RequestPart(value = "observacion", required = false) String observacion,
             @RequestPart("file") FilePart filePart
     ) {
-        return documentoService.createWithFileReactive(idObra, idTipoDocumento, observacion, filePart)
+        return documentoService.createWithFileReactive(idObra, idTipoDocumento, observacion, idAsociado, tipoAsociado, filePart)
                 .map(dto -> ResponseEntity.status(HttpStatus.CREATED).body(dto));
     }
 
-    /**
-     * Endpoint para obtener todos los documentos de una obra.
-     */
+    // 🔍 Nuevo endpoint: obtener documentos por tipo e ID asociado (cliente/proveedor)
+    @GetMapping("/asociado/{tipo}/{id}")
+    public Flux<DocumentoDto> getDocumentosPorAsociado(
+            @PathVariable("tipo") String tipo,
+            @PathVariable("id") Long id
+    ) {
+        return documentoService.findByTipoAsociado(tipo.toUpperCase(), id);
+    }
+
     @GetMapping("/obra/{obraId}")
     public Flux<DocumentoDto> getDocumentosPorObra(@PathVariable("obraId") Long obraId) {
         return documentoService.findByObra(obraId);
     }
 
-    /**
-     * Endpoint para obtener todos los documentos.
-     */
     @GetMapping
     public Flux<DocumentoDto> getAllDocumentos() {
         return documentoService.findAll();
     }
 
-    /**
-     * Endpoint para obtener un documento por su ID.
-     */
     @GetMapping("/{id}")
     public Mono<ResponseEntity<DocumentoDto>> getDocumentoById(@PathVariable("id") Long id) {
         return documentoService.findById(id)
@@ -59,11 +58,8 @@ public class DocumentoController {
                 .defaultIfEmpty(ResponseEntity.notFound().build());
     }
 
-    /**
-     * Endpoint para eliminar un documento por su ID.
-     */
     @DeleteMapping("/{id}")
-    @ResponseStatus(HttpStatus.NO_CONTENT) // Devuelve 204 No Content si tiene éxito
+    @ResponseStatus(HttpStatus.NO_CONTENT)
     public Mono<Void> deleteDocumento(@PathVariable("id") Long id) {
         return documentoService.delete(id);
     }
@@ -72,5 +68,4 @@ public class DocumentoController {
     public Mono<ResponseEntity<Resource>> download(@PathVariable("id") Long id) {
         return documentoService.downloadFile(id);
     }
-
 }

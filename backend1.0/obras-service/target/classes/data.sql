@@ -4,9 +4,12 @@
 INSERT INTO estado_obra (nombre, activo)
 VALUES
     ('Presupuestada', 1),
+    ('Cotizada', 1),
     ('Adjudicada', 1),
+    ('Perdida', 1),
     ('En Progreso', 1),
-    ('Finalizada', 1);
+    ('Finalizada', 1),
+    ('Facturada', 1);
 
 -- =====================================================
 -- OBRAS (mock sin dependencia del servicio de clientes)
@@ -19,7 +22,6 @@ INSERT INTO obras (
     fecha_inicio,
     fecha_adjudicada,
     presupuesto,
-    gastado,
     beneficio_global,
     beneficio,
     comision,
@@ -28,10 +30,10 @@ INSERT INTO obras (
 )
 VALUES
     (1, 2, 'Edificio San Martín', 'San Martín 1450, Córdoba', '2024-05-01 00:00:00', '2024-04-25 00:00:00',
-     12000000, 2500000, 1, 25, 5.0, 1, 1),
+     12000000, 1, 25, 5.0, 1, 1),
 
     (2, 3, 'Residencial Los Álamos', 'Av. Circunvalación 555, Córdoba', '2024-03-15 00:00:00', '2024-03-10 00:00:00',
-     8900000, 4000000, 1, 15, NULL, 0, 1);
+     8900000, 1, 15, NULL, 0, 1);
 
 -- Asociaciones obra-proveedor
 INSERT INTO obra_proveedor (id_obra, id_proveedor) VALUES

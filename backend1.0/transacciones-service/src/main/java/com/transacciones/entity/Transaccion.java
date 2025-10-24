@@ -21,6 +21,13 @@ public class Transaccion {
     @Column(name = "id_obra", nullable = false)
     private Long idObra;
 
+    @Column(name = "tipo_asociado", nullable = false)
+    private String tipoAsociado;
+
+    @Column(name = "id_asociado", nullable = false)
+    private Long idAsociado;
+
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "id_tipo_transaccion", nullable = false)
     private TipoTransaccion tipo_transaccion;
