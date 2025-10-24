@@ -3,42 +3,16 @@
   <component name="CompilerConfiguration">
     <annotationProcessing>
       <profile default="true" name="Default" enabled="true" />
-      <profile name="Maven default annotation processors profile" enabled="true">
-        <sourceOutputDir name="target/generated-sources/annotations" />
-        <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
-        <outputRelativeToContentRoot value="true" />
-      </profile>
-      <profile name="Annotation profile for Gestion de Obras - Parent" enabled="true">
-        <sourceOutputDir name="target/generated-sources/annotations" />
-        <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
-        <outputRelativeToContentRoot value="true" />
-        <processorPath useClasspath="false">
-          <entry name="$MAVEN_REPOSITORY$/org/projectlombok/lombok/1.18.34/lombok-1.18.34.jar" />
-        </processorPath>
-        <module name="reportes-service" />
-        <module name="proveedores-service" />
-        <module name="clientes-service" />
-        <module name="obras-service" />
-        <module name="catalogos-service" />
-        <module name="transacciones-service" />
-        <module name="documentos-service" />
-      </profile>
-      <profile name="Annotation profile for api-gateway" enabled="true">
-        <sourceOutputDir name="target/generated-sources/annotations" />
-        <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
-        <outputRelativeToContentRoot value="true" />
-        <processorPath useClasspath="false">
-          <entry name="$MAVEN_REPOSITORY$/org/projectlombok/lombok/1.18.34/lombok-1.18.34.jar" />
-          <entry name="$MAVEN_REPOSITORY$/org/projectlombok/lombok/1.18.34/lombok-1.18.34.jar" />
-        </processorPath>
-        <module name="api-gateway" />
-      </profile>
     </annotationProcessing>
     <bytecodeTargetLevel>
-      <module name="catalogos-obras.service" target="17" />
-      <module name="clientes-obras.service" target="17" />
-      <module name="proveedores-obras.service" target="17" />
-      <module name="reportes-obras.service" target="17" />
+      <module name="api-gateway" target="17" />
+      <module name="clientes-service" target="17" />
+      <module name="documentos-service" target="17" />
+      <module name="gestion-obras" target="1.5" />
+      <module name="obras-service" target="17" />
+      <module name="proveedores-service" target="17" />
+      <module name="reportes-service" target="17" />
+      <module name="transacciones-service" target="17" />
     </bytecodeTargetLevel>
   </component>
 </project>
