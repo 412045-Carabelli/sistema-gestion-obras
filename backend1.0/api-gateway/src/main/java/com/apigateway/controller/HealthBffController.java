@@ -1,10 +1,10 @@
 package com.apigateway.controller;
 
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
+
 import java.util.LinkedHashMap;
 import java.util.Map;
 
@@ -17,7 +17,7 @@ public class HealthBffController {
     private final WebClient.Builder webClientBuilder;
 
     @GetMapping
-    public Mono<ResponseEntity<Map<String, Object>>> checkAllServices() {
+    public Mono<Map<String, Object>> checkAllServices() {
         Map<String, String> services = Map.of(
                 "obras", "https://obras-service.onrender.com/health",
                 "clientes", "https://clientes-service.onrender.com/health",
@@ -38,7 +38,7 @@ public class HealthBffController {
                         result.put(response.getKey(), response.getValue());
                     }
                     result.put("status", result.values().stream().allMatch(v -> v.equals(true)) ? "UP" : "DOWN");
-                    return ResponseEntity.ok(result);
+                    return result;
                 }
         );
     }
