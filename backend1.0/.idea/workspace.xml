@@ -6,10 +6,29 @@
   <component name="ChangeListManager">
     <list default="true" id="09f391ee-47b2-40c2-889e-08846edc6d39" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/api-gateway/target/classes/com/apigateway/controller/HealthBffController$ServiceStatus.class" beforeDir="false" afterPath="$PROJECT_DIR$/api-gateway/target/classes/com/apigateway/controller/HealthBffController$ServiceStatus.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/api-gateway/target/classes/com/apigateway/controller/HealthBffController.class" beforeDir="false" afterPath="$PROJECT_DIR$/api-gateway/target/classes/com/apigateway/controller/HealthBffController.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/api-gateway/target/maven-status/maven-compiler-plugin/compile/default-compile/createdFiles.lst" beforeDir="false" afterPath="$PROJECT_DIR$/api-gateway/target/maven-status/maven-compiler-plugin/compile/default-compile/createdFiles.lst" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/api-gateway/target/maven-status/maven-compiler-plugin/compile/default-compile/inputFiles.lst" beforeDir="false" afterPath="$PROJECT_DIR$/api-gateway/target/maven-status/maven-compiler-plugin/compile/default-compile/inputFiles.lst" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/api-gateway/src/main/java/com/apigateway/config/CorsGlobalConfig.java" beforeDir="false" afterPath="$PROJECT_DIR$/api-gateway/src/main/java/com/apigateway/config/CorsGlobalConfig.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/api-gateway/src/main/java/com/apigateway/controller/DocumentoBffController.java" beforeDir="false" afterPath="$PROJECT_DIR$/api-gateway/src/main/java/com/apigateway/controller/DocumentoBffController.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/api-gateway/src/main/java/com/apigateway/controller/TipoDocumentoBffController.java" beforeDir="false" afterPath="$PROJECT_DIR$/api-gateway/src/main/java/com/apigateway/controller/TipoDocumentoBffController.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/clientes-service/Dockerfile" beforeDir="false" afterPath="$PROJECT_DIR$/clientes-service/Dockerfile" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/clientes-service/data/clientes.db" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/documentos-service/Dockerfile" beforeDir="false" afterPath="$PROJECT_DIR$/documentos-service/Dockerfile" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/documentos-service/data/documentos.db" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/documentos-service/uploads/obras/1/Carta Juani.pdf" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/documentos-service/uploads/obras/1/Certificado Club Social y Deportivo La Calera.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/documentos-service/uploads/obras/1/Changuitas_Documentacion_Proyecto.pdf" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/obras-service/Dockerfile" beforeDir="false" afterPath="$PROJECT_DIR$/obras-service/Dockerfile" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/obras-service/data/obras.db" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/proveedores-service/Dockerfile" beforeDir="false" afterPath="$PROJECT_DIR$/proveedores-service/Dockerfile" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/proveedores-service/data/proveedores.db" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/reportes-service/Dockerfile" beforeDir="false" afterPath="$PROJECT_DIR$/reportes-service/Dockerfile" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/transacciones-service/Dockerfile" beforeDir="false" afterPath="$PROJECT_DIR$/transacciones-service/Dockerfile" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/transacciones-service/data/transacciones-dev.db" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/transacciones-service/data/transacciones.db" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../frontend1.2/src/app/app.component.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../frontend1.2/src/app/app.component.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../frontend1.2/src/app/services/documentos/documentos.service.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../frontend1.2/src/app/services/documentos/documentos.service.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../frontend1.2/src/app/services/estado-obra/estado-obra.service.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../frontend1.2/src/app/services/estado-obra/estado-obra.service.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../frontend1.2/src/environments/environment.prod.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../frontend1.2/src/environments/environment.prod.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../frontend1.2/src/environments/environment.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../frontend1.2/src/environments/environment.ts" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -192,6 +211,7 @@
       <command value="mvn spring-boot:run -Dspring-boot.run.profiles=dev " />
       <command value="mvn spring-boot:run -Dspring-boot.run.profiles=render " />
       <command value="mvn -pl api-gateway spring-boot:run -Dspring-boot.run.profiles=render " />
+      <command value="mvn  spring-boot:run -Dspring-boot.run.profiles=render " />
     </option>
   </component>
   <component name="RunDashboard">
