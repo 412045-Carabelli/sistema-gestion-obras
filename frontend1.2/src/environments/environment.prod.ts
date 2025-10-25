@@ -1,7 +1,7 @@
 // src/environments/environment.prod.ts
 export const environment = {
   production: true,
-  apiGateway: 'https://sistema-gestion-obras.onrender.com',
+  apiGateway: 'https://api-gateway-bp4v.onrender.com',
   endpoints: {
     obras: '/bff/obras',
     estado_pago: '/bff/estado_pago',

@@ -1,7 +1,7 @@
 // src/environments/environment.ts
 export const environment = {
   production: false,
-  apiGateway: 'https://api-gateway-fdlc.onrender.com',
+  apiGateway: 'http://localhost:8080/',
   endpoints: {
     obras: '/bff/obras',
     estados_obras: '/bff/estados_obras',
