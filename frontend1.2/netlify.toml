@@ -1,10 +1,12 @@
 [build]
-  functions = "netlify/functions"
-  publish = "dist/sistema-gestion-obras"
+  base = "frontend1.2"
+  publish = "frontend1.2/dist/sistema-gestion-obras"
+  functions = "frontend1.2/netlify/functions"
+  command = "npm install && npm run build"
 
 [[redirects]]
   from = "/api/*"
-  to = "/.netlify/functions/proxy/:splat"
+  to = "https://api-gateway-bp4v.onrender.com/:splat"
   status = 200
 
 [[redirects]]
