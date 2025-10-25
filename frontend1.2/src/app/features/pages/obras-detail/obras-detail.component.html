@@ -41,13 +41,12 @@
             </p-select>
           </div>
           <p><strong>Fecha de inicio:</strong> {{ obra.fecha_inicio | date:'dd/MM/yyyy' }}</p>
-          <p><strong>Fecha de fin:</strong> {{ obra.fecha_fin ? (obra.fecha_fin | date:'dd/MM/yyyy') : 'No hay una fecha de fin definida' }}</p>
+          <p><strong>Fecha de fin:</strong> {{ obra.fecha_fin ? (obra.fecha_fin | date:'dd/MM/yyyy') : 'No hay fecha definida' }}</p>
         </div>
 
         <div class="space-y-2">
           <p><strong>Presupuesto:</strong> {{ obra.presupuesto | currency:'ARS' }}</p>
-          <p><strong>Gastado:</strong> {{ obra.gastado ?? 0 | currency:'ARS' }}</p>
-          <p><strong>Comisión:</strong> {{ obra.tiene_comision ? (obra.comision + '%') : 'No tiene comisión' }}</p>
+          <p><strong>Comisión:</strong> {{ obra.tiene_comision ? (obra.comision + '%') : 'Sin comisión' }}</p>
           <div>
             <p class="text-sm text-gray-600 mb-1">Progreso Físico</p>
             <p-progressBar [value]="progresoFisico" [showValue]="true"></p-progressBar>

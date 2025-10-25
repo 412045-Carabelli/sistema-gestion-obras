@@ -278,15 +278,15 @@
       <method v="2" />
     </configuration>
     <list>
-      <item itemvalue="Docker...: Compose Deployment" />
-      <item itemvalue="Spring Boot.TransaccionServiceApplication" />
       <item itemvalue="Spring Boot.Api Gateway" />
       <item itemvalue="Spring Boot.Clientes" />
       <item itemvalue="Spring Boot.Documentos" />
       <item itemvalue="Spring Boot.Obras" />
       <item itemvalue="Spring Boot.Proveedores" />
       <item itemvalue="Spring Boot.Reportes" />
+      <item itemvalue="Spring Boot.TransaccionServiceApplication" />
       <item itemvalue="Spring Boot.Transacciones" />
+      <item itemvalue="Docker...: Compose Deployment" />
     </list>
     <recent_temporary>
       <list>
@@ -358,6 +358,7 @@
       <workItem from="1761333682992" duration="1448000" />
       <workItem from="1761335169451" duration="129000" />
       <workItem from="1761335333892" duration="1254000" />
+      <workItem from="1761353929647" duration="723000" />
     </task>
     <servers />
   </component>
