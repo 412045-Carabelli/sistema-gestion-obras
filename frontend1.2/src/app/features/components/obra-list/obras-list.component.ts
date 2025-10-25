@@ -65,9 +65,15 @@ export class ObrasListComponent implements OnInit {
     const { obras, clientes, estados } = this.route.snapshot.data['data'];
 
     this.obras = obras;
-    this.clientes = clientes.map(c => ({ ...c, id: Number(c.id) }));
-    this.estados = estados.map(e => ({ ...e, id: Number(e.id) }));
+    this.clientes = clientes.map((c: Cliente) => ({
+      ...c,
+      id: Number(c.id)
+    }));
 
+    this.estados = estados.map((e: EstadoObra) => ({
+      ...e,
+      id: Number(e.id)
+    }));
     this.obrasFiltradas = [...this.obras];
 
     this.estadosOptions = [
