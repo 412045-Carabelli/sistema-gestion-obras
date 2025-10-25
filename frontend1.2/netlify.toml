@@ -1,0 +1,8 @@
+[build]
+  functions = "netlify/functions"
+  publish = "dist/sistema-gestion-obras"
+
+[[redirects]]
+  from = "/api/*"
+  to = "/.netlify/functions/proxy/:splat"
+  status = 200
