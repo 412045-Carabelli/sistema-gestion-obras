@@ -42,9 +42,9 @@ public class TransaccionService {
                 .orElseThrow(() -> new RuntimeException("Tipo de transacción no encontrado"));
 
         Transaccion entity = Transaccion.builder()
-                .idObra(dto.getId_obra())
-                .idAsociado(dto.getId_asociado())
-                .tipoAsociado(dto.getTipo_asociado())
+                .idObra(dto.getIdObra())
+                .idAsociado(dto.getIdAsociado())
+                .tipoAsociado(dto.getTipoAsociado())
                 .tipo_transaccion(tipo)
                 .fecha(dto.getFecha())
                 .monto(dto.getMonto())
@@ -78,9 +78,9 @@ public class TransaccionService {
         TipoTransaccion tipo = tipoTransaccionRepository.findById(dto.getTipo_transaccion().getId())
                 .orElseThrow(() -> new RuntimeException("Tipo de transacción no encontrado"));
 
-        entity.setIdObra(dto.getId_obra());
-        entity.setIdAsociado(dto.getId_asociado());
-        entity.setTipoAsociado(dto.getTipo_asociado());
+        entity.setIdObra(dto.getIdObra());
+        entity.setIdAsociado(dto.getIdAsociado());
+        entity.setTipoAsociado(dto.getTipoAsociado());
         entity.setTipo_transaccion(tipo);
         entity.setFecha(dto.getFecha());
         entity.setMonto(dto.getMonto());

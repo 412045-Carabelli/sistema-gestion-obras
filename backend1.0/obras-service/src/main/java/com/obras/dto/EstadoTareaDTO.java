@@ -13,6 +13,9 @@ public class EstadoTareaDTO {
     private Long id;
     private String nombre;
     private Boolean activo;
-    private Instant ultima_actualizacion;
-    private String tipo_actualizacion;
+
+    public EstadoTareaDTO(Long id, String nombre) {
+        this.id = id;
+        this.nombre = nombre;
+    }
 }
