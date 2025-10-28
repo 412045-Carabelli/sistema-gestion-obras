@@ -14,6 +14,7 @@ import {ProveedoresCreateComponent} from './features/pages/proveedores-create/pr
 import {ProveedoresDetailComponent} from './features/pages/proveedores-detail/proveedores-detail.component';
 import {ProveedoresEditComponent} from './features/pages/proveedores-edit/proveedores-edit.component';
 import {ProveedoresListComponent} from './features/components/proveedores-list/proveedores-list.component';
+import {ReportesComponent} from './features/pages/reportes/reportes.component';
 
 export const routes: Routes = [
   {
@@ -46,6 +47,7 @@ export const routes: Routes = [
       {path: 'editar/:id', component: ProveedoresEditComponent},
     ],
   },
+  {path: 'reportes', component: ReportesComponent},
   {path: '', redirectTo: 'obras', pathMatch: 'full'},
   {path: '**', redirectTo: 'obras'},
 ];

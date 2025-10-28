@@ -1,0 +1,17 @@
+:host ::ng-deep .p-card {
+  width: 100%;
+}
+
+:host ::ng-deep .p-dropdown,
+:host ::ng-deep .p-multiselect,
+:host ::ng-deep .p-calendar {
+  width: 100%;
+}
+
+:host ::ng-deep .p-button {
+  min-width: 12rem;
+}
+
+:host ::ng-deep .p-progress-spinner {
+  display: inline-flex;
+}
