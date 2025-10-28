@@ -1,20 +1,79 @@
 package com.reportes.controller;
 
-import com.reportes.dto.ReporteDto;
+import com.reportes.dto.request.EstadoObraFilterRequest;
+import com.reportes.dto.request.ReportFilterRequest;
+import com.reportes.dto.response.*;
+import com.reportes.service.ReportesService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/reportes")
 @RequiredArgsConstructor
 public class ReportesController {
 
-    @GetMapping
-    public ResponseEntity<ReporteDto> test() {
-        return ResponseEntity.ok(new ReporteDto(1L));
+    private final ReportesService reportesService;
+
+    @PostMapping("/financieros/ingresos-egresos")
+    public ResponseEntity<IngresosEgresosResponse> ingresosEgresos(@RequestBody(required = false) ReportFilterRequest filtro) {
+        return ResponseEntity.ok(reportesService.generarIngresosEgresos(filtro));
     }
 
+    @GetMapping("/financieros/estado-obra/{obraId}")
+    public ResponseEntity<EstadoFinancieroObraResponse> estadoFinanciero(@PathVariable Long obraId) {
+        return ResponseEntity.ok(reportesService.generarEstadoFinanciero(obraId));
+    }
+
+    @PostMapping("/financieros/flujo-caja")
+    public ResponseEntity<FlujoCajaResponse> flujoCaja(@RequestBody(required = false) ReportFilterRequest filtro) {
+        return ResponseEntity.ok(reportesService.generarFlujoCaja(filtro));
+    }
+
+    @PostMapping("/financieros/pendientes")
+    public ResponseEntity<PendientesResponse> pendientes(@RequestBody(required = false) ReportFilterRequest filtro) {
+        return ResponseEntity.ok(reportesService.generarPendientes(filtro));
+    }
+
+    @PostMapping("/operativos/estado-obras")
+    public ResponseEntity<EstadoObrasResponse> estadoObras(@RequestBody(required = false) EstadoObraFilterRequest filtro) {
+        return ResponseEntity.ok(reportesService.generarEstadoObras(filtro));
+    }
+
+    @PostMapping("/operativos/avance-tareas")
+    public ResponseEntity<AvanceTareasResponse> avanceTareas(@RequestBody(required = false) ReportFilterRequest filtro) {
+        return ResponseEntity.ok(reportesService.generarAvanceTareas(filtro));
+    }
+
+    @PostMapping("/operativos/costos-categoria")
+    public ResponseEntity<CostosPorCategoriaResponse> costosPorCategoria(@RequestBody(required = false) ReportFilterRequest filtro) {
+        return ResponseEntity.ok(reportesService.generarCostosPorCategoria(filtro));
+    }
+
+    @GetMapping("/generales/resumen")
+    public ResponseEntity<ResumenGeneralResponse> resumenGeneral() {
+        return ResponseEntity.ok(reportesService.generarResumenGeneral());
+    }
+
+    @PostMapping("/generales/ranking-clientes")
+    public ResponseEntity<RankingClientesResponse> rankingClientes(@RequestBody(required = false) ReportFilterRequest filtro) {
+        return ResponseEntity.ok(reportesService.generarRankingClientes(filtro));
+    }
+
+    @PostMapping("/generales/ranking-proveedores")
+    public ResponseEntity<RankingProveedoresResponse> rankingProveedores(@RequestBody(required = false) ReportFilterRequest filtro) {
+        return ResponseEntity.ok(reportesService.generarRankingProveedores(filtro));
+    }
+
+    @GetMapping("/obras/notas")
+    public ResponseEntity<List<NotasObraResponse>> notasGenerales() {
+        return ResponseEntity.ok(reportesService.generarNotasGenerales());
+    }
+
+    @GetMapping("/obras/{obraId}/notas")
+    public ResponseEntity<NotasObraResponse> notasPorObra(@PathVariable Long obraId) {
+        return ResponseEntity.ok(reportesService.generarNotasPorObra(obraId));
+    }
 }

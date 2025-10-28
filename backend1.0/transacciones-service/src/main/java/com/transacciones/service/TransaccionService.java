@@ -42,9 +42,9 @@ public class TransaccionService {
                 .orElseThrow(() -> new RuntimeException("Tipo de transacción no encontrado"));
 
         Transaccion entity = Transaccion.builder()
-                .idObra(dto.getIdObra())
-                .idAsociado(dto.getIdAsociado())
-                .tipoAsociado(dto.getTipoAsociado())
+                .idObra(dto.getId_obra())
+                .idAsociado(dto.getId_asociado())
+                .tipoAsociado(dto.getTipo_asociado())
                 .tipo_transaccion(tipo)
                 .fecha(dto.getFecha())
                 .monto(dto.getMonto())
@@ -78,9 +78,9 @@ public class TransaccionService {
         TipoTransaccion tipo = tipoTransaccionRepository.findById(dto.getTipo_transaccion().getId())
                 .orElseThrow(() -> new RuntimeException("Tipo de transacción no encontrado"));
 
-        entity.setIdObra(dto.getIdObra());
-        entity.setIdAsociado(dto.getIdAsociado());
-        entity.setTipoAsociado(dto.getTipoAsociado());
+        entity.setIdObra(dto.getId_obra());
+        entity.setIdAsociado(dto.getId_asociado());
+        entity.setTipoAsociado(dto.getTipo_asociado());
         entity.setTipo_transaccion(tipo);
         entity.setFecha(dto.getFecha());
         entity.setMonto(dto.getMonto());
@@ -137,11 +137,17 @@ public class TransaccionService {
                         TipoTransaccionDto.builder()
                                 .id(transaccion.getTipo_transaccion().getId())
                                 .nombre(transaccion.getTipo_transaccion().getNombre())
+                                .activo(transaccion.getTipo_transaccion().getActivo())
+                                .ultima_actualizacion(transaccion.getTipo_transaccion().getUltimaActualizacion())
+                                .tipo_actualizacion(transaccion.getTipo_transaccion().getTipoActualizacion())
                                 .build()
                 )
                 .fecha(transaccion.getFecha())
                 .monto(transaccion.getMonto())
                 .forma_pago(transaccion.getForma_pago())
+                .activo(transaccion.getActivo())
+                .ultima_actualizacion(transaccion.getUltimaActualizacion())
+                .tipo_actualizacion(transaccion.getTipoActualizacion())
                 .build();
     }
 }

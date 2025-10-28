@@ -28,11 +28,18 @@ public class ProveedoresController {
         dto.setContacto(entity.getContacto());
         dto.setTelefono(entity.getTelefono());
         dto.setEmail(entity.getEmail());
+        dto.setActivo(entity.getActivo());
+        dto.setCreado_en(entity.getCreadoEn());
+        dto.setUltima_actualizacion(entity.getUltimaActualizacion());
+        dto.setTipo_actualizacion(entity.getTipoActualizacion());
 
         if (entity.getTipoProveedor() != null) {
             TipoProveedorDTO tipoDto = new TipoProveedorDTO();
             tipoDto.setId(entity.getTipoProveedor().getId());
             tipoDto.setNombre(entity.getTipoProveedor().getNombre());
+            tipoDto.setActivo(entity.getTipoProveedor().getActivo());
+            tipoDto.setUltima_actualizacion(entity.getTipoProveedor().getUltimaActualizacion());
+            tipoDto.setTipo_actualizacion(entity.getTipoProveedor().getTipoActualizacion());
             dto.setTipo_proveedor(tipoDto);
         }
 
@@ -46,13 +53,13 @@ public class ProveedoresController {
         entity.setContacto(dto.getContacto());
         entity.setTelefono(dto.getTelefono());
         entity.setEmail(dto.getEmail());
-        entity.setActivo(true);
+        entity.setActivo(dto.getActivo() != null ? dto.getActivo() : Boolean.TRUE);
 
         if (dto.getTipo_proveedor() != null) {
             TipoProveedor tipo = new TipoProveedor();
             tipo.setId(dto.getTipo_proveedor().getId());
             tipo.setNombre(dto.getTipo_proveedor().getNombre());
-            tipo.setActivo(true);
+            tipo.setActivo(dto.getTipo_proveedor().getActivo() != null ? dto.getTipo_proveedor().getActivo() : Boolean.TRUE);
             entity.setTipoProveedor(tipo);
         }
 
@@ -63,6 +70,9 @@ public class ProveedoresController {
         TipoProveedorDTO dto = new TipoProveedorDTO();
         dto.setId(entity.getId());
         dto.setNombre(entity.getNombre());
+        dto.setActivo(entity.getActivo());
+        dto.setUltima_actualizacion(entity.getUltimaActualizacion());
+        dto.setTipo_actualizacion(entity.getTipoActualizacion());
         return dto;
     }
 
@@ -70,7 +80,7 @@ public class ProveedoresController {
         TipoProveedor entity = new TipoProveedor();
         entity.setId(dto.getId());
         entity.setNombre(dto.getNombre());
-        entity.setActivo(true);
+        entity.setActivo(dto.getActivo() != null ? dto.getActivo() : Boolean.TRUE);
         return entity;
     }
 
