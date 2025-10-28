@@ -3,6 +3,8 @@ package com.transacciones.entity;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.time.Instant;
+
 @Entity
 @Table(name = "tipo_transaccion")
 @Getter
@@ -18,4 +20,33 @@ public class TipoTransaccion {
 
     @Column(name = "nombre", nullable = false)
     private String nombre; // cobro | pago
+
+    @Column(name = "activo")
+    private Boolean activo = true;
+
+    @Column(name = "ultima_actualizacion")
+    private Instant ultimaActualizacion;
+
+    @Column(name = "tipo_actualizacion")
+    private String tipoActualizacion;
+
+    @PrePersist
+    public void prePersist() {
+        marcarAuditoria("CREATE");
+    }
+
+    @PreUpdate
+    public void preUpdate() {
+        marcarAuditoria("UPDATE");
+    }
+
+    @PreRemove
+    public void preRemove() {
+        marcarAuditoria("DELETE");
+    }
+
+    private void marcarAuditoria(String tipo) {
+        this.ultimaActualizacion = Instant.now();
+        this.tipoActualizacion = tipo;
+    }
 }

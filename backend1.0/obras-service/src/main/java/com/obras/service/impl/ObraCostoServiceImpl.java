@@ -97,6 +97,8 @@ public class ObraCostoServiceImpl implements ObraCostoService {
         dto.setTotal(entity.getTotal());
         dto.setId_estado_pago(entity.getEstadoPago() != null ? entity.getEstadoPago().getId() : null);
         dto.setActivo(entity.getActivo());
+        dto.setUltima_actualizacion(entity.getUltimaActualizacion());
+        dto.setTipo_actualizacion(entity.getTipoActualizacion());
         return dto;
     }
 
@@ -112,7 +114,7 @@ public class ObraCostoServiceImpl implements ObraCostoService {
         entity.setCantidad(dto.getCantidad());
         entity.setPrecioUnitario(dto.getPrecio_unitario());
         entity.setBeneficio(dto.getBeneficio());
-        entity.setActivo(dto.getActivo());
+        entity.setActivo(dto.getActivo() != null ? dto.getActivo() : Boolean.TRUE);
 
         if (dto.getId_estado_pago() != null) {
             entity.setEstadoPago(EstadoPago.builder().id(dto.getId_estado_pago()).build());

@@ -80,6 +80,12 @@ public class TareaServiceImpl implements TareaService {
         dto.setId_proveedor(entity.getIdProveedor());
         dto.setNombre(entity.getNombre());
         dto.setDescripcion(entity.getDescripcion());
+        dto.setFecha_inicio(entity.getFechaInicio());
+        dto.setFecha_fin(entity.getFechaFin());
+        dto.setCreado_en(entity.getCreadoEn());
+        dto.setActivo(entity.getActivo());
+        dto.setUltima_actualizacion(entity.getUltimaActualizacion());
+        dto.setTipo_actualizacion(entity.getTipoActualizacion());
 
         if (entity.getEstadoTarea() != null) {
             EstadoTareaDTO estadoDto = new EstadoTareaDTO();
@@ -97,6 +103,9 @@ public class TareaServiceImpl implements TareaService {
         entity.setIdProveedor(dto.getId_proveedor());
         entity.setNombre(dto.getNombre());
         entity.setDescripcion(dto.getDescripcion());
+        entity.setFechaInicio(dto.getFecha_inicio());
+        entity.setFechaFin(dto.getFecha_fin());
+        entity.setActivo(dto.getActivo() != null ? dto.getActivo() : Boolean.TRUE);
 
         if (dto.getEstado_tarea() != null && dto.getEstado_tarea().getId() != null) {
             EstadoTarea estado = estadoTareaRepository.findById(dto.getEstado_tarea().getId())

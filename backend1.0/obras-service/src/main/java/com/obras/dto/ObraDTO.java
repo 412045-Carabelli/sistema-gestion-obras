@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.Data;
 
 import java.math.BigDecimal;
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -26,6 +27,11 @@ public class ObraDTO {
     private BigDecimal comision;
     private List<TareaDTO> tareas;
     private List<ObraCostoDTO> costos;
+    private String notas;
+    private Boolean activo;
+    private Instant creado_en;
+    private Instant ultima_actualizacion;
+    private String tipo_actualizacion;
 }
 
 

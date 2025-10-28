@@ -115,6 +115,8 @@ public class ObraServiceImpl implements ObraService {
             estadoDto.setId(entity.getEstadoObra().getId());
             estadoDto.setNombre(entity.getEstadoObra().getNombre());
             estadoDto.setActivo(entity.getEstadoObra().getActivo());
+            estadoDto.setUltima_actualizacion(entity.getEstadoObra().getUltimaActualizacion());
+            estadoDto.setTipo_actualizacion(entity.getEstadoObra().getTipoActualizacion());
             dto.setObra_estado(estadoDto);
         }
 
@@ -129,6 +131,11 @@ public class ObraServiceImpl implements ObraService {
         dto.setTiene_comision(entity.getTieneComision());
         dto.setBeneficio(entity.getBeneficio());
         dto.setComision(entity.getComision());
+        dto.setNotas(entity.getNotas());
+        dto.setActivo(entity.getActivo());
+        dto.setCreado_en(entity.getCreadoEn());
+        dto.setUltima_actualizacion(entity.getUltimaActualizacion());
+        dto.setTipo_actualizacion(entity.getTipoActualizacion());
 
         if (entity.getCostos() != null) {
             List<ObraCostoDTO> costosDTO = entity.getCostos().stream()
@@ -141,6 +148,12 @@ public class ObraServiceImpl implements ObraService {
                         cdto.setCantidad(c.getCantidad());
                         cdto.setPrecio_unitario(c.getPrecioUnitario());
                         cdto.setBeneficio(c.getBeneficio());
+                        cdto.setSubtotal(c.getSubtotal());
+                        cdto.setTotal(c.getTotal());
+                        cdto.setId_estado_pago(c.getEstadoPago() != null ? c.getEstadoPago().getId() : null);
+                        cdto.setActivo(c.getActivo());
+                        cdto.setUltima_actualizacion(c.getUltimaActualizacion());
+                        cdto.setTipo_actualizacion(c.getTipoActualizacion());
                         return cdto;
                     })
                     .collect(Collectors.toList());
@@ -174,6 +187,8 @@ public class ObraServiceImpl implements ObraService {
         entity.setTieneComision(dto.getTiene_comision());
         entity.setBeneficio(dto.getBeneficio());
         entity.setComision(dto.getComision());
+        entity.setNotas(dto.getNotas());
+        entity.setActivo(dto.getActivo());
 
         if (dto.getCostos() != null) {
             entity.setCostos(mapearCostos(dto.getCostos(), entity));

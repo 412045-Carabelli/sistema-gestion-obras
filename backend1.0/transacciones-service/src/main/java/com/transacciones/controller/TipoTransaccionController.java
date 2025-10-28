@@ -48,6 +48,9 @@ public class TipoTransaccionController {
         return TipoTransaccionDto.builder()
                 .id(entity.getId())
                 .nombre(entity.getNombre())
+                .activo(entity.getActivo())
+                .ultima_actualizacion(entity.getUltimaActualizacion())
+                .tipo_actualizacion(entity.getTipoActualizacion())
                 .build();
     }
 
@@ -55,6 +58,7 @@ public class TipoTransaccionController {
         return TipoTransaccion.builder()
                 .id(dto.getId())
                 .nombre(dto.getNombre())
+                .activo(dto.getActivo() != null ? dto.getActivo() : Boolean.TRUE)
                 .build();
     }
 }
