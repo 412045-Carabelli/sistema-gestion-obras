@@ -1,18 +1,23 @@
 export interface Cliente {
   id: number;
   nombre: string;
+  id_empresa?: number;
   contacto?: string;
   cuit?: string;
   telefono?: string;
   email?: string;
   activo?: boolean;
   creado_en?: string;
+  ultima_actualizacion?: string;
+  tipo_actualizacion?: string;
 }
 
 export interface TipoProveedor {
   id: number;
   nombre: string; // mano_obra | materiales | servicios
   activo: boolean;
+  ultima_actualizacion?: string;
+  tipo_actualizacion?: string;
 }
 
 export interface Proveedor {
@@ -24,26 +29,37 @@ export interface Proveedor {
   email?: string;
   activo: boolean;
   creado_en?: string;
+  ultima_actualizacion?: string;
+  tipo_actualizacion?: string;
 }
 
 export interface EstadoObra {
   id: number;
   nombre: string; // presupuestada | cotizada | adjudicada | iniciada | en_progreso | finalizada | perdida
   activo: boolean;
+  ultima_actualizacion?: string;
+  tipo_actualizacion?: string;
 }
 
 export interface EstadoTarea {
   id: number;
   nombre: string;
+  activo?: boolean;
+  ultima_actualizacion?: string;
+  tipo_actualizacion?: string;
 }
 
 export interface TipoTransaccion {
   id: number;
   nombre: string; // cobro | pago
+  activo?: boolean;
+  ultima_actualizacion?: string;
+  tipo_actualizacion?: string;
 }
 
 export interface Obra {
   id?: number;
+  id_cliente?: number;
   cliente: Cliente;
   obra_estado: EstadoObra;
   nombre: string;
@@ -60,6 +76,9 @@ export interface Obra {
   tiene_comision?: boolean;
   activo?: boolean;
   creado_en?: string;
+  notas?: string;
+  ultima_actualizacion?: string;
+  tipo_actualizacion?: string;
   tareas?: Tarea[];
   costos?: ObraCosto[];
 }
@@ -73,12 +92,15 @@ export interface ObraProveedor {
 export interface EstadoPago {
   id: number;
   estado: string;
+  ultima_actualizacion?: string;
+  tipo_actualizacion?: string;
 }
 
 export interface ObraCosto {
   id?: number;
   id_obra: number;
-  proveedor: Proveedor;
+  id_proveedor?: number;
+  proveedor?: Proveedor;
   descripcion: string;
   unidad: string;
   cantidad: number;
@@ -90,15 +112,24 @@ export interface ObraCosto {
   subtotal: number;
   total: number;
   activo?: boolean;
+  ultima_actualizacion?: string;
+  tipo_actualizacion?: string;
 }
 
 export interface Tarea {
   id?: number;
   id_obra: number;
-  proveedor: Proveedor;
+  id_proveedor?: number;
+  proveedor?: Proveedor;
   estado_tarea: EstadoTarea;
   nombre: string;
   descripcion?: string;
+  fecha_inicio?: string;
+  fecha_fin?: string;
+  creado_en?: string;
+  activo?: boolean;
+  ultima_actualizacion?: string;
+  tipo_actualizacion?: string;
 }
 
 export interface Transaccion {
@@ -111,6 +142,8 @@ export interface Transaccion {
   monto: number;
   forma_pago: string;
   activo?: boolean;
+  ultima_actualizacion?: string;
+  tipo_actualizacion?: string;
 }
 
 export interface TipoDocumento {
