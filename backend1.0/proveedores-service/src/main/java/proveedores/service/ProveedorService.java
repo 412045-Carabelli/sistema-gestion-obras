@@ -46,6 +46,7 @@ public class ProveedorService {
                     existing.setTelefono(proveedor.getTelefono());
                     existing.setEmail(proveedor.getEmail());
                     existing.setTipoProveedor(proveedor.getTipoProveedor());
+                    existing.setActivo(proveedor.getActivo() != null ? proveedor.getActivo() : existing.getActivo());
                     return repository.save(existing);
                 })
                 .orElseThrow(() -> new RuntimeException("Proveedor no encontrado"));

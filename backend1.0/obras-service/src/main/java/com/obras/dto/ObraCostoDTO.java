@@ -3,6 +3,7 @@ package com.obras.dto;
 import lombok.Data;
 
 import java.math.BigDecimal;
+import java.time.Instant;
 
 @Data
 public class ObraCostoDTO {
@@ -18,5 +19,7 @@ public class ObraCostoDTO {
     private BigDecimal total;
     private Long id_estado_pago;
     private Boolean activo;
+    private Instant ultima_actualizacion;
+    private String tipo_actualizacion;
 }
 

@@ -50,7 +50,36 @@ public class Obra {
     @Column(name = "creado_en", updatable = false)
     private Instant creadoEn;
 
+    @Column(columnDefinition = "TEXT")
+    private String notas;
+
+    @Column(name = "ultima_actualizacion")
+    private Instant ultimaActualizacion;
+
+    @Column(name = "tipo_actualizacion")
+    private String tipoActualizacion;
+
     @OneToMany(mappedBy = "obra", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<ObraCosto> costos;
+
+    @PrePersist
+    public void prePersist() {
+        marcarAuditoria("CREATE");
+    }
+
+    @PreUpdate
+    public void preUpdate() {
+        marcarAuditoria("UPDATE");
+    }
+
+    @PreRemove
+    public void preRemove() {
+        marcarAuditoria("DELETE");
+    }
+
+    private void marcarAuditoria(String tipo) {
+        this.ultimaActualizacion = Instant.now();
+        this.tipoActualizacion = tipo;
+    }
 
 }

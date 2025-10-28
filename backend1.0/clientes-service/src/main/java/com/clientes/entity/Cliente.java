@@ -15,4 +15,30 @@ public class Cliente {
     private String contacto, cuit, telefono, email;
     private Boolean activo = Boolean.TRUE;
     private Instant creadoEn = Instant.now();
+
+    @Column(name = "ultima_actualizacion")
+    private Instant ultimaActualizacion;
+
+    @Column(name = "tipo_actualizacion")
+    private String tipoActualizacion;
+
+    @PrePersist
+    public void prePersist() {
+        marcarAuditoria("CREATE");
+    }
+
+    @PreUpdate
+    public void preUpdate() {
+        marcarAuditoria("UPDATE");
+    }
+
+    @PreRemove
+    public void preRemove() {
+        marcarAuditoria("DELETE");
+    }
+
+    private void marcarAuditoria(String tipo) {
+        this.ultimaActualizacion = Instant.now();
+        this.tipoActualizacion = tipo;
+    }
 }
