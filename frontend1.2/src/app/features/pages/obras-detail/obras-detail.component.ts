@@ -118,7 +118,7 @@ export class ObrasDetailComponent implements OnInit, OnDestroy {
     if (!this.tareas.length || !this.proveedores.length) return 0;
 
     const tareasDeEstaObra = this.tareas.filter(t =>
-      this.proveedores.some(p => p.id === t.proveedor.id)
+      this.proveedores.some(p => p.id === t.proveedor?.id)
     );
 
     if (!tareasDeEstaObra.length) return 0;
