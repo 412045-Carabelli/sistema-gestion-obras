@@ -3,15 +3,8 @@
   <!-- 🧭 Header -->
   <app-header (toggleMenu)="toggleSidebar()"></app-header>
 
-  <!-- ⚠️ Overlay mientras despiertan los servicios -->
-  @if(showServerSleep) {
-    <app-server-sleep
-      class="fixed inset-0 z-50 flex items-center justify-center bg-gray-900 bg-opacity-60 backdrop-blur-sm">
-    </app-server-sleep>
-  }
-
   <!-- 🧭 Container principal -->
-  <div class="flex flex-1 overflow-hidden" [class.opacity-50]="showServerSleep" [class.pointer-events-none]="showServerSleep">
+  <div class="flex flex-1 overflow-hidden">
 
     <!-- 📌 Sidebar -->
     @if (sidebarVisible) {
