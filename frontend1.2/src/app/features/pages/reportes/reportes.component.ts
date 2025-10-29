@@ -36,6 +36,11 @@ import {TableModule} from 'primeng/table';
 import {TagModule} from 'primeng/tag';
 import {DividerModule} from 'primeng/divider';
 import {ProgressSpinnerModule} from 'primeng/progressspinner';
+import {Select} from 'primeng/select';
+import {DatePicker} from 'primeng/datepicker';
+import {Toast} from 'primeng/toast';
+import {ConfirmDialog} from 'primeng/confirmdialog';
+import {ConfirmationService, MessageService} from 'primeng/api';
 
 interface SelectOption<T> {
   label: string;
@@ -56,8 +61,13 @@ interface SelectOption<T> {
     TableModule,
     TagModule,
     DividerModule,
-    ProgressSpinnerModule
+    ProgressSpinnerModule,
+    Select,
+    DatePicker,
+    Toast,
+    ConfirmDialog
   ],
+  providers: [MessageService, ConfirmationService],
   templateUrl: './reportes.component.html',
   styleUrls: ['./reportes.component.css']
 })
@@ -92,7 +102,8 @@ export class ReportesComponent implements OnInit {
     private obrasService: ObrasService,
     private clientesService: ClientesService,
     private proveedoresService: ProveedoresService,
-    private estadoObraService: EstadoObraService
+    private estadoObraService: EstadoObraService,
+    private messageService: MessageService
   ) {
   }
 
