@@ -1,20 +1,33 @@
 package com.obras.entity;
 
-import jakarta.persistence.*;
+import com.common.audit.AbstractAuditableEntity;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
+import java.math.BigDecimal;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
-import java.math.BigDecimal;
-
+/**
+ * Entity that represents the cost breakdown for an obra with auditing support.
+ */
 @Entity
-@Table(name="obra_costo")
+@Table(name = "obra_costo")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class ObraCosto {
+@EqualsAndHashCode(callSuper = true)
+public class ObraCosto extends AbstractAuditableEntity {
     @Id
     @GeneratedValue(strategy= GenerationType.IDENTITY) private Long id;
 
