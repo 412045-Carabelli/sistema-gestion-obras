@@ -1,44 +1,41 @@
 package com.clientes.entity;
 
-import jakarta.persistence.*;
+import com.common.audit.AbstractAuditableEntity;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
-import java.time.Instant;
-
+/**
+ * Entity that represents the customer catalog extending the shared auditing
+ * capabilities.
+ */
 @Entity
-@Table(name="clientes") @Data
-public class Cliente {
+@Table(name = "clientes")
+@Data
+@EqualsAndHashCode(callSuper = true)
+public class Cliente extends AbstractAuditableEntity {
+
     @Id
-    @GeneratedValue(strategy= GenerationType.IDENTITY) private Long id;
-    @Column(nullable=false) private String nombre;
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @Column(nullable = false)
+    private String nombre;
+
     private Long id_empresa;
-    private String contacto, cuit, telefono, email;
+
+    private String contacto;
+
+    private String cuit;
+
+    private String telefono;
+
+    private String email;
+
     private Boolean activo = Boolean.TRUE;
-    private Instant creadoEn = Instant.now();
-
-    @Column(name = "ultima_actualizacion")
-    private Instant ultimaActualizacion;
-
-    @Column(name = "tipo_actualizacion")
-    private String tipoActualizacion;
-
-    @PrePersist
-    public void prePersist() {
-        marcarAuditoria("CREATE");
-    }
-
-    @PreUpdate
-    public void preUpdate() {
-        marcarAuditoria("UPDATE");
-    }
-
-    @PreRemove
-    public void preRemove() {
-        marcarAuditoria("DELETE");
-    }
-
-    private void marcarAuditoria(String tipo) {
-        this.ultimaActualizacion = Instant.now();
-        this.tipoActualizacion = tipo;
-    }
 }

@@ -31,7 +31,11 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
         </dependency>
-
+        <dependency>
+            <groupId>org.postgresql</groupId>
+            <artifactId>postgresql</artifactId>
+            <version>42.7.3</version>
+        </dependency>
         <!-- 🧭 Validaciones (Bean Validation / Jakarta Validation) -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -70,6 +74,12 @@
             <groupId>org.springdoc</groupId>
             <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
             <version>2.6.0</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.meliquina</groupId>
+            <artifactId>common</artifactId>
+            <version>1.0.0</version>
         </dependency>
     </dependencies>
 

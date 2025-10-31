@@ -1,6 +1,6 @@
 import {Component, EventEmitter, OnInit, Output} from '@angular/core';
 import {CommonModule, DatePipe} from '@angular/common';
-import {Router} from '@angular/router';
+import {ActivatedRoute, Router} from '@angular/router';
 import {FormsModule} from '@angular/forms';
 import {TableModule} from 'primeng/table';
 import {InputTextModule} from 'primeng/inputtext';
@@ -54,6 +54,7 @@ export class ObrasListComponent implements OnInit {
 
   constructor(
     private router: Router,
+    private route: ActivatedRoute,
     private obrasService: ObrasService,
     private clientesService: ClientesService,
     private estadoObraService: EstadoObraService
@@ -61,32 +62,31 @@ export class ObrasListComponent implements OnInit {
   }
 
   ngOnInit() {
-    // Carga todo en paralelo
-    forkJoin({
-      obras: this.obrasService.getObras(),
-      clientes: this.clientesService.getClientes(),
-      estados: this.estadoObraService.getEstados()
-    }).subscribe(({obras, clientes, estados}) => {
-      this.obras = obras
+    const { obras, clientes, estados } = this.route.snapshot.data['data'];
 
-      this.clientes = clientes.map(c => ({...c, id: Number(c.id)}));
-      this.estados = estados.map(e => ({...e, id: Number(e.id)}));
+    this.obras = obras;
+    this.clientes = clientes.map((c: Cliente) => ({
+      ...c,
+      id: Number(c.id)
+    }));
 
-      this.obrasFiltradas = [...this.obras];
+    this.estados = estados.map((e: EstadoObra) => ({
+      ...e,
+      id: Number(e.id)
+    }));
+    this.obrasFiltradas = [...this.obras];
 
-      this.estadosOptions = [
-        {label: 'Todos', value: 'todos'},
-        ...this.estados.map(e => ({
-          label: e.nombre.charAt(0).toUpperCase() + e.nombre.slice(1).replace('_', ' '),
-          value: e.nombre.toLowerCase()
-        }))
-      ];
+    this.estadosOptions = [
+      { label: 'Todos', value: 'todos' },
+      ...this.estados.map(e => ({
+        label: e.nombre.charAt(0).toUpperCase() + e.nombre.slice(1).replace('_', ' '),
+        value: e.nombre.toLowerCase()
+      }))
+    ];
 
-      this.datosCargados = true;
-    });
+    this.datosCargados = true;
   }
 
-  // 🔍 Filtrado
   applyFilter() {
     this.obrasFiltradas = this.obras.filter(obra => {
 

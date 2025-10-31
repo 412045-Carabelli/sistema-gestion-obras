@@ -1,7 +1,7 @@
 // src/environments/environment.prod.ts
 export const environment = {
   production: true,
-  apiGateway: 'https://sistema-gestion-obras.onrender.com',
+  apiGateway: 'https://sistema-gestion-obras.netlify.app/api',
   endpoints: {
     obras: '/bff/obras',
     estado_pago: '/bff/estado_pago',

@@ -3,11 +3,6 @@
   <component name="CompilerConfiguration">
     <annotationProcessing>
       <profile default="true" name="Default" enabled="true" />
-      <profile name="Maven default annotation processors profile" enabled="true">
-        <sourceOutputDir name="target/generated-sources/annotations" />
-        <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
-        <outputRelativeToContentRoot value="true" />
-      </profile>
       <profile name="Annotation profile for Gestion de Obras - Parent" enabled="true">
         <sourceOutputDir name="target/generated-sources/annotations" />
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
@@ -20,16 +15,9 @@
         <module name="api-gateway" />
         <module name="clientes-service" />
         <module name="obras-service" />
-        <module name="catalogos-service" />
         <module name="transacciones-service" />
         <module name="documentos-service" />
       </profile>
     </annotationProcessing>
-    <bytecodeTargetLevel>
-      <module name="catalogos-obras.service" target="17" />
-      <module name="clientes-obras.service" target="17" />
-      <module name="proveedores-obras.service" target="17" />
-      <module name="reportes-obras.service" target="17" />
-    </bytecodeTargetLevel>
   </component>
 </project>

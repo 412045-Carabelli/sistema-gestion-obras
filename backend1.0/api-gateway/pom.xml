@@ -23,26 +23,33 @@
     </properties>
 
     <dependencies>
-        <!-- WebFlux -->
+        <dependency>
+            <groupId>io.github.resilience4j</groupId>
+            <artifactId>resilience4j-spring-boot3</artifactId>
+            <version>2.2.0</version>
+        </dependency>
+
+        <!-- Soporte para anotaciones @CircuitBreaker y @Retry -->
+        <dependency>
+            <groupId>io.github.resilience4j</groupId>
+            <artifactId>resilience4j-all</artifactId>
+            <version>2.2.0</version>
+        </dependency>
+
+        <!-- ✅ WebFlux para controladores reactivos -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-webflux</artifactId>
         </dependency>
 
-        <!-- Spring Cloud Gateway -->
-        <dependency>
-            <groupId>org.springframework.cloud</groupId>
-            <artifactId>spring-cloud-starter-gateway</artifactId>
-            <version>4.1.4</version>
-        </dependency>
-
-        <!-- OpenAPI WebFlux -->
+        <!-- ✅ Swagger para documentación reactiva -->
         <dependency>
             <groupId>org.springdoc</groupId>
             <artifactId>springdoc-openapi-starter-webflux-ui</artifactId>
             <version>2.6.0</version>
         </dependency>
 
+        <!-- Lombok -->
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
@@ -58,6 +65,4 @@
             </plugin>
         </plugins>
     </build>
-
-
 </project>

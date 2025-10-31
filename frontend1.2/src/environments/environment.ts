@@ -1,9 +1,10 @@
 // src/environments/environment.ts
 export const environment = {
   production: false,
-  apiGateway: 'http://localhost:8080',
+  apiGateway: 'http://localhost:8080/',
   endpoints: {
     obras: '/bff/obras',
+    estados_obras: '/bff/estados_obras',
     estado_pago: '/bff/estado_pago',
     clientes: '/bff/clientes',
     proveedores: '/bff/proveedores',

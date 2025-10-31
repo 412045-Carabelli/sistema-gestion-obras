@@ -1,0 +1,371 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="AutoImportSettings">
+    <option name="autoReloadType" value="SELECTIVE" />
+  </component>
+  <component name="ChangeListManager">
+    <list default="true" id="09f391ee-47b2-40c2-889e-08846edc6d39" name="Changes" comment="" />
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="FileTemplateManagerImpl">
+    <option name="RECENT_TEMPLATES">
+      <list>
+        <option value="Interface" />
+        <option value="Dockerfile" />
+        <option value="Class" />
+      </list>
+    </option>
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_BRANCH_BY_REPOSITORY">
+      <map>
+        <entry key="$PROJECT_DIR$/.." value="main" />
+      </map>
+    </option>
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$/.." />
+  </component>
+  <component name="GitHubPullRequestSearchHistory">{
+  &quot;lastFilter&quot;: {
+    &quot;state&quot;: &quot;OPEN&quot;,
+    &quot;assignee&quot;: &quot;412045-Carabelli&quot;
+  }
+}</component>
+  <component name="GithubPullRequestsUISettings">{
+  &quot;selectedUrlAndAccountId&quot;: {
+    &quot;url&quot;: &quot;https://github.com/412045-Carabelli/sistema-gestion-obras.git&quot;,
+    &quot;accountId&quot;: &quot;931fa0a7-c1d8-48f7-8398-9c9e2bd5fa43&quot;
+  }
+}</component>
+  <component name="KubernetesApiPersistence">{}</component>
+  <component name="KubernetesApiProvider">{
+  &quot;isMigrated&quot;: true
+}</component>
+  <component name="ProblemsViewState">
+    <option name="selectedTabId" value="CurrentFile" />
+  </component>
+  <component name="ProjectColorInfo">{
+  &quot;associatedIndex&quot;: 5
+}</component>
+  <component name="ProjectId" id="33mwcHPQp9VwMVp3EAKqae7y9L7" />
+  <component name="ProjectLevelVcsManager">
+    <ConfirmationsSetting value="1" id="Add" />
+  </component>
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;Docker...: Compose Deployment.executor&quot;: &quot;Run&quot;,
+    &quot;Maven.Unknown [clean,install].executor&quot;: &quot;Run&quot;,
+    &quot;Maven.gestion-obras [-DskipTests,-P,sqlite...].executor&quot;: &quot;Run&quot;,
+    &quot;Maven.gestion-obras [-pl,api-gateway...].executor&quot;: &quot;Run&quot;,
+    &quot;Maven.gestion-obras [-v].executor&quot;: &quot;Run&quot;,
+    &quot;Maven.gestion-obras [clean,compile,-pl...].executor&quot;: &quot;Run&quot;,
+    &quot;Maven.gestion-obras [clean,compile].executor&quot;: &quot;Run&quot;,
+    &quot;Maven.gestion-obras [clean,install,-N].executor&quot;: &quot;Run&quot;,
+    &quot;Maven.gestion-obras [clean,install,-U].executor&quot;: &quot;Run&quot;,
+    &quot;Maven.gestion-obras [clean,install,-pl...].executor&quot;: &quot;Run&quot;,
+    &quot;Maven.gestion-obras [clean,install].executor&quot;: &quot;Run&quot;,
+    &quot;Maven.gestion-obras [clean,package,-DskipTests...].executor&quot;: &quot;Run&quot;,
+    &quot;Maven.gestion-obras [clean,package,-DskipTests].executor&quot;: &quot;Run&quot;,
+    &quot;Maven.gestion-obras [clean,package,-pl...].executor&quot;: &quot;Run&quot;,
+    &quot;Maven.gestion-obras [clean,package,api-gateway].executor&quot;: &quot;Run&quot;,
+    &quot;Maven.gestion-obras [clean,package].executor&quot;: &quot;Run&quot;,
+    &quot;Maven.gestion-obras [clean,spring-boot:run,-pl...].executor&quot;: &quot;Run&quot;,
+    &quot;Maven.gestion-obras [clean,spring-boot:run].executor&quot;: &quot;Run&quot;,
+    &quot;Maven.gestion-obras [clean].executor&quot;: &quot;Run&quot;,
+    &quot;Maven.gestion-obras [help:effective-pom,-pl...].executor&quot;: &quot;Run&quot;,
+    &quot;Maven.gestion-obras [spring-boot:run,-pl...].executor&quot;: &quot;Run&quot;,
+    &quot;Maven.gestion-obras [spring-boot:run...].executor&quot;: &quot;Run&quot;,
+    &quot;Maven.gestion-obras [taskkill,/F,/IM,java.exe].executor&quot;: &quot;Run&quot;,
+    &quot;ModuleVcsDetector.initialDetectionPerformed&quot;: &quot;true&quot;,
+    &quot;Notification.DisplayName-DoNotAsk-DatabaseConfigFileWatcher.found&quot;: &quot;Database connection parameters found&quot;,
+    &quot;Notification.DoNotAsk-DatabaseConfigFileWatcher.found&quot;: &quot;true&quot;,
+    &quot;RequestMappingsPanelOrder0&quot;: &quot;0&quot;,
+    &quot;RequestMappingsPanelOrder1&quot;: &quot;1&quot;,
+    &quot;RequestMappingsPanelWidth0&quot;: &quot;75&quot;,
+    &quot;RequestMappingsPanelWidth1&quot;: &quot;75&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
+    &quot;Spring Boot.Api Gateway.executor&quot;: &quot;Run&quot;,
+    &quot;Spring Boot.Clientes.executor&quot;: &quot;Run&quot;,
+    &quot;Spring Boot.ClientesServiceApplication (1).executor&quot;: &quot;Run&quot;,
+    &quot;Spring Boot.ClientesServiceApplication.executor&quot;: &quot;Run&quot;,
+    &quot;Spring Boot.Documentos.executor&quot;: &quot;Run&quot;,
+    &quot;Spring Boot.Obras.executor&quot;: &quot;Run&quot;,
+    &quot;Spring Boot.ObrasServiceApplication (1).executor&quot;: &quot;Run&quot;,
+    &quot;Spring Boot.ObrasServiceApplication.executor&quot;: &quot;Run&quot;,
+    &quot;Spring Boot.Proveedores.executor&quot;: &quot;Run&quot;,
+    &quot;Spring Boot.Reportes.executor&quot;: &quot;Run&quot;,
+    &quot;Spring Boot.Transacciones.executor&quot;: &quot;Run&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;main&quot;,
+    &quot;last_opened_file_path&quot;: &quot;C:/Users/Usuario/Desktop/my-work/sistema-gestion-obras/backend1.0/build/backend&quot;,
+    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
+    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
+    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
+    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
+    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
+    &quot;project.structure.last.edited&quot;: &quot;Modules&quot;,
+    &quot;project.structure.proportion&quot;: &quot;0.15&quot;,
+    &quot;project.structure.side.proportion&quot;: &quot;0.2&quot;,
+    &quot;run.code.analysis.last.selected.profile&quot;: &quot;pProject Default&quot;,
+    &quot;run.configurations.included.in.services&quot;: &quot;true&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;preferences.pluginManager&quot;,
+    &quot;ts.external.directory.path&quot;: &quot;C:\\Users\\Usuario\\IntelliJ IDEA 2025.1.1.1\\plugins\\javascript-plugin\\jsLanguageServicesImpl\\external&quot;,
+    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
+  }
+}</component>
+  <component name="ReactorSettings">
+    <option name="notificationShown" value="true" />
+  </component>
+  <component name="RecentsManager">
+    <key name="CreateClassDialog.RecentsKey">
+      <recent name="com.reportes.dto" />
+      <recent name="com.documentos.dto" />
+      <recent name="proveedores.repository" />
+      <recent name="proveedores.service" />
+      <recent name="proveedores.dto" />
+    </key>
+    <key name="CopyFile.RECENT_KEYS">
+      <recent name="C:\Users\Usuario\Desktop\my-work\sistema-gestion-obras\backend1.0\build\backend" />
+      <recent name="C:\Users\Usuario\Desktop\my-work\sistema-gestion-obras\backend1.0\build\data" />
+      <recent name="C:\Users\Usuario\Desktop\my-work\sistema-gestion-obras\backend1.0\api-gateway\src\main\resources\static" />
+      <recent name="C:\Users\Usuario\Desktop\my-work\pablo-pezzini\sistema-gestion-obras\gestion-obras\transacciones-service\src\main" />
+      <recent name="C:\Users\Usuario\Desktop\my-work\pablo-pezzini\sistema-gestion-obras\gestion-obras\proveedores-service\src\main\java" />
+    </key>
+    <key name="MoveFile.RECENT_KEYS">
+      <recent name="C:\Users\Usuario\Desktop\my-work\sistema-gestion-obras\" />
+      <recent name="C:\Users\Usuario\Desktop\my-work\sistema-gestion-obras\backend1.0\api-gateway\src\main\resources\static" />
+      <recent name="C:\Users\Usuario\Desktop\my-work\pablo-pezzini\sistema-gestion-obras\gestion-obras\proveedores-service\src\main\resources" />
+      <recent name="C:\Users\Usuario\Desktop\my-work\pablo-pezzini\sistema-gestion-obras\gestion-obras\catalogos-service" />
+      <recent name="C:\Users\Usuario\Desktop\my-work\pablo-pezzini\sistema-gestion-obras\gestion-obras\clientes-service\src\main" />
+    </key>
+    <key name="MoveClassesOrPackagesDialog.RECENTS_KEY">
+      <recent name="" />
+    </key>
+    <key name="CopyClassDialog.RECENTS_KEY">
+      <recent name="com.transacciones.controller" />
+      <recent name="com.apigateway.controller" />
+      <recent name="com.clientes.controller" />
+      <recent name="com.documentos.controller" />
+      <recent name="com.obras.controller" />
+    </key>
+  </component>
+  <component name="RunAnythingCache">
+    <option name="myCommands">
+      <command value="mvn spring-boot:run -pl obras-service -Dspring-boot.run.profiles=local " />
+      <command value="mvn clean install -N " />
+      <command value="mvn clean install -pl clientes-service -am " />
+      <command value="mvn help:effective-pom -pl clientes-service " />
+      <command value="mvn clean install -pl obras-service -am " />
+      <command value="mvn clean compile -pl obras-service " />
+      <command value="mvn clean compile" />
+      <command value="mvn spring-boot:run -pl obras-service -x" />
+      <command value="mvn spring-boot:run -pl obras-service -X " />
+      <command value="mvn -v" />
+      <command value="mvn taskkill /F /IM java.exe " />
+      <command value="mvn spring-boot:run -pl obras-service " />
+      <command value="mvn clean spring-boot:run -pl obras-service " />
+      <command value="mvn clean package " />
+      <command value="mvn clean" />
+      <command value="mvn clean spring-boot:run " />
+      <command value="mvn clean install" />
+      <command value="mvn clean install -U" />
+      <command value="mvn clean spring-boot:run -pl clientes-service " />
+      <command value="mvn clean install " />
+      <command value="mvn clean package" />
+      <command value="mvn clean package -pl api-gateway -am" />
+      <command value="mvn -DskipTests -P sqlite clean package " />
+      <command value="mvn clean package api-gateway" />
+      <command value="mvn clean package -DskipTests api-gateway" />
+      <command value="mvn clean package -DskipTests " />
+      <command value="mvn spring-boot:run -Dspring-boot.run.profiles=dev " />
+      <command value="mvn spring-boot:run -Dspring-boot.run.profiles=render " />
+      <command value="mvn -pl api-gateway spring-boot:run -Dspring-boot.run.profiles=render " />
+      <command value="mvn  spring-boot:run -Dspring-boot.run.profiles=render " />
+    </option>
+  </component>
+  <component name="RunDashboard">
+    <option name="configurationTypes">
+      <set>
+        <option value="KtorApplicationConfigurationType" />
+        <option value="MicronautRunConfigurationType" />
+        <option value="QuarkusRunConfigurationType" />
+        <option value="SpringBootApplicationConfigurationType" />
+      </set>
+    </option>
+  </component>
+  <component name="RunManager" selected="Spring Boot.Api Gateway">
+    <configuration name="Api Gateway" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot">
+      <module name="api-gateway" />
+      <option name="SPRING_BOOT_MAIN_CLASS" value="com.apigateway.ApiGatewayApplication" />
+      <option name="WORKING_DIRECTORY" value="file://$PROJECT_DIR$/api-gateway/target/classes" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="Clientes" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot">
+      <module name="clientes-service" />
+      <option name="SPRING_BOOT_MAIN_CLASS" value="com.clientes.ClientesServiceApplication" />
+      <option name="WORKING_DIRECTORY" value="file://$PROJECT_DIR$/clientes-service" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="Documentos" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot">
+      <module name="documentos-service" />
+      <option name="SPRING_BOOT_MAIN_CLASS" value="com.documentos.DocumentosServiceApplication" />
+      <option name="WORKING_DIRECTORY" value="file://$PROJECT_DIR$/documentos-service" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="Obras" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot">
+      <module name="obras-service" />
+      <option name="SPRING_BOOT_MAIN_CLASS" value="com.obras.ObrasServiceApplication" />
+      <option name="WORKING_DIRECTORY" value="file://$PROJECT_DIR$/obras-service" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="Proveedores" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot">
+      <module name="proveedores-service" />
+      <option name="SPRING_BOOT_MAIN_CLASS" value="proveedores.ProveedoresServiceApplication" />
+      <option name="WORKING_DIRECTORY" value="file://$PROJECT_DIR$/proveedores-service" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="Reportes" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot">
+      <module name="reportes-service" />
+      <option name="SPRING_BOOT_MAIN_CLASS" value="com.reportes.ReportesServiceApplication" />
+      <option name="WORKING_DIRECTORY" value="file://$PROJECT_DIR$/../../pablo-pezzini/sistema-gestion-obras/gestion-obras/reportes-service" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="TransaccionServiceApplication" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot" nameIsGenerated="true">
+      <module name="transacciones-service" />
+      <option name="SPRING_BOOT_MAIN_CLASS" value="com.transacciones.TransaccionServiceApplication" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="Transacciones" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot">
+      <module name="transacciones-service" />
+      <option name="SPRING_BOOT_MAIN_CLASS" value="com.transacciones.TransaccionesServiceApplication" />
+      <option name="WORKING_DIRECTORY" value="file://$PROJECT_DIR$/transacciones-service" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="..: Compose Deployment" type="docker-deploy" factoryName="docker-compose.yml" temporary="true" server-name="Docker">
+      <deployment type="docker-compose.yml">
+        <settings>
+          <option name="sourceFilePath" value="../docker-compose.yml" />
+        </settings>
+      </deployment>
+      <method v="2" />
+    </configuration>
+    <configuration default="true" type="docker-deploy" factoryName="docker-compose.yml" temporary="true">
+      <deployment type="docker-compose.yml">
+        <settings />
+      </deployment>
+      <method v="2" />
+    </configuration>
+    <list>
+      <item itemvalue="Spring Boot.Api Gateway" />
+      <item itemvalue="Spring Boot.Clientes" />
+      <item itemvalue="Spring Boot.Documentos" />
+      <item itemvalue="Spring Boot.Obras" />
+      <item itemvalue="Spring Boot.Proveedores" />
+      <item itemvalue="Spring Boot.Reportes" />
+      <item itemvalue="Spring Boot.TransaccionServiceApplication" />
+      <item itemvalue="Spring Boot.Transacciones" />
+      <item itemvalue="Docker...: Compose Deployment" />
+    </list>
+    <recent_temporary>
+      <list>
+        <item itemvalue="Docker...: Compose Deployment" />
+      </list>
+    </recent_temporary>
+  </component>
+  <component name="SharedIndexes">
+    <attachedChunks>
+      <set>
+        <option value="bundled-jdk-9823dce3aa75-fbdcb00ec9e3-intellij.indexing.shared.core-IU-251.26094.121" />
+        <option value="bundled-js-predefined-d6986cc7102b-b26f3e71634d-JavaScript-IU-251.26094.121" />
+      </set>
+    </attachedChunks>
+  </component>
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="09f391ee-47b2-40c2-889e-08846edc6d39" name="Changes" comment="" />
+      <created>1759935634076</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1759935634076</updated>
+      <workItem from="1759935636030" duration="7948000" />
+      <workItem from="1759952937576" duration="2297000" />
+      <workItem from="1759955277759" duration="3392000" />
+      <workItem from="1759981322504" duration="16000" />
+      <workItem from="1759981413154" duration="3114000" />
+      <workItem from="1759984578194" duration="2853000" />
+      <workItem from="1759987615082" duration="6000" />
+      <workItem from="1760030877783" duration="9011000" />
+      <workItem from="1760044275093" duration="2304000" />
+      <workItem from="1760065231518" duration="13345000" />
+      <workItem from="1760127061554" duration="6661000" />
+      <workItem from="1760213738948" duration="3259000" />
+      <workItem from="1760381174990" duration="2380000" />
+      <workItem from="1760391233915" duration="2824000" />
+      <workItem from="1760400305331" duration="5089000" />
+      <workItem from="1760446384343" duration="8808000" />
+      <workItem from="1760477497534" duration="7917000" />
+      <workItem from="1760542889156" duration="952000" />
+      <workItem from="1760567965518" duration="4249000" />
+      <workItem from="1760586568448" duration="155000" />
+      <workItem from="1760588745551" duration="10000" />
+      <workItem from="1760588775307" duration="728000" />
+      <workItem from="1760628676953" duration="3204000" />
+      <workItem from="1760632465616" duration="1217000" />
+      <workItem from="1760651223219" duration="8000" />
+      <workItem from="1760735994847" duration="333000" />
+      <workItem from="1760744424672" duration="148000" />
+      <workItem from="1760745194060" duration="2017000" />
+      <workItem from="1760922058357" duration="4387000" />
+      <workItem from="1760931663522" duration="2735000" />
+      <workItem from="1760934920032" duration="1850000" />
+      <workItem from="1760971383731" duration="8000" />
+      <workItem from="1760981571024" duration="1594000" />
+      <workItem from="1760997926128" duration="80000" />
+      <workItem from="1761000225926" duration="2196000" />
+      <workItem from="1761004304323" duration="61000" />
+      <workItem from="1761007347954" duration="1723000" />
+      <workItem from="1761017447674" duration="54000" />
+      <workItem from="1761061982169" duration="5853000" />
+      <workItem from="1761072282545" duration="220000" />
+      <workItem from="1761074067910" duration="4365000" />
+      <workItem from="1761079677067" duration="11000" />
+      <workItem from="1761155322987" duration="16160000" />
+      <workItem from="1761238976716" duration="22000" />
+      <workItem from="1761265008255" duration="1059000" />
+      <workItem from="1761332950845" duration="437000" />
+      <workItem from="1761333682992" duration="1448000" />
+      <workItem from="1761335169451" duration="129000" />
+      <workItem from="1761335333892" duration="1254000" />
+      <workItem from="1761353929647" duration="723000" />
+    </task>
+    <servers />
+  </component>
+  <component name="TypeScriptGeneratedFilesManager">
+    <option name="version" value="3" />
+  </component>
+  <component name="UnknownFeatures">
+    <option featureType="com.intellij.fileTypeFactory" implementationName="*.bat" />
+  </component>
+</project>

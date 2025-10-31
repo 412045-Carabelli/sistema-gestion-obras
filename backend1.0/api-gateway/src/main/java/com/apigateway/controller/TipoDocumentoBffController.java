@@ -15,7 +15,6 @@ import java.util.Map;
 @RestController
 @RequestMapping("/bff/tipo_documentos")
 @RequiredArgsConstructor
-@CrossOrigin(origins = "http://localhost:4200")
 public class TipoDocumentoBffController {
 
     @Value("${services.documentos.url}/tipo_documentos")

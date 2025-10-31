@@ -36,7 +36,7 @@ export class ClientesCreateComponent implements OnInit {
     this.form = this.fb.group({
       nombre: ['', Validators.required],
       contacto: ['', Validators.required],
-      cuit: [''],
+      cuit: ['', Validators.required, Validators.minLength(11), Validators.maxLength(11)],
       telefono: ['', [Validators.required, Validators.minLength(10), Validators.maxLength(15)]],
       email: ['', [Validators.required, Validators.email]],
       activo: [true]
