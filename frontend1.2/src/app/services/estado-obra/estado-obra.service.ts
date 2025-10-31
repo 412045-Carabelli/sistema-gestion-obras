@@ -6,7 +6,7 @@ import {environment} from '../../../environments/environment';
   providedIn: 'root'
 })
 export class EstadoObraService {
-  private apiUrl = `${environment.apiGateway}/bff/estados_obras`;
+  private apiUrl = `${environment.apiGateway}${environment.endpoints.estados_obras}`;
 
   constructor(private http: HttpClient) {
   }

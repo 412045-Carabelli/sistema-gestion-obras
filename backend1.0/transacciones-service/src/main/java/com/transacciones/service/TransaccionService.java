@@ -137,11 +137,17 @@ public class TransaccionService {
                         TipoTransaccionDto.builder()
                                 .id(transaccion.getTipo_transaccion().getId())
                                 .nombre(transaccion.getTipo_transaccion().getNombre())
+                                .activo(transaccion.getTipo_transaccion().getActivo())
+                                .ultima_actualizacion(transaccion.getTipo_transaccion().getUltimaActualizacion())
+                                .tipo_actualizacion(transaccion.getTipo_transaccion().getTipoActualizacion())
                                 .build()
                 )
                 .fecha(transaccion.getFecha())
                 .monto(transaccion.getMonto())
                 .forma_pago(transaccion.getForma_pago())
+                .activo(transaccion.getActivo())
+                .ultima_actualizacion(transaccion.getUltimaActualizacion())
+                .tipo_actualizacion(transaccion.getTipoActualizacion())
                 .build();
     }
 }

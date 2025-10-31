@@ -71,9 +71,12 @@ public class TransaccionController {
         Transaccion entity = new Transaccion();
         entity.setId(dto.getId());
         entity.setIdObra(dto.getId_obra());
+        entity.setIdAsociado(dto.getId_asociado());
+        entity.setTipoAsociado(dto.getTipo_asociado());
         entity.setFecha(dto.getFecha());
         entity.setMonto(dto.getMonto());
         entity.setForma_pago(dto.getForma_pago());
+        entity.setActivo(dto.getActivo());
 
         if (dto.getTipo_transaccion() != null) {
             // Buscamos la entidad real para asociarla
