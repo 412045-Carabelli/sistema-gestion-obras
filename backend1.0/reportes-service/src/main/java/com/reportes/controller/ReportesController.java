@@ -23,7 +23,7 @@ public class ReportesController {
     }
 
     @GetMapping("/financieros/estado-obra/{obraId}")
-    public ResponseEntity<EstadoFinancieroObraResponse> estadoFinanciero(@PathVariable Long obraId) {
+    public ResponseEntity<EstadoFinancieroObraResponse> estadoFinanciero(@PathVariable("obraId") Long obraId) {
         return ResponseEntity.ok(reportesService.generarEstadoFinanciero(obraId));
     }
 
