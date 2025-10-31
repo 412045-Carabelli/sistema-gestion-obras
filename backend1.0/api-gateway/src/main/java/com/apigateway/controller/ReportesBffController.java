@@ -95,7 +95,7 @@ public class ReportesBffController {
     private <T> Mono<ResponseEntity<T>> proxyGet(String path, ParameterizedTypeReference<T> type) {
         return webClientBuilder.build()
                 .get()
-                .uri(reportesServiceUrl + "/api/reportes" + path)
+                .uri(reportesServiceUrl + path)
                 .accept(MediaType.APPLICATION_JSON)
                 .retrieve()
                 .bodyToMono(type)
@@ -107,7 +107,7 @@ public class ReportesBffController {
     private <T> Mono<ResponseEntity<T>> proxyPost(String path, Object body, ParameterizedTypeReference<T> type) {
         return webClientBuilder.build()
                 .post()
-                .uri(reportesServiceUrl + "/api/reportes" + path)
+                .uri(reportesServiceUrl + path)
                 .contentType(MediaType.APPLICATION_JSON)
                 .bodyValue(body != null ? body : new Object())
                 .retrieve()
