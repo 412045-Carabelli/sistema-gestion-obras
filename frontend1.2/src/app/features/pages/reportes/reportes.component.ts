@@ -94,7 +94,6 @@ export class ReportesComponent implements OnInit {
   estadoFinancieroObra: EstadoFinancieroObraResponse | null = null;
 
   loading = false;
-  errorMessage: string | null = null;
 
   constructor(
     private fb: FormBuilder,
@@ -104,8 +103,7 @@ export class ReportesComponent implements OnInit {
     private proveedoresService: ProveedoresService,
     private estadoObraService: EstadoObraService,
     private messageService: MessageService
-  ) {
-  }
+  ) {}
 
   ngOnInit(): void {
     this.initForm();
@@ -128,28 +126,28 @@ export class ReportesComponent implements OnInit {
       next: (obras: Obra[]) => {
         this.obrasOptions = obras.map((obra) => ({label: obra.nombre, value: obra.id!}));
       },
-      error: (error) => console.error('No se pudieron cargar las obras', error)
+      error: () => this.showToast('error', 'Error', 'No se pudieron cargar las obras')
     });
 
     this.clientesService.getClientes().subscribe({
       next: (clientes: Cliente[]) => {
         this.clientesOptions = clientes.map((cliente) => ({label: cliente.nombre, value: cliente.id}));
       },
-      error: (error) => console.error('No se pudieron cargar los clientes', error)
+      error: () => this.showToast('error', 'Error', 'No se pudieron cargar los clientes')
     });
 
     this.proveedoresService.getProveedores().subscribe({
       next: (proveedores: Proveedor[]) => {
         this.proveedoresOptions = proveedores.map((proveedor) => ({label: proveedor.nombre, value: proveedor.id}));
       },
-      error: (error) => console.error('No se pudieron cargar los proveedores', error)
+      error: () => this.showToast('error', 'Error', 'No se pudieron cargar los proveedores')
     });
 
     this.estadoObraService.getEstados().subscribe({
       next: (estados: EstadoObra[]) => {
         this.estadosObraOptions = estados.map((estado) => ({label: estado.nombre, value: estado.id}));
       },
-      error: (error) => console.error('No se pudieron cargar los estados de obra', error)
+      error: () => this.showToast('error', 'Error', 'No se pudieron cargar los estados de obra')
     });
   }
 
@@ -170,7 +168,6 @@ export class ReportesComponent implements OnInit {
 
   private loadReportes(): void {
     this.loading = true;
-    this.errorMessage = null;
 
     const filtrosReporte = this.buildReportFilter();
     const filtrosEstadoObra = this.buildEstadoObraFilter();
@@ -225,10 +222,9 @@ export class ReportesComponent implements OnInit {
 
         this.loading = false;
       },
-      error: (error) => {
-        console.error('Error al cargar los reportes', error);
-        this.errorMessage = 'No se pudieron cargar los reportes. Intenta nuevamente.';
+      error: () => {
         this.loading = false;
+        this.showToast('error', 'Error', 'No se pudieron cargar los reportes. Intenta nuevamente.');
       }
     });
   }
@@ -236,49 +232,34 @@ export class ReportesComponent implements OnInit {
   private loadEstadoFinanciero(obraId: number): void {
     this.reportesService.getEstadoFinanciero(obraId).pipe(
       catchError((error) => {
-        console.error('Error al cargar el estado financiero', error);
-        this.errorMessage = this.errorMessage ?? 'Algunos reportes no pudieron cargarse.';
+        console.error('Error al cargar estado financiero', error);
+        this.showToast('warn', 'Advertencia', 'El estado financiero no pudo cargarse.');
         return of(null);
       })
-    ).subscribe((data) => {
-      this.estadoFinancieroObra = data;
-    });
+    ).subscribe((data) => this.estadoFinancieroObra = data);
   }
 
   private loadNotasObra(obraId: number): void {
     this.reportesService.getNotasPorObra(obraId).pipe(
       catchError((error) => {
-        console.error('Error al cargar las notas de la obra', error);
-        this.errorMessage = this.errorMessage ?? 'Algunos reportes no pudieron cargarse.';
+        console.error('Error al cargar notas de la obra', error);
+        this.showToast('warn', 'Advertencia', 'Las notas de la obra no pudieron cargarse.');
         return of(null);
       })
-    ).subscribe((data) => {
-      this.notaObraSeleccionada = data;
-    });
+    ).subscribe((data) => this.notaObraSeleccionada = data);
   }
 
   private buildReportFilter(): ReportFilter | undefined {
     const {obraId, clienteId, proveedorId, rangoFechas} = this.filtrosForm.value;
-
     const filtro: ReportFilter = {};
 
-    if (obraId) {
-      filtro.obraId = obraId;
-    }
-    if (clienteId) {
-      filtro.clienteId = clienteId;
-    }
-    if (proveedorId) {
-      filtro.proveedorId = proveedorId;
-    }
+    if (obraId) filtro.obraId = obraId;
+    if (clienteId) filtro.clienteId = clienteId;
+    if (proveedorId) filtro.proveedorId = proveedorId;
     if (rangoFechas && Array.isArray(rangoFechas)) {
       const [inicio, fin] = rangoFechas;
-      if (inicio) {
-        filtro.fechaInicio = this.formatDateValue(inicio);
-      }
-      if (fin) {
-        filtro.fechaFin = this.formatDateValue(fin);
-      }
+      if (inicio) filtro.fechaInicio = this.formatDateValue(inicio);
+      if (fin) filtro.fechaFin = this.formatDateValue(fin);
     }
 
     return Object.keys(filtro).length > 0 ? filtro : undefined;
@@ -288,20 +269,12 @@ export class ReportesComponent implements OnInit {
     const {estadosObra, clienteId, rangoFechas} = this.filtrosForm.value;
     const filtro: EstadoObrasFilter = {};
 
-    if (estadosObra && estadosObra.length > 0) {
-      filtro.estados = estadosObra;
-    }
-    if (clienteId) {
-      filtro.clienteId = clienteId;
-    }
-    if (rangoFechas && Array.isArray(rangoFechas)) {
+    if (estadosObra?.length) filtro.estados = estadosObra;
+    if (clienteId) filtro.clienteId = clienteId;
+    if (rangoFechas?.length) {
       const [inicio, fin] = rangoFechas;
-      if (inicio) {
-        filtro.fechaInicio = this.formatDateValue(inicio);
-      }
-      if (fin) {
-        filtro.fechaFin = this.formatDateValue(fin);
-      }
+      if (inicio) filtro.fechaInicio = this.formatDateValue(inicio);
+      if (fin) filtro.fechaFin = this.formatDateValue(fin);
     }
 
     return Object.keys(filtro).length > 0 ? filtro : undefined;
@@ -313,11 +286,14 @@ export class ReportesComponent implements OnInit {
 
   private withDefault<T>(observable: Observable<T>, defaultValue: T): Observable<T> {
     return observable.pipe(
-      catchError((error) => {
-        console.error('Error recuperando un reporte', error);
-        this.errorMessage = this.errorMessage ?? 'Algunos reportes no pudieron cargarse por completo.';
+      catchError(() => {
+        this.showToast('warn', 'Advertencia', 'Algunos reportes no pudieron cargarse por completo.');
         return of(defaultValue);
       })
     );
+  }
+
+  private showToast(severity: 'success' | 'info' | 'warn' | 'error', summary: string, detail: string): void {
+    this.messageService.add({severity, summary, detail});
   }
 }
