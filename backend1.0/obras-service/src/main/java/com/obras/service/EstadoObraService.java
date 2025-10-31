@@ -18,7 +18,13 @@ public class EstadoObraService {
     private final EstadoObraRepository estadoObraRepository;
 
     private ObraEstadoDTO toDto(EstadoObra entity) {
-        return new ObraEstadoDTO(entity.getId(), entity.getNombre(), entity.getActivo());
+        ObraEstadoDTO dto = new ObraEstadoDTO();
+        dto.setId(entity.getId());
+        dto.setNombre(entity.getNombre());
+        dto.setActivo(Boolean.TRUE.equals(entity.getActivo()));
+        dto.setUltima_actualizacion(entity.getUltimaActualizacion());
+        dto.setTipo_actualizacion(entity.getTipoActualizacion());
+        return dto;
     }
 
     public List<ObraEstadoDTO> listarEstados() {

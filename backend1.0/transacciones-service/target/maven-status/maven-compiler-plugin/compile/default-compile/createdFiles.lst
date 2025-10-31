@@ -12,4 +12,3 @@ com\transacciones\controller\TransaccionController.class
 com\transacciones\dto\TransaccionDto.class
 com\transacciones\service\TransaccionService.class
 com\transacciones\repository\TransaccionRepository.class
-com\transacciones\TransaccionServiceApplication.class

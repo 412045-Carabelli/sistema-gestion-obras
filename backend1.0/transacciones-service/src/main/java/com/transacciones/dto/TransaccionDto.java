@@ -2,6 +2,7 @@ package com.transacciones.dto;
 
 import lombok.*;
 
+import java.time.Instant;
 import java.time.LocalDate;
 
 @Getter
@@ -18,4 +19,7 @@ public class TransaccionDto {
     private LocalDate fecha;
     private Double monto;
     private String forma_pago;
+    private Boolean activo;
+    private Instant ultima_actualizacion;
+    private String tipo_actualizacion;
 }
