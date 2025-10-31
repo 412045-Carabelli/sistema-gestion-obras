@@ -13,6 +13,7 @@
 
     <!-- 📦 Módulos -->
     <modules>
+        <module>common</module>
         <module>api-gateway</module>
         <module>clientes-service</module>
         <module>proveedores-service</module>
@@ -20,6 +21,9 @@
         <module>documentos-service</module>
         <module>transacciones-service</module>
         <module>reportes-service</module>
+        <module>usuarios-service</module>
+        <module>jwt-service</module>
+        <module>empresas-service</module>
     </modules>
 
     <!-- 🧭 Propiedades globales -->
