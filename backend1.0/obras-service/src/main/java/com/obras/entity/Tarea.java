@@ -1,33 +1,22 @@
 package com.obras.entity;
 
-import com.common.audit.AbstractAuditableEntity;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.FetchType;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.Table;
-import java.time.LocalDateTime;
+import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
-import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
-/**
- * Entity that stores the tasks for an obra leveraging auditing metadata.
- */
+import java.time.Instant;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+
 @Entity
-@Table(name = "tareas")
+@Table(name="tareas")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-@EqualsAndHashCode(callSuper = true)
-public class Tarea extends AbstractAuditableEntity {
+public class Tarea {
     @Id
     @GeneratedValue(strategy=GenerationType.IDENTITY) private Long id;
 
@@ -45,6 +34,9 @@ public class Tarea extends AbstractAuditableEntity {
     private LocalDateTime fechaInicio;
     @Column(name = "fecha_fin")
     private LocalDateTime fechaFin;
+
+    @Column(nullable=false, name = "creado_en")
+    private Instant creadoEn = Instant.now();
 
     private Boolean activo = Boolean.TRUE;
 }

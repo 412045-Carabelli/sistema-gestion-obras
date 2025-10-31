@@ -3,126 +3,80 @@ version: '3.9'
 services:
   obras-service:
     build: ./backend1.0/obras-service
-    image: sistema-gestion-obras/obras-service:latest
     container_name: obras_service
     ports:
-      - '8081:8081'
+      - "8081:8081"
     volumes:
       - ./backend1.0/obras-service/data:/app/data
     environment:
       - SPRING_PROFILES_ACTIVE=default
-    restart: unless-stopped
+    restart: always
     networks:
       - backend
 
   clientes-service:
     build: ./backend1.0/clientes-service
-    image: sistema-gestion-obras/clientes-service:latest
     container_name: clientes_service
     ports:
-      - '8082:8082'
+      - "8082:8082"
     volumes:
       - ./backend1.0/clientes-service/data:/app/data
     environment:
       - SPRING_PROFILES_ACTIVE=default
-    restart: unless-stopped
+    restart: always
     networks:
       - backend
 
   proveedores-service:
     build: ./backend1.0/proveedores-service
-    image: sistema-gestion-obras/proveedores-service:latest
     container_name: proveedores_service
     ports:
-      - '8083:8083'
+      - "8083:8083"
     volumes:
       - ./backend1.0/proveedores-service/data:/app/data
     environment:
       - SPRING_PROFILES_ACTIVE=default
-    restart: unless-stopped
-    networks:
-      - backend
-
-  reportes-service:
-    build: ./backend1.0/reportes-service
-    image: sistema-gestion-obras/reportes-service:latest
-    container_name: reportes_service
-    ports:
-      - '8084:8084'
-    volumes:
-      - ./backend1.0/reportes-service/data:/app/data
-    environment:
-      - SPRING_PROFILES_ACTIVE=default
-    restart: unless-stopped
-    networks:
-      - backend
-
-  transacciones-service:
-    build: ./backend1.0/transacciones-service
-    image: sistema-gestion-obras/transacciones-service:latest
-    container_name: transacciones_service
-    ports:
-      - '8086:8086'
-    volumes:
-      - ./backend1.0/transacciones-service/data:/app/data
-    environment:
-      - SPRING_PROFILES_ACTIVE=default
-    restart: unless-stopped
+    restart: always
     networks:
       - backend
 
   documentos-service:
     build: ./backend1.0/documentos-service
-    image: sistema-gestion-obras/documentos-service:latest
     container_name: documentos_service
     ports:
-      - '8087:8087'
+      - "8087:8087"
     volumes:
       - ./backend1.0/documentos-service/data:/app/data
       - ./backend1.0/documentos-service/uploads:/app/uploads
     environment:
       - SPRING_PROFILES_ACTIVE=default
-    restart: unless-stopped
+    restart: always
     networks:
       - backend
 
-  usuarios-service:
-    build: ./backend1.0/usuarios-service
-    image: sistema-gestion-obras/usuarios-service:latest
-    container_name: usuarios_service
+  # reportes-service:
+  #   build: ./backend1.0/reportes-service
+  #   container_name: reportes_service
+  #   ports:
+  #     - "8084:8084"
+  #   volumes:
+  #     - ./backend1.0/reportes-service/data:/app/data
+  #   environment:
+  #     - SPRING_PROFILES_ACTIVE=default
+  #   restart: always
+  #   networks:
+  #     - backend
+
+  transacciones-service:
+    build: ./backend1.0/transacciones-service
+    container_name: transacciones_service
     ports:
-      - '8070:8070'
+      - "8086:8086"
     volumes:
-      - ./backend1.0/usuarios-service/data:/app/data
+      - ./backend1.0/transacciones-service/data:/app/data
     environment:
       - SPRING_PROFILES_ACTIVE=default
-    restart: unless-stopped
-    networks:
-      - backend
-
-  empresas-service:
-    build: ./backend1.0/empresas-service
-    image: sistema-gestion-obras/empresas-service:latest
-    container_name: empresas_service
-    ports:
-      - '8071:8080'
-    volumes:
-      - ./backend1.0/empresas-service/data:/app/data
-    environment:
-      - SPRING_PROFILES_ACTIVE=default
-    restart: unless-stopped
-    networks:
-      - backend
-
-  jwt-service:
-    build: ./backend1.0/jwt-service
-    image: sistema-gestion-obras/jwt-service:latest
-    container_name: jwt_service
-    ports:
-      - '8090:8090'
-    environment:
-      - SPRING_PROFILES_ACTIVE=default
-    restart: unless-stopped
+    restart: always
     networks:
       - backend
 
@@ -130,27 +84,28 @@ services:
     build:
       context: ./backend1.0/api-gateway
       dockerfile: Dockerfile
-    image: sistema-gestion-obras/api-gateway:latest
     container_name: api_gateway_service
+    ports:
+      - "8080:8080"
+    environment:
+      - SPRING_PROFILES_ACTIVE=prod
+
+  frontend:
+    build: ./frontend1.2
+    container_name: obras_frontend
+    ports:
+      - "4200:80"
     depends_on:
       - obras-service
       - clientes-service
       - proveedores-service
-      - reportes-service
-      - transacciones-service
       - documentos-service
-      - usuarios-service
-      - empresas-service
-      - jwt-service
-    ports:
-      - '8080:8080'
-    environment:
-      - SPRING_PROFILES_ACTIVE=prod
-    restart: unless-stopped
+      - transacciones-service
+      # - reportes-service
+    restart: always
     networks:
       - backend
 
 networks:
   backend:
-    name: sgo_backend
     driver: bridge
