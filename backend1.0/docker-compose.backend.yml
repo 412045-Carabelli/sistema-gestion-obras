@@ -1,0 +1,112 @@
+version: "3.9"
+
+services:
+  obras-service:
+    build:
+      context: ./obras-service
+    image: sistema-gestion-obras/obras-service:latest
+    container_name: obras_service
+    ports:
+      - "8081:8081"
+    volumes:
+      - ./obras-service/data:/app/data
+    environment:
+      SPRING_PROFILES_ACTIVE: default
+      SPRING_DATASOURCE_URL: jdbc:sqlite:data/obras.db
+      SPRING_DATASOURCE_DRIVER_CLASS_NAME: org.sqlite.JDBC
+    restart: unless-stopped
+    networks:
+      - sgo_backend
+
+  clientes-service:
+    build:
+      context: ./clientes-service
+    image: sistema-gestion-obras/clientes-service:latest
+    container_name: clientes_service
+    ports:
+      - "8082:8082"
+    volumes:
+      - ./clientes-service/data:/app/data
+    environment:
+      SPRING_PROFILES_ACTIVE: default
+      SPRING_DATASOURCE_URL: jdbc:sqlite:data/clientes.db
+      SPRING_DATASOURCE_DRIVER_CLASS_NAME: org.sqlite.JDBC
+    restart: unless-stopped
+    networks:
+      - sgo_backend
+
+  proveedores-service:
+    build:
+      context: ./proveedores-service
+    image: sistema-gestion-obras/proveedores-service:latest
+    container_name: proveedores_service
+    ports:
+      - "8083:8083"
+    volumes:
+      - ./proveedores-service/data:/app/data
+    environment:
+      SPRING_PROFILES_ACTIVE: default
+      SPRING_DATASOURCE_URL: jdbc:sqlite:data/proveedores.db
+      SPRING_DATASOURCE_DRIVER_CLASS_NAME: org.sqlite.JDBC
+    restart: unless-stopped
+    networks:
+      - sgo_backend
+
+  documentos-service:
+    build:
+      context: ./documentos-service
+    image: sistema-gestion-obras/documentos-service:latest
+    container_name: documentos_service
+    ports:
+      - "8087:8087"
+    volumes:
+      - ./documentos-service/data:/app/data
+      - ./documentos-service/uploads:/app/uploads
+    environment:
+      SPRING_PROFILES_ACTIVE: default
+      SPRING_DATASOURCE_URL: jdbc:sqlite:data/documentos.db
+      SPRING_DATASOURCE_DRIVER_CLASS_NAME: org.sqlite.JDBC
+    restart: unless-stopped
+    networks:
+      - sgo_backend
+
+  transacciones-service:
+    build:
+      context: ./transacciones-service
+    image: sistema-gestion-obras/transacciones-service:latest
+    container_name: transacciones_service
+    ports:
+      - "8086:8086"
+    volumes:
+      - ./transacciones-service/data:/app/data
+    environment:
+      SPRING_PROFILES_ACTIVE: default
+      SPRING_DATASOURCE_URL: jdbc:sqlite:data/transacciones.db
+      SPRING_DATASOURCE_DRIVER_CLASS_NAME: org.sqlite.JDBC
+    restart: unless-stopped
+    networks:
+      - sgo_backend
+
+  api-gateway:
+    build:
+      context: ./api-gateway
+    image: sistema-gestion-obras/api-gateway:latest
+    container_name: api_gateway_service
+    depends_on:
+      - obras-service
+      - clientes-service
+      - proveedores-service
+      - documentos-service
+      - transacciones-service
+    ports:
+      - "8080:8080"
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+    restart: unless-stopped
+    networks:
+      - sgo_backend
+
+networks:
+  sgo_backend:
+    name: sgo_backend
+    driver: bridge
