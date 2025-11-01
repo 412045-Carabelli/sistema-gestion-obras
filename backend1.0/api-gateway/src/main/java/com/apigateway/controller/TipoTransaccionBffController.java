@@ -13,11 +13,11 @@ import java.util.List;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/bff/tipo_transaccion")
+@RequestMapping("/bff/tipo-transaccion")
 @RequiredArgsConstructor
 public class TipoTransaccionBffController {
 
-    @Value("${services.transacciones.url}/tipo_transaccion")
+    @Value("${services.transacciones.url}/tipo-transaccion")
     private String TIPO_TRANSACCIONES_URL;
 
     private final WebClient.Builder webClientBuilder;

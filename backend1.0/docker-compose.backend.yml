@@ -87,6 +87,23 @@ services:
     networks:
       - sgo_backend
 
+  reportes-service:
+    build:
+      context: ./reportes-service
+    image: sistema-gestion-obras/reportes-service:latest
+    container_name: reportes_service
+    ports:
+      - "8084:8084"
+    volumes:
+      - ./reportes-service/data:/app/data
+    environment:
+      SPRING_PROFILES_ACTIVE: default
+      SPRING_DATASOURCE_URL: jdbc:sqlite:data/reportes.db
+      SPRING_DATASOURCE_DRIVER_CLASS_NAME: org.sqlite.JDBC
+    restart: unless-stopped
+    networks:
+      - sgo_backend
+
   api-gateway:
     build:
       context: ./api-gateway
