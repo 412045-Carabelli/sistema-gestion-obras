@@ -1,5 +1,6 @@
 com\transacciones\entity\TipoTransaccion.class
 com\transacciones\entity\Transaccion.class
+com\transacciones\TransaccionesServiceApplication.class
 com\transacciones\entity\Transaccion$TransaccionBuilder.class
 com\transacciones\controller\TipoTransaccionController.class
 com\transacciones\entity\TipoTransaccion$TipoTransaccionBuilder.class

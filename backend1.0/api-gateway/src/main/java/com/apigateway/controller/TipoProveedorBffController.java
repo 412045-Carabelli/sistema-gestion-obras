@@ -13,11 +13,11 @@ import java.util.List;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/bff/tipo_proveedor")
+@RequestMapping("/bff/tipo-proveedor")
 @RequiredArgsConstructor
 public class TipoProveedorBffController {
 
-    @Value("${services.proveedores.url}/tipo_proveedor")
+    @Value("${services.proveedores.url}/tipo-proveedor")
     private String PROVEEDORES_URL;
 
     private final WebClient.Builder webClientBuilder;

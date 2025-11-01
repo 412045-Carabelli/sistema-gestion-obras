@@ -130,7 +130,7 @@ public class ProveedoresController {
         return ResponseEntity.noContent().build();
     }
 
-    @GetMapping("/tipo_proveedor")
+    @GetMapping("/tipo-proveedor")
     public ResponseEntity<List<TipoProveedorDTO>> getAllTypes() {
         List<TipoProveedorDTO> result = service.findAllTipoActivos()
                 .stream()
@@ -139,7 +139,7 @@ public class ProveedoresController {
         return ResponseEntity.ok(result);
     }
 
-    @GetMapping("/tipo_proveedor/{id}")
+    @GetMapping("/tipo-proveedor/{id}")
     public ResponseEntity<TipoProveedorDTO> getTipoById(@PathVariable("id") Long id) {
         return service.findTipoById(id)
                 .map(tp -> ResponseEntity.ok(toDTO(tp)))

@@ -14,11 +14,11 @@ import java.util.List;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/bff/estado_pago")
+@RequestMapping("/bff/estado-pago")
 @RequiredArgsConstructor
 public class EstadoPagoBffController {
 
-    @Value("${services.obras.url}/estado_pago")
+    @Value("${services.obras.url}/estado-pago")
     private String ESTADO_PAGO_URL;
 
     private final WebClient.Builder webClientBuilder;

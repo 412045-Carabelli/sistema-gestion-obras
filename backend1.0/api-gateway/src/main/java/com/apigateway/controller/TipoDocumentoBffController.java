@@ -13,12 +13,12 @@ import java.util.List;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/bff/tipo_documentos")
+@RequestMapping("/bff/tipo-documentos")
 @RequiredArgsConstructor
 @CrossOrigin(origins = "http://localhost:4200")
 public class TipoDocumentoBffController {
 
-    @Value("${services.documentos.url}/tipo_documentos")
+    @Value("${services.documentos.url}/tipo-documentos")
     private String TIPO_DOC_URL;
 
     private final WebClient.Builder webClientBuilder;
