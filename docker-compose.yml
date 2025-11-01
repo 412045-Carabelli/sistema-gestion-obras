@@ -1,85 +1,94 @@
 version: '3.9'
 
+# =======================
+# Docker Compose file for the SGO microservices stack in production.
+# All services communicate through the internal bridge network `sgo_backend`.
+# =======================
 services:
+  # -----------------------
+  # Obras microservice: manages construction projects and stores SQLite data under /data.
+  # -----------------------
   obras-service:
     build: ./backend1.0/obras-service
     container_name: obras_service
     ports:
       - "8081:8081"
     volumes:
-      - ./backend1.0/obras-service/data:/app/data
+      - ./backend1.0/obras-service/data:/data
     environment:
-      - SPRING_PROFILES_ACTIVE=default
-    restart: always
+      - SPRING_PROFILES_ACTIVE=prod
+    restart: unless-stopped
     networks:
-      - backend
+      - sgo_backend
 
+  # -----------------------
+  # Clientes microservice: customer management with SQLite persistence in /data.
+  # -----------------------
   clientes-service:
     build: ./backend1.0/clientes-service
     container_name: clientes_service
     ports:
       - "8082:8082"
     volumes:
-      - ./backend1.0/clientes-service/data:/app/data
+      - ./backend1.0/clientes-service/data:/data
     environment:
-      - SPRING_PROFILES_ACTIVE=default
-    restart: always
+      - SPRING_PROFILES_ACTIVE=prod
+    restart: unless-stopped
     networks:
-      - backend
+      - sgo_backend
 
+  # -----------------------
+  # Proveedores microservice: supplier management with a dedicated SQLite store.
+  # -----------------------
   proveedores-service:
     build: ./backend1.0/proveedores-service
     container_name: proveedores_service
     ports:
       - "8083:8083"
     volumes:
-      - ./backend1.0/proveedores-service/data:/app/data
+      - ./backend1.0/proveedores-service/data:/data
     environment:
-      - SPRING_PROFILES_ACTIVE=default
-    restart: always
+      - SPRING_PROFILES_ACTIVE=prod
+    restart: unless-stopped
     networks:
-      - backend
+      - sgo_backend
 
+  # -----------------------
+  # Documentos microservice: handles document metadata and files.
+  # -----------------------
   documentos-service:
     build: ./backend1.0/documentos-service
     container_name: documentos_service
     ports:
       - "8087:8087"
     volumes:
-      - ./backend1.0/documentos-service/data:/app/data
+      - ./backend1.0/documentos-service/data:/data
       - ./backend1.0/documentos-service/uploads:/app/uploads
     environment:
-      - SPRING_PROFILES_ACTIVE=default
-    restart: always
+      - SPRING_PROFILES_ACTIVE=prod
+    restart: unless-stopped
     networks:
-      - backend
+      - sgo_backend
 
-  # reportes-service:
-  #   build: ./backend1.0/reportes-service
-  #   container_name: reportes_service
-  #   ports:
-  #     - "8084:8084"
-  #   volumes:
-  #     - ./backend1.0/reportes-service/data:/app/data
-  #   environment:
-  #     - SPRING_PROFILES_ACTIVE=default
-  #   restart: always
-  #   networks:
-  #     - backend
-
+  # -----------------------
+  # Transacciones microservice: financial operations, persisting SQLite in /data.
+  # -----------------------
   transacciones-service:
     build: ./backend1.0/transacciones-service
     container_name: transacciones_service
     ports:
       - "8086:8086"
     volumes:
-      - ./backend1.0/transacciones-service/data:/app/data
+      - ./backend1.0/transacciones-service/data:/data
     environment:
-      - SPRING_PROFILES_ACTIVE=default
-    restart: always
+      - SPRING_PROFILES_ACTIVE=prod
+    restart: unless-stopped
     networks:
-      - backend
+      - sgo_backend
 
+  # -----------------------
+  # API Gateway (BFF): routes requests to internal services using service URLs (not localhost).
+  # -----------------------
   api-gateway:
     build:
       context: ./backend1.0/api-gateway
@@ -88,24 +97,26 @@ services:
     ports:
       - "8080:8080"
     environment:
+      # Use service DNS names provided by Docker; localhost is not reachable between containers.
       - SPRING_PROFILES_ACTIVE=prod
-
-  frontend:
-    build: ./frontend1.2
-    container_name: obras_frontend
-    ports:
-      - "4200:80"
+      - SERVICES_OBRAS_URL=http://obras-service:8081/api/obras
+      - SERVICES_CLIENTES_URL=http://clientes-service:8082/api/clientes
+      - SERVICES_PROVEEDORES_URL=http://proveedores-service:8083/api/proveedores
+      - SERVICES_DOCUMENTOS_URL=http://documentos-service:8087/api/documentos
+      - SERVICES_TRANSACCIONES_URL=http://transacciones-service:8086/api/transacciones
     depends_on:
       - obras-service
       - clientes-service
       - proveedores-service
       - documentos-service
       - transacciones-service
-      # - reportes-service
-    restart: always
+    restart: unless-stopped
     networks:
-      - backend
+      - sgo_backend
 
+# =======================
+# Network configuration: shared bridge network for all backend services.
+# =======================
 networks:
-  backend:
+  sgo_backend:
     driver: bridge
