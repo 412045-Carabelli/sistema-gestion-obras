@@ -1,18 +1,20 @@
 // src/environments/environment.prod.ts
 export const environment = {
   production: true,
-  apiGateway: 'https://sistema-gestion-obras.onrender.com',
+  apiGateway: 'http://localhost:8080',
   endpoints: {
     obras: '/bff/obras',
-    estado_pago: '/bff/estado_pago',
+    estado_pago: '/bff/estado-pago',
     clientes: '/bff/clientes',
     proveedores: '/bff/proveedores',
-    tipo_proveedores: '/bff/tipo_proveedor',
+    tipo_documentos: '/bff/tipo-documentos',
+    tipo_proveedores: '/bff/tipo-proveedor',
     tareas: '/bff/tareas',
     costos: '/bff/costos',
     documentos: '/bff/documentos',
     transacciones: '/bff/transacciones',
-    tipo_transaccion: '/bff/tipo_transaccion',
-    reportes: '/bff/reportes'
+    tipo_transaccion: '/bff/tipo-transaccion',
+    reportes: '/bff/reportes',
+    estados_obras: '/bff/estados-obras'
   }
 };

@@ -21,7 +21,7 @@ export class DocumentosService {
   // 📘 Obtener lista de tipos de documento
   getTiposDocumento(): Observable<TipoDocumento[]> {
     // En este caso puede venir de otro microservicio o tabla base
-    return this.http.get<TipoDocumento[]>(`http://localhost:8080/bff/tipo_documentos`);
+    return this.http.get<TipoDocumento[]>(`${environment.apiGateway}${environment.endpoints.tipo_documentos}`);
   }
 
   uploadDocumentoFlexible(
