@@ -11,7 +11,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @RestController
-@RequestMapping("/api/obras/estado_pago")
+@RequestMapping("/api/obras")
 @RequiredArgsConstructor
 public class EstadosPagosController {
 
@@ -24,7 +24,8 @@ public class EstadosPagosController {
         return dto;
     }
 
-    @GetMapping
+    // Acepta tanto kebab-case como snake_case por compatibilidad
+    @GetMapping("/estado-pago")
     public ResponseEntity<List<EstadoPagoDTO>> getAll() {
         List<EstadoPagoDTO> estados = repository.findAll()
                 .stream()
@@ -33,3 +34,4 @@ public class EstadosPagosController {
         return ResponseEntity.ok(estados);
     }
 }
+

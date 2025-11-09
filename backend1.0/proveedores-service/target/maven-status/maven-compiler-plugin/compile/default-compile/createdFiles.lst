@@ -1,9 +1,9 @@
 proveedores\service\ProveedorService.class
+proveedores\ProveedoresServiceApplication.class
+proveedores\repository\ProveedorRepository.class
+proveedores\repository\TipoProveedorRepository.class
 proveedores\controller\ProveedoresController.class
 proveedores\dto\TipoProveedorDTO.class
-proveedores\ProveedoresServiceApplication.class
 proveedores\entity\TipoProveedor.class
-proveedores\repository\ProveedorRepository.class
 proveedores\dto\ProveedorDTO.class
 proveedores\entity\Proveedor.class
-proveedores\repository\TipoProveedorRepository.class

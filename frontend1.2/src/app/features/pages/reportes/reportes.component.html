@@ -313,14 +313,14 @@
                   <td>
                     <p-tag
                       [value]="movimiento.tipo"
-                      [severity]="movimiento.tipo === 'INGRESO' ? 'success' : 'danger'"
+                      [severity]="movimiento.tipo === 'Cobro' ? 'success' : 'danger'"
                     ></p-tag>
                   </td>
                   <td><strong>{{ movimiento.obraNombre }}</strong></td>
                   <td>{{ movimiento.formaPago }}</td>
-                  <td>{{ movimiento.asociadoTipo }} {{ movimiento.asociadoId ? ('#' + movimiento.asociadoId) : '' }}</td>
-                  <td class="text-right font-semibold" [ngClass]="movimiento.tipo === 'INGRESO' ? 'text-green-600' : 'text-red-600'">
-                    {{ movimiento.monto | currency:'ARS':'symbol-narrow':'1.0-0' }}
+                  <td>{{ nombreAsociado(movimiento.asociadoTipo, movimiento.asociadoId) }}</td>
+                  <td class="text-right font-semibold" [ngClass]="movimiento.tipo === 'Cobro' ? 'text-green-600' : 'text-red-600'">
+                    {{ movimiento.tipo === 'Cobro' ? '+' : '-' }} {{ movimiento.monto | currency:'ARS':'symbol-narrow':'1.0-0' }}
                   </td>
                 </tr>
               </ng-template>

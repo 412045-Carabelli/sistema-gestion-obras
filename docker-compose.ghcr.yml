@@ -1,0 +1,138 @@
+version: '3.9'
+
+services:
+  obras-service:
+    image: ghcr.io/${GHCR_OWNER}/sgo-obras-service:${TAG}
+    container_name: obras_service
+    ports:
+      - "8081:8081"
+    volumes:
+      - obras_data:/app/data
+    environment:
+      - SPRING_PROFILES_ACTIVE=prod
+      - SPRING_SQL_INIT_MODE=always
+      - SPRING_SQL_INIT_DATA_LOCATIONS=classpath:data-prod.sql
+      - SPRING_JPA_DEFER_DATASOURCE_INITIALIZATION=true
+    restart: unless-stopped
+    networks:
+      - sgo_backend
+
+  clientes-service:
+    image: ghcr.io/${GHCR_OWNER}/sgo-clientes-service:${TAG}
+    container_name: clientes_service
+    ports:
+      - "8082:8082"
+    volumes:
+      - clientes_data:/app/data
+    environment:
+      - SPRING_PROFILES_ACTIVE=prod
+    restart: unless-stopped
+    networks:
+      - sgo_backend
+
+  proveedores-service:
+    image: ghcr.io/${GHCR_OWNER}/sgo-proveedores-service:${TAG}
+    container_name: proveedores_service
+    ports:
+      - "8083:8083"
+    volumes:
+      - proveedores_data:/app/data
+    environment:
+      - SPRING_PROFILES_ACTIVE=prod
+      - SPRING_SQL_INIT_MODE=always
+      - SPRING_SQL_INIT_DATA_LOCATIONS=classpath:data-prod.sql
+      - SPRING_JPA_DEFER_DATASOURCE_INITIALIZATION=true
+    restart: unless-stopped
+    networks:
+      - sgo_backend
+
+  documentos-service:
+    image: ghcr.io/${GHCR_OWNER}/sgo-documentos-service:${TAG}
+    container_name: documentos_service
+    ports:
+      - "8087:8087"
+    volumes:
+      - documentos_data:/app/data
+      - documentos_uploads:/app/uploads
+    environment:
+      - SPRING_PROFILES_ACTIVE=prod
+      - SPRING_SQL_INIT_MODE=always
+      - SPRING_SQL_INIT_DATA_LOCATIONS=classpath:data-prod.sql
+      - SPRING_JPA_DEFER_DATASOURCE_INITIALIZATION=true
+    restart: unless-stopped
+    networks:
+      - sgo_backend
+
+  transacciones-service:
+    image: ghcr.io/${GHCR_OWNER}/sgo-transacciones-service:${TAG}
+    container_name: transacciones_service
+    ports:
+      - "8086:8086"
+    volumes:
+      - transacciones_data:/app/data
+    environment:
+      - SPRING_PROFILES_ACTIVE=prod
+      - SPRING_SQL_INIT_MODE=always
+      - SPRING_SQL_INIT_DATA_LOCATIONS=classpath:data-prod.sql
+      - SPRING_JPA_DEFER_DATASOURCE_INITIALIZATION=true
+    restart: unless-stopped
+    networks:
+      - sgo_backend
+
+  reportes-service:
+    image: ghcr.io/${GHCR_OWNER}/sgo-reportes-service:${TAG}
+    container_name: reportes_service
+    ports:
+      - "8084:8084"
+    volumes:
+      - reportes_data:/app/data
+    environment:
+      - SPRING_PROFILES_ACTIVE=prod
+    restart: unless-stopped
+    networks:
+      - sgo_backend
+
+  api-gateway:
+    image: ghcr.io/${GHCR_OWNER}/sgo-api-gateway:${TAG}
+    container_name: api_gateway_service
+    ports:
+      - "8080:8080"
+    environment:
+      - SPRING_PROFILES_ACTIVE=prod
+      - SERVICES_OBRAS_URL=http://obras-service:8081/api/obras
+      - SERVICES_CLIENTES_URL=http://clientes-service:8082/api/clientes
+      - SERVICES_PROVEEDORES_URL=http://proveedores-service:8083/api/proveedores
+      - SERVICES_DOCUMENTOS_URL=http://documentos-service:8087/api/documentos
+      - SERVICES_TRANSACCIONES_URL=http://transacciones-service:8086/api/transacciones
+    depends_on:
+      - obras-service
+      - clientes-service
+      - proveedores-service
+      - documentos-service
+      - transacciones-service
+      - reportes-service
+    restart: unless-stopped
+    networks:
+      - sgo_backend
+
+  frontend:
+    image: ghcr.io/${GHCR_OWNER}/sgo-frontend:${TAG}
+    container_name: obras_frontend
+    ports:
+      - "4200:80"
+    restart: unless-stopped
+    networks:
+      - sgo_backend
+
+networks:
+  sgo_backend:
+    driver: bridge
+
+volumes:
+  obras_data:
+  clientes_data:
+  proveedores_data:
+  documentos_data:
+  documentos_uploads:
+  transacciones_data:
+  reportes_data:
