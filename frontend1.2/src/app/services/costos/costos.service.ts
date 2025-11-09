@@ -1,28 +1,22 @@
 import {Injectable} from '@angular/core';
 import {HttpClient} from '@angular/common/http';
-import {ObraCosto} from '../../core/models/models';
 import {Observable} from 'rxjs';
+import {ObraCosto} from '../../core/models/models';
 import {environment} from '../../../environments/environment';
 
-@Injectable({
-  providedIn: 'root'
-})
+@Injectable({providedIn: 'root'})
 export class CostosService {
-
   private apiUrl = `${environment.apiGateway}${environment.endpoints.costos}`;
 
-  constructor(private http: HttpClient) {
-  }
+  constructor(private http: HttpClient) {}
 
-  getCostosByObra(idObra: number): Observable<ObraCosto[]> {
+  // Obtener costos por obra desde el BFF
+  getByObra(idObra: number): Observable<ObraCosto[]> {
     return this.http.get<ObraCosto[]>(`${this.apiUrl}/${idObra}`);
   }
 
-  updateEstadoPago(idCosto: number, idEstado: number) {
-    return this.http.put(`${this.apiUrl}/${idCosto}/estado/${idEstado}`, {});
-  }
-
-  deleteCosto(id: number): Observable<ObraCosto> {
-    return this.http.delete<ObraCosto>(`${this.apiUrl}/${id}`);
+  // Actualizar estado de pago de un costo
+  updateEstadoPago(idCosto: number, idEstado: number): Observable<ObraCosto> {
+    return this.http.put<ObraCosto>(`${this.apiUrl}/${idCosto}/estado/${idEstado}`, {});
   }
 }

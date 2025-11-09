@@ -11,10 +11,10 @@ import {ClientesDetailComponent} from './features/pages/clientes-detail/clientes
 import {ClientesEditComponent} from './features/pages/clientes-edit/clientes-edit.component';
 import {ProveedoresLayoutComponent} from './features/proveedores-layout/proveedores-layout.component';
 import {ProveedoresCreateComponent} from './features/pages/proveedores-create/proveedores-create.component';
-import {ProveedoresDetailComponent} from './features/pages/proveedores-detail/proveedores-detail.component';
 import {ProveedoresEditComponent} from './features/pages/proveedores-edit/proveedores-edit.component';
 import {ProveedoresListComponent} from './features/components/proveedores-list/proveedores-list.component';
 import {ReportesComponent} from './features/pages/reportes/reportes.component';
+import {ProveedoresDetailComponent} from './features/pages/proveedores-detail/proveedores-detail.component';
 
 export const routes: Routes = [
   {

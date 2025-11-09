@@ -1,141 +1,302 @@
 <p-toast position="bottom-right"></p-toast>
 <p-confirmDialog></p-confirmDialog>
 
-<div class="p-6 flex flex-col gap-3">
 
-  <p-card header="Filtros de búsqueda" styleClass="min-h-[180px]">
-    <form [formGroup]="filtrosForm" (ngSubmit)="applyFilters()" class="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-      <div class="flex flex-col gap-2">
-        <label class="font-medium text-sm text-gray-700">Obra</label>
-        <p-select formControlName="obraId" [options]="obrasOptions" [showClear]="true" placeholder="Todas las obras"></p-select>
+<!-- ===================== HEADER CON GRADIENTE ===================== -->
+<div class="relative bg-gradient-to-r from-indigo-600 to-purple-800 shadow-lg p-8 text-white overflow-hidden">
+  <div class="absolute inset-0 opacity-10">
+    <div class="absolute -right-10 -top-10 w-40 h-40 bg-white rounded-full"></div>
+    <div class="absolute -left-10 -bottom-10 w-32 h-32 bg-white rounded-full"></div>
+  </div>
+
+  <div class="relative z-10">
+    <h1 class="text-3xl font-bold mb-2">Reportes</h1>
+    <p class="text-indigo-100">Panel de control y análisis detallado de obras</p>
+  </div>
+</div>
+
+<div class="p-8 space-y-8 max-w-full mx-auto">
+
+  <!-- ===================== FILTROS DE BÚSQUEDA ===================== -->
+  <div class="bg-white rounded-xl shadow-md p-6">
+    <h2 class="text-lg font-semibold text-gray-900 mb-5 flex items-center gap-2 pb-3 border-b border-gray-200">
+      <i class="pi pi-filter text-indigo-600"></i>
+      Filtros de búsqueda
+    </h2>
+
+    <form [formGroup]="filtrosForm" (ngSubmit)="applyFilters()">
+      <div class="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+        <!-- Obra -->
+        <div class="flex flex-col">
+          <label class="text-sm font-semibold mb-2 text-gray-700 flex items-center gap-2">
+            <i class="pi pi-building text-gray-400 text-xs"></i>
+            Obra
+          </label>
+          <p-select
+            formControlName="obraId"
+            [options]="obrasOptions"
+            [showClear]="true"
+            placeholder="Todas las obras"
+            styleClass="w-full"
+          ></p-select>
+        </div>
+
+        <!-- Cliente -->
+        <div class="flex flex-col">
+          <label class="text-sm font-semibold mb-2 text-gray-700 flex items-center gap-2">
+            <i class="pi pi-user text-gray-400 text-xs"></i>
+            Cliente
+          </label>
+          <p-select
+            formControlName="clienteId"
+            [options]="clientesOptions"
+            [showClear]="true"
+            placeholder="Todos los clientes"
+            styleClass="w-full"
+          ></p-select>
+        </div>
+
+        <!-- Proveedor -->
+        <div class="flex flex-col">
+          <label class="text-sm font-semibold mb-2 text-gray-700 flex items-center gap-2">
+            <i class="pi pi-users text-gray-400 text-xs"></i>
+            Proveedor
+          </label>
+          <p-select
+            formControlName="proveedorId"
+            [options]="proveedoresOptions"
+            [showClear]="true"
+            placeholder="Todos los proveedores"
+            styleClass="w-full"
+          ></p-select>
+        </div>
+
+        <!-- Estados de obra -->
+        <div class="flex flex-col">
+          <label class="text-sm font-semibold mb-2 text-gray-700 flex items-center gap-2">
+            <i class="pi pi-flag text-gray-400 text-xs"></i>
+            Estados de obra
+          </label>
+          <p-multiSelect
+            formControlName="estadosObra"
+            [options]="estadosObraOptions"
+            [filter]="true"
+            defaultLabel="Todos los estados"
+            display="chip"
+            styleClass="w-full"
+          ></p-multiSelect>
+        </div>
+
+        <!-- Rango de fechas -->
+        <div class="flex flex-col">
+          <label class="text-sm font-semibold mb-2 text-gray-700 flex items-center gap-2">
+            <i class="pi pi-calendar text-gray-400 text-xs"></i>
+            Rango de fechas
+          </label>
+          <p-datePicker
+            formControlName="rangoFechas"
+            selectionMode="range"
+            [showIcon]="true"
+            dateFormat="dd/mm/yy"
+            placeholder="Seleccionar rango"
+            styleClass="w-full"
+          ></p-datePicker>
+        </div>
+
+        <!-- Botones -->
+        <div class="grid grid-cols-2 items-end gap-3">
+          <p-button
+            type="submit"
+            label="Aplicar"
+            icon="pi pi-filter"
+          ></p-button>
+          <p-button
+            type="button"
+            label="Limpiar"
+            icon="pi pi-times"
+            [outlined]="true"
+            severity="secondary"
+            (click)="clearFilters()"
+          ></p-button>
+        </div>
       </div>
-
-      <div class="flex flex-col gap-2">
-        <label class="font-medium text-sm text-gray-700">Cliente</label>
-        <p-select formControlName="clienteId" [options]="clientesOptions" [showClear]="true" placeholder="Todos los clientes"></p-select>
-      </div>
-
-      <div class="flex flex-col gap-2">
-        <label class="font-medium text-sm text-gray-700">Proveedor</label>
-        <p-select formControlName="proveedorId" [options]="proveedoresOptions" [showClear]="true" placeholder="Todos los proveedores"></p-select>
-      </div>
-
-      <div class="flex flex-col gap-2">
-        <label class="font-medium text-sm text-gray-700">Estados de obra</label>
-        <p-multiSelect formControlName="estadosObra" [options]="estadosObraOptions" [filter]="true" defaultLabel="Todos los estados" display="chip"></p-multiSelect>
-      </div>
-
-      <div class="flex flex-col gap-2">
-        <label class="font-medium text-sm text-gray-700">Rango de fechas</label>
-        <p-datePicker formControlName="rangoFechas" selectionMode="range" [showIcon]="true" dateFormat="dd/mm/yy" placeholder="Seleccionar rango"></p-datePicker>
-      </div>
-
-      <div class="flex items-end justify-between gap-2">
-        <button
-          pButton
-          type="submit"
-          label="Aplicar"
-          icon="pi pi-filter"
-          class="cursor-pointer p-button-primary text-xs py-1 px-2 h-10"
-        ></button>
-        <button
-          pButton
-          type="button"
-          label="Limpiar"
-          icon="pi pi-times"
-          class="cursor-pointer p-button-outlined text-xs py-1 px-2 h-10"
-          (click)="clearFilters()"
-        ></button>
-      </div>
-
     </form>
-  </p-card>
+  </div>
 
+  <!-- ===================== LOADING ===================== -->
   @if (loading) {
-    <div class="flex justify-center">
-      <p-progressSpinner strokeWidth="4" styleClass="w-12 h-12"></p-progressSpinner>
+    <div class="flex justify-center items-center py-12">
+      <p-progressSpinner strokeWidth="4" styleClass="w-16 h-16"></p-progressSpinner>
     </div>
   } @else {
 
-    <!-- KPIs -->
-    <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-      @if (resumenGeneral) {
-        <p-card header="Obras" styleClass="min-h-[150px]">
-          <div class="text-3xl font-semibold text-gray-800">{{ resumenGeneral.totalObras }}</div>
-          <div class="text-sm text-gray-500">Total de obras registradas</div>
-        </p-card>
-        <p-card header="Clientes" styleClass="min-h-[150px]">
-          <div class="text-3xl font-semibold text-gray-800">{{ resumenGeneral.totalClientes }}</div>
-          <div class="text-sm text-gray-500">Clientes activos</div>
-        </p-card>
-        <p-card header="Proveedores" styleClass="min-h-[150px]">
-          <div class="text-3xl font-semibold text-gray-800">{{ resumenGeneral.totalProveedores }}</div>
-          <div class="text-sm text-gray-500">Proveedores registrados</div>
-        </p-card>
-        <p-card header="Saldo neto" styleClass="min-h-[150px]">
-          <div class="text-3xl font-semibold text-gray-800">
-            {{ (resumenGeneral.totalIngresos - resumenGeneral.totalEgresos) | currency:'ARS' }}
-          </div>
-          <div class="text-sm text-gray-500">Ingresos - Egresos</div>
-        </p-card>
-      }
-    </div>
+    <!-- ===================== KPIs ===================== -->
+    @if (resumenGeneral) {
+      <div class="grid gap-6 md:grid-cols-2 xl:grid-cols-4">
 
-    <!-- Ingresos/Egresos -->
+        <!-- Tarjeta Obras -->
+        <div class="bg-white rounded-xl shadow-md p-6 border-l-4 border-blue-500 hover:shadow-lg transition-shadow">
+          <div class="flex items-center gap-3 mb-3">
+            <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+              <i class="pi pi-building text-blue-600 text-xl"></i>
+            </div>
+            <span class="text-sm font-medium text-gray-500">Obras</span>
+          </div>
+          <div class="text-3xl font-bold text-gray-900">{{ resumenGeneral.totalObras }}</div>
+          <div class="text-sm text-gray-500 mt-1">Total de obras registradas</div>
+        </div>
+
+        <!-- Tarjeta Clientes -->
+        <div class="bg-white rounded-xl shadow-md p-6 border-l-4 border-green-500 hover:shadow-lg transition-shadow">
+          <div class="flex items-center gap-3 mb-3">
+            <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
+              <i class="pi pi-user text-green-600 text-xl"></i>
+            </div>
+            <span class="text-sm font-medium text-gray-500">Clientes</span>
+          </div>
+          <div class="text-3xl font-bold text-gray-900">{{ resumenGeneral.totalClientes }}</div>
+          <div class="text-sm text-gray-500 mt-1">Clientes activos</div>
+        </div>
+
+        <!-- Tarjeta Proveedores -->
+        <div class="bg-white rounded-xl shadow-md p-6 border-l-4 border-purple-500 hover:shadow-lg transition-shadow">
+          <div class="flex items-center gap-3 mb-3">
+            <div class="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
+              <i class="pi pi-users text-purple-600 text-xl"></i>
+            </div>
+            <span class="text-sm font-medium text-gray-500">Proveedores</span>
+          </div>
+          <div class="text-3xl font-bold text-gray-900">{{ resumenGeneral.totalProveedores }}</div>
+          <div class="text-sm text-gray-500 mt-1">Proveedores registrados</div>
+        </div>
+
+        <!-- Tarjeta Saldo Neto -->
+        <div class="bg-gradient-to-br from-indigo-500 to-purple-700 rounded-xl shadow-md p-6 text-white hover:shadow-lg transition-shadow">
+          <div class="flex items-center gap-3 mb-3">
+            <div class="w-12 h-12 bg-white/20 rounded-lg flex items-center justify-center">
+              <i class="pi pi-dollar text-white text-xl"></i>
+            </div>
+            <span class="text-sm font-medium text-indigo-100">Saldo neto</span>
+          </div>
+          <div class="text-3xl font-bold">
+            {{ (resumenGeneral.totalIngresos - resumenGeneral.totalEgresos) | currency:'ARS':'symbol-narrow':'1.0-0' }}
+          </div>
+          <div class="text-sm text-indigo-100 mt-1">Ingresos - Egresos</div>
+        </div>
+      </div>
+    }
+
+    <!-- ===================== INGRESOS Y EGRESOS ===================== -->
     @if (ingresosEgresos) {
-      <p-card header="Ingresos y egresos por obra" styleClass="min-h-[220px]">
-        <div class="flex flex-wrap gap-6 mb-4 text-sm text-gray-600">
-          <span><strong>Total ingresos:</strong> {{ ingresosEgresos.totalIngresos | currency:'ARS' }}</span>
-          <span><strong>Total egresos:</strong> {{ ingresosEgresos.totalEgresos | currency:'ARS' }}</span>
+      <div class="bg-white rounded-xl shadow-md p-6">
+        <h2 class="text-lg font-semibold text-gray-900 mb-5 flex items-center gap-2 pb-3 border-b border-gray-200">
+          <i class="pi pi-chart-bar text-indigo-600"></i>
+          Ingresos y egresos por obra
+        </h2>
+
+        <div class="flex flex-wrap gap-6 mb-6">
+          <div class="flex items-center gap-2">
+            <div class="w-3 h-3 bg-green-500 rounded-full"></div>
+            <span class="text-sm text-gray-600">
+              <strong>Total ingresos:</strong> {{ ingresosEgresos.totalIngresos | currency:'ARS':'symbol-narrow':'1.0-0' }}
+            </span>
+          </div>
+          <div class="flex items-center gap-2">
+            <div class="w-3 h-3 bg-red-500 rounded-full"></div>
+            <span class="text-sm text-gray-600">
+              <strong>Total egresos:</strong> {{ ingresosEgresos.totalEgresos | currency:'ARS':'symbol-narrow':'1.0-0' }}
+            </span>
+          </div>
         </div>
 
         @if (ingresosEgresos.detallePorObra?.length) {
           <div class="overflow-x-auto">
             <p-table
               [value]="ingresosEgresos.detallePorObra"
-              [paginator]="true" [rows]="5"
+              [paginator]="true"
+              [rows]="5"
               responsiveLayout="scroll"
-              styleClass="min-w-[720px]">
+              styleClass="p-datatable-sm">
               <ng-template pTemplate="header">
                 <tr>
                   <th>Obra</th>
                   <th>Cliente</th>
                   <th class="text-right">Ingresos</th>
                   <th class="text-right">Egresos</th>
+                  <th class="text-right">Balance</th>
                 </tr>
               </ng-template>
               <ng-template pTemplate="body" let-item>
                 <tr>
-                  <td>{{ item.obraNombre }}</td>
+                  <td><strong>{{ item.obraNombre }}</strong></td>
                   <td>{{ item.clienteNombre }}</td>
-                  <td class="text-right">{{ item.ingresos | currency:'ARS' }}</td>
-                  <td class="text-right">{{ item.egresos | currency:'ARS' }}</td>
+                  <td class="text-right text-green-600 font-semibold">{{ item.ingresos | currency:'ARS':'symbol-narrow':'1.0-0' }}</td>
+                  <td class="text-right text-red-600 font-semibold">{{ item.egresos | currency:'ARS':'symbol-narrow':'1.0-0' }}</td>
+                  <td class="text-right font-bold" [ngClass]="item.ingresos - item.egresos >= 0 ? 'text-green-600' : 'text-red-600'">
+                    {{ (item.ingresos - item.egresos) | currency:'ARS':'symbol-narrow':'1.0-0' }}
+                  </td>
                 </tr>
               </ng-template>
             </p-table>
           </div>
         } @else {
-          <div class="py-4 text-center text-sm text-gray-500">No hay datos para mostrar.</div>
+          <div class="flex flex-col items-center justify-center py-12 text-gray-400">
+            <i class="pi pi-chart-bar text-5xl mb-3"></i>
+            <p class="text-lg font-medium text-gray-500">No hay datos para mostrar</p>
+            <p class="text-sm text-gray-400">Ajusta los filtros para ver información</p>
+          </div>
         }
-      </p-card>
+      </div>
     }
 
-    <!-- Flujo de caja -->
+    <!-- ===================== FLUJO DE CAJA ===================== -->
     @if (flujoCaja) {
-      <p-card header="Flujo de caja" styleClass="min-h-[220px]">
-        <div class="flex flex-wrap gap-6 mb-4 text-sm text-gray-600">
-          <span><strong>Ingresos:</strong> {{ flujoCaja.totalIngresos | currency:'ARS' }}</span>
-          <span><strong>Egresos:</strong> {{ flujoCaja.totalEgresos | currency:'ARS' }}</span>
-          <span><strong>Saldo final:</strong> {{ flujoCaja.saldoFinal | currency:'ARS' }}</span>
+      <div class="bg-white rounded-xl shadow-md p-6">
+        <h2 class="text-lg font-semibold text-gray-900 mb-5 flex items-center gap-2 pb-3 border-b border-gray-200">
+          <i class="pi pi-wallet text-indigo-600"></i>
+          Flujo de caja
+        </h2>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+          <div class="bg-green-50 rounded-lg p-4 border border-green-200">
+            <div class="flex items-center gap-2 mb-2">
+              <i class="pi pi-arrow-up text-green-600"></i>
+              <span class="text-sm font-medium text-gray-600">Ingresos</span>
+            </div>
+            <div class="text-2xl font-bold text-green-600">
+              {{ flujoCaja.totalIngresos | currency:'ARS':'symbol-narrow':'1.0-0' }}
+            </div>
+          </div>
+
+          <div class="bg-red-50 rounded-lg p-4 border border-red-200">
+            <div class="flex items-center gap-2 mb-2">
+              <i class="pi pi-arrow-down text-red-600"></i>
+              <span class="text-sm font-medium text-gray-600">Egresos</span>
+            </div>
+            <div class="text-2xl font-bold text-red-600">
+              {{ flujoCaja.totalEgresos | currency:'ARS':'symbol-narrow':'1.0-0' }}
+            </div>
+          </div>
+
+          <div class="bg-indigo-50 rounded-lg p-4 border border-indigo-200">
+            <div class="flex items-center gap-2 mb-2">
+              <i class="pi pi-wallet text-indigo-600"></i>
+              <span class="text-sm font-medium text-gray-600">Saldo final</span>
+            </div>
+            <div class="text-2xl font-bold" [ngClass]="flujoCaja.saldoFinal >= 0 ? 'text-indigo-600' : 'text-red-600'">
+              {{ flujoCaja.saldoFinal | currency:'ARS':'symbol-narrow':'1.0-0' }}
+            </div>
+          </div>
         </div>
 
         @if (flujoCaja.movimientos?.length) {
           <div class="overflow-x-auto">
             <p-table
               [value]="flujoCaja.movimientos"
-              [paginator]="true" [rows]="5"
+              [paginator]="true"
+              [rows]="5"
               responsiveLayout="scroll"
-              styleClass="min-w-[880px]">
+              styleClass="p-datatable-sm">
               <ng-template pTemplate="header">
                 <tr>
                   <th>Fecha</th>
@@ -149,21 +310,31 @@
               <ng-template pTemplate="body" let-movimiento>
                 <tr>
                   <td>{{ movimiento.fecha | date:'dd/MM/yyyy' }}</td>
-                  <td><p-tag [value]="movimiento.tipo" [severity]="movimiento.tipo === 'INGRESO' ? 'success' : 'danger'"></p-tag></td>
-                  <td>{{ movimiento.obraNombre }}</td>
+                  <td>
+                    <p-tag
+                      [value]="movimiento.tipo"
+                      [severity]="movimiento.tipo === 'INGRESO' ? 'success' : 'danger'"
+                    ></p-tag>
+                  </td>
+                  <td><strong>{{ movimiento.obraNombre }}</strong></td>
                   <td>{{ movimiento.formaPago }}</td>
                   <td>{{ movimiento.asociadoTipo }} {{ movimiento.asociadoId ? ('#' + movimiento.asociadoId) : '' }}</td>
-                  <td class="text-right">{{ movimiento.monto | currency:'ARS' }}</td>
+                  <td class="text-right font-semibold" [ngClass]="movimiento.tipo === 'INGRESO' ? 'text-green-600' : 'text-red-600'">
+                    {{ movimiento.monto | currency:'ARS':'symbol-narrow':'1.0-0' }}
+                  </td>
                 </tr>
               </ng-template>
             </p-table>
           </div>
         } @else {
-          <div class="py-4 text-center text-sm text-gray-500">No hay movimientos en el período seleccionado.</div>
+          <div class="flex flex-col items-center justify-center py-12 text-gray-400">
+            <i class="pi pi-wallet text-5xl mb-3"></i>
+            <p class="text-lg font-medium text-gray-500">No hay movimientos</p>
+            <p class="text-sm text-gray-400">No hay movimientos en el período seleccionado</p>
+          </div>
         }
-      </p-card>
+      </div>
     }
 
-    <!-- ... resto de cards igual, solo agregá styleClass="min-h-[220px]" a cada <p-card> -->
   }
 </div>

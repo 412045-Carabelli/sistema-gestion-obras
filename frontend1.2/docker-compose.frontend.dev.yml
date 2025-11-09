@@ -1,0 +1,23 @@
+﻿version: "3.9"
+
+services:
+  frontend:
+    container_name: obras_frontend_dev
+    image: node:18-alpine
+    working_dir: /usr/src/app
+    command: sh -lc 'npm ci; npm run start -- --host 0.0.0.0 --port 4200'
+    ports:
+      - "4200:4200"
+    volumes:
+      - ./:/usr/src/app
+      - /usr/src/app/node_modules
+    environment:
+      - CHOKIDAR_USEPOLLING=true
+    restart: unless-stopped
+    networks:
+      - backend
+
+networks:
+  backend:
+    external: true
+    name: sgo_backend

@@ -1,4 +1,4 @@
-import {Component, Input, OnChanges, OnInit, SimpleChanges} from '@angular/core';
+﻿import {Component, Input, OnChanges, OnInit, SimpleChanges, Output, EventEmitter} from '@angular/core';
 import {CurrencyPipe, NgClass, NgIf} from '@angular/common';
 import {TableModule} from 'primeng/table';
 import {ButtonModule} from 'primeng/button';
@@ -43,6 +43,9 @@ export class ObraPresupuestoComponent implements OnInit, OnChanges {
   @Input() tieneComision = false;
   @Input() comision = 0;
 
+  // ⭐ NUEVO: Emitir cuando se actualizan los costos
+  @Output() costosActualizados = new EventEmitter<ObraCosto[]>();
+
   costosFiltrados: ObraCosto[] = [];
   estadosPago: EstadoPago[] = [];
   loading = true;
@@ -71,13 +74,34 @@ export class ObraPresupuestoComponent implements OnInit, OnChanges {
     const nuevoEstado = this.estadosPago.find((e) => e.id === nuevoId);
     if (!nuevoEstado) return;
 
-    this.costosService.updateEstadoPago(c.id!, nuevoId).subscribe(() => {
-      c.estado_pago = nuevoEstado;
-      this.messageService.add({
-        severity: 'success',
-        summary: 'Estado actualizado',
-        detail: `El costo fue marcado como "${nuevoEstado.estado}"`,
-      });
+    this.costosService.updateEstadoPago(c.id!, nuevoId).subscribe({
+      next: () => {
+        c.estado_pago = nuevoId;
+        c.id_estado_pago = nuevoId;
+
+        // ⭐ ACTUALIZAR EL ARRAY DE COSTOS ORIGINAL
+        const index = this.costos.findIndex(costo => costo.id === c.id);
+        if (index !== -1) {
+          this.costos[index] = {...this.costos[index], estado_pago: nuevoId, id_estado_pago: nuevoId};
+        }
+
+        // ⭐ EMITIR EL ARRAY ACTUALIZADO
+        this.costosActualizados.emit([...this.costos]);
+
+        this.messageService.add({
+          severity: 'success',
+          summary: 'Estado actualizado',
+          detail: `El costo fue marcado como "${nuevoEstado.estado}"`,
+        });
+      },
+      error: (err) => {
+        console.error('❌ Error al actualizar estado de pago', err);
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: 'No se pudo actualizar el estado de pago',
+        });
+      }
     });
   }
 
@@ -91,7 +115,7 @@ export class ObraPresupuestoComponent implements OnInit, OnChanges {
     );
     if (!estado) return 0;
     return this.costosFiltrados
-      .filter((c) => c.estado_pago?.id === estado.id)
+      .filter((c) => (c.estado_pago ?? c.id_estado_pago) === estado.id)
       .reduce((acc, c) => acc + (c.total ?? 0), 0);
   }
 
@@ -118,15 +142,17 @@ export class ObraPresupuestoComponent implements OnInit, OnChanges {
       subtotal: c.subtotal ?? 0,
       total: c.total ?? 0,
       beneficio: c.beneficio ?? 0,
-      estado_pago: c.estado_pago ?? {id: 1, estado: 'Pendiente'},
+      estado_pago: (c as any).estado_pago ?? c.id_estado_pago ?? 1,
+      id_estado_pago: c.id_estado_pago ?? (c as any).estado_pago ?? 1,
     }));
   }
 
   private cargarEstadosDePago() {
     this.estadoPagoService.getEstadosPago().subscribe({
       next: (estados) => {
+        console.log(estados)
         this.estadosPago = estados.map((e) => ({
-          id: Number(e.id),
+          id: e.id,
           estado: e.estado,
         }));
         this.loading = false;
