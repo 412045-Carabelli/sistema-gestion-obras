@@ -1,5 +1,3 @@
-version: '3.9'
-
 # =======================
 # Docker Compose file for the SGO microservices stack in production.
 # All services communicate through the internal bridge network `sgo_backend`.
@@ -14,9 +12,13 @@ services:
     ports:
       - "8081:8081"
     volumes:
-      - ./backend1.0/obras-service/data:/data
+      - ./backend1.0/obras-service/data:/app/data
     environment:
       - SPRING_PROFILES_ACTIVE=prod
+      - SPRING_SQL_INIT_MODE=always
+      - SPRING_SQL_INIT_DATA_LOCATIONS=classpath:data-prod.sql
+      - SPRING_SQL_INIT_CONTINUE_ON_ERROR=true
+      - SPRING_JPA_DEFER_DATASOURCE_INITIALIZATION=true
     restart: unless-stopped
     networks:
       - sgo_backend
@@ -30,7 +32,7 @@ services:
     ports:
       - "8082:8082"
     volumes:
-      - ./backend1.0/clientes-service/data:/data
+      - ./backend1.0/clientes-service/data:/app/data
     environment:
       - SPRING_PROFILES_ACTIVE=prod
     restart: unless-stopped
@@ -46,9 +48,13 @@ services:
     ports:
       - "8083:8083"
     volumes:
-      - ./backend1.0/proveedores-service/data:/data
+      - ./backend1.0/proveedores-service/data:/app/data
     environment:
       - SPRING_PROFILES_ACTIVE=prod
+      - SPRING_SQL_INIT_MODE=always
+      - SPRING_SQL_INIT_DATA_LOCATIONS=classpath:data-prod.sql
+      - SPRING_SQL_INIT_CONTINUE_ON_ERROR=true
+      - SPRING_JPA_DEFER_DATASOURCE_INITIALIZATION=true
     restart: unless-stopped
     networks:
       - sgo_backend
@@ -62,10 +68,14 @@ services:
     ports:
       - "8087:8087"
     volumes:
-      - ./backend1.0/documentos-service/data:/data
+      - ./backend1.0/documentos-service/data:/app/data
       - ./backend1.0/documentos-service/uploads:/app/uploads
     environment:
       - SPRING_PROFILES_ACTIVE=prod
+      - SPRING_SQL_INIT_MODE=always
+      - SPRING_SQL_INIT_DATA_LOCATIONS=classpath:data-prod.sql
+      - SPRING_SQL_INIT_CONTINUE_ON_ERROR=true
+      - SPRING_JPA_DEFER_DATASOURCE_INITIALIZATION=true
     restart: unless-stopped
     networks:
       - sgo_backend
@@ -79,9 +89,13 @@ services:
     ports:
       - "8086:8086"
     volumes:
-      - ./backend1.0/transacciones-service/data:/data
+      - ./backend1.0/transacciones-service/data:/app/data
     environment:
       - SPRING_PROFILES_ACTIVE=prod
+      - SPRING_SQL_INIT_MODE=always
+      - SPRING_SQL_INIT_DATA_LOCATIONS=classpath:data-prod.sql
+      - SPRING_SQL_INIT_CONTINUE_ON_ERROR=true
+      - SPRING_JPA_DEFER_DATASOURCE_INITIALIZATION=true
     restart: unless-stopped
     networks:
       - sgo_backend
@@ -110,6 +124,23 @@ services:
       - proveedores-service
       - documentos-service
       - transacciones-service
+      - reportes-service
+    restart: unless-stopped
+    networks:
+      - sgo_backend
+
+  # -----------------------
+  # Reportes microservice: aggregated reporting endpoints.
+  # -----------------------
+  reportes-service:
+    build: ./backend1.0/reportes-service
+    container_name: reportes_service
+    ports:
+      - "8084:8084"
+    volumes:
+      - ./backend1.0/reportes-service/data:/app/data
+    environment:
+      - SPRING_PROFILES_ACTIVE=prod
     restart: unless-stopped
     networks:
       - sgo_backend

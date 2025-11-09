@@ -11,9 +11,10 @@ services:
     volumes:
       - ./obras-service/data:/app/data
     environment:
-      SPRING_PROFILES_ACTIVE: default
-      SPRING_DATASOURCE_URL: jdbc:sqlite:data/obras.db
-      SPRING_DATASOURCE_DRIVER_CLASS_NAME: org.sqlite.JDBC
+      SPRING_PROFILES_ACTIVE: prod
+      SPRING_SQL_INIT_MODE: always
+      SPRING_SQL_INIT_DATA_LOCATIONS: classpath:data-prod.sql
+      SPRING_JPA_DEFER_DATASOURCE_INITIALIZATION: "true"
     restart: unless-stopped
     networks:
       - sgo_backend
@@ -28,9 +29,7 @@ services:
     volumes:
       - ./clientes-service/data:/app/data
     environment:
-      SPRING_PROFILES_ACTIVE: default
-      SPRING_DATASOURCE_URL: jdbc:sqlite:data/clientes.db
-      SPRING_DATASOURCE_DRIVER_CLASS_NAME: org.sqlite.JDBC
+      SPRING_PROFILES_ACTIVE: prod
     restart: unless-stopped
     networks:
       - sgo_backend
@@ -45,9 +44,10 @@ services:
     volumes:
       - ./proveedores-service/data:/app/data
     environment:
-      SPRING_PROFILES_ACTIVE: default
-      SPRING_DATASOURCE_URL: jdbc:sqlite:data/proveedores.db
-      SPRING_DATASOURCE_DRIVER_CLASS_NAME: org.sqlite.JDBC
+      SPRING_PROFILES_ACTIVE: prod
+      SPRING_SQL_INIT_MODE: always
+      SPRING_SQL_INIT_DATA_LOCATIONS: classpath:data-prod.sql
+      SPRING_JPA_DEFER_DATASOURCE_INITIALIZATION: "true"
     restart: unless-stopped
     networks:
       - sgo_backend
@@ -63,9 +63,10 @@ services:
       - ./documentos-service/data:/app/data
       - ./documentos-service/uploads:/app/uploads
     environment:
-      SPRING_PROFILES_ACTIVE: default
-      SPRING_DATASOURCE_URL: jdbc:sqlite:data/documentos.db
-      SPRING_DATASOURCE_DRIVER_CLASS_NAME: org.sqlite.JDBC
+      SPRING_PROFILES_ACTIVE: prod
+      SPRING_SQL_INIT_MODE: always
+      SPRING_SQL_INIT_DATA_LOCATIONS: classpath:data-prod.sql
+      SPRING_JPA_DEFER_DATASOURCE_INITIALIZATION: "true"
     restart: unless-stopped
     networks:
       - sgo_backend
@@ -80,9 +81,10 @@ services:
     volumes:
       - ./transacciones-service/data:/app/data
     environment:
-      SPRING_PROFILES_ACTIVE: default
-      SPRING_DATASOURCE_URL: jdbc:sqlite:data/transacciones.db
-      SPRING_DATASOURCE_DRIVER_CLASS_NAME: org.sqlite.JDBC
+      SPRING_PROFILES_ACTIVE: prod
+      SPRING_SQL_INIT_MODE: always
+      SPRING_SQL_INIT_DATA_LOCATIONS: classpath:data-prod.sql
+      SPRING_JPA_DEFER_DATASOURCE_INITIALIZATION: "true"
     restart: unless-stopped
     networks:
       - sgo_backend

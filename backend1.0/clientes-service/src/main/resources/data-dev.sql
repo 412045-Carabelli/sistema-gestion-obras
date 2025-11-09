@@ -1,6 +1,4 @@
--- =====================================================
--- CLIENTES (mock para pruebas)
--- =====================================================
+-- Clientes mock SOLO para DEV
 INSERT INTO clientes (nombre, id_empresa, contacto, telefono, email, activo)
 VALUES
     ('Constructora San Jorge', 1, 'Juan Pérez', '3511234567', 'juan.perez@sanjorge.com', 1),
@@ -13,3 +11,4 @@ VALUES
     ('Hospitales Unidos', 2, 'Ricardo Funes', '3517890123', 'ricardo.funes@hospitalesunidos.org', 1),
     ('Parques Industriales SRL', 1, 'Gabriela Molina', '3518901234', 'gabriela.molina@parquesindustriales.com', 1),
     ('Universidad Metropolitana', 4, 'Esteban Quiroga', '3519012345', 'esteban.quiroga@unimet.edu', 1);
+

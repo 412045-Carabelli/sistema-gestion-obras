@@ -80,6 +80,9 @@ export class ReportesComponent implements OnInit {
   proveedoresOptions: SelectOption<number>[] = [];
   estadosObraOptions: SelectOption<number>[] = [];
 
+  private clientesIndex: Record<number, string> = {};
+  private proveedoresIndex: Record<number, string> = {};
+
   resumenGeneral: ResumenGeneralResponse | null = null;
   ingresosEgresos: IngresosEgresosResponse | null = null;
   flujoCaja: FlujoCajaResponse | null = null;
@@ -132,6 +135,7 @@ export class ReportesComponent implements OnInit {
     this.clientesService.getClientes().subscribe({
       next: (clientes: Cliente[]) => {
         this.clientesOptions = clientes.map((cliente) => ({label: cliente.nombre, value: cliente.id}));
+        this.clientesIndex = Object.fromEntries(clientes.map(c => [Number(c.id), c.nombre]));
       },
       error: () => this.showToast('error', 'Error', 'No se pudieron cargar los clientes')
     });
@@ -139,6 +143,7 @@ export class ReportesComponent implements OnInit {
     this.proveedoresService.getProveedores().subscribe({
       next: (proveedores: Proveedor[]) => {
         this.proveedoresOptions = proveedores.map((proveedor) => ({label: proveedor.nombre, value: proveedor.id}));
+        this.proveedoresIndex = Object.fromEntries(proveedores.map(p => [Number(p.id), p.nombre]));
       },
       error: () => this.showToast('error', 'Error', 'No se pudieron cargar los proveedores')
     });
@@ -214,7 +219,6 @@ export class ReportesComponent implements OnInit {
         const obraId = filtrosReporte?.obraId ?? null;
         if (obraId) {
           this.loadEstadoFinanciero(obraId);
-          this.loadNotasObra(obraId);
         } else {
           this.estadoFinancieroObra = null;
           this.notaObraSeleccionada = null;
@@ -237,16 +241,6 @@ export class ReportesComponent implements OnInit {
         return of(null);
       })
     ).subscribe((data) => this.estadoFinancieroObra = data);
-  }
-
-  private loadNotasObra(obraId: number): void {
-    this.reportesService.getNotasPorObra(obraId).pipe(
-      catchError((error) => {
-        console.error('Error al cargar notas de la obra', error);
-        this.showToast('warn', 'Advertencia', 'Las notas de la obra no pudieron cargarse.');
-        return of(null);
-      })
-    ).subscribe((data) => this.notaObraSeleccionada = data);
   }
 
   private buildReportFilter(): ReportFilter | undefined {
@@ -295,5 +289,13 @@ export class ReportesComponent implements OnInit {
 
   private showToast(severity: 'success' | 'info' | 'warn' | 'error', summary: string, detail: string): void {
     this.messageService.add({severity, summary, detail});
+  }
+
+  nombreAsociado(tipo?: string, id?: number): string {
+    if (!id) return '—';
+    const t = (tipo || '').toString().toUpperCase();
+    if (t === 'CLIENTE') return this.clientesIndex[id] || `Cliente #${id}`;
+    if (t === 'PROVEEDOR') return this.proveedoresIndex[id] || `Proveedor #${id}`;
+    return `#${id}`;
   }
 }

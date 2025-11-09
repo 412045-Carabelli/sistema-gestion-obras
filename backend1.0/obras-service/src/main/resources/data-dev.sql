@@ -1,7 +1,9 @@
+-- Copia de datos mock + auxiliares para DEV
+-- Fuente: data.sql original
 -- =====================================================
 -- ESTADOS DE OBRA
 -- =====================================================
-INSERT INTO estado_obra (nombre, activo)
+INSERT OR IGNORE INTO estado_obra (nombre, activo)
 VALUES
     ('Presupuestada', 1),
     ('Cotizada', 1),
@@ -49,11 +51,11 @@ VALUES
 
 -- Asociaciones obra-proveedor
 INSERT INTO obra_proveedor (id_obra, id_proveedor) VALUES
-    (1, 1),  -- ✅ obra 1 con proveedor 1
-    (1, 2),  -- obra 1 con proveedor 2 (ejemplo)
-    (1, 3),  -- obra 1 con proveedor 3 (ejemplo)
+    (1, 1),
+    (1, 2),
+    (1, 3),
     (1, 5),
-    (2, 1),  -- obra 2 con proveedor 1 (ejemplo)
+    (2, 1),
     (2, 3),
     (3, 2),
     (3, 6),
@@ -72,14 +74,12 @@ INSERT INTO obra_proveedor (id_obra, id_proveedor) VALUES
     (6, 11),
     (6, 12);
 
-INSERT INTO estado_pago (estado) VALUES
+INSERT OR IGNORE INTO estado_pago (estado) VALUES
      ('Pendiente'),
      ('Parcial'),
      ('Pagado');
 
--- ============================================
--- 🔸 COSTOS para la Obra 1 (Edificio San Martín)
--- ============================================
+-- COSTOS obra 1..6
 INSERT INTO obra_costo (id_obra, id_proveedor, precio_unitario, id_estado_pago, descripcion, unidad, cantidad, beneficio, subtotal, total, activo)
 VALUES
     (1, 1, 30000.00, 1, 'Hormigón elaborado H21', 'm³', 50.000, 5.00, 1500000.00, 1815000.00, TRUE),
@@ -88,18 +88,12 @@ VALUES
     (1, 4, 2500.00, 3, 'Mano de obra albañilería', 'hs', 800.000, 0.00, 2000000.00, 2000000.00, TRUE),
     (1, 5, 60000.00, 2, 'Alquiler de encofrado', 'semana', 4.000, 0.00, 240000.00, 290400.00, TRUE);
 
--- ============================================
--- 🔸 COSTOS para la Obra 2 (Obra ficticia)
--- ============================================
 INSERT INTO obra_costo (id_obra, id_proveedor, precio_unitario, id_estado_pago, descripcion, unidad, cantidad, beneficio, subtotal, total, activo)
 VALUES
     (2, 2, 4500.00, 1, 'Revestimiento cerámico', 'm²', 300.000, 0.00, 1350000.00, 1633500.00, TRUE),
     (2, 1, 2500.00, 1, 'Pintura interior', 'lts', 200.000, 20.00, 500000.00, 605000.00, TRUE),
     (2, 3, 80000.00, 2, 'Puertas placas + instalación', 'u', 21.00, 50000.00, 1200000.00, 1512000.00, TRUE);
 
--- ============================================
--- 🔸 COSTOS para la Obra 3 (Centro Comercial Las Flores)
--- ============================================
 INSERT INTO obra_costo (id_obra, id_proveedor, precio_unitario, id_estado_pago, descripcion, unidad, cantidad, beneficio, subtotal, total, activo)
 VALUES
     (3, 2, 3200.00, 1, 'Estructura metálica ligera', 'kg', 900.000, 12.00, 2880000.00, 3225600.00, TRUE),
@@ -107,9 +101,6 @@ VALUES
     (3, 11, 1900.00, 1, 'Pintura epoxi de alta resistencia', 'lts', 650.000, 18.00, 1235000.00, 1458300.00, TRUE),
     (3, 7, 85000.00, 2, 'Logística y fletes especiales', 'viaje', 6.000, 8.00, 510000.00, 550800.00, TRUE);
 
--- ============================================
--- 🔸 COSTOS para la Obra 4 (Parque Industrial Los Cedros)
--- ============================================
 INSERT INTO obra_costo (id_obra, id_proveedor, precio_unitario, id_estado_pago, descripcion, unidad, cantidad, beneficio, subtotal, total, activo)
 VALUES
     (4, 1, 28000.00, 1, 'Hormigón para plateas industriales', 'm³', 60.000, 7.00, 1680000.00, 1797600.00, TRUE),
@@ -117,9 +108,6 @@ VALUES
     (4, 8, 120000.00, 3, 'Servicio de grúa torre', 'mes', 3.000, 0.00, 360000.00, 360000.00, TRUE),
     (4, 12, 950.00, 1, 'Equipos de seguridad industrial', 'set', 180.000, 12.00, 171000.00, 191520.00, TRUE);
 
--- ============================================
--- 🔸 COSTOS para la Obra 5 (Hospital Regional Nueva Esperanza)
--- ============================================
 INSERT INTO obra_costo (id_obra, id_proveedor, precio_unitario, id_estado_pago, descripcion, unidad, cantidad, beneficio, subtotal, total, activo)
 VALUES
     (5, 5, 72000.00, 2, 'Alquiler de módulos hospitalarios', 'mes', 4.000, 5.00, 288000.00, 302400.00, TRUE),
@@ -127,9 +115,6 @@ VALUES
     (5, 9, 42000.00, 1, 'Instalaciones sanitarias hospitalarias', 'm', 180.000, 22.00, 7560000.00, 9223200.00, TRUE),
     (5, 6, 4600.00, 3, 'Sistema de respaldo eléctrico UPS', 'kVA', 150.000, 15.00, 690000.00, 793500.00, TRUE);
 
--- ============================================
--- 🔸 COSTOS para la Obra 6 (Escuela Técnica Provincial 125)
--- ============================================
 INSERT INTO obra_costo (id_obra, id_proveedor, precio_unitario, id_estado_pago, descripcion, unidad, cantidad, beneficio, subtotal, total, activo)
 VALUES
     (6, 3, 1450.00, 1, 'Ladrillos acústicos', 'u', 8000.000, 10.00, 11600000.00, 12760000.00, TRUE),

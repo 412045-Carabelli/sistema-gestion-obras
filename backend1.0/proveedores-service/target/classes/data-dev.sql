@@ -1,11 +1,13 @@
--- Tipos de proveedor
-INSERT INTO tipo_proveedor (nombre, activo) VALUES
+-- Copia de datos mock + auxiliares para DEV (fuente: data.sql original)
+-- Tipos de proveedor (auxiliar)
+INSERT OR IGNORE INTO tipo_proveedor (nombre, activo) VALUES
     ('Materiales', TRUE),
     ('Mano de Obra', TRUE),
     ('Servicios', TRUE),
     ('Equipos / Maquinaria', TRUE),
     ('Otros', TRUE);
 
+-- Proveedores (mock)
 INSERT INTO proveedores (nombre, id_tipo_proveedor, contacto, telefono, email, activo, creado_en) VALUES
     ('Hormigones Córdoba S.A.', 1, 'Juan Pérez', '3511234567', 'ventas@hormigonescordoba.com', TRUE, CURRENT_TIMESTAMP),
     ('Hierros del Centro SRL', 1, 'María Gómez', '3519876543', 'info@hierroscentro.com', TRUE, CURRENT_TIMESTAMP),

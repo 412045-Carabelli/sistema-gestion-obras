@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/obras/estados_tareas")
+@RequestMapping("/api/obras/estados-tareas")
 @RequiredArgsConstructor
 public class EstadosTareasController {
 

@@ -1,4 +1,5 @@
-INSERT INTO tipo_transaccion (id, nombre) VALUES (1, 'Cobro'), (2, 'Pago');
+-- Tipo de transacción (auxiliar) + transacciones mock para DEV
+INSERT OR IGNORE INTO tipo_transaccion (id, nombre) VALUES (1, 'Cobro'), (2, 'Pago');
 
 INSERT INTO transacciones
 (id_obra, tipo_asociado, id_asociado, id_tipo_transaccion, fecha, monto, forma_pago, activo)
@@ -20,4 +21,3 @@ VALUES
     (6, 'CLIENTE', 7, 1, '2026-01-05 00:00:00', 125000.00, 'Cheque diferido', 1),
     (6, 'PROVEEDOR', 10, 2, '2026-01-07 00:00:00', 78000.00, 'Transferencia', 1),
     (6, 'PROVEEDOR', 7, 2, '2026-01-09 00:00:00', 42000.00, 'Transferencia', 1);
-

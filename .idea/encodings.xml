@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="Encoding">
+    <file url="file://$PROJECT_DIR$/backend1.0/api-gateway/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/backend1.0/api-gateway/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/backend1.0/clientes-service/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/backend1.0/clientes-service/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/backend1.0/documentos-service/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/backend1.0/documentos-service/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/backend1.0/obras-service/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/backend1.0/obras-service/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/backend1.0/proveedores-service/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/backend1.0/proveedores-service/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/backend1.0/reportes-service/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/backend1.0/reportes-service/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/backend1.0/transacciones-service/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/backend1.0/transacciones-service/src/main/resources" charset="UTF-8" />
+  </component>
+</project>
