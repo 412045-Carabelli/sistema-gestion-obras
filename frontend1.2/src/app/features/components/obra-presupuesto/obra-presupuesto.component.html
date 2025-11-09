@@ -66,7 +66,7 @@
         <td class="px-3 py-2">
           <p-select
             (ngModelChange)="actualizarEstadoPago(c, $event)"
-            [ngModel]="c.estado_pago?.id"
+            [ngModel]="c.estado_pago || c.id_estado_pago"
             [options]="estadosPago"
             optionLabel="estado"
             optionValue="id"

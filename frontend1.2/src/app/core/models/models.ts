@@ -107,7 +107,7 @@ export interface ObraCosto {
   precio_unitario: number;
   iva?: number;
   beneficio?: number;
-  estado_pago?: EstadoPago;
+  estado_pago?: number;
   id_estado_pago?: number;
   subtotal: number;
   total: number;

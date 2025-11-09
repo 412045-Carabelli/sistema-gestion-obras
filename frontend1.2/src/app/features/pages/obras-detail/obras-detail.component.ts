@@ -23,12 +23,13 @@ import {EstadoObraService} from '../../../services/estado-obra/estado-obra.servi
 import {ObraDocumentosComponent} from '../../components/obra-documentos/obra-documentos.component';
 import {Tab, TabList, TabPanel, TabPanels, Tabs} from 'primeng/tabs';
 import {ClientesService} from '../../../services/clientes/clientes.service';
+import {ObrasStateService} from '../../../services/obras/obras-state.service';
+import {StyleClass} from 'primeng/styleclass';
 
 @Component({
   selector: 'app-obra-detail',
   standalone: true,
   imports: [
-    RouterLink,
     ButtonModule,
     CardModule,
     ProgressBarModule,
@@ -49,6 +50,7 @@ import {ClientesService} from '../../../services/clientes/clientes.service';
     Tab,
     TabPanels,
     TabPanel,
+    StyleClass,
   ],
   providers: [MessageService],
   templateUrl: './obras-detail.component.html',
@@ -72,7 +74,8 @@ export class ObrasDetailComponent implements OnInit, OnDestroy {
     private clientesService: ClientesService,
     private proveedoresService: ProveedoresService,
     private estadoObraService: EstadoObraService,
-    private messageService: MessageService
+    private messageService: MessageService,
+    private obraStateService: ObrasStateService
   ) {
   }
 
@@ -83,12 +86,16 @@ export class ObrasDetailComponent implements OnInit, OnDestroy {
 
   ngOnDestroy() {
     this.subs.unsubscribe();
+    this.obraStateService.clearObra(); // ⬅️ LIMPIAR AL SALIR
   }
 
   onTareasActualizadas(nuevasTareas: Tarea[]) {
     this.tareas = nuevasTareas;
     this.obra.tareas = nuevasTareas;
     this.progresoFisico = this.getProgresoFisico();
+
+    // ⬅️ ACTUALIZAR EN EL SERVICE TAMBIÉN
+    this.obraStateService.setObra(this.obra);
   }
 
   actualizarEstadoObra(nuevoEstadoId: number) {
@@ -98,6 +105,10 @@ export class ObrasDetailComponent implements OnInit, OnDestroy {
     this.obraService.updateEstadoObra(this.obra.id!, nuevoEstado.id).subscribe({
       next: () => {
         this.obra.obra_estado = nuevoEstado;
+
+        // ⬅️ ACTUALIZAR EN EL SERVICE
+        this.obraStateService.setObra(this.obra);
+
         this.messageService.add({
           severity: 'success',
           summary: 'Estado actualizado',
@@ -112,6 +123,14 @@ export class ObrasDetailComponent implements OnInit, OnDestroy {
         });
       }
     });
+  }
+
+  onCostosActualizados(costosActualizados: ObraCosto[]) {
+    console.log('📦 Costos actualizados recibidos en obra-detail:', costosActualizados);
+    this.costos = costosActualizados;
+    this.obra.costos = costosActualizados;
+
+    this.obraStateService.setObra(this.obra);
   }
 
   getProgresoFisico(): number {
@@ -148,6 +167,9 @@ export class ObrasDetailComponent implements OnInit, OnDestroy {
             : (undefined as any)
         };
 
+        // ⬅️ EMITIR LA OBRA AL SERVICE
+        this.obraStateService.setObra(this.obra);
+
         this.tareas = obra.tareas ?? [];
         this.costos = obra.costos ?? [];
         this.estadosObra = estados.map(e => ({...e, id: Number(e.id)}));
@@ -167,6 +189,7 @@ export class ObrasDetailComponent implements OnInit, OnDestroy {
       },
       error: () => {
         this.loading = false;
+        this.obraStateService.clearObra(); // ⬅️ LIMPIAR SI HAY ERROR
         this.messageService.add({
           severity: 'error',
           summary: 'Error al cargar la obra',
@@ -175,5 +198,4 @@ export class ObrasDetailComponent implements OnInit, OnDestroy {
       }
     });
   }
-
 }

@@ -12,12 +12,14 @@ export interface ObraPayload {
   direccion?: string;
   fecha_inicio?: string | null;
   fecha_fin?: string | null;
+  // En creación no enviamos adjudicada/perdida
   fecha_adjudicada?: string | null;
   fecha_perdida?: string | null;
   presupuesto?: number;
   beneficio_global?: boolean;
   beneficio?: number;
   comision?: number;
+  notas?: string;
   tareas?: Tarea[];
   costos?: CostoPayload[];
 }

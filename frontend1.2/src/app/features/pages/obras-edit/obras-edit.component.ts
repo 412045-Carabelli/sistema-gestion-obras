@@ -1,6 +1,6 @@
 import {Component, Input, OnInit} from '@angular/core';
 import {FormArray, FormBuilder, FormGroup, ReactiveFormsModule, Validators} from '@angular/forms';
-import {ActivatedRoute, Router} from '@angular/router';
+import {ActivatedRoute, Router, RouterLink} from '@angular/router';
 import {CommonModule} from '@angular/common';
 import {forkJoin} from 'rxjs';
 
@@ -40,6 +40,7 @@ import {ProveedoresService} from '../../../services/proveedores/proveedores.serv
     ProgressSpinnerModule,
     ToastModule,
     Checkbox,
+    RouterLink,
   ],
   providers: [MessageService],
 })
@@ -104,6 +105,7 @@ export class ObrasEditComponent implements OnInit {
       presupuesto: raw.presupuesto,
       comision: raw.comision,
       beneficio: raw.beneficio,
+      notas: raw.notas,
       beneficio_global: raw.beneficio_global,
       tareas: [],
       costos: raw.costos.map((c: any) => ({
@@ -157,7 +159,7 @@ export class ObrasEditComponent implements OnInit {
         this.estadosObra = estados;
         this.proveedores = proveedores;
         this.obra = {...obra, costos: obra.costos ?? []} as Obra;
-
+        console.log(this.obra)
         this.inicializarFormulario();
         this.loading = false;
       },
@@ -186,6 +188,7 @@ export class ObrasEditComponent implements OnInit {
       fecha_adjudicada: [this.parseDate(this.obra.fecha_adjudicada)],
       fecha_perdida: [this.parseDate(this.obra.fecha_perdida)],
       presupuesto: [{value: this.obra.presupuesto, disabled: true}, Validators.required],
+      notas: [this.obra.notas ?? ""],
       tiene_comision: [this.obra.tiene_comision ?? false],
       comision: [this.obra.comision ?? 0, [Validators.min(0), Validators.max(100)]],
       costos: this.fb.array<FormGroup>([])
@@ -208,6 +211,7 @@ export class ObrasEditComponent implements OnInit {
           precio_unitario: [costo.precio_unitario, [Validators.required, Validators.min(0)]],
           beneficio: [costo.beneficio ?? 0],
           proveedor: [costo.proveedor ?? null, Validators.required],
+          id_proveedor: [costo.id_proveedor ?? costo.proveedor?.id ?? null, Validators.required],
           id_estado_pago: [costo.id_estado_pago ?? null],
           activo: [costo.activo ?? true],
           total: [{value: costo.total ?? (costo.cantidad * costo.precio_unitario) ?? 0, disabled: true}],

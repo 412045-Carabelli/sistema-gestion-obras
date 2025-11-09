@@ -18,6 +18,7 @@ import {ObraPayload, ObrasService} from '../../../services/obras/obras.service';
 import {MessageService} from 'primeng/api';
 import {ToastModule} from 'primeng/toast';
 import {Select} from 'primeng/select';
+import {RouterLink} from '@angular/router';
 
 @Component({
   selector: 'app-obras-create',
@@ -35,7 +36,8 @@ import {Select} from 'primeng/select';
     Checkbox,
     ToastModule,
     DatePicker,
-    Select
+    Select,
+    RouterLink
   ],
   templateUrl: './obras-create.component.html',
   styleUrls: ['./obras-create.component.css'],
@@ -62,8 +64,8 @@ export class ObrasCreateComponent implements OnInit {
       direccion: ['', [Validators.required, Validators.minLength(5)]],
       fecha_inicio: [null, Validators.required],
       fecha_fin: [null],
-      fecha_adjudicada: [null],
-      fecha_perdida: [null],
+      // Campos de adjudicación/perdida removidos del alta
+      notas: [''],
       tiene_comision: [false],
       comision: new FormControl({value: null, disabled: true}),
       presupuesto: new FormControl({value: null, disabled: true}),
@@ -209,8 +211,8 @@ export class ObrasCreateComponent implements OnInit {
       direccion: raw.direccion,
       fecha_inicio: this.formatToLocalDateTime(raw.fecha_inicio),
       fecha_fin: this.formatToLocalDateTime(raw.fecha_fin),
-      fecha_adjudicada: this.formatToLocalDateTime(raw.fecha_adjudicada),
-      fecha_perdida: this.formatToLocalDateTime(raw.fecha_perdida),
+      // No enviar fechas adjudicada/perdida en creación
+      notas: raw.notas?.trim() || undefined,
       presupuesto: raw.presupuesto ?? 0,
       beneficio_global: raw.beneficio_global,
       beneficio: raw.beneficio ?? 0,

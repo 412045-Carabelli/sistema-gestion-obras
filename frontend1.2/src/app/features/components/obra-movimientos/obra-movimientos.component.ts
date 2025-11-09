@@ -58,7 +58,7 @@ export class ObraMovimientosComponent implements OnInit {
     forma_pago: 'Total',
     activo: true,
     id_asociado: undefined,
-    tipo_asociado: 'cliente'
+    tipo_asociado: 'CLIENTE'
   };
 
   constructor(
@@ -129,6 +129,9 @@ export class ObraMovimientosComponent implements OnInit {
 
   openModal(movimiento?: Transaccion) {
     this.modoEdicion = !!movimiento;
+    this.selectedCliente = null;
+    this.selectedProveedor = null;
+    this.tipoEntidad = 'CLIENTE';
     this.nuevoMovimiento = movimiento
       ? {...movimiento, fecha: movimiento.fecha ? new Date(movimiento.fecha) : new Date()}
       : {
@@ -138,7 +141,7 @@ export class ObraMovimientosComponent implements OnInit {
         monto: 0,
         forma_pago: 'Total',
         activo: true,
-        tipo_asociado: 'cliente'
+        tipo_asociado: 'CLIENTE'
       };
     this.showAddMovementModal = true;
   }
@@ -148,12 +151,19 @@ export class ObraMovimientosComponent implements OnInit {
   }
 
   guardarMovimiento() {
+    // Determinar asociado según selección
+    const asociadoId = this.tipoEntidad === 'PROVEEDOR' ? this.selectedProveedor?.id : this.selectedCliente?.id;
+    if (!asociadoId) {
+      this.messageService.add({ severity: 'warn', summary: 'Falta asociado', detail: `Seleccioná un ${this.tipoEntidad.toLowerCase()}` });
+      return;
+    }
+
     const mov: any = {
       ...this.nuevoMovimiento,
       id_obra: this.obraId,
       tipo_transaccion: { id: this.nuevoMovimiento.tipo_transaccion.id },
-      id_asociado: this.nuevoMovimiento.id_asociado,
-      tipo_asociado: this.nuevoMovimiento.tipo_asociado
+      id_asociado: asociadoId,
+      tipo_asociado: this.tipoEntidad
     };
 
     if (mov.fecha instanceof Date) {

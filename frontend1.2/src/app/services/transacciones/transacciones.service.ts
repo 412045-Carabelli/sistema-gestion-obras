@@ -20,6 +20,11 @@ export class TransaccionesService {
     return this.http.get<TipoTransaccion[]>(this.tiposUrl);
   }
 
+  // Transacciones por asociado (PROVEEDOR o CLIENTE)
+  getByAsociado(tipo: 'PROVEEDOR' | 'CLIENTE', id: number): Observable<Transaccion[]> {
+    return this.http.get<Transaccion[]>(`${this.apiUrl}/asociado/${tipo}/${id}`);
+  }
+
   create(transaccion: Transaccion): Observable<Transaccion> {
     return this.http.post<Transaccion>(this.apiUrl, transaccion);
   }

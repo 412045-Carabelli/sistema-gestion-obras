@@ -22,7 +22,7 @@
       <tr [formGroup]="costos.at(rowIndex)" class="border-t">
         <!-- Proveedor -->
         <td class="px-2 py-1 w-48">
-          @if (!modoEdicion) {
+          @if (modoEdicion) {
             <p-select
               [options]="proveedores"
               optionLabel="nombre"
@@ -39,7 +39,7 @@
 
         <!-- Descripción -->
         <td class="px-2 py-1 w-64">
-          @if (!modoEdicion) {
+          @if (modoEdicion) {
             <input pInputText formControlName="descripcion" placeholder="Descripción" class="w-full"/>
           } @else {
             {{ costos.at(rowIndex).get('descripcion')?.value }}
@@ -48,7 +48,7 @@
 
         <!-- Cantidad -->
         <td class="px-2 py-1 text-right w-18">
-          @if (!modoEdicion) {
+          @if (modoEdicion) {
             <input type="number" pInputText formControlName="cantidad" class="w-full text-right"/>
           } @else {
             {{ costos.at(rowIndex).get('cantidad')?.value }}
@@ -57,7 +57,7 @@
 
         <!-- Unidad -->
         <td class="px-2 py-1 w-26">
-          @if (!modoEdicion) {
+          @if (modoEdicion) {
             <input pInputText formControlName="unidad" placeholder="Ej. m2" class="w-full"/>
           } @else {
             {{ costos.at(rowIndex).get('unidad')?.value }}
@@ -66,7 +66,7 @@
 
         <!-- Precio Unitario -->
         <td class="px-2 py-1 text-right w-32">
-          @if (!modoEdicion) {
+          @if (modoEdicion) {
             <input type="number" pInputText formControlName="precio_unitario" class="w-full text-right"/>
           } @else {
             {{ costos.at(rowIndex).get('precio_unitario')?.value | currency:'ARS' }}
@@ -75,7 +75,7 @@
 
         <!-- Beneficio -->
         <td class="px-2 py-1 text-right w-28">
-          @if (!modoEdicion) {
+          @if (modoEdicion) {
             <input type="number" pInputText formControlName="beneficio" class="w-full text-right"/>
           } @else {
             {{ costos.at(rowIndex).get('beneficio')?.value ?? 0 }}%
