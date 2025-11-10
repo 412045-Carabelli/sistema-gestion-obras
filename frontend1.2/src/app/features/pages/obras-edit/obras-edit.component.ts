@@ -120,7 +120,6 @@ export class ObrasEditComponent implements OnInit {
       key => (payload as any)[key] === undefined && delete (payload as any)[key]
     );
 
-    console.log('Payload limpio:', payload);
     this.loading = true;
 
     this.obrasService.updateObra(this.obra.id!, payload).subscribe({
@@ -159,7 +158,6 @@ export class ObrasEditComponent implements OnInit {
         this.estadosObra = estados;
         this.proveedores = proveedores;
         this.obra = {...obra, costos: obra.costos ?? []} as Obra;
-        console.log(this.obra)
         this.inicializarFormulario();
         this.loading = false;
       },

@@ -126,7 +126,6 @@ export class ObrasDetailComponent implements OnInit, OnDestroy {
   }
 
   onCostosActualizados(costosActualizados: ObraCosto[]) {
-    console.log('📦 Costos actualizados recibidos en obra-detail:', costosActualizados);
     this.costos = costosActualizados;
     this.obra.costos = costosActualizados;
 

@@ -18,6 +18,16 @@ import {ProveedoresDetailComponent} from './features/pages/proveedores-detail/pr
 
 export const routes: Routes = [
   {
+    path: '',
+    redirectTo: '/dashboard',
+    pathMatch: 'full'
+  },
+  {
+    path: 'dashboard',
+    loadComponent: () => import('./features/pages/dashboard/dashboard.component')
+      .then(m => m.DashboardComponent)
+  },
+  {
     path: 'obras',
     component: ObrasLayoutComponent,
     children: [
@@ -48,6 +58,5 @@ export const routes: Routes = [
     ],
   },
   {path: 'reportes', component: ReportesComponent},
-  {path: '', redirectTo: 'obras', pathMatch: 'full'},
-  {path: '**', redirectTo: 'obras'},
+  {path: '**', redirectTo: 'dashboard'},
 ];

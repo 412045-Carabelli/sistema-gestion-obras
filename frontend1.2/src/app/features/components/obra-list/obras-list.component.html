@@ -43,6 +43,7 @@
     <div class="bg-white rounded-lg border border-gray-200 overflow-hidden">
       <p-table
         [paginator]="true"
+        [paginatorDropdownAppendTo]="'body'"
         [rowHover]="true"
         [rowsPerPageOptions]="[10, 25, 50]"
         [rows]="10"
@@ -58,7 +59,6 @@
             <th class="text-left font-semibold">Estado</th>
             <th class="text-left font-semibold">Período</th>
             <th class="text-right font-semibold">Presupuesto</th>
-            <th class="text-center font-semibold">Progreso</th>
           </tr>
         </ng-template>
 
@@ -87,11 +87,6 @@
             </td>
             <td class="text-right font-medium text-gray-900">
               {{ obra.presupuesto | currency:'ARS':'symbol-narrow':'1.0-0' }}
-            </td>
-            <td class="text-center">
-              <span class="inline-flex items-center justify-center bg-gray-100 text-gray-700 font-semibold text-sm px-3 py-1 rounded-full">
-                {{ getProgreso(obra) }}%
-              </span>
             </td>
           </tr>
         </ng-template>
