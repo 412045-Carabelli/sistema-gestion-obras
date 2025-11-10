@@ -85,7 +85,6 @@ export class ProveedoresDetailComponent implements OnInit, OnDestroy {
           this.tareas = tareas;
           this.transacciones = transacciones;
           this.estadosPago = estadosPago;
-          console.log(proveedor)
           this.proveedoresStateService.setProveedor(proveedor);
 
           const obraIds = Array.from(new Set(tareas.map(t => t.id_obra)));

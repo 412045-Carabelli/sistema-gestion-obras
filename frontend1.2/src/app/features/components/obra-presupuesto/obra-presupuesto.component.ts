@@ -131,7 +131,6 @@ export class ObraPresupuestoComponent implements OnInit, OnChanges {
   }
 
   exportarPDF() {
-    console.log('📄 Exportar PDF con costos:', this.costosFiltrados);
   }
 
   private inicializarCostos() {
@@ -150,7 +149,6 @@ export class ObraPresupuestoComponent implements OnInit, OnChanges {
   private cargarEstadosDePago() {
     this.estadoPagoService.getEstadosPago().subscribe({
       next: (estados) => {
-        console.log(estados)
         this.estadosPago = estados.map((e) => ({
           id: e.id,
           estado: e.estado,

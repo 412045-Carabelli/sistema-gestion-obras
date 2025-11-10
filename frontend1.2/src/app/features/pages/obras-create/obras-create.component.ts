@@ -93,10 +93,7 @@ export class ObrasCreateComponent implements OnInit {
     );
 
     this.form.get('obra_estado')?.valueChanges.subscribe(selected => {
-      console.log('✅ Obra estado seleccionado:', selected);
       if (selected) {
-        console.log('📌 ID:', selected.id);
-        console.log('📌 Nombre:', selected.nombre);
       }
     });
 
@@ -141,7 +138,6 @@ export class ObrasCreateComponent implements OnInit {
   }
 
   nuevaFilaCosto() {
-    console.log('🟩 Antes de agregar:', this.costos.length);
 
     const fila = this.fb.group({
       id_proveedor: [null, Validators.required],
@@ -160,7 +156,6 @@ export class ObrasCreateComponent implements OnInit {
 
     this.costos.push(fila);
 
-    console.log('🟦 Después de agregar:', this.costos.length);
   }
 
   calcularSubtotal(fila: FormGroup) {
@@ -230,7 +225,6 @@ export class ObrasCreateComponent implements OnInit {
       tareas: []
     };
 
-    console.log('📤 Payload FINAL enviado:', payload);
 
     this.obrasService.createObra(payload).subscribe({
       next: () => {

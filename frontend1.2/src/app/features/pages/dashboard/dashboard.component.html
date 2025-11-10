@@ -1,0 +1,325 @@
+<p-toast position="bottom-right"></p-toast>
+
+<!-- ===================== HEADER CON GRADIENTE ===================== -->
+<div class="relative bg-gradient-to-r from-indigo-600 to-purple-800 shadow-lg p-8 text-white overflow-hidden">
+  <div class="absolute inset-0 opacity-10">
+    <div class="absolute -right-10 -top-10 w-40 h-40 bg-white rounded-full"></div>
+    <div class="absolute -left-10 -bottom-10 w-32 h-32 bg-white rounded-full"></div>
+  </div>
+
+  <div class="relative z-10">
+    <h1 class="text-3xl font-bold mb-2">Dashboard General</h1>
+    <p class="text-indigo-100">Vista general del sistema - Resumen de actividades</p>
+  </div>
+</div>
+<div class="p-8 space-y-8 max-w-full mx-auto">
+
+  <!-- ===================== LOADING PRINCIPAL ===================== -->
+  @if (loadingGeneral) {
+    <div class="flex justify-center items-center py-12">
+      <p-progressSpinner strokeWidth="4" styleClass="w-16 h-16"></p-progressSpinner>
+    </div>
+  } @else {
+
+    <!-- ===================== KPIs PRINCIPALES ===================== -->
+    @defer (when resumenGeneral) {
+      <div class="grid gap-6 md:grid-cols-2 xl:grid-cols-4">
+
+        <!-- Tarjeta Obras -->
+        <div class="bg-white rounded-xl shadow-md p-6 border-l-4 border-blue-500 hover:shadow-lg transition-shadow cursor-pointer"
+             (click)="navigateTo('/obras')">
+          <div class="flex items-center gap-3 mb-3">
+            <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+              <i class="pi pi-building text-blue-600 text-xl"></i>
+            </div>
+            <span class="text-sm font-medium text-gray-500">Obras Totales</span>
+          </div>
+          <div class="text-3xl font-bold text-gray-900">{{ resumenGeneral.totalObras }}</div>
+          <div class="text-sm text-gray-500 mt-1">Obras registradas</div>
+        </div>
+
+        <!-- Tarjeta Clientes -->
+        <div class="bg-white rounded-xl shadow-md p-6 border-l-4 border-green-500 hover:shadow-lg transition-shadow cursor-pointer"
+             (click)="navigateTo('/clientes')">
+          <div class="flex items-center gap-3 mb-3">
+            <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
+              <i class="pi pi-user text-green-600 text-xl"></i>
+            </div>
+            <span class="text-sm font-medium text-gray-500">Clientes</span>
+          </div>
+          <div class="text-3xl font-bold text-gray-900">{{ resumenGeneral.totalClientes }}</div>
+          <div class="text-sm text-gray-500 mt-1">Clientes activos</div>
+        </div>
+
+        <!-- Tarjeta Proveedores -->
+        <div class="bg-white rounded-xl shadow-md p-6 border-l-4 border-purple-500 hover:shadow-lg transition-shadow cursor-pointer"
+             (click)="navigateTo('/proveedores')">
+          <div class="flex items-center gap-3 mb-3">
+            <div class="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
+              <i class="pi pi-users text-purple-600 text-xl"></i>
+            </div>
+            <span class="text-sm font-medium text-gray-500">Proveedores</span>
+          </div>
+          <div class="text-3xl font-bold text-gray-900">{{ resumenGeneral.totalProveedores }}</div>
+          <div class="text-sm text-gray-500 mt-1">Proveedores registrados</div>
+        </div>
+
+        <!-- Tarjeta Saldo Neto -->
+        <div class="bg-gradient-to-br from-indigo-500 to-purple-700 rounded-xl shadow-md p-6 text-white hover:shadow-lg transition-shadow cursor-pointer"
+             (click)="navigateTo('/reportes')">
+          <div class="flex items-center gap-3 mb-3">
+            <div class="w-12 h-12 bg-white/20 rounded-lg flex items-center justify-center">
+              <i class="pi pi-dollar text-white text-xl"></i>
+            </div>
+            <span class="text-sm font-medium text-indigo-100">Saldo Neto</span>
+          </div>
+          <div class="text-3xl font-bold">
+            {{ (resumenGeneral.totalIngresos - resumenGeneral.totalEgresos) | currency:'ARS':'symbol-narrow':'1.0-0' }}
+          </div>
+          <div class="text-sm text-indigo-100 mt-1">Ingresos - Egresos</div>
+        </div>
+      </div>
+    } @placeholder {
+      <div class="grid gap-6 md:grid-cols-2 xl:grid-cols-4">
+        @for (item of [1,2,3,4]; track item) {
+          <div class="bg-white rounded-xl shadow-md p-6 animate-pulse">
+            <div class="flex items-center gap-3 mb-3">
+              <div class="w-12 h-12 bg-gray-200 rounded-lg"></div>
+              <div class="h-4 bg-gray-200 rounded w-20"></div>
+            </div>
+            <div class="h-8 bg-gray-200 rounded w-16 mb-2"></div>
+            <div class="h-3 bg-gray-200 rounded w-24"></div>
+          </div>
+        }
+      </div>
+    }
+
+    <!-- ===================== FLUJO DE CAJA ===================== -->
+    @defer (when flujoCaja) {
+      <div class="bg-white rounded-xl shadow-md p-6">
+        <h2 class="text-lg font-semibold text-gray-900 mb-5 flex items-center gap-2 pb-3 border-b border-gray-200">
+          <i class="pi pi-wallet text-indigo-600"></i>
+          Flujo de Caja Reciente
+        </h2>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+          <div class="bg-green-50 rounded-lg p-4 border border-green-200">
+            <div class="flex items-center gap-2 mb-2">
+              <i class="pi pi-arrow-up text-green-600"></i>
+              <span class="text-sm font-medium text-gray-600">Ingresos</span>
+            </div>
+            <div class="text-2xl font-bold text-green-600">
+              {{ flujoCaja.totalIngresos | currency:'ARS':'symbol-narrow':'1.0-0' }}
+            </div>
+          </div>
+
+          <div class="bg-red-50 rounded-lg p-4 border border-red-200">
+            <div class="flex items-center gap-2 mb-2">
+              <i class="pi pi-arrow-down text-red-600"></i>
+              <span class="text-sm font-medium text-gray-600">Egresos</span>
+            </div>
+            <div class="text-2xl font-bold text-red-600">
+              {{ flujoCaja.totalEgresos | currency:'ARS':'symbol-narrow':'1.0-0' }}
+            </div>
+          </div>
+
+          <div class="bg-indigo-50 rounded-lg p-4 border border-indigo-200">
+            <div class="flex items-center gap-2 mb-2">
+              <i class="pi pi-wallet text-indigo-600"></i>
+              <span class="text-sm font-medium text-gray-600">Saldo</span>
+            </div>
+            <div class="text-2xl font-bold text-indigo-600">
+              {{ flujoCaja.saldoFinal | currency:'ARS':'symbol-narrow':'1.0-0' }}
+            </div>
+          </div>
+        </div>
+      </div>
+    } @placeholder {
+      <div class="bg-white rounded-xl shadow-md p-6 animate-pulse">
+        <div class="h-6 bg-gray-200 rounded w-1/4 mb-5"></div>
+        <div class="grid grid-cols-3 gap-4">
+          <div class="h-24 bg-gray-100 rounded-lg"></div>
+          <div class="h-24 bg-gray-100 rounded-lg"></div>
+          <div class="h-24 bg-gray-100 rounded-lg"></div>
+        </div>
+      </div>
+    }
+
+    <!-- ===================== TAREAS Y MOVIMIENTOS RECIENTES ===================== -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+      <!-- Tareas Recientes -->
+      @defer (when tareasRecientes) {
+        <div class="bg-white rounded-xl shadow-md p-6">
+          <div class="flex items-center justify-between mb-5 pb-3 border-b border-gray-200">
+            <h2 class="text-lg font-semibold text-gray-900 flex items-center gap-2">
+              <i class="pi pi-list-check text-indigo-600"></i>
+              Tareas Recientes
+            </h2>
+            <p-button
+              label="Ver todas"
+              icon="pi pi-arrow-right"
+              [text]="true"
+              size="small"
+              (onClick)="navigateTo('/obras')">
+            </p-button>
+          </div>
+
+          @if (tareasRecientes.length > 0) {
+            <div class="space-y-3">
+              @for (tarea of tareasRecientes.slice(0, 5); track tarea.id) {
+                <div class="flex items-center gap-3 p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
+                  <div class="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                    <i class="pi pi-check-circle text-blue-600"></i>
+                  </div>
+                  <div class="flex-1 min-w-0">
+                    <p class="text-sm font-semibold text-gray-900 truncate">{{ tarea.nombre }}</p>
+                    <p class="text-xs text-gray-500">{{ tarea.descripcion || 'Sin descripción' }}</p>
+                  </div>
+                  <span class="px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800">
+                    {{ tarea.estado_tarea?.nombre }}
+                  </span>
+                </div>
+              }
+            </div>
+          } @else {
+            <div class="text-center py-8 text-gray-400">
+              <i class="pi pi-inbox text-4xl mb-2"></i>
+              <p class="text-sm">No hay tareas recientes</p>
+            </div>
+          }
+        </div>
+      } @placeholder {
+        <div class="bg-white rounded-xl shadow-md p-6 animate-pulse">
+          <div class="h-6 bg-gray-200 rounded w-1/3 mb-5"></div>
+          <div class="space-y-3">
+            @for (item of [1,2,3,4,5]; track item) {
+              <div class="h-16 bg-gray-100 rounded-lg"></div>
+            }
+          </div>
+        </div>
+      }
+
+      <!-- Movimientos Recientes -->
+      @defer (when movimientosRecientes) {
+        <div class="bg-white rounded-xl shadow-md p-6">
+          <div class="flex items-center justify-between mb-5 pb-3 border-b border-gray-200">
+            <h2 class="text-lg font-semibold text-gray-900 flex items-center gap-2">
+              <i class="pi pi-arrow-right-arrow-left text-indigo-600"></i>
+              Movimientos Recientes
+            </h2>
+            <p-button
+              label="Ver todos"
+              icon="pi pi-arrow-right"
+              [text]="true"
+              size="small"
+              (onClick)="navigateTo('/reportes')">
+            </p-button>
+          </div>
+
+          @if (movimientosRecientes.length > 0) {
+            <div class="space-y-3">
+              @for (mov of movimientosRecientes.slice(0, 5); track mov.id) {
+                <div class="flex items-center gap-3 p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
+                  <div class="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0"
+                       [ngClass]="mov.tipo === 'INGRESO' ? 'bg-green-100' : 'bg-red-100'">
+                    <i class="pi text-lg"
+                       [ngClass]="mov.tipo === 'INGRESO' ? 'pi-arrow-up text-green-600' : 'pi-arrow-down text-red-600'">
+                    </i>
+                  </div>
+                  <div class="flex-1 min-w-0">
+                    <p class="text-sm font-semibold text-gray-900">{{ mov.formaPago }}</p>
+                    <p class="text-xs text-gray-500">{{ mov.fecha | date:'dd/MM/yyyy' }}</p>
+                  </div>
+                  <span class="text-sm font-bold"
+                        [ngClass]="mov.tipo === 'INGRESO' ? 'text-green-600' : 'text-red-600'">
+                    {{ mov.monto | currency:'ARS':'symbol-narrow':'1.0-0' }}
+                  </span>
+                </div>
+              }
+            </div>
+          } @else {
+            <div class="text-center py-8 text-gray-400">
+              <i class="pi pi-inbox text-4xl mb-2"></i>
+              <p class="text-sm">No hay movimientos recientes</p>
+            </div>
+          }
+        </div>
+      } @placeholder {
+        <div class="bg-white rounded-xl shadow-md p-6 animate-pulse">
+          <div class="h-6 bg-gray-200 rounded w-1/3 mb-5"></div>
+          <div class="space-y-3">
+            @for (item of [1,2,3,4,5]; track item) {
+              <div class="h-16 bg-gray-100 rounded-lg"></div>
+            }
+          </div>
+        </div>
+      }
+    </div>
+
+    <!-- ===================== ATAJOS RÁPIDOS ===================== -->
+    <div class="bg-white rounded-xl shadow-md p-6">
+      <h2 class="text-lg font-semibold text-gray-900 mb-5 flex items-center gap-2 pb-3 border-b border-gray-200">
+        <i class="pi pi-bolt text-indigo-600"></i>
+        Accesos Rápidos
+      </h2>
+
+      <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+        <button
+          (click)="navigateTo('/obras/nueva')"
+          class="cursor-pointer flex flex-col items-center gap-3 p-4 rounded-lg bg-gradient-to-br from-blue-50 to-blue-100 hover:from-blue-100 hover:to-blue-200 transition-all border border-blue-200 hover:shadow-md">
+          <div class="w-12 h-12 bg-blue-500 rounded-full flex items-center justify-center">
+            <i class="pi pi-plus text-white text-xl"></i>
+          </div>
+          <span class="text-sm font-semibold text-gray-700 text-center">Nueva Obra</span>
+        </button>
+
+        <button
+          (click)="navigateTo('/clientes/nueva')"
+          class="cursor-pointer flex flex-col items-center gap-3 p-4 rounded-lg bg-gradient-to-br from-green-50 to-green-100 hover:from-green-100 hover:to-green-200 transition-all border border-green-200 hover:shadow-md">
+          <div class="w-12 h-12 bg-green-500 rounded-full flex items-center justify-center">
+            <i class="pi pi-user-plus text-white text-xl"></i>
+          </div>
+          <span class="text-sm font-semibold text-gray-700 text-center">Nuevo Cliente</span>
+        </button>
+
+        <button
+          (click)="navigateTo('/proveedores/nueva')"
+          class="cursor-pointer flex flex-col items-center gap-3 p-4 rounded-lg bg-gradient-to-br from-purple-50 to-purple-100 hover:from-purple-100 hover:to-purple-200 transition-all border border-purple-200 hover:shadow-md">
+          <div class="w-12 h-12 bg-purple-500 rounded-full flex items-center justify-center">
+            <i class="pi pi-users text-white text-xl"></i>
+          </div>
+          <span class="text-sm font-semibold text-gray-700 text-center">Nuevo Proveedor</span>
+        </button>
+
+        <button
+          (click)="navigateTo('/obras')"
+          class="cursor-pointer flex flex-col items-center gap-3 p-4 rounded-lg bg-gradient-to-br from-cyan-50 to-cyan-100 hover:from-cyan-100 hover:to-cyan-200 transition-all border border-cyan-200 hover:shadow-md">
+          <div class="w-12 h-12 bg-cyan-500 rounded-full flex items-center justify-center">
+            <i class="pi pi-building text-white text-xl"></i>
+          </div>
+          <span class="text-sm font-semibold text-gray-700 text-center">Ver Obras</span>
+        </button>
+
+        <button
+          (click)="navigateTo('/reportes')"
+          class="cursor-pointer flex flex-col items-center gap-3 p-4 rounded-lg bg-gradient-to-br from-orange-50 to-orange-100 hover:from-orange-100 hover:to-orange-200 transition-all border border-orange-200 hover:shadow-md">
+          <div class="w-12 h-12 bg-orange-500 rounded-full flex items-center justify-center">
+            <i class="pi pi-chart-bar text-white text-xl"></i>
+          </div>
+          <span class="text-sm font-semibold text-gray-700 text-center">Reportes</span>
+        </button>
+
+        <button
+          (click)="navigateTo('/clientes')"
+          class="cursor-pointer flex flex-col items-center gap-3 p-4 rounded-lg bg-gradient-to-br from-pink-50 to-pink-100 hover:from-pink-100 hover:to-pink-200 transition-all border border-pink-200 hover:shadow-md">
+          <div class="w-12 h-12 bg-pink-500 rounded-full flex items-center justify-center">
+            <i class="pi pi-users text-white text-xl"></i>
+          </div>
+          <span class="text-sm font-semibold text-gray-700 text-center">Ver Clientes</span>
+        </button>
+      </div>
+    </div>
+
+  }
+</div>

@@ -305,3 +305,16 @@ export interface NotasObraResponse {
   fechaInicio?: string;
   fechaFin?: string;
 }
+
+export interface MovimientoDashboard {
+  id?: number;
+  transaccionId: number;
+  fecha: string;
+  tipo: string;
+  monto: number;
+  obraId: number;
+  obraNombre: string;
+  formaPago: string;
+  asociadoTipo: string;
+  asociadoId: number;
+}

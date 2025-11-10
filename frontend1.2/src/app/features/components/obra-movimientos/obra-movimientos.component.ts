@@ -118,12 +118,10 @@ export class ObraMovimientosComponent implements OnInit {
         ...t,
         etiqueta: t.tipo_transaccion?.id === 1 ? 'FC' : 'RBOS'
       }));
-      console.log(transacciones, this.obraId);
     });
 
     this.transaccionesService.getTipos().subscribe(tipos => {
       this.tiposTransaccion = tipos;
-      console.log(tipos)
     });
   }
 
@@ -235,11 +233,9 @@ export class ObraMovimientosComponent implements OnInit {
       });
       return;
     }
-    console.log('🧾 Ver documento PDF:', doc.numero);
   }
 
   onUpload(event: any, transaccion: Transaccion) {
     const file = event.files[0];
-    console.log('📎 PDF adjuntado a transacción', transaccion.id, file.name);
   }
 }

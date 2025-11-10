@@ -13,7 +13,6 @@ export class ObrasProveedoresService {
   }
 
   getObrasProveedoresByObra(idObra: number) {
-    console.log(`${this.apiUrl}/${idObra}`)
     return this.http.get<ObraProveedor[]>(`${this.apiUrl}/${idObra}`);
   }
 }
