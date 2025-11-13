@@ -123,6 +123,22 @@
     </form>
   </div>
 
+  <div class="flex flex-wrap justify-end gap-3">
+    <p-button
+      icon="pi pi-file-pdf"
+      label="Reporte PDF"
+      (onClick)="descargarReportePdf()"
+      [loading]="exportandoReporte"
+    ></p-button>
+    <p-button
+      icon="pi pi-file-excel"
+      label="Excel con movimientos"
+      severity="success"
+      (onClick)="descargarReporteExcel()"
+      [loading]="exportandoExcel"
+    ></p-button>
+  </div>
+
   <!-- ===================== LOADING ===================== -->
   @if (loading) {
     <div class="flex justify-center items-center py-12">
