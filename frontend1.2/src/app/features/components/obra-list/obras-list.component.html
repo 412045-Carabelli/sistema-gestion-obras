@@ -40,6 +40,15 @@
     </div>
 
     <!-- Tabla -->
+    <div class="flex justify-end">
+      <p-button
+        icon="pi pi-file-excel"
+        label="Exportar listado"
+        severity="success"
+        (onClick)="exportarListado()"
+        pTooltip="Descarga las obras filtradas en Excel"
+      ></p-button>
+    </div>
     <div class="bg-white rounded-lg border border-gray-200 overflow-hidden">
       <p-table
         [paginator]="true"
