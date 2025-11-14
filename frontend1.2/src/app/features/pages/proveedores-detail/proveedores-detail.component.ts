@@ -18,6 +18,7 @@ import {CostosService} from '../../../services/costos/costos.service';
 import {ProveedoresStateService} from '../../../services/proveedores/proveedores-state.service';
 import {StyleClass} from 'primeng/styleclass';
 import {Toast} from 'primeng/toast';
+import {ExportService} from '../../../services/export/export.service';
 
 @Component({
   selector: 'app-proveedores-detail',
@@ -40,6 +41,7 @@ export class ProveedoresDetailComponent implements OnInit, OnDestroy {
   costosProveedor: ObraCosto[] = [];
   resumenEstados: { estado: string; cantidad: number; total: number }[] = [];
   loading = true;
+  exportandoPdf = false;
   private subs = new Subscription();
 
   constructor(
@@ -51,7 +53,8 @@ export class ProveedoresDetailComponent implements OnInit, OnDestroy {
     private transaccionesService: TransaccionesService,
     private estadoPagoService: EstadoPagoService,
     private costosService: CostosService,
-    private proveedoresStateService: ProveedoresStateService
+    private proveedoresStateService: ProveedoresStateService,
+    private exportService: ExportService
   ) {}
 
   ngOnInit(): void {
@@ -140,5 +143,37 @@ export class ProveedoresDetailComponent implements OnInit, OnDestroy {
         const match = this.estadosPago.find(e => e.id === id);
         return match?.estado || 'Pendiente';
     }
+  }
+
+  exportarFicha() {
+    if (!this.proveedor) {
+      return;
+    }
+    this.exportandoPdf = true;
+    const obrasAsociadas = Object.values(this.obrasMap).filter((o): o is Obra => !!o);
+    const tareasPorObra = this.tareas.reduce((acc, tarea) => {
+      acc[tarea.id_obra] = acc[tarea.id_obra] || [];
+      acc[tarea.id_obra].push(tarea);
+      return acc;
+    }, {} as Record<number, Tarea[]>);
+    const movimientosPendientes = this.transacciones.filter(t => this.esMovimientoPendiente(t));
+    const pagosPendientes = this.costosProveedor.filter(c => (c.estado_pago ?? c.id_estado_pago) === 1);
+
+    this.exportService.exportEntidadDetallePdf({
+      tipo: 'proveedor',
+      entidad: this.proveedor,
+      obras: obrasAsociadas,
+      tareasPorObra,
+      movimientosPendientes,
+      costosPendientes: pagosPendientes
+    });
+    this.exportandoPdf = false;
+  }
+
+  private esMovimientoPendiente(transaccion: Transaccion): boolean {
+    const forma = (transaccion.forma_pago || (transaccion as any).parcial_o_total || '')
+      .toString()
+      .toLowerCase();
+    return forma.includes('parcial') || forma.includes('pendiente');
   }
 }
