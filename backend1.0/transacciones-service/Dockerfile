@@ -3,7 +3,7 @@ WORKDIR /app
 
 # Copia solo el JAR ya compilado
 COPY target/*.jar app.jar
-COPY data ./data
+RUN mkdir -p data
 
 EXPOSE 8086
 ENTRYPOINT ["java", "-jar", "app.jar"]
