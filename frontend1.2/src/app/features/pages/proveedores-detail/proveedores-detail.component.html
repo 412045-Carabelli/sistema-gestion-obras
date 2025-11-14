@@ -7,6 +7,28 @@
 } @else {
   @defer (when proveedor) {
     <div class="p-4 space-y-8 w-full mx-auto">
+      <div class="flex flex-wrap items-start justify-between gap-4">
+        <div>
+          <p class="text-sm uppercase tracking-widest text-gray-500">Proveedor</p>
+          <h1 class="text-3xl font-semibold text-gray-900">{{ proveedor.nombre }}</h1>
+          <p class="text-sm text-gray-500">Tipo: {{ proveedor.tipo_proveedor?.nombre }}</p>
+        </div>
+        <div class="flex flex-wrap gap-3">
+          <p-button
+            icon="pi pi-pencil"
+            label="Editar"
+            severity="secondary"
+            [routerLink]="['/proveedores/editar', proveedor.id]"
+          ></p-button>
+          <p-button
+            icon="pi pi-file-pdf"
+            label="Exportar ficha"
+            (onClick)="exportarFicha()"
+            [loading]="exportandoPdf"
+          ></p-button>
+        </div>
+      </div>
+
       <!-- ===================== TARJETAS DE INFO PRINCIPAL ===================== -->
       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
 
