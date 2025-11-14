@@ -1,6 +1,7 @@
 package com.obras.repository;
 
 import com.obras.entity.Tarea;
+import com.obras.enums.EstadoTareaEnum;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
@@ -16,7 +17,8 @@ public interface TareaRepository extends JpaRepository<Tarea, Long> {
 
     long countByIdObraAndActivoTrue(Long idObra);
 
-    long countByIdObraAndEstadoTarea_IdAndActivoTrue(Long idObra, Long idEstadoTarea);
-
     List<Tarea> findByIdProveedorAndActivoTrue(Long idProveedor);
+
+    long countByIdObraAndEstadoTareaAndActivoTrue(Long idObra, EstadoTareaEnum estado);
+
 }

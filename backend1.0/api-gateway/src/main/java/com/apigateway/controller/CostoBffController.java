@@ -35,15 +35,15 @@ public class CostoBffController {
                 .map(ResponseEntity::ok);
     }
 
-    @PutMapping("/{id}/estado/{idEstado}")
+    @PutMapping("/{id}/estado/{estado}")
     public Mono<ResponseEntity<Map<String, Object>>> actualizarEstadoPago(
             @PathVariable("id") Long idCosto,
-            @PathVariable("idEstado") Long idEstadoPago) {
+            @PathVariable("estado") String estado) {
 
         WebClient client = webClientBuilder.build();
 
         return client.put()
-                .uri(COSTOS_URL + "/{id}/estado/{idEstado}", idCosto, idEstadoPago)
+                .uri(COSTOS_URL + "/{id}/estado/{estado}", idCosto, estado)
                 .retrieve()
                 .bodyToMono(new ParameterizedTypeReference<Map<String, Object>>() {})
                 .map(ResponseEntity::ok);

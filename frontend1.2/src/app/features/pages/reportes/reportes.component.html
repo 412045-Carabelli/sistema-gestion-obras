@@ -80,6 +80,8 @@
           <p-multiSelect
             formControlName="estadosObra"
             [options]="estadosObraOptions"
+            optionLabel="label"
+            optionValue="name"
             [filter]="true"
             defaultLabel="Todos los estados"
             display="chip"
@@ -313,14 +315,14 @@
                   <td>
                     <p-tag
                       [value]="movimiento.tipo"
-                      [severity]="movimiento.tipo === 'Cobro' ? 'success' : 'danger'"
+                      [severity]="movimiento.tipo === 'COBRO' ? 'success' : 'danger'"
                     ></p-tag>
                   </td>
                   <td><strong>{{ movimiento.obraNombre }}</strong></td>
                   <td>{{ movimiento.formaPago }}</td>
                   <td>{{ nombreAsociado(movimiento.asociadoTipo, movimiento.asociadoId) }}</td>
-                  <td class="text-right font-semibold" [ngClass]="movimiento.tipo === 'Cobro' ? 'text-green-600' : 'text-red-600'">
-                    {{ movimiento.tipo === 'Cobro' ? '+' : '-' }} {{ movimiento.monto | currency:'ARS':'symbol-narrow':'1.0-0' }}
+                  <td class="text-right font-semibold" [ngClass]="movimiento.tipo === 'COBRO' ? 'text-green-600' : 'text-red-600'">
+                    {{ movimiento.tipo === 'COBRO' ? '+' : '-' }} {{ movimiento.monto | currency:'ARS':'symbol-narrow':'1.0-0' }}
                   </td>
                 </tr>
               </ng-template>

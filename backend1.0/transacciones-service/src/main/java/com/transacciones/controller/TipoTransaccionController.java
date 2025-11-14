@@ -1,12 +1,12 @@
 package com.transacciones.controller;
 
-import com.transacciones.dto.TipoTransaccionDto;
-import com.transacciones.entity.TipoTransaccion;
-import com.transacciones.service.TipoTransaccionService;
+import com.transacciones.dto.EstadoResponse;
+import com.transacciones.enums.TipoTransaccionEnum;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -16,49 +16,37 @@ import java.util.stream.Collectors;
 @CrossOrigin
 public class TipoTransaccionController {
 
-    private final TipoTransaccionService tipoTransaccionService;
+    // sin servicio/repositorio: se exponen enums
 
     @GetMapping
-    public ResponseEntity<List<TipoTransaccionDto>> getAll() {
-        List<TipoTransaccionDto> lista = tipoTransaccionService.listar()
-                .stream()
-                .map(this::toDto)
-                .collect(Collectors.toList());
+    public ResponseEntity<List<EstadoResponse>> getAll() {
+        List<EstadoResponse> lista = Arrays.stream(TipoTransaccionEnum.values())
+                .map(e -> new EstadoResponse(e.name(), formatLabel(e)))
+                .toList();
+
         return ResponseEntity.ok(lista);
     }
 
-    @GetMapping("/{id}")
-    public ResponseEntity<TipoTransaccionDto> getById(@PathVariable("id") Long id) {
-        TipoTransaccion entity = tipoTransaccionService.obtener(id);
-        return ResponseEntity.ok(toDto(entity));
+    @GetMapping("/{tipo}")
+    public ResponseEntity<EstadoResponse> getByTipo(@PathVariable String tipo) {
+        try {
+            TipoTransaccionEnum encontrado = TipoTransaccionEnum.valueOf(tipo.toUpperCase());
+
+            return ResponseEntity.ok(
+                    new EstadoResponse(encontrado.name(), formatLabel(encontrado))
+            );
+
+        } catch (IllegalArgumentException ex) {
+            return ResponseEntity.notFound().build();
+        }
     }
 
-    @PostMapping
-    public ResponseEntity<TipoTransaccionDto> create(@RequestBody TipoTransaccionDto dto) {
-        TipoTransaccion saved = tipoTransaccionService.crear(toEntity(dto));
-        return ResponseEntity.ok(toDto(saved));
+    private String formatLabel(Enum<?> e) {
+        return Arrays.stream(e.name().split("_"))
+                .map(word -> word.charAt(0) + word.substring(1).toLowerCase())
+                .collect(Collectors.joining(" "));
     }
 
 
-    // ==============================
-    // 🧠 Métodos auxiliares
-    // ==============================
-
-    private TipoTransaccionDto toDto(TipoTransaccion entity) {
-        return TipoTransaccionDto.builder()
-                .id(entity.getId())
-                .nombre(entity.getNombre())
-                .activo(entity.getActivo())
-                .ultima_actualizacion(entity.getUltimaActualizacion())
-                .tipo_actualizacion(entity.getTipoActualizacion())
-                .build();
-    }
-
-    private TipoTransaccion toEntity(TipoTransaccionDto dto) {
-        return TipoTransaccion.builder()
-                .id(dto.getId())
-                .nombre(dto.getNombre())
-                .activo(dto.getActivo() != null ? dto.getActivo() : Boolean.TRUE)
-                .build();
-    }
 }
+

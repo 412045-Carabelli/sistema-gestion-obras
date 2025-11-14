@@ -130,6 +130,20 @@ services:
       - sgo_backend
 
   # -----------------------
+  # Frontend: Angular app served by Nginx on port 80 (mapped to 4200).
+  # -----------------------
+  frontend:
+    build: ./frontend1.2
+    container_name: obras_frontend
+    ports:
+      - "4200:80"
+    depends_on:
+      - api-gateway
+    restart: unless-stopped
+    networks:
+      - sgo_backend
+
+  # -----------------------
   # Reportes microservice: aggregated reporting endpoints.
   # -----------------------
   reportes-service:

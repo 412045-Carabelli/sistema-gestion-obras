@@ -12,7 +12,7 @@ export interface ObraPayload {
   direccion?: string;
   fecha_inicio?: string | null;
   fecha_fin?: string | null;
-  // En creación no enviamos adjudicada/perdida
+  tiene_comision: boolean;
   fecha_adjudicada?: string | null;
   fecha_perdida?: string | null;
   presupuesto?: number;
@@ -61,12 +61,16 @@ export class ObrasService {
     return this.http.put<Obra>(`${this.apiUrl}/${id}`, obra);
   }
 
-  updateEstadoObra(idObra: number, idEstado: number) {
-    return this.http.patch<void>(`${this.apiUrl}/${idObra}/estado/${idEstado}`, null);
+  updateEstadoObra(idObra: number, estado: string) {
+    return this.http.patch<void>(`${this.apiUrl}/${idObra}/estado/${estado}`, null);
   }
 
-  deleteObra(id: number): Observable<void> {
-    return this.http.delete<void>(`${this.apiUrl}/${id}`);
+  activarObra(id: number) {
+    return this.http.patch(
+      `${this.apiUrl}/${id}/activo`,
+      null,
+    );
   }
+
 
 }

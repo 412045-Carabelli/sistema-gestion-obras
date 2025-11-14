@@ -1,5 +1,6 @@
 package com.documentos.dto;
 
+import com.documentos.enums.TipoDocumentoEnum;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -15,5 +16,5 @@ public class DocumentoDto {
     private String fecha;
     private String observacion;
     private String creado_en;
-    private TipoDocumentoDto tipo_documento;
+    private TipoDocumentoEnum tipo_documento;
 }

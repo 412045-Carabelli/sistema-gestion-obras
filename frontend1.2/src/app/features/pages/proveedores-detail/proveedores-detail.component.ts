@@ -27,7 +27,7 @@ import {Toast} from 'primeng/toast';
     ButtonModule,
     Tabs, TabList, Tab, TabPanels, TabPanel,
     ProgressSpinnerModule,
-    TableModule, RouterLink, Tooltip, StyleClass, Toast
+    TableModule, Tooltip, StyleClass, Toast
   ],
   templateUrl: './proveedores-detail.component.html'
 })
@@ -101,13 +101,11 @@ export class ProveedoresDetailComponent implements OnInit, OnDestroy {
 
           const mapa: Record<string, { cantidad: number; total: number }> = {};
           for (const c of this.costosProveedor) {
-            const id = (c as any).estado_pago ?? c.id_estado_pago ?? 1;
-            const estado = this.labelEstado(id);
-            if (!mapa[estado]) {
-              mapa[estado] = {cantidad: 0, total: 0};
+            if (!mapa[c.estado_pago!]) {
+              mapa[c.estado_pago!] = {cantidad: 0, total: 0};
             }
-            mapa[estado].cantidad += 1;
-            mapa[estado].total += Number(c.total || 0);
+            mapa[c.estado_pago!].cantidad += 1;
+            mapa[c.estado_pago!].total += Number(c.total || 0);
           }
           this.resumenEstados = Object.entries(mapa).map(([estado, v]) => ({estado, cantidad: v.cantidad, total: v.total}));
 
@@ -131,14 +129,10 @@ export class ProveedoresDetailComponent implements OnInit, OnDestroy {
       });
   }
 
-  private labelEstado(id?: number): string {
-    switch (Number(id)) {
-      case 1: return 'Pendiente';
-      case 2: return 'Parcial';
-      case 3: return 'Pagado';
-      default:
-        const match = this.estadosPago.find(e => e.id === id);
-        return match?.estado || 'Pendiente';
-    }
+  formatearTipo(tipo: string | null | undefined): string {
+    if (!tipo) return '—';
+
+    const limpio = tipo.replace(/_/g, ' ').toLowerCase();
+    return limpio.charAt(0).toUpperCase() + limpio.slice(1);
   }
 }

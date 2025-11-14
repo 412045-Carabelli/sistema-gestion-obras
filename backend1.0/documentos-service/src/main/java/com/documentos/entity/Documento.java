@@ -1,5 +1,6 @@
 package com.documentos.entity;
 
+import com.documentos.enums.TipoDocumentoEnum;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -39,10 +40,10 @@ public class Documento {
     private String observacion;
 
     @Column(name = "creado_en")
-    private LocalDateTime creadoEn = LocalDateTime.now();;
+    private LocalDateTime creadoEn = LocalDateTime.now();
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "id_tipo_documento", nullable = false)
-    private TipoDocumento tipoDocumento;
+    @Enumerated(EnumType.STRING)
+    @Column(name = "id_tipo_documento", nullable = false)
+    private TipoDocumentoEnum tipoDocumento;
 
 }

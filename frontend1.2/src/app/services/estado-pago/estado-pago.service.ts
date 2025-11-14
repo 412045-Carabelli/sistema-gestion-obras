@@ -11,7 +11,7 @@ export class EstadoPagoService {
   constructor(private http: HttpClient) {
   }
 
-  getEstadosPago(): Observable<EstadoPago[]> {
-    return this.http.get<EstadoPago[]>(this.apiUrl);
+  getEstadosPago(): Observable<{ label: string; name: string }[]> {
+    return this.http.get<{ label: string; name: string }[]>(this.apiUrl);
   }
 }

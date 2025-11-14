@@ -1,6 +1,7 @@
 package com.documentos.controller;
 
 import com.documentos.dto.DocumentoDto;
+import com.documentos.enums.TipoDocumentoEnum;
 import com.documentos.service.DocumentoService;
 import org.springframework.core.io.Resource;
 import lombok.RequiredArgsConstructor;
@@ -19,17 +20,31 @@ public class DocumentoController {
 
     private final DocumentoService documentoService;
 
-    @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE,
+            produces = MediaType.APPLICATION_JSON_VALUE)
     public Mono<ResponseEntity<DocumentoDto>> create(
             @RequestPart(value = "id_obra", required = false) String idObra,
-            @RequestPart("id_tipo_documento") String idTipoDocumento,
+            @RequestPart("tipo_documento") String tipoDocumento,  // Changed to String
             @RequestPart(value = "id_asociado", required = false) String idAsociado,
             @RequestPart(value = "tipo_asociado", required = false) String tipoAsociado,
             @RequestPart(value = "observacion", required = false) String observacion,
             @RequestPart("file") FilePart filePart
     ) {
-        return documentoService.createWithFileReactive(idObra, idTipoDocumento, observacion, idAsociado, tipoAsociado, filePart)
-                .map(dto -> ResponseEntity.status(HttpStatus.CREATED).body(dto));
+        // Convert String to Enum
+        TipoDocumentoEnum tipoEnum;
+        try {
+            tipoEnum = TipoDocumentoEnum.valueOf(tipoDocumento.toUpperCase());
+        } catch (IllegalArgumentException e) {
+            return Mono.just(ResponseEntity.badRequest().build());
+        }
+
+        return documentoService.createWithFileReactive(
+                        idObra, tipoEnum, observacion, idAsociado, tipoAsociado, filePart)
+                .map(dto -> ResponseEntity.status(HttpStatus.CREATED).body(dto))
+                .onErrorResume(ex -> {
+                    ex.printStackTrace();
+                    return Mono.just(ResponseEntity.internalServerError().build());
+                });
     }
 
     // 🔍 Nuevo endpoint: obtener documentos por tipo e ID asociado (cliente/proveedor)

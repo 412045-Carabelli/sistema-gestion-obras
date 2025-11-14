@@ -35,11 +35,11 @@ public class TipoDocumentoBffController {
     }
 
     // ✅ GET /bff/tipo_documentos/{id}
-    @GetMapping("/{id}")
-    public Mono<ResponseEntity<Map<String, Object>>> getById(@PathVariable("id") Long id) {
+    @GetMapping("/{tipo}")
+    public Mono<ResponseEntity<Map<String, Object>>> getByTipo(@PathVariable("tipo") String tipo) {
         WebClient client = webClientBuilder.build();
         return client.get()
-                .uri(TIPO_DOC_URL + "/{id}", id)
+                .uri(TIPO_DOC_URL + "/{tipo}", tipo)
                 .retrieve()
                 .bodyToMono(new ParameterizedTypeReference<Map<String, Object>>() {})
                 .map(ResponseEntity::ok)

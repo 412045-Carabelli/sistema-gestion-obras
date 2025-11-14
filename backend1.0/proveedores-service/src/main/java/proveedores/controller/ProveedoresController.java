@@ -3,12 +3,14 @@ package proveedores.controller;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import proveedores.dto.EstadoResponse;
 import proveedores.dto.ProveedorDTO;
-import proveedores.dto.TipoProveedorDTO;
 import proveedores.entity.Proveedor;
 import proveedores.entity.TipoProveedor;
+import proveedores.enums.TipoProveedorEnum;
 import proveedores.service.ProveedorService;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -22,32 +24,25 @@ public class ProveedoresController {
     // ======== HELPERS ========
 
     private ProveedorDTO toDTO(Proveedor entity) {
-        ProveedorDTO dto = new ProveedorDTO();
-        dto.setId(entity.getId());
-        dto.setNombre(entity.getNombre());
-        dto.setContacto(entity.getContacto());
-        dto.setTelefono(entity.getTelefono());
-        dto.setEmail(entity.getEmail());
-        dto.setActivo(entity.getActivo());
-        dto.setCreado_en(entity.getCreadoEn());
-        dto.setUltima_actualizacion(entity.getUltimaActualizacion());
-        dto.setTipo_actualizacion(entity.getTipoActualizacion());
 
-        if (entity.getTipoProveedor() != null) {
-            TipoProveedorDTO tipoDto = new TipoProveedorDTO();
-            tipoDto.setId(entity.getTipoProveedor().getId());
-            tipoDto.setNombre(entity.getTipoProveedor().getNombre());
-            tipoDto.setActivo(entity.getTipoProveedor().getActivo());
-            tipoDto.setUltima_actualizacion(entity.getTipoProveedor().getUltimaActualizacion());
-            tipoDto.setTipo_actualizacion(entity.getTipoProveedor().getTipoActualizacion());
-            dto.setTipo_proveedor(tipoDto);
-        }
-
-        return dto;
+        return new ProveedorDTO(
+                entity.getId(),
+                entity.getNombre(),
+                entity.getTipoProveedor(), // ENUM DIRECTO
+                entity.getContacto(),
+                entity.getTelefono(),
+                entity.getEmail(),
+                entity.getActivo(),
+                entity.getCreadoEn(),
+                entity.getUltimaActualizacion(),
+                entity.getTipoActualizacion()
+        );
     }
+
 
     private Proveedor toEntity(ProveedorDTO dto) {
         Proveedor entity = new Proveedor();
+
         entity.setId(dto.getId());
         entity.setNombre(dto.getNombre());
         entity.setContacto(dto.getContacto());
@@ -55,34 +50,15 @@ public class ProveedoresController {
         entity.setEmail(dto.getEmail());
         entity.setActivo(dto.getActivo() != null ? dto.getActivo() : Boolean.TRUE);
 
+        // 🔥 AQUÍ LA VALIDACIÓN REAL
         if (dto.getTipo_proveedor() != null) {
-            TipoProveedor tipo = new TipoProveedor();
-            tipo.setId(dto.getTipo_proveedor().getId());
-            tipo.setNombre(dto.getTipo_proveedor().getNombre());
-            tipo.setActivo(dto.getTipo_proveedor().getActivo() != null ? dto.getTipo_proveedor().getActivo() : Boolean.TRUE);
-            entity.setTipoProveedor(tipo);
+            entity.setTipoProveedor(dto.getTipo_proveedor());
         }
 
         return entity;
     }
 
-    private TipoProveedorDTO toDTO(TipoProveedor entity) {
-        TipoProveedorDTO dto = new TipoProveedorDTO();
-        dto.setId(entity.getId());
-        dto.setNombre(entity.getNombre());
-        dto.setActivo(entity.getActivo());
-        dto.setUltima_actualizacion(entity.getUltimaActualizacion());
-        dto.setTipo_actualizacion(entity.getTipoActualizacion());
-        return dto;
-    }
-
-    private TipoProveedor toEntity(TipoProveedorDTO dto) {
-        TipoProveedor entity = new TipoProveedor();
-        entity.setId(dto.getId());
-        entity.setNombre(dto.getNombre());
-        entity.setActivo(dto.getActivo() != null ? dto.getActivo() : Boolean.TRUE);
-        return entity;
-    }
+    // ya no se usa DTO para tipo_proveedor
 
     // ======== ENDPOINTS ========
 
@@ -131,18 +107,27 @@ public class ProveedoresController {
     }
 
     @GetMapping("/tipo-proveedor")
-    public ResponseEntity<List<TipoProveedorDTO>> getAllTypes() {
-        List<TipoProveedorDTO> result = service.findAllTipoActivos()
-                .stream()
-                .map(this::toDTO)
-                .collect(Collectors.toList());
-        return ResponseEntity.ok(result);
+    public ResponseEntity<List<EstadoResponse>> getEstados() {
+        List<EstadoResponse> response = Arrays.stream(TipoProveedorEnum.values())
+                .map(e -> new EstadoResponse(e.name(), formatLabel(e)))
+                .toList();
+
+        return ResponseEntity.ok(response);
     }
 
-    @GetMapping("/tipo-proveedor/{id}")
-    public ResponseEntity<TipoProveedorDTO> getTipoById(@PathVariable("id") Long id) {
-        return service.findTipoById(id)
-                .map(tp -> ResponseEntity.ok(toDTO(tp)))
-                .orElse(ResponseEntity.notFound().build());
+    private String formatLabel(TipoProveedorEnum e) {
+        return Arrays.stream(e.name().split("_"))
+                .map(word -> word.charAt(0) + word.substring(1).toLowerCase())
+                .collect(Collectors.joining(" "));
+    }
+
+
+    @GetMapping("/tipo-proveedor/{tipo}")
+    public ResponseEntity<TipoProveedorEnum> getTipoByNombre(@PathVariable("tipo") String tipo) {
+        try {
+            return ResponseEntity.ok(TipoProveedorEnum.valueOf(tipo.toUpperCase()));
+        } catch (IllegalArgumentException ex) {
+            return ResponseEntity.notFound().build();
+        }
     }
 }
