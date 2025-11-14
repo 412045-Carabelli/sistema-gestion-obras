@@ -16,7 +16,7 @@ public class TransaccionExternalDto {
     @JsonProperty("tipo_asociado")
     private String tipoAsociado;
     @JsonProperty("tipo_transaccion")
-    private TipoTransaccionExternalDto tipoTransaccion;
+    private String tipoTransaccion;
     private LocalDate fecha;
     private Double monto;
     @JsonProperty("forma_pago")

@@ -43,7 +43,7 @@
           [ngClass]="rowIndex % 2 === 0 ? 'bg-white' : 'bg-gray-50'"
         >
           <td>
-            {{ t.tipo_transaccion?.nombre }}
+            {{ t.tipo_transaccion }}
           </td>
 
           <td>
@@ -169,11 +169,11 @@
         Tipo de movimiento
       </label>
       <p-select
-        [(ngModel)]="nuevoMovimiento.tipo_transaccion.id"
+        [(ngModel)]="nuevoMovimiento.tipo_transaccion"
         [options]="tiposTransaccion"
         class="w-full"
-        optionLabel="nombre"
-        optionValue="id"
+        optionLabel="label"
+        optionValue="name"
         placeholder="Seleccionar tipo"
       ></p-select>
 
@@ -186,7 +186,8 @@
         [options]="parcial_o_total_options"
         class="w-full"
         optionLabel="label"
-        optionValue="value"
+        optionValue="name"
+        placeholder="Seleccionar forma de pago"
       ></p-select>
 
       <!-- 🔸 Monto y Fecha -->

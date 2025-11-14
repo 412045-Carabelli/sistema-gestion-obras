@@ -1,5 +1,6 @@
 package com.transacciones.entity;
 
+import com.transacciones.enums.TipoTransaccionEnum;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -29,9 +30,9 @@ public class Transaccion {
     private Long idAsociado;
 
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "id_tipo_transaccion", nullable = false)
-    private TipoTransaccion tipo_transaccion;
+    @Enumerated(EnumType.STRING)
+    @Column(name = "id_tipo_transaccion", nullable = false)
+    private TipoTransaccionEnum tipo_transaccion;
 
     @Column(name = "fecha")
     private LocalDate fecha;

@@ -16,11 +16,11 @@ public class ObrasCostosController {
 
     @GetMapping("/{idObra}") public List<ObraCostoDTO> costos(@PathVariable("idObra") Long idObra){ return svc.listarPorObra(idObra); }
     @PostMapping("/{idObra}") public ObraCostoDTO addCosto(@PathVariable("idObra") Long idObra, @RequestBody ObraCostoDTO dto){ dto.setId_obra(idObra); return svc.crear(dto); }
-    @PutMapping("/{id}/estado/{idEstado}")
+    @PutMapping("/{id}/estado/{estado}")
     public ObraCostoDTO actualizarEstadoPago(
             @PathVariable("id") Long idCosto,
-            @PathVariable("idEstado") Long idEstadoPago) {
-        return svc.actualizarEstadoPago(idCosto, idEstadoPago);
+            @PathVariable("estado") com.obras.enums.EstadoPagoEnum estado) {
+        return svc.actualizarEstadoPago(idCosto, estado);
     }
     @DeleteMapping("/{id}") public void delCosto(@PathVariable("id") Long id){ svc.eliminar(id); }
 

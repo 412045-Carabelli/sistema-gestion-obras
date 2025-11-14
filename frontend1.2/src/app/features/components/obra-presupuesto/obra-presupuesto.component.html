@@ -66,11 +66,11 @@
         <td class="px-3 py-2">
           <p-select
             (ngModelChange)="actualizarEstadoPago(c, $event)"
-            [ngModel]="c.estado_pago || c.id_estado_pago"
-            [options]="estadosPago"
-            optionLabel="estado"
-            optionValue="id"
-            styleClass="w-32"
+            [(ngModel)]="c.estado_pago"
+            [options]="estadosPagoRecords"
+            optionLabel="label"
+            optionValue="name"
+            styleClass="w-40"
           ></p-select>
         </td>
 
@@ -119,14 +119,14 @@
       <tr class="bg-gray-50 text-sm">
         <td class="text-right px-3 py-2 text-gray-600" colspan="6">Pagado:</td>
         <td class="px-3 py-2 text-green-600 font-medium">
-          {{ calcularTotalPorEstado('Pagado') | currency:'ARS' }}
+          {{ calcularTotalPorEstado('PAGADO') | currency:'ARS' }}
         </td>
       </tr>
 
       <tr class="bg-gray-50 text-sm">
         <td class="text-right px-3 py-2 text-gray-600" colspan="6">Pendiente:</td>
         <td class="px-3 py-2 text-amber-600 font-medium">
-          {{ calcularTotalPorEstado('Pendiente') | currency:'ARS' }}
+          {{ calcularTotalPorEstado('PENDIENTE') | currency:'ARS' }}
         </td>
       </tr>
     </ng-template>

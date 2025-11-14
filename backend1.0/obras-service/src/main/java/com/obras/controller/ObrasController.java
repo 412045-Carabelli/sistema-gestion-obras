@@ -27,11 +27,11 @@ public class ObrasController {
         return svc.listar(p).getContent();
     }
     @PutMapping("/{id}") public ObraDTO update(@PathVariable("id") Long id, @RequestBody ObraDTO dto){ return svc.actualizar(id,dto); }
-    @PatchMapping("/{id}/estado/{idEstado}")
-    public void changeEstado(@PathVariable("id") Long id, @PathVariable("idEstado") Long idEstado) {
-        svc.cambiarEstado(id, idEstado);
+    @PatchMapping("/{id}/estado/{estado}")
+    public void changeEstado(@PathVariable("id") Long id, @PathVariable("estado") com.obras.enums.EstadoObraEnum estado) {
+        svc.cambiarEstado(id, estado);
     }
-    @PatchMapping("/{id}/activo") public void activar(@PathVariable("id") Long id,@RequestParam boolean value){ svc.activar(id, value); }
+    @PatchMapping("/{id}/activo") public void activar(@PathVariable("id") Long id){ svc.activar(id); }
 
 }
 

@@ -7,7 +7,7 @@ import {DropdownModule} from 'primeng/dropdown';
 import {FormsModule} from '@angular/forms';
 import {ToastModule} from 'primeng/toast';
 import {ConfirmationService, MessageService} from 'primeng/api';
-import {Cliente, Documento, Proveedor, TipoDocumento} from '../../../core/models/models';
+import {Cliente, Documento, Proveedor} from '../../../core/models/models';
 import {DocumentosService} from '../../../services/documentos/documentos.service';
 import {InputText} from 'primeng/inputtext';
 import {FileUpload} from 'primeng/fileupload';
@@ -46,10 +46,10 @@ export class ObraDocumentosComponent implements OnInit {
   @Input() clientes: Cliente[] = [];
 
   documentos: Documento[] = [];
-  tiposDocumento: TipoDocumento[] = [];
+  tiposDocumento: { label: string; value: string }[] = [];
   loading = true;
   modalVisible = false;
-  selectedTipo: number | null = null;
+  selectedTipo: string | null = null;
   observacion = '';
   selectedFile: File | null = null;
   confirmModalVisible = false;
@@ -72,7 +72,7 @@ export class ObraDocumentosComponent implements OnInit {
       tipos: this.documentosService.getTiposDocumento()
     }).subscribe({
       next: ({ tipos }) => {
-        this.tiposDocumento = tipos;
+        this.tiposDocumento = tipos as any;
         this.loading = false;
       },
       error: () => {
@@ -136,6 +136,11 @@ export class ObraDocumentosComponent implements OnInit {
     this.selectedTipo = null;
     this.observacion = '';
     this.selectedFile = null;
+
+    // Si solo hay un cliente (el de la obra), seleccionarlo por defecto
+    if (this.tipoEntidad === 'CLIENTE' && this.clientes && this.clientes.length === 1) {
+      this.selectedCliente = this.clientes[0];
+    }
   }
 
   onFileSelected(event: any) {

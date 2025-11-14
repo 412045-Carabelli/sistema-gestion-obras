@@ -1,11 +1,10 @@
 package com.obras.service.impl;
 
 import com.obras.dto.*;
-import com.obras.entity.EstadoObra;
-import com.obras.entity.EstadoPago;
+import com.obras.enums.EstadoObraEnum;
+import com.obras.enums.EstadoPagoEnum;
 import com.obras.entity.Obra;
 import com.obras.entity.ObraCosto;
-import com.obras.repository.EstadoObraRepository;
 import com.obras.repository.ObraRepository;
 import com.obras.service.ObraService;
 import jakarta.persistence.EntityNotFoundException;
@@ -28,7 +27,10 @@ import java.util.stream.Collectors;
 public class ObraServiceImpl implements ObraService {
 
     private final ObraRepository obraRepo;
-    private final EstadoObraRepository estadoObraRepository;
+
+    /* ============================================================
+                             CREAR
+       ============================================================ */
 
     @Override
     public ObraDTO crear(ObraDTO dto) {
@@ -38,19 +40,31 @@ public class ObraServiceImpl implements ObraService {
         return toDto(obraRepo.save(obra));
     }
 
+    /* ============================================================
+                             OBTENER
+       ============================================================ */
+
     @Override
     @Transactional(readOnly = true)
     public Optional<ObraDTO> obtener(Long id) {
         return obraRepo.findByIdAndActivoTrue(id).map(this::toDto);
     }
 
+    /* ============================================================
+                             LISTAR
+       ============================================================ */
+
     @Override
     @Transactional(readOnly = true)
     public Page<ObraDTO> listar(Pageable p) {
         Page<Obra> page = obraRepo.findByActivoTrue(p);
-        List<ObraDTO> dtos = page.stream().map(this::toDto).collect(Collectors.toList());
+        List<ObraDTO> dtos = page.stream().map(this::toDto).toList();
         return new PageImpl<>(dtos, p, page.getTotalElements());
     }
+
+    /* ============================================================
+                             ACTUALIZAR
+       ============================================================ */
 
     @Override
     public ObraDTO actualizar(Long id, ObraDTO dto) {
@@ -70,98 +84,45 @@ public class ObraServiceImpl implements ObraService {
         existing.setComision(dto.getComision());
         existing.setIdCliente(dto.getId_cliente());
 
-        if (dto.getObra_estado() != null && dto.getObra_estado().getId() != null) {
-            EstadoObra estado = estadoObraRepository.findById(dto.getObra_estado().getId())
-                    .orElseThrow(() -> new EntityNotFoundException("Estado de obra no encontrado"));
-            existing.setEstadoObra(estado);
+        if (dto.getObra_estado() != null) {
+            existing.setEstadoObra(parseEstado(dto.getObra_estado()));
         }
 
         return toDto(obraRepo.save(existing));
     }
 
-    @Override
-    public void cambiarEstado(Long idObra, Long idEstadoObra) {
-        EstadoObra estado = estadoObraRepository.findById(idEstadoObra)
-                .orElseThrow(() -> new EntityNotFoundException("Estado de obra no encontrado"));
+    /* ============================================================
+                         CAMBIAR ESTADO
+       ============================================================ */
 
+    @Override
+    public void cambiarEstado(Long idObra, EstadoObraEnum estado) {
         Obra obra = obraRepo.findByIdAndActivoTrue(idObra)
                 .orElseThrow(() -> new EntityNotFoundException("Obra no encontrada o inactiva"));
 
-        obra.setEstadoObra(estado);
+        obra.setEstadoObra(estado != null ? estado : EstadoObraEnum.PRESUPUESTADA);
         obraRepo.save(obra);
     }
 
+    /* ============================================================
+                             ACTIVAR / DESACTIVAR
+       ============================================================ */
+
     @Override
-    public void activar(Long idObra, boolean activo) {
+    public void activar(Long idObra) {
         obraRepo.findById(idObra).ifPresent(obra -> {
-            obra.setActivo(activo);
+            if(obra.getActivo()){
+                obra.setActivo(false);
+            } else {
+                obra.setActivo(true);
+            }
             obraRepo.save(obra);
         });
     }
 
-    // ======================
-    // 🧭 Mapeos DTO <-> Entidad
-    // ======================
-
-    private ObraDTO toDto(Obra entity) {
-        if (entity == null) return null;
-
-        ObraDTO dto = new ObraDTO();
-        dto.setId(entity.getId());
-        dto.setId_cliente(entity.getIdCliente());
-
-        if (entity.getEstadoObra() != null) {
-            ObraEstadoDTO estadoDto = new ObraEstadoDTO();
-            estadoDto.setId(entity.getEstadoObra().getId());
-            estadoDto.setNombre(entity.getEstadoObra().getNombre());
-            estadoDto.setActivo(entity.getEstadoObra().getActivo());
-            estadoDto.setUltima_actualizacion(entity.getEstadoObra().getUltimaActualizacion());
-            estadoDto.setTipo_actualizacion(entity.getEstadoObra().getTipoActualizacion());
-            dto.setObra_estado(estadoDto);
-        }
-
-        dto.setNombre(entity.getNombre());
-        dto.setDireccion(entity.getDireccion());
-        dto.setFecha_inicio(entity.getFechaInicio());
-        dto.setFecha_fin(entity.getFechaFin());
-        dto.setFecha_adjudicada(entity.getFechaAdjudicada());
-        dto.setFecha_perdida(entity.getFechaPerdida());
-        dto.setPresupuesto(entity.getPresupuesto());
-        dto.setBeneficio_global(entity.getBeneficioGlobal());
-        dto.setTiene_comision(entity.getTieneComision());
-        dto.setBeneficio(entity.getBeneficio());
-        dto.setComision(entity.getComision());
-        dto.setNotas(entity.getNotas());
-        dto.setActivo(entity.getActivo());
-        dto.setCreado_en(entity.getCreadoEn());
-        dto.setUltima_actualizacion(entity.getUltimaActualizacion());
-        dto.setTipo_actualizacion(entity.getTipoActualizacion());
-
-        if (entity.getCostos() != null) {
-            List<ObraCostoDTO> costosDTO = entity.getCostos().stream()
-                    .map(c -> {
-                        ObraCostoDTO cdto = new ObraCostoDTO();
-                        cdto.setId(c.getId());
-                        cdto.setId_proveedor(c.getIdProveedor());
-                        cdto.setDescripcion(c.getDescripcion());
-                        cdto.setUnidad(c.getUnidad());
-                        cdto.setCantidad(c.getCantidad());
-                        cdto.setPrecio_unitario(c.getPrecioUnitario());
-                        cdto.setBeneficio(c.getBeneficio());
-                        cdto.setSubtotal(c.getSubtotal());
-                        cdto.setTotal(c.getTotal());
-                        cdto.setId_estado_pago(c.getEstadoPago() != null ? c.getEstadoPago().getId() : null);
-                        cdto.setActivo(c.getActivo());
-                        cdto.setUltima_actualizacion(c.getUltimaActualizacion());
-                        cdto.setTipo_actualizacion(c.getTipoActualizacion());
-                        return cdto;
-                    })
-                    .collect(Collectors.toList());
-            dto.setCostos(costosDTO);
-        }
-
-        return dto;
-    }
+    /* ============================================================
+                           MAPEO DTO → ENTITY
+       ============================================================ */
 
     private Obra toEntity(ObraDTO dto) {
         if (dto == null) return null;
@@ -170,10 +131,8 @@ public class ObraServiceImpl implements ObraService {
         entity.setId(dto.getId());
         entity.setIdCliente(dto.getId_cliente());
 
-        if (dto.getObra_estado() != null && dto.getObra_estado().getId() != null) {
-            EstadoObra estado = estadoObraRepository.findById(dto.getObra_estado().getId())
-                    .orElseThrow(() -> new EntityNotFoundException("Estado de obra no encontrado"));
-            entity.setEstadoObra(estado);
+        if (dto.getObra_estado() != null) {
+            entity.setEstadoObra(parseEstado(dto.getObra_estado()));
         }
 
         entity.setNombre(dto.getNombre());
@@ -197,9 +156,62 @@ public class ObraServiceImpl implements ObraService {
         return entity;
     }
 
-    // ======================
-    // 🧮 Mapeo centralizado de costos
-    // ======================
+    /* ============================================================
+                           MAPEO ENTITY → DTO
+       ============================================================ */
+
+    private ObraDTO toDto(Obra entity) {
+        if (entity == null) return null;
+
+        ObraDTO dto = new ObraDTO();
+        dto.setId(entity.getId());
+        dto.setId_cliente(entity.getIdCliente());
+        dto.setObra_estado(entity.getEstadoObra());
+        dto.setNombre(entity.getNombre());
+        dto.setDireccion(entity.getDireccion());
+        dto.setFecha_inicio(entity.getFechaInicio());
+        dto.setFecha_fin(entity.getFechaFin());
+        dto.setFecha_adjudicada(entity.getFechaAdjudicada());
+        dto.setFecha_perdida(entity.getFechaPerdida());
+        dto.setPresupuesto(entity.getPresupuesto());
+        dto.setBeneficio_global(entity.getBeneficioGlobal());
+        dto.setTiene_comision(entity.getTieneComision());
+        dto.setBeneficio(entity.getBeneficio());
+        dto.setComision(entity.getComision());
+        dto.setNotas(entity.getNotas());
+        dto.setActivo(entity.getActivo());
+        dto.setCreado_en(entity.getCreadoEn());
+        dto.setUltima_actualizacion(entity.getUltimaActualizacion());
+        dto.setTipo_actualizacion(entity.getTipoActualizacion());
+
+        if (entity.getCostos() != null) {
+            dto.setCostos(
+                    entity.getCostos().stream().map(c -> {
+                        ObraCostoDTO cdto = new ObraCostoDTO();
+                        cdto.setId(c.getId());
+                        cdto.setId_proveedor(c.getIdProveedor());
+                        cdto.setDescripcion(c.getDescripcion());
+                        cdto.setUnidad(c.getUnidad());
+                        cdto.setCantidad(c.getCantidad());
+                        cdto.setPrecio_unitario(c.getPrecioUnitario());
+                        cdto.setBeneficio(c.getBeneficio());
+                        cdto.setSubtotal(c.getSubtotal());
+                        cdto.setTotal(c.getTotal());
+                        cdto.setEstado_pago(c.getEstadoPago());
+                        cdto.setActivo(c.getActivo());
+                        cdto.setUltima_actualizacion(c.getUltimaActualizacion());
+                        cdto.setTipo_actualizacion(c.getTipoActualizacion());
+                        return cdto;
+                    }).toList()
+            );
+        }
+
+        return dto;
+    }
+
+    /* ============================================================
+                          MAPEO DE COSTOS
+       ============================================================ */
 
     private List<ObraCosto> mapearCostos(List<ObraCostoDTO> costosDto, Obra obra) {
         return costosDto.stream().map(cdto -> {
@@ -208,7 +220,9 @@ public class ObraServiceImpl implements ObraService {
             BigDecimal beneficio = cdto.getBeneficio() != null ? cdto.getBeneficio() : BigDecimal.ZERO;
 
             BigDecimal subtotal = cantidad.multiply(precio);
-            BigDecimal total = subtotal.multiply(BigDecimal.ONE.add(beneficio.divide(new BigDecimal("100"))));
+            BigDecimal total = subtotal.multiply(BigDecimal.ONE.add(
+                    beneficio.divide(new BigDecimal("100"))
+            ));
 
             return ObraCosto.builder()
                     .id(cdto.getId())
@@ -220,15 +234,28 @@ public class ObraServiceImpl implements ObraService {
                     .beneficio(cdto.getBeneficio())
                     .subtotal(subtotal)
                     .total(total)
-                    .estadoPago(
-                            EstadoPago.builder()
-                                    .id(cdto.getId_estado_pago() != null ? cdto.getId_estado_pago() : 1L)
-                                    .build()
-                    )
+                    .estadoPago(cdto.getEstado_pago() != null ? cdto.getEstado_pago() : EstadoPagoEnum.PENDIENTE)
                     .activo(cdto.getActivo() != null ? cdto.getActivo() : Boolean.TRUE)
                     .obra(obra)
                     .build();
-        }).collect(Collectors.toList());
+        }).toList();
     }
 
+    /* ============================================================
+                      HELPER — PARSEAR ENUM
+       ============================================================ */
+
+    private EstadoObraEnum parseEstado(Object estado) {
+        if (estado instanceof EstadoObraEnum e) return e;
+
+        if (estado instanceof String s) {
+            try {
+                return EstadoObraEnum.valueOf(s.toUpperCase());
+            } catch (Exception ex) {
+                throw new RuntimeException("Estado de obra inválido: " + s);
+            }
+        }
+
+        throw new RuntimeException("Valor de estado de obra no soportado: " + estado);
+    }
 }

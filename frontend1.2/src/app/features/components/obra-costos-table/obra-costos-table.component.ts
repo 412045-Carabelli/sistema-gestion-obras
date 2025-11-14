@@ -5,6 +5,7 @@ import {TableModule} from 'primeng/table';
 import {Select} from 'primeng/select';
 import {InputText} from 'primeng/inputtext';
 import {Proveedor} from '../../../core/models/models';
+import {AutoComplete} from 'primeng/autocomplete';
 
 @Component({
   selector: 'app-obra-costos-table',
@@ -15,13 +16,15 @@ import {Proveedor} from '../../../core/models/models';
     TableModule,
     ReactiveFormsModule,
     Select,
-    InputText
+    InputText,
+    AutoComplete
   ]
 })
 export class ObraCostosTableComponent {
   @Input({required: true}) costos!: FormArray<FormGroup>;
   @Input({required: true}) proveedores!: Proveedor[];
   @Input() modoEdicion = false;
+
 
   getProveedorNombre(idProveedor: number | null): string {
     if (!idProveedor) return '—';

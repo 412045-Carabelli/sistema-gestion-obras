@@ -16,7 +16,7 @@ export class CostosService {
   }
 
   // Actualizar estado de pago de un costo
-  updateEstadoPago(idCosto: number, idEstado: number): Observable<ObraCosto> {
-    return this.http.put<ObraCosto>(`${this.apiUrl}/${idCosto}/estado/${idEstado}`, {});
+  updateEstadoPago(idCosto: number, estadoValue: string): Observable<ObraCosto> {
+    return this.http.put<ObraCosto>(`${this.apiUrl}/${idCosto}/estado/${estadoValue}`, {});
   }
 }

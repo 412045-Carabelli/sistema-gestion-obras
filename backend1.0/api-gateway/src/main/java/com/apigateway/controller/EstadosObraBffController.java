@@ -22,9 +22,6 @@ public class EstadosObraBffController {
 
     private final WebClient.Builder webClientBuilder;
 
-    // ================================
-    // 📜 GET - Listar todos los estados
-    // ================================
     @GetMapping
     public Mono<ResponseEntity<List<Map<String, Object>>>> getAllEstados() {
         WebClient client = webClientBuilder.build();
@@ -45,26 +42,5 @@ public class EstadosObraBffController {
                     return Mono.just(ResponseEntity.internalServerError().body(List.of(err)));
                 });
     }
-
-    // ================================
-    // 📄 GET - Obtener estado por ID
-    // ================================
-    @GetMapping("/{idEstado}")
-    public Mono<ResponseEntity<Map<String, Object>>> getEstadoById(@PathVariable("idEstado") Long idEstado) {
-        WebClient client = webClientBuilder.build();
-
-        return client.get()
-                .uri(ESTADOS_OBRAS_URL + "/{id}", idEstado)
-                .retrieve()
-                .bodyToMono(new ParameterizedTypeReference<Map<String, Object>>() {})
-                .map(ResponseEntity::ok)
-                .onErrorResume(ex -> {
-                    ex.printStackTrace();
-                    Map<String, Object> err = Map.of(
-                            "error", "No se pudo obtener el estado de obra",
-                            "detalle", ex.getMessage()
-                    );
-                    return Mono.just(ResponseEntity.internalServerError().body(err));
-                });
-    }
 }
+

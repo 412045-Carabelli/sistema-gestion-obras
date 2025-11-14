@@ -1,8 +1,9 @@
+C:\Users\Usuario\Desktop\my-work\sistema-gestion-obras\backend1.0\documentos-service\src\main\java\com\documentos\enums\TipoDocumentoEnum.java
 C:\Users\Usuario\Desktop\my-work\sistema-gestion-obras\backend1.0\documentos-service\src\main\java\com\documentos\controller\DocumentoController.java
-C:\Users\Usuario\Desktop\my-work\sistema-gestion-obras\backend1.0\documentos-service\src\main\java\com\documentos\dto\TipoDocumentoDto.java
 C:\Users\Usuario\Desktop\my-work\sistema-gestion-obras\backend1.0\documentos-service\src\main\java\com\documentos\entity\Documento.java
 C:\Users\Usuario\Desktop\my-work\sistema-gestion-obras\backend1.0\documentos-service\src\main\java\com\documentos\controller\TipoDocumentoController.java
 C:\Users\Usuario\Desktop\my-work\sistema-gestion-obras\backend1.0\documentos-service\src\main\java\com\documentos\dto\DocumentoDto.java
+C:\Users\Usuario\Desktop\my-work\sistema-gestion-obras\backend1.0\documentos-service\src\main\java\com\documentos\dto\EstadoResponse.java
 C:\Users\Usuario\Desktop\my-work\sistema-gestion-obras\backend1.0\documentos-service\src\main\java\com\documentos\repository\TipoDocumentoRepository.java
 C:\Users\Usuario\Desktop\my-work\sistema-gestion-obras\backend1.0\documentos-service\src\main\java\com\documentos\entity\TipoDocumento.java
 C:\Users\Usuario\Desktop\my-work\sistema-gestion-obras\backend1.0\documentos-service\src\main\java\com\documentos\DocumentosServiceApplication.java

@@ -1,9 +1,10 @@
+import {PreventInvalidSubmitDirective} from "../../../shared/directives/prevent-invalid-submit.directive";
 import {Component, EventEmitter, Input, OnInit, Output} from '@angular/core';
 import {FormBuilder, FormGroup, ReactiveFormsModule, Validators} from '@angular/forms';
 import {DropdownModule} from 'primeng/dropdown';
 import {ButtonModule} from 'primeng/button';
 import {CommonModule} from '@angular/common';
-import {Proveedor, TipoProveedor} from '../../../core/models/models';
+import {Proveedor} from '../../../core/models/models';
 import {ProveedoresService} from '../../../services/proveedores/proveedores.service';
 import {InputText} from 'primeng/inputtext';
 import {Select} from 'primeng/select';
@@ -11,7 +12,7 @@ import {Select} from 'primeng/select';
 @Component({
   selector: 'app-proveedores-form',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, DropdownModule, ButtonModule, InputText, Select],
+  imports: [PreventInvalidSubmitDirective, CommonModule, ReactiveFormsModule, DropdownModule, ButtonModule, InputText, Select],
   templateUrl: './proveedores-form.component.html'
 })
 export class ProveedoresFormComponent implements OnInit {
@@ -19,7 +20,7 @@ export class ProveedoresFormComponent implements OnInit {
   @Output() formSubmit = new EventEmitter<Proveedor>();
 
   form!: FormGroup;
-  tipos: TipoProveedor[] = [];
+  tipos: { label: string; name: string }[] = [];
 
   constructor(private fb: FormBuilder, private service: ProveedoresService) {
   }
@@ -28,15 +29,23 @@ export class ProveedoresFormComponent implements OnInit {
     this.form = this.fb.group({
       nombre: [this.initialData?.nombre ?? '', Validators.required],
       tipo_proveedor: [this.initialData?.tipo_proveedor ?? null, Validators.required],
-      contacto: [this.initialData?.contacto ?? ''],
-      telefono: [this.initialData?.telefono ?? ''],
-      email: [this.initialData?.email ?? '']
+      contacto: [this.initialData?.contacto ?? '', Validators.required],
+      telefono: [this.initialData?.telefono ?? '', Validators.required],
+      email: [this.initialData?.email ?? '', Validators.required]
     });
 
-    this.service.getTipos().subscribe(t => (this.tipos = t));
+    this.service.getTipos().subscribe(t => {
+      this.tipos = t;
+      console.log('Tipos cargados:', t);
+      console.log('Valor inicial:', this.initialData?.tipo_proveedor);
+      console.log('Valor del form:', this.form.get('tipo_proveedor')?.value);
+    });
   }
 
   onSubmit() {
     if (this.form.valid) this.formSubmit.emit(this.form.value);
   }
 }
+
+
+

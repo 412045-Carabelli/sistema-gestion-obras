@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.core.io.buffer.DataBuffer;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.client.MultipartBodyBuilder;
@@ -31,30 +32,39 @@ public class DocumentoBffController {
     // 📤 Crear documento (POST)
     // ================================
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public Mono<ResponseEntity<String>> create(
+    public Mono<ResponseEntity<Map<String, Object>>> create(
             @RequestPart("id_obra") String idObra,
-            @RequestPart("id_tipo_documento") String idTipoDocumento,
+            @RequestPart("tipo_documento") String tipoDocumento,
             @RequestPart(value = "observacion", required = false) String observacion,
             @RequestPart("file") FilePart filePart
     ) {
         MultipartBodyBuilder builder = new MultipartBodyBuilder();
         builder.part("id_obra", idObra);
-        builder.part("id_tipo_documento", idTipoDocumento);
-        builder.part("observacion", observacion != null ? observacion : "");
+        builder.part("tipo_documento", tipoDocumento);
+        if (observacion != null && !observacion.isEmpty()) {
+            builder.part("observacion", observacion);
+        }
 
+        // Add file part with proper content type
         builder.asyncPart("file", filePart.content(), DataBuffer.class)
                 .filename(filePart.filename())
-                .header("Content-Disposition",
-                        "form-data; name=\"file\"; filename=\"" + filePart.filename() + "\"");
+                .contentType(filePart.headers().getContentType());
 
         return webClientBuilder.build()
                 .post()
                 .uri(DOCUMENTOS_URL)
-                .contentType(MediaType.MULTIPART_FORM_DATA)
                 .body(BodyInserters.fromMultipartData(builder.build()))
                 .retrieve()
-                .bodyToMono(String.class)
-                .map(ResponseEntity::ok);
+                .bodyToMono(new ParameterizedTypeReference<Map<String, Object>>() {})
+                .map(ResponseEntity::ok)
+                .onErrorResume(ex -> {
+                    ex.printStackTrace();
+                    Map<String, Object> err = Map.of(
+                            "error", "No se pudo crear el documento",
+                            "detalle", ex.getMessage()
+                    );
+                    return Mono.just(ResponseEntity.internalServerError().body(err));
+                });
     }
 
     // ================================
@@ -68,7 +78,11 @@ public class DocumentoBffController {
                 .uri(DOCUMENTOS_URL + "/obra/{idObra}", idObra)
                 .retrieve()
                 .bodyToMono(new ParameterizedTypeReference<List<Map<String, Object>>>() {})
-                .map(ResponseEntity::ok);
+                .map(ResponseEntity::ok)
+                .onErrorResume(ex -> {
+                    ex.printStackTrace();
+                    return Mono.just(ResponseEntity.internalServerError().body(List.of()));
+                });
     }
 
     // ================================
@@ -80,7 +94,11 @@ public class DocumentoBffController {
                 .delete()
                 .uri(DOCUMENTOS_URL + "/{id}", id)
                 .retrieve()
-                .toBodilessEntity();
+                .toBodilessEntity()
+                .onErrorResume(ex -> {
+                    ex.printStackTrace();
+                    return Mono.just(ResponseEntity.internalServerError().build());
+                });
     }
 
     @GetMapping("/{id}/download")
@@ -89,7 +107,11 @@ public class DocumentoBffController {
                 .get()
                 .uri(DOCUMENTOS_URL + "/{id}/download", id)
                 .retrieve()
-                .toEntity(byte[].class);
+                .toEntity(byte[].class)
+                .onErrorResume(ex -> {
+                    ex.printStackTrace();
+                    return Mono.just(ResponseEntity.notFound().build());
+                });
     }
 
     @GetMapping("/asociado/{tipo}/{id}")
@@ -102,6 +124,10 @@ public class DocumentoBffController {
                 .uri(DOCUMENTOS_URL + "/asociado/{tipo}/{id}", tipo, id)
                 .retrieve()
                 .bodyToMono(new ParameterizedTypeReference<List<Map<String, Object>>>() {})
-                .map(ResponseEntity::ok);
+                .map(ResponseEntity::ok)
+                .onErrorResume(ex -> {
+                    ex.printStackTrace();
+                    return Mono.just(ResponseEntity.internalServerError().body(List.of()));
+                });
     }
 }
