@@ -12,7 +12,7 @@ services:
     ports:
       - "8081:8081"
     volumes:
-      - ./backend1.0/obras-service/data:/app/data
+      - obras_data:/app/data
     environment:
       - SPRING_PROFILES_ACTIVE=prod
       - SPRING_SQL_INIT_MODE=always
@@ -32,7 +32,7 @@ services:
     ports:
       - "8082:8082"
     volumes:
-      - ./backend1.0/clientes-service/data:/app/data
+      - clientes_data:/app/data
     environment:
       - SPRING_PROFILES_ACTIVE=prod
     restart: unless-stopped
@@ -48,7 +48,7 @@ services:
     ports:
       - "8083:8083"
     volumes:
-      - ./backend1.0/proveedores-service/data:/app/data
+      - proveedores_data:/app/data
     environment:
       - SPRING_PROFILES_ACTIVE=prod
       - SPRING_SQL_INIT_MODE=always
@@ -68,8 +68,8 @@ services:
     ports:
       - "8087:8087"
     volumes:
-      - ./backend1.0/documentos-service/data:/app/data
-      - ./backend1.0/documentos-service/uploads:/app/uploads
+      - documentos_data:/app/data
+      - documentos_uploads:/app/uploads
     environment:
       - SPRING_PROFILES_ACTIVE=prod
       - SPRING_SQL_INIT_MODE=always
@@ -89,7 +89,7 @@ services:
     ports:
       - "8086:8086"
     volumes:
-      - ./backend1.0/transacciones-service/data:/app/data
+      - transacciones_data:/app/data
     environment:
       - SPRING_PROFILES_ACTIVE=prod
       - SPRING_SQL_INIT_MODE=always
@@ -152,7 +152,7 @@ services:
     ports:
       - "8084:8084"
     volumes:
-      - ./backend1.0/reportes-service/data:/app/data
+      - reportes_data:/app/data
     environment:
       - SPRING_PROFILES_ACTIVE=prod
     restart: unless-stopped
@@ -165,3 +165,12 @@ services:
 networks:
   sgo_backend:
     driver: bridge
+
+volumes:
+  obras_data:
+  clientes_data:
+  proveedores_data:
+  documentos_data:
+  documentos_uploads:
+  transacciones_data:
+  reportes_data:
