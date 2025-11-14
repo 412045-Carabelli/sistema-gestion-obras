@@ -9,11 +9,10 @@ import {FormsModule} from '@angular/forms';
 import {MessageService} from 'primeng/api';
 import {ToastModule} from 'primeng/toast';
 
-import {EstadoPago, Obra, ObraCosto, Proveedor} from '../../../core/models/models';
+import {EstadoPago, ObraCosto, Proveedor} from '../../../core/models/models';
 import {EstadoPagoService} from '../../../services/estado-pago/estado-pago.service';
 import {CostosService} from '../../../services/costos/costos.service';
 import {Select} from 'primeng/select';
-import {ExportService} from '../../../services/export/export.service';
 
 @Component({
   selector: 'app-obra-presupuesto',
@@ -36,7 +35,6 @@ import {ExportService} from '../../../services/export/export.service';
 })
 export class ObraPresupuestoComponent implements OnInit, OnChanges {
   @Input() obraId!: number;
-  @Input() obra!: Obra;
   @Input() proveedores: Proveedor[] = [];
   @Input() costos: ObraCosto[] = [];
 
@@ -55,8 +53,7 @@ export class ObraPresupuestoComponent implements OnInit, OnChanges {
   constructor(
     private estadoPagoService: EstadoPagoService,
     private costosService: CostosService,
-    private messageService: MessageService,
-    private exportService: ExportService
+    private messageService: MessageService
   ) {
   }
 
@@ -131,35 +128,6 @@ export class ObraPresupuestoComponent implements OnInit, OnChanges {
   }
 
   exportarPDF() {
-    if (!this.obra) {
-      this.messageService.add({
-        severity: 'warn',
-        summary: 'Sin datos',
-        detail: 'Necesitamos la información de la obra para generar la cotización.'
-      });
-      return;
-    }
-    if (!this.costosFiltrados.length) {
-      this.messageService.add({
-        severity: 'info',
-        summary: 'Sin costos',
-        detail: 'Agrega ítems al presupuesto antes de exportar.'
-      });
-      return;
-    }
-
-    this.exportService.exportPresupuestoPdf({
-      obra: this.obra,
-      costos: this.costosFiltrados,
-      subtotal: this.calcularTotal(),
-      total: this.getPresupuestoTotal()
-    });
-
-    this.messageService.add({
-      severity: 'success',
-      summary: 'PDF generado',
-      detail: 'La cotización se exportó con el formato de Meliquina.'
-    });
   }
 
   private inicializarCostos() {

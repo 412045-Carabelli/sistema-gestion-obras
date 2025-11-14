@@ -9,14 +9,12 @@ import {TagModule} from 'primeng/tag';
 import {IconFieldModule} from 'primeng/iconfield';
 import {InputIconModule} from 'primeng/inputicon';
 import {forkJoin} from 'rxjs';
-import {ButtonModule} from 'primeng/button';
 
 import {Cliente, EstadoObra, Obra} from '../../../core/models/models';
 import {ObrasService} from '../../../services/obras/obras.service';
 import {ClientesService} from '../../../services/clientes/clientes.service';
 import {EstadoObraService} from '../../../services/estado-obra/estado-obra.service';
 import {Select} from 'primeng/select';
-import {ExportService} from '../../../services/export/export.service';
 
 interface EstadoOption {
   label: string;
@@ -30,7 +28,6 @@ interface EstadoOption {
     CommonModule,
     FormsModule,
     TableModule,
-    ButtonModule,
     InputTextModule,
     DropdownModule,
     TagModule,
@@ -59,8 +56,7 @@ export class ObrasListComponent implements OnInit {
     private router: Router,
     private obrasService: ObrasService,
     private clientesService: ClientesService,
-    private estadoObraService: EstadoObraService,
-    private exportService: ExportService
+    private estadoObraService: EstadoObraService
   ) {
   }
 
@@ -136,10 +132,6 @@ export class ObrasListComponent implements OnInit {
   onRowClick(obra: Obra) {
     this.obraClick.emit(obra);
     this.router.navigate(['/obras', obra.id]);
-  }
-
-  exportarListado() {
-    this.exportService.exportObrasExcel(this.obrasFiltradas);
   }
 
   // Helpers
