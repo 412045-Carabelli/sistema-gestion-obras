@@ -1,5 +1,6 @@
 package com.obras.entity;
 
+import com.obras.enums.EstadoTareaEnum;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -23,9 +24,9 @@ public class Tarea {
     @Column(nullable=false, name = "id_obra") private Long idObra;
     @Column(nullable=false, name = "id_proveedor") private Long idProveedor;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "id_estado_tarea", nullable = false)
-    private EstadoTarea estadoTarea;
+    @Enumerated(EnumType.STRING)
+    @Column(name = "estado_tarea", nullable = false)
+    private EstadoTareaEnum estadoTarea;
 
     @Column(nullable=false, length=150) private String nombre;
     private String descripcion;

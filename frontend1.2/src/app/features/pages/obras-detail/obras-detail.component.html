@@ -41,7 +41,7 @@
             <span class="text-sm font-medium text-gray-500">Comisión</span>
           </div>
           <p class="text-lg font-semibold text-gray-900">
-            {{ obra.tiene_comision ? (obra.comision + '%') : 'Sin comisión' }}
+            {{ obra.comision != null ? (obra.comision + '%') : 'Sin comisión' }}
           </p>
         </div>
 
@@ -55,10 +55,11 @@
           </div>
           <p-select
             [options]="estadosObra"
-            optionLabel="nombre"
-            [ngModel]="obra.obra_estado"
-            (ngModelChange)="actualizarEstadoObra($event.id)"
+            [(ngModel)]="estadoSeleccionado"
+            (onChange)="actualizarEstadoObra($event.value)"
             appendTo="body"
+            optionLabel="label"
+            optionValue="name"
             styleClass="w-full text-sm">
           </p-select>
         </div>
@@ -185,7 +186,7 @@
 
             <p-tabpanel value="2">
               <app-obra-movimientos
-                [clientes]="clientes"
+                [clientes]="[obra.cliente]"
                 [proveedores]="proveedores"
                 [obraId]="obra.id!"
               >
@@ -196,12 +197,41 @@
               <app-obra-documentos
                 [obraId]="obra.id!"
                 [proveedores]="proveedores"
-                [clientes]="clientes"
+                [clientes]="[obra.cliente]"
               ></app-obra-documentos>
             </p-tabpanel>
 
           </p-tabpanels>
         </p-tabs>
+      </div>
+
+      <!-- ===================== GESTIÓN DE ESTADO ===================== -->
+      <div class="bg-white rounded-xl shadow-md p-6 mt-5 w-full">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-4">
+            <div class="w-12 h-12 rounded-lg flex items-center justify-center"
+                 [ngClass]="obra.activo ? 'bg-green-100' : 'bg-red-100'">
+              <i class="text-xl"
+                 [ngClass]="obra.activo ? 'pi pi-check-circle text-green-600' : 'pi pi-times-circle text-red-600'">
+              </i>
+            </div>
+            <div>
+              <p class="text-sm font-medium text-gray-500 mb-1">Estado de la Obra</p>
+              <p class="text-sm text-gray-600">
+                {{ obra.activo ? 'Obra activa en el sistema' : 'Obra desactivado' }}
+              </p>
+            </div>
+          </div>
+          <p-button
+            [icon]="obra.activo ? 'pi pi-ban' : 'pi pi-check'"
+            [label]="obra.activo ? 'Desactivar' : 'Activar'"
+            [severity]="obra.activo ? 'danger' : 'success'"
+            [outlined]="true"
+            [pTooltip]="obra.activo ? 'Desactivar esta obra' : 'Activar esta obra'"
+            tooltipPosition="top"
+            (onClick)="toggleActivo()">
+          </p-button>
+        </div>
       </div>
     </div>
   } @placeholder {

@@ -56,7 +56,7 @@
         <tr (click)="irAlDetalle(row)"
             class="cursor-pointer hover:bg-gray-200 transition">
           <td>{{ row.nombre }}</td>
-          <td>{{ row.tipo_proveedor?.nombre ?? '—' }}</td>
+          <td>{{ formatearTipo(row.tipo_proveedor) ?? '—' }}</td>
           <td>{{ row.contacto ?? '—' }}</td>
           <td>{{ row.telefono ?? '—' }}</td>
           <td>{{ row.email ?? '—' }}</td>
@@ -87,3 +87,4 @@
     </div>
   </div>
 }
+

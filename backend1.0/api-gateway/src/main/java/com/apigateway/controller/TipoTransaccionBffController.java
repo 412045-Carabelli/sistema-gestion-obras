@@ -32,14 +32,16 @@ public class TipoTransaccionBffController {
         return flux.collectList().map(ResponseEntity::ok);
     }
 
-    @GetMapping("/{id}")
-    public Mono<ResponseEntity<Map<String, Object>>> getTipoById(@PathVariable Long id) {
+    @GetMapping("/{tipo}")
+    public Mono<ResponseEntity<Map<String, Object>>> getTipoByNombre(@PathVariable String tipo) {
         WebClient client = webClientBuilder.build();
+
         return client.get()
-                .uri(TIPO_TRANSACCIONES_URL + "/{id}", id)
+                .uri(TIPO_TRANSACCIONES_URL + "/{tipo}", tipo)
                 .retrieve()
                 .bodyToMono(new ParameterizedTypeReference<Map<String, Object>>() {})
                 .map(ResponseEntity::ok)
                 .onErrorResume(ex -> Mono.just(ResponseEntity.notFound().build()));
     }
+
 }

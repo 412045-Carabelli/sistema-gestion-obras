@@ -119,7 +119,7 @@ export class ClientesDetailComponent implements OnInit, OnDestroy {
     const mapa: Record<string, number> = {};
 
     for (const obra of this.obras) {
-      const estado = obra.obra_estado?.nombre || 'Sin estado';
+      const estado = obra.obra_estado || 'Sin estado';
       mapa[estado] = (mapa[estado] || 0) + 1;
     }
 
@@ -165,7 +165,7 @@ export class ClientesDetailComponent implements OnInit, OnDestroy {
     const estadosActivos = ['en progreso', 'iniciada', 'en curso'];
     this.obrasActivas = this.obras.filter(o =>
       estadosActivos.some(estado =>
-        o.obra_estado?.nombre?.toLowerCase().includes(estado)
+        o.obra_estado?.toLowerCase().includes(estado)
       )
     ).length;
 

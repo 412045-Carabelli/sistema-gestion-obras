@@ -78,7 +78,7 @@ export class ReportesComponent implements OnInit {
   obrasOptions: SelectOption<number>[] = [];
   clientesOptions: SelectOption<number>[] = [];
   proveedoresOptions: SelectOption<number>[] = [];
-  estadosObraOptions: SelectOption<number>[] = [];
+  estadosObraOptions: { label: string; name: string }[] = [];
 
   private clientesIndex: Record<number, string> = {};
   private proveedoresIndex: Record<number, string> = {};
@@ -149,8 +149,8 @@ export class ReportesComponent implements OnInit {
     });
 
     this.estadoObraService.getEstados().subscribe({
-      next: (estados: EstadoObra[]) => {
-        this.estadosObraOptions = estados.map((estado) => ({label: estado.nombre, value: estado.id}));
+      next: (records) => {
+        this.estadosObraOptions = records;
       },
       error: () => this.showToast('error', 'Error', 'No se pudieron cargar los estados de obra')
     });
@@ -299,3 +299,4 @@ export class ReportesComponent implements OnInit {
     return `#${id}`;
   }
 }
+

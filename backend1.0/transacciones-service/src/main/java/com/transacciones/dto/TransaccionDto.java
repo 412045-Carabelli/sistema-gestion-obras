@@ -1,5 +1,6 @@
 package com.transacciones.dto;
 
+import com.transacciones.enums.TipoTransaccionEnum;
 import lombok.*;
 
 import java.time.Instant;
@@ -15,7 +16,7 @@ public class TransaccionDto {
     private Long id_obra;
     private Long id_asociado;
     private String tipo_asociado;
-    private TipoTransaccionDto tipo_transaccion;
+    private TipoTransaccionEnum tipo_transaccion;
     private LocalDate fecha;
     private Double monto;
     private String forma_pago;

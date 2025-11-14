@@ -1,10 +1,8 @@
 package com.transacciones.controller;
 
-import com.transacciones.dto.TipoTransaccionDto;
 import com.transacciones.dto.TransaccionDto;
-import com.transacciones.entity.TipoTransaccion;
 import com.transacciones.entity.Transaccion;
-import com.transacciones.service.TipoTransaccionService;
+import com.transacciones.enums.TipoTransaccionEnum;
 import com.transacciones.service.TransaccionService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -20,7 +18,6 @@ import java.util.stream.Collectors;
 public class TransaccionController {
 
     private final TransaccionService transaccionService;
-    private final TipoTransaccionService tipoTransaccionService;
 
     @GetMapping
     public ResponseEntity<List<TransaccionDto>> getAll() {
@@ -79,13 +76,13 @@ public class TransaccionController {
         entity.setActivo(dto.getActivo());
 
         if (dto.getTipo_transaccion() != null) {
-            // Buscamos la entidad real para asociarla
-            TipoTransaccion tipo = tipoTransaccionService.obtener(
-                    dto.getTipo_transaccion().getId()
-            );
-            entity.setTipo_transaccion(tipo);
+            entity.setTipo_transaccion(resolveTipo(dto.getTipo_transaccion()));
         }
 
         return entity;
+    }
+
+    private TipoTransaccionEnum resolveTipo(TipoTransaccionEnum dto) {
+        return dto != null ? dto : TipoTransaccionEnum.PAGO;
     }
 }

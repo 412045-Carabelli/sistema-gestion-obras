@@ -1,65 +1,56 @@
-import {Injectable} from '@angular/core';
-import {HttpClient} from '@angular/common/http';
-import {BehaviorSubject, Observable, of, tap} from 'rxjs';
-import {Proveedor, TipoProveedor} from '../../core/models/models';
-import {environment} from '../../../environments/environment';
+import { Injectable } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { Observable } from 'rxjs';
+import { Proveedor } from '../../core/models/models';
+import { environment } from '../../../environments/environment';
 
 @Injectable({
   providedIn: 'root'
 })
 export class ProveedoresService {
+
   private apiUrl = `${environment.apiGateway}${environment.endpoints.proveedores}`;
-  private proveedoresCache: Proveedor[] | null = null;
-  private proveedores$ = new BehaviorSubject<Proveedor[]>([]);
+  private tiposUrl = `${environment.apiGateway}${environment.endpoints.tipo_proveedores}`;
 
-  constructor(private http: HttpClient) {
+  constructor(private http: HttpClient) {}
+
+  // 🔹 Obtener todos los proveedores
+  getProveedores(): Observable<Proveedor[]> {
+    return this.http.get<Proveedor[]>(this.apiUrl);
   }
 
-  // ✅ Obtener todos los proveedores (con cache)
-  getProveedores(forceReload = false): Observable<Proveedor[]> {
-    if (this.proveedoresCache && !forceReload) {
-      return of(this.proveedoresCache);
-    }
-
-    return this.http.get<Proveedor[]>(this.apiUrl).pipe(
-      tap((data) => {
-        this.proveedoresCache = data;
-        this.proveedores$.next(data);
-      })
-    );
-  }
-
-  // ✅ Stream reactivo
-  getProveedoresStream(): Observable<Proveedor[]> {
-    return this.proveedores$.asObservable();
-  }
-
-  // ✅ Obtener proveedor por ID
+  // 🔹 Obtener proveedor por ID
   getProveedorById(id: number): Observable<Proveedor> {
     return this.http.get<Proveedor>(`${this.apiUrl}/${id}`);
   }
 
-  // ✅ Crear proveedor
-  createProveedor(proveedor: Proveedor): Observable<Proveedor> {
-    return this.http.post<Proveedor>(this.apiUrl, proveedor).pipe(
-      tap(() => this.clearCache())
-    );
+  // 🔹 Crear proveedor (envía solo el string del enum)
+  createProveedor(proveedor: any): Observable<Proveedor> {
+    const body = this.serializeProveedor(proveedor);
+    return this.http.post<Proveedor>(this.apiUrl, body);
   }
 
-  // ✅ Editar proveedor
-  updateProveedor(id: number, proveedor: Proveedor): Observable<Proveedor> {
-    return this.http.put<Proveedor>(`${this.apiUrl}/${id}`, proveedor).pipe(
-      tap(() => this.clearCache())
-    );
+  // 🔹 Actualizar proveedor
+  updateProveedor(id: number, proveedor: any): Observable<Proveedor> {
+    const body = this.serializeProveedor(proveedor);
+    return this.http.put<Proveedor>(`${this.apiUrl}/${id}`, body);
   }
 
-  // ✅ Obtener tipos de proveedor
-  getTipos(): Observable<TipoProveedor[]> {
-    return this.http.get<TipoProveedor[]>(`${environment.apiGateway}${environment.endpoints.tipo_proveedores}`);
+  // 🔹 Obtener tipos de proveedor (ENUM → { value, label })
+  getTipos(): Observable<{ label: string; name: string }[]> {
+    return this.http.get<{ label: string; name: string }[]>(this.tiposUrl);
   }
 
-  // ✅ Limpiar cache
-  clearCache() {
-    this.proveedoresCache = null;
+  // ----------------------------------------------------------
+  // 🔧 SERIALIZACIÓN (para enviar enums como string)
+  // ----------------------------------------------------------
+  private serializeProveedor(proveedor: any) {
+    const body = { ...proveedor };
+
+    if (body?.tipo_proveedor?.value) {
+      body.tipo_proveedor = body.tipo_proveedor.value;
+    }
+
+    return body;
   }
 }

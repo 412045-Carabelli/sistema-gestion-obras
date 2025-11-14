@@ -34,11 +34,11 @@
               <i
                 class="pi text-lg"
                 [ngClass]="{
-                  'pi-check-circle text-green-600': tarea.estado_tarea.id === 3,
-                  'pi-circle text-gray-400': tarea.estado_tarea.id !== 3
+                  'pi-check-circle text-green-600': tarea.estado_tarea === 'COMPLETADA',
+                  'pi-circle text-gray-400': tarea.estado_tarea !== 'COMPLETADA'
                 }"
               ></i>
-              <span [class.line-through]="tarea.estado_tarea.id === 3">
+              <span [class.line-through]="tarea.estado_tarea === 'COMPLETADA'">
                 {{ tarea.nombre }}
               </span>
             </div>
