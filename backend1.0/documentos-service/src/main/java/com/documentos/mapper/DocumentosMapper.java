@@ -1,9 +1,7 @@
 package com.documentos.mapper;
 
 import com.documentos.dto.DocumentoDto;
-import com.documentos.dto.TipoDocumentoDto;
 import com.documentos.entity.Documento;
-import com.documentos.entity.TipoDocumento;
 import org.springframework.stereotype.Service;
 
 import java.time.format.DateTimeFormatter;
@@ -25,19 +23,11 @@ public class DocumentosMapper {
         dto.setFecha(entity.getFecha().format(DATE_FORMATTER));
         dto.setObservacion(entity.getObservacion());
         dto.setCreado_en(entity.getCreadoEn() != null ? entity.getCreadoEn().format(DATETIME_FORMATTER) : null);
-
-        TipoDocumento tipo = entity.getTipoDocumento();
-        if (tipo != null) {
-            TipoDocumentoDto tipoDto = new TipoDocumentoDto();
-            tipoDto.setId_tipo_documento(tipo.getId());
-            tipoDto.setNombre(tipo.getNombre());
-            dto.setTipo_documento(tipoDto);
-        }
-
+        dto.setTipo_documento(entity.getTipoDocumento());
         return dto;
     }
 
-    public static Documento toEntity(DocumentoDto dto, TipoDocumento tipoDocumento) {
+    public static Documento toEntity(DocumentoDto dto) {
         Documento entity = new Documento();
         entity.setIdDocumento(dto.getId_documento());
         entity.setIdObra(dto.getId_obra());
@@ -47,7 +37,7 @@ public class DocumentosMapper {
         entity.setPathArchivo(dto.getPath_archivo());
         entity.setFecha(java.time.LocalDate.parse(dto.getFecha(), DATE_FORMATTER));
         entity.setObservacion(dto.getObservacion());
-        entity.setTipoDocumento(tipoDocumento);
+        entity.setTipoDocumento(dto.getTipo_documento());
         return entity;
     }
 }

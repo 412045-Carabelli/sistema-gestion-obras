@@ -9,7 +9,7 @@ import {ModalComponent} from '../../../shared/modal/modal.component';
 import {InputNumber} from 'primeng/inputnumber';
 import {DatePicker} from 'primeng/datepicker';
 import {FileUploadModule} from 'primeng/fileupload';
-import {Cliente, Proveedor, TipoTransaccion, Transaccion} from '../../../core/models/models';
+import {Cliente, Proveedor, Transaccion} from '../../../core/models/models';
 import {TransaccionesService} from '../../../services/transacciones/transacciones.service';
 import {Select} from 'primeng/select';
 import {ConfirmationService, MessageService} from 'primeng/api';
@@ -35,11 +35,11 @@ export class ObraMovimientosComponent implements OnInit {
   @Input() proveedores!: Proveedor[];
 
   transacciones: Transaccion[] = [];
-  tiposTransaccion: TipoTransaccion[] = [];
+  tiposTransaccion: { label: string; name: string }[] = [];
 
   parcial_o_total_options = [
-    {label: 'Parcial', value: 'Parcial'},
-    {label: 'Total', value: 'Total'}
+    {label: 'Parcial', name: 'PARCIAL'},
+    {label: 'Total', name: 'TOTAL'}
   ];
 
   tipoEntidad: 'PROVEEDOR' | 'CLIENTE' = 'CLIENTE';
@@ -52,7 +52,7 @@ export class ObraMovimientosComponent implements OnInit {
 
   nuevoMovimiento: Transaccion = {
     id_obra: this.obraId,
-    tipo_transaccion: {id: 1, nombre: 'Cobro'},
+    tipo_transaccion: 'COBRO',
     fecha: new Date().toISOString().split('T')[0],
     monto: 0,
     forma_pago: 'Total',
@@ -94,13 +94,13 @@ export class ObraMovimientosComponent implements OnInit {
 
   get totalCobros(): number {
     return this.transacciones
-      .filter(t => t.tipo_transaccion?.id === 1)
+      .filter(t => this.tipoValue(t) === 'COBRO')
       .reduce((acc, t) => acc + (t.monto || 0), 0);
   }
 
   get totalPagos(): number {
     return this.transacciones
-      .filter(t => t.tipo_transaccion?.id === 2)
+      .filter(t => this.tipoValue(t) === 'PAGO')
       .reduce((acc, t) => acc + (t.monto || 0), 0);
   }
 
@@ -116,7 +116,7 @@ export class ObraMovimientosComponent implements OnInit {
     this.transaccionesService.getByObra(this.obraId).subscribe(transacciones => {
       this.transacciones = transacciones.map(t => ({
         ...t,
-        etiqueta: t.tipo_transaccion?.id === 1 ? 'FC' : 'RBOS'
+        etiqueta: this.tipoValue(t) === 'COBRO' ? 'FC' : 'RBOS'
       }));
     });
 
@@ -134,7 +134,7 @@ export class ObraMovimientosComponent implements OnInit {
       ? {...movimiento, fecha: movimiento.fecha ? new Date(movimiento.fecha) : new Date()}
       : {
         id_obra: this.obraId,
-        tipo_transaccion: this.tiposTransaccion[0] || {id: 1, nombre: 'Cobro'},
+        tipo_transaccion: 'COBRO',
         fecha: new Date().toISOString().split('T')[0],
         monto: 0,
         forma_pago: 'Total',
@@ -142,6 +142,11 @@ export class ObraMovimientosComponent implements OnInit {
         tipo_asociado: 'CLIENTE'
       };
     this.showAddMovementModal = true;
+
+    // Si solo hay un cliente (el de la obra), seleccionarlo por defecto
+    if (!this.modoEdicion && this.tipoEntidad === 'CLIENTE' && this.clientes && this.clientes.length === 1) {
+      this.selectedCliente = this.clientes[0];
+    }
   }
 
   cerrarModal() {
@@ -159,7 +164,7 @@ export class ObraMovimientosComponent implements OnInit {
     const mov: any = {
       ...this.nuevoMovimiento,
       id_obra: this.obraId,
-      tipo_transaccion: { id: this.nuevoMovimiento.tipo_transaccion.id },
+      tipo_transaccion: this.nuevoMovimiento.tipo_transaccion,
       id_asociado: asociadoId,
       tipo_asociado: this.tipoEntidad
     };
@@ -171,6 +176,8 @@ export class ObraMovimientosComponent implements OnInit {
     const action = this.modoEdicion
       ? this.transaccionesService.update(mov.id!, mov)
       : this.transaccionesService.create(mov);
+
+    console.log(mov)
 
     action.subscribe({
       next: () => {
@@ -238,4 +245,15 @@ export class ObraMovimientosComponent implements OnInit {
   onUpload(event: any, transaccion: Transaccion) {
     const file = event.files[0];
   }
+
+  private tipoValue(t: Transaccion): 'COBRO' | 'PAGO' | '' {
+    const raw: any = (t as any).tipo_transaccion;
+    if (typeof raw === 'string') return raw.toUpperCase() as any;
+    if (raw && typeof raw.id === 'number') return raw.id === 1 ? 'COBRO' : raw.id === 2 ? 'PAGO' : '';
+    const nombre = (raw?.nombre || '').toString().toUpperCase();
+    return (nombre.includes('COBRO') ? 'COBRO' : nombre.includes('PAGO') ? 'PAGO' : '') as any;
+  }
+
 }
+
+

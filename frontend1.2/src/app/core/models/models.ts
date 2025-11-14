@@ -1,3 +1,5 @@
+export type RecordOption = { label: string; name: string };
+
 export interface Cliente {
   id: number;
   nombre: string;
@@ -12,17 +14,11 @@ export interface Cliente {
   tipo_actualizacion?: string;
 }
 
-export interface TipoProveedor {
-  id: number;
-  nombre: string; // mano_obra | materiales | servicios
-  activo: boolean;
-  ultima_actualizacion?: string;
-  tipo_actualizacion?: string;
-}
+export type TipoProveedor = RecordOption;
 
 export interface Proveedor {
   id: number;
-  tipo_proveedor: TipoProveedor;
+  tipo_proveedor: string;
   nombre: string;
   contacto?: string;
   telefono?: string;
@@ -33,35 +29,17 @@ export interface Proveedor {
   tipo_actualizacion?: string;
 }
 
-export interface EstadoObra {
-  id: number;
-  nombre: string; // presupuestada | cotizada | adjudicada | iniciada | en_progreso | finalizada | perdida
-  activo: boolean;
-  ultima_actualizacion?: string;
-  tipo_actualizacion?: string;
-}
+export type EstadoObra = RecordOption;
 
-export interface EstadoTarea {
-  id: number;
-  nombre: string;
-  activo?: boolean;
-  ultima_actualizacion?: string;
-  tipo_actualizacion?: string;
-}
+export type EstadoTarea = RecordOption;
 
-export interface TipoTransaccion {
-  id: number;
-  nombre: string; // cobro | pago
-  activo?: boolean;
-  ultima_actualizacion?: string;
-  tipo_actualizacion?: string;
-}
+export type TipoTransaccion = RecordOption;
 
 export interface Obra {
   id?: number;
   id_cliente?: number;
   cliente: Cliente;
-  obra_estado: EstadoObra;
+  obra_estado: string;
   nombre: string;
   direccion?: string;
   fecha_inicio: string;
@@ -89,12 +67,7 @@ export interface ObraProveedor {
   id_proveedor: number;
 }
 
-export interface EstadoPago {
-  id: number;
-  estado: string;
-  ultima_actualizacion?: string;
-  tipo_actualizacion?: string;
-}
+export type EstadoPago = RecordOption;
 
 export interface ObraCosto {
   id?: number;
@@ -107,8 +80,7 @@ export interface ObraCosto {
   precio_unitario: number;
   iva?: number;
   beneficio?: number;
-  estado_pago?: number;
-  id_estado_pago?: number;
+  estado_pago?: string;
   subtotal: number;
   total: number;
   activo?: boolean;
@@ -121,7 +93,7 @@ export interface Tarea {
   id_obra: number;
   id_proveedor?: number;
   proveedor?: Proveedor;
-  estado_tarea: EstadoTarea;
+  estado_tarea: string;
   nombre: string;
   descripcion?: string;
   fecha_inicio?: string;
@@ -137,7 +109,7 @@ export interface Transaccion {
   id_obra: number;
   id_asociado?: number;
   tipo_asociado?: string;
-  tipo_transaccion: TipoTransaccion;
+  tipo_transaccion: string;
   fecha?: string | Date;
   monto: number;
   forma_pago: string;
@@ -146,10 +118,7 @@ export interface Transaccion {
   tipo_actualizacion?: string;
 }
 
-export interface TipoDocumento {
-  id_tipo_documento: number;
-  nombre: string; // factura | recibo | remito | pagare | comprobante | otro
-}
+export type TipoDocumento = RecordOption;
 
 export interface Documento {
   id_documento: number;
@@ -318,3 +287,5 @@ export interface MovimientoDashboard {
   asociadoTipo: string;
   asociadoId: number;
 }
+
+

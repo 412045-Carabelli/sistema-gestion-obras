@@ -48,7 +48,7 @@ public class ReportesService {
             }
 
             BigDecimal monto = BigDecimal.valueOf(tx.getMonto());
-            String tipo = tx.getTipoTransaccion() != null ? tx.getTipoTransaccion().getNombre() : "";
+            String tipo = tx.getTipoTransaccion() != null ? tx.getTipoTransaccion() : "";
 
             ObraExternalDto obra = obrasPorId.get(tx.getIdObra());
             if (obra == null) {
@@ -105,7 +105,7 @@ public class ReportesService {
         response.setClienteId(obra.getIdCliente());
         ClienteExternalDto cliente = clientes.get(obra.getIdCliente());
         response.setClienteNombre(cliente != null ? cliente.getNombre() : null);
-        response.setEstadoObra(obra.getObraEstado() != null ? obra.getObraEstado().getNombre() : null);
+        response.setEstadoObra(obra.getObraEstado());
         response.setPresupuesto(Optional.ofNullable(obra.getPresupuesto()).orElse(BigDecimal.ZERO));
         response.setCostos(totalCostos);
         response.setCobros(cobros);
@@ -134,7 +134,7 @@ public class ReportesService {
             }
 
             BigDecimal monto = BigDecimal.valueOf(tx.getMonto());
-            String tipo = tx.getTipoTransaccion() != null ? tx.getTipoTransaccion().getNombre() : "";
+            String tipo = tx.getTipoTransaccion() != null ? tx.getTipoTransaccion() : "";
 
             FlujoCajaResponse.Movimiento movimiento = new FlujoCajaResponse.Movimiento();
             movimiento.setTransaccionId(tx.getId());
@@ -224,7 +224,7 @@ public class ReportesService {
             EstadoObrasResponse.DetalleEstadoObra detalle = new EstadoObrasResponse.DetalleEstadoObra();
             detalle.setObraId(obra.getId());
             detalle.setObraNombre(obra.getNombre());
-            detalle.setEstado(obra.getObraEstado() != null ? obra.getObraEstado().getNombre() : null);
+            detalle.setEstado(obra.getObraEstado());
             detalle.setClienteId(obra.getIdCliente());
             ClienteExternalDto cliente = clientes.get(obra.getIdCliente());
             detalle.setClienteNombre(cliente != null ? cliente.getNombre() : null);
@@ -382,7 +382,7 @@ public class ReportesService {
                 continue;
             }
             BigDecimal monto = BigDecimal.valueOf(tx.getMonto());
-            String tipo = tx.getTipoTransaccion() != null ? tx.getTipoTransaccion().getNombre() : "";
+            String tipo = tx.getTipoTransaccion() != null ? tx.getTipoTransaccion() : "";
             if ("COBRO".equalsIgnoreCase(tipo)) {
                 item.setTotalIngresos(item.getTotalIngresos().add(monto));
             } else {
@@ -479,7 +479,10 @@ public class ReportesService {
                 .filter(obra -> !Boolean.FALSE.equals(obra.getActivo()))
                 .filter(obra -> filtro.getClienteId() == null || Objects.equals(obra.getIdCliente(), filtro.getClienteId()))
                 .filter(obra -> filtro.getEstados() == null || filtro.getEstados().isEmpty()
-                        || (obra.getObraEstado() != null && filtro.getEstados().contains(obra.getObraEstado().getId())))
+                        || (obra.getObraEstado() != null && filtro.getEstados().stream()
+                            .filter(java.util.Objects::nonNull)
+                            .map(String::toUpperCase)
+                            .anyMatch(e -> e.equals(obra.getObraEstado().toUpperCase()))))
                 .filter(obra -> dentroDeRango(obra.getFechaInicio() != null ? obra.getFechaInicio().toLocalDate() : null,
                         filtro.getFechaInicio(), filtro.getFechaFin()))
                 .collect(Collectors.toList());
@@ -519,7 +522,7 @@ public class ReportesService {
                 .filter(tx -> Boolean.TRUE.equals(tx.getActivo()) || tx.getActivo() == null)
                 .filter(tx -> tx.getMonto() != null)
                 .filter(tx -> {
-                    String tipo = tx.getTipoTransaccion() != null ? tx.getTipoTransaccion().getNombre() : "";
+                    String tipo = tx.getTipoTransaccion() != null ? tx.getTipoTransaccion() : "";
                     return tipoBuscado.equalsIgnoreCase(tipo);
                 })
                 .map(tx -> BigDecimal.valueOf(tx.getMonto()))
@@ -539,7 +542,7 @@ public class ReportesService {
                 .count();
         long completadas = tareas.stream()
                 .filter(t -> filtroPorObra(obra, t))
-                .filter(t -> t.getEstadoTarea() != null && "COMPLETADA".equalsIgnoreCase(t.getEstadoTarea().getNombre()))
+                .filter(t -> t.getEstadoTarea() != null && "COMPLETADA".equalsIgnoreCase(t.getEstadoTarea()))
                 .count();
 
         avance.setTotalTareas(total);
@@ -563,7 +566,7 @@ public class ReportesService {
         NotasObraResponse response = new NotasObraResponse();
         response.setObraId(obra.getId());
         response.setObraNombre(obra.getNombre());
-        response.setEstado(obra.getObraEstado() != null ? obra.getObraEstado().getNombre() : null);
+        response.setEstado(obra.getObraEstado());
         response.setClienteId(obra.getIdCliente());
         response.setClienteNombre(cliente != null ? cliente.getNombre() : null);
         response.setNotas(obra.getNotas());

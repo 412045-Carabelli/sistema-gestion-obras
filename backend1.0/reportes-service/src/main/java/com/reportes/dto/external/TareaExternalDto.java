@@ -14,7 +14,7 @@ public class TareaExternalDto {
     @JsonProperty("id_proveedor")
     private Long idProveedor;
     @JsonProperty("estado_tarea")
-    private EstadoTareaExternalDto estadoTarea;
+    private String estadoTarea;
     private String nombre;
     private String descripcion;
     @JsonProperty("fecha_inicio")

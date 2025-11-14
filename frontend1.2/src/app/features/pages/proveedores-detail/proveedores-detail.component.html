@@ -40,7 +40,7 @@
             </div>
             <span class="text-sm font-medium text-gray-500">Tipo</span>
           </div>
-          <p class="text-lg font-semibold text-gray-900">{{ proveedor.tipo_proveedor.nombre }}</p>
+          <p class="text-lg font-semibold text-gray-900">{{ formatearTipo(proveedor.tipo_proveedor) }}</p>
         </div>
 
         <!-- Tarjeta Contacto -->
@@ -186,7 +186,7 @@
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap">
                           <span class="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">
-                            {{ tarea.estado_tarea?.nombre }}
+                            {{ tarea.estado_tarea }}
                           </span>
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap text-right">

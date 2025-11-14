@@ -1,8 +1,9 @@
-C:\Users\Usuario\Desktop\my-work\sistema-gestion-obras\backend1.0\proveedores-service\src\main\java\proveedores\dto\TipoProveedorDTO.java
+C:\Users\Usuario\Desktop\my-work\sistema-gestion-obras\backend1.0\proveedores-service\src\main\java\proveedores\dto\EstadoResponse.java
 C:\Users\Usuario\Desktop\my-work\sistema-gestion-obras\backend1.0\proveedores-service\src\main\java\proveedores\repository\ProveedorRepository.java
 C:\Users\Usuario\Desktop\my-work\sistema-gestion-obras\backend1.0\proveedores-service\src\main\java\proveedores\service\ProveedorService.java
 C:\Users\Usuario\Desktop\my-work\sistema-gestion-obras\backend1.0\proveedores-service\src\main\java\proveedores\repository\TipoProveedorRepository.java
 C:\Users\Usuario\Desktop\my-work\sistema-gestion-obras\backend1.0\proveedores-service\src\main\java\proveedores\controller\ProveedoresController.java
+C:\Users\Usuario\Desktop\my-work\sistema-gestion-obras\backend1.0\proveedores-service\src\main\java\proveedores\enums\TipoProveedorEnum.java
 C:\Users\Usuario\Desktop\my-work\sistema-gestion-obras\backend1.0\proveedores-service\src\main\java\proveedores\entity\TipoProveedor.java
 C:\Users\Usuario\Desktop\my-work\sistema-gestion-obras\backend1.0\proveedores-service\src\main\java\proveedores\entity\Proveedor.java
 C:\Users\Usuario\Desktop\my-work\sistema-gestion-obras\backend1.0\proveedores-service\src\main\java\proveedores\ProveedoresServiceApplication.java

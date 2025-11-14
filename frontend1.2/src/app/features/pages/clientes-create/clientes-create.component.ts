@@ -1,3 +1,4 @@
+import {PreventInvalidSubmitDirective} from "../../../shared/directives/prevent-invalid-submit.directive";
 import {Component, OnInit} from '@angular/core';
 import {FormBuilder, FormGroup, ReactiveFormsModule, Validators} from '@angular/forms';
 import {ActivatedRoute, Router, RouterLink} from '@angular/router';
@@ -13,7 +14,7 @@ import {Cliente} from '../../../core/models/models';
 @Component({
   selector: 'app-clientes-form',
   standalone: true,
-  imports: [RouterLink, ReactiveFormsModule, ToastModule, ButtonModule, InputTextModule, CheckboxModule],
+  imports: [PreventInvalidSubmitDirective, RouterLink, ReactiveFormsModule, ToastModule, ButtonModule, InputTextModule, CheckboxModule],
   providers: [MessageService],
   templateUrl: './clientes-create.component.html',
   styleUrls: ['./clientes-create.component.css']
@@ -109,3 +110,5 @@ export class ClientesCreateComponent implements OnInit {
     });
   }
 }
+
+

@@ -15,7 +15,7 @@ public class ObraExternalDto {
     @JsonProperty("id_cliente")
     private Long idCliente;
     @JsonProperty("obra_estado")
-    private ObraEstadoExternalDto obraEstado;
+    private String obraEstado;
     private String nombre;
     private String direccion;
     @JsonProperty("fecha_inicio")

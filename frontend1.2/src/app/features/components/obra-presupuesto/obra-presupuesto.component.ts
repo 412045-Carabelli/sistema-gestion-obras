@@ -1,4 +1,4 @@
-﻿import {Component, Input, OnChanges, OnInit, SimpleChanges, Output, EventEmitter} from '@angular/core';
+import {Component, Input, OnChanges, OnInit, SimpleChanges, Output, EventEmitter} from '@angular/core';
 import {CurrencyPipe, NgClass, NgIf} from '@angular/common';
 import {TableModule} from 'primeng/table';
 import {ButtonModule} from 'primeng/button';
@@ -45,11 +45,11 @@ export class ObraPresupuestoComponent implements OnInit, OnChanges {
   @Input() tieneComision = false;
   @Input() comision = 0;
 
-  // ⭐ NUEVO: Emitir cuando se actualizan los costos
+  // ? NUEVO: Emitir cuando se actualizan los costos
   @Output() costosActualizados = new EventEmitter<ObraCosto[]>();
 
   costosFiltrados: ObraCosto[] = [];
-  estadosPago: EstadoPago[] = [];
+  estadosPagoRecords: { label: string; name: string }[] = [];
   loading = true;
 
   constructor(
@@ -73,28 +73,29 @@ export class ObraPresupuestoComponent implements OnInit, OnChanges {
     }
   }
 
-  actualizarEstadoPago(c: ObraCosto, nuevoId: number) {
-    const nuevoEstado = this.estadosPago.find((e) => e.id === nuevoId);
+  actualizarEstadoPago(c: ObraCosto, nuevoEstadoName: string) {
+    const nuevoEstado = this.estadosPagoRecords.find((e) => e.name === nuevoEstadoName);
     if (!nuevoEstado) return;
 
-    this.costosService.updateEstadoPago(c.id!, nuevoId).subscribe({
-      next: () => {
-        c.estado_pago = nuevoId;
-        c.id_estado_pago = nuevoId;
+    this.costosService.updateEstadoPago(c.id!, nuevoEstadoName).subscribe({
+      next: (obra) => {
+        console.log(obra)
+        c.estado_pago = nuevoEstado.name; // El estado completo
 
-        // ⭐ ACTUALIZAR EL ARRAY DE COSTOS ORIGINAL
+        // Actualizar el array de costos original
         const index = this.costos.findIndex(costo => costo.id === c.id);
         if (index !== -1) {
-          this.costos[index] = {...this.costos[index], estado_pago: nuevoId, id_estado_pago: nuevoId};
+          this.costos[index] = {...this.costos[index], estado_pago: nuevoEstado.name };
         }
 
-        // ⭐ EMITIR EL ARRAY ACTUALIZADO
+
+        // Emitir el array actualizado
         this.costosActualizados.emit([...this.costos]);
 
         this.messageService.add({
           severity: 'success',
           summary: 'Estado actualizado',
-          detail: `El costo fue marcado como "${nuevoEstado.estado}"`,
+          detail: `El costo fue marcado como "${nuevoEstado.label}"`,
         });
       },
       error: (err) => {
@@ -112,14 +113,10 @@ export class ObraPresupuestoComponent implements OnInit, OnChanges {
     return this.costosFiltrados.reduce((acc, c) => acc + (c.total ?? 0), 0);
   }
 
-  calcularTotalPorEstado(nombreEstado: string): number {
-    const estado = this.estadosPago.find(
-      (e) => e.estado.toLowerCase() === nombreEstado.toLowerCase()
-    );
-    if (!estado) return 0;
+  calcularTotalPorEstado(value: string): number {
     return this.costosFiltrados
-      .filter((c) => (c.estado_pago ?? c.id_estado_pago) === estado.id)
-      .reduce((acc, c) => acc + (c.total ?? 0), 0);
+      .filter((c: any) => (c.estado_pago_value || '').toUpperCase() === (value || '').toUpperCase())
+      .reduce((acc: number, c: any) => acc + (c.total ?? 0), 0);
   }
 
   getPresupuestoTotal(): number {
@@ -166,31 +163,28 @@ export class ObraPresupuestoComponent implements OnInit, OnChanges {
   }
 
   private inicializarCostos() {
-    // Aseguramos campos no nulos y un estado de pago por defecto
+    console.log(this.costos)
     this.costosFiltrados = this.costos.map((c) => ({
       ...c,
       precio_unitario: c.precio_unitario ?? 0,
       subtotal: c.subtotal ?? 0,
       total: c.total ?? 0,
       beneficio: c.beneficio ?? 0,
-      estado_pago: (c as any).estado_pago ?? c.id_estado_pago ?? 1,
-      id_estado_pago: c.id_estado_pago ?? (c as any).estado_pago ?? 1,
+      estado_pago: c.estado_pago,
     }));
   }
 
   private cargarEstadosDePago() {
     this.estadoPagoService.getEstadosPago().subscribe({
-      next: (estados) => {
-        this.estadosPago = estados.map((e) => ({
-          id: e.id,
-          estado: e.estado,
-        }));
+      next: (records) => {
+        this.estadosPagoRecords = records;
         this.loading = false;
-      },
+        },
       error: (err) => {
-        console.error('❌ Error al cargar estados de pago', err);
+        console.error('? Error al cargar estados de pago', err);
         this.loading = false;
-      },
+        },
     });
   }
 }
+

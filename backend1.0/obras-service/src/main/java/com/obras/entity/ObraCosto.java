@@ -1,5 +1,6 @@
 package com.obras.entity;
 
+import com.obras.enums.EstadoPagoEnum;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -25,9 +26,9 @@ public class ObraCosto {
     @Column(name = "precio_unitario", nullable = false)
     private BigDecimal precioUnitario;
 
-    @ManyToOne
-    @JoinColumn(name = "id_estado_pago")
-    private EstadoPago estadoPago;
+    @Enumerated(EnumType.STRING)
+    @Column(name = "id_estado_pago")
+    private EstadoPagoEnum estadoPago;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "id_obra", nullable = false)
