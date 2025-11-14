@@ -82,7 +82,7 @@
             <td class="text-gray-700">{{ obra.cliente.nombre }}</td>
             <td>
               <p-tag [severity]="getEstadoSeverity(obra.id_estado_obra)"
-                     [value]="obra.obra_estado.nombre"
+                     [value]="estadoLabelObra(obra)"
                      styleClass="text-xs"></p-tag>
             </td>
             <td>

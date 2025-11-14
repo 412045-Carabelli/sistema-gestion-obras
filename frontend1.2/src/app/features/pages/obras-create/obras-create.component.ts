@@ -19,6 +19,7 @@ import {MessageService} from 'primeng/api';
 import {ToastModule} from 'primeng/toast';
 import {Select} from 'primeng/select';
 import {RouterLink} from '@angular/router';
+import {PreventInvalidSubmitDirective} from '../../../shared/directives/prevent-invalid-submit.directive';
 
 @Component({
   selector: 'app-obras-create',
@@ -38,6 +39,7 @@ import {RouterLink} from '@angular/router';
     DatePicker,
     Select,
     RouterLink
+    , PreventInvalidSubmitDirective
   ],
   templateUrl: './obras-create.component.html',
   styleUrls: ['./obras-create.component.css'],
@@ -46,7 +48,7 @@ import {RouterLink} from '@angular/router';
 export class ObrasCreateComponent implements OnInit {
   form: FormGroup;
   clientes: Cliente[] = [];
-  estadosObra: EstadoObra[] = [];
+  estadosRecords: { label: string; value: string }[] = [];
   proveedores: Proveedor[] = [];
 
   constructor(
@@ -84,9 +86,10 @@ export class ObrasCreateComponent implements OnInit {
       this.clientes = list.map(c => ({...c, id: Number(c.id)}))
     );
 
-    this.estadoObraService.getEstados().subscribe(list =>
-      this.estadosObra = list.map(e => ({...e, id: Number(e.id)}))
-    );
+    this.estadoObraService.getEstados().subscribe(list => {
+      this.estadosRecords = list;
+      console.log(this.estadosRecords);
+    });
 
     this.proveedoresService.getProveedores().subscribe(list =>
       this.proveedores = list.map(p => ({...p, id_proveedor: Number(p.id)}))
@@ -211,6 +214,7 @@ export class ObrasCreateComponent implements OnInit {
       presupuesto: raw.presupuesto ?? 0,
       beneficio_global: raw.beneficio_global,
       beneficio: raw.beneficio ?? 0,
+      tiene_comision: raw.tiene_comision || false,
       comision: raw.comision,
       costos: (raw.costos || []).map((c: any) => ({
         id_proveedor: c.id_proveedor,

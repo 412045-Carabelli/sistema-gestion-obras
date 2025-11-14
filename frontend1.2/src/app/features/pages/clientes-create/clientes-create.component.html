@@ -1,7 +1,7 @@
 <p-toast></p-toast>
 
 <div class="p-6 w-full mx-auto bg-white rounded-xl shadow-sm space-y-6">
-  <form (ngSubmit)="onSubmit()" [formGroup]="form" class="space-y-4 flex flex-col gap-5 ">
+  <form appPreventInvalidSubmit (ngSubmit)="onSubmit()" [formGroup]="form" class="space-y-4 flex flex-col gap-5 ">
     <div class="flex flex-col flex-wrap gap-5">
       <!-- Nombre y Contacto -->
       <div class="flex gap-5">
@@ -77,3 +77,4 @@
     </div>
   </form>
 </div>
+

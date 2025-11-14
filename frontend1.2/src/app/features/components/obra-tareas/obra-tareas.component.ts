@@ -47,7 +47,7 @@ export class ObraTareasComponent {
   abrirModal() {
     this.nuevaTarea = {
       proveedor: this.proveedores[0] ?? null,
-      estado_tarea: {id: 1, nombre: 'Pendiente'}
+      estado_tarea: 'PENDIENTE'
     };
     this.showAddTaskModal = true;
   }
@@ -69,26 +69,21 @@ export class ObraTareasComponent {
     const nueva: TareaPayload = {
       id_obra: this.obraId,
       id_proveedor: this.nuevaTarea.proveedor.id!,
-      estado_tarea: this.nuevaTarea.estado_tarea as EstadoTarea,
+      estado_tarea: 'PENDIENTE',
       nombre: this.nuevaTarea.nombre!,
     };
+
+    console.log(nueva)
 
     this.tareasService.createTarea(nueva).subscribe({
       next: (created) => {
         this.tareas = [...this.tareas, {
           ...created,
           proveedor: this.nuevaTarea.proveedor!,
-          estado_tarea: this.nuevaTarea.estado_tarea!
         }];
 
         this.tareasActualizadas.emit(this.tareas);
         this.showAddTaskModal = false;
-
-        this.messageService.add({
-          severity: 'success',
-          summary: 'Tarea creada',
-          detail: 'La tarea se creó exitosamente 🎉'
-        });
       },
       error: () => {
         this.messageService.add({
@@ -103,13 +98,9 @@ export class ObraTareasComponent {
   toggleTarea(tarea: Tarea) {
     this.tareasService.completarTarea(tarea.id!, this.obraId).subscribe({
       next: (updated) => {
+        console.log(updated)
         this.tareas = this.tareas.map(t => t.id === tarea.id ? {...t, ...updated} : t);
         this.tareasActualizadas.emit(this.tareas);
-        this.messageService.add({
-          severity: 'success',
-          summary: 'Tarea actualizada',
-          detail: `La tarea "${tarea.nombre}" fue marcada como completada ✅`
-        });
       },
       error: () => {
         this.messageService.add({
@@ -149,12 +140,12 @@ export class ObraTareasComponent {
   progreso(pid: number) {
     const tareasProv = this.tareasProveedor(pid);
     if (!tareasProv.length) return 0;
-    const completadas = tareasProv.filter(t => t.estado_tarea.id === 3).length;
+    const completadas = tareasProv.filter(t => t.estado_tarea === "EN PROGRESO").length;
     return Math.round((completadas / tareasProv.length) * 100);
   }
 
   getCompletadas(pid: number): number {
-    return this.tareasProveedor(pid).filter(t => t.estado_tarea.id === 3).length;
+    return this.tareasProveedor(pid).filter(t => t.estado_tarea === "COMPLETADA").length;
   }
 
   getTotales(pid: number): number {
@@ -162,10 +153,10 @@ export class ObraTareasComponent {
   }
 
   claseEstado(tarea: Tarea) {
-    switch (tarea.estado_tarea.id) {
-      case 3:
+    switch (tarea.estado_tarea) {
+      case "COMPLETADA":
         return 'bg-green-50 border-green-200';
-      case 2:
+      case "PENDIENTE":
         return 'bg-blue-50 border-blue-200';
       default:
         return 'bg-gray-50 border-gray-200 hover:bg-gray-100';

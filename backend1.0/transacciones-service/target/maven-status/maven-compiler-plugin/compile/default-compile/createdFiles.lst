@@ -3,13 +3,13 @@ com\transacciones\entity\Transaccion.class
 com\transacciones\TransaccionesServiceApplication.class
 com\transacciones\entity\Transaccion$TransaccionBuilder.class
 com\transacciones\controller\TipoTransaccionController.class
+com\transacciones\dto\EstadoResponse.class
 com\transacciones\entity\TipoTransaccion$TipoTransaccionBuilder.class
 com\transacciones\repository\TipoTransaccionRepository.class
-com\transacciones\dto\TipoTransaccionDto$TipoTransaccionDtoBuilder.class
-com\transacciones\dto\TipoTransaccionDto.class
 com\transacciones\dto\TransaccionDto$TransaccionDtoBuilder.class
 com\transacciones\service\TipoTransaccionService.class
 com\transacciones\controller\TransaccionController.class
 com\transacciones\dto\TransaccionDto.class
+com\transacciones\enums\TipoTransaccionEnum.class
 com\transacciones\service\TransaccionService.class
 com\transacciones\repository\TransaccionRepository.class
