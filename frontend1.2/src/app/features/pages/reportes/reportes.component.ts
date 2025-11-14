@@ -41,7 +41,6 @@ import {DatePicker} from 'primeng/datepicker';
 import {Toast} from 'primeng/toast';
 import {ConfirmDialog} from 'primeng/confirmdialog';
 import {ConfirmationService, MessageService} from 'primeng/api';
-import {ExportService, ReportesSnapshot} from '../../../services/export/export.service';
 
 interface SelectOption<T> {
   label: string;
@@ -98,8 +97,6 @@ export class ReportesComponent implements OnInit {
   estadoFinancieroObra: EstadoFinancieroObraResponse | null = null;
 
   loading = false;
-  exportandoReporte = false;
-  exportandoExcel = false;
 
   constructor(
     private fb: FormBuilder,
@@ -108,8 +105,7 @@ export class ReportesComponent implements OnInit {
     private clientesService: ClientesService,
     private proveedoresService: ProveedoresService,
     private estadoObraService: EstadoObraService,
-    private messageService: MessageService,
-    private exportService: ExportService
+    private messageService: MessageService
   ) {}
 
   ngOnInit(): void {
@@ -173,26 +169,6 @@ export class ReportesComponent implements OnInit {
       rangoFechas: null
     });
     this.loadReportes();
-  }
-
-  descargarReportePdf(): void {
-    const snapshot = this.buildSnapshot();
-    this.exportandoReporte = true;
-    try {
-      this.exportService.exportReportesPdf(snapshot);
-    } finally {
-      this.exportandoReporte = false;
-    }
-  }
-
-  descargarReporteExcel(): void {
-    const snapshot = this.buildSnapshot();
-    this.exportandoExcel = true;
-    try {
-      this.exportService.exportReportesExcel(snapshot);
-    } finally {
-      this.exportandoExcel = false;
-    }
   }
 
   private loadReportes(): void {
@@ -321,36 +297,6 @@ export class ReportesComponent implements OnInit {
     if (t === 'CLIENTE') return this.clientesIndex[id] || `Cliente #${id}`;
     if (t === 'PROVEEDOR') return this.proveedoresIndex[id] || `Proveedor #${id}`;
     return `#${id}`;
-  }
-
-  private buildSnapshot(): ReportesSnapshot {
-    return {
-      filtros: this.serializeFiltros(),
-      resumenGeneral: this.resumenGeneral,
-      ingresosEgresos: this.ingresosEgresos,
-      flujoCaja: this.flujoCaja,
-      pendientes: this.pendientes,
-      estadoObras: this.estadoObras,
-      avanceTareas: this.avanceTareas,
-      rankingClientes: this.rankingClientes,
-      rankingProveedores: this.rankingProveedores,
-      notasGenerales: this.notasGenerales,
-      costosPorCategoria: this.costosPorCategoria
-    };
-  }
-
-  private serializeFiltros(): Record<string, string | number | null> {
-    const raw = this.filtrosForm.value;
-    const filtros: Record<string, string | number | null> = {};
-    if (raw.obraId) filtros['Obra'] = raw.obraId;
-    if (raw.clienteId) filtros['Cliente'] = raw.clienteId;
-    if (raw.proveedorId) filtros['Proveedor'] = raw.proveedorId;
-    if (raw.estadosObra?.length) filtros['Estados'] = raw.estadosObra.join(', ');
-    if (raw.rangoFechas?.length) {
-      const [inicio, fin] = raw.rangoFechas;
-      filtros['Rango'] = `${inicio ? this.formatDateValue(inicio) : '—'} / ${fin ? this.formatDateValue(fin) : '—'}`;
-    }
-    return filtros;
   }
 }
 
