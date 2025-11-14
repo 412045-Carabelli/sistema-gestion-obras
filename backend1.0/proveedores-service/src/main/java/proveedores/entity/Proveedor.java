@@ -1,6 +1,7 @@
 package proveedores.entity;
 
 import jakarta.persistence.*;
+import proveedores.enums.TipoProveedorEnum;
 import lombok.Data;
 
 import java.time.Instant;
@@ -12,9 +13,9 @@ public class Proveedor {
     @Id
     @GeneratedValue(strategy= GenerationType.IDENTITY) private Long id;
     @Column(nullable=false) private String nombre;
-    @ManyToOne
-    @JoinColumn(name = "id_tipo_proveedor")
-    private TipoProveedor tipoProveedor;
+    @Enumerated(EnumType.STRING)
+    @Column(name = "tipo_proveedor")
+    private TipoProveedorEnum tipoProveedor;
     private String contacto, telefono, email;
     private Boolean activo = Boolean.TRUE;
     @Column(name = "creado_en")

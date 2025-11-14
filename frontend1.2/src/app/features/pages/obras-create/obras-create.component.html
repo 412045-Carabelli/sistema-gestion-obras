@@ -1,6 +1,6 @@
 <div class="p-4 space-y-8 mx-auto">
   <!-- ===================== FORMULARIO ===================== -->
-  <form (ngSubmit)="onSubmit()" [formGroup]="form" class="space-y-6">
+  <form appPreventInvalidSubmit (ngSubmit)="onSubmit()" [formGroup]="form" class="space-y-6">
 
     <div class="grid grid-cols-3 gap-6 w-full">
       <!-- ========== INFORMACIÓN BÁSICA ========== -->
@@ -71,11 +71,12 @@
               Estado
             </label>
             <p-select
-              [options]="estadosObra"
+              [options]="estadosRecords"
               appendTo="body"
               styleClass="w-full"
               formControlName="obra_estado"
-              optionLabel="nombre"
+              optionLabel="label"
+              optionValue="name"
               placeholder="Selecciona un estado"
             ></p-select>
             @if (form.get('obra_estado')?.touched && form.get('obra_estado')?.hasError('required')) {

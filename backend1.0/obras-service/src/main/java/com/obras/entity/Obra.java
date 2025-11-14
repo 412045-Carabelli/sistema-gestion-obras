@@ -1,5 +1,6 @@
 package com.obras.entity;
 
+import com.obras.enums.EstadoObraEnum;
 import jakarta.persistence.*;
 import lombok.*;
 import java.util.*;
@@ -23,9 +24,9 @@ public class Obra {
     @Column(name = "id_cliente", nullable = false)
     private Long idCliente;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "id_estado_obra", nullable = false)
-    private EstadoObra estadoObra;
+    @Enumerated(EnumType.STRING)
+    @Column(name = "estado_obra", nullable = false)
+    private EstadoObraEnum estadoObra;
 
     @Column(nullable = false, length = 120)
     private String nombre;

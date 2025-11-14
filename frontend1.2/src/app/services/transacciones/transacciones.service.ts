@@ -1,7 +1,7 @@
 import {Injectable} from '@angular/core';
 import {HttpClient} from '@angular/common/http';
 import {Observable} from 'rxjs';
-import {TipoTransaccion, Transaccion} from '../../core/models/models';
+import {Transaccion} from '../../core/models/models';
 import {environment} from '../../../environments/environment';
 
 @Injectable({providedIn: 'root'})
@@ -16,8 +16,8 @@ export class TransaccionesService {
     return this.http.get<Transaccion[]>(`${this.apiUrl}/obra/${idObra}`);
   }
 
-  getTipos(): Observable<TipoTransaccion[]> {
-    return this.http.get<TipoTransaccion[]>(this.tiposUrl);
+  getTipos(): Observable<{ label: string; name: string }[]> {
+    return this.http.get<{ label: string; name: string }[]>(this.tiposUrl);
   }
 
   // Transacciones por asociado (PROVEEDOR o CLIENTE)

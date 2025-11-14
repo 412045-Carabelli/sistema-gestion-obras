@@ -8,14 +8,11 @@ import {InputText} from 'primeng/inputtext';
 import {Select} from 'primeng/select';
 import {ButtonModule} from 'primeng/button';
 import {forkJoin} from 'rxjs';
-import {Proveedor, TipoProveedor} from '../../../core/models/models';
+import {Proveedor} from '../../../core/models/models';
 import {ProveedoresService} from '../../../services/proveedores/proveedores.service';
 import {Router} from '@angular/router';
 
-interface TipoOption {
-  label: string;
-  value: number | 'todos';
-}
+interface TipoOption { label: string; name: string | 'todos'; }
 
 @Component({
   selector: 'app-proveedores-list',
@@ -35,7 +32,7 @@ interface TipoOption {
 export class ProveedoresListComponent implements OnInit {
   proveedores: Proveedor[] = [];
   proveedoresFiltrados: Proveedor[] = [];
-  tipos: TipoProveedor[] = [];
+  tiposRecords: { label: string; name: string }[] = [];
   tipoOptions: TipoOption[] = [];
 
   searchValue: string = '';
@@ -49,19 +46,14 @@ export class ProveedoresListComponent implements OnInit {
   }
 
   ngOnInit() {
-    forkJoin({
-      proveedores: this.service.getProveedores(),
-      tipos: this.service.getTipos()
-    }).subscribe({
+    forkJoin({ proveedores: this.service.getProveedores(), tipos: this.service.getTipos() }).subscribe({
       next: ({proveedores, tipos}) => {
-        this.proveedores = proveedores.map(p => ({...p, id: Number(p.id)}));
+        this.proveedores = proveedores;
         this.proveedoresFiltrados = [...this.proveedores];
-        this.tipos = tipos;
-        this.tipoOptions = [
-          {label: 'Todos', value: 'todos'},
-          ...tipos.map(t => ({label: t.nombre, value: t.id}))
-        ];
+        this.tiposRecords = tipos;
+        this.tipoOptions = [ {label: 'Todos', name: 'TODOS'}, ...this.tiposRecords.map(r => ({label: r.label, name: r.name})) ];
         this.loading = false;
+        console.log(this.proveedores);
       },
       error: () => (this.loading = false)
     });
@@ -77,13 +69,13 @@ export class ProveedoresListComponent implements OnInit {
         (proveedor.contacto?.toLowerCase().includes(search) ?? false) ||
         (proveedor.telefono?.toLowerCase().includes(search) ?? false) ||
         (proveedor.email?.toLowerCase().includes(search) ?? false) ||
-        (proveedor.tipo_proveedor?.nombre?.toLowerCase().includes(search) ?? false)
+        (proveedor.tipo_proveedor?.toLowerCase().includes(search) ?? false)
         : true;
 
       const matchesTipo =
         this.tipoFiltro === 'todos'
           ? true
-          : proveedor.tipo_proveedor?.id === this.tipoFiltro;
+          : ((proveedor as any).tipo_proveedor_value || '') === this.tipoFiltro;
 
       return matchesSearch && matchesTipo;
     });
@@ -98,4 +90,13 @@ export class ProveedoresListComponent implements OnInit {
     this.applyFilter();
   }
 
+  formatearTipo(tipo: string | null | undefined): string {
+    if (!tipo) return '—';
+
+    const limpio = tipo.replace(/_/g, ' ').toLowerCase();
+    return limpio.charAt(0).toUpperCase() + limpio.slice(1);
+  }
+
+
 }
+

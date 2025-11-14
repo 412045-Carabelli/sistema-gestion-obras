@@ -1,8 +1,8 @@
 package com.obras.service.impl;
 
 import com.obras.dto.ObraCostoDTO;
-import com.obras.entity.EstadoPago;
 import com.obras.entity.ObraCosto;
+import com.obras.enums.EstadoPagoEnum;
 import com.obras.repository.ObraCostoRepository;
 import com.obras.service.ObraCostoService;
 import lombok.RequiredArgsConstructor;
@@ -33,11 +33,11 @@ public class ObraCostoServiceImpl implements ObraCostoService {
     }
 
     @Override
-    public ObraCostoDTO actualizarEstadoPago(Long idCosto, Long idEstadoPago) {
+    public ObraCostoDTO actualizarEstadoPago(Long idCosto, EstadoPagoEnum estado) {
         ObraCosto entity = costoRepo.findByIdAndActivoTrue(idCosto)
                 .orElseThrow(() -> new RuntimeException("Costo no encontrado"));
 
-        entity.setEstadoPago(EstadoPago.builder().id(idEstadoPago).build());
+        entity.setEstadoPago(estado != null ? estado : EstadoPagoEnum.PENDIENTE);
         entity = costoRepo.save(entity);
 
         return toDto(entity);
@@ -95,7 +95,7 @@ public class ObraCostoServiceImpl implements ObraCostoService {
         dto.setBeneficio(entity.getBeneficio());
         dto.setSubtotal(entity.getSubtotal());
         dto.setTotal(entity.getTotal());
-        dto.setId_estado_pago(entity.getEstadoPago() != null ? entity.getEstadoPago().getId() : null);
+        dto.setEstado_pago(entity.getEstadoPago());
         dto.setActivo(entity.getActivo());
         dto.setUltima_actualizacion(entity.getUltimaActualizacion());
         dto.setTipo_actualizacion(entity.getTipoActualizacion());
@@ -116,12 +116,25 @@ public class ObraCostoServiceImpl implements ObraCostoService {
         entity.setBeneficio(dto.getBeneficio());
         entity.setActivo(dto.getActivo() != null ? dto.getActivo() : Boolean.TRUE);
 
-        if (dto.getId_estado_pago() != null) {
-            entity.setEstadoPago(EstadoPago.builder().id(dto.getId_estado_pago()).build());
-        } else {
-            entity.setEstadoPago(null);
-        }
+        entity.setEstadoPago(dto.getEstado_pago() != null ? dto.getEstado_pago() : EstadoPagoEnum.PENDIENTE);
 
         return entity;
+    }
+
+    private Long mapEstadoPagoToId(EstadoPagoEnum e) {
+        return switch (e) {
+            case PENDIENTE -> 1L;
+            case PARCIAL -> 2L;
+            case PAGADO -> 3L;
+        };
+    }
+
+    private EstadoPagoEnum mapIdToEstadoPago(Long id) {
+        return switch (id != null ? id.intValue() : -1) {
+            case 1 -> EstadoPagoEnum.PENDIENTE;
+            case 2 -> EstadoPagoEnum.PARCIAL;
+            case 3 -> EstadoPagoEnum.PAGADO;
+            default -> EstadoPagoEnum.PENDIENTE;
+        };
     }
 }

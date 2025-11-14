@@ -1,8 +1,9 @@
 com\documentos\mapper\DocumentosMapper.class
+com\documentos\dto\EstadoResponse.class
 com\documentos\repository\DocumentoRepository.class
 com\documentos\entity\TipoDocumento.class
 com\documentos\service\DocumentoService.class
-com\documentos\dto\TipoDocumentoDto.class
+com\documentos\enums\TipoDocumentoEnum.class
 com\documentos\dto\DocumentoDto.class
 com\documentos\entity\Documento.class
 com\documentos\DocumentosServiceApplication.class

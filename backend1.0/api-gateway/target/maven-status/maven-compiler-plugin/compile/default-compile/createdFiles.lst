@@ -32,7 +32,6 @@ com\apigateway\controller\ReportesBffController$5.class
 com\apigateway\controller\TransaccionBffController$5.class
 com\apigateway\controller\ReportesBffController$8.class
 com\apigateway\controller\ObraBffController$1.class
-com\apigateway\controller\EstadosObraBffController$2.class
 com\apigateway\controller\ObraBffController$5.class
 com\apigateway\controller\TransaccionBffController$6.class
 com\apigateway\controller\ClienteBffController$4.class
@@ -55,6 +54,7 @@ com\apigateway\controller\CostoBffController$2.class
 com\apigateway\controller\TipoTransaccionBffController$1.class
 com\apigateway\controller\ObraBffController$10.class
 com\apigateway\controller\ReportesBffController$3.class
+com\apigateway\controller\DocumentoBffController$3.class
 com\apigateway\controller\ProveedorBffController$3.class
 com\apigateway\controller\ReportesBffController$11.class
 com\apigateway\controller\ObraBffController$3.class

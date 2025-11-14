@@ -1,8 +1,7 @@
 package com.obras.service;
 
 import com.obras.dto.ObraCostoDTO;
-import com.obras.entity.ObraProveedor;
-import org.springframework.stereotype.Service;
+import com.obras.enums.EstadoPagoEnum;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
@@ -11,7 +10,7 @@ public interface ObraCostoService {
 
     ObraCostoDTO crear(ObraCostoDTO dto);
 
-    ObraCostoDTO actualizarEstadoPago(Long idCosto, Long idEstadoPago);
+    ObraCostoDTO actualizarEstadoPago(Long idCosto, EstadoPagoEnum estadoPago);
 
     void eliminar(Long id);
 

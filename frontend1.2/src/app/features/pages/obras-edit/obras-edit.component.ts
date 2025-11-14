@@ -48,7 +48,7 @@ export class ObrasEditComponent implements OnInit {
   @Input() obra!: Obra;
 
   clientes: Cliente[] = [];
-  estadosObra: EstadoObra[] = [];
+  estadosRecords: { label: string; name: string }[] = [];
   proveedores: Proveedor[] = [];
   form!: FormGroup;
   loading = true;
@@ -102,6 +102,7 @@ export class ObrasEditComponent implements OnInit {
       fecha_fin: this.formatDate(this.form.value.fecha_fin),
       fecha_adjudicada: this.formatDate(this.form.value.fecha_adjudicada),
       fecha_perdida: this.formatDate(this.form.value.fecha_perdida),
+      tiene_comision: raw.tiene_comision,
       presupuesto: raw.presupuesto,
       comision: raw.comision,
       beneficio: raw.beneficio,
@@ -155,7 +156,7 @@ export class ObrasEditComponent implements OnInit {
     }).subscribe({
       next: ({clientes, estados, proveedores, obra}) => {
         this.clientes = clientes;
-        this.estadosObra = estados;
+        this.estadosRecords = estados as any;
         this.proveedores = proveedores;
         this.obra = {...obra, costos: obra.costos ?? []} as Obra;
         this.inicializarFormulario();
@@ -174,9 +175,11 @@ export class ObrasEditComponent implements OnInit {
   }
 
   private inicializarFormulario() {
+    const currentValue = this.estadosRecords.find(e => e.name === this.obra.obra_estado)
+
     this.form = this.fb.group({
       cliente: [this.obra.cliente, Validators.required],
-      obra_estado: [this.obra.obra_estado, Validators.required],
+      obra_estado: [currentValue, Validators.required],
       nombre: [this.obra.nombre, [Validators.required, Validators.minLength(3)]],
       direccion: [this.obra.direccion, [Validators.required, Validators.minLength(5)]],
       fecha_inicio: [this.parseDate(this.obra.fecha_inicio), Validators.required],
@@ -210,7 +213,7 @@ export class ObrasEditComponent implements OnInit {
           beneficio: [costo.beneficio ?? 0],
           proveedor: [costo.proveedor ?? null, Validators.required],
           id_proveedor: [costo.id_proveedor ?? costo.proveedor?.id ?? null, Validators.required],
-          id_estado_pago: [costo.id_estado_pago ?? null],
+          estado_pago: [costo.estado_pago ?? null],
           activo: [costo.activo ?? true],
           total: [{value: costo.total ?? (costo.cantidad * costo.precio_unitario) ?? 0, disabled: true}],
         })

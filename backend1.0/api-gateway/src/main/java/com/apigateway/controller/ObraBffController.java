@@ -89,15 +89,15 @@ public class ObraBffController {
     // ================================
 // 🌀 PATCH - Cambiar estado de la Obra
 // ================================
-    @PatchMapping("/{id}/estado/{idEstado}")
+    @PatchMapping("/{id}/estado/{estado}")
     public Mono<ResponseEntity<Object>> cambiarEstadoObra(
             @PathVariable("id") Long idObra,
-            @PathVariable("idEstado") Long idEstado
+            @PathVariable("estado") String estado
     ) {
         WebClient client = webClientBuilder.build();
 
         return client.patch()
-                .uri(OBRAS_URL + "/{id}/estado/{idEstado}", idObra, idEstado)
+                .uri(OBRAS_URL + "/{id}/estado/{estado}", idObra, estado)
                 .retrieve()
                 .toBodilessEntity()
                 .map(response -> ResponseEntity.noContent().build())
@@ -107,15 +107,14 @@ public class ObraBffController {
                 });
     }
 
-    // ================================
-    // 🗑️ DELETE - Eliminar Obra
-    // ================================
-    @DeleteMapping("/{id}")
-    public Mono<ResponseEntity<Object>> eliminarObra(@PathVariable("id") Long id) {
+    @PatchMapping("/{id}/activo")
+    public Mono<ResponseEntity<Object>> actualizarActivo(
+            @PathVariable("id") Long id
+    ) {
         WebClient client = webClientBuilder.build();
 
-        return client.delete()
-                .uri(OBRAS_URL + "/{id}", id)
+        return client.patch()
+                .uri(OBRAS_URL + "/{id}/activo", id)
                 .retrieve()
                 .toBodilessEntity()
                 .map(response -> ResponseEntity.noContent().build())
@@ -124,6 +123,7 @@ public class ObraBffController {
                     return Mono.just(ResponseEntity.internalServerError().build());
                 });
     }
+
 
     // ================================
     // 📜 GET - Listar Obras (resumido)

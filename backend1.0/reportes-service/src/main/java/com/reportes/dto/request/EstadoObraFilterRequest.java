@@ -9,7 +9,7 @@ import java.util.List;
 
 @Data
 public class EstadoObraFilterRequest {
-    private List<Long> estados = new ArrayList<>();
+    private List<String> estados = new ArrayList<>();
     @JsonFormat(pattern = "yyyy-MM-dd")
     private LocalDate fechaInicio;
     @JsonFormat(pattern = "yyyy-MM-dd")

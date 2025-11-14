@@ -1,6 +1,6 @@
 import {Injectable} from '@angular/core';
 import {HttpClient} from '@angular/common/http';
-import {Documento, TipoDocumento} from '../../core/models/models';
+import {Documento} from '../../core/models/models';
 import {Observable} from 'rxjs';
 import {environment} from '../../../environments/environment';
 
@@ -19,14 +19,13 @@ export class DocumentosService {
   }
 
   // 📘 Obtener lista de tipos de documento
-  getTiposDocumento(): Observable<TipoDocumento[]> {
-    // En este caso puede venir de otro microservicio o tabla base
-    return this.http.get<TipoDocumento[]>(`${environment.apiGateway}${environment.endpoints.tipo_documentos}`);
+  getTiposDocumento(): Observable<{ label: string; name: string }[]> {
+    return this.http.get<{ label: string; name: string }[]>(`${environment.apiGateway}${environment.endpoints.tipo_documentos}`);
   }
 
   uploadDocumentoFlexible(
     idObra: number | null,
-    idTipoDocumento: number,
+    tipoDocumento: string,
     observacion: string,
     file: File,
     idAsociado?: number | null,
@@ -34,7 +33,7 @@ export class DocumentosService {
   ) {
     const formData = new FormData();
     if (idObra) formData.append('id_obra', idObra.toString());
-    formData.append('id_tipo_documento', idTipoDocumento.toString());
+    formData.append('tipo_documento', tipoDocumento);
     formData.append('observacion', observacion);
     if (idAsociado) formData.append('id_asociado', idAsociado.toString());
     if (tipoAsociado) formData.append('tipo_asociado', tipoAsociado);

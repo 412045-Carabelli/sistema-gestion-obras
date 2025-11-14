@@ -46,9 +46,9 @@ export class ObrasListComponent implements OnInit {
   obrasFiltradas: Obra[] = [];
   datosCargados = false;
   clientes: Cliente[] = [];
-  estados: EstadoObra[] = [];
+  estados: { label: string; value: string }[] = [];
 
-  estadoFiltro: string = 'todos';
+  estadoFiltro: string = 'TODOS';
   searchValue: string = '';
   estadosOptions: EstadoOption[] = [];
 
@@ -70,16 +70,13 @@ export class ObrasListComponent implements OnInit {
       this.obras = obras
 
       this.clientes = clientes.map(c => ({...c, id: Number(c.id)}));
-      this.estados = estados.map(e => ({...e, id: Number(e.id)}));
+      this.estados = estados as any;
 
       this.obrasFiltradas = [...this.obras];
 
       this.estadosOptions = [
-        {label: 'Todos', value: 'todos'},
-        ...this.estados.map(e => ({
-          label: e.nombre.charAt(0).toUpperCase() + e.nombre.slice(1).replace('_', ' '),
-          value: e.nombre.toLowerCase()
-        }))
+        { label: 'Todos', value: 'TODOS'},
+        ...this.estados.map(r => ({ label: r.label, value: r.value }))
       ];
 
       this.datosCargados = true;
@@ -96,13 +93,36 @@ export class ObrasListComponent implements OnInit {
         obra.cliente.nombre.toLowerCase().includes(this.searchValue.toLowerCase())
         : true;
 
+      const estadoValor = this.estadoValorObra(obra);
       const matchesEstado =
-        this.estadoFiltro === 'todos'
+        this.estadoFiltro === 'TODOS'
           ? true
-          : obra.obra_estado.nombre.toLowerCase() === this.estadoFiltro.toLowerCase();
+          : (estadoValor || '').toUpperCase() === (this.estadoFiltro || '').toUpperCase();
 
       return matchesSearch && matchesEstado;
     });
+  }
+
+  private estadoValorObra(obra: any): string {
+    const raw = (obra as any)?.obra_estado;
+    if (!raw) return '';
+    if (typeof raw === 'string') return raw;
+    if (raw.value) return raw.value;
+    if (raw.nombre) {
+      const rec = this.estados.find(r => (r.label || '').toLowerCase() === (raw.nombre || '').toLowerCase());
+      return rec?.value || '';
+    }
+    return '';
+  }
+
+  estadoLabelObra(obra: any): string {
+    const raw = (obra as any)?.obra_estado;
+    if (!raw) return '';
+    if (typeof raw === 'string') {
+      const rec = this.estados.find(r => (r.value || '').toUpperCase() === raw.toUpperCase());
+      return rec?.label || raw;
+    }
+    return raw.label || raw.nombre || '';
   }
 
   onEstadoChange() {
