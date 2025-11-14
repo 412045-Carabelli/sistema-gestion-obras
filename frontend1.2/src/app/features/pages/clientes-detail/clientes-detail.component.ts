@@ -1,6 +1,6 @@
 import {Component, OnDestroy, OnInit} from '@angular/core';
 import {ActivatedRoute, Router} from '@angular/router';
-import {forkJoin, of, Subscription} from 'rxjs';
+import {forkJoin, Subscription} from 'rxjs';
 import {ButtonModule} from 'primeng/button';
 import {CardModule} from 'primeng/card';
 import {ProgressSpinnerModule} from 'primeng/progressspinner';
@@ -12,15 +12,12 @@ import {TableModule} from 'primeng/table';
 import {TagModule} from 'primeng/tag';
 import {CurrencyPipe, CommonModule} from '@angular/common';
 
-import {Cliente, Obra, Tarea, Transaccion} from '../../../core/models/models';
+import {Cliente, Obra} from '../../../core/models/models';
 import {ClientesService} from '../../../services/clientes/clientes.service';
 import {ObrasService} from '../../../services/obras/obras.service';
 import {ClientesDocumentosComponent} from '../../components/clientes-documentos/clientes-documentos.component';
 import {ClienteStateService} from '../../../services/clientes/clientes-state.service';
 import {StyleClass} from 'primeng/styleclass';
-import {TareasService} from '../../../services/tareas/tareas.service';
-import {TransaccionesService} from '../../../services/transacciones/transacciones.service';
-import {ExportService} from '../../../services/export/export.service';
 
 @Component({
   selector: 'app-clientes-detail',
@@ -51,7 +48,6 @@ export class ClientesDetailComponent implements OnInit, OnDestroy {
   cliente!: Cliente;
   obras: Obra[] = [];
   loading = true;
-  exportandoPdf = false;
 
   // Estadísticas calculadas
   obrasActivas = 0;
@@ -66,10 +62,7 @@ export class ClientesDetailComponent implements OnInit, OnDestroy {
     private clientesService: ClientesService,
     private obrasService: ObrasService,
     private messageService: MessageService,
-    private clienteStateService: ClienteStateService,
-    private tareasService: TareasService,
-    private transaccionesService: TransaccionesService,
-    private exportService: ExportService
+    private clienteStateService: ClienteStateService
   ) {
   }
 
@@ -133,58 +126,6 @@ export class ClientesDetailComponent implements OnInit, OnDestroy {
     return Object.entries(mapa)
       .map(([nombre, cantidad]) => ({ nombre, cantidad }))
       .sort((a, b) => b.cantidad - a.cantidad);
-  }
-
-  exportarFicha() {
-    if (!this.cliente) {
-      return;
-    }
-    this.exportandoPdf = true;
-    const tareasRequests = this.obras
-      .filter(o => !!o.id)
-      .map(obra => this.tareasService.getTareasByObra(obra.id!));
-    const tareas$ = tareasRequests.length
-      ? forkJoin(tareasRequests)
-      : of([] as Tarea[][]);
-
-    forkJoin({
-      tareas: tareas$,
-      movimientos: this.transaccionesService.getByAsociado('CLIENTE', this.cliente.id)
-    }).subscribe({
-      next: ({tareas, movimientos}) => {
-        const tareasPorObra: Record<number, Tarea[]> = {};
-        this.obras.forEach((obra, index) => {
-          tareasPorObra[obra.id!] = tareas[index] ?? [];
-        });
-
-        const pendientes = movimientos.filter(m => this.esMovimientoPendiente(m));
-
-        this.exportService.exportEntidadDetallePdf({
-          tipo: 'cliente',
-          entidad: this.cliente,
-          obras: this.obras,
-          tareasPorObra,
-          movimientosPendientes: pendientes
-        });
-
-        this.exportandoPdf = false;
-      },
-      error: () => {
-        this.exportandoPdf = false;
-        this.messageService.add({
-          severity: 'error',
-          summary: 'Error al exportar',
-          detail: 'No se pudo preparar el PDF del cliente.'
-        });
-      }
-    });
-  }
-
-  private esMovimientoPendiente(movimiento: Transaccion): boolean {
-    const forma = (movimiento.forma_pago || (movimiento as any).parcial_o_total || '')
-      .toString()
-      .toLowerCase();
-    return forma.includes('parcial') || forma.includes('pendiente');
   }
 
   private cargarDetalle(idCliente: number) {
