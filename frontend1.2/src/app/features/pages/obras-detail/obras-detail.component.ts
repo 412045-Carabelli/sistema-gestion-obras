@@ -14,7 +14,7 @@ import {Select} from 'primeng/select';
 import {MessageService} from 'primeng/api';
 import {ToastModule} from 'primeng/toast';
 
-import {Cliente, EstadoObra, Obra, ObraCosto, Proveedor, Tarea} from '../../../core/models/models';
+import {Cliente, EstadoObra, Obra, ObraCosto, Proveedor, Tarea, Transaccion} from '../../../core/models/models';
 import {ObraMovimientosComponent} from '../../components/obra-movimientos/obra-movimientos.component';
 import {ObraTareasComponent} from '../../components/obra-tareas/obra-tareas.component';
 import {ObraPresupuestoComponent} from '../../components/obra-presupuesto/obra-presupuesto.component';
@@ -28,6 +28,8 @@ import {Tab, TabList, TabPanel, TabPanels, Tabs} from 'primeng/tabs';
 import {ClientesService} from '../../../services/clientes/clientes.service';
 import {ObrasStateService} from '../../../services/obras/obras-state.service';
 import {StyleClass} from 'primeng/styleclass';
+import {TransaccionesService} from '../../../services/transacciones/transacciones.service';
+import {ExportService} from '../../../services/export/export.service';
 
 @Component({
   selector: 'app-obra-detail',
@@ -69,6 +71,9 @@ export class ObrasDetailComponent implements OnInit, OnDestroy {
   clientes!: Cliente[];
   progresoFisico = 0;
   estadosObra: EstadoObra[] = [];
+  loading = true;
+  movimientos: Transaccion[] = [];
+  exportandoExcel = false;
   estadoSeleccionado: string | null = null;
 
   loading = true;
@@ -122,6 +127,46 @@ export class ObrasDetailComponent implements OnInit, OnDestroy {
     });
   }
 
+  onCostosActualizados(costosActualizados: ObraCosto[]) {
+    this.costos = costosActualizados;
+    this.obra.costos = costosActualizados;
+
+    this.obraStateService.setObra(this.obra);
+  }
+
+  exportarExcelObra() {
+    if (!this.obra) {
+      return;
+    }
+    this.exportandoExcel = true;
+    try {
+      this.exportService.exportObraDetalleExcel({
+        obra: this.obra,
+        tareas: this.tareas ?? [],
+        transacciones: this.movimientos ?? [],
+        costos: this.costos ?? []
+      });
+    } finally {
+      this.exportandoExcel = false;
+    }
+  }
+
+  getProgresoFisico(): number {
+    if (!this.tareas.length || !this.proveedores.length) return 0;
+
+    const tareasDeEstaObra = this.tareas.filter(t =>
+      this.proveedores.some(p => p.id === t.proveedor?.id)
+    );
+
+    if (!tareasDeEstaObra.length) return 0;
+
+    const completadas = tareasDeEstaObra.filter(
+      t => t.estado_tarea?.nombre?.toLowerCase() === 'completada'
+    ).length;
+
+    return Math.round((completadas / tareasDeEstaObra.length) * 100);
+  }
+
   private cargarDetalle(idObra: number) {
     this.loading = true;
 
@@ -153,7 +198,11 @@ export class ObrasDetailComponent implements OnInit, OnDestroy {
 
         this.progresoFisico = this.getProgresoFisico();
         this.loading = false;
-        this.obraStateService.setObra(this.obra);
+
+        this.transaccionesService.getByObra(idObra).subscribe({
+          next: movimientos => this.movimientos = movimientos,
+          error: () => this.movimientos = []
+        });
       },
 
       error: () => {
