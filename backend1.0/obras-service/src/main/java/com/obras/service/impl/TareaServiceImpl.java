@@ -1,10 +1,8 @@
 package com.obras.service.impl;
 
-import com.obras.dto.EstadoTareaDTO;
 import com.obras.dto.TareaDTO;
-import com.obras.entity.EstadoTarea;
 import com.obras.entity.Tarea;
-import com.obras.repository.EstadoTareaRepository;
+import com.obras.enums.EstadoTareaEnum;
 import com.obras.repository.TareaRepository;
 import com.obras.service.TareaService;
 import jakarta.persistence.EntityNotFoundException;
@@ -22,7 +20,6 @@ import java.util.stream.Collectors;
 public class TareaServiceImpl implements TareaService {
 
     private final TareaRepository tareaRepo;
-    private final EstadoTareaRepository estadoTareaRepository;
 
     @Override
     public TareaDTO crear(TareaDTO dto) {
@@ -38,9 +35,9 @@ public class TareaServiceImpl implements TareaService {
         Tarea tarea = tareaRepo.findByIdAndActivoTrue(id)
                 .orElseThrow(() -> new RuntimeException("Tarea no encontrada"));
 
-        Long nuevoEstado = (tarea.getEstadoTarea().getId() == 3L) ? 1L : 3L;
-        EstadoTarea nuevo = estadoTareaRepository.findById(nuevoEstado)
-                .orElseThrow(() -> new EntityNotFoundException("Estado de tarea no encontrado"));
+        EstadoTareaEnum nuevo = (tarea.getEstadoTarea() == EstadoTareaEnum.COMPLETADA)
+                ? EstadoTareaEnum.PENDIENTE
+                : EstadoTareaEnum.COMPLETADA;
 
         tarea.setEstadoTarea(nuevo);
         return toDto(tareaRepo.save(tarea));
@@ -88,10 +85,7 @@ public class TareaServiceImpl implements TareaService {
         dto.setTipo_actualizacion(entity.getTipoActualizacion());
 
         if (entity.getEstadoTarea() != null) {
-            EstadoTareaDTO estadoDto = new EstadoTareaDTO();
-            estadoDto.setId(entity.getEstadoTarea().getId());
-            estadoDto.setNombre(entity.getEstadoTarea().getNombre());
-            dto.setEstado_tarea(estadoDto);
+            dto.setEstado_tarea(entity.getEstadoTarea());
         }
         return dto;
     }
@@ -107,10 +101,8 @@ public class TareaServiceImpl implements TareaService {
         entity.setFechaFin(dto.getFecha_fin());
         entity.setActivo(dto.getActivo() != null ? dto.getActivo() : Boolean.TRUE);
 
-        if (dto.getEstado_tarea() != null && dto.getEstado_tarea().getId() != null) {
-            EstadoTarea estado = estadoTareaRepository.findById(dto.getEstado_tarea().getId())
-                    .orElseThrow(() -> new EntityNotFoundException("Estado de tarea no encontrado"));
-            entity.setEstadoTarea(estado);
+        if (dto.getEstado_tarea() != null) {
+            entity.setEstadoTarea(dto.getEstado_tarea());
         }
         return entity;
     }

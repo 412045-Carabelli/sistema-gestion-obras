@@ -42,7 +42,7 @@
 
     <ng-template let-d pTemplate="body">
       <tr>
-        <td>{{ d.tipo_documento?.nombre ?? '—' }}</td>
+        <td>{{ d.tipo_documento ?? '—' }}</td>
         <td>{{ d.observacion || '—' }}</td>
         <td>{{ d.fecha | date: 'dd/MM/yyyy' }}</td>
         <td>
@@ -140,9 +140,9 @@
         <p-select
           [(ngModel)]="selectedTipo"
           [options]="tiposDocumento"
-          optionLabel="nombre"
+          optionLabel="label"
+          optionValue="name"
           appendTo="body"
-          optionValue="id"
           placeholder="Seleccionar tipo de documento"
           styleClass="w-full"
         ></p-select>
@@ -236,3 +236,4 @@
     </ng-template>
   </p-dialog>
 </div>
+

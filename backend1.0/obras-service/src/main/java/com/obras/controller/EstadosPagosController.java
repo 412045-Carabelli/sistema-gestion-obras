@@ -1,12 +1,15 @@
 package com.obras.controller;
 
-import com.obras.dto.EstadoPagoDTO;
-import com.obras.entity.EstadoPago;
-import com.obras.repository.EstadoPagoRepository;
+import com.obras.dto.EstadoResponse;
+import com.obras.enums.EstadoObraEnum;
+import com.obras.enums.EstadoPagoEnum;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -15,23 +18,20 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class EstadosPagosController {
 
-    private final EstadoPagoRepository repository;
-
-    private EstadoPagoDTO toDTO(EstadoPago entity) {
-        EstadoPagoDTO dto = new EstadoPagoDTO();
-        dto.setId(entity.getId());
-        dto.setEstado(entity.getEstado());
-        return dto;
-    }
-
-    // Acepta tanto kebab-case como snake_case por compatibilidad
     @GetMapping("/estado-pago")
-    public ResponseEntity<List<EstadoPagoDTO>> getAll() {
-        List<EstadoPagoDTO> estados = repository.findAll()
-                .stream()
-                .map(this::toDTO)
-                .collect(Collectors.toList());
-        return ResponseEntity.ok(estados);
+    public ResponseEntity<List<EstadoResponse>> getEstados() {
+        List<EstadoResponse> response = Arrays.stream(EstadoPagoEnum.values())
+                .map(e -> new EstadoResponse(e.name(), formatLabel(e)))
+                .toList();
+
+        return ResponseEntity.ok(response);
     }
+
+    private String formatLabel(EstadoPagoEnum e) {
+        return Arrays.stream(e.name().split("_"))
+                .map(word -> word.charAt(0) + word.substring(1).toLowerCase())
+                .collect(Collectors.joining(" "));
+    }
+
 }
 

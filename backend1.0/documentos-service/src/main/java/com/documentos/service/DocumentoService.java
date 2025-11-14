@@ -2,10 +2,10 @@ package com.documentos.service;
 
 import com.documentos.dto.DocumentoDto;
 import com.documentos.entity.Documento;
-import com.documentos.entity.TipoDocumento;
+import com.documentos.enums.TipoDocumentoEnum;
 import com.documentos.mapper.DocumentosMapper;
 import com.documentos.repository.DocumentoRepository;
-import com.documentos.repository.TipoDocumentoRepository;
+ 
 import org.springframework.core.io.Resource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -32,16 +32,14 @@ public class DocumentoService {
 
     private final String uploadDirBase;
     private final DocumentoRepository documentoRepository;
-    private final TipoDocumentoRepository tipoDocumentoRepository;
+    
 
     // Inyectamos la ruta base y los repositorios a través del constructor
     @Autowired
     public DocumentoService(@Value("${file.upload-dir}") String uploadDirBase,
-                            DocumentoRepository documentoRepository,
-                            TipoDocumentoRepository tipoDocumentoRepository) {
+                            DocumentoRepository documentoRepository) {
         this.uploadDirBase = uploadDirBase;
         this.documentoRepository = documentoRepository;
-        this.tipoDocumentoRepository = tipoDocumentoRepository;
     }
 
     /**
@@ -49,7 +47,7 @@ public class DocumentoService {
      */
     public Mono<DocumentoDto> createWithFileReactive(
             String idObra,
-            String idTipoDocumento,
+            TipoDocumentoEnum tipoDocumento,
             String observacion,
             String idAsociado,
             String tipoAsociado,
@@ -83,11 +81,9 @@ public class DocumentoService {
                             dto.setPath_archivo(relativePath);
                             dto.setObservacion(observacion);
                             dto.setFecha(LocalDate.now().toString());
+                            dto.setTipo_documento(tipoDocumento);
 
-                            TipoDocumento tipo = tipoDocumentoRepository.findById(Long.parseLong(idTipoDocumento))
-                                    .orElseThrow(() -> new RuntimeException("Tipo documento no encontrado"));
-
-                            Documento entity = DocumentosMapper.toEntity(dto, tipo);
+                            Documento entity = DocumentosMapper.toEntity(dto);
                             Documento saved = documentoRepository.save(entity);
                             return DocumentosMapper.toDto(saved);
                         }).subscribeOn(Schedulers.boundedElastic())

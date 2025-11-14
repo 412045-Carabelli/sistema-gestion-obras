@@ -123,7 +123,7 @@ public class ObrasClient {
     public List<EstadoPagoExternalDto> obtenerEstadosPago() {
         try {
             ResponseEntity<List<EstadoPagoExternalDto>> response = restTemplate.exchange(
-                    baseUrl + "/api/obras/estado_pago",
+                    baseUrl + "/api/obras/estado-pago",
                     HttpMethod.GET,
                     null,
                     ESTADOS_PAGO_TYPE

@@ -1,6 +1,7 @@
 package com.obras.dto;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.obras.enums.EstadoObraEnum;
 import lombok.Data;
 
 import java.math.BigDecimal;
@@ -13,7 +14,7 @@ import java.util.List;
 public class ObraDTO {
     private Long id;
     private Long id_cliente;
-    private ObraEstadoDTO obra_estado;
+    private EstadoObraEnum obra_estado;
     private String nombre;
     private String direccion;
     private LocalDateTime fecha_inicio;
