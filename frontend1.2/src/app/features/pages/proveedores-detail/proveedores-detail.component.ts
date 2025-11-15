@@ -18,6 +18,8 @@ import {CostosService} from '../../../services/costos/costos.service';
 import {ProveedoresStateService} from '../../../services/proveedores/proveedores-state.service';
 import {StyleClass} from 'primeng/styleclass';
 import {Toast} from 'primeng/toast';
+import {MessageService} from 'primeng/api';
+import {ExportService} from '../../../services/export/export.service';
 
 @Component({
   selector: 'app-proveedores-detail',
@@ -29,13 +31,15 @@ import {Toast} from 'primeng/toast';
     ProgressSpinnerModule,
     TableModule, Tooltip, StyleClass, Toast
   ],
-  templateUrl: './proveedores-detail.component.html'
+  templateUrl: './proveedores-detail.component.html',
+  providers: [MessageService]
 })
 export class ProveedoresDetailComponent implements OnInit, OnDestroy {
   proveedor!: Proveedor;
   tareas: Tarea[] = [];
   obrasMap: Record<number, Obra> = {};
   transacciones: Transaccion[] = [];
+  movimientosPendientes: Transaccion[] = [];
   estadosPago: EstadoPago[] = [];
   costosProveedor: ObraCosto[] = [];
   resumenEstados: { estado: string; cantidad: number; total: number }[] = [];
@@ -51,7 +55,9 @@ export class ProveedoresDetailComponent implements OnInit, OnDestroy {
     private transaccionesService: TransaccionesService,
     private estadoPagoService: EstadoPagoService,
     private costosService: CostosService,
-    private proveedoresStateService: ProveedoresStateService
+    private proveedoresStateService: ProveedoresStateService,
+    private exportService: ExportService,
+    private messageService: MessageService
   ) {}
 
   ngOnInit(): void {
@@ -84,6 +90,7 @@ export class ProveedoresDetailComponent implements OnInit, OnDestroy {
           this.proveedor = proveedor;
           this.tareas = tareas;
           this.transacciones = transacciones;
+          this.movimientosPendientes = transacciones.filter((t) => this.movimientoEsPendiente(t));
           this.estadosPago = estadosPago;
           this.proveedoresStateService.setProveedor(proveedor);
 
@@ -134,5 +141,40 @@ export class ProveedoresDetailComponent implements OnInit, OnDestroy {
 
     const limpio = tipo.replace(/_/g, ' ').toLowerCase();
     return limpio.charAt(0).toUpperCase() + limpio.slice(1);
+  }
+
+  private movimientoEsPendiente(transaccion: Transaccion): boolean {
+    const tipo = (transaccion.tipo_transaccion || '').toLowerCase();
+    const formaPago = (transaccion.forma_pago || '').toLowerCase();
+    return tipo.includes('pend') || formaPago.includes('pend');
+  }
+
+  private obtenerObrasAsignadas(): Obra[] {
+    return Object.values(this.obrasMap ?? {});
+  }
+
+  async exportarDetallePdf() {
+    if (!this.proveedor) return;
+    try {
+      await this.exportService.exportProveedorDetallePdf(
+        this.proveedor,
+        this.obtenerObrasAsignadas(),
+        this.tareas,
+        this.movimientosPendientes
+      );
+
+      this.messageService.add({
+        severity: 'success',
+        summary: 'PDF generado',
+        detail: 'El resumen del proveedor fue descargado correctamente.'
+      });
+    } catch (error) {
+      console.error('Error al exportar proveedor', error);
+      this.messageService.add({
+        severity: 'error',
+        summary: 'No pudimos exportar',
+        detail: 'Intenta nuevamente más tarde.'
+      });
+    }
   }
 }

@@ -15,6 +15,8 @@ import {ObrasService} from '../../../services/obras/obras.service';
 import {ClientesService} from '../../../services/clientes/clientes.service';
 import {EstadoObraService} from '../../../services/estado-obra/estado-obra.service';
 import {Select} from 'primeng/select';
+import {ButtonModule} from 'primeng/button';
+import {ExportService} from '../../../services/export/export.service';
 
 interface EstadoOption {
   label: string;
@@ -34,7 +36,8 @@ interface EstadoOption {
     IconFieldModule,
     InputIconModule,
     DatePipe,
-    Select
+    Select,
+    ButtonModule
   ],
   templateUrl: './obras-list.component.html',
   styleUrls: ['./obras-list.component.css']
@@ -56,7 +59,8 @@ export class ObrasListComponent implements OnInit {
     private router: Router,
     private obrasService: ObrasService,
     private clientesService: ClientesService,
-    private estadoObraService: EstadoObraService
+    private estadoObraService: EstadoObraService,
+    private exportService: ExportService
   ) {
   }
 
@@ -155,5 +159,9 @@ export class ObrasListComponent implements OnInit {
   getProgreso(obra: Obra): number {
     if (!obra.presupuesto || obra.presupuesto === 0) return 0;
     return Math.round(((obra.gastado ?? 0) / obra.presupuesto) * 100);
+  }
+
+  exportarObras() {
+    this.exportService.exportObrasFiltradasExcel(this.obrasFiltradas);
   }
 }

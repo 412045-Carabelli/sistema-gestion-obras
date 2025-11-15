@@ -59,6 +59,15 @@
 
       </div>
 
+      <div class="flex justify-end px-2">
+        <p-button
+          icon="pi pi-file-pdf"
+          label="Descargar PDF"
+          styleClass="p-button-sm"
+          (onClick)="exportarDetallePdf()"
+        ></p-button>
+      </div>
+
       <!-- ===================== TABS MEJORADOS ===================== -->
       <div class="mx-4 bg-white rounded-xl shadow-md overflow-hidden">
         <p-tabs value="0">
@@ -68,7 +77,7 @@
                 <i class="pi pi-building"></i>
                 <span class="font-medium">Obras</span>
                 <span class="ml-2 px-2 py-1 bg-cyan-100 text-cyan-700 text-xs font-semibold rounded-full">
-                  {{ obras?.length || 0 }}
+                  {{ obras.length || 0 }}
                 </span>
               </div>
             </p-tab>
