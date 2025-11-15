@@ -17,6 +17,21 @@
 
 <div class="p-8 space-y-8 max-w-full mx-auto">
 
+  <div class="flex justify-end gap-3">
+    <p-button
+      icon="pi pi-file-pdf"
+      label="Reporte PDF"
+      styleClass="p-button-sm"
+      (onClick)="exportarReportePdf()"
+    ></p-button>
+    <p-button
+      icon="pi pi-file-excel"
+      label="Reporte Excel"
+      styleClass="p-button-sm"
+      (onClick)="exportarReporteExcel()"
+    ></p-button>
+  </div>
+
   <!-- ===================== FILTROS DE BÚSQUEDA ===================== -->
   <div class="bg-white rounded-xl shadow-md p-6">
     <h2 class="text-lg font-semibold text-gray-900 mb-5 flex items-center gap-2 pb-3 border-b border-gray-200">
@@ -211,7 +226,7 @@
           </div>
         </div>
 
-        @if (ingresosEgresos.detallePorObra?.length) {
+        @if (ingresosEgresos && ingresosEgresos.detallePorObra.length) {
           <div class="overflow-x-auto">
             <p-table
               [value]="ingresosEgresos.detallePorObra"
@@ -291,7 +306,7 @@
           </div>
         </div>
 
-        @if (flujoCaja.movimientos?.length) {
+        @if (flujoCaja && flujoCaja.movimientos.length) {
           <div class="overflow-x-auto">
             <p-table
               [value]="flujoCaja.movimientos"

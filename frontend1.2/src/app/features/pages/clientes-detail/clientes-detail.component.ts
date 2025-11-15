@@ -12,12 +12,15 @@ import {TableModule} from 'primeng/table';
 import {TagModule} from 'primeng/tag';
 import {CurrencyPipe, CommonModule} from '@angular/common';
 
-import {Cliente, Obra} from '../../../core/models/models';
+import {Cliente, Obra, Tarea, Transaccion} from '../../../core/models/models';
 import {ClientesService} from '../../../services/clientes/clientes.service';
 import {ObrasService} from '../../../services/obras/obras.service';
 import {ClientesDocumentosComponent} from '../../components/clientes-documentos/clientes-documentos.component';
 import {ClienteStateService} from '../../../services/clientes/clientes-state.service';
 import {StyleClass} from 'primeng/styleclass';
+import {TareasService} from '../../../services/tareas/tareas.service';
+import {TransaccionesService} from '../../../services/transacciones/transacciones.service';
+import {ExportService} from '../../../services/export/export.service';
 
 @Component({
   selector: 'app-clientes-detail',
@@ -47,6 +50,8 @@ import {StyleClass} from 'primeng/styleclass';
 export class ClientesDetailComponent implements OnInit, OnDestroy {
   cliente!: Cliente;
   obras: Obra[] = [];
+  tareas: Array<Tarea & { obraNombre?: string }> = [];
+  movimientosPendientes: Transaccion[] = [];
   loading = true;
 
   // Estadísticas calculadas
@@ -61,8 +66,11 @@ export class ClientesDetailComponent implements OnInit, OnDestroy {
     private router: Router,
     private clientesService: ClientesService,
     private obrasService: ObrasService,
+    private tareasService: TareasService,
+    private transaccionesService: TransaccionesService,
     private messageService: MessageService,
-    private clienteStateService: ClienteStateService
+    private clienteStateService: ClienteStateService,
+    private exportService: ExportService
   ) {
   }
 
@@ -142,6 +150,9 @@ export class ClientesDetailComponent implements OnInit, OnDestroy {
         // Filtrar obras del cliente
         this.obras = obras.filter(o => o.cliente?.id === idCliente);
 
+        this.cargarTareasCliente();
+        this.cargarMovimientosPendientes();
+
         // Calcular estadísticas
         this.calcularEstadisticas();
 
@@ -178,5 +189,83 @@ export class ClientesDetailComponent implements OnInit, OnDestroy {
     // Aquí deberías calcular: presupuesto total - pagos realizados
     // Por ahora usamos un cálculo estimado (40% del presupuesto)
     this.saldoPendiente = this.totalPresupuestado * 0.4;
+  }
+
+  private cargarTareasCliente() {
+    if (!this.obras.length) {
+      this.tareas = [];
+      return;
+    }
+
+    const obrasConId = this.obras.filter((obra): obra is Obra & { id: number } => !!obra.id);
+    const peticiones = obrasConId.map((obra) => this.tareasService.getTareasByObra(obra.id!));
+
+    if (!peticiones.length) {
+      this.tareas = [];
+      return;
+    }
+
+    this.subs.add(
+      forkJoin(peticiones).subscribe({
+        next: (listados) => {
+          const tareasConObra = listados.flatMap((tareasObra, index) => {
+            const obra = obrasConId[index];
+            return tareasObra.map(t => ({...t, obraNombre: obra?.nombre }));
+          });
+          this.tareas = tareasConObra;
+        },
+        error: () => {
+          this.tareas = [];
+        }
+      })
+    );
+  }
+
+  private cargarMovimientosPendientes() {
+    if (!this.cliente?.id) {
+      this.movimientosPendientes = [];
+      return;
+    }
+
+    this.subs.add(
+      this.transaccionesService.getByAsociado('CLIENTE', this.cliente.id).subscribe({
+        next: (movimientos) => {
+          this.movimientosPendientes = movimientos.filter(m => this.movimientoEsPendiente(m));
+        },
+        error: () => {
+          this.movimientosPendientes = [];
+        }
+      })
+    );
+  }
+
+  private movimientoEsPendiente(movimiento: Transaccion): boolean {
+    const tipo = (movimiento.tipo_transaccion || '').toLowerCase();
+    const formaPago = (movimiento.forma_pago || '').toLowerCase();
+    return tipo.includes('pend') || formaPago.includes('pend');
+  }
+
+  async exportarDetallePdf() {
+    if (!this.cliente) return;
+    try {
+      await this.exportService.exportClienteDetallePdf(
+        this.cliente,
+        this.obras,
+        this.tareas,
+        this.movimientosPendientes
+      );
+      this.messageService.add({
+        severity: 'success',
+        summary: 'PDF generado',
+        detail: 'Descargamos el resumen del cliente con toda su actividad.'
+      });
+    } catch (error) {
+      console.error('Error al exportar detalle de cliente', error);
+      this.messageService.add({
+        severity: 'error',
+        summary: 'Error al exportar',
+        detail: 'No pudimos generar el PDF del cliente.'
+      });
+    }
   }
 }

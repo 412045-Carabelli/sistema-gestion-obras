@@ -1,4 +1,4 @@
-import {Component, Input, OnInit} from '@angular/core';
+import {Component, EventEmitter, Input, OnInit, Output} from '@angular/core';
 import {CurrencyPipe, DatePipe, NgClass} from '@angular/common';
 import {TableModule} from 'primeng/table';
 import {ButtonModule} from 'primeng/button';
@@ -33,6 +33,7 @@ export class ObraMovimientosComponent implements OnInit {
   @Input() obraId!: number;
   @Input() clientes!: Cliente[];
   @Input() proveedores!: Proveedor[];
+  @Output() movimientosActualizados = new EventEmitter<Transaccion[]>();
 
   transacciones: Transaccion[] = [];
   tiposTransaccion: { label: string; name: string }[] = [];
@@ -118,6 +119,7 @@ export class ObraMovimientosComponent implements OnInit {
         ...t,
         etiqueta: this.tipoValue(t) === 'COBRO' ? 'FC' : 'RBOS'
       }));
+      this.emitirMovimientos();
     });
 
     this.transaccionesService.getTipos().subscribe(tipos => {
@@ -252,6 +254,10 @@ export class ObraMovimientosComponent implements OnInit {
     if (raw && typeof raw.id === 'number') return raw.id === 1 ? 'COBRO' : raw.id === 2 ? 'PAGO' : '';
     const nombre = (raw?.nombre || '').toString().toUpperCase();
     return (nombre.includes('COBRO') ? 'COBRO' : nombre.includes('PAGO') ? 'PAGO' : '') as any;
+  }
+
+  private emitirMovimientos() {
+    this.movimientosActualizados.emit([...(this.transacciones || [])]);
   }
 
 }

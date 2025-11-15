@@ -14,7 +14,7 @@ import {Select} from 'primeng/select';
 import {MessageService} from 'primeng/api';
 import {ToastModule} from 'primeng/toast';
 
-import {Cliente, EstadoObra, Obra, ObraCosto, Proveedor, Tarea} from '../../../core/models/models';
+import {Cliente, EstadoObra, Obra, ObraCosto, Proveedor, Tarea, Transaccion} from '../../../core/models/models';
 import {ObraMovimientosComponent} from '../../components/obra-movimientos/obra-movimientos.component';
 import {ObraTareasComponent} from '../../components/obra-tareas/obra-tareas.component';
 import {ObraPresupuestoComponent} from '../../components/obra-presupuesto/obra-presupuesto.component';
@@ -27,6 +27,7 @@ import {ObraDocumentosComponent} from '../../components/obra-documentos/obra-doc
 import {Tab, TabList, TabPanel, TabPanels, Tabs} from 'primeng/tabs';
 import {ClientesService} from '../../../services/clientes/clientes.service';
 import {ObrasStateService} from '../../../services/obras/obras-state.service';
+import {ExportService} from '../../../services/export/export.service';
 import {StyleClass} from 'primeng/styleclass';
 
 @Component({
@@ -70,6 +71,7 @@ export class ObrasDetailComponent implements OnInit, OnDestroy {
   progresoFisico = 0;
   estadosObra: EstadoObra[] = [];
   estadoSeleccionado: string | null = null;
+  movimientosObra: Transaccion[] = [];
 
   loading = true;
   private subs = new Subscription();
@@ -81,7 +83,8 @@ export class ObrasDetailComponent implements OnInit, OnDestroy {
     private proveedoresService: ProveedoresService,
     private estadoObraService: EstadoObraService,
     private messageService: MessageService,
-    private obraStateService: ObrasStateService
+    private obraStateService: ObrasStateService,
+    private exportService: ExportService
   ) {}
 
   ngOnInit(): void {
@@ -206,6 +209,34 @@ export class ObrasDetailComponent implements OnInit, OnDestroy {
       summary: 'Tareas actualizadas',
       detail: 'Se actualizaron correctamente las tareas de esta obra.'
     });
+  }
+
+  onMovimientosActualizados(transacciones: Transaccion[]) {
+    this.movimientosObra = transacciones;
+  }
+
+  async exportarOperativaExcel() {
+    if (!this.obra) return;
+    try {
+      await this.exportService.exportObraOperacionExcel(
+        this.obra,
+        this.tareas,
+        this.costos,
+        this.movimientosObra
+      );
+      this.messageService.add({
+        severity: 'success',
+        summary: 'Excel generado',
+        detail: 'Descargamos la hoja operativa con tareas y movimientos.'
+      });
+    } catch (error) {
+      console.error('Error al exportar hoja operativa', error);
+      this.messageService.add({
+        severity: 'error',
+        summary: 'No se pudo exportar',
+        detail: 'Intenta nuevamente más tarde.'
+      });
+    }
   }
 
   toggleActivo() {

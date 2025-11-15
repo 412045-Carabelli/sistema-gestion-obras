@@ -65,6 +65,15 @@
         </div>
       </div>
 
+      <div class="flex justify-end px-2">
+        <p-button
+          icon="pi pi-file-excel"
+          label="Exportar Excel"
+          styleClass="p-button-sm"
+          (onClick)="exportarOperativaExcel()"
+        ></p-button>
+      </div>
+
       <!-- ===================== FECHAS Y PROGRESO ===================== -->
       <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
@@ -174,6 +183,7 @@
             <p-tabpanel value="1">
               <app-obra-presupuesto
                 [obraId]="obra.id!"
+                [obra]="obra"
                 [proveedores]="proveedores"
                 [costos]="obra.costos!"
                 [usarBeneficioGlobal]="obra.beneficio_global ?? false"
@@ -189,6 +199,7 @@
                 [clientes]="[obra.cliente]"
                 [proveedores]="proveedores"
                 [obraId]="obra.id!"
+                (movimientosActualizados)="onMovimientosActualizados($event)"
               >
               </app-obra-movimientos>
             </p-tabpanel>
