@@ -22,6 +22,14 @@ public class ObrasCostosController {
             @PathVariable("estado") com.obras.enums.EstadoPagoEnum estado) {
         return svc.actualizarEstadoPago(idCosto, estado);
     }
+
+    @PutMapping("/{id}")
+    public ObraCostoDTO actualizar(
+            @PathVariable("id") Long idCosto,
+            @RequestBody ObraCostoDTO dto) {
+        return svc.actualizar(idCosto, dto);
+    }
+
     @DeleteMapping("/{id}") public void delCosto(@PathVariable("id") Long id){ svc.eliminar(id); }
 
 }

@@ -16,7 +16,8 @@ export class CostosService {
   }
 
   createCosto(payload: Partial<ObraCosto>): Observable<ObraCosto> {
-    return this.http.post<ObraCosto>(`${this.apiUrl}`, payload);
+    const idObra = (payload as any)?.id_obra ?? (payload as any)?.obraId ?? (payload as any)?.obra_id;
+    return this.http.post<ObraCosto>(`${this.apiUrl}/${idObra}`, payload);
   }
 
   updateCosto(idCosto: number, payload: Partial<ObraCosto>): Observable<ObraCosto> {

@@ -8,7 +8,7 @@
   @defer (when proveedor) {
     <div class="p-4 space-y-8 w-full mx-auto">
       <!-- ===================== TARJETAS DE INFO PRINCIPAL ===================== -->
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
 
         <!-- Tarjeta Tipo -->
         <div class="bg-white rounded-xl shadow-md p-6 border-l-4 border-purple-500 hover:shadow-lg transition-shadow">
@@ -31,29 +31,15 @@
           </div>
           <p class="text-lg font-semibold text-gray-900">{{ proveedor.contacto || 'Sin contacto' }}</p>
         </div>
-
-        <!-- Tarjeta Teléfono -->
+        <!-- Tarjeta Gremio -->
         <div class="bg-white rounded-xl shadow-md p-6 border-l-4 border-green-500 hover:shadow-lg transition-shadow">
           <div class="flex items-center gap-3 mb-2">
             <div class="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
-              <i class="pi pi-phone text-green-600 text-lg"></i>
+              <i class="pi pi-sitemap text-green-600 text-lg"></i>
             </div>
-            <span class="text-sm font-medium text-gray-500">Teléfono</span>
+            <span class="text-sm font-medium text-gray-500">Gremio</span>
           </div>
-          <p class="text-lg font-semibold text-gray-900">{{ proveedor.telefono || 'Sin teléfono' }}</p>
-        </div>
-
-        <!-- Tarjeta Email -->
-        <div class="bg-white rounded-xl shadow-md p-6 border-l-4 border-orange-500 hover:shadow-lg transition-shadow">
-          <div class="flex items-center gap-3 mb-2">
-            <div class="w-10 h-10 bg-orange-100 rounded-lg flex items-center justify-center">
-              <i class="pi pi-envelope text-orange-600 text-lg"></i>
-            </div>
-            <span class="text-sm font-medium text-gray-500">Email</span>
-          </div>
-          <p class="text-lg font-semibold text-gray-900 truncate" [title]="proveedor.email || 'Sin email'">
-            {{ proveedor.email || 'Sin email' }}
-          </p>
+          <p class="text-lg font-semibold text-gray-900">{{ proveedor.gremio || 'Sin gremio' }}</p>
         </div>
       </div>
 
@@ -386,8 +372,8 @@
     <!-- 🦴 Skeleton Mejorado -->
     <div class="p-8 space-y-8 max-w-full mx-auto">
       <!-- Tarjetas skeleton -->
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        @for (item of [1,2,3,4]; track item) {
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          @for (item of [1,2,3]; track item) {
           <div class="bg-white rounded-xl shadow-md p-6 animate-pulse">
             <div class="flex items-center gap-3 mb-2">
               <div class="w-10 h-10 bg-gray-200 rounded-lg"></div>
@@ -432,3 +418,5 @@
     </div>
   }
 }
+
+

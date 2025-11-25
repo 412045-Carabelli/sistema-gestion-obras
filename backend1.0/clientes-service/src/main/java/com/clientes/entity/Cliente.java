@@ -18,6 +18,9 @@ public class Cliente {
     @Column(name = "condicion_iva", nullable = false)
     private String condicionIVA;
 
+    @Column(nullable = false)
+    private Boolean activo = Boolean.TRUE;
+
     private Instant creadoEn = Instant.now();
 
     @Column(name = "ultima_actualizacion")
@@ -31,6 +34,9 @@ public class Cliente {
         if (this.condicionIVA == null) {
             this.condicionIVA = "Consumidor Final";
         }
+        if (this.activo == null) {
+            this.activo = Boolean.TRUE;
+        }
         marcarAuditoria("CREATE");
     }
 
@@ -38,6 +44,9 @@ public class Cliente {
     public void preUpdate() {
         if (this.condicionIVA == null) {
             this.condicionIVA = "Consumidor Final";
+        }
+        if (this.activo == null) {
+            this.activo = Boolean.TRUE;
         }
         marcarAuditoria("UPDATE");
     }

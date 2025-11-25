@@ -63,10 +63,9 @@ public class ClienteBffController {
         return client.post()
                 .uri(CLIENTES_URL)
                 .contentType(MediaType.APPLICATION_JSON)
-                .bodyValue(clienteData)
-                .retrieve()
-                .bodyToMono(new ParameterizedTypeReference<Map<String, Object>>() {})
-                .map(ResponseEntity::ok)
+                .bodyValue(normalizar(clienteData))
+                .exchangeToMono(resp -> resp.toEntity(new ParameterizedTypeReference<Map<String, Object>>() {}))
+                .map(r -> ResponseEntity.status(r.getStatusCode()).body(r.getBody()))
                 .onErrorResume(ex -> Mono.just(ResponseEntity.badRequest().build()));
     }
 
@@ -83,10 +82,9 @@ public class ClienteBffController {
         return client.put()
                 .uri(CLIENTES_URL + "/{id}", id)
                 .contentType(MediaType.APPLICATION_JSON)
-                .bodyValue(clienteData)
-                .retrieve()
-                .bodyToMono(new ParameterizedTypeReference<Map<String, Object>>() {})
-                .map(ResponseEntity::ok)
+                .bodyValue(normalizar(clienteData))
+                .exchangeToMono(resp -> resp.toEntity(new ParameterizedTypeReference<Map<String, Object>>() {}))
+                .map(r -> ResponseEntity.status(r.getStatusCode()).body(r.getBody()))
                 .onErrorResume(ex -> Mono.just(ResponseEntity.badRequest().build()));
     }
 
@@ -103,5 +101,38 @@ public class ClienteBffController {
                 .toBodilessEntity()
                 .map(response -> ResponseEntity.noContent().build())
                 .onErrorResume(ex -> Mono.just(ResponseEntity.notFound().build()));
+    }
+
+    @PatchMapping("/{id}/activar")
+    public Mono<ResponseEntity<Object>> activar(@PathVariable Long id) {
+        return webClientBuilder.build()
+                .patch()
+                .uri(CLIENTES_URL + "/{id}/activar", id)
+                .retrieve()
+                .toBodilessEntity()
+                .map(resp -> ResponseEntity.ok().build())
+                .onErrorResume(ex -> Mono.just(ResponseEntity.notFound().build()));
+    }
+
+    @PatchMapping("/{id}/desactivar")
+    public Mono<ResponseEntity<Object>> desactivar(@PathVariable Long id) {
+        return webClientBuilder.build()
+                .patch()
+                .uri(CLIENTES_URL + "/{id}/desactivar", id)
+                .retrieve()
+                .toBodilessEntity()
+                .map(resp -> ResponseEntity.ok().build())
+                .onErrorResume(ex -> Mono.just(ResponseEntity.notFound().build()));
+    }
+
+    private Map<String, Object> normalizar(Map<String, Object> raw) {
+        if (raw == null) return Map.of();
+        var map = new java.util.HashMap<>(raw);
+        Object cond = map.getOrDefault("condicion_iva", map.get("condicionIVA"));
+        if (cond != null) {
+            map.put("condicionIVA", cond);
+            map.remove("condicion_iva");
+        }
+        return map;
     }
 }

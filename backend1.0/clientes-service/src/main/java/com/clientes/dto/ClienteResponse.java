@@ -17,6 +17,7 @@ public class ClienteResponse {
     private String telefono;
     private String email;
     private String condicionIVA;
+    private Boolean activo;
     private Instant creadoEn;
     private Instant ultimaActualizacion;
     private String tipoActualizacion;

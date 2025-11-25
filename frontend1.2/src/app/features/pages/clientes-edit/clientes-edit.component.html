@@ -1,101 +1,100 @@
 <p-toast></p-toast>
 
 @if (loading) {
-  <div class="flex justify-center items-center min-h-[60vh]">
-    <p-progressSpinner styleClass="w-16 h-16" strokeWidth="4" animationDuration=".8s"></p-progressSpinner>
+  <div class="flex justify-center items-center min-h-[50vh]">
+    <p-progressSpinner styleClass="w-10 h-10" strokeWidth="4" animationDuration=".8s"></p-progressSpinner>
   </div>
 } @else {
   <div class="p-6 w-full mx-auto bg-white rounded-xl shadow-sm space-y-6">
-    <h2 class="text-2xl font-bold">
-      Editar Cliente
-    </h2>
-
-    <form [formGroup]="form" (ngSubmit)="onSubmit()" class="space-y-4 flex flex-col gap-5 ">
-      <div class="flex flex-col flex-wrap gap-5">
-        <!-- Nombre y Contacto -->
-        <div class="flex gap-5">
-          <div class="min-h-[72px] w-full">
-            <label class="block text-sm font-medium text-gray-700">Nombre *</label>
-            <input pInputText type="text" formControlName="nombre" class="w-full"/>
-            @if (form.get('nombre')?.invalid && form.get('nombre')?.touched) {
-              <small class="text-red-500 text-xs mt-1 h-[16px] block">Campo obligatorio</small>
-            }
-          </div>
-
-          <div class="min-h-[72px] w-full">
-            <label class="block text-sm font-medium text-gray-700">Contacto *</label>
-            <input pInputText type="text" formControlName="contacto" class="w-full"/>
-            @if (form.get('contacto')?.invalid && form.get('contacto')?.touched) {
-              <small class="text-red-500 text-xs mt-1 h-[16px] block">Campo obligatorio</small>
-            }
-          </div>
+    <form (ngSubmit)="onSubmit()" [formGroup]="form" class="space-y-4">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+        <div class="min-h-[72px] w-full">
+          <label class="block text-sm font-medium text-gray-700">Nombre *</label>
+          <input class="w-full" formControlName="nombre" pInputText type="text"/>
+          @if (form.get('nombre')?.invalid && form.get('nombre')?.touched) {
+            <small class="text-red-500 text-xs mt-1 h-[16px] block">Campo obligatorio</small>
+          }
         </div>
 
-        <!-- CUIT y Teléfono -->
-        <div class="flex gap-5">
-          <div class="w-full">
-            <label class="block text-sm font-medium text-gray-700">CUIT *</label>
-            <input pInputText type="text" formControlName="cuit" class="w-full"/>
-            @if (form.get('cuit')?.invalid && form.get('cuit')?.touched) {
-              <small class="text-red-500 text-xs mt-1 h-[16px] block">Campo obligatorio</small>
-            }
-          </div>
-
-          <div class="min-h-[72px] w-full">
-            <label class="block text-sm font-medium text-gray-700">Teléfono *</label>
-            <input pInputText type="text" formControlName="telefono" class="w-full"/>
-            @if (form.get('telefono')?.invalid && form.get('telefono')?.touched) {
-              <small class="text-red-500 text-xs mt-1 h-[16px] block">
-                El teléfono debe tener entre 10 y 15 caracteres
-              </small>
-            }
-          </div>
+        <div class="min-h-[72px] w-full">
+          <label class="block text-sm font-medium text-gray-700">Contacto *</label>
+          <input class="w-full" formControlName="contacto" pInputText type="text"/>
+          @if (form.get('contacto')?.invalid && form.get('contacto')?.touched) {
+            <small class="text-red-500 text-xs mt-1 h-[16px] block">Campo obligatorio</small>
+          }
         </div>
 
-        <!-- Email y Activo -->
-        <div class="flex gap-5">
-          <div class="min-h-[72px] w-full lg:w-[400px]">
-            <label class="block text-sm font-medium text-gray-700">Email *</label>
-            <input pInputText type="email" formControlName="email" class="w-full"/>
-            @if (form.get('email')?.invalid && form.get('email')?.touched) {
-              <small class="text-red-500 text-xs mt-1 h-[16px] block">
-                Ingrese un email válido
-              </small>
-            }
-          </div>
+        <div class="w-full">
+          <label class="block text-sm font-medium text-gray-700">CUIT *</label>
+          <input class="w-full" formControlName="cuit" pInputText type="text"/>
+          @if (form.get('cuit')?.invalid && form.get('cuit')?.touched) {
+            <small class="text-red-500 text-xs mt-1 h-[16px] block">Campo obligatorio</small>
+          }
+        </div>
 
-          <div class="min-h-[72px] w-full">
-            <label class="block text-sm font-medium text-gray-700">Condición IVA *</label>
-            <p-select
-              [options]="ivaOptions"
-              appendTo="body"
-              class="w-full"
-              formControlName="condicion_iva"
-              optionLabel="label"
-              optionValue="name"
-              placeholder="Selecciona condición IVA">
-            </p-select>
-            @if (form.get('condicion_iva')?.invalid && form.get('condicion_iva')?.touched) {
-              <small class="text-red-500 text-xs mt-1 h-[16px] block">Seleccione una opción</small>
-            }
-          </div>
+        <div class="min-h-[72px] w-full">
+          <label class="block text-sm font-medium text-gray-700">Teléfono *</label>
+          <input class="w-full" formControlName="telefono" pInputText type="number"/>
+          @if (form.get('telefono')?.invalid && form.get('telefono')?.touched) {
+            <small class="text-red-500 text-xs mt-1 h-[16px] block">
+              El teléfono debe tener entre 10 y 15 caracteres
+            </small>
+          }
+        </div>
+
+        <div class="min-h-[72px] w-full">
+          <label class="block text-sm font-medium text-gray-700">Email *</label>
+          <input class="w-full" formControlName="email" pInputText type="email"/>
+          @if (form.get('email')?.invalid && form.get('email')?.touched) {
+            <small class="text-red-500 text-xs mt-1 h-[16px] block">
+              Ingrese un email válido
+            </small>
+          }
+        </div>
+
+        <div class="min-h-[72px] w-full">
+          <label class="block text-sm font-medium text-gray-700">Condición IVA *</label>
+          <p-select
+            [options]="ivaOptions"
+            appendTo="body"
+            class="w-full"
+            formControlName="condicion_iva"
+            optionLabel="label"
+            optionValue="name"
+            placeholder="Selecciona condición IVA">
+          </p-select>
+          @if (form.get('condicion_iva')?.invalid && form.get('condicion_iva')?.touched) {
+            <small class="text-red-500 text-xs mt-1 h-[16px] block">Seleccione una opción</small>
+          }
+        </div>
+
+        <div class="min-h-[72px] w-full">
+          <label class="block text-sm font-medium text-gray-700">Estado</label>
+          <p-select
+            [options]="[{label: 'Activo', value: true}, {label: 'Inactivo', value: false}]"
+            appendTo="body"
+            class="w-full"
+            formControlName="activo"
+            optionLabel="label"
+            optionValue="value">
+          </p-select>
         </div>
       </div>
 
       <div class="flex justify-end gap-2 pt-4">
         <p-button
+          [routerLink]="['/clientes']"
+          icon="pi pi-times"
           label="Cancelar"
           severity="secondary"
-          icon="pi pi-times"
-          [routerLink]="['/clientes', clienteId]"
           styleClass="p-button-text">
         </p-button>
         <p-button
-          label="Actualizar"
-          icon="pi pi-check"
-          type="submit"
           [disabled]="form.invalid"
-          styleClass="p-button-primary">
+          icon="pi pi-check"
+          label="Guardar"
+          styleClass="p-button-primary"
+          type="submit">
         </p-button>
       </div>
     </form>

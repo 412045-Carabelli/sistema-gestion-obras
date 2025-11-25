@@ -17,7 +17,6 @@ import {ToastModule} from 'primeng/toast';
 import {Cliente, EstadoObra, Obra, ObraCosto, Proveedor, Tarea} from '../../../core/models/models';
 import {ObraMovimientosComponent} from '../../components/obra-movimientos/obra-movimientos.component';
 import {ObraTareasComponent} from '../../components/obra-tareas/obra-tareas.component';
-import {ObraPresupuestoComponent} from '../../components/obra-presupuesto/obra-presupuesto.component';
 
 import {ObrasService} from '../../../services/obras/obras.service';
 import {ProveedoresService} from '../../../services/proveedores/proveedores.service';
@@ -28,6 +27,7 @@ import {Tab, TabList, TabPanel, TabPanels, Tabs} from 'primeng/tabs';
 import {ClientesService} from '../../../services/clientes/clientes.service';
 import {ObrasStateService} from '../../../services/obras/obras-state.service';
 import {StyleClass} from 'primeng/styleclass';
+import {ObraPresupuestoComponent} from '../../components/obra-presupuesto/obra-presupuesto.component';
 
 @Component({
   selector: 'app-obra-detail',
@@ -228,7 +228,9 @@ export class ObrasDetailComponent implements OnInit, OnDestroy {
 
   toggleActivo() {
     this.obraService.activarObra(this.obra.id!).subscribe({
-      next: (c) => {
+      next: () => {
+        this.obra.activo = !this.obra.activo;
+        this.obraStateService.setObra(this.obra);
         this.messageService.add({
           severity: 'success',
           summary: this.obra.activo ? 'Obra activada' : 'Obra desactivada',

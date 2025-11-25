@@ -1,8 +1,16 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { map, Observable } from 'rxjs';
 import { Proveedor } from '../../core/models/models';
 import { environment } from '../../../environments/environment';
+
+export interface CatalogoOption {
+  id?: number;
+  nombre: string;
+  label: string;
+  name: string;
+  activo?: boolean;
+}
 
 @Injectable({
   providedIn: 'root'
@@ -15,51 +23,120 @@ export class ProveedoresService {
 
   constructor(private http: HttpClient) {}
 
-  // 🔹 Obtener todos los proveedores
+  // Obtener todos los proveedores
   getProveedores(): Observable<Proveedor[]> {
-    return this.http.get<Proveedor[]>(this.apiUrl);
+    return this.http.get<any[]>(this.apiUrl).pipe(map(items => items.map(i => this.toFrontProveedor(i))));
   }
 
-  // 🔹 Obtener proveedor por ID
+  // Obtener proveedor por ID
   getProveedorById(id: number): Observable<Proveedor> {
-    return this.http.get<Proveedor>(`${this.apiUrl}/${id}`);
+    return this.http.get<any>(`${this.apiUrl}/${id}`).pipe(map(p => this.toFrontProveedor(p)));
   }
 
-  // 🔹 Crear proveedor (envía solo el string del enum)
+  // Crear proveedor
   createProveedor(proveedor: any): Observable<Proveedor> {
     const body = this.serializeProveedor(proveedor);
     return this.http.post<Proveedor>(this.apiUrl, body);
   }
 
-  // 🔹 Actualizar proveedor
+  // Actualizar proveedor
   updateProveedor(id: number, proveedor: any): Observable<Proveedor> {
     const body = this.serializeProveedor(proveedor);
     return this.http.put<Proveedor>(`${this.apiUrl}/${id}`, body);
   }
 
-  // 🔹 Obtener tipos de proveedor (ENUM → { value, label })
-  getTipos(): Observable<{ label: string; name: string }[]> {
-    return this.http.get<{ label: string; name: string }[]>(this.tiposUrl);
+  // Tipos de proveedor
+  getTipos(): Observable<CatalogoOption[]> {
+    return this.http.get<any[]>(this.tiposUrl).pipe(map(items => items.map(i => this.toOption(i))));
   }
 
-  getGremios(): Observable<{ label: string; name: string }[]> {
-    return this.http.get<{ label: string; name: string }[]>(this.gremiosUrl);
+  crearTipo(nombre: string): Observable<CatalogoOption> {
+    return this.http.post<any>(this.tiposUrl, { nombre }).pipe(map(data => this.toOption(data)));
   }
 
-  // ----------------------------------------------------------
-  // 🔧 SERIALIZACIÓN (para enviar enums como string)
-  // ----------------------------------------------------------
+  actualizarTipo(id: number, nombre: string): Observable<CatalogoOption> {
+    return this.http.put<any>(`${this.tiposUrl}/${id}`, { nombre }).pipe(map(data => this.toOption(data)));
+  }
+
+  eliminarTipo(id: number): Observable<void> {
+    return this.http.delete<void>(`${this.tiposUrl}/${id}`);
+  }
+
+  // Gremios
+  getGremios(): Observable<CatalogoOption[]> {
+    return this.http.get<any[]>(this.gremiosUrl).pipe(map(items => items.map(i => this.toOption(i))));
+  }
+
+  crearGremio(nombre: string): Observable<CatalogoOption> {
+    return this.http.post<any>(this.gremiosUrl, { nombre }).pipe(map(data => this.toOption(data)));
+  }
+
+  actualizarGremio(id: number, nombre: string): Observable<CatalogoOption> {
+    return this.http.put<any>(`${this.gremiosUrl}/${id}`, { nombre }).pipe(map(data => this.toOption(data)));
+  }
+
+  eliminarGremio(id: number): Observable<void> {
+    return this.http.delete<void>(`${this.gremiosUrl}/${id}`);
+  }
+
+  // Normaliza payload del proveedor
   private serializeProveedor(proveedor: any) {
     const body = { ...proveedor };
 
-    if (body?.tipo_proveedor?.value) {
-      body.tipo_proveedor = body.tipo_proveedor.value;
+    const tipo =
+      body?.tipo_proveedor?.value ??
+      body?.tipo_proveedor?.name ??
+      body?.tipo_proveedor ??
+      body?.tipo;
+
+    const gremio =
+      body?.gremio?.value ??
+      body?.gremio?.name ??
+      body?.gremio;
+
+    if (tipo) {
+      body.tipo = tipo;
+      body.tipo_proveedor = tipo;
     }
 
-    if (body?.gremio?.value) {
-      body.gremio = body.gremio.value;
+    if (gremio) {
+      body.gremio = gremio;
+    }
+
+    if (body?.cuit && !body?.dniCuit) {
+      body.dniCuit = body.cuit;
     }
 
     return body;
+  }
+
+  private toOption(item: any): CatalogoOption {
+    const nombre = item?.nombre || item?.name || item?.label || '';
+    return {
+      id: item?.id,
+      nombre,
+      label: item?.label || nombre,
+      name: item?.name || nombre,
+      activo: item?.activo ?? true
+    };
+  }
+
+  private toFrontProveedor(raw: any): Proveedor {
+    // Normaliza campos que vienen del backend a la forma usada en el front
+    return {
+      id: raw?.id,
+      nombre: raw?.nombre,
+      tipo_proveedor: raw?.tipo ?? raw?.tipo_proveedor,
+      gremio: raw?.gremio,
+      direccion: raw?.direccion,
+      cuit: raw?.dniCuit ?? raw?.cuit,
+      contacto: raw?.contacto,
+      telefono: raw?.telefono,
+      email: raw?.email,
+      activo: raw?.activo ?? true,
+      creado_en: raw?.creado_en ?? raw?.creadoEn,
+      ultima_actualizacion: raw?.ultima_actualizacion ?? raw?.ultimaActualizacion,
+      tipo_actualizacion: raw?.tipo_actualizacion ?? raw?.tipoActualizacion
+    } as Proveedor;
   }
 }

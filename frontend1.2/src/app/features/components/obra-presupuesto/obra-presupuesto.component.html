@@ -27,49 +27,74 @@
 
   <!-- Formulario rápido para agregar costos -->
   <div class="grid grid-cols-1 lg:grid-cols-5 gap-3 bg-gray-50 border border-dashed border-gray-200 p-3 rounded-lg">
-    <p-select
-      [(ngModel)]="nuevoCosto.id_proveedor"
-      [options]="proveedores"
-      optionLabel="nombre"
-      optionValue="id"
-      placeholder="Proveedor"
-      styleClass="w-full"
-    ></p-select>
-    <input
-      [(ngModel)]="nuevoCosto.descripcion"
-      class="w-full lg:col-span-2"
-      pInputText
-      placeholder="Descripción"
-      type="text"
-    />
-    <div class="flex gap-2">
+    <div class="flex flex-col gap-1">
+      <label class="text-xs text-gray-600">Proveedor</label>
+      <p-select
+        [(ngModel)]="nuevoCosto.id_proveedor"
+        [options]="proveedores"
+        optionLabel="nombre"
+        optionValue="id"
+        placeholder="Proveedor"
+        styleClass="w-full"
+      ></p-select>
+    </div>
+    <div class="flex flex-col gap-1 lg:col-span-2">
+      <label class="text-xs text-gray-600">Descripción</label>
       <input
-        [(ngModel)]="nuevoCosto.cantidad"
-        class="w-1/2"
-        min="0"
+        [(ngModel)]="nuevoCosto.descripcion"
+        class="w-full"
         pInputText
-        placeholder="Cant."
-        type="number"
-      />
-      <input
-        [(ngModel)]="nuevoCosto.precio_unitario"
-        class="w-1/2"
-        min="0"
-        pInputText
-        placeholder="Precio"
-        type="number"
+        placeholder="Descripción"
+        type="text"
       />
     </div>
-    <div class="flex gap-2 items-center">
-      <input
-        [(ngModel)]="nuevoCosto.beneficio"
-        [disabled]="usarBeneficioGlobal"
-        class="w-20"
-        min="0"
-        pInputText
-        placeholder="%"
-        type="number"
-      />
+    <div class="flex gap-2">
+      <div class="flex flex-col gap-1 w-1/3">
+        <label class="text-xs text-gray-600">Cantidad</label>
+        <input
+          [(ngModel)]="nuevoCosto.cantidad"
+          class="w-full"
+          min="0"
+          pInputText
+          placeholder="Cant."
+          type="number"
+        />
+      </div>
+      <div class="flex flex-col gap-1 w-1/3">
+        <label class="text-xs text-gray-600">Precio unitario</label>
+        <input
+          [(ngModel)]="nuevoCosto.precio_unitario"
+          class="w-full"
+          min="0"
+          pInputText
+          placeholder="Precio"
+          type="number"
+        />
+      </div>
+      <div class="flex flex-col gap-1 w-1/3">
+        <label class="text-xs text-gray-600">Unidad</label>
+        <input
+          [(ngModel)]="nuevoCosto.unidad"
+          class="w-full"
+          pInputText
+          placeholder="Ej: m2"
+          type="text"
+        />
+      </div>
+    </div>
+    <div class="flex gap-2 items-end">
+      <div class="flex flex-col gap-1">
+        <label class="text-xs text-gray-600">Beneficio (%)</label>
+        <input
+          [(ngModel)]="nuevoCosto.beneficio"
+          [disabled]="usarBeneficioGlobal"
+          class="w-20"
+          min="0"
+          pInputText
+          placeholder="%"
+          type="number"
+        />
+      </div>
       <p-button icon="pi pi-plus" label="Agregar" (onClick)="agregarCosto()"></p-button>
     </div>
   </div>
@@ -123,23 +148,27 @@
         </td>
         <td class="px-3 py-2">
           <div class="flex gap-2 items-center">
-            <input
-              [(ngModel)]="c.cantidad"
-              (input)="recalcularEnEdicion(c)"
-              [disabled]="!c.enEdicion"
-              class="w-20"
-              min="0"
-              pInputText
-              type="number"
-            />
-            <input
-              [(ngModel)]="c.unidad"
-              [disabled]="!c.enEdicion"
-              class="w-16"
-              pInputText
-              placeholder="Unidad"
-              type="text"
-            />
+            <div class="flex flex-col gap-1 w-20">
+              <input
+                [(ngModel)]="c.cantidad"
+                (input)="recalcularEnEdicion(c)"
+                [disabled]="!c.enEdicion"
+                class="w-full"
+                min="0"
+                pInputText
+                type="number"
+              />
+            </div>
+            <div class="flex flex-col gap-1 w-16">
+              <input
+                [(ngModel)]="c.unidad"
+                [disabled]="!c.enEdicion"
+                class="w-full"
+                pInputText
+                placeholder="Unidad"
+                type="text"
+              />
+            </div>
           </div>
         </td>
         <td class="px-3 py-2 text-right">
@@ -254,3 +283,48 @@
     </div>
   </ng-template>
 </div>
+
+<!-- Modal para registrar pago -->
+<app-modal
+  [visible]="modalPagoVisible"
+  [title]="'Registrar movimiento de pago'"
+  (closed)="cancelarPago()"
+  (confirmed)="confirmarPago()">
+  <div class="flex flex-col gap-3 py-2">
+    <div class="flex flex-col gap-1">
+      <label class="text-sm font-medium text-gray-700">Tipo de movimiento</label>
+      <p-select
+        [(ngModel)]="transaccionForm.tipo_movimiento"
+        [options]="[{label:'Pago', value:'PAGO'},{label:'Cobro', value:'COBRO'}]"
+        optionLabel="label"
+        optionValue="value"
+        styleClass="w-full">
+      </p-select>
+    </div>
+    <div class="flex flex-col gap-1">
+      <label class="text-sm font-medium text-gray-700">Monto</label>
+      <input pInputText type="number" [(ngModel)]="transaccionForm.monto" class="w-full" />
+    </div>
+    <div class="flex flex-col gap-1">
+      <label class="text-sm font-medium text-gray-700">Forma de pago</label>
+      <p-select
+        [(ngModel)]="transaccionForm.forma_pago"
+        [options]="[{label:'Total', value:'TOTAL'},{label:'Parcial', value:'PARCIAL'}]"
+        optionLabel="label"
+        optionValue="value"
+        styleClass="w-full">
+      </p-select>
+    </div>
+    <div class="flex flex-col gap-1">
+      <label class="text-sm font-medium text-gray-700">Fecha</label>
+      <input pInputText type="date" [(ngModel)]="transaccionForm.fecha" class="w-full" />
+    </div>
+    <div class="flex flex-col gap-1">
+      <label class="text-sm font-medium text-gray-700">Observación</label>
+      <textarea class="w-full border rounded p-2 text-sm" [(ngModel)]="transaccionForm.observacion" rows="3"></textarea>
+    </div>
+    <div *ngIf="errorApi" class="text-sm text-red-600 bg-red-50 border border-red-200 rounded p-2">
+      {{ errorApi }}
+    </div>
+  </div>
+</app-modal>

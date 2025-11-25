@@ -21,6 +21,7 @@ import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import jakarta.persistence.EntityNotFoundException;
 
 @Service
 @RequiredArgsConstructor
@@ -106,26 +107,66 @@ public class ProveedorService {
         if (!StringUtils.hasText(nombre)) {
             throw new IllegalArgumentException("El nombre del tipo es obligatorio");
         }
-        return tipoProveedorRepo.findByNombreIgnoreCase(nombre)
-                .orElseGet(() -> {
-                    TipoProveedor tipo = new TipoProveedor();
-                    tipo.setNombre(nombre.trim());
-                    tipo.setActivo(true);
-                    return tipoProveedorRepo.save(tipo);
-                });
+        return tipoProveedorRepo.findByNombreIgnoreCase(nombre.trim())
+                .map(existing -> {
+                    existing.setActivo(true);
+                    existing.setNombre(nombre.trim());
+                    return tipoProveedorRepo.save(existing);
+                })
+                .orElseGet(() -> tipoProveedorRepo.save(crearNuevoTipo(nombre)));
+    }
+
+    public TipoProveedor actualizarTipo(Long id, String nombre) {
+        validarNombre(nombre, "El nombre del tipo es obligatorio");
+        TipoProveedor existente = tipoProveedorRepo.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Tipo de proveedor no encontrado"));
+        validarNombreDisponible(nombre, id, true);
+        existente.setNombre(nombre.trim());
+        existente.setActivo(true);
+        return tipoProveedorRepo.save(existente);
+    }
+
+    public boolean eliminarTipo(Long id) {
+        return tipoProveedorRepo.findById(id)
+                .map(tipo -> {
+                    tipo.setActivo(false);
+                    tipoProveedorRepo.save(tipo);
+                    return true;
+                })
+                .orElse(false);
     }
 
     public Gremio agregarGremio(String nombre) {
         if (!StringUtils.hasText(nombre)) {
             throw new IllegalArgumentException("El nombre del gremio es obligatorio");
         }
-        return gremioRepository.findByNombreIgnoreCase(nombre)
-                .orElseGet(() -> {
-                    Gremio gremio = new Gremio();
-                    gremio.setNombre(nombre.trim());
-                    gremio.setActivo(true);
-                    return gremioRepository.save(gremio);
-                });
+        return gremioRepository.findByNombreIgnoreCase(nombre.trim())
+                .map(existing -> {
+                    existing.setActivo(true);
+                    existing.setNombre(nombre.trim());
+                    return gremioRepository.save(existing);
+                })
+                .orElseGet(() -> gremioRepository.save(crearNuevoGremio(nombre)));
+    }
+
+    public Gremio actualizarGremio(Long id, String nombre) {
+        validarNombre(nombre, "El nombre del gremio es obligatorio");
+        Gremio existente = gremioRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Gremio no encontrado"));
+        validarNombreDisponible(nombre, id, false);
+        existente.setNombre(nombre.trim());
+        existente.setActivo(true);
+        return gremioRepository.save(existente);
+    }
+
+    public boolean eliminarGremio(Long id) {
+        return gremioRepository.findById(id)
+                .map(gremio -> {
+                    gremio.setActivo(false);
+                    gremioRepository.save(gremio);
+                    return true;
+                })
+                .orElse(false);
     }
 
     public Movimiento crearMovimiento(Long proveedorId, Movimiento movimiento) {
@@ -182,6 +223,43 @@ public class ProveedorService {
         if (!StringUtils.hasText(proveedor.getNombre())) {
             throw new IllegalArgumentException("El nombre es obligatorio");
         }
+    }
+
+    private void validarNombre(String nombre, String mensaje) {
+        if (!StringUtils.hasText(nombre)) {
+            throw new IllegalArgumentException(mensaje);
+        }
+    }
+
+    private void validarNombreDisponible(String nombre, Long id, boolean esTipo) {
+        String nombreNormalizado = nombre.trim();
+        if (esTipo) {
+            tipoProveedorRepo.findByNombreIgnoreCase(nombreNormalizado)
+                    .filter(other -> !other.getId().equals(id))
+                    .ifPresent(other -> {
+                        throw new IllegalArgumentException("Ya existe un tipo de proveedor con ese nombre");
+                    });
+        } else {
+            gremioRepository.findByNombreIgnoreCase(nombreNormalizado)
+                    .filter(other -> !other.getId().equals(id))
+                    .ifPresent(other -> {
+                        throw new IllegalArgumentException("Ya existe un gremio con ese nombre");
+                    });
+        }
+    }
+
+    private TipoProveedor crearNuevoTipo(String nombre) {
+        TipoProveedor tipo = new TipoProveedor();
+        tipo.setNombre(nombre.trim());
+        tipo.setActivo(true);
+        return tipo;
+    }
+
+    private Gremio crearNuevoGremio(String nombre) {
+        Gremio gremio = new Gremio();
+        gremio.setNombre(nombre.trim());
+        gremio.setActivo(true);
+        return gremio;
     }
 
     private void normalizarMovimiento(Movimiento movimiento) {

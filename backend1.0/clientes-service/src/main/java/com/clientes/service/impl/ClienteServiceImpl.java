@@ -80,6 +80,27 @@ public class ClienteServiceImpl implements ClienteService {
                 .toList();
     }
 
+    @Override
+    public List<String> listarCondicionesIva() {
+        return CONDICIONES_IVA_VALIDAS.stream().toList();
+    }
+
+    @Override
+    public void activar(Long id) {
+        repository.findById(id).ifPresent(c -> {
+            c.setActivo(true);
+            repository.save(c);
+        });
+    }
+
+    @Override
+    public void desactivar(Long id) {
+        repository.findById(id).ifPresent(c -> {
+            c.setActivo(false);
+            repository.save(c);
+        });
+    }
+
     private Cliente mapearEntidad(ClienteRequest request) {
         Cliente entity = new Cliente();
         entity.setNombre(request.getNombre());
@@ -89,6 +110,7 @@ public class ClienteServiceImpl implements ClienteService {
         entity.setTelefono(request.getTelefono());
         entity.setEmail(request.getEmail());
         entity.setCondicionIVA(normalizarCondicion(request.getCondicionIVA()));
+        entity.setActivo(request.getActivo() != null ? request.getActivo() : Boolean.TRUE);
         return entity;
     }
 
@@ -100,6 +122,9 @@ public class ClienteServiceImpl implements ClienteService {
         existente.setTelefono(request.getTelefono());
         existente.setEmail(request.getEmail());
         existente.setCondicionIVA(normalizarCondicion(request.getCondicionIVA()));
+        if (request.getActivo() != null) {
+            existente.setActivo(request.getActivo());
+        }
     }
 
     private ClienteResponse mapearRespuesta(Cliente cliente, List<ObraClienteResponse> obras) {
@@ -112,6 +137,7 @@ public class ClienteServiceImpl implements ClienteService {
         response.setTelefono(cliente.getTelefono());
         response.setEmail(cliente.getEmail());
         response.setCondicionIVA(cliente.getCondicionIVA() != null ? cliente.getCondicionIVA() : "Consumidor Final");
+        response.setActivo(cliente.getActivo() != null ? cliente.getActivo() : Boolean.TRUE);
         response.setCreadoEn(cliente.getCreadoEn());
         response.setUltimaActualizacion(cliente.getUltimaActualizacion());
         response.setTipoActualizacion(cliente.getTipoActualizacion());

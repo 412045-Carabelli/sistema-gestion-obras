@@ -15,26 +15,28 @@
       <div class="min-h-[72px] w-full">
         <label class="block text-sm font-medium mb-1">Tipo</label>
         <p-select
-          [options]="tipos"
+          [options]="tiposOptions"
           appendTo="body"
           class="w-full"
           formControlName="tipo_proveedor"
           optionLabel="label"
           optionValue="name"
-          placeholder="Selecciona un tipo">
+          placeholder="Selecciona un tipo"
+          (onChange)="onTipoChange($event.value)">
         </p-select>
       </div>
 
       <div class="min-h-[72px] w-full">
         <label class="block text-sm font-medium mb-1">Gremio</label>
         <p-select
-          [options]="gremios"
+          [options]="gremiosOptions"
           appendTo="body"
           class="w-full"
           formControlName="gremio"
           optionLabel="label"
           optionValue="name"
-          placeholder="Selecciona un gremio">
+          placeholder="Selecciona un gremio"
+          (onChange)="onGremioChange($event.value)">
         </p-select>
       </div>
 
@@ -65,4 +67,28 @@
 
   <p-button [disabled]="form.invalid" icon="pi pi-check" label="Guardar" type="submit"></p-button>
 </form>
+
+<app-modal
+  [visible]="showTipoModal"
+  [title]="'Nuevo tipo de proveedor'"
+  [showFooter]="true"
+  (closed)="closeTipoModal()"
+  (confirmed)="crearNuevoTipo()">
+  <form [formGroup]="nuevoTipoForm" class="flex flex-col gap-3 py-2">
+    <label class="text-sm font-medium">Nombre del tipo</label>
+    <input pInputText formControlName="nombre" placeholder="Ej: Albañil">
+  </form>
+</app-modal>
+
+<app-modal
+  [visible]="showGremioModal"
+  [title]="'Nuevo gremio'"
+  [showFooter]="true"
+  (closed)="closeGremioModal()"
+  (confirmed)="crearNuevoGremio()">
+  <form [formGroup]="nuevoGremioForm" class="flex flex-col gap-3 py-2">
+    <label class="text-sm font-medium">Nombre del gremio</label>
+    <input pInputText formControlName="nombre" placeholder="Ej: Electricistas">
+  </form>
+</app-modal>
 
