@@ -26,10 +26,35 @@
       </div>
 
       <div class="min-h-[72px] w-full">
+        <label class="block text-sm font-medium mb-1">Gremio</label>
+        <p-select
+          [options]="gremios"
+          appendTo="body"
+          class="w-full"
+          formControlName="gremio"
+          optionLabel="label"
+          optionValue="name"
+          placeholder="Selecciona un gremio">
+        </p-select>
+      </div>
+
+      <div class="min-h-[72px] w-full">
         <label class="block text-sm font-medium mb-1">Teléfono</label>
         <input class="w-full" formControlName="telefono" pInputText/>
       </div>
 
+    </div>
+
+    <div class="flex gap-5">
+      <div class="min-h-[72px] w-full">
+        <label class="block text-sm font-medium mb-1">Dirección</label>
+        <input class="w-full" formControlName="direccion" pInputText/>
+      </div>
+
+      <div class="min-h-[72px] w-full">
+        <label class="block text-sm font-medium mb-1">DNI/CUIT</label>
+        <input class="w-full" formControlName="cuit" pInputText/>
+      </div>
     </div>
 
     <div>

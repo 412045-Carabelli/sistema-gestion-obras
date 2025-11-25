@@ -34,8 +34,11 @@
         <!-- CUIT y Teléfono -->
         <div class="flex gap-5">
           <div class="w-full">
-            <label class="block text-sm font-medium text-gray-700">CUIT</label>
+            <label class="block text-sm font-medium text-gray-700">CUIT *</label>
             <input pInputText type="text" formControlName="cuit" class="w-full"/>
+            @if (form.get('cuit')?.invalid && form.get('cuit')?.touched) {
+              <small class="text-red-500 text-xs mt-1 h-[16px] block">Campo obligatorio</small>
+            }
           </div>
 
           <div class="min-h-[72px] w-full">
@@ -61,9 +64,20 @@
             }
           </div>
 
-          <div class="flex flex-col gap-2">
-            <label for="activo" class="text-sm font-medium text-gray-700">Activo</label>
-            <p-checkbox inputId="activo" formControlName="activo" binary="true"></p-checkbox>
+          <div class="min-h-[72px] w-full">
+            <label class="block text-sm font-medium text-gray-700">Condición IVA *</label>
+            <p-select
+              [options]="ivaOptions"
+              appendTo="body"
+              class="w-full"
+              formControlName="condicion_iva"
+              optionLabel="label"
+              optionValue="name"
+              placeholder="Selecciona condición IVA">
+            </p-select>
+            @if (form.get('condicion_iva')?.invalid && form.get('condicion_iva')?.touched) {
+              <small class="text-red-500 text-xs mt-1 h-[16px] block">Seleccione una opción</small>
+            }
           </div>
         </div>
       </div>

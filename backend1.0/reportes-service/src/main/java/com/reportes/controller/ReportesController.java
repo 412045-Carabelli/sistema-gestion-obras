@@ -57,6 +57,26 @@ public class ReportesController {
         return ResponseEntity.ok(reportesService.generarResumenGeneral());
     }
 
+    @GetMapping("/cuenta-corriente/obra/{obraId}")
+    public ResponseEntity<CuentaCorrienteObraResponse> cuentaCorrienteObra(@PathVariable Long obraId) {
+        return ResponseEntity.ok(reportesService.generarCuentaCorrientePorObra(obraId));
+    }
+
+    @GetMapping("/cuenta-corriente/proveedor/{proveedorId}")
+    public ResponseEntity<CuentaCorrienteProveedorResponse> cuentaCorrienteProveedor(@PathVariable Long proveedorId) {
+        return ResponseEntity.ok(reportesService.generarCuentaCorrientePorProveedor(proveedorId));
+    }
+
+    @GetMapping("/comisiones/obra/{obraId}")
+    public ResponseEntity<ComisionesResponse> comisionesPorObra(@PathVariable Long obraId) {
+        return ResponseEntity.ok(reportesService.generarComisionesPorObra(obraId));
+    }
+
+    @GetMapping("/comisiones/general")
+    public ResponseEntity<ComisionesResponse> comisionesGeneral() {
+        return ResponseEntity.ok(reportesService.generarComisionesGeneral());
+    }
+
     @PostMapping("/generales/ranking-clientes")
     public ResponseEntity<RankingClientesResponse> rankingClientes(@RequestBody(required = false) ReportFilterRequest filtro) {
         return ResponseEntity.ok(reportesService.generarRankingClientes(filtro));
