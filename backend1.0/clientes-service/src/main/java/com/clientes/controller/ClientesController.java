@@ -1,26 +1,44 @@
 package com.clientes.controller;
 
-import com.clientes.entity.Cliente;
-import com.clientes.repository.ClienteRepository;
+import com.clientes.dto.ClienteRequest;
+import com.clientes.dto.ClienteResponse;
+import com.clientes.service.ClienteService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.*;
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/clientes")
 @RequiredArgsConstructor
 public class ClientesController {
-    private final ClienteRepository repo;
+    private final ClienteService service;
 
     @PostMapping
-    public Cliente save(@RequestBody @Valid Cliente c){ return repo.save(c); }
+    public ResponseEntity<ClienteResponse> save(@RequestBody @Valid ClienteRequest request){
+        ClienteResponse response = service.crear(request);
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    }
+
     @GetMapping
-    public List<Cliente> all(){ return repo.findAll(); }
-    @GetMapping("/{id}") public ResponseEntity<Cliente> one(@PathVariable("id") Long id){ return repo.findById(id).map(ResponseEntity::ok).orElse(ResponseEntity.notFound().build()); }
-    @PutMapping("/{id}") public Cliente upd(@PathVariable("id") Long id,@RequestBody Cliente c){ c.setId(id); return repo.save(c); }
-    @DeleteMapping("/{id}") public void del(@PathVariable("id") Long id){ repo.deleteById(id); }
+    public List<ClienteResponse> all(){ return service.listar(); }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<ClienteResponse> one(@PathVariable("id") Long id){
+        return ResponseEntity.ok(service.obtener(id));
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<ClienteResponse> upd(@PathVariable("id") Long id,@RequestBody @Valid ClienteRequest request){
+        return ResponseEntity.ok(service.actualizar(id, request));
+    }
+
+    @GetMapping("/{id}/obras")
+    public ResponseEntity<ClienteResponse> obras(@PathVariable("id") Long id){
+        return ResponseEntity.ok(service.obtenerConObras(id));
+    }
 }
 
