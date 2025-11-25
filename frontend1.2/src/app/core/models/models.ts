@@ -118,7 +118,10 @@ export interface Transaccion {
   fecha?: string | Date;
   monto: number;
   forma_pago: string;
+  factura_cobrada?: boolean;
+  saldo_cliente?: number;
   saldo_proveedor?: number;
+  tipo_movimiento?: string;
   activo?: boolean;
   ultima_actualizacion?: string;
   tipo_actualizacion?: string;
@@ -195,6 +198,45 @@ export interface FlujoCajaResponse {
     formaPago: string;
     asociadoTipo: string;
     asociadoId: number;
+  }>;
+}
+
+export interface CuentaCorrienteMovimiento {
+  fecha: string;
+  concepto?: string;
+  tipo: string;
+  monto: number;
+  asociadoTipo?: string;
+  asociadoId?: number;
+  saldoCliente?: number;
+  saldoProveedor?: number;
+}
+
+export interface CuentaCorrienteObraResponse {
+  obraId?: number;
+  obraNombre?: string;
+  totalIngresos: number;
+  totalEgresos: number;
+  saldoFinal: number;
+  movimientos: CuentaCorrienteMovimiento[];
+}
+
+export interface CuentaCorrienteProveedorResponse {
+  proveedorId?: number;
+  proveedorNombre?: string;
+  totalCostos: number;
+  totalPagos: number;
+  saldoFinal: number;
+  movimientos: CuentaCorrienteMovimiento[];
+}
+
+export interface ComisionesResponse {
+  total: number;
+  comisiones: Array<{
+    obraId?: number;
+    obraNombre?: string;
+    porcentaje?: number;
+    monto: number;
   }>;
 }
 

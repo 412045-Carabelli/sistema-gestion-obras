@@ -16,6 +16,8 @@ import {ConfirmationService, MessageService} from 'primeng/api';
 import {ConfirmDialog} from 'primeng/confirmdialog';
 import {Toast} from 'primeng/toast';
 import {AutoComplete} from 'primeng/autocomplete';
+import {TagModule} from 'primeng/tag';
+import {CheckboxModule} from 'primeng/checkbox';
 
 @Component({
   selector: 'app-obra-movimientos',
@@ -24,7 +26,7 @@ import {AutoComplete} from 'primeng/autocomplete';
     CurrencyPipe, DatePipe, TableModule, ButtonModule,
     TooltipModule, DropdownModule, FormsModule,
     ModalComponent, InputNumber, DatePicker,
-    FileUploadModule, NgClass, Select, ConfirmDialog, Toast, AutoComplete
+    FileUploadModule, NgClass, Select, ConfirmDialog, Toast, AutoComplete, TagModule, CheckboxModule
   ],
   providers: [MessageService, ConfirmationService],
   templateUrl: './obra-movimientos.component.html'
@@ -57,6 +59,7 @@ export class ObraMovimientosComponent implements OnInit {
     fecha: new Date().toISOString().split('T')[0],
     monto: 0,
     forma_pago: 'Total',
+    factura_cobrada: false,
     activo: true,
     id_asociado: undefined,
     tipo_asociado: 'CLIENTE'
@@ -109,6 +112,30 @@ export class ObraMovimientosComponent implements OnInit {
     return this.totalCobros - this.totalPagos;
   }
 
+  get saldoCliente(): number {
+    const ingresosCliente = this.transacciones
+      .filter(t => (t.tipo_asociado || '').toUpperCase() === 'CLIENTE')
+      .filter(t => this.tipoValue(t) === 'COBRO')
+      .reduce((acc, t) => acc + (t.monto || 0), 0);
+    const egresosCliente = this.transacciones
+      .filter(t => (t.tipo_asociado || '').toUpperCase() === 'CLIENTE')
+      .filter(t => this.tipoValue(t) === 'PAGO')
+      .reduce((acc, t) => acc + (t.monto || 0), 0);
+    return ingresosCliente - egresosCliente;
+  }
+
+  get saldoProveedor(): number {
+    const ingresosProveedor = this.transacciones
+      .filter(t => (t.tipo_asociado || '').toUpperCase() === 'PROVEEDOR')
+      .filter(t => this.tipoValue(t) === 'COBRO')
+      .reduce((acc, t) => acc + (t.monto || 0), 0);
+    const egresosProveedor = this.transacciones
+      .filter(t => (t.tipo_asociado || '').toUpperCase() === 'PROVEEDOR')
+      .filter(t => this.tipoValue(t) === 'PAGO')
+      .reduce((acc, t) => acc + (t.monto || 0), 0);
+    return ingresosProveedor - egresosProveedor;
+  }
+
   ngOnInit() {
     this.cargarDatos();
   }
@@ -139,6 +166,7 @@ export class ObraMovimientosComponent implements OnInit {
         fecha: new Date().toISOString().split('T')[0],
         monto: 0,
         forma_pago: 'Total',
+        factura_cobrada: false,
         activo: true,
         tipo_asociado: 'CLIENTE'
       };
@@ -253,6 +281,21 @@ export class ObraMovimientosComponent implements OnInit {
     if (raw && typeof raw.id === 'number') return raw.id === 1 ? 'COBRO' : raw.id === 2 ? 'PAGO' : '';
     const nombre = (raw?.nombre || '').toString().toUpperCase();
     return (nombre.includes('COBRO') ? 'COBRO' : nombre.includes('PAGO') ? 'PAGO' : '') as any;
+  }
+
+  tipoMovimiento(t: Transaccion): string {
+    const rawTipo = (t as any).tipo_movimiento || t.tipo_transaccion || '';
+    const tipo = rawTipo.toString().toUpperCase();
+    if (tipo.includes('FACT')) return 'FACTURA';
+    const base = this.tipoValue(t);
+    if (base === 'COBRO') return 'INGRESO';
+    if (base === 'PAGO') return 'EGRESO';
+    return tipo || '—';
+  }
+
+  movimientoEsFactura(t: Transaccion): boolean {
+    const tipo = (t as any).tipo_movimiento || t.tipo_transaccion || '';
+    return tipo.toString().toUpperCase().includes('FACT');
   }
 
 }
