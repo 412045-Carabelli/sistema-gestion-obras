@@ -6,6 +6,7 @@ export interface Cliente {
   id_empresa?: number;
   contacto?: string;
   cuit?: string;
+  condicion_iva?: string;
   telefono?: string;
   email?: string;
   activo?: boolean;
@@ -20,6 +21,9 @@ export interface Proveedor {
   id: number;
   tipo_proveedor: string;
   nombre: string;
+  direccion?: string;
+  gremio?: string;
+  cuit?: string;
   contacto?: string;
   telefono?: string;
   email?: string;
@@ -43,6 +47,7 @@ export interface Obra {
   nombre: string;
   direccion?: string;
   fecha_inicio: string;
+  fecha_presupuesto?: string;
   fecha_fin?: string;
   fecha_adjudicada?: string;
   fecha_perdida?: string;
@@ -113,6 +118,10 @@ export interface Transaccion {
   fecha?: string | Date;
   monto: number;
   forma_pago: string;
+  factura_cobrada?: boolean;
+  saldo_cliente?: number;
+  saldo_proveedor?: number;
+  tipo_movimiento?: string;
   activo?: boolean;
   ultima_actualizacion?: string;
   tipo_actualizacion?: string;
@@ -189,6 +198,45 @@ export interface FlujoCajaResponse {
     formaPago: string;
     asociadoTipo: string;
     asociadoId: number;
+  }>;
+}
+
+export interface CuentaCorrienteMovimiento {
+  fecha: string;
+  concepto?: string;
+  tipo: string;
+  monto: number;
+  asociadoTipo?: string;
+  asociadoId?: number;
+  saldoCliente?: number;
+  saldoProveedor?: number;
+}
+
+export interface CuentaCorrienteObraResponse {
+  obraId?: number;
+  obraNombre?: string;
+  totalIngresos: number;
+  totalEgresos: number;
+  saldoFinal: number;
+  movimientos: CuentaCorrienteMovimiento[];
+}
+
+export interface CuentaCorrienteProveedorResponse {
+  proveedorId?: number;
+  proveedorNombre?: string;
+  totalCostos: number;
+  totalPagos: number;
+  saldoFinal: number;
+  movimientos: CuentaCorrienteMovimiento[];
+}
+
+export interface ComisionesResponse {
+  total: number;
+  comisiones: Array<{
+    obraId?: number;
+    obraNombre?: string;
+    porcentaje?: number;
+    monto: number;
   }>;
 }
 
@@ -280,6 +328,7 @@ export interface MovimientoDashboard {
   transaccionId: number;
   fecha: string;
   tipo: string;
+  tipo_movimiento?: string;
   monto: number;
   obraId: number;
   obraNombre: string;

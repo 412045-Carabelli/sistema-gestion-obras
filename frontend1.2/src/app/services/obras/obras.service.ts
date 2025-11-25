@@ -11,6 +11,7 @@ export interface ObraPayload {
   nombre?: string;
   direccion?: string;
   fecha_inicio?: string | null;
+  fecha_presupuesto?: string | null;
   fecha_fin?: string | null;
   tiene_comision: boolean;
   fecha_adjudicada?: string | null;
