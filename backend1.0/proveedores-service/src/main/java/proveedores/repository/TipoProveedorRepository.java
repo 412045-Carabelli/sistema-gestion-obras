@@ -10,4 +10,6 @@ public interface TipoProveedorRepository extends JpaRepository<TipoProveedor, Lo
     List<TipoProveedor> findByActivoTrue();
 
     Optional<TipoProveedor> findByIdAndActivoTrue(Long id);
+
+    Optional<TipoProveedor> findByNombreIgnoreCase(String nombre);
 }
