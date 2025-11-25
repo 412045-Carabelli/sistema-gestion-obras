@@ -9,10 +9,11 @@ import {FormsModule} from '@angular/forms';
 import {MessageService} from 'primeng/api';
 import {ToastModule} from 'primeng/toast';
 
-import {EstadoPago, ObraCosto, Proveedor} from '../../../core/models/models';
+import {EstadoPago, Obra, ObraCosto, Proveedor} from '../../../core/models/models';
 import {EstadoPagoService} from '../../../services/estado-pago/estado-pago.service';
 import {CostosService} from '../../../services/costos/costos.service';
 import {Select} from 'primeng/select';
+import {ExportService} from '../../../services/export/export.service';
 
 @Component({
   selector: 'app-obra-presupuesto',
@@ -35,6 +36,7 @@ import {Select} from 'primeng/select';
 })
 export class ObraPresupuestoComponent implements OnInit, OnChanges {
   @Input() obraId!: number;
+  @Input() obra?: Obra;
   @Input() proveedores: Proveedor[] = [];
   @Input() costos: ObraCosto[] = [];
 
@@ -53,6 +55,7 @@ export class ObraPresupuestoComponent implements OnInit, OnChanges {
   constructor(
     private estadoPagoService: EstadoPagoService,
     private costosService: CostosService,
+    private exportService: ExportService,
     private messageService: MessageService
   ) {
   }
@@ -127,7 +130,31 @@ export class ObraPresupuestoComponent implements OnInit, OnChanges {
     return this.proveedores?.find((p) => Number(p.id) === Number(id));
   }
 
-  exportarPDF() {
+  async exportarPDF() {
+    if (!this.obra || !this.costosFiltrados.length) {
+      this.messageService.add({
+        severity: 'warn',
+        summary: 'Sin datos',
+        detail: 'Necesitamos costos cargados para generar la cotización.'
+      });
+      return;
+    }
+
+    try {
+      await this.exportService.exportObraPresupuestoPdf(this.obra, this.costosFiltrados);
+      this.messageService.add({
+        severity: 'success',
+        summary: 'PDF generado',
+        detail: 'La cotización se descargó con el formato de Meliquina.'
+      });
+    } catch (error) {
+      console.error('Error al exportar presupuesto', error);
+      this.messageService.add({
+        severity: 'error',
+        summary: 'Error al exportar',
+        detail: 'No se pudo crear el PDF del presupuesto.'
+      });
+    }
   }
 
   private inicializarCostos() {

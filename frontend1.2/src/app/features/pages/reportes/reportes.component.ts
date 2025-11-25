@@ -41,6 +41,7 @@ import {DatePicker} from 'primeng/datepicker';
 import {Toast} from 'primeng/toast';
 import {ConfirmDialog} from 'primeng/confirmdialog';
 import {ConfirmationService, MessageService} from 'primeng/api';
+import {ExportService} from '../../../services/export/export.service';
 
 interface SelectOption<T> {
   label: string;
@@ -80,6 +81,7 @@ export class ReportesComponent implements OnInit {
   proveedoresOptions: SelectOption<number>[] = [];
   estadosObraOptions: { label: string; name: string }[] = [];
 
+  private obrasIndex: Record<number, string> = {};
   private clientesIndex: Record<number, string> = {};
   private proveedoresIndex: Record<number, string> = {};
 
@@ -105,7 +107,8 @@ export class ReportesComponent implements OnInit {
     private clientesService: ClientesService,
     private proveedoresService: ProveedoresService,
     private estadoObraService: EstadoObraService,
-    private messageService: MessageService
+    private messageService: MessageService,
+    private exportService: ExportService
   ) {}
 
   ngOnInit(): void {
@@ -128,6 +131,7 @@ export class ReportesComponent implements OnInit {
     this.obrasService.getObras().subscribe({
       next: (obras: Obra[]) => {
         this.obrasOptions = obras.map((obra) => ({label: obra.nombre, value: obra.id!}));
+        this.obrasIndex = Object.fromEntries(obras.map(o => [Number(o.id), o.nombre]));
       },
       error: () => this.showToast('error', 'Error', 'No se pudieron cargar las obras')
     });
@@ -169,6 +173,26 @@ export class ReportesComponent implements OnInit {
       rangoFechas: null
     });
     this.loadReportes();
+  }
+
+  async exportarReportePdf(): Promise<void> {
+    try {
+      await this.exportService.exportReportesPdf(this.buildReportPayload(), this.buildFiltrosDescripcion());
+      this.showToast('success', 'Reporte exportado', 'Descargamos el PDF con los indicadores actuales.');
+    } catch (error) {
+      console.error('Error al exportar reporte PDF', error);
+      this.showToast('error', 'Error', 'No se pudo generar el PDF del reporte.');
+    }
+  }
+
+  async exportarReporteExcel(): Promise<void> {
+    try {
+      await this.exportService.exportReportesExcel(this.buildReportPayload());
+      this.showToast('success', 'Excel exportado', 'Compartimos el consolidado en Excel.');
+    } catch (error) {
+      console.error('Error al exportar reporte Excel', error);
+      this.showToast('error', 'Error', 'No se pudo generar el Excel del reporte.');
+    }
   }
 
   private loadReportes(): void {
@@ -257,6 +281,33 @@ export class ReportesComponent implements OnInit {
     }
 
     return Object.keys(filtro).length > 0 ? filtro : undefined;
+  }
+
+  private buildReportPayload() {
+    return {
+      resumen: this.resumenGeneral,
+      ingresosEgresos: this.ingresosEgresos,
+      flujoCaja: this.flujoCaja,
+      pendientes: this.pendientes
+    };
+  }
+
+  private buildFiltrosDescripcion(): string[] {
+    if (!this.filtrosForm) return [];
+    const {obraId, clienteId, proveedorId, estadosObra, rangoFechas} = this.filtrosForm.value;
+    const filtros: string[] = [];
+
+    if (obraId) filtros.push(`Obra: ${this.obrasIndex[obraId] ?? `#${obraId}`}`);
+    if (clienteId) filtros.push(`Cliente: ${this.clientesIndex[clienteId] ?? `#${clienteId}`}`);
+    if (proveedorId) filtros.push(`Proveedor: ${this.proveedoresIndex[proveedorId] ?? `#${proveedorId}`}`);
+    if (Array.isArray(estadosObra) && estadosObra.length) filtros.push(`Estados: ${estadosObra.length}`);
+    if (Array.isArray(rangoFechas)) {
+      const [inicio, fin] = rangoFechas;
+      if (inicio) filtros.push(`Desde: ${formatDate(inicio, 'dd/MM/yyyy', 'es-AR')}`);
+      if (fin) filtros.push(`Hasta: ${formatDate(fin, 'dd/MM/yyyy', 'es-AR')}`);
+    }
+
+    return filtros;
   }
 
   private buildEstadoObraFilter(): EstadoObrasFilter | undefined {
