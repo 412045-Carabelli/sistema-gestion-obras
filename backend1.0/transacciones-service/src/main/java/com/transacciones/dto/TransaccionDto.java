@@ -15,6 +15,7 @@ public class TransaccionDto {
     private Long id;
     private Long id_obra;
     private Long id_asociado;
+    private Long id_costo;
     private String tipo_asociado;
     private TipoTransaccionEnum tipo_transaccion;
     private LocalDate fecha;

@@ -48,7 +48,7 @@ import {PreventInvalidSubmitDirective} from '../../../shared/directives/prevent-
 export class ObrasCreateComponent implements OnInit {
   form: FormGroup;
   clientes: Cliente[] = [];
-  estadosRecords: { label: string; value: string }[] = [];
+  estadosRecords: { label: string; name: string }[] = [];
   proveedores: Proveedor[] = [];
 
   constructor(

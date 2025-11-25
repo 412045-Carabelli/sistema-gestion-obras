@@ -1,5 +1,6 @@
 package proveedores.controller;
 
+import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -132,6 +133,23 @@ public class ProveedoresController {
         return ResponseEntity.ok(service.findAllTipoActivos());
     }
 
+    @PutMapping("/tipos/{id}")
+    public ResponseEntity<TipoProveedor> actualizarTipo(@PathVariable Long id, @RequestBody NombreRequest request) {
+        try {
+            return ResponseEntity.ok(service.actualizarTipo(id, request.getNombre()));
+        } catch (EntityNotFoundException e) {
+            return ResponseEntity.notFound().build();
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().build();
+        }
+    }
+
+    @DeleteMapping("/tipos/{id}")
+    public ResponseEntity<Void> eliminarTipo(@PathVariable Long id) {
+        boolean eliminado = service.eliminarTipo(id);
+        return eliminado ? ResponseEntity.noContent().build() : ResponseEntity.notFound().build();
+    }
+
     @PostMapping("/gremios")
     public ResponseEntity<Gremio> crearGremio(@RequestBody NombreRequest request) {
         return ResponseEntity.status(201).body(service.agregarGremio(request.getNombre()));
@@ -140,6 +158,23 @@ public class ProveedoresController {
     @GetMapping("/gremios")
     public ResponseEntity<List<Gremio>> listarGremios() {
         return ResponseEntity.ok(service.findAllGremiosActivos());
+    }
+
+    @PutMapping("/gremios/{id}")
+    public ResponseEntity<Gremio> actualizarGremio(@PathVariable Long id, @RequestBody NombreRequest request) {
+        try {
+            return ResponseEntity.ok(service.actualizarGremio(id, request.getNombre()));
+        } catch (EntityNotFoundException e) {
+            return ResponseEntity.notFound().build();
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().build();
+        }
+    }
+
+    @DeleteMapping("/gremios/{id}")
+    public ResponseEntity<Void> eliminarGremio(@PathVariable Long id) {
+        boolean eliminado = service.eliminarGremio(id);
+        return eliminado ? ResponseEntity.noContent().build() : ResponseEntity.notFound().build();
     }
 
     @GetMapping("/{proveedorId}/movimientos")
@@ -176,6 +211,11 @@ public class ProveedoresController {
     @ExceptionHandler(ClaveInvalidaException.class)
     public ResponseEntity<Void> handleForbidden() {
         return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+    }
+
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<String> handleBadRequest(IllegalArgumentException ex) {
+        return ResponseEntity.badRequest().body(ex.getMessage());
     }
 
     private Movimiento toMovimiento(MovimientoRequest request) {

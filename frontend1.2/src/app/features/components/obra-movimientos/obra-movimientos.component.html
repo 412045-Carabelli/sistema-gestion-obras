@@ -35,8 +35,7 @@
           <th>Forma de pago</th>
           <th>Monto</th>
           <th>Factura cobrada</th>
-          <th>Saldo cliente</th>
-          <th>Saldo proveedor</th>
+          <th>Saldo</th>
           <th class="text-right"></th>
         </tr>
       </ng-template>
@@ -66,12 +65,11 @@
           <!-- 🔹 Monto -->
           <td>{{ t.monto | currency: 'ARS' }}</td>
 
-          <td>
-            <p-checkbox [binary]="true" [ngModel]="t.factura_cobrada" disabled></p-checkbox>
-          </td>
+        <td>
+          <p-checkbox [binary]="true" [ngModel]="!!t.factura_cobrada" disabled></p-checkbox>
+        </td>
 
-          <td>{{ (t.saldo_cliente ?? saldoCliente) | currency: 'ARS' }}</td>
-          <td>{{ (t.saldo_proveedor ?? saldoProveedor) | currency: 'ARS' }}</td>
+          <td>{{ (t.saldo_cliente ? saldoCliente : saldoProveedor) | currency: 'ARS' }}</td>
 
           <!-- 🔹 Acciones -->
           <td class="flex justify-end gap-2 items-center">

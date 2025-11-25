@@ -32,6 +32,7 @@ public class TransaccionService {
         Transaccion entity = Transaccion.builder()
                 .idObra(dto.getIdObra())
                 .idAsociado(dto.getIdAsociado())
+                .idCosto(dto.getIdCosto())
                 .tipoAsociado(dto.getTipoAsociado())
                 .tipo_transaccion(dto.getTipo_transaccion())
                 .fecha(dto.getFecha())
@@ -59,6 +60,7 @@ public class TransaccionService {
 
         entity.setIdObra(dto.getIdObra());
         entity.setIdAsociado(dto.getIdAsociado());
+        entity.setIdCosto(dto.getIdCosto());
         entity.setTipoAsociado(dto.getTipoAsociado());
         entity.setTipo_transaccion(dto.getTipo_transaccion());
         entity.setFecha(dto.getFecha());
@@ -74,6 +76,11 @@ public class TransaccionService {
             throw new RuntimeException("La transacción no existe");
         }
         transaccionRepository.deleteById(id);
+    }
+
+    public void eliminarPorCosto(Long idCosto) {
+        transaccionRepository.deleteByIdCosto(idCosto);
+
     }
 
     @Transactional(readOnly = true)
@@ -99,6 +106,7 @@ public class TransaccionService {
                 .id(transaccion.getId())
                 .id_obra(transaccion.getIdObra())
                 .id_asociado(transaccion.getIdAsociado())
+                .id_costo(transaccion.getIdCosto())
                 .tipo_asociado(transaccion.getTipoAsociado())
                 .tipo_transaccion(transaccion.getTipo_transaccion())
                 .fecha(transaccion.getFecha())
@@ -114,5 +122,7 @@ public class TransaccionService {
         return (long) (e.ordinal() + 1);
     }
 }
+
+
 
 

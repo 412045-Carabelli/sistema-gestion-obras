@@ -46,6 +46,12 @@ public class TransaccionController {
         return ResponseEntity.ok(lista);
     }
 
+    @DeleteMapping("/costo/{idCosto}")
+    public ResponseEntity<Void> deleteByCosto(@PathVariable("idCosto") Long idCosto) {
+        transaccionService.eliminarPorCosto(idCosto);
+        return ResponseEntity.noContent().build();
+    }
+
     @PostMapping
     public ResponseEntity<TransaccionDto> create(@RequestBody TransaccionDto dto) {
         return ResponseEntity.ok(transaccionService.crear(toEntity(dto)));
@@ -69,6 +75,7 @@ public class TransaccionController {
         entity.setId(dto.getId());
         entity.setIdObra(dto.getId_obra());
         entity.setIdAsociado(dto.getId_asociado());
+        entity.setIdCosto(dto.getId_costo());
         entity.setTipoAsociado(dto.getTipo_asociado());
         entity.setFecha(dto.getFecha());
         entity.setMonto(dto.getMonto());

@@ -40,5 +40,22 @@ public class ClientesController {
     public ResponseEntity<ClienteResponse> obras(@PathVariable("id") Long id){
         return ResponseEntity.ok(service.obtenerConObras(id));
     }
+
+    @GetMapping("/condicion-iva")
+    public ResponseEntity<List<String>> condicionesIva() {
+        return ResponseEntity.ok(service.listarCondicionesIva());
+    }
+
+    @PatchMapping("/{id}/activar")
+    public ResponseEntity<Void> activar(@PathVariable Long id) {
+        service.activar(id);
+        return ResponseEntity.ok().build();
+    }
+
+    @PatchMapping("/{id}/desactivar")
+    public ResponseEntity<Void> desactivar(@PathVariable Long id) {
+        service.desactivar(id);
+        return ResponseEntity.ok().build();
+    }
 }
 

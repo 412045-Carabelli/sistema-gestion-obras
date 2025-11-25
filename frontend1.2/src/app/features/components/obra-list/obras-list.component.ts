@@ -9,6 +9,7 @@ import {TagModule} from 'primeng/tag';
 import {IconFieldModule} from 'primeng/iconfield';
 import {InputIconModule} from 'primeng/inputicon';
 import {forkJoin} from 'rxjs';
+import {ButtonModule} from 'primeng/button';
 
 import {Cliente, EstadoObra, Obra} from '../../../core/models/models';
 import {ObrasService} from '../../../services/obras/obras.service';
@@ -34,7 +35,8 @@ interface EstadoOption {
     IconFieldModule,
     InputIconModule,
     DatePipe,
-    Select
+    Select,
+    ButtonModule
   ],
   templateUrl: './obras-list.component.html',
   styleUrls: ['./obras-list.component.css']
@@ -46,11 +48,17 @@ export class ObrasListComponent implements OnInit {
   obrasFiltradas: Obra[] = [];
   datosCargados = false;
   clientes: Cliente[] = [];
-  estados: { label: string; value: string }[] = [];
+  estados: { label: string; name: string }[] = [];
 
   estadoFiltro: string = 'TODOS';
   searchValue: string = '';
   estadosOptions: EstadoOption[] = [];
+  activoFiltro: string = 'todos';
+  activoOptions = [
+    {label: 'Todos', value: 'todos'},
+    {label: 'Activos', value: 'true'},
+    {label: 'Inactivos', value: 'false'},
+  ];
 
   constructor(
     private router: Router,
@@ -67,7 +75,7 @@ export class ObrasListComponent implements OnInit {
       clientes: this.clientesService.getClientes(),
       estados: this.estadoObraService.getEstados()
     }).subscribe(({obras, clientes, estados}) => {
-      this.obras = obras
+      this.obras = obras;
 
       this.clientes = clientes.map(c => ({...c, id: Number(c.id)}));
       this.estados = estados as any;
@@ -76,14 +84,14 @@ export class ObrasListComponent implements OnInit {
 
       this.estadosOptions = [
         { label: 'Todos', value: 'TODOS'},
-        ...this.estados.map(r => ({ label: r.label || r.name, value: r.value || r.name }))
+        ...this.estados.map(r => ({ label: r.label || r.name, value: r.name }))
       ];
 
       this.datosCargados = true;
     });
   }
 
-  // 🔍 Filtrado
+  // Filtrado
   applyFilter() {
     this.obrasFiltradas = this.obras.filter(obra => {
 
@@ -99,7 +107,12 @@ export class ObrasListComponent implements OnInit {
           ? true
           : (estadoValor || '').toUpperCase() === (this.estadoFiltro || '').toUpperCase();
 
-      return matchesSearch && matchesEstado;
+      const matchesActivo =
+        this.activoFiltro === 'todos'
+          ? true
+          : String(obra.activo ?? true) === this.activoFiltro;
+
+      return matchesSearch && matchesEstado && matchesActivo;
     });
   }
 
@@ -111,7 +124,7 @@ export class ObrasListComponent implements OnInit {
     if (raw.name) return raw.name;
     if (raw.nombre) {
       const rec = this.estados.find(r => (r.label || '').toLowerCase() === (raw.nombre || '').toLowerCase());
-      return rec?.value || '';
+      return rec?.name || '';
     }
     return '';
   }
@@ -120,13 +133,17 @@ export class ObrasListComponent implements OnInit {
     const raw = (obra as any)?.obra_estado;
     if (!raw) return '';
     if (typeof raw === 'string') {
-      const rec = this.estados.find(r => ((r.value || r.name || '') as string).toUpperCase() === raw.toUpperCase());
+      const rec = this.estados.find(r => ((r.name || '') as string).toUpperCase() === raw.toUpperCase());
       return rec?.label || rec?.name || raw;
     }
     return raw.label || raw.nombre || '';
   }
 
   onEstadoChange() {
+    this.applyFilter();
+  }
+
+  onActivoChange() {
     this.applyFilter();
   }
 
@@ -151,6 +168,10 @@ export class ObrasListComponent implements OnInit {
       7: 'danger'
     };
     return severities[id_estado] || 'secondary';
+  }
+
+  getActivoSeverity(activo?: boolean): string {
+    return activo ? 'success' : 'danger';
   }
 
   getProgreso(obra: Obra): number {

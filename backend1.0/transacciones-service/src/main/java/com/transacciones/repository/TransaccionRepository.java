@@ -11,4 +11,6 @@ public interface TransaccionRepository extends JpaRepository<Transaccion, Long> 
     List<Transaccion> findByIdObra(Long obraId);
 
     List<Transaccion> findByTipoAsociadoAndIdAsociado(String tipoAsociado, Long idAsociado);
+
+    void deleteByIdCosto(Long idCosto);
 }

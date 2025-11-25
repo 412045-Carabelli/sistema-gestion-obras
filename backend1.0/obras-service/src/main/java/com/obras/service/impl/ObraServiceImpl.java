@@ -47,7 +47,7 @@ public class ObraServiceImpl implements ObraService {
     @Override
     @Transactional(readOnly = true)
     public Optional<ObraDTO> obtener(Long id) {
-        return obraRepo.findByIdAndActivoTrue(id).map(this::toDto);
+        return obraRepo.findById(id).map(this::toDto);
     }
 
     /* ============================================================
@@ -57,7 +57,7 @@ public class ObraServiceImpl implements ObraService {
     @Override
     @Transactional(readOnly = true)
     public Page<ObraDTO> listar(Pageable p) {
-        Page<Obra> page = obraRepo.findByActivoTrue(p);
+        Page<Obra> page = obraRepo.findAll(p);
         List<ObraDTO> dtos = page.stream().map(this::toDto).toList();
         return new PageImpl<>(dtos, p, page.getTotalElements());
     }
@@ -68,8 +68,8 @@ public class ObraServiceImpl implements ObraService {
 
     @Override
     public ObraDTO actualizar(Long id, ObraDTO dto) {
-        Obra existing = obraRepo.findByIdAndActivoTrue(id)
-                .orElseThrow(() -> new RuntimeException("Obra no encontrada o inactiva: " + id));
+        Obra existing = obraRepo.findById(id)
+                .orElseThrow(() -> new RuntimeException("Obra no encontrada: " + id));
 
         existing.setNombre(dto.getNombre());
         existing.setDireccion(dto.getDireccion());
@@ -97,8 +97,8 @@ public class ObraServiceImpl implements ObraService {
 
     @Override
     public void cambiarEstado(Long idObra, EstadoObraEnum estado) {
-        Obra obra = obraRepo.findByIdAndActivoTrue(idObra)
-                .orElseThrow(() -> new EntityNotFoundException("Obra no encontrada o inactiva"));
+        Obra obra = obraRepo.findById(idObra)
+                .orElseThrow(() -> new EntityNotFoundException("Obra no encontrada"));
 
         obra.setEstadoObra(estado != null ? estado : EstadoObraEnum.PRESUPUESTADA);
         obraRepo.save(obra);
@@ -111,11 +111,7 @@ public class ObraServiceImpl implements ObraService {
     @Override
     public void activar(Long idObra) {
         obraRepo.findById(idObra).ifPresent(obra -> {
-            if(obra.getActivo()){
-                obra.setActivo(false);
-            } else {
-                obra.setActivo(true);
-            }
+            obra.setActivo(!Boolean.FALSE.equals(obra.getActivo()));
             obraRepo.save(obra);
         });
     }

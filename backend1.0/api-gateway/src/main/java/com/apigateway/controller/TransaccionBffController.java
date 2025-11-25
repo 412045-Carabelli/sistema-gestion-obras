@@ -103,6 +103,16 @@ public class TransaccionBffController {
                 .then(Mono.just(ResponseEntity.noContent().build()));
     }
 
+    @DeleteMapping("/costo/{idCosto}")
+    public Mono<ResponseEntity<Void>> deleteTransaccionPorCosto(@PathVariable("idCosto") Long idCosto) {
+        return webClientBuilder.build()
+                .delete()
+                .uri(TRANSACCIONES_URL + "/costo/{idCosto}", idCosto)
+                .retrieve()
+                .bodyToMono(Void.class)
+                .then(Mono.just(ResponseEntity.noContent().build()));
+    }
+
     @GetMapping("/asociado/{tipo}/{id}")
     public Mono<ResponseEntity<List<Map<String, Object>>>> getTransaccionesPorAsociado(
             @PathVariable("tipo") String tipo,

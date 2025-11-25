@@ -97,6 +97,7 @@ export interface Tarea {
   id?: number;
   id_obra: number;
   id_proveedor?: number;
+  obraNombre: string;
   proveedor?: Proveedor;
   estado_tarea: string;
   nombre: string;
@@ -125,6 +126,7 @@ export interface Transaccion {
   activo?: boolean;
   ultima_actualizacion?: string;
   tipo_actualizacion?: string;
+  observacion?: string;
 }
 
 export type TipoDocumento = RecordOption;

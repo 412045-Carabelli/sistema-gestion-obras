@@ -25,7 +25,7 @@ public class ObrasClient {
         try {
             ResponseEntity<ObraResponse> response = restTemplate.getForEntity(url, ObraResponse.class);
             if (response.getStatusCode().is2xxSuccessful() && response.getBody() != null) {
-                return Optional.ofNullable(response.getBody().getNombre());
+                return Optional.ofNullable(response.getBody().nombre);
             }
         } catch (RestClientException ex) {
             log.warn("Fallo al consultar obra {}: {}", obraId, ex.getMessage());

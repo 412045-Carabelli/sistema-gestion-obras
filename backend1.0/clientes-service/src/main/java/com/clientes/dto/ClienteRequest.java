@@ -16,6 +16,5 @@ public class ClienteRequest {
     @NotBlank
     private String condicionIVA;
 
-    @JsonIgnore
     private Boolean activo;
 }

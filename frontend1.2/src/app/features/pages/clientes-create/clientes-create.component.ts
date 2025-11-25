@@ -42,7 +42,7 @@ export class ClientesCreateComponent implements OnInit {
       condicion_iva: [null, Validators.required],
       telefono: ['', [Validators.required, Validators.minLength(10), Validators.maxLength(15)]],
       email: ['', [Validators.required, Validators.email]],
-      activo: [true]
+      activo: [true, Validators.required]
     });
 
     const idParam = this.route.snapshot.paramMap.get('id');
@@ -107,7 +107,11 @@ export class ClientesCreateComponent implements OnInit {
   private cargarCliente(id: number) {
     this.clientesService.getClienteById(id).subscribe({
       next: (cliente) => {
-        this.form.patchValue(cliente);
+        this.form.patchValue({
+          ...cliente,
+          condicion_iva: (cliente as any).condicionIVA ?? cliente.condicion_iva ?? null,
+          activo: cliente.activo ?? true
+        });
       },
       error: () => {
         this.messageService.add({

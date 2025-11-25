@@ -28,7 +28,6 @@ import {
 import {ReportesService} from '../../../services/reportes/reportes.service';
 import {ObrasService} from '../../../services/obras/obras.service';
 import {ClientesService} from '../../../services/clientes/clientes.service';
-import {ProveedoresService} from '../../../services/proveedores/proveedores.service';
 import {EstadoObraService} from '../../../services/estado-obra/estado-obra.service';
 import {DropdownModule} from 'primeng/dropdown';
 import {MultiSelectModule} from 'primeng/multiselect';
@@ -44,6 +43,7 @@ import {DatePicker} from 'primeng/datepicker';
 import {Toast} from 'primeng/toast';
 import {ConfirmDialog} from 'primeng/confirmdialog';
 import {ConfirmationService, MessageService} from 'primeng/api';
+import {ProveedoresService} from '../../../services/proveedores/proveedores.service';
 
 interface SelectOption<T> {
   label: string;

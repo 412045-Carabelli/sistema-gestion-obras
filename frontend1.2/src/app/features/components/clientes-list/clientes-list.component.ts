@@ -8,11 +8,12 @@ import {DropdownModule} from 'primeng/dropdown';
 import {TagModule} from 'primeng/tag';
 import {IconFieldModule} from 'primeng/iconfield';
 import {InputIconModule} from 'primeng/inputicon';
+import {ButtonModule} from 'primeng/button';
 import {forkJoin} from 'rxjs';
 
 import {Cliente} from '../../../core/models/models';
-import {ClientesService} from '../../../services/clientes/clientes.service';
 import {Select} from 'primeng/select';
+import {ClientesService} from '../../../services/clientes/clientes.service';
 
 interface ActivoOption {
   label: string;
@@ -31,7 +32,8 @@ interface ActivoOption {
     TagModule,
     IconFieldModule,
     InputIconModule,
-    Select
+    Select,
+    ButtonModule
   ],
   templateUrl: './clientes-list.component.html',
   styleUrls: ['./clientes-list.component.css']
@@ -98,5 +100,17 @@ export class ClientesListComponent implements OnInit {
 
   getActivoSeverity(activo: boolean): string {
     return activo ? 'success' : 'danger';
+  }
+
+  toggleActivo(cliente: Cliente, event: Event) {
+    event.stopPropagation();
+    const accion$ = cliente.activo
+      ? this.clientesService.desactivar(cliente.id)
+      : this.clientesService.activar(cliente.id);
+
+    accion$.subscribe(() => {
+      cliente.activo = !cliente.activo;
+      this.applyFilter();
+    });
   }
 }
