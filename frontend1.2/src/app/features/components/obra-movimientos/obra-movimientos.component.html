@@ -34,6 +34,9 @@
           <th>Fecha</th>
           <th>Forma de pago</th>
           <th>Monto</th>
+          <th>Factura cobrada</th>
+          <th>Saldo cliente</th>
+          <th>Saldo proveedor</th>
           <th class="text-right"></th>
         </tr>
       </ng-template>
@@ -44,7 +47,10 @@
           [ngClass]="rowIndex % 2 === 0 ? 'bg-white' : 'bg-gray-50'"
         >
           <td>
-            {{ t.tipo_transaccion }}
+            <p-tag
+              [value]="tipoMovimiento(t)"
+              [severity]="tipoMovimiento(t) === 'INGRESO' ? 'success' : tipoMovimiento(t) === 'EGRESO' ? 'danger' : 'info'"
+            ></p-tag>
           </td>
 
           <td>
@@ -59,6 +65,13 @@
 
           <!-- 🔹 Monto -->
           <td>{{ t.monto | currency: 'ARS' }}</td>
+
+          <td>
+            <p-checkbox [binary]="true" [ngModel]="t.factura_cobrada" disabled></p-checkbox>
+          </td>
+
+          <td>{{ (t.saldo_cliente ?? saldoCliente) | currency: 'ARS' }}</td>
+          <td>{{ (t.saldo_proveedor ?? saldoProveedor) | currency: 'ARS' }}</td>
 
           <!-- 🔹 Acciones -->
           <td class="flex justify-end gap-2 items-center">
@@ -95,6 +108,14 @@
       <div class="flex justify-between font-semibold text-base border-t pt-2">
         <span>Saldo:</span>
         <span>{{ saldo | currency: 'ARS' }}</span>
+      </div>
+      <div class="flex justify-between text-sm text-gray-700 pt-2 border-t">
+        <span>Saldo cliente</span>
+        <span>{{ saldoCliente | currency: 'ARS' }}</span>
+      </div>
+      <div class="flex justify-between text-sm text-gray-700">
+        <span>Saldo proveedor</span>
+        <span>{{ saldoProveedor | currency: 'ARS' }}</span>
       </div>
     </div>
   } @else {
@@ -213,6 +234,11 @@
             dateFormat="dd/mm/yy"
           ></p-datepicker>
         </div>
+      </div>
+
+      <div class="flex items-center gap-2 pt-2">
+        <p-checkbox [(ngModel)]="nuevoMovimiento.factura_cobrada" [binary]="true"></p-checkbox>
+        <label class="text-sm text-gray-700">Factura cobrada</label>
       </div>
     </div>
   </app-modal>
