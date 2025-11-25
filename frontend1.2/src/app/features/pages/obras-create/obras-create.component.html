@@ -94,6 +94,25 @@
         </h2>
 
         <div class="grid grid-cols-1 gap-6">
+          <!-- Fecha de presupuesto -->
+          <div class="flex flex-col">
+            <label class="text-sm font-semibold mb-2 text-gray-700 flex items-center gap-2">
+              <i class="pi pi-calendar-edit text-gray-400 text-xs"></i>
+              Fecha de presupuesto
+            </label>
+            <p-datePicker
+              appendTo="body"
+              styleClass="w-full"
+              dateFormat="dd/mm/yy"
+              formControlName="fecha_presupuesto"
+              inputId="fechaPresupuesto"
+              [showIcon]="true"
+            ></p-datePicker>
+            @if (form.get('fecha_presupuesto')?.touched && form.get('fecha_presupuesto')?.hasError('required')) {
+              <small class="text-red-500 text-xs mt-1">Campo obligatorio</small>
+            }
+          </div>
+
           <!-- Fecha de inicio -->
           <div class="flex flex-col">
             <label class="text-sm font-semibold mb-2 text-gray-700 flex items-center gap-2">

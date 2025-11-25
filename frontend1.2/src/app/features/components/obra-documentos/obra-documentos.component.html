@@ -161,28 +161,28 @@
 
       <div>
         <label class="block text-sm font-medium mb-1 text-gray-700">Archivo</label>
-        @if (!selectedFile) {
-          <p-fileUpload
-            mode="basic"
-            chooseLabel="Subir archivo"
-            chooseIcon="pi pi-upload"
-            [auto]="false"
-            (onSelect)="onFileSelected($event)"
-            accept=".pdf,.jpg,.jpeg,.png"
-            class="flex flex-start"
-          ></p-fileUpload>
-        } @else {
-          <div class="flex items-center gap-2 text-sm text-gray-700">
-            <span>{{ selectedFile.name }}</span>
+        <p-fileUpload
+          mode="basic"
+          chooseLabel="Subir archivo"
+          chooseIcon="pi pi-upload"
+          [auto]="false"
+          [multiple]="true"
+          (onSelect)="onFileSelected($event)"
+          accept=".pdf,.jpg,.jpeg,.png"
+          class="flex flex-start"
+        ></p-fileUpload>
+        <div *ngIf="selectedFiles.length" class="mt-2 space-y-1">
+          <div *ngFor="let file of selectedFiles; let i = index" class="flex items-center gap-2 text-sm text-gray-700 bg-gray-50 p-2 rounded">
+            <span class="truncate">{{ file.name }}</span>
             <button
               type="button"
-              (click)="quitarArchivo()"
+              (click)="quitarArchivo(i)"
               class="text-red-500 hover:text-red-700"
             >
               ✕
             </button>
           </div>
-        }
+        </div>
       </div>
     </div>
 

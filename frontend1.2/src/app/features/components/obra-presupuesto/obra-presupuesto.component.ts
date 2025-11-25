@@ -49,6 +49,7 @@ export class ObraPresupuestoComponent implements OnInit, OnChanges {
   costosFiltrados: ObraCosto[] = [];
   estadosPagoRecords: { label: string; name: string }[] = [];
   loading = true;
+  nuevoCosto: Partial<ObraCosto> = this.getNuevoCostoBase();
 
   constructor(
     private estadoPagoService: EstadoPagoService,
@@ -67,6 +68,10 @@ export class ObraPresupuestoComponent implements OnInit, OnChanges {
   ngOnChanges(changes: SimpleChanges) {
     if (changes['costos'] && this.costos?.length > 0) {
       this.inicializarCostos();
+    }
+    if (changes['beneficioGlobal'] || changes['tieneComision']) {
+      this.costosFiltrados = this.costosFiltrados.map(c => ({...c}));
+      this.costosFiltrados.forEach(c => this.recalcularEnEdicion(c));
     }
   }
 
@@ -106,6 +111,93 @@ export class ObraPresupuestoComponent implements OnInit, OnChanges {
     });
   }
 
+  agregarCosto() {
+    if (!this.nuevoCosto.descripcion || !this.nuevoCosto.id_proveedor) {
+      this.messageService.add({
+        severity: 'warn',
+        summary: 'Datos incompletos',
+        detail: 'Completa proveedor y descripción para agregar el costo.'
+      });
+      return;
+    }
+
+    const payload = this.calcularMontosPayload(this.nuevoCosto);
+    this.costosService.createCosto({ ...payload, id_obra: this.obraId }).subscribe({
+      next: creado => {
+        const actualizado = {...creado, ...payload, enEdicion: false } as ObraCosto;
+        this.costosFiltrados = [...this.costosFiltrados, actualizado];
+        this.costosActualizados.emit(this.costosFiltrados);
+        this.nuevoCosto = this.getNuevoCostoBase();
+        this.messageService.add({
+          severity: 'success',
+          summary: 'Costo agregado',
+          detail: 'Se agregó un nuevo costo a la matriz.'
+        });
+      },
+      error: () => {
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: 'No se pudo crear el costo.'
+        });
+      }
+    });
+  }
+
+  habilitarEdicion(costo: any) {
+    costo.enEdicion = true;
+  }
+
+  recalcularEnEdicion(costo: any) {
+    const { subtotal, total } = this.calcularMontosPayload(costo);
+    costo.subtotal = subtotal;
+    costo.total = total;
+  }
+
+  guardarEdicion(costo: any) {
+    const payload = this.calcularMontosPayload(costo);
+    this.costosService.updateCosto(costo.id, payload).subscribe({
+      next: actualizado => {
+        Object.assign(costo, actualizado, payload, { enEdicion: false });
+        this.costosActualizados.emit([...this.costosFiltrados]);
+        this.messageService.add({
+          severity: 'success',
+          summary: 'Costo actualizado',
+          detail: 'Los cambios se guardaron correctamente.'
+        });
+      },
+      error: () => {
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: 'No se pudo actualizar el costo.'
+        });
+      }
+    });
+  }
+
+  eliminarCosto(costo: any) {
+    if (!costo.id) return;
+    this.costosService.deleteCosto(costo.id).subscribe({
+      next: () => {
+        this.costosFiltrados = this.costosFiltrados.filter(c => c.id !== costo.id);
+        this.costosActualizados.emit(this.costosFiltrados);
+        this.messageService.add({
+          severity: 'success',
+          summary: 'Costo eliminado',
+          detail: 'El costo fue eliminado de la matriz.'
+        });
+      },
+      error: () => {
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: 'No se pudo eliminar el costo.'
+        });
+      }
+    });
+  }
+
   calcularTotal(): number {
     return this.costosFiltrados.reduce((acc, c) => acc + (c.total ?? 0), 0);
   }
@@ -134,12 +226,47 @@ export class ObraPresupuestoComponent implements OnInit, OnChanges {
     console.log(this.costos)
     this.costosFiltrados = this.costos.map((c) => ({
       ...c,
+      id_proveedor: c.id_proveedor ?? c.proveedor?.id,
       precio_unitario: c.precio_unitario ?? 0,
       subtotal: c.subtotal ?? 0,
       total: c.total ?? 0,
       beneficio: c.beneficio ?? 0,
       estado_pago: c.estado_pago,
+      enEdicion: false,
     }));
+  }
+
+  private calcularMontosPayload(costo: Partial<ObraCosto>) {
+    const cantidad = Number(costo.cantidad ?? 0);
+    const precio = Number(costo.precio_unitario ?? 0);
+    const beneficio = this.usarBeneficioGlobal ? this.beneficioGlobal : Number(costo.beneficio ?? 0);
+
+    const subtotal = cantidad * precio;
+    const total = subtotal * (1 + (beneficio / 100)) * (1 + (this.tieneComision ? this.comision / 100 : 0));
+
+    return {
+      id_proveedor: Number(costo.id_proveedor),
+      descripcion: costo.descripcion ?? '',
+      unidad: costo.unidad ?? '',
+      cantidad,
+      precio_unitario: precio,
+      beneficio: beneficio,
+      subtotal,
+      total,
+      estado_pago: costo.estado_pago ?? 'PENDIENTE'
+    };
+  }
+
+  private getNuevoCostoBase(): Partial<ObraCosto> {
+    return {
+      descripcion: '',
+      cantidad: 1,
+      precio_unitario: 0,
+      unidad: '',
+      id_proveedor: undefined,
+      beneficio: this.usarBeneficioGlobal ? this.beneficioGlobal : 0,
+      estado_pago: 'PENDIENTE'
+    };
   }
 
   private cargarEstadosDePago() {
