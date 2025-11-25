@@ -33,9 +33,11 @@ export class ObraTareasComponent {
   @Input() obraId!: number;
   @Input() proveedores: Proveedor[] = [];
   @Input() tareas: Tarea[] = [];
+  @Input() obraNombre = '';
   @Output() tareasActualizadas = new EventEmitter<Tarea[]>();
 
   showAddTaskModal = false;
+  editandoTarea: Tarea | null = null;
   nuevaTarea: Partial<Tarea> = {};
 
   constructor(
@@ -49,11 +51,13 @@ export class ObraTareasComponent {
       proveedor: this.proveedores[0] ?? null,
       estado_tarea: 'PENDIENTE'
     };
+    this.editandoTarea = null;
     this.showAddTaskModal = true;
   }
 
   cerrarModal() {
     this.showAddTaskModal = false;
+    this.editandoTarea = null;
   }
 
   guardarTarea() {
@@ -66,21 +70,33 @@ export class ObraTareasComponent {
       return;
     }
 
-    const nueva: TareaPayload = {
+    const payload: TareaPayload = {
+      id: this.editandoTarea?.id,
       id_obra: this.obraId,
       id_proveedor: this.nuevaTarea.proveedor.id!,
-      estado_tarea: 'PENDIENTE',
+      estado_tarea: this.nuevaTarea.estado_tarea || 'PENDIENTE',
       nombre: this.nuevaTarea.nombre!,
+      descripcion: this.nuevaTarea.descripcion
     };
 
-    console.log(nueva)
+    const request$ = this.editandoTarea?.id
+      ? this.tareasService.updateTarea(this.editandoTarea.id, payload)
+      : this.tareasService.createTarea(payload);
 
-    this.tareasService.createTarea(nueva).subscribe({
+    request$.subscribe({
       next: (created) => {
-        this.tareas = [...this.tareas, {
-          ...created,
-          proveedor: this.nuevaTarea.proveedor!,
-        }];
+        if (this.editandoTarea?.id) {
+          this.tareas = this.tareas.map(t => t.id === created.id ? {
+            ...t,
+            ...created,
+            proveedor: this.nuevaTarea.proveedor!
+          } : t);
+        } else {
+          this.tareas = [...this.tareas, {
+            ...created,
+            proveedor: this.nuevaTarea.proveedor!,
+          }];
+        }
 
         this.tareasActualizadas.emit(this.tareas);
         this.showAddTaskModal = false;
@@ -89,7 +105,7 @@ export class ObraTareasComponent {
         this.messageService.add({
           severity: 'error',
           summary: 'Error',
-          detail: 'No se pudo crear la tarea 😢'
+          detail: 'No se pudo guardar la tarea'
         });
       }
     });
@@ -161,5 +177,17 @@ export class ObraTareasComponent {
       default:
         return 'bg-gray-50 border-gray-200 hover:bg-gray-100';
     }
+  }
+
+  editarTarea(tarea: Tarea) {
+    this.editandoTarea = tarea;
+    this.nuevaTarea = {
+      id: tarea.id,
+      nombre: tarea.nombre,
+      descripcion: tarea.descripcion,
+      estado_tarea: tarea.estado_tarea,
+      proveedor: tarea.proveedor,
+    };
+    this.showAddTaskModal = true;
   }
 }

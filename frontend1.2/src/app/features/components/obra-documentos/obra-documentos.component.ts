@@ -51,7 +51,7 @@ export class ObraDocumentosComponent implements OnInit {
   modalVisible = false;
   selectedTipo: string | null = null;
   observacion = '';
-  selectedFile: File | null = null;
+  selectedFiles: File[] = [];
   confirmModalVisible = false;
   docAEliminar: Documento | null = null;
   tipoEntidad: 'PROVEEDOR' | 'CLIENTE' = 'CLIENTE';
@@ -135,7 +135,7 @@ export class ObraDocumentosComponent implements OnInit {
     this.modalVisible = true;
     this.selectedTipo = null;
     this.observacion = '';
-    this.selectedFile = null;
+    this.selectedFiles = [];
 
     // Si solo hay un cliente (el de la obra), seleccionarlo por defecto
     if (this.tipoEntidad === 'CLIENTE' && this.clientes && this.clientes.length === 1) {
@@ -144,15 +144,15 @@ export class ObraDocumentosComponent implements OnInit {
   }
 
   onFileSelected(event: any) {
-    this.selectedFile = event?.files?.[0] ?? null;
+    this.selectedFiles = event?.files ?? [];
   }
 
-  quitarArchivo() {
-    this.selectedFile = null;
+  quitarArchivo(index: number) {
+    this.selectedFiles.splice(index, 1);
   }
 
   guardarDocumento() {
-    if (!this.selectedFile || !this.selectedTipo) {
+    if (!this.selectedFiles.length || !this.selectedTipo) {
       this.messageService.add({
         severity: 'warn',
         summary: 'Datos incompletos',
@@ -172,36 +172,37 @@ export class ObraDocumentosComponent implements OnInit {
       tipoAsociado = 'CLIENTE';
     }
 
-    this.documentosService
-      .uploadDocumentoFlexible(
+    const cargas = this.selectedFiles.map(file =>
+      this.documentosService.uploadDocumentoFlexible(
         this.obraId,
-        this.selectedTipo,
+        this.selectedTipo!,
         this.observacion ?? '',
-        this.selectedFile,
+        file,
         idAsociado,
         tipoAsociado
-      )
-      .subscribe({
-        next: nuevo => {
-          this.documentos = [...this.documentos, nuevo];
-          this.modalVisible = false;
-          this.selectedFile = null;
-          this.selectedTipo = null;
-          this.observacion = '';
-          this.messageService.add({
-            severity: 'success',
-            summary: 'Documento subido',
-            detail: nuevo.nombre_archivo
-          });
-        },
-        error: () => {
-          this.messageService.add({
-            severity: 'error',
-            summary: 'Error',
-            detail: 'No se pudo subir el documento.'
-          });
-        }
-      });
+      ));
+
+    forkJoin(cargas).subscribe({
+      next: nuevos => {
+        this.documentos = [...this.documentos, ...nuevos];
+        this.modalVisible = false;
+        this.selectedFiles = [];
+        this.selectedTipo = null;
+        this.observacion = '';
+        this.messageService.add({
+          severity: 'success',
+          summary: 'Documentos subidos',
+          detail: `${nuevos.length} archivo(s) agregados`
+        });
+      },
+      error: () => {
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: 'No se pudieron subir los documentos.'
+        });
+      }
+    });
   }
 
   eliminarDocumento(doc: Documento) {

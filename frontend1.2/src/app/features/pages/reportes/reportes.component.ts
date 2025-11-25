@@ -20,7 +20,10 @@ import {
   RankingClientesResponse,
   RankingProveedoresResponse,
   ReportFilter,
-  ResumenGeneralResponse
+  ResumenGeneralResponse,
+  CuentaCorrienteObraResponse,
+  CuentaCorrienteProveedorResponse,
+  ComisionesResponse
 } from '../../../core/models/models';
 import {ReportesService} from '../../../services/reportes/reportes.service';
 import {ObrasService} from '../../../services/obras/obras.service';
@@ -95,6 +98,9 @@ export class ReportesComponent implements OnInit {
   notasGenerales: NotasObraResponse[] = [];
   notaObraSeleccionada: NotasObraResponse | null = null;
   estadoFinancieroObra: EstadoFinancieroObraResponse | null = null;
+  cuentaCorrienteObra: CuentaCorrienteObraResponse | null = null;
+  cuentaCorrienteProveedor: CuentaCorrienteProveedorResponse | null = null;
+  comisiones: ComisionesResponse | null = null;
 
   loading = false;
 
@@ -196,18 +202,37 @@ export class ReportesComponent implements OnInit {
         saldoFinal: 0,
         movimientos: []
       }),
+      cuentaCorrienteObra: this.withDefault(this.reportesService.getCuentaCorrienteObra(filtrosReporte), {
+        obraId: filtrosReporte?.obraId,
+        obraNombre: '',
+        totalIngresos: 0,
+        totalEgresos: 0,
+        saldoFinal: 0,
+        movimientos: []
+      }),
+      cuentaCorrienteProveedor: this.withDefault(this.reportesService.getCuentaCorrienteProveedor(filtrosReporte), {
+        proveedorId: filtrosReporte?.proveedorId,
+        proveedorNombre: '',
+        totalCostos: 0,
+        totalPagos: 0,
+        saldoFinal: 0,
+        movimientos: []
+      }),
       pendientes: this.withDefault(this.reportesService.getPendientes(filtrosReporte), {pendientes: []}),
       estadoObras: this.withDefault(this.reportesService.getEstadoObras(filtrosEstadoObra), {obras: []}),
       avanceTareas: this.withDefault(this.reportesService.getAvanceTareas(filtrosReporte), {avances: []}),
       costosCategoria: this.withDefault(this.reportesService.getCostosPorCategoria(filtrosReporte), {total: 0, categorias: []}),
       rankingClientes: this.withDefault(this.reportesService.getRankingClientes(filtrosReporte), {clientes: []}),
       rankingProveedores: this.withDefault(this.reportesService.getRankingProveedores(filtrosReporte), {proveedores: []}),
-      notasGenerales: this.withDefault(this.reportesService.getNotasGenerales(), [])
+      notasGenerales: this.withDefault(this.reportesService.getNotasGenerales(), []),
+      comisiones: this.withDefault(this.reportesService.getComisiones(filtrosReporte), {total: 0, comisiones: []})
     }).subscribe({
       next: (data) => {
         this.resumenGeneral = data.resumen;
         this.ingresosEgresos = data.ingresosEgresos;
         this.flujoCaja = data.flujoCaja;
+        this.cuentaCorrienteObra = data.cuentaCorrienteObra;
+        this.cuentaCorrienteProveedor = data.cuentaCorrienteProveedor;
         this.pendientes = data.pendientes;
         this.estadoObras = data.estadoObras;
         this.avanceTareas = data.avanceTareas;
@@ -215,6 +240,7 @@ export class ReportesComponent implements OnInit {
         this.rankingClientes = data.rankingClientes;
         this.rankingProveedores = data.rankingProveedores;
         this.notasGenerales = data.notasGenerales;
+        this.comisiones = data.comisiones;
 
         const obraId = filtrosReporte?.obraId ?? null;
         if (obraId) {
@@ -297,6 +323,10 @@ export class ReportesComponent implements OnInit {
     if (t === 'CLIENTE') return this.clientesIndex[id] || `Cliente #${id}`;
     if (t === 'PROVEEDOR') return this.proveedoresIndex[id] || `Proveedor #${id}`;
     return `#${id}`;
+  }
+
+  saldoSinNegativo(valor?: number): number {
+    return Math.max(valor ?? 0, 0);
   }
 }
 
