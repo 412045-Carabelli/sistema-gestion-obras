@@ -58,7 +58,7 @@
           <td>{{ row.nombre }}</td>
           <td>{{ formatearTipo(row.tipo_proveedor) ?? '—' }}</td>
           <td>{{ row.contacto ?? '—' }}</td>
-          <td>{{ row.telefono ?? '—' }}</td>
+          <td class="whitespace-nowrap max-w-[160px] overflow-hidden text-ellipsis">{{ row.telefono ?? '—' }}</td>
           <td>{{ row.email ?? '—' }}</td>
         </tr>
       </ng-template>

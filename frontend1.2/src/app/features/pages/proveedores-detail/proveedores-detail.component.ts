@@ -39,6 +39,10 @@ export class ProveedoresDetailComponent implements OnInit, OnDestroy {
   estadosPago: EstadoPago[] = [];
   costosProveedor: ObraCosto[] = [];
   resumenEstados: { estado: string; cantidad: number; total: number }[] = [];
+  transaccionesConSaldo: (Transaccion & { saldoRestante?: number })[] = [];
+  totalCostos = 0;
+  totalPagos = 0;
+  saldoProveedor = 0;
   loading = true;
   private subs = new Subscription();
 
@@ -69,6 +73,19 @@ export class ProveedoresDetailComponent implements OnInit, OnDestroy {
 
   irADetalleObra(idObra: number) {
     this.router.navigate(['/obras', idObra]);
+  }
+
+  toggleActivo() {
+    const actualizado = {...this.proveedor, activo: !this.proveedor.activo};
+    this.proveedoresService.updateProveedor(this.proveedor.id!, actualizado).subscribe({
+      next: (prov) => {
+        this.proveedor = prov;
+        this.proveedoresStateService.setProveedor(prov);
+      },
+      error: () => {
+        this.proveedoresStateService.setProveedor(this.proveedor);
+      }
+    });
   }
 
   private cargarDetalle(id: number) {
@@ -109,6 +126,8 @@ export class ProveedoresDetailComponent implements OnInit, OnDestroy {
           }
           this.resumenEstados = Object.entries(mapa).map(([estado, v]) => ({estado, cantidad: v.cantidad, total: v.total}));
 
+          this.calcularSaldoProveedor();
+
           const obraIds = Array.from(new Set(this.costosProveedor.map(c => c.id_obra)));
           if (obraIds.length > 0) {
             forkJoin(obraIds.map(id => this.obrasService.getObraById(id))).subscribe({
@@ -134,5 +153,21 @@ export class ProveedoresDetailComponent implements OnInit, OnDestroy {
 
     const limpio = tipo.replace(/_/g, ' ').toLowerCase();
     return limpio.charAt(0).toUpperCase() + limpio.slice(1);
+  }
+
+  private calcularSaldoProveedor() {
+    this.totalCostos = this.costosProveedor.reduce((sum, c) => sum + Number(c.total || 0), 0);
+    this.totalPagos = this.transacciones.reduce((sum, t) => sum + Number(t.monto || 0), 0);
+    this.saldoProveedor = this.totalCostos - this.totalPagos;
+
+    const ordenadas = [...this.transacciones].sort((a, b) =>
+      new Date(a.fecha || '').getTime() - new Date(b.fecha || '').getTime()
+    );
+
+    let saldo = this.totalCostos;
+    this.transaccionesConSaldo = ordenadas.map(t => {
+      saldo -= Number(t.monto || 0);
+      return {...t, saldoRestante: saldo};
+    });
   }
 }

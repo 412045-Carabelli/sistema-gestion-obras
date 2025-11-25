@@ -6,6 +6,7 @@ export interface Cliente {
   id_empresa?: number;
   contacto?: string;
   cuit?: string;
+  condicion_iva?: string;
   telefono?: string;
   email?: string;
   activo?: boolean;
@@ -20,6 +21,9 @@ export interface Proveedor {
   id: number;
   tipo_proveedor: string;
   nombre: string;
+  direccion?: string;
+  gremio?: string;
+  cuit?: string;
   contacto?: string;
   telefono?: string;
   email?: string;
@@ -114,6 +118,7 @@ export interface Transaccion {
   fecha?: string | Date;
   monto: number;
   forma_pago: string;
+  saldo_proveedor?: number;
   activo?: boolean;
   ultima_actualizacion?: string;
   tipo_actualizacion?: string;
