@@ -1,0 +1,53 @@
+<div class="p-6 space-y-4">
+  <div class="flex items-center justify-between">
+    <div>
+      <h1 class="text-2xl font-bold text-gray-800">Todas las tareas</h1>
+      <p class="text-sm text-gray-500">Listado consolidado por obra y proveedor</p>
+    </div>
+  </div>
+
+  <div class="bg-white rounded-lg shadow">
+    <div class="p-4 border-b flex items-center gap-2 text-sm text-gray-600">
+      <i class="pi pi-info-circle text-indigo-600"></i>
+      Incluye tareas en cualquier estado y muestra la referencia de obra.
+    </div>
+
+    @if (loading) {
+      <div class="p-6 flex justify-center">
+        <p-progressSpinner></p-progressSpinner>
+      </div>
+    } @else {
+      <p-table [value]="tareas" [tableStyle]="{'min-width': '60rem'}">
+        <ng-template pTemplate="header">
+          <tr>
+            <th>Nombre</th>
+            <th>Estado</th>
+            <th>Obra</th>
+            <th>Proveedor</th>
+            <th>Acciones</th>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="body" let-row>
+          <tr>
+            <td>
+              <div class="font-semibold text-gray-800">{{ row.nombre }}</div>
+              <div class="text-xs text-gray-500">{{ row.descripcion || 'Sin descripción' }}</div>
+            </td>
+            <td>
+              <p-tag [value]="row.estado_tarea" [severity]="row.estado_tarea === 'COMPLETADA' ? 'success' : row.estado_tarea === 'EN PROGRESO' ? 'info' : 'warning'"></p-tag>
+            </td>
+            <td>
+              <button class="text-indigo-600 hover:underline" (click)="irAObra(row.id_obra)">
+                {{ row.obraNombre }}
+              </button>
+            </td>
+            <td>{{ row.proveedor?.nombre || 'Sin proveedor' }}</td>
+            <td>
+              <button class="text-sm text-indigo-600 hover:underline" (click)="irAObra(row.id_obra)">Ver obra</button>
+            </td>
+          </tr>
+        </ng-template>
+      </p-table>
+    }
+  </div>
+</div>

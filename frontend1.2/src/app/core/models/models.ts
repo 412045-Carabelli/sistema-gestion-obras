@@ -328,6 +328,7 @@ export interface MovimientoDashboard {
   transaccionId: number;
   fecha: string;
   tipo: string;
+  tipo_movimiento?: string;
   monto: number;
   obraId: number;
   obraNombre: string;

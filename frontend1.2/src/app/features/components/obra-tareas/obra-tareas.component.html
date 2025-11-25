@@ -42,11 +42,18 @@
                 {{ tarea.nombre }}
               </span>
             </div>
-            <p-button
-              icon="pi pi-trash"
-              styleClass="p-button-text p-button-sm text-red-500"
-              (onClick)="eliminarTarea(tarea.id!); $event.stopPropagation()"
-            ></p-button>
+            <div class="flex items-center gap-2">
+              <p-button
+                icon="pi pi-pencil"
+                styleClass="p-button-text p-button-sm"
+                (onClick)="editarTarea(tarea); $event.stopPropagation()"
+              ></p-button>
+              <p-button
+                icon="pi pi-trash"
+                styleClass="p-button-text p-button-sm text-red-500"
+                (onClick)="eliminarTarea(tarea.id!); $event.stopPropagation()"
+              ></p-button>
+            </div>
           </div>
         }
       </div>
@@ -58,7 +65,7 @@
     (closed)="cerrarModal()"
     (confirmed)="guardarTarea()"
     [visible]="showAddTaskModal"
-    title="Nueva Tarea"
+    [title]="editandoTarea ? 'Editar Tarea' : 'Nueva Tarea'"
   >
     <div class="p-3 space-y-3">
       <label class="block text-sm font-medium">Nombre de la tarea</label>
@@ -69,6 +76,13 @@
         type="text"
       />
 
+      <label class="block text-sm font-medium">Descripción</label>
+      <textarea
+        [(ngModel)]="nuevaTarea.descripcion"
+        class="w-full p-2 border rounded-md"
+        rows="3"
+        placeholder="Detalle o notas de la tarea"></textarea>
+
       <label class="block text-sm font-medium">Proveedor</label>
       <p-select
         [(ngModel)]="nuevaTarea.proveedor"
@@ -77,6 +91,15 @@
         class="w-full"
         optionLabel="nombre"
         placeholder="Seleccionar proveedor">
+      </p-select>
+
+      <label class="block text-sm font-medium">Estado</label>
+      <p-select
+        [(ngModel)]="nuevaTarea.estado_tarea"
+        [options]="['PENDIENTE', 'EN PROGRESO', 'COMPLETADA']"
+        appendTo="body"
+        class="w-full"
+        placeholder="Seleccionar estado">
       </p-select>
     </div>
   </app-modal>

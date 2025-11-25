@@ -50,6 +50,13 @@ export class TareasService {
     );
   }
 
+  // ✅ Editar tarea
+  updateTarea(id: number, payload: TareaPayload): Observable<Tarea> {
+    return this.http.put<Tarea>(`${this.apiUrl}/${id}`, payload).pipe(
+      tap(() => this.refrescarTareas(payload.id_obra))
+    );
+  }
+
   // ✅ Eliminar tarea
   deleteTarea(id: number, idObra: number): Observable<void> {
     return this.http.delete<void>(`${this.apiUrl}/${id}`).pipe(
