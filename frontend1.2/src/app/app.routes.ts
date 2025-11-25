@@ -28,6 +28,11 @@ export const routes: Routes = [
       .then(m => m.DashboardComponent)
   },
   {
+    path: 'tareas',
+    loadComponent: () => import('./features/pages/tareas/tareas.component')
+      .then(m => m.TareasComponent)
+  },
+  {
     path: 'obras',
     component: ObrasLayoutComponent,
     children: [
