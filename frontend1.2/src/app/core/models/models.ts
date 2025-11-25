@@ -43,6 +43,7 @@ export interface Obra {
   nombre: string;
   direccion?: string;
   fecha_inicio: string;
+  fecha_presupuesto?: string;
   fecha_fin?: string;
   fecha_adjudicada?: string;
   fecha_perdida?: string;

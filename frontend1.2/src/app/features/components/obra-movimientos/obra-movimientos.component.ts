@@ -33,6 +33,7 @@ export class ObraMovimientosComponent implements OnInit {
   @Input() obraId!: number;
   @Input() clientes!: Cliente[];
   @Input() proveedores!: Proveedor[];
+  @Input() obraNombre = '';
 
   transacciones: Transaccion[] = [];
   tiposTransaccion: { label: string; name: string }[] = [];

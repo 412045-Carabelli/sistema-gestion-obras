@@ -33,6 +33,7 @@ export class ObraTareasComponent {
   @Input() obraId!: number;
   @Input() proveedores: Proveedor[] = [];
   @Input() tareas: Tarea[] = [];
+  @Input() obraNombre = '';
   @Output() tareasActualizadas = new EventEmitter<Tarea[]>();
 
   showAddTaskModal = false;

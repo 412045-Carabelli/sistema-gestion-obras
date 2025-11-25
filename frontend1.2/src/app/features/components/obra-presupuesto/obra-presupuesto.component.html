@@ -25,6 +25,55 @@
     </div>
   </div>
 
+  <!-- Formulario rápido para agregar costos -->
+  <div class="grid grid-cols-1 lg:grid-cols-5 gap-3 bg-gray-50 border border-dashed border-gray-200 p-3 rounded-lg">
+    <p-select
+      [(ngModel)]="nuevoCosto.id_proveedor"
+      [options]="proveedores"
+      optionLabel="nombre"
+      optionValue="id"
+      placeholder="Proveedor"
+      styleClass="w-full"
+    ></p-select>
+    <input
+      [(ngModel)]="nuevoCosto.descripcion"
+      class="w-full lg:col-span-2"
+      pInputText
+      placeholder="Descripción"
+      type="text"
+    />
+    <div class="flex gap-2">
+      <input
+        [(ngModel)]="nuevoCosto.cantidad"
+        class="w-1/2"
+        min="0"
+        pInputText
+        placeholder="Cant."
+        type="number"
+      />
+      <input
+        [(ngModel)]="nuevoCosto.precio_unitario"
+        class="w-1/2"
+        min="0"
+        pInputText
+        placeholder="Precio"
+        type="number"
+      />
+    </div>
+    <div class="flex gap-2 items-center">
+      <input
+        [(ngModel)]="nuevoCosto.beneficio"
+        [disabled]="usarBeneficioGlobal"
+        class="w-20"
+        min="0"
+        pInputText
+        placeholder="%"
+        type="number"
+      />
+      <p-button icon="pi pi-plus" label="Agregar" (onClick)="agregarCosto()"></p-button>
+    </div>
+  </div>
+
   <!-- Tabla de costos -->
   <p-table
     *ngIf="costosFiltrados.length > 0; else noCostos"
@@ -42,6 +91,7 @@
         <th class="text-left px-3 py-2 font-semibold">Beneficio (%)</th>
         <th class="text-left px-3 py-2 font-semibold">Estado de pago</th>
         <th class="text-left px-3 py-2 font-semibold">Total</th>
+        <th class="text-left px-3 py-2 font-semibold">Acciones</th>
       </tr>
     </ng-template>
 
@@ -51,22 +101,79 @@
         [ngClass]="rowIndex % 2 === 0 ? 'bg-white' : 'bg-gray-50'"
         class="hover:bg-gray-50 transition"
       >
-        <td class="px-3 py-2">{{ c.proveedor.nombre ?? '-' }}</td>
-        <td class="px-3 py-2">{{ c.descripcion }}</td>
-        <td class="px-3 py-2">{{ c.cantidad }} {{ c.unidad }}</td>
-        <td class="px-3 py-2 text-right">{{ c.precio_unitario | currency }}</td>
+        <td class="px-3 py-2">
+          <p-select
+            [(ngModel)]="c.id_proveedor"
+            [disabled]="!c.enEdicion"
+            [options]="proveedores"
+            optionLabel="nombre"
+            optionValue="id"
+            placeholder="Proveedor"
+            styleClass="w-full"
+          ></p-select>
+        </td>
+        <td class="px-3 py-2">
+          <input
+            [(ngModel)]="c.descripcion"
+            [disabled]="!c.enEdicion"
+            class="w-full"
+            pInputText
+            type="text"
+          />
+        </td>
+        <td class="px-3 py-2">
+          <div class="flex gap-2 items-center">
+            <input
+              [(ngModel)]="c.cantidad"
+              (input)="recalcularEnEdicion(c)"
+              [disabled]="!c.enEdicion"
+              class="w-20"
+              min="0"
+              pInputText
+              type="number"
+            />
+            <input
+              [(ngModel)]="c.unidad"
+              [disabled]="!c.enEdicion"
+              class="w-16"
+              pInputText
+              placeholder="Unidad"
+              type="text"
+            />
+          </div>
+        </td>
+        <td class="px-3 py-2 text-right">
+          <input
+            [(ngModel)]="c.precio_unitario"
+            (input)="recalcularEnEdicion(c)"
+            [disabled]="!c.enEdicion"
+            class="w-full text-right"
+            min="0"
+            pInputText
+            type="number"
+          />
+        </td>
 
         <td class="px-3 py-2 text-right">
           <span *ngIf="usarBeneficioGlobal" class="text-gray-500 text-xs">
             Global ({{ beneficioGlobal }}%)
           </span>
-          <span *ngIf="!usarBeneficioGlobal">{{ c.beneficio }}%</span>
+          <input
+            *ngIf="!usarBeneficioGlobal"
+            [(ngModel)]="c.beneficio"
+            (input)="recalcularEnEdicion(c)"
+            [disabled]="!c.enEdicion"
+            class="w-16 text-right"
+            pInputText
+            type="number"
+          />
         </td>
 
         <td class="px-3 py-2">
           <p-select
             (ngModelChange)="actualizarEstadoPago(c, $event)"
             [(ngModel)]="c.estado_pago"
+            [disabled]="c.enEdicion"
             [options]="estadosPagoRecords"
             optionLabel="label"
             optionValue="name"
@@ -76,6 +183,15 @@
 
         <td class="px-3 py-2 text-right font-semibold">
           {{ c.total | currency }}
+        </td>
+
+        <td class="px-3 py-2">
+          <div class="flex gap-1 justify-end">
+            <p-button *ngIf="!c.enEdicion" icon="pi pi-pencil" styleClass="p-button-text p-button-sm" (onClick)="habilitarEdicion(c)"></p-button>
+            <p-button *ngIf="c.enEdicion" icon="pi pi-check" styleClass="p-button-success p-button-sm" (onClick)="guardarEdicion(c)"></p-button>
+            <p-button *ngIf="c.enEdicion" icon="pi pi-times" styleClass="p-button-secondary p-button-sm" (onClick)="c.enEdicion=false"></p-button>
+            <p-button icon="pi pi-trash" styleClass="p-button-danger p-button-text p-button-sm" (onClick)="eliminarCosto(c)"></p-button>
+          </div>
         </td>
       </tr>
     </ng-template>

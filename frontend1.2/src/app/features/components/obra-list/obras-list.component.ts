@@ -76,7 +76,7 @@ export class ObrasListComponent implements OnInit {
 
       this.estadosOptions = [
         { label: 'Todos', value: 'TODOS'},
-        ...this.estados.map(r => ({ label: r.label, value: r.value }))
+        ...this.estados.map(r => ({ label: r.label || r.name, value: r.value || r.name }))
       ];
 
       this.datosCargados = true;
@@ -108,6 +108,7 @@ export class ObrasListComponent implements OnInit {
     if (!raw) return '';
     if (typeof raw === 'string') return raw;
     if (raw.value) return raw.value;
+    if (raw.name) return raw.name;
     if (raw.nombre) {
       const rec = this.estados.find(r => (r.label || '').toLowerCase() === (raw.nombre || '').toLowerCase());
       return rec?.value || '';
@@ -119,8 +120,8 @@ export class ObrasListComponent implements OnInit {
     const raw = (obra as any)?.obra_estado;
     if (!raw) return '';
     if (typeof raw === 'string') {
-      const rec = this.estados.find(r => (r.value || '').toUpperCase() === raw.toUpperCase());
-      return rec?.label || raw;
+      const rec = this.estados.find(r => ((r.value || r.name || '') as string).toUpperCase() === raw.toUpperCase());
+      return rec?.label || rec?.name || raw;
     }
     return raw.label || raw.nombre || '';
   }
