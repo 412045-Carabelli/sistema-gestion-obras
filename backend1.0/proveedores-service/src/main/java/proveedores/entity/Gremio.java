@@ -6,13 +6,18 @@ import lombok.Data;
 import java.time.Instant;
 
 @Entity
-@Table(name = "tipo_proveedor")
+@Table(name = "gremios")
 @Data
-public class TipoProveedor {
+public class Gremio {
     @Id
-    @GeneratedValue(strategy= GenerationType.IDENTITY) private Long id;
-    @Column(nullable=false, unique = true) private String nombre;
-    @Column(nullable = false) private Boolean activo = Boolean.TRUE;
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @Column(nullable = false, unique = true)
+    private String nombre;
+
+    @Column(nullable = false)
+    private Boolean activo = Boolean.TRUE;
 
     @Column(name = "ultima_actualizacion")
     private Instant ultimaActualizacion;
