@@ -21,6 +21,7 @@ export class ProveedoresFormComponent implements OnInit {
 
   form!: FormGroup;
   tipos: { label: string; name: string }[] = [];
+  gremios: { label: string; name: string }[] = [];
 
   constructor(private fb: FormBuilder, private service: ProveedoresService) {
   }
@@ -29,16 +30,21 @@ export class ProveedoresFormComponent implements OnInit {
     this.form = this.fb.group({
       nombre: [this.initialData?.nombre ?? '', Validators.required],
       tipo_proveedor: [this.initialData?.tipo_proveedor ?? null, Validators.required],
+      gremio: [this.initialData?.gremio ?? null, Validators.required],
       contacto: [this.initialData?.contacto ?? '', Validators.required],
+      direccion: [this.initialData?.direccion ?? ''],
+      cuit: [this.initialData?.cuit ?? '', Validators.required],
       telefono: [this.initialData?.telefono ?? '', Validators.required],
-      email: [this.initialData?.email ?? '', Validators.required]
+      email: [this.initialData?.email ?? '', Validators.required],
+      activo: [this.initialData?.activo ?? true]
     });
 
     this.service.getTipos().subscribe(t => {
       this.tipos = t;
-      console.log('Tipos cargados:', t);
-      console.log('Valor inicial:', this.initialData?.tipo_proveedor);
-      console.log('Valor del form:', this.form.get('tipo_proveedor')?.value);
+    });
+
+    this.service.getGremios().subscribe(g => {
+      this.gremios = g;
     });
   }
 

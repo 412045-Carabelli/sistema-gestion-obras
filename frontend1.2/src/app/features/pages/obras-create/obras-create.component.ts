@@ -64,6 +64,7 @@ export class ObrasCreateComponent implements OnInit {
       cliente: [null, Validators.required],
       obra_estado: [null, Validators.required],
       direccion: ['', [Validators.required, Validators.minLength(5)]],
+      fecha_presupuesto: [null, Validators.required],
       fecha_inicio: [null, Validators.required],
       fecha_fin: [null],
       // Campos de adjudicación/perdida removidos del alta
@@ -88,7 +89,10 @@ export class ObrasCreateComponent implements OnInit {
 
     this.estadoObraService.getEstados().subscribe(list => {
       this.estadosRecords = list;
-      console.log(this.estadosRecords);
+      const presupuestada = list.find(e => (e.name || '').toUpperCase() === 'PRESUPUESTADA');
+      if (presupuestada) {
+        this.form.get('obra_estado')?.setValue(presupuestada.name ?? presupuestada.label);
+      }
     });
 
     this.proveedoresService.getProveedores().subscribe(list =>
@@ -204,9 +208,10 @@ export class ObrasCreateComponent implements OnInit {
 
     const payload: ObraPayload = {
       id_cliente: raw.cliente?.id ?? 0,
-      obra_estado: raw.obra_estado,
+      obra_estado: (raw.obra_estado?.name ?? raw.obra_estado),
       nombre: raw.nombre,
       direccion: raw.direccion,
+      fecha_presupuesto: this.formatToLocalDateTime(raw.fecha_presupuesto),
       fecha_inicio: this.formatToLocalDateTime(raw.fecha_inicio),
       fecha_fin: this.formatToLocalDateTime(raw.fecha_fin),
       // No enviar fechas adjudicada/perdida en creación

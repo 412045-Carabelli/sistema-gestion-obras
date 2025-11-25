@@ -70,6 +70,8 @@ export class ObrasDetailComponent implements OnInit, OnDestroy {
   progresoFisico = 0;
   estadosObra: EstadoObra[] = [];
   estadoSeleccionado: string | null = null;
+  beneficioNeto = 0;
+  cronogramaFueraDeRango = false;
 
   loading = true;
   private subs = new Subscription();
@@ -152,6 +154,8 @@ export class ObrasDetailComponent implements OnInit, OnDestroy {
         );
 
         this.progresoFisico = this.getProgresoFisico();
+        this.beneficioNeto = this.calcularBeneficioNeto();
+        this.cronogramaFueraDeRango = this.esCronogramaInvalido();
         this.loading = false;
         this.obraStateService.setObra(this.obra);
       },
@@ -171,6 +175,7 @@ export class ObrasDetailComponent implements OnInit, OnDestroy {
   onCostosActualizados(costosActualizados: ObraCosto[]) {
     this.costos = costosActualizados;
     this.obra.costos = costosActualizados;
+    this.beneficioNeto = this.calcularBeneficioNeto();
     this.obraStateService.setObra(this.obra);
   }
 
@@ -188,6 +193,19 @@ export class ObrasDetailComponent implements OnInit, OnDestroy {
       .length;
 
     return Math.round((completadas / tareasDeEstaObra.length) * 100);
+  }
+
+  private calcularBeneficioNeto(): number {
+    const totalCostos = (this.obra.costos ?? []).reduce((acc, costo) => acc + (costo.total ?? 0), 0);
+    const presupuesto = this.obra.presupuesto ?? 0;
+    return presupuesto - totalCostos;
+  }
+
+  private esCronogramaInvalido(): boolean {
+    const inicio = this.obra.fecha_inicio ? new Date(this.obra.fecha_inicio) : null;
+    const fin = this.obra.fecha_fin ? new Date(this.obra.fecha_fin) : null;
+    if (!inicio || !fin) return false;
+    return fin.getTime() < inicio.getTime();
   }
 
   onTareasActualizadas(nuevasTareas: Tarea[]) {

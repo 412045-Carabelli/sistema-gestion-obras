@@ -11,6 +11,7 @@ export class ProveedoresService {
 
   private apiUrl = `${environment.apiGateway}${environment.endpoints.proveedores}`;
   private tiposUrl = `${environment.apiGateway}${environment.endpoints.tipo_proveedores}`;
+  private gremiosUrl = `${environment.apiGateway}${environment.endpoints.gremios}`;
 
   constructor(private http: HttpClient) {}
 
@@ -41,6 +42,10 @@ export class ProveedoresService {
     return this.http.get<{ label: string; name: string }[]>(this.tiposUrl);
   }
 
+  getGremios(): Observable<{ label: string; name: string }[]> {
+    return this.http.get<{ label: string; name: string }[]>(this.gremiosUrl);
+  }
+
   // ----------------------------------------------------------
   // 🔧 SERIALIZACIÓN (para enviar enums como string)
   // ----------------------------------------------------------
@@ -49,6 +54,10 @@ export class ProveedoresService {
 
     if (body?.tipo_proveedor?.value) {
       body.tipo_proveedor = body.tipo_proveedor.value;
+    }
+
+    if (body?.gremio?.value) {
+      body.gremio = body.gremio.value;
     }
 
     return body;
