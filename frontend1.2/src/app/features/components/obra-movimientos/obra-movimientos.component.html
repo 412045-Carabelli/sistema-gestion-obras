@@ -32,7 +32,8 @@
           <th>Tipo</th>
           <th>Asociado</th>
           <th>Fecha</th>
-          <th>Forma de pago</th>
+          <th>Condición (Parcial/Total)</th>
+          <th>Medio</th>
           <th>Monto</th>
           <th>Factura cobrada</th>
           <th>Saldo</th>
@@ -60,7 +61,8 @@
           <td>{{ t.fecha | date: 'dd/MM/yyyy' }}</td>
 
           <!-- 🔹 Forma de pago -->
-          <td class="capitalize">{{ t.forma_pago }}</td>
+          <td class="uppercase">{{ t.forma_pago }}</td>
+          <td class="capitalize">{{ t.medio_pago || 'Sin especificar' }}</td>
 
           <!-- 🔹 Monto -->
           <td>{{ t.monto | currency: 'ARS' }}</td>
@@ -199,7 +201,7 @@
 
       <!-- 🔸 Forma de pago -->
       <label class="block text-sm font-medium mb-1 text-gray-700">
-        Forma de pago/cobro
+        Condición de pago/cobro (Total/Parcial)
       </label>
       <p-select
         [(ngModel)]="nuevoMovimiento.forma_pago"
@@ -207,8 +209,19 @@
         class="w-full"
         optionLabel="label"
         optionValue="name"
-        placeholder="Seleccionar forma de pago"
+        placeholder="Seleccionar condición"
       ></p-select>
+
+      <label class="block text-sm font-medium mb-1 text-gray-700">
+        Medio de pago/cobro
+      </label>
+      <input
+        type="text"
+        pInputText
+        [(ngModel)]="nuevoMovimiento.medio_pago"
+        class="w-full"
+        placeholder="Ej: Transferencia, Efectivo, Cheque"
+      />
 
       <!-- 🔸 Monto y Fecha -->
       <div class="flex gap-5">
