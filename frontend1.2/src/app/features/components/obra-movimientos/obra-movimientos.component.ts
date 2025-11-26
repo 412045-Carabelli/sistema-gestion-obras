@@ -1,4 +1,4 @@
-import {Component, Input, OnInit} from '@angular/core';
+﻿import {Component, Input, OnInit} from '@angular/core';
 import {CurrencyPipe, DatePipe, NgClass} from '@angular/common';
 import {TableModule} from 'primeng/table';
 import {ButtonModule} from 'primeng/button';
@@ -18,6 +18,7 @@ import {Toast} from 'primeng/toast';
 import {AutoComplete} from 'primeng/autocomplete';
 import {TagModule} from 'primeng/tag';
 import {CheckboxModule} from 'primeng/checkbox';
+import {InputText} from 'primeng/inputtext';
 
 @Component({
   selector: 'app-obra-movimientos',
@@ -26,7 +27,7 @@ import {CheckboxModule} from 'primeng/checkbox';
     CurrencyPipe, DatePipe, TableModule, ButtonModule,
     TooltipModule, DropdownModule, FormsModule,
     ModalComponent, InputNumber, DatePicker,
-    FileUploadModule, NgClass, Select, ConfirmDialog, Toast, AutoComplete, TagModule, CheckboxModule
+    FileUploadModule, NgClass, Select, ConfirmDialog, Toast, AutoComplete, TagModule, CheckboxModule, InputText
   ],
   providers: [MessageService, ConfirmationService],
   templateUrl: './obra-movimientos.component.html'
@@ -44,7 +45,6 @@ export class ObraMovimientosComponent implements OnInit {
     {label: 'Parcial', name: 'PARCIAL'},
     {label: 'Total', name: 'TOTAL'}
   ];
-
   tipoEntidad: 'PROVEEDOR' | 'CLIENTE' = 'CLIENTE';
   selectedProveedor: Proveedor | null = null;
   selectedCliente: Cliente | null = null;
@@ -58,7 +58,8 @@ export class ObraMovimientosComponent implements OnInit {
     tipo_transaccion: 'COBRO',
     fecha: new Date().toISOString().split('T')[0],
     monto: 0,
-    forma_pago: 'Total',
+    forma_pago: 'TOTAL',
+    medio_pago: 'Transferencia',
     factura_cobrada: false,
     activo: true,
     id_asociado: undefined,
@@ -93,7 +94,7 @@ export class ObraMovimientosComponent implements OnInit {
     if(tipoAsociado === 'PROVEEDOR'){
       return this.proveedores.find(c => c.id === id)?.nombre
     }
-    return "No se encontró un cliente/proveedor asociado"
+    return "No se encontrÃ³ un cliente/proveedor asociado"
   }
 
   get totalCobros(): number {
@@ -157,25 +158,40 @@ export class ObraMovimientosComponent implements OnInit {
     this.modoEdicion = !!movimiento;
     this.selectedCliente = null;
     this.selectedProveedor = null;
-    this.tipoEntidad = 'CLIENTE';
-    this.nuevoMovimiento = movimiento
-      ? {...movimiento, fecha: movimiento.fecha ? new Date(movimiento.fecha) : new Date()}
-      : {
+
+    const tipoAsociado = (movimiento?.tipo_asociado || 'CLIENTE').toUpperCase() as 'CLIENTE' | 'PROVEEDOR';
+    this.tipoEntidad = tipoAsociado;
+
+    if (movimiento) {
+      this.nuevoMovimiento = {
+        ...movimiento,
+        fecha: movimiento.fecha ? new Date(movimiento.fecha) : new Date(),
+        factura_cobrada: !!movimiento.factura_cobrada
+      };
+      if (tipoAsociado === 'CLIENTE' && movimiento.id_asociado) {
+        this.selectedCliente = this.clientes.find(c => Number(c.id) === Number(movimiento.id_asociado)) || null;
+      }
+      if (tipoAsociado === 'PROVEEDOR' && movimiento.id_asociado) {
+        this.selectedProveedor = this.proveedores.find(p => Number(p.id) === Number(movimiento.id_asociado)) || null;
+      }
+    } else {
+      this.nuevoMovimiento = {
         id_obra: this.obraId,
         tipo_transaccion: 'COBRO',
         fecha: new Date().toISOString().split('T')[0],
         monto: 0,
-        forma_pago: 'Total',
+        forma_pago: 'TOTAL',
+        medio_pago: 'Transferencia',
         factura_cobrada: false,
         activo: true,
         tipo_asociado: 'CLIENTE'
       };
-    this.showAddMovementModal = true;
-
-    // Si solo hay un cliente (el de la obra), seleccionarlo por defecto
-    if (!this.modoEdicion && this.tipoEntidad === 'CLIENTE' && this.clientes && this.clientes.length === 1) {
-      this.selectedCliente = this.clientes[0];
+      // Si solo hay un cliente (el de la obra), seleccionarlo por defecto
+      if (this.clientes && this.clientes.length === 1) {
+        this.selectedCliente = this.clientes[0];
+      }
     }
+    this.showAddMovementModal = true;
   }
 
   cerrarModal() {
@@ -183,10 +199,14 @@ export class ObraMovimientosComponent implements OnInit {
   }
 
   guardarMovimiento() {
-    // Determinar asociado según selección
+    // Determinar asociado segun seleccion
     const asociadoId = this.tipoEntidad === 'PROVEEDOR' ? this.selectedProveedor?.id : this.selectedCliente?.id;
     if (!asociadoId) {
-      this.messageService.add({ severity: 'warn', summary: 'Falta asociado', detail: `Seleccioná un ${this.tipoEntidad.toLowerCase()}` });
+      this.messageService.add({
+        severity: 'warn',
+        summary: 'Falta asociado',
+        detail: `Selecciona un ${this.tipoEntidad.toLowerCase()}`
+      });
       return;
     }
 
@@ -195,7 +215,8 @@ export class ObraMovimientosComponent implements OnInit {
       id_obra: this.obraId,
       tipo_transaccion: this.nuevoMovimiento.tipo_transaccion,
       id_asociado: asociadoId,
-      tipo_asociado: this.tipoEntidad
+      tipo_asociado: this.tipoEntidad,
+      factura_cobrada: !!this.nuevoMovimiento.factura_cobrada
     };
 
     if (mov.fecha instanceof Date) {
@@ -205,8 +226,6 @@ export class ObraMovimientosComponent implements OnInit {
     const action = this.modoEdicion
       ? this.transaccionesService.update(mov.id!, mov)
       : this.transaccionesService.create(mov);
-
-    console.log(mov)
 
     action.subscribe({
       next: () => {
@@ -230,8 +249,8 @@ export class ObraMovimientosComponent implements OnInit {
 
   eliminarMovimiento(t: Transaccion) {
     this.confirmationService.confirm({
-      header: 'Confirmar eliminación',
-      message: `¿Estás seguro de que deseas eliminar este movimiento de $${t.monto}?`,
+      header: 'Confirmar eliminaciÃ³n',
+      message: `Â¿EstÃ¡s seguro de que deseas eliminar este movimiento de $${t.monto}?`,
       icon: 'pi pi-exclamation-triangle',
       acceptLabel: 'Eliminar',
       rejectLabel: 'Cancelar',
@@ -290,7 +309,7 @@ export class ObraMovimientosComponent implements OnInit {
     const base = this.tipoValue(t);
     if (base === 'COBRO') return 'INGRESO';
     if (base === 'PAGO') return 'EGRESO';
-    return tipo || '—';
+    return tipo || 'â€”';
   }
 
   movimientoEsFactura(t: Transaccion): boolean {
@@ -299,5 +318,6 @@ export class ObraMovimientosComponent implements OnInit {
   }
 
 }
+
 
 

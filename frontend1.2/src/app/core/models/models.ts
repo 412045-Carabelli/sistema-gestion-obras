@@ -5,8 +5,8 @@ export interface Cliente {
   nombre: string;
   id_empresa?: number;
   contacto?: string;
-  cuit?: string;
   condicion_iva?: string;
+  cuit?: string;
   telefono?: string;
   email?: string;
   activo?: boolean;
@@ -118,7 +118,8 @@ export interface Transaccion {
   tipo_transaccion: string;
   fecha?: string | Date;
   monto: number;
-  forma_pago: string;
+  forma_pago: string; // PARCIAL | TOTAL
+  medio_pago?: string; // efectivo, transferencia, cheque, etc.
   factura_cobrada?: boolean;
   saldo_cliente?: number;
   saldo_proveedor?: number;
