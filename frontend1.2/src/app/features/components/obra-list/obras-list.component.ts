@@ -16,6 +16,7 @@ import {ObrasService} from '../../../services/obras/obras.service';
 import {ClientesService} from '../../../services/clientes/clientes.service';
 import {EstadoObraService} from '../../../services/estado-obra/estado-obra.service';
 import {Select} from 'primeng/select';
+import {EstadoFormatPipe} from '../../../shared/pipes/estado-format.pipe';
 
 interface EstadoOption {
   label: string;
@@ -36,7 +37,8 @@ interface EstadoOption {
     InputIconModule,
     DatePipe,
     Select,
-    ButtonModule
+    ButtonModule,
+    EstadoFormatPipe
   ],
   templateUrl: './obras-list.component.html',
   styleUrls: ['./obras-list.component.css']

@@ -44,6 +44,7 @@ export class ClientesDocumentosComponent implements OnInit {
     this.loading = true;
     this.documentosService.getDocumentosPorAsociado('CLIENTE', this.clienteId).subscribe({
       next: docs => {
+        console.log(docs)
         this.documentos = docs;
         this.loading = false;
       },

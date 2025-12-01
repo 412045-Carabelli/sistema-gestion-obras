@@ -7,7 +7,7 @@
   Output,
   EventEmitter
 } from '@angular/core';
-import { CurrencyPipe, NgClass, NgIf } from '@angular/common';
+import { CommonModule, CurrencyPipe, NgClass } from '@angular/common';
 import { TableModule } from 'primeng/table';
 import { ButtonModule } from 'primeng/button';
 import { DropdownModule } from 'primeng/dropdown';
@@ -40,6 +40,7 @@ pdfMake.vfs = pdfFonts.vfs;
   selector: 'app-obra-presupuesto',
   standalone: true,
   imports: [
+    CommonModule,
     CurrencyPipe,
     TableModule,
     ButtonModule,
@@ -48,7 +49,6 @@ pdfMake.vfs = pdfFonts.vfs;
     CheckboxModule,
     FormsModule,
     ToastModule,
-    NgIf,
     NgClass,
     Select,
     ModalComponent

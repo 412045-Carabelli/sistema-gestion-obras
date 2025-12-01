@@ -1,6 +1,6 @@
 import {Component, OnDestroy, OnInit} from '@angular/core';
 import {ActivatedRoute} from '@angular/router';
-import {CurrencyPipe, DatePipe, NgClass} from '@angular/common';
+import {CommonModule, CurrencyPipe, DatePipe, NgClass} from '@angular/common';
 import {forkJoin, Subscription} from 'rxjs';
 
 import {ButtonModule} from 'primeng/button';
@@ -26,13 +26,14 @@ import {ObraDocumentosComponent} from '../../components/obra-documentos/obra-doc
 import {Tab, TabList, TabPanel, TabPanels, Tabs} from 'primeng/tabs';
 import {ClientesService} from '../../../services/clientes/clientes.service';
 import {ObrasStateService} from '../../../services/obras/obras-state.service';
-import {StyleClass} from 'primeng/styleclass';
+import {StyleClassModule} from 'primeng/styleclass';
 import {ObraPresupuestoComponent} from '../../components/obra-presupuesto/obra-presupuesto.component';
 
 @Component({
   selector: 'app-obra-detail',
   standalone: true,
   imports: [
+    CommonModule,
     ButtonModule,
     CardModule,
     ProgressBarModule,
@@ -53,7 +54,7 @@ import {ObraPresupuestoComponent} from '../../components/obra-presupuesto/obra-p
     Tab,
     TabPanels,
     TabPanel,
-    StyleClass,
+    StyleClassModule,
     NgClass,
   ],
   providers: [MessageService],

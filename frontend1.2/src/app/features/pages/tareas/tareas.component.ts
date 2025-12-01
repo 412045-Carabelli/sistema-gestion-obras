@@ -9,11 +9,12 @@ import {ObrasService} from '../../../services/obras/obras.service';
 import {Tarea, Obra} from '../../../core/models/models';
 import {ButtonModule} from 'primeng/button';
 import {Router} from '@angular/router';
+import {EstadoFormatPipe} from '../../../shared/pipes/estado-format.pipe';
 
 @Component({
   selector: 'app-tareas',
   standalone: true,
-  imports: [CommonModule, TableModule, TagModule, ProgressSpinnerModule, ButtonModule],
+  imports: [CommonModule, TableModule, TagModule, ProgressSpinnerModule, ButtonModule, EstadoFormatPipe],
   templateUrl: './tareas.component.html',
   styleUrls: ['./tareas.component.css']
 })

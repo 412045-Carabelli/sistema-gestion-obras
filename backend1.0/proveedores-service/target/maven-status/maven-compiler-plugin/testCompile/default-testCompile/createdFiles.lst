@@ -1,0 +1,3 @@
+proveedores\controller\ProveedoresControllerTest.class
+proveedores\repository\ProveedorRepositoryTest.class
+proveedores\service\ProveedorServiceTest.class

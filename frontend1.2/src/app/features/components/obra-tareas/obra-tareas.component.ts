@@ -1,5 +1,5 @@
 import {Component, EventEmitter, Input, Output} from '@angular/core';
-import {NgClass} from '@angular/common';
+import {CommonModule, NgClass} from '@angular/common';
 import {ButtonModule} from 'primeng/button';
 import {ProgressBarModule} from 'primeng/progressbar';
 import {DropdownModule} from 'primeng/dropdown';
@@ -16,6 +16,7 @@ import {Select} from 'primeng/select';
   selector: 'app-obra-tareas',
   standalone: true,
   imports: [
+    CommonModule,
     NgClass,
     ButtonModule,
     ProgressBarModule,
