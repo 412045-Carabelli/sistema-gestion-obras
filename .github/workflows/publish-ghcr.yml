@@ -74,7 +74,7 @@ jobs:
           files: |
             .github/workflows/ghcr-bake.hcl
           set: |
-            *.args.REGISTRY=${{ env.REGISTRY }}
-            *.args.OWNER=${{ env.OWNER }}
-            *.args.TAG=${{ steps.vars.outputs.tag }}
+            REGISTRY=${{ env.REGISTRY }}
+            OWNER=${{ env.OWNER }}
+            TAG=${{ steps.vars.outputs.tag }}
             *.platform=linux/amd64
