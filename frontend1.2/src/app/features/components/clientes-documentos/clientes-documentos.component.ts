@@ -26,7 +26,9 @@ import {ProgressSpinner} from 'primeng/progressspinner';
   styleUrls: ['./clientes-documentos.component.css']
 })
 export class ClientesDocumentosComponent implements OnInit {
-  @Input() clienteId!: number;
+  @Input() clienteId?: number;
+  @Input() asociadoId?: number;
+  @Input() tipoAsociado: 'CLIENTE' | 'PROVEEDOR' = 'CLIENTE';
 
   documentos: Documento[] = [];
   loading = true;
@@ -37,12 +39,13 @@ export class ClientesDocumentosComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    if (this.clienteId) this.cargarDocumentos();
+    const id = this.asociadoId ?? this.clienteId;
+    if (id) this.cargarDocumentos(id);
   }
 
-  cargarDocumentos() {
+  cargarDocumentos(id: number) {
     this.loading = true;
-    this.documentosService.getDocumentosPorAsociado('CLIENTE', this.clienteId).subscribe({
+    this.documentosService.getDocumentosPorAsociado(this.tipoAsociado, id).subscribe({
       next: docs => {
         console.log(docs)
         this.documentos = docs;

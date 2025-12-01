@@ -19,6 +19,7 @@ import {ProveedoresStateService} from '../../../services/proveedores/proveedores
 import {StyleClass} from 'primeng/styleclass';
 import {Toast} from 'primeng/toast';
 import {EstadoFormatPipe} from '../../../shared/pipes/estado-format.pipe';
+import {ClientesDocumentosComponent} from '../../components/clientes-documentos/clientes-documentos.component';
 
 @Component({
   selector: 'app-proveedores-detail',
@@ -28,7 +29,7 @@ import {EstadoFormatPipe} from '../../../shared/pipes/estado-format.pipe';
     ButtonModule,
     Tabs, TabList, Tab, TabPanels, TabPanel,
     ProgressSpinnerModule,
-    TableModule, Tooltip, StyleClass, Toast, EstadoFormatPipe
+    TableModule, Tooltip, StyleClass, Toast, EstadoFormatPipe, ClientesDocumentosComponent
   ],
   templateUrl: './proveedores-detail.component.html'
 })
@@ -170,5 +171,15 @@ export class ProveedoresDetailComponent implements OnInit, OnDestroy {
       saldo -= Number(t.monto || 0);
       return {...t, saldoRestante: saldo};
     });
+  }
+
+  get tareasCompletadasCount(): number {
+    return this.tareas.filter(t => (t.estado_tarea || '').toUpperCase() === 'COMPLETADA').length;
+  }
+
+  get tareasPendientesCount(): number {
+    const total = this.tareas.length;
+    const completadas = this.tareasCompletadasCount;
+    return total - completadas;
   }
 }
