@@ -82,3 +82,4 @@ jobs:
             .github/workflows/ghcr-bake.hcl
           set: |
             *.platform=linux/amd64
+          push: true
