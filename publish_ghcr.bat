@@ -56,9 +56,9 @@ echo.
 echo [INFO] Construyendo y publicando imagenes en GHCR para tag %TAG% y owner %OWNER%...
 docker buildx bake ^
   -f ".github/workflows/ghcr-bake.hcl" ^
-  --set *.args.REGISTRY=ghcr.io ^
-  --set *.args.OWNER=%OWNER% ^
-  --set *.args.TAG=%TAG% ^
+  --set REGISTRY=ghcr.io ^
+  --set OWNER=%OWNER% ^
+  --set TAG=%TAG% ^
   --set *.platform=linux/amd64 ^
   --push
 
