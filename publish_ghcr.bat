@@ -54,11 +54,11 @@ docker buildx use default >nul 2>&1 || docker buildx create --name sgo-builder -
 
 echo.
 echo [INFO] Construyendo y publicando imagenes en GHCR para tag %TAG% y owner %OWNER%...
+set "REGISTRY=ghcr.io"
+set "OWNER=%OWNER%"
+set "TAG=%TAG%"
 docker buildx bake ^
   -f ".github/workflows/ghcr-bake.hcl" ^
-  --set REGISTRY=ghcr.io ^
-  --set OWNER=%OWNER% ^
-  --set TAG=%TAG% ^
   --set *.platform=linux/amd64 ^
   --push
 
