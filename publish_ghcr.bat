@@ -24,6 +24,9 @@ set /p TAG=Etiqueta de version (TAG, ej: v1.0.0):
 if not defined OWNER (echo [ERROR] OWNER es obligatorio. && pause && exit /b 1)
 if not defined TAG (echo [ERROR] TAG es obligatorio. && pause && exit /b 1)
 
+rem Normalizar owner a minusculas (GHCR requiere repo en lowercase)
+for /f "usebackq delims=" %%i in (`powershell -NoLogo -NoProfile -Command "$env:OWNER.ToLower()"`) do set "OWNER=%%i"
+
 echo.
 echo [INFO] Autenticacion en GHCR (usa tu usuario de GitHub y un PAT con write:packages)
 docker login ghcr.io
