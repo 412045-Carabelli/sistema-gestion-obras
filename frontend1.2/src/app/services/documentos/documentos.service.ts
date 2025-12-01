@@ -32,12 +32,19 @@ export class DocumentosService {
     tipoAsociado?: string | null
   ) {
     const formData = new FormData();
-    if (idObra) formData.append('id_obra', idObra.toString());
+    if (idObra !== null && idObra !== undefined) {
+      formData.append('id_obra', idObra.toString());
+    }
     formData.append('tipo_documento', tipoDocumento);
     formData.append('observacion', observacion);
-    if (idAsociado) formData.append('id_asociado', idAsociado.toString());
-    if (tipoAsociado) formData.append('tipo_asociado', tipoAsociado);
+    if (idAsociado !== null && idAsociado !== undefined) {
+      formData.append('id_asociado', idAsociado.toString());
+    }
+    if (tipoAsociado !== null && tipoAsociado !== undefined) {
+      formData.append('tipo_asociado', tipoAsociado);
+    }
     formData.append('file', file);
+    console.log('📤 Payload documento:', Array.from(formData.entries()));
 
     return this.http.post<Documento>(`${this.apiUrl}`, formData);
   }

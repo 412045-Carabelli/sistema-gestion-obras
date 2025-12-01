@@ -8,6 +8,7 @@ import {MessageService} from 'primeng/api';
 import {DocumentosService} from '../../../services/documentos/documentos.service';
 import {Documento} from '../../../core/models/models';
 import {ProgressSpinner} from 'primeng/progressspinner';
+import {EstadoFormatPipe} from '../../../shared/pipes/estado-format.pipe';
 
 @Component({
   selector: 'app-clientes-documentos',
@@ -19,7 +20,8 @@ import {ProgressSpinner} from 'primeng/progressspinner';
     ToastModule,
     Tooltip,
     DatePipe,
-    ProgressSpinner
+    ProgressSpinner,
+    EstadoFormatPipe
   ],
   providers: [MessageService],
   templateUrl: './clientes-documentos.component.html',
