@@ -36,6 +36,8 @@ public class DocumentoBffController {
             @RequestPart("id_obra") String idObra,
             @RequestPart("tipo_documento") String tipoDocumento,
             @RequestPart(value = "observacion", required = false) String observacion,
+            @RequestPart(value = "id_asociado", required = false) String idAsociado,
+            @RequestPart(value = "tipo_asociado", required = false) String tipoAsociado,
             @RequestPart("file") FilePart filePart
     ) {
         MultipartBodyBuilder builder = new MultipartBodyBuilder();
@@ -44,10 +46,16 @@ public class DocumentoBffController {
         if (observacion != null && !observacion.isEmpty()) {
             builder.part("observacion", observacion);
         }
+        if (idAsociado != null && !idAsociado.isEmpty()) {
+            builder.part("id_asociado", idAsociado);
+        }
+        if (tipoAsociado != null && !tipoAsociado.isEmpty()) {
+            builder.part("tipo_asociado", tipoAsociado);
+        }
 
-        // Add file part with proper content type
-        builder.asyncPart("file", filePart.content(), DataBuffer.class)
-                .filename(filePart.filename())
+        // Adjuntar archivo preservando filename y content type
+        builder.part("file", filePart)
+                .header(HttpHeaders.CONTENT_DISPOSITION, "form-data; name=file; filename=\"" + filePart.filename() + "\"")
                 .contentType(filePart.headers().getContentType());
 
         return webClientBuilder.build()
