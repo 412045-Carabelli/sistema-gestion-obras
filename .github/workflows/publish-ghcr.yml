@@ -70,11 +70,10 @@ jobs:
 
       - name: Build and push img
         uses: docker/bake-action@v5
+        env:
+          TAG: ${{ steps.vars.outputs.tag }}
         with:
           files: |
             .github/workflows/ghcr-bake.hcl
           set: |
-            REGISTRY=${{ env.REGISTRY }}
-            OWNER=${{ env.OWNER }}
-            TAG=${{ steps.vars.outputs.tag }}
             *.platform=linux/amd64
