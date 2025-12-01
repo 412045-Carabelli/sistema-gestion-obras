@@ -34,7 +34,7 @@
               <div class="text-xs text-gray-500">{{ row.descripcion || 'Sin descripción' }}</div>
             </td>
             <td>
-              <p-tag [value]="row.estado_tarea" [severity]="row.estado_tarea === 'COMPLETADA' ? 'success' : row.estado_tarea === 'EN PROGRESO' ? 'info' : 'warning'"></p-tag>
+              <p-tag [value]="row.estado_tarea | estadoFormat" [severity]="row.estado_tarea === 'COMPLETADA' ? 'success' : row.estado_tarea === 'EN PROGRESO' ? 'info' : 'warning'"></p-tag>
             </td>
             <td>
               <button class="text-indigo-600 hover:underline" (click)="irAObra(row.id_obra)">

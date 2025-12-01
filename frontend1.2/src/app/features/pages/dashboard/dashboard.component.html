@@ -235,7 +235,7 @@
                     <p class="text-xs text-indigo-600 font-semibold mt-1">Obra · {{ tarea.obraNombre || 'Sin referencia' }}</p>
                   </div>
                   <span class="px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800">
-                    {{ tarea.estado_tarea }}
+                    {{ tarea.estado_tarea | estadoFormat }}
                   </span>
                 </div>
               }

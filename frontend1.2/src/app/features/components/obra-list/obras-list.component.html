@@ -93,17 +93,20 @@
             <td class="text-gray-700">{{ obra.cliente.nombre }}</td>
             <td>
               <p-tag [severity]="getEstadoSeverity(obra.id_estado_obra)"
-                     [value]="estadoLabelObra(obra)"
+                     [value]="estadoLabelObra(obra) | estadoFormat"
                      styleClass="text-xs"></p-tag>
             </td>
             <td>
-              <div *ngIf="obra.fecha_inicio; else sinFechas" class="flex flex-col gap-1 text-xs text-gray-600">
-                <span>Desde: {{ obra.fecha_inicio | date:'dd/MM/yy' }}</span>
-                <span *ngIf="obra.fecha_fin">Hasta: {{ obra.fecha_fin | date:'dd/MM/yy' }}</span>
-              </div>
-              <ng-template #sinFechas>
+              @if (obra.fecha_inicio) {
+                <div class="flex flex-col gap-1 text-xs text-gray-600">
+                  <span>Desde: {{ obra.fecha_inicio | date:'dd/MM/yy' }}</span>
+                  @if (obra.fecha_fin) {
+                    <span>Hasta: {{ obra.fecha_fin | date:'dd/MM/yy' }}</span>
+                  }
+                </div>
+              } @else {
                 <span class="text-gray-400 text-sm">—</span>
-              </ng-template>
+              }
             </td>
             <td class="text-right font-medium text-gray-900">
               {{ obra.presupuesto | currency:'ARS':'symbol-narrow':'1.0-0' }}

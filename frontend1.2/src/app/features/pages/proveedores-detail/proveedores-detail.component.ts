@@ -18,6 +18,7 @@ import {CostosService} from '../../../services/costos/costos.service';
 import {ProveedoresStateService} from '../../../services/proveedores/proveedores-state.service';
 import {StyleClass} from 'primeng/styleclass';
 import {Toast} from 'primeng/toast';
+import {EstadoFormatPipe} from '../../../shared/pipes/estado-format.pipe';
 
 @Component({
   selector: 'app-proveedores-detail',
@@ -27,7 +28,7 @@ import {Toast} from 'primeng/toast';
     ButtonModule,
     Tabs, TabList, Tab, TabPanels, TabPanel,
     ProgressSpinnerModule,
-    TableModule, Tooltip, StyleClass, Toast
+    TableModule, Tooltip, StyleClass, Toast, EstadoFormatPipe
   ],
   templateUrl: './proveedores-detail.component.html'
 })

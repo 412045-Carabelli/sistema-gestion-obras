@@ -39,12 +39,12 @@
       ></p-select>
     </div>
     <div class="flex flex-col gap-1 lg:col-span-2">
-      <label class="text-xs text-gray-600">Descripción</label>
+      <label class="text-xs text-gray-600">DescripciИn</label>
       <input
         [(ngModel)]="nuevoCosto.descripcion"
         class="w-full"
         pInputText
-        placeholder="Descripción"
+        placeholder="DescripciИn"
         type="text"
       />
     </div>
@@ -100,188 +100,195 @@
   </div>
 
   <!-- Tabla de costos -->
-  <p-table
-    *ngIf="costosFiltrados.length > 0; else noCostos"
-    [value]="costosFiltrados"
-    class="text-sm p-datatable-sm border border-gray-200 rounded-lg overflow-hidden"
-    responsiveLayout="scroll"
-  >
-    <!-- Encabezado -->
-    <ng-template pTemplate="header">
-      <tr class="bg-gray-50 text-gray-700">
-        <th class="text-left px-3 py-2 font-semibold">Proveedor</th>
-        <th class="text-left px-3 py-2 font-semibold">Descripción</th>
-        <th class="text-left px-3 py-2 font-semibold">Cantidad</th>
-        <th class="text-left px-3 py-2 font-semibold">Precio Unit.</th>
-        <th class="text-left px-3 py-2 font-semibold">Beneficio (%)</th>
-        <th class="text-left px-3 py-2 font-semibold">Estado de pago</th>
-        <th class="text-left px-3 py-2 font-semibold">Total</th>
-        <th class="text-left px-3 py-2 font-semibold">Acciones</th>
-      </tr>
-    </ng-template>
+  @if (costosFiltrados.length > 0) {
+    <p-table
+      [value]="costosFiltrados"
+      class="text-sm p-datatable-sm border border-gray-200 rounded-lg overflow-hidden"
+      responsiveLayout="scroll"
+    >
+      <!-- Encabezado -->
+      <ng-template pTemplate="header">
+        <tr class="bg-gray-50 text-gray-700">
+          <th class="text-left px-3 py-2 font-semibold">Proveedor</th>
+          <th class="text-left px-3 py-2 font-semibold">DescripciИn</th>
+          <th class="text-left px-3 py-2 font-semibold">Cantidad</th>
+          <th class="text-left px-3 py-2 font-semibold">Precio Unit.</th>
+          <th class="text-left px-3 py-2 font-semibold">Beneficio (%)</th>
+          <th class="text-left px-3 py-2 font-semibold">Estado de pago</th>
+          <th class="text-left px-3 py-2 font-semibold">Total</th>
+          <th class="text-left px-3 py-2 font-semibold">Acciones</th>
+        </tr>
+      </ng-template>
 
-    <!-- Filas -->
-    <ng-template let-c let-rowIndex="rowIndex" pTemplate="body">
-      <tr
-        [ngClass]="rowIndex % 2 === 0 ? 'bg-white' : 'bg-gray-50'"
-        class="hover:bg-gray-50 transition"
-      >
-        <td class="px-3 py-2">
-          <p-select
-            [(ngModel)]="c.id_proveedor"
-            [disabled]="!c.enEdicion"
-            [options]="proveedores"
-            optionLabel="nombre"
-            optionValue="id"
-            placeholder="Proveedor"
-            styleClass="w-full"
-          ></p-select>
-        </td>
-        <td class="px-3 py-2">
-          <input
-            [(ngModel)]="c.descripcion"
-            [disabled]="!c.enEdicion"
-            class="w-full"
-            pInputText
-            type="text"
-          />
-        </td>
-        <td class="px-3 py-2">
-          <div class="flex gap-2 items-center">
-            <div class="flex flex-col gap-1 w-20">
+      <!-- Filas -->
+      <ng-template let-c let-rowIndex="rowIndex" pTemplate="body">
+        <tr
+          [ngClass]="rowIndex % 2 === 0 ? 'bg-white' : 'bg-gray-50'"
+          class="hover:bg-gray-50 transition"
+        >
+          <td class="px-3 py-2">
+            <p-select
+              [(ngModel)]="c.id_proveedor"
+              [disabled]="!c.enEdicion"
+              [options]="proveedores"
+              optionLabel="nombre"
+              optionValue="id"
+              placeholder="Proveedor"
+              styleClass="w-full"
+            ></p-select>
+          </td>
+          <td class="px-3 py-2">
+            <input
+              [(ngModel)]="c.descripcion"
+              [disabled]="!c.enEdicion"
+              class="w-full"
+              pInputText
+              type="text"
+            />
+          </td>
+          <td class="px-3 py-2">
+            <div class="flex gap-2 items-center">
+              <div class="flex flex-col gap-1 w-20">
+                <input
+                  [(ngModel)]="c.cantidad"
+                  (input)="recalcularEnEdicion(c)"
+                  [disabled]="!c.enEdicion"
+                  class="w-full"
+                  min="0"
+                  pInputText
+                  type="number"
+                />
+              </div>
+              <div class="flex flex-col gap-1 w-16">
+                <input
+                  [(ngModel)]="c.unidad"
+                  [disabled]="!c.enEdicion"
+                  class="w-full"
+                  pInputText
+                  placeholder="Unidad"
+                  type="text"
+                />
+              </div>
+            </div>
+          </td>
+          <td class="px-3 py-2 text-right">
+            <input
+              [(ngModel)]="c.precio_unitario"
+              (input)="recalcularEnEdicion(c)"
+              [disabled]="!c.enEdicion"
+              class="w-full text-right"
+              min="0"
+              pInputText
+              type="number"
+            />
+          </td>
+
+          <td class="px-3 py-2 text-right">
+            @if (usarBeneficioGlobal) {
+              <span class="text-gray-500 text-xs">
+                Global ({{ beneficioGlobal }}%)
+              </span>
+            } @else {
               <input
-                [(ngModel)]="c.cantidad"
+                [(ngModel)]="c.beneficio"
                 (input)="recalcularEnEdicion(c)"
                 [disabled]="!c.enEdicion"
-                class="w-full"
-                min="0"
+                class="w-16 text-right"
                 pInputText
                 type="number"
               />
+            }
+          </td>
+
+          <td class="px-3 py-2">
+            <p-select
+              (ngModelChange)="actualizarEstadoPago(c, $event)"
+              [(ngModel)]="c.estado_pago"
+              [disabled]="c.enEdicion"
+              [options]="estadosPagoRecords"
+              optionLabel="label"
+              optionValue="name"
+              styleClass="w-40"
+            ></p-select>
+          </td>
+
+          <td class="px-3 py-2 text-right font-semibold">
+            {{ c.total | currency }}
+          </td>
+
+          <td class="px-3 py-2">
+            <div class="flex gap-1 justify-end">
+              @if (!c.enEdicion) {
+                <p-button icon="pi pi-pencil" styleClass="p-button-text p-button-sm" (onClick)="habilitarEdicion(c)"></p-button>
+              }
+              @if (c.enEdicion) {
+                <p-button icon="pi pi-check" styleClass="p-button-success p-button-sm" (onClick)="guardarEdicion(c)"></p-button>
+                <p-button icon="pi pi-times" styleClass="p-button-secondary p-button-sm" (onClick)="c.enEdicion=false"></p-button>
+              }
+              <p-button icon="pi pi-trash" styleClass="p-button-danger p-button-text p-button-sm" (onClick)="eliminarCosto(c)"></p-button>
             </div>
-            <div class="flex flex-col gap-1 w-16">
-              <input
-                [(ngModel)]="c.unidad"
-                [disabled]="!c.enEdicion"
-                class="w-full"
-                pInputText
-                placeholder="Unidad"
-                type="text"
-              />
-            </div>
-          </div>
-        </td>
-        <td class="px-3 py-2 text-right">
-          <input
-            [(ngModel)]="c.precio_unitario"
-            (input)="recalcularEnEdicion(c)"
-            [disabled]="!c.enEdicion"
-            class="w-full text-right"
-            min="0"
-            pInputText
-            type="number"
-          />
-        </td>
+          </td>
+        </tr>
+      </ng-template>
 
-        <td class="px-3 py-2 text-right">
-          <span *ngIf="usarBeneficioGlobal" class="text-gray-500 text-xs">
-            Global ({{ beneficioGlobal }}%)
-          </span>
-          <input
-            *ngIf="!usarBeneficioGlobal"
-            [(ngModel)]="c.beneficio"
-            (input)="recalcularEnEdicion(c)"
-            [disabled]="!c.enEdicion"
-            class="w-16 text-right"
-            pInputText
-            type="number"
-          />
-        </td>
+      <!-- Footer -->
+      <ng-template pTemplate="footer">
+        <tr class="bg-gray-100 font-semibold">
+          <td class="text-right px-3 py-2" colspan="6">Subtotal:</td>
+          <td class="px-3 py-2">{{ calcularTotal() | currency:'ARS' }}</td>
+        </tr>
 
-        <td class="px-3 py-2">
-          <p-select
-            (ngModelChange)="actualizarEstadoPago(c, $event)"
-            [(ngModel)]="c.estado_pago"
-            [disabled]="c.enEdicion"
-            [options]="estadosPagoRecords"
-            optionLabel="label"
-            optionValue="name"
-            styleClass="w-40"
-          ></p-select>
-        </td>
+        @if (usarBeneficioGlobal) {
+          <tr class="bg-gray-50 text-sm">
+            <td class="text-right px-3 py-2 text-gray-600" colspan="6">
+              Beneficio Global ({{ beneficioGlobal }}%):
+            </td>
+            <td class="px-3 py-2 text-blue-600 font-medium">
+              {{ (calcularTotal() * (beneficioGlobal / 100)) | currency:'ARS' }}
+            </td>
+          </tr>
+        }
 
-        <td class="px-3 py-2 text-right font-semibold">
-          {{ c.total | currency }}
-        </td>
+        <tr class="bg-gray-50 text-sm">
+          <td class="text-right px-3 py-2 text-gray-600" colspan="6">
+            ComisiИn ({{ comision }}%):
+          </td>
+          <td class="px-3 py-2 text-indigo-600 font-medium">
+            {{
+              (calcularTotal() *
+                (1 + (usarBeneficioGlobal ? beneficioGlobal / 100 : 0)) *
+                (comision / 100)) | currency:'ARS'
+            }}
+          </td>
+        </tr>
 
-        <td class="px-3 py-2">
-          <div class="flex gap-1 justify-end">
-            <p-button *ngIf="!c.enEdicion" icon="pi pi-pencil" styleClass="p-button-text p-button-sm" (onClick)="habilitarEdicion(c)"></p-button>
-            <p-button *ngIf="c.enEdicion" icon="pi pi-check" styleClass="p-button-success p-button-sm" (onClick)="guardarEdicion(c)"></p-button>
-            <p-button *ngIf="c.enEdicion" icon="pi pi-times" styleClass="p-button-secondary p-button-sm" (onClick)="c.enEdicion=false"></p-button>
-            <p-button icon="pi pi-trash" styleClass="p-button-danger p-button-text p-button-sm" (onClick)="eliminarCosto(c)"></p-button>
-          </div>
-        </td>
-      </tr>
-    </ng-template>
+        <tr class="bg-gray-200 font-bold">
+          <td class="text-right px-3 py-2" colspan="6">Presupuesto Total:</td>
+          <td class="px-3 py-2 text-green-700">
+            {{ getPresupuestoTotal() | currency:'ARS' }}
+          </td>
+        </tr>
 
-    <!-- Footer -->
-    <ng-template pTemplate="footer">
-      <tr class="bg-gray-100 font-semibold">
-        <td class="text-right px-3 py-2" colspan="6">Subtotal:</td>
-        <td class="px-3 py-2">{{ calcularTotal() | currency:'ARS' }}</td>
-      </tr>
+        <tr class="bg-gray-50 text-sm">
+          <td class="text-right px-3 py-2 text-gray-600" colspan="6">Pagado:</td>
+          <td class="px-3 py-2 text-green-600 font-medium">
+            {{ calcularTotalPorEstado('PAGADO') | currency:'ARS' }}
+          </td>
+        </tr>
 
-      <tr *ngIf="usarBeneficioGlobal" class="bg-gray-50 text-sm">
-        <td class="text-right px-3 py-2 text-gray-600" colspan="6">
-          Beneficio Global ({{ beneficioGlobal }}%):
-        </td>
-        <td class="px-3 py-2 text-blue-600 font-medium">
-          {{ (calcularTotal() * (beneficioGlobal / 100)) | currency:'ARS' }}
-        </td>
-      </tr>
-
-      <tr class="bg-gray-50 text-sm">
-        <td class="text-right px-3 py-2 text-gray-600" colspan="6">
-          Comisión ({{ comision }}%):
-        </td>
-        <td class="px-3 py-2 text-indigo-600 font-medium">
-          {{
-            (calcularTotal() *
-              (1 + (usarBeneficioGlobal ? beneficioGlobal / 100 : 0)) *
-              (comision / 100)) | currency:'ARS'
-          }}
-        </td>
-      </tr>
-
-      <tr class="bg-gray-200 font-bold">
-        <td class="text-right px-3 py-2" colspan="6">Presupuesto Total:</td>
-        <td class="px-3 py-2 text-green-700">
-          {{ getPresupuestoTotal() | currency:'ARS' }}
-        </td>
-      </tr>
-
-      <tr class="bg-gray-50 text-sm">
-        <td class="text-right px-3 py-2 text-gray-600" colspan="6">Pagado:</td>
-        <td class="px-3 py-2 text-green-600 font-medium">
-          {{ calcularTotalPorEstado('PAGADO') | currency:'ARS' }}
-        </td>
-      </tr>
-
-      <tr class="bg-gray-50 text-sm">
-        <td class="text-right px-3 py-2 text-gray-600" colspan="6">Pendiente:</td>
-        <td class="px-3 py-2 text-amber-600 font-medium">
-          {{ calcularTotalPorEstado('PENDIENTE') | currency:'ARS' }}
-        </td>
-      </tr>
-    </ng-template>
-  </p-table>
-
-  <ng-template #noCostos>
+        <tr class="bg-gray-50 text-sm">
+          <td class="text-right px-3 py-2 text-gray-600" colspan="6">Pendiente:</td>
+          <td class="px-3 py-2 text-amber-600 font-medium">
+            {{ calcularTotalPorEstado('PENDIENTE') | currency:'ARS' }}
+          </td>
+        </tr>
+      </ng-template>
+    </p-table>
+  } @else {
     <div class="text-center text-gray-500 py-10">
       No hay costos cargados para esta obra.
     </div>
-  </ng-template>
+  }
 </div>
 
 <!-- Modal para registrar pago -->
@@ -320,11 +327,13 @@
       <input pInputText type="date" [(ngModel)]="transaccionForm.fecha" class="w-full" />
     </div>
     <div class="flex flex-col gap-1">
-      <label class="text-sm font-medium text-gray-700">Observación</label>
+      <label class="text-sm font-medium text-gray-700">ObservaciИn</label>
       <textarea class="w-full border rounded p-2 text-sm" [(ngModel)]="transaccionForm.observacion" rows="3"></textarea>
     </div>
-    <div *ngIf="errorApi" class="text-sm text-red-600 bg-red-50 border border-red-200 rounded p-2">
-      {{ errorApi }}
-    </div>
+    @if (errorApi) {
+      <div class="text-sm text-red-600 bg-red-50 border border-red-200 rounded p-2">
+        {{ errorApi }}
+      </div>
+    }
   </div>
 </app-modal>

@@ -10,6 +10,7 @@ com\apigateway\controller\ReportesBffController$2.class
 com\apigateway\controller\ReportesBffController$6.class
 com\apigateway\config\WebClientConfig.class
 com\apigateway\controller\DocumentoBffController$1.class
+com\apigateway\controller\ReportesBffController$15.class
 com\apigateway\controller\TipoDocumentoBffController$3.class
 com\apigateway\controller\EstadoPagoBffController$1.class
 com\apigateway\controller\TipoDocumentoBffController$2.class
@@ -49,6 +50,7 @@ com\apigateway\controller\TipoTransaccionBffController.class
 com\apigateway\controller\TareaBffController$4.class
 com\apigateway\controller\ObraBffController$2.class
 com\apigateway\controller\ProveedorBffController$1.class
+com\apigateway\controller\ReportesBffController$13.class
 com\apigateway\controller\ReportesBffController$4.class
 com\apigateway\controller\CostoBffController$2.class
 com\apigateway\controller\TipoTransaccionBffController$1.class
@@ -62,6 +64,7 @@ com\apigateway\controller\ObraBffController$9.class
 com\apigateway\controller\ClienteBffController$2.class
 com\apigateway\controller\TransaccionBffController.class
 com\apigateway\config\CorsGlobalConfig.class
+com\apigateway\controller\ReportesBffController$14.class
 com\apigateway\controller\TipoDocumentoBffController$4.class
 com\apigateway\controller\EstadosObraBffController.class
 com\apigateway\controller\ReportesBffController.class

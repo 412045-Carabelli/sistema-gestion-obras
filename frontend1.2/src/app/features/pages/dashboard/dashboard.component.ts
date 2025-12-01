@@ -11,6 +11,7 @@ import {TareasService} from '../../../services/tareas/tareas.service';
 import {ReportesService} from '../../../services/reportes/reportes.service';
 import {TransaccionesService} from '../../../services/transacciones/transacciones.service';
 import {ObrasService} from '../../../services/obras/obras.service';
+import {EstadoFormatPipe} from '../../../shared/pipes/estado-format.pipe';
 
 @Component({
   selector: 'app-dashboard',
@@ -19,7 +20,8 @@ import {ObrasService} from '../../../services/obras/obras.service';
     CommonModule,
     Toast,
     ProgressSpinnerModule,
-    Button
+    Button,
+    EstadoFormatPipe
   ],
   providers: [MessageService],
   templateUrl: './dashboard.component.html',

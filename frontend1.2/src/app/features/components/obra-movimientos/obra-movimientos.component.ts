@@ -1,5 +1,5 @@
 ﻿import {Component, Input, OnInit} from '@angular/core';
-import {CurrencyPipe, DatePipe, NgClass} from '@angular/common';
+import {CommonModule, CurrencyPipe, DatePipe, NgClass} from '@angular/common';
 import {TableModule} from 'primeng/table';
 import {ButtonModule} from 'primeng/button';
 import {TooltipModule} from 'primeng/tooltip';
@@ -24,6 +24,7 @@ import {InputText} from 'primeng/inputtext';
   selector: 'app-obra-movimientos',
   standalone: true,
   imports: [
+    CommonModule,
     CurrencyPipe, DatePipe, TableModule, ButtonModule,
     TooltipModule, DropdownModule, FormsModule,
     ModalComponent, InputNumber, DatePicker,
