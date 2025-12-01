@@ -74,17 +74,17 @@
             </p-tab>
             <p-tab value="1" pStyleClass="px-6 py-4">
               <div class="flex items-center gap-2">
-                <i class="pi pi-file"></i>
-                <span class="font-medium">Documentos</span>
-              </div>
-            </p-tab>
-            <p-tab value="2" pStyleClass="px-6 py-4">
-              <div class="flex items-center gap-2">
                 <i class="pi pi-arrow-right-arrow-left"></i>
                 <span class="font-medium">Movimientos</span>
                 <span class="ml-2 px-2 py-1 bg-amber-100 text-amber-700 text-xs font-semibold rounded-full">
                   {{ transacciones?.length || 0 }}
                 </span>
+              </div>
+            </p-tab>
+            <p-tab value="2" pStyleClass="px-6 py-4">
+              <div class="flex items-center gap-2">
+                <i class="pi pi-file"></i>
+                <span class="font-medium">Documentos</span>
               </div>
             </p-tab>
           </p-tablist>
@@ -170,19 +170,8 @@
               }
             </p-tabpanel>
 
-            <!-- TAB: DOCUMENTOS -->
-            <p-tabpanel value="1">
-              @defer (when cliente) {
-                <app-clientes-documentos [clienteId]="cliente.id!"></app-clientes-documentos>
-              } @placeholder {
-                <div class="flex justify-center items-center min-h-[40vh]">
-                  <p-progressSpinner pStyleClass="w-12 h-12" strokeWidth="4" animationDuration=".8s"></p-progressSpinner>
-                </div>
-              }
-            </p-tabpanel>
-
             <!-- TAB: MOVIMIENTOS -->
-            <p-tabpanel value="2">
+            <p-tabpanel value="1">
               @if (transacciones?.length) {
                 <p-table [value]="transacciones" [paginator]="true" [rows]="8" responsiveLayout="scroll" styleClass="p-datatable-sm">
                   <ng-template pTemplate="header">
@@ -218,6 +207,17 @@
                 <div class="text-center py-10 text-gray-500">
                   <i class="pi pi-inbox text-4xl mb-2"></i>
                   <p class="text-sm">No hay movimientos registrados para este cliente.</p>
+                </div>
+              }
+            </p-tabpanel>
+
+            <!-- TAB: DOCUMENTOS -->
+            <p-tabpanel value="2">
+              @defer (when cliente) {
+                <app-clientes-documentos [clienteId]="cliente.id!"></app-clientes-documentos>
+              } @placeholder {
+                <div class="flex justify-center items-center min-h-[40vh]">
+                  <p-progressSpinner pStyleClass="w-12 h-12" strokeWidth="4" animationDuration=".8s"></p-progressSpinner>
                 </div>
               }
             </p-tabpanel>

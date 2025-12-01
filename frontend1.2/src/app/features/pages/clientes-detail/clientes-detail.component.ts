@@ -182,13 +182,12 @@ export class ClientesDetailComponent implements OnInit, OnDestroy {
   }
 
   private calcularEstadisticas() {
-    // Obras activas (estados: en progreso, iniciada, etc.)
-    const estadosActivos = ['en progreso', 'iniciada', 'en curso'];
-    this.obrasActivas = this.obras.filter(o =>
-      estadosActivos.some(estado =>
-        o.obra_estado?.toLowerCase().includes(estado)
-      )
-    ).length;
+    // Obras activas (estados: en progreso, iniciada, en curso, etc.)
+    const estadosActivos = ['en progreso', 'iniciada', 'en curso', 'progreso', 'curso'];
+    this.obrasActivas = this.obras.filter(o => {
+      const estadoRaw = (o.obra_estado || '').toString().toLowerCase().replace(/_/g, ' ').trim();
+      return estadosActivos.some(estado => estadoRaw.includes(estado));
+    }).length;
 
     // Total presupuestado
     this.totalPresupuestado = this.obras.reduce((sum, obra) =>
