@@ -95,7 +95,7 @@ export class ObraMovimientosComponent implements OnInit {
     if(tipoAsociado === 'PROVEEDOR'){
       return this.proveedores.find(c => c.id === id)?.nombre
     }
-    return "No se encontrÃ³ un cliente/proveedor asociado"
+    return "No se encontró un cliente/proveedor asociado"
   }
 
   get totalCobros(): number {
@@ -250,8 +250,8 @@ export class ObraMovimientosComponent implements OnInit {
 
   eliminarMovimiento(t: Transaccion) {
     this.confirmationService.confirm({
-      header: 'Confirmar eliminaciÃ³n',
-      message: `Â¿EstÃ¡s seguro de que deseas eliminar este movimiento de $${t.monto}?`,
+      header: 'Confirmar eliminación',
+      message: `¿Estás seguro de que deseas eliminar este movimiento de $${t.monto}?`,
       icon: 'pi pi-exclamation-triangle',
       acceptLabel: 'Eliminar',
       rejectLabel: 'Cancelar',
@@ -305,20 +305,20 @@ export class ObraMovimientosComponent implements OnInit {
 
   tipoMovimiento(t: Transaccion): string {
     const rawTipo = (t as any).tipo_movimiento || t.tipo_transaccion || '';
-    const tipo = rawTipo.toString().toUpperCase();
-    if (tipo.includes('FACT')) return 'FACTURA';
     const base = this.tipoValue(t);
-    if (base === 'COBRO') return 'INGRESO';
-    if (base === 'PAGO') return 'EGRESO';
-    return tipo || 'â€”';
+    if (base === 'COBRO' || base === 'PAGO') return base;
+    const tipo = rawTipo.toString().toUpperCase();
+    if (tipo.includes('COBRO')) return 'COBRO';
+    if (tipo.includes('PAGO')) return 'PAGO';
+    return 'MOVIMIENTO';
   }
-
   movimientoEsFactura(t: Transaccion): boolean {
     const tipo = (t as any).tipo_movimiento || t.tipo_transaccion || '';
     return tipo.toString().toUpperCase().includes('FACT');
   }
 
 }
+
 
 
 

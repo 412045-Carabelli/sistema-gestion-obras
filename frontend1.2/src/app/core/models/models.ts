@@ -206,11 +206,16 @@ export interface FlujoCajaResponse {
 
 export interface CuentaCorrienteMovimiento {
   fecha: string;
+  obraId?: number;
+  obraNombre?: string;
   concepto?: string;
   tipo: string;
   monto: number;
   asociadoTipo?: string;
   asociadoId?: number;
+  cobrosAcumulados?: number;
+  costosAcumulados?: number;
+  pagosAcumulados?: number;
   saldoCliente?: number;
   saldoProveedor?: number;
 }
@@ -234,12 +239,15 @@ export interface CuentaCorrienteProveedorResponse {
 }
 
 export interface ComisionesResponse {
-  total: number;
-  comisiones: Array<{
+  totalComision: number;
+  totalPagos: number;
+  saldo: number;
+  detalle: Array<{
     obraId?: number;
     obraNombre?: string;
-    porcentaje?: number;
     monto: number;
+    pagos: number;
+    saldo: number;
   }>;
 }
 

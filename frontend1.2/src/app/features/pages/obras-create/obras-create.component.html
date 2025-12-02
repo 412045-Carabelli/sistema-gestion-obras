@@ -147,6 +147,9 @@
               inputId="fechaFin"
               [showIcon]="true"
             ></p-datePicker>
+            @if (fechasFueraDeRango) {
+              <small class="text-red-600 text-xs mt-1">La fecha fin no puede ser anterior al inicio.</small>
+            }
           </div>
         </div>
       </div>

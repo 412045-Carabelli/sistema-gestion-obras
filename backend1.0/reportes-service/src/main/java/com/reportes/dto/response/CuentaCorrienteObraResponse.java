@@ -19,8 +19,14 @@ public class CuentaCorrienteObraResponse {
 
     @Data
     public static class Movimiento {
+        private java.time.LocalDate fecha;
         private String tipo;
         private BigDecimal monto = BigDecimal.ZERO;
         private String referencia;
+        private String asociadoTipo;
+        private Long asociadoId;
+        private BigDecimal cobrosAcumulados = BigDecimal.ZERO;
+        private BigDecimal costosAcumulados = BigDecimal.ZERO;
+        private BigDecimal saldoCliente = BigDecimal.ZERO;
     }
 }

@@ -165,7 +165,7 @@ export class ObraPresupuestoComponent implements OnInit, OnChanges {
       this.messageService.add({
         severity: 'warn',
         summary: 'Datos incompletos',
-        detail: 'Completa proveedor y descripciÃ³n para agregar el costo.'
+        detail: 'Completa proveedor y descripción para agregar el costo.'
       });
       return;
     }
@@ -186,7 +186,7 @@ export class ObraPresupuestoComponent implements OnInit, OnChanges {
           this.messageService.add({
             severity: 'success',
             summary: 'Costo agregado',
-            detail: 'Se agregÃ³ un nuevo costo a la matriz.'
+            detail: 'Se agregó un nuevo costo a la matriz.'
           });
         },
         error: () => {
@@ -298,7 +298,7 @@ export class ObraPresupuestoComponent implements OnInit, OnChanges {
       error: err => {
         this.errorApi = this.getErrorMessage(
           err,
-          'No se pudo registrar la transacciÃ³n'
+          'No se pudo registrar la transacción'
         );
       }
     });
@@ -329,14 +329,9 @@ export class ObraPresupuestoComponent implements OnInit, OnChanges {
 
   // *** YA NO SE USARÃ PARA EL PDF (solo cÃ¡lculo interno)
   getPresupuestoTotal(): number {
-    const subtotal = this.calcularTotal();
-    const beneficio = this.usarBeneficioGlobal ? this.beneficioGlobal : 0;
-    const comision = this.tieneComision ? this.comision : 0;
-    return Math.round(
-      subtotal *
-      (1 + beneficio / 100) *
-      (1 + comision / 100)
-    );
+    const base = this.calcularTotal();
+    const comisionMonto = this.tieneComision ? base * (this.comision / 100) : 0;
+    return Math.round(base + comisionMonto);
   }
 
   proveedoresFilter(id: number): Proveedor | undefined {
@@ -579,9 +574,7 @@ export class ObraPresupuestoComponent implements OnInit, OnChanges {
       : Number(costo.beneficio ?? 0);
 
     const total =
-      subtotal *
-      (1 + beneficio / 100) *
-      (1 + (this.tieneComision ? this.comision / 100 : 0));
+      subtotal * (1 + beneficio / 100);
 
     return {
       id_proveedor: Number(costo.id_proveedor),
@@ -677,6 +670,8 @@ export class ObraPresupuestoComponent implements OnInit, OnChanges {
     return fallback;
   }
 }
+
+
 
 
 

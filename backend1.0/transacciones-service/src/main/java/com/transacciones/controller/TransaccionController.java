@@ -52,6 +52,12 @@ public class TransaccionController {
         return ResponseEntity.noContent().build();
     }
 
+    @PatchMapping("/obra/{obraId}/inactivar")
+    public ResponseEntity<Void> softDeleteByObra(@PathVariable("obraId") Long obraId) {
+        transaccionService.desactivarPorObra(obraId);
+        return ResponseEntity.noContent().build();
+    }
+
     @PostMapping
     public ResponseEntity<TransaccionDto> create(@RequestBody TransaccionDto dto) {
         return ResponseEntity.ok(transaccionService.crear(toEntity(dto)));

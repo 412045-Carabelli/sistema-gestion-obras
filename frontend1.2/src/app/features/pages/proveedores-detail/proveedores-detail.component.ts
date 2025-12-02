@@ -77,6 +77,11 @@ export class ProveedoresDetailComponent implements OnInit, OnDestroy {
     this.router.navigate(['/obras', idObra]);
   }
 
+  irADetalleObraMov(idObra: number) {
+    // Navega a la obra y abre la pestaña de movimientos si existe (tab index 2).
+    this.router.navigate(['/obras', idObra], { queryParams: { tab: 2 } });
+  }
+
   toggleActivo() {
     const actualizado = {...this.proveedor, activo: !this.proveedor.activo};
     this.proveedoresService.updateProveedor(this.proveedor.id!, actualizado).subscribe({

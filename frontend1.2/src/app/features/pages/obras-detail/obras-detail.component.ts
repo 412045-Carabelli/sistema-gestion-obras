@@ -106,6 +106,10 @@ export class ObrasDetailComponent implements OnInit, OnDestroy {
           this.obra.obra_estado = encontrado.label;
         }
 
+        if (nuevoEstado?.toUpperCase() === 'ADJUDICADA') {
+          this.obra.fecha_adjudicada = new Date().toISOString();
+        }
+
         this.estadoSeleccionado = nuevoEstado;
         this.obraStateService.setObra(this.obra);
 

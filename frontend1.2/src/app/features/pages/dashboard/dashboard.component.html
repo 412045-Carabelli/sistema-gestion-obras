@@ -25,7 +25,7 @@
     <div class="bg-white rounded-xl shadow-md p-6">
       <h2 class="text-lg font-semibold text-gray-900 mb-5 flex items-center gap-2 pb-3 border-b border-gray-200">
         <i class="pi pi-bolt text-indigo-600"></i>
-        Accesos Rpidos
+        Accesos Rápidos
       </h2>
 
       <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -70,7 +70,7 @@
     <!-- ===================== KPIs DE OBRAS ===================== -->
     @defer (when resumenGeneral) {
       <div class="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
-        <div class="bg-white rounded-xl shadow-md p-6 border-l-4 border-blue-500 hover:shadow-lg transition-shadow cursor-pointer" (click)="navigateTo('/obras')">
+        <div class="bg-white rounded-xl shadow-md p-6 border-l-4 border-blue-500 hover:shadow-lg transition-shadow cursor-pointer" (click)="navigateToObrasEstado()">
           <div class="flex items-center gap-3 mb-3">
             <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
               <i class="pi pi-building text-blue-600 text-xl"></i>
@@ -81,7 +81,7 @@
           <div class="text-sm text-gray-500 mt-1">Registradas en el sistema</div>
         </div>
 
-        <div class="bg-white rounded-xl shadow-md p-6 border-l-4 border-amber-500 hover:shadow-lg transition-shadow cursor-pointer" (click)="navigateTo('/obras')">
+        <div class="bg-white rounded-xl shadow-md p-6 border-l-4 border-amber-500 hover:shadow-lg transition-shadow cursor-pointer" (click)="navigateToObrasEstado('COTIZADA')">
           <div class="flex items-center gap-3 mb-3">
             <div class="w-12 h-12 bg-amber-100 rounded-lg flex items-center justify-center">
               <i class="pi pi-percentage text-amber-600 text-xl"></i>
@@ -92,7 +92,7 @@
           <div class="text-sm text-gray-500 mt-1">En etapa de cotización</div>
         </div>
 
-        <div class="bg-white rounded-xl shadow-md p-6 border-l-4 border-red-500 hover:shadow-lg transition-shadow cursor-pointer" (click)="navigateTo('/obras')">
+        <div class="bg-white rounded-xl shadow-md p-6 border-l-4 border-red-500 hover:shadow-lg transition-shadow cursor-pointer" (click)="navigateToObrasEstado('PERDIDA')">
           <div class="flex items-center gap-3 mb-3">
             <div class="w-12 h-12 bg-red-100 rounded-lg flex items-center justify-center">
               <i class="pi pi-times-circle text-red-600 text-xl"></i>
@@ -103,7 +103,7 @@
           <div class="text-sm text-gray-500 mt-1">Cotizaciones no adjudicadas</div>
         </div>
 
-        <div class="bg-white rounded-xl shadow-md p-6 border-l-4 border-emerald-500 hover:shadow-lg transition-shadow cursor-pointer" (click)="navigateTo('/obras')">
+        <div class="bg-white rounded-xl shadow-md p-6 border-l-4 border-emerald-500 hover:shadow-lg transition-shadow cursor-pointer" (click)="navigateToObrasEstado('ADJUDICADA')">
           <div class="flex items-center gap-3 mb-3">
             <div class="w-12 h-12 bg-emerald-100 rounded-lg flex items-center justify-center">
               <i class="pi pi-check-circle text-emerald-600 text-xl"></i>
@@ -114,7 +114,7 @@
           <div class="text-sm text-gray-500 mt-1">Ganadas</div>
         </div>
 
-        <div class="bg-white rounded-xl shadow-md p-6 border-l-4 border-indigo-500 hover:shadow-lg transition-shadow cursor-pointer" (click)="navigateTo('/obras')">
+        <div class="bg-white rounded-xl shadow-md p-6 border-l-4 border-indigo-500 hover:shadow-lg transition-shadow cursor-pointer" (click)="navigateToObrasEstado('EN_PROGRESO')">
           <div class="flex items-center gap-3 mb-3">
             <div class="w-12 h-12 bg-indigo-100 rounded-lg flex items-center justify-center">
               <i class="pi pi-play text-indigo-600 text-xl"></i>
@@ -125,7 +125,7 @@
           <div class="text-sm text-gray-500 mt-1">En ejecución</div>
         </div>
 
-        <div class="bg-white rounded-xl shadow-md p-6 border-l-4 border-gray-500 hover:shadow-lg transition-shadow cursor-pointer" (click)="navigateTo('/obras')">
+        <div class="bg-white rounded-xl shadow-md p-6 border-l-4 border-gray-500 hover:shadow-lg transition-shadow cursor-pointer" (click)="navigateToObrasEstado('FINALIZADA')">
           <div class="flex items-center gap-3 mb-3">
             <div class="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center">
               <i class="pi pi-flag text-gray-600 text-xl"></i>
@@ -232,7 +232,7 @@
                   </div>
                   <div class="flex-1 min-w-0">
                     <p class="text-sm font-semibold text-gray-900 truncate">{{ tarea.nombre }}</p>
-                    <p class="text-xs text-gray-500">{{ tarea.descripcion || 'Sin descripciÃ³n' }}</p>
+                    <p class="text-xs text-gray-500">{{ tarea.descripcion || 'Sin descripción' }}</p>
                     <p class="text-xs text-indigo-600 font-semibold mt-1">Obra {{ tarea.obraNombre || 'Sin referencia' }}</p>
                   </div>
                   <span class="px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800">
@@ -279,7 +279,8 @@
           @if (movimientosRecientes.length > 0) {
             <div class="space-y-3">
               @for (mov of movimientosRecientes.slice(0, 5); track mov.id) {
-                <div class="flex items-center gap-3 p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
+                <div class="flex items-center gap-3 p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer"
+                     (click)="navigateTo('/obras/' + mov.obraId)">
                   <div class="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0"
                        [ngClass]="(mov.tipo_movimiento || mov.tipo) === 'INGRESO' ? 'bg-green-100' : (mov.tipo_movimiento || mov.tipo) === 'EGRESO' ? 'bg-red-100' : 'bg-indigo-100'">
                     <i class="pi text-lg"

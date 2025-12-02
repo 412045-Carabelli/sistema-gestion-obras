@@ -314,21 +314,23 @@
                 <th>Tipo</th>
                 <th>Asociado</th>
                 <th class="text-right">Monto</th>
+                <th class="text-right">Cobros acum.</th>
+                <th class="text-right">Costos acum.</th>
                 <th class="text-right">Saldo cliente</th>
-                <th class="text-right">Saldo proveedor</th>
               </tr>
             </ng-template>
             <ng-template pTemplate="body" let-item>
               <tr>
                 <td>{{ item.fecha | date:'dd/MM/yyyy' }}</td>
-                <td>{{ item.concepto || '—' }}</td>
+                <td>{{ item.concepto || item.referencia || '-' }}</td>
                 <td>
-                  <p-tag [value]="item.tipo" [severity]="item.tipo === 'INGRESO' ? 'success' : item.tipo === 'EGRESO' ? 'danger' : 'info'"></p-tag>
+                  <p-tag [value]="item.tipo" [severity]="item.tipo === 'COBRO' ? 'success' : item.tipo === 'COSTO' ? 'danger' : 'info'"></p-tag>
                 </td>
                 <td>{{ nombreAsociado(item.asociadoTipo, item.asociadoId) }}</td>
                 <td class="text-right">{{ item.monto | currency:'ARS':'symbol-narrow':'1.0-0' }}</td>
+                <td class="text-right">{{ item.cobrosAcumulados || 0 | currency:'ARS':'symbol-narrow':'1.0-0' }}</td>
+                <td class="text-right">{{ item.costosAcumulados || 0 | currency:'ARS':'symbol-narrow':'1.0-0' }}</td>
                 <td class="text-right">{{ saldoSinNegativo(item.saldoCliente) | currency:'ARS':'symbol-narrow':'1.0-0' }}</td>
-                <td class="text-right">{{ saldoSinNegativo(item.saldoProveedor) | currency:'ARS':'symbol-narrow':'1.0-0' }}</td>
               </tr>
             </ng-template>
           </p-table>
@@ -356,7 +358,7 @@
             <p class="text-2xl font-bold text-green-700">{{ cuentaCorrienteProveedor.totalPagos | currency:'ARS':'symbol-narrow':'1.0-0' }}</p>
           </div>
           <div class="bg-indigo-50 border border-indigo-200 rounded-lg p-3">
-            <p class="text-gray-600">Saldo final</p>
+            <p class="text-gray-600">Saldo proveedor</p>
             <p class="text-2xl font-bold text-indigo-700">{{ saldoSinNegativo(cuentaCorrienteProveedor.saldoFinal) | currency:'ARS':'symbol-narrow':'1.0-0' }}</p>
           </div>
         </div>
@@ -366,20 +368,26 @@
             <ng-template pTemplate="header">
               <tr>
                 <th>Fecha</th>
+                <th>Obra</th>
                 <th>Concepto</th>
                 <th>Tipo</th>
                 <th class="text-right">Monto</th>
+                <th class="text-right">Costos acum.</th>
+                <th class="text-right">Pagos acum.</th>
                 <th class="text-right">Saldo proveedor</th>
               </tr>
             </ng-template>
             <ng-template pTemplate="body" let-item>
               <tr>
                 <td>{{ item.fecha | date:'dd/MM/yyyy' }}</td>
-                <td>{{ item.concepto || '—' }}</td>
+                <td>{{ item.obraNombre || (item.obraId ? ('Obra #' + item.obraId) : '-') }}</td>
+                <td>{{ item.concepto || '-' }}</td>
                 <td>
-                  <p-tag [value]="item.tipo" [severity]="item.tipo === 'INGRESO' ? 'success' : item.tipo === 'EGRESO' ? 'danger' : 'info'"></p-tag>
+                  <p-tag [value]="item.tipo" [severity]="item.tipo === 'PAGO' ? 'success' : 'danger'"></p-tag>
                 </td>
                 <td class="text-right">{{ item.monto | currency:'ARS':'symbol-narrow':'1.0-0' }}</td>
+                <td class="text-right">{{ item.costosAcumulados || 0 | currency:'ARS':'symbol-narrow':'1.0-0' }}</td>
+                <td class="text-right">{{ item.pagosAcumulados || 0 | currency:'ARS':'symbol-narrow':'1.0-0' }}</td>
                 <td class="text-right">{{ saldoSinNegativo(item.saldoProveedor) | currency:'ARS':'symbol-narrow':'1.0-0' }}</td>
               </tr>
             </ng-template>
@@ -400,23 +408,29 @@
 
         <div class="flex items-center gap-3 mb-4 text-sm">
           <span class="text-gray-600">Total comisiones:</span>
-          <span class="text-xl font-bold text-indigo-700">{{ comisiones.total | currency:'ARS':'symbol-narrow':'1.0-0' }}</span>
+          <span class="text-xl font-bold text-indigo-700">{{ comisiones.totalComision | currency:'ARS':'symbol-narrow':'1.0-0' }}</span>
+          <span class="text-gray-500">| Pagos:</span>
+          <span class="font-semibold text-emerald-700">{{ comisiones.totalPagos | currency:'ARS':'symbol-narrow':'1.0-0' }}</span>
+          <span class="text-gray-500">| Saldo:</span>
+          <span class="font-semibold text-slate-800">{{ comisiones.saldo | currency:'ARS':'symbol-narrow':'1.0-0' }}</span>
         </div>
 
-        @if (comisiones.comisiones?.length) {
-          <p-table [value]="comisiones.comisiones" [paginator]="true" [rows]="5" responsiveLayout="scroll" styleClass="p-datatable-sm">
+        @if (comisiones.detalle?.length) {
+          <p-table [value]="comisiones.detalle" [paginator]="true" [rows]="5" responsiveLayout="scroll" styleClass="p-datatable-sm">
             <ng-template pTemplate="header">
               <tr>
                 <th>Obra</th>
-                <th class="text-right">Porcentaje</th>
                 <th class="text-right">Monto</th>
+                <th class="text-right">Pagos</th>
+                <th class="text-right">Saldo</th>
               </tr>
             </ng-template>
             <ng-template pTemplate="body" let-item>
               <tr>
                 <td>{{ item.obraNombre || 'General' }}</td>
-                <td class="text-right">{{ item.porcentaje ?? 0 }}%</td>
                 <td class="text-right">{{ item.monto | currency:'ARS':'symbol-narrow':'1.0-0' }}</td>
+                <td class="text-right text-emerald-700">{{ item.pagos | currency:'ARS':'symbol-narrow':'1.0-0' }}</td>
+                <td class="text-right text-slate-800">{{ item.saldo | currency:'ARS':'symbol-narrow':'1.0-0' }}</td>
               </tr>
             </ng-template>
           </p-table>

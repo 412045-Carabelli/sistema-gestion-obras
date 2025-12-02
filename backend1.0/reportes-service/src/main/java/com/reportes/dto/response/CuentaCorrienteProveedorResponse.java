@@ -17,8 +17,14 @@ public class CuentaCorrienteProveedorResponse {
 
     @Data
     public static class Movimiento {
+        private java.time.LocalDate fecha;
         private String tipo;
         private BigDecimal monto = BigDecimal.ZERO;
+        private Long obraId;
         private String obraNombre;
+        private String concepto;
+        private BigDecimal costosAcumulados = BigDecimal.ZERO;
+        private BigDecimal pagosAcumulados = BigDecimal.ZERO;
+        private BigDecimal saldoProveedor = BigDecimal.ZERO;
     }
 }

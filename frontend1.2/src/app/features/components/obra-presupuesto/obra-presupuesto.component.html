@@ -39,12 +39,12 @@
       ></p-select>
     </div>
     <div class="flex flex-col gap-1 lg:col-span-2">
-      <label class="text-xs text-gray-600">DescripciИn</label>
+      <label class="text-xs text-gray-600">Descripción</label>
       <input
         [(ngModel)]="nuevoCosto.descripcion"
         class="w-full"
         pInputText
-        placeholder="DescripciИn"
+        placeholder="Descripción"
         type="text"
       />
     </div>
@@ -110,7 +110,7 @@
       <ng-template pTemplate="header">
         <tr class="bg-gray-50 text-gray-700">
           <th class="text-left px-3 py-2 font-semibold">Proveedor</th>
-          <th class="text-left px-3 py-2 font-semibold">DescripciИn</th>
+          <th class="text-left px-3 py-2 font-semibold">Descripción</th>
           <th class="text-left px-3 py-2 font-semibold">Cantidad</th>
           <th class="text-left px-3 py-2 font-semibold">Precio Unit.</th>
           <th class="text-left px-3 py-2 font-semibold">Beneficio (%)</th>
@@ -251,14 +251,10 @@
 
         <tr class="bg-gray-50 text-sm">
           <td class="text-right px-3 py-2 text-gray-600" colspan="6">
-            ComisiИn ({{ comision }}%):
+            Comisión ({{ comision }}%):
           </td>
           <td class="px-3 py-2 text-indigo-600 font-medium">
-            {{
-              (calcularTotal() *
-                (1 + (usarBeneficioGlobal ? beneficioGlobal / 100 : 0)) *
-                (comision / 100)) | currency:'ARS'
-            }}
+            {{ (tieneComision ? (calcularTotal() * comision / 100) : 0) | currency:'ARS' }}
           </td>
         </tr>
 
@@ -327,7 +323,7 @@
       <input pInputText type="date" [(ngModel)]="transaccionForm.fecha" class="w-full" />
     </div>
     <div class="flex flex-col gap-1">
-      <label class="text-sm font-medium text-gray-700">ObservaciИn</label>
+      <label class="text-sm font-medium text-gray-700">Observación</label>
       <textarea class="w-full border rounded p-2 text-sm" [(ngModel)]="transaccionForm.observacion" rows="3"></textarea>
     </div>
     @if (errorApi) {

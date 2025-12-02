@@ -243,7 +243,8 @@
                           </span>
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap">
-                          <div class="flex items-center gap-2">
+                          <div class="flex items-center gap-2 cursor-pointer hover:text-indigo-700"
+                               (click)="irADetalleObraMov(t.id_obra)">
                             <i class="pi pi-building text-blue-600"></i>
                             <span class="text-gray-900">{{ getNombreObra(t.id_obra) }}</span>
                           </div>

@@ -1,6 +1,6 @@
 import {Component, EventEmitter, OnInit, Output} from '@angular/core';
 import {CommonModule, DatePipe} from '@angular/common';
-import {Router} from '@angular/router';
+import {ActivatedRoute, Router} from '@angular/router';
 import {FormsModule} from '@angular/forms';
 import {TableModule} from 'primeng/table';
 import {InputTextModule} from 'primeng/inputtext';
@@ -61,9 +61,11 @@ export class ObrasListComponent implements OnInit {
     {label: 'Activos', value: 'true'},
     {label: 'Inactivos', value: 'false'},
   ];
+  private estadoInicialDesdeRuta: string | null = null;
 
   constructor(
     private router: Router,
+    private route: ActivatedRoute,
     private obrasService: ObrasService,
     private clientesService: ClientesService,
     private estadoObraService: EstadoObraService
@@ -71,6 +73,15 @@ export class ObrasListComponent implements OnInit {
   }
 
   ngOnInit() {
+    // Leer filtro de estado desde query params
+    this.route.queryParams.subscribe(params => {
+      this.estadoInicialDesdeRuta = params['estado'] ?? null;
+      if (this.datosCargados) {
+        this.estadoFiltro = this.estadoInicialDesdeRuta || 'TODOS';
+        this.applyFilter();
+      }
+    });
+
     // Carga todo en paralelo
     forkJoin({
       obras: this.obrasService.getObras(),
@@ -89,6 +100,12 @@ export class ObrasListComponent implements OnInit {
         ...this.estados.map(r => ({ label: r.label || r.name, value: r.name }))
       ];
 
+      // Aplicar filtro inicial si vino por query param
+      if (this.estadoInicialDesdeRuta) {
+        this.estadoFiltro = this.estadoInicialDesdeRuta;
+      }
+
+      this.applyFilter();
       this.datosCargados = true;
     });
   }

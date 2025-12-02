@@ -88,6 +88,7 @@ export class ReportesService {
   }
 
   getComisiones(filtro?: ReportFilter): Observable<ComisionesResponse> {
+    // BFF espera POST y redirige a /comisiones/general o /comisiones/obra/{id} segÃºn filtro
     return this.http.post<ComisionesResponse>(`${this.apiUrl}/financieros/comisiones`, filtro ?? {});
   }
 }
