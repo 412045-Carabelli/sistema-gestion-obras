@@ -163,21 +163,53 @@ public class TransaccionBffController {
         }
 
         WebClient client = webClientBuilder.build();
+        // Si se está pagando un costo específico, validar contra ese costo
+        Object idCostoObj = body.getOrDefault("id_costo", body.get("idCosto"));
+        if (idCostoObj != null) {
+            Long idCosto;
+            try {
+                idCosto = Long.valueOf(idCostoObj.toString());
+            } catch (NumberFormatException e) {
+                return Mono.error(new IllegalArgumentException("id_costo inválido para validar pago TOTAL."));
+            }
+
+            return client.get()
+                    .uri(OBRAS_URL + "/costos/{idObra}", idObra)
+                    .retrieve()
+                    .bodyToFlux(new ParameterizedTypeReference<Map<String, Object>>() {})
+                    .collectList()
+                    .flatMap(costos -> {
+                        Map<String, Object> costo = costos.stream()
+                                .filter(c -> idCosto.equals(parseLongSafe(c.get("id"))))
+                                .findFirst()
+                                .orElse(null);
+
+                        if (costo == null) {
+                            return Mono.error(new IllegalArgumentException("No se encontró el costo " + idCosto + " en la obra " + idObra));
+                        }
+
+                        BigDecimal totalCosto = parseBigDecimal(costo.get("total"));
+                        if (totalCosto == null) {
+                            return Mono.error(new IllegalArgumentException("El costo no tiene total para validar forma de pago TOTAL."));
+                        }
+
+                        if (totalCosto.compareTo(monto) != 0) {
+                            return Mono.error(new IllegalArgumentException("El monto con forma de pago TOTAL debe ser igual al total del costo asociado."));
+                        }
+                        return Mono.empty();
+                    });
+        }
+
+        // Caso general: validar contra presupuesto de la obra
         return client.get()
                 .uri(OBRAS_URL + "/{id}", idObra)
                 .retrieve()
                 .bodyToMono(new ParameterizedTypeReference<Map<String, Object>>() {})
                 .switchIfEmpty(Mono.error(new IllegalArgumentException("No se encontró la obra " + idObra)))
                 .flatMap(obra -> {
-                    Object presupuestoObj = obra.get("presupuesto");
-                    if (presupuestoObj == null) {
+                    BigDecimal presupuesto = parseBigDecimal(obra.get("presupuesto"));
+                    if (presupuesto == null) {
                         return Mono.error(new IllegalArgumentException("La obra no tiene presupuesto para validar el pago TOTAL."));
-                    }
-                    BigDecimal presupuesto;
-                    try {
-                        presupuesto = new BigDecimal(presupuestoObj.toString());
-                    } catch (NumberFormatException e) {
-                        return Mono.error(new IllegalArgumentException("Presupuesto de obra inválido para validar el pago TOTAL."));
                     }
 
                     if (presupuesto.compareTo(monto) != 0) {
@@ -185,5 +217,23 @@ public class TransaccionBffController {
                     }
                     return Mono.empty();
                 });
+    }
+
+    private Long parseLongSafe(Object value) {
+        if (value == null) return null;
+        try {
+            return Long.valueOf(value.toString());
+        } catch (NumberFormatException e) {
+            return null;
+        }
+    }
+
+    private BigDecimal parseBigDecimal(Object value) {
+        if (value == null) return null;
+        try {
+            return new BigDecimal(value.toString());
+        } catch (NumberFormatException e) {
+            return null;
+        }
     }
 }

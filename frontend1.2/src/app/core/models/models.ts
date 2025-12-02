@@ -128,6 +128,7 @@ export interface Transaccion {
   ultima_actualizacion?: string;
   tipo_actualizacion?: string;
   observacion?: string;
+  etiqueta?: string; // auxiliar de UI (FC/RBOS)
 }
 
 export type TipoDocumento = RecordOption;

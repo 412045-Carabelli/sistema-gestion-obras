@@ -144,10 +144,7 @@ export class ObraMovimientosComponent implements OnInit {
 
   cargarDatos() {
     this.transaccionesService.getByObra(this.obraId).subscribe(transacciones => {
-      this.transacciones = transacciones.map(t => ({
-        ...t,
-        etiqueta: this.tipoValue(t) === 'COBRO' ? 'FC' : 'RBOS'
-      }));
+      this.transacciones = transacciones.map(t => this.normalizarTransaccion(t));
     });
 
     this.transaccionesService.getTipos().subscribe(tipos => {
@@ -229,8 +226,15 @@ export class ObraMovimientosComponent implements OnInit {
       : this.transaccionesService.create(mov);
 
     action.subscribe({
-      next: () => {
-        this.cargarDatos();
+      next: (resp) => {
+        const movGuardado = this.normalizarTransaccion(resp);
+        if (this.modoEdicion) {
+          this.transacciones = this.transacciones.map(t =>
+            t.id === movGuardado.id ? movGuardado : t
+          );
+        } else {
+          this.transacciones = [movGuardado, ...this.transacciones];
+        }
         this.showAddMovementModal = false;
         this.messageService.add({
           severity: 'success',
@@ -317,6 +321,12 @@ export class ObraMovimientosComponent implements OnInit {
     return tipo.toString().toUpperCase().includes('FACT');
   }
 
+  private normalizarTransaccion(t: Transaccion): Transaccion {
+    return {
+      ...t,
+      etiqueta: this.tipoValue(t) === 'COBRO' ? 'FC' : 'RBOS'
+    };
+  }
 }
 
 
