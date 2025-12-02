@@ -158,13 +158,8 @@ export class ObrasDetailComponent implements OnInit, OnDestroy {
 
         this.clientes = clientes;
 
-        const proveedoresIdsDeObra = (this.costos ?? [])
-          .map(c => c.proveedor?.id)
-          .filter((id): id is number => id !== undefined);
-
-        this.proveedores = proveedores.filter(p =>
-          proveedoresIdsDeObra.includes(p.id)
-        );
+        // Mantener todos los proveedores disponibles para permitir sumar costos nuevos
+        this.proveedores = proveedores;
 
         this.progresoFisico = this.getProgresoFisico();
         this.beneficioNeto = this.calcularBeneficioNeto();
