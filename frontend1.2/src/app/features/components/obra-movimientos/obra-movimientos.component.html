@@ -1,15 +1,15 @@
-<p-toast position="bottom-right"></p-toast>
+﻿<p-toast position="bottom-right"></p-toast>
 <p-confirmDialog></p-confirmDialog>
 
 <div class="p-4 space-y-5">
-  <!-- Título y botón -->
+  <!-- TÃ­tulo y botÃ³n -->
   <div class="flex justify-between items-center flex-wrap gap-3">
     <div>
       <h2 class="text-2xl font-bold text-gray-900">Movimientos</h2>
       <p class="text-gray-500 text-sm mt-1">
         Pagos y cobros asociados a la obra
         @if (obraNombre) {
-          <span class="font-semibold text-gray-800">· {{ obraNombre }}</span>
+          <span class="font-semibold text-gray-800">Â· {{ obraNombre }}</span>
         }
       </p>
     </div>
@@ -38,7 +38,6 @@
           <th>Medio</th>
           <th>Monto</th>
           <th>Factura cobrada</th>
-          <th>Saldo</th>
           <th class="text-right"></th>
         </tr>
       </ng-template>
@@ -67,13 +66,17 @@
           <td class="capitalize">{{ t.medio_pago || 'Sin especificar' }}</td>
 
           <!-- Monto -->
-          <td>{{ t.monto | currency: 'ARS' }}</td>
+          <td>
+            <span
+              [ngClass]="tipoMovimiento(t) === 'COBRO' ? 'text-green-600 font-semibold' : tipoMovimiento(t) === 'PAGO' ? 'text-red-600 font-semibold' : 'text-gray-800'">
+              {{ tipoMovimiento(t) === 'COBRO' ? '+' : tipoMovimiento(t) === 'PAGO' ? '-' : '' }}
+              {{ t.monto | currency: 'ARS' }}
+            </span>
+          </td>
 
         <td>
           <p-checkbox [binary]="true" [ngModel]="!!t.factura_cobrada" disabled></p-checkbox>
         </td>
-
-          <td>{{ (t.saldo_cliente ? saldoCliente : saldoProveedor) | currency: 'ARS' }}</td>
 
           <!-- Acciones -->
           <td class="flex justify-end gap-2 items-center">
@@ -127,7 +130,7 @@
     </div>
   }
 
-  <!-- Modal de creación / edición -->
+  <!-- Modal de creaciÃ³n / ediciÃ³n -->
   <app-modal
     (closed)="cerrarModal()"
     (confirmed)="guardarMovimiento()"
@@ -256,3 +259,4 @@
     </div>
   </app-modal>
 </div>
+

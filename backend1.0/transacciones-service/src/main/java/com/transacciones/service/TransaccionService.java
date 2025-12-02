@@ -26,7 +26,7 @@ public class TransaccionService {
 
     public TransaccionDto crear(Transaccion dto) {
         if (dto.getTipo_transaccion() == null) {
-            throw new IllegalArgumentException("Debe especificarse un tipo de transacción válido");
+            throw new IllegalArgumentException("Debe especificarse un tipo de transaccion valido");
         }
 
         Transaccion entity = Transaccion.builder()
@@ -48,16 +48,16 @@ public class TransaccionService {
 
     public TransaccionDto obtener(Long id) {
         Transaccion entity = transaccionRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Transacción no encontrada"));
+                .orElseThrow(() -> new RuntimeException("Transaccion no encontrada"));
         return toDto(entity);
     }
 
     public TransaccionDto actualizar(Long id, Transaccion dto) {
         Transaccion entity = transaccionRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Transacción no encontrada"));
+                .orElseThrow(() -> new RuntimeException("Transaccion no encontrada"));
 
         if (dto.getTipo_transaccion() == null) {
-            throw new IllegalArgumentException("Debe especificarse un tipo de transacción válido");
+            throw new IllegalArgumentException("Debe especificarse un tipo de transaccion valido");
         }
 
         entity.setIdObra(dto.getIdObra());
@@ -77,14 +77,18 @@ public class TransaccionService {
 
     public void eliminar(Long id) {
         if (!transaccionRepository.existsById(id)) {
-            throw new RuntimeException("La transacción no existe");
+            throw new RuntimeException("La transaccion no existe");
         }
         transaccionRepository.deleteById(id);
     }
 
     public void eliminarPorCosto(Long idCosto) {
         transaccionRepository.deleteByIdCosto(idCosto);
+    }
 
+    @Transactional
+    public void desactivarPorObra(Long obraId) {
+        transaccionRepository.softDeleteByObraId(obraId);
     }
 
     @Transactional(readOnly = true)
@@ -128,7 +132,3 @@ public class TransaccionService {
         return (long) (e.ordinal() + 1);
     }
 }
-
-
-
-

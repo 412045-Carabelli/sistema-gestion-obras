@@ -225,7 +225,12 @@ export class ReportesComponent implements OnInit {
       rankingClientes: this.withDefault(this.reportesService.getRankingClientes(filtrosReporte), {clientes: []}),
       rankingProveedores: this.withDefault(this.reportesService.getRankingProveedores(filtrosReporte), {proveedores: []}),
       notasGenerales: this.withDefault(this.reportesService.getNotasGenerales(), []),
-      comisiones: this.withDefault(this.reportesService.getComisiones(filtrosReporte), {total: 0, comisiones: []})
+      comisiones: this.withDefault(this.reportesService.getComisiones(filtrosReporte), {
+        totalComision: 0,
+        totalPagos: 0,
+        saldo: 0,
+        detalle: []
+      })
     }).subscribe({
       next: (data) => {
         this.resumenGeneral = data.resumen;
@@ -318,7 +323,7 @@ export class ReportesComponent implements OnInit {
   }
 
   nombreAsociado(tipo?: string, id?: number): string {
-    if (!id) return '—';
+    if (!id) return '-';
     const t = (tipo || '').toString().toUpperCase();
     if (t === 'CLIENTE') return this.clientesIndex[id] || `Cliente #${id}`;
     if (t === 'PROVEEDOR') return this.proveedoresIndex[id] || `Proveedor #${id}`;

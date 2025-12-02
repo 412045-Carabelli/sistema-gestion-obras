@@ -174,15 +174,8 @@ export class ObrasCreateComponent implements OnInit {
     const beneficioFila = Number(fila.get('beneficio')?.value) || 0;
     const beneficio = beneficioGlobalActivo ? beneficioGlobalValor : beneficioFila;
 
-    const comisionGlobalActivo = this.form.get('comision')?.value;
-    const comisionGlobalValor = Number(this.form.get('tiene_comision')?.value) || 0;
-
     let subtotal = cantidad * precio;
     let total = subtotal * (1 + beneficio / 100);
-
-    if (comisionGlobalActivo) {
-      total = total * (1 + comisionGlobalValor / 100);
-    }
 
     fila.get('subtotal')?.setValue(subtotal, {emitEvent: false});
     fila.get('total')?.setValue(total, {emitEvent: false});
@@ -191,11 +184,16 @@ export class ObrasCreateComponent implements OnInit {
   }
 
   actualizarPresupuesto() {
-    const totalGeneral = this.costos.controls.reduce((acc, control) => {
+    const totalBase = this.costos.controls.reduce((acc, control) => {
       const t = control.get('total')?.value || 0;
       return acc + t;
     }, 0);
-    this.form.get('presupuesto')?.setValue(totalGeneral);
+
+    const tieneComision = this.form.get('tiene_comision')?.value;
+    const comisionValor = Number(this.form.get('comision')?.value) || 0;
+    const totalConComision = tieneComision ? totalBase * (1 + comisionValor / 100) : totalBase;
+
+    this.form.get('presupuesto')?.setValue(totalConComision);
   }
 
   onSubmit() {
@@ -261,6 +259,13 @@ export class ObrasCreateComponent implements OnInit {
 
   private recalcularTotales() {
     this.costos.controls.forEach(fila => this.calcularSubtotal(fila as FormGroup));
+  }
+
+  get fechasFueraDeRango(): boolean {
+    const inicio = this.form.get('fecha_inicio')?.value ? new Date(this.form.get('fecha_inicio')?.value) : null;
+    const fin = this.form.get('fecha_fin')?.value ? new Date(this.form.get('fecha_fin')?.value) : null;
+    if (!inicio || !fin) return false;
+    return fin.getTime() < inicio.getTime();
   }
 
   private formatToLocalDateTime(value: Date | string | null): string | null {

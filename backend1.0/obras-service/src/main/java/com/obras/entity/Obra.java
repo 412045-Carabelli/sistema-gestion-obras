@@ -34,6 +34,8 @@ public class Obra {
     @Column(length = 255)
     private String direccion;
 
+    @Column(name = "fecha_presupuesto")
+    private LocalDateTime fechaPresupuesto;
     private LocalDateTime fechaInicio;
     private LocalDateTime fechaFin;
     private LocalDateTime fechaAdjudicada;

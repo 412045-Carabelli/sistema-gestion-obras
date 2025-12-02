@@ -52,23 +52,28 @@ public class ReportesController {
         return ResponseEntity.ok(reportesService.generarCostosPorCategoria(filtro));
     }
 
+    @PostMapping("/financieros/comisiones")
+    public ResponseEntity<ComisionesFrontResponse> comisiones(@RequestBody(required = false) ReportFilterRequest filtro) {
+        return ResponseEntity.ok(reportesService.generarComisiones(filtro));
+    }
+
     @GetMapping("/generales/resumen")
     public ResponseEntity<ResumenGeneralResponse> resumenGeneral() {
         return ResponseEntity.ok(reportesService.generarResumenGeneral());
     }
 
     @GetMapping("/cuenta-corriente/obra/{obraId}")
-    public ResponseEntity<CuentaCorrienteObraResponse> cuentaCorrienteObra(@PathVariable Long obraId) {
+    public ResponseEntity<CuentaCorrienteObraResponse> cuentaCorrienteObra(@PathVariable("obraId") Long obraId) {
         return ResponseEntity.ok(reportesService.generarCuentaCorrientePorObra(obraId));
     }
 
     @GetMapping("/cuenta-corriente/proveedor/{proveedorId}")
-    public ResponseEntity<CuentaCorrienteProveedorResponse> cuentaCorrienteProveedor(@PathVariable Long proveedorId) {
+    public ResponseEntity<CuentaCorrienteProveedorResponse> cuentaCorrienteProveedor(@PathVariable("proveedorId") Long proveedorId) {
         return ResponseEntity.ok(reportesService.generarCuentaCorrientePorProveedor(proveedorId));
     }
 
     @GetMapping("/comisiones/obra/{obraId}")
-    public ResponseEntity<ComisionesResponse> comisionesPorObra(@PathVariable Long obraId) {
+    public ResponseEntity<ComisionesResponse> comisionesPorObra(@PathVariable("obraId") Long obraId) {
         return ResponseEntity.ok(reportesService.generarComisionesPorObra(obraId));
     }
 

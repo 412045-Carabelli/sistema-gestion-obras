@@ -117,6 +117,14 @@ export class DashboardComponent implements OnInit {
     this.router.navigate([route]);
   }
 
+  navigateToObrasEstado(estado?: string): void {
+    if (estado) {
+      this.router.navigate(['/obras'], { queryParams: { estado } });
+    } else {
+      this.router.navigate(['/obras']);
+    }
+  }
+
   private calcularConteosObras(obras: { obra_estado: string }[]): typeof this.conteoObras {
     const normalizar = (estado: string | undefined | null) => (estado || '').toUpperCase();
     return obras.reduce((acc, obra) => {

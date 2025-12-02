@@ -100,7 +100,13 @@ public class ObraServiceImpl implements ObraService {
         Obra obra = obraRepo.findById(idObra)
                 .orElseThrow(() -> new EntityNotFoundException("Obra no encontrada"));
 
-        obra.setEstadoObra(estado != null ? estado : EstadoObraEnum.PRESUPUESTADA);
+        EstadoObraEnum nuevoEstado = estado != null ? estado : EstadoObraEnum.PRESUPUESTADA;
+        obra.setEstadoObra(nuevoEstado);
+
+        if (nuevoEstado == EstadoObraEnum.ADJUDICADA) {
+            obra.setFechaAdjudicada(java.time.LocalDateTime.now());
+        }
+
         obraRepo.save(obra);
     }
 
@@ -133,6 +139,7 @@ public class ObraServiceImpl implements ObraService {
 
         entity.setNombre(dto.getNombre());
         entity.setDireccion(dto.getDireccion());
+        entity.setFechaPresupuesto(dto.getFecha_presupuesto());
         entity.setFechaInicio(dto.getFecha_inicio());
         entity.setFechaFin(dto.getFecha_fin());
         entity.setFechaAdjudicada(dto.getFecha_adjudicada());
@@ -165,6 +172,7 @@ public class ObraServiceImpl implements ObraService {
         dto.setObra_estado(entity.getEstadoObra());
         dto.setNombre(entity.getNombre());
         dto.setDireccion(entity.getDireccion());
+        dto.setFecha_presupuesto(entity.getFechaPresupuesto());
         dto.setFecha_inicio(entity.getFechaInicio());
         dto.setFecha_fin(entity.getFechaFin());
         dto.setFecha_adjudicada(entity.getFechaAdjudicada());

@@ -27,6 +27,7 @@ com\reportes\dto\response\EstadoObrasResponse$DetalleEstadoObra.class
 com\reportes\dto\external\ProgresoExternalDto.class
 com\reportes\dto\request\ReportFilterRequest.class
 com\reportes\dto\request\EstadoObraFilterRequest.class
+com\reportes\dto\response\ComisionesFrontResponse$ComisionItem.class
 com\reportes\client\ObrasClient$4.class
 com\reportes\dto\response\CostosPorCategoriaResponse$CategoriaCosto.class
 com\reportes\dto\external\EstadoTareaExternalDto.class
@@ -37,6 +38,7 @@ com\reportes\dto\external\ObraCostoExternalDto.class
 com\reportes\client\ClientesClient.class
 com\reportes\dto\response\EstadoFinancieroObraResponse.class
 com\reportes\dto\response\IngresosEgresosResponse.class
+com\reportes\dto\response\ComisionesFrontResponse.class
 com\reportes\dto\response\PendientesResponse.class
 com\reportes\client\ObrasClient$3.class
 com\reportes\dto\response\RankingProveedoresResponse$ItemRankingProveedor.class
