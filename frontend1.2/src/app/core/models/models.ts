@@ -209,6 +209,7 @@ export interface CuentaCorrienteMovimiento {
   obraId?: number;
   obraNombre?: string;
   concepto?: string;
+  referencia?: string;
   tipo: string;
   monto: number;
   asociadoTipo?: string;

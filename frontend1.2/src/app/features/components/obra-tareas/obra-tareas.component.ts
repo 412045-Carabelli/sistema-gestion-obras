@@ -1,16 +1,19 @@
 import {Component, EventEmitter, Input, Output} from '@angular/core';
 import {CommonModule, NgClass} from '@angular/common';
+import {FormsModule} from '@angular/forms';
 import {ButtonModule} from 'primeng/button';
 import {ProgressBarModule} from 'primeng/progressbar';
 import {DropdownModule} from 'primeng/dropdown';
-import {ToastModule} from 'primeng/toast'; // 👈 importar módulo
-import {MessageService} from 'primeng/api'; // 👈 importar servicio
-import {FormsModule} from '@angular/forms';
+import {ToastModule} from 'primeng/toast';
+import {MessageService} from 'primeng/api';
+import {InputText} from 'primeng/inputtext';
+import {Select} from 'primeng/select';
+import {TagModule} from 'primeng/tag';
+
+import {EstadoFormatPipe} from '../../../shared/pipes/estado-format.pipe';
 import {EstadoTarea, Proveedor, Tarea} from '../../../core/models/models';
 import {ModalComponent} from '../../../shared/modal/modal.component';
 import {TareaPayload, TareasService} from '../../../services/tareas/tareas.service';
-import {InputText} from 'primeng/inputtext';
-import {Select} from 'primeng/select';
 
 @Component({
   selector: 'app-obra-tareas',
@@ -21,14 +24,16 @@ import {Select} from 'primeng/select';
     ButtonModule,
     ProgressBarModule,
     DropdownModule,
-    ToastModule,                // 👈 aquí también
+    ToastModule,
     ModalComponent,
     FormsModule,
     InputText,
-    Select
+    Select,
+    TagModule,
+    EstadoFormatPipe
   ],
-  providers: [MessageService],  // 👈 importante para usar el toast
-  templateUrl: './obra-tareas.component.html',
+  providers: [MessageService],
+  templateUrl: './obra-tareas.component.html'
 })
 export class ObraTareasComponent {
   @Input() obraId!: number;
@@ -37,15 +42,20 @@ export class ObraTareasComponent {
   @Input() obraNombre = '';
   @Output() tareasActualizadas = new EventEmitter<Tarea[]>();
 
+  estadoOptions = [
+    {label: 'Pendiente', value: 'PENDIENTE'},
+    {label: 'En progreso', value: 'EN_PROGRESO'},
+    {label: 'Completada', value: 'COMPLETADA'}
+  ];
+
   showAddTaskModal = false;
   editandoTarea: Tarea | null = null;
   nuevaTarea: Partial<Tarea> = {};
 
   constructor(
     private tareasService: TareasService,
-    private messageService: MessageService   // 👈 inyectar servicio
-  ) {
-  }
+    private messageService: MessageService
+  ) {}
 
   abrirModal() {
     this.nuevaTarea = {
@@ -85,18 +95,18 @@ export class ObraTareasComponent {
       : this.tareasService.createTarea(payload);
 
     request$.subscribe({
-      next: (created) => {
+      next: created => {
         if (this.editandoTarea?.id) {
-          this.tareas = this.tareas.map(t => t.id === created.id ? {
-            ...t,
-            ...created,
-            proveedor: this.nuevaTarea.proveedor!
-          } : t);
+          this.tareas = this.tareas.map(t =>
+            t.id === created.id
+              ? {...t, ...created, proveedor: this.nuevaTarea.proveedor!}
+              : t
+          );
         } else {
-          this.tareas = [...this.tareas, {
-            ...created,
-            proveedor: this.nuevaTarea.proveedor!,
-          }];
+          this.tareas = [
+            ...this.tareas,
+            {...created, proveedor: this.nuevaTarea.proveedor!}
+          ];
         }
 
         this.tareasActualizadas.emit(this.tareas);
@@ -114,9 +124,10 @@ export class ObraTareasComponent {
 
   toggleTarea(tarea: Tarea) {
     this.tareasService.completarTarea(tarea.id!, this.obraId).subscribe({
-      next: (updated) => {
-        console.log(updated)
-        this.tareas = this.tareas.map(t => t.id === tarea.id ? {...t, ...updated} : t);
+      next: updated => {
+        this.tareas = this.tareas.map(t =>
+          t.id === tarea.id ? {...t, ...updated} : t
+        );
         this.tareasActualizadas.emit(this.tareas);
       },
       error: () => {
@@ -137,7 +148,7 @@ export class ObraTareasComponent {
         this.messageService.add({
           severity: 'success',
           summary: 'Tarea eliminada',
-          detail: 'La tarea fue eliminada correctamente 🗑️'
+          detail: 'La tarea fue eliminada correctamente'
         });
       },
       error: () => {
@@ -157,12 +168,16 @@ export class ObraTareasComponent {
   progreso(pid: number) {
     const tareasProv = this.tareasProveedor(pid);
     if (!tareasProv.length) return 0;
-    const completadas = tareasProv.filter(t => t.estado_tarea === "EN PROGRESO").length;
+    const completadas = tareasProv.filter(
+      t => t.estado_tarea === 'COMPLETADA'
+    ).length;
     return Math.round((completadas / tareasProv.length) * 100);
   }
 
   getCompletadas(pid: number): number {
-    return this.tareasProveedor(pid).filter(t => t.estado_tarea === "COMPLETADA").length;
+    return this.tareasProveedor(pid).filter(
+      t => t.estado_tarea === 'COMPLETADA'
+    ).length;
   }
 
   getTotales(pid: number): number {
@@ -171,9 +186,9 @@ export class ObraTareasComponent {
 
   claseEstado(tarea: Tarea) {
     switch (tarea.estado_tarea) {
-      case "COMPLETADA":
+      case 'COMPLETADA':
         return 'bg-green-50 border-green-200';
-      case "PENDIENTE":
+      case 'PENDIENTE':
         return 'bg-blue-50 border-blue-200';
       default:
         return 'bg-gray-50 border-gray-200 hover:bg-gray-100';
@@ -187,7 +202,7 @@ export class ObraTareasComponent {
       nombre: tarea.nombre,
       descripcion: tarea.descripcion,
       estado_tarea: tarea.estado_tarea,
-      proveedor: tarea.proveedor,
+      proveedor: tarea.proveedor
     };
     this.showAddTaskModal = true;
   }
