@@ -34,6 +34,7 @@ public class ObraServiceImpl implements ObraService {
 
     @Override
     public ObraDTO crear(ObraDTO dto) {
+        validarFechas(dto);
         Obra obra = toEntity(dto);
         obra.setActivo(true);
         obra.setCreadoEn(Instant.now());
@@ -68,6 +69,7 @@ public class ObraServiceImpl implements ObraService {
 
     @Override
     public ObraDTO actualizar(Long id, ObraDTO dto) {
+        validarFechas(dto);
         Obra existing = obraRepo.findById(id)
                 .orElseThrow(() -> new RuntimeException("Obra no encontrada: " + id));
 
@@ -211,6 +213,14 @@ public class ObraServiceImpl implements ObraService {
         }
 
         return dto;
+    }
+
+    private void validarFechas(ObraDTO dto) {
+        if (dto == null) return;
+        if (dto.getFecha_inicio() != null && dto.getFecha_fin() != null
+                && dto.getFecha_inicio().isAfter(dto.getFecha_fin())) {
+            throw new IllegalArgumentException("La fecha de inicio no puede ser posterior a la fecha de fin.");
+        }
     }
 
     /* ============================================================
