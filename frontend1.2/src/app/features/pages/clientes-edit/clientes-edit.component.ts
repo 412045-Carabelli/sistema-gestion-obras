@@ -40,9 +40,8 @@ export class ClientesEditComponent implements OnInit {
       contacto: ['', Validators.required],
       cuit: ['', Validators.required],
       condicion_iva: [null, Validators.required],
-      telefono: ['', [Validators.required, Validators.minLength(10), Validators.maxLength(15)]],
-      email: ['', [Validators.required, Validators.email]],
-      activo: [true, Validators.required]
+      telefono: ['', Validators.required],
+      email: ['', [Validators.required, Validators.email]]
     });
 
     const idParam = this.route.snapshot.paramMap.get('id');
@@ -90,8 +89,7 @@ export class ClientesEditComponent implements OnInit {
       next: (cliente) => {
         this.form.patchValue({
           ...cliente,
-          condicion_iva: (cliente as any).condicionIVA ?? cliente.condicion_iva ?? null,
-          activo: cliente.activo ?? true
+          condicion_iva: (cliente as any).condicionIVA ?? cliente.condicion_iva ?? null
         });
         this.loading = false;
       },
