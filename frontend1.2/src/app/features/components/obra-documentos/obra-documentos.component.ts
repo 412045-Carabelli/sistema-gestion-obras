@@ -16,6 +16,7 @@ import {Tooltip} from 'primeng/tooltip';
 import {Select} from 'primeng/select';
 import {AutoCompleteModule} from 'primeng/autocomplete';
 import {forkJoin} from 'rxjs';
+import { ApiErrorService } from '../../../core/api-error.service';
 
 @Component({
   selector: 'app-obra-documentos',
@@ -62,7 +63,8 @@ export class ObraDocumentosComponent implements OnInit {
 
   constructor(
     private documentosService: DocumentosService,
-    private messageService: MessageService
+    private messageService: MessageService,
+    private apiErrorService: ApiErrorService
   ) {}
 
   ngOnInit(): void {
@@ -79,9 +81,17 @@ export class ObraDocumentosComponent implements OnInit {
         })) ?? [];
         this.loading = false;
       },
-      error: () => {
+      error: err => {
         this.tiposDocumento = [];
         this.loading = false;
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: this.apiErrorService.getMessage(
+            err,
+            'No se pudieron obtener los tipos de documento.'
+          )
+        });
       }
     });
   }
@@ -128,9 +138,17 @@ export class ObraDocumentosComponent implements OnInit {
         this.documentos = documentos;
         this.loading = false;
       },
-      error: () => {
+      error: err => {
         this.documentos = [];
         this.loading = false;
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: this.apiErrorService.getMessage(
+            err,
+            'No se pudieron cargar los documentos.'
+          )
+        });
       }
     });
   }
@@ -223,11 +241,14 @@ export class ObraDocumentosComponent implements OnInit {
           detail: `${nuevos.length} archivo(s) agregados`
         });
       },
-      error: () => {
+      error: err => {
         this.messageService.add({
           severity: 'error',
           summary: 'Error',
-          detail: 'No se pudieron subir los documentos.'
+          detail: this.apiErrorService.getMessage(
+            err,
+            'No se pudieron subir los documentos.'
+          )
         });
       }
     });
@@ -256,11 +277,14 @@ export class ObraDocumentosComponent implements OnInit {
         this.docAEliminar = null;
         this.confirmModalVisible = false;
       },
-      error: () => {
+      error: err => {
         this.messageService.add({
           severity: 'error',
           summary: 'Error',
-          detail: 'No se pudo eliminar el documento.'
+          detail: this.apiErrorService.getMessage(
+            err,
+            'No se pudo eliminar el documento.'
+          )
         });
       }
     });
@@ -282,11 +306,14 @@ export class ObraDocumentosComponent implements OnInit {
           detail: doc.nombre_archivo
         });
       },
-      error: () => {
+      error: err => {
         this.messageService.add({
           severity: 'error',
           summary: 'Error',
-          detail: 'No se pudo descargar el documento.'
+          detail: this.apiErrorService.getMessage(
+            err,
+            'No se pudo descargar el documento.'
+          )
         });
       }
     });

@@ -9,6 +9,7 @@ import {DocumentosService} from '../../../services/documentos/documentos.service
 import {Documento} from '../../../core/models/models';
 import {ProgressSpinner} from 'primeng/progressspinner';
 import {EstadoFormatPipe} from '../../../shared/pipes/estado-format.pipe';
+import { ApiErrorService } from '../../../core/api-error.service';
 
 @Component({
   selector: 'app-clientes-documentos',
@@ -37,7 +38,8 @@ export class ClientesDocumentosComponent implements OnInit {
 
   constructor(
     private documentosService: DocumentosService,
-    private messageService: MessageService
+    private messageService: MessageService,
+    private apiErrorService: ApiErrorService
   ) {}
 
   ngOnInit(): void {
@@ -53,13 +55,16 @@ export class ClientesDocumentosComponent implements OnInit {
         this.documentos = docs;
         this.loading = false;
       },
-      error: () => {
+      error: err => {
         this.documentos = [];
         this.loading = false;
         this.messageService.add({
           severity: 'error',
           summary: 'Error',
-          detail: 'No se pudieron cargar los documentos del cliente.'
+          detail: this.apiErrorService.getMessage(
+            err,
+            'No se pudieron cargar los documentos del cliente.'
+          )
         });
       }
     });
@@ -81,11 +86,14 @@ export class ClientesDocumentosComponent implements OnInit {
           detail: doc.nombre_archivo
         });
       },
-      error: () => {
+      error: err => {
         this.messageService.add({
           severity: 'error',
           summary: 'Error',
-          detail: 'No se pudo descargar el documento.'
+          detail: this.apiErrorService.getMessage(
+            err,
+            'No se pudo descargar el documento.'
+          )
         });
       }
     });

@@ -14,6 +14,7 @@ import {EstadoFormatPipe} from '../../../shared/pipes/estado-format.pipe';
 import {EstadoTarea, Proveedor, Tarea} from '../../../core/models/models';
 import {ModalComponent} from '../../../shared/modal/modal.component';
 import {TareaPayload, TareasService} from '../../../services/tareas/tareas.service';
+import { ApiErrorService } from '../../../core/api-error.service';
 
 @Component({
   selector: 'app-obra-tareas',
@@ -54,7 +55,8 @@ export class ObraTareasComponent {
 
   constructor(
     private tareasService: TareasService,
-    private messageService: MessageService
+    private messageService: MessageService,
+    private apiErrorService: ApiErrorService
   ) {}
 
   abrirModal() {
@@ -112,11 +114,14 @@ export class ObraTareasComponent {
         this.tareasActualizadas.emit(this.tareas);
         this.showAddTaskModal = false;
       },
-      error: () => {
+      error: err => {
         this.messageService.add({
           severity: 'error',
           summary: 'Error',
-          detail: 'No se pudo guardar la tarea'
+          detail: this.apiErrorService.getMessage(
+            err,
+            'No se pudo guardar la tarea'
+          )
         });
       }
     });
@@ -130,11 +135,14 @@ export class ObraTareasComponent {
         );
         this.tareasActualizadas.emit(this.tareas);
       },
-      error: () => {
+      error: err => {
         this.messageService.add({
           severity: 'error',
           summary: 'Error',
-          detail: 'No se pudo actualizar la tarea'
+          detail: this.apiErrorService.getMessage(
+            err,
+            'No se pudo actualizar la tarea'
+          )
         });
       }
     });
@@ -151,11 +159,14 @@ export class ObraTareasComponent {
           detail: 'La tarea fue eliminada correctamente'
         });
       },
-      error: () => {
+      error: err => {
         this.messageService.add({
           severity: 'error',
           summary: 'Error',
-          detail: 'No se pudo eliminar la tarea'
+          detail: this.apiErrorService.getMessage(
+            err,
+            'No se pudo eliminar la tarea'
+          )
         });
       }
     });

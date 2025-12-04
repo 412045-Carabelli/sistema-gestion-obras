@@ -19,6 +19,7 @@ import {AutoComplete} from 'primeng/autocomplete';
 import {TagModule} from 'primeng/tag';
 import {CheckboxModule} from 'primeng/checkbox';
 import {InputText} from 'primeng/inputtext';
+import { ApiErrorService } from '../../../core/api-error.service';
 
 @Component({
   selector: 'app-obra-movimientos',
@@ -70,7 +71,8 @@ export class ObraMovimientosComponent implements OnInit {
   constructor(
     private transaccionesService: TransaccionesService,
     private confirmationService: ConfirmationService,
-    private messageService: MessageService
+    private messageService: MessageService,
+    private apiErrorService: ApiErrorService
   ) {
   }
 
@@ -242,11 +244,14 @@ export class ObraMovimientosComponent implements OnInit {
           detail: this.modoEdicion ? 'Movimiento actualizado' : 'Movimiento creado'
         });
       },
-      error: () => {
+      error: err => {
         this.messageService.add({
           severity: 'error',
           summary: 'Error',
-          detail: 'No se pudo guardar el movimiento'
+          detail: this.apiErrorService.getMessage(
+            err,
+            'No se pudo guardar el movimiento'
+          )
         });
       }
     });
@@ -271,11 +276,14 @@ export class ObraMovimientosComponent implements OnInit {
               detail: 'El movimiento fue eliminado correctamente.'
             });
           },
-          error: () => {
+          error: err => {
             this.messageService.add({
               severity: 'error',
               summary: 'Error',
-              detail: 'No se pudo eliminar el movimiento.'
+              detail: this.apiErrorService.getMessage(
+                err,
+                'No se pudo eliminar el movimiento.'
+              )
             });
           }
         });
