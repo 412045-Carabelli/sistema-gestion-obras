@@ -260,7 +260,31 @@ export class ObraPresupuestoComponent implements OnInit, OnChanges {
       this.modalPagoVisible = false;
       return;
     }
+
     this.errorApi = undefined;
+
+    const formaPago = (
+      this.transaccionForm.forma_pago ??
+      (this.estadoPendientePago === 'PAGADO'
+        ? 'TOTAL'
+        : this.estadoPendientePago === 'PARCIAL'
+          ? 'PARCIAL'
+          : 'TOTAL')
+    )
+      .toString()
+      .toUpperCase();
+
+    const montoCosto = Number(this.costoPendientePago.total ?? 0);
+    const montoIngresado = Number(
+      this.transaccionForm.monto ??
+      this.costoPendientePago.total ??
+      0
+    );
+
+    if (formaPago === 'TOTAL' && Math.abs(montoIngresado - montoCosto) > 0.01) {
+      this.errorApi = `Para un pago TOTAL el monto debe ser igual al total del costo (${montoCosto}).`;
+      return;
+    }
 
     const payload: any = {
       id_obra: this.obra.id!,
@@ -268,17 +292,8 @@ export class ObraPresupuestoComponent implements OnInit, OnChanges {
       tipo_asociado: 'PROVEEDOR',
       tipo_transaccion: this.transaccionForm.tipo_transaccion || 'PAGO',
       tipo_movimiento: this.transaccionForm.tipo_movimiento || 'PAGO',
-      monto:
-        this.transaccionForm.monto ??
-        this.costoPendientePago.total ??
-        0,
-      forma_pago:
-        this.transaccionForm.forma_pago ??
-        (this.estadoPendientePago === 'PAGADO'
-          ? 'TOTAL'
-          : this.estadoPendientePago === 'PARCIAL'
-            ? 'PARCIAL'
-            : 'TOTAL'),
+      monto: montoIngresado,
+      forma_pago: formaPago,
       medio_pago: this.transaccionForm.medio_pago ?? 'Transferencia',
       fecha: this.transaccionForm.fecha ?? new Date().toISOString(),
       observacion: this.transaccionForm.observacion ?? '',
@@ -298,7 +313,7 @@ export class ObraPresupuestoComponent implements OnInit, OnChanges {
       error: err => {
         this.errorApi = this.getErrorMessage(
           err,
-          'No se pudo registrar la transacción'
+          'No se pudo registrar la transaccion'
         );
       }
     });
@@ -659,13 +674,25 @@ export class ObraPresupuestoComponent implements OnInit, OnChanges {
   }
 
   private getErrorMessage(err: any, fallback: string): string {
-    if (err?.error) {
+    if (!err) return fallback;
+
+    const detalle = err.error;
+    if (typeof detalle === 'string' && detalle.trim()) {
+      return detalle;
+    }
+
+    if (detalle) {
       return (
-        err.error?.error ||
-        err.error?.mensaje ||
-        err.error?.message ||
+        detalle.error ||
+        detalle.mensaje ||
+        detalle.message ||
+        detalle.detail ||
         fallback
       );
+    }
+
+    if (typeof err.message === 'string' && err.message.trim()) {
+      return err.message;
     }
     return fallback;
   }
