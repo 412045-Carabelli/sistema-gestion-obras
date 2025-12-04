@@ -2,9 +2,7 @@ version: "3.9"
 
 services:
   frontend:
-    build:
-      context: .
-    image: sistema-gestion-obras/frontend:latest
+    image: ghcr.io/412045-carabelli/sistema-gestion-obras-frontend:latest
     container_name: obras_frontend
     ports:
       - "4200:80"

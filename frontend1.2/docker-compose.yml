@@ -1,6 +1,9 @@
+version: "3.9"
+
 # =======================
 # Docker Compose file for the SGO microservices stack in production.
 # All services communicate through the internal bridge network `sgo_backend`.
+# Pulls all images from GHCR.
 # =======================
 services:
   # -----------------------
@@ -109,8 +112,8 @@ services:
     ports:
       - "8080:8080"
     environment:
-      # Use service DNS names provided by Docker; localhost is not reachable between containers.
       - SPRING_PROFILES_ACTIVE=prod
+      # Use service DNS names provided by Docker; localhost is not reachable between containers.
       - SERVICES_OBRAS_URL=http://obras-service:8081/api/obras
       - SERVICES_CLIENTES_URL=http://clientes-service:8082/api/clientes
       - SERVICES_PROVEEDORES_URL=http://proveedores-service:8083/api/proveedores
@@ -137,6 +140,8 @@ services:
       - "4200:80"
     depends_on:
       - api-gateway
+    volumes:
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro
     restart: unless-stopped
     networks:
       - sgo_backend
