@@ -1,0 +1,1 @@
+Instrucciones:\r\n1) Instalar y abrir Docker Desktop.\r\n2) Doble click en start.bat (descarga imágenes públicas de GHCR y levanta todo).\r\n3) Accesos: Frontend http://localhost:4200 | API http://localhost:8080.\r\nPara detener: docker compose -f docker-compose.yml down
