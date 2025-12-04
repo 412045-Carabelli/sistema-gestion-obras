@@ -1,13 +1,14 @@
 # =======================
 # Docker Compose file for the SGO microservices stack in production.
 # All services communicate through the internal bridge network `sgo_backend`.
+# Pulls all images from GHCR.
 # =======================
 services:
   # -----------------------
   # Obras microservice: manages construction projects and stores SQLite data under /data.
   # -----------------------
   obras-service:
-    image: ghcr.io/412045-carabelli/obras-service:latest
+    image: ghcr.io/412045-carabelli/sgo-obras-service:latest
     container_name: obras_service
     ports:
       - "8081:8081"
@@ -15,10 +16,6 @@ services:
       - obras_data:/app/data
     environment:
       - SPRING_PROFILES_ACTIVE=prod
-      - SPRING_SQL_INIT_MODE=always
-      - SPRING_SQL_INIT_DATA_LOCATIONS=classpath:data-prod.sql
-      - SPRING_SQL_INIT_CONTINUE_ON_ERROR=true
-      - SPRING_JPA_DEFER_DATASOURCE_INITIALIZATION=true
     restart: unless-stopped
     networks:
       - sgo_backend
@@ -27,7 +24,7 @@ services:
   # Clientes microservice: customer management with SQLite persistence in /data.
   # -----------------------
   clientes-service:
-    image: ghcr.io/412045-carabelli/clientes-service:latest
+    image: ghcr.io/412045-carabelli/sgo-clientes-service:latest
     container_name: clientes_service
     ports:
       - "8082:8082"
@@ -43,7 +40,7 @@ services:
   # Proveedores microservice: supplier management with a dedicated SQLite store.
   # -----------------------
   proveedores-service:
-    image: ghcr.io/412045-carabelli/proveedores-service:latest
+    image: ghcr.io/412045-carabelli/sgo-proveedores-service:latest
     container_name: proveedores_service
     ports:
       - "8083:8083"
@@ -51,10 +48,6 @@ services:
       - proveedores_data:/app/data
     environment:
       - SPRING_PROFILES_ACTIVE=prod
-      - SPRING_SQL_INIT_MODE=always
-      - SPRING_SQL_INIT_DATA_LOCATIONS=classpath:data-prod.sql
-      - SPRING_SQL_INIT_CONTINUE_ON_ERROR=true
-      - SPRING_JPA_DEFER_DATASOURCE_INITIALIZATION=true
     restart: unless-stopped
     networks:
       - sgo_backend
@@ -63,7 +56,7 @@ services:
   # Documentos microservice: handles document metadata and files.
   # -----------------------
   documentos-service:
-    image: ghcr.io/412045-carabelli/documentos-service:latest
+    image: ghcr.io/412045-carabelli/sgo-documentos-service:latest
     container_name: documentos_service
     ports:
       - "8087:8087"
@@ -72,10 +65,6 @@ services:
       - documentos_uploads:/app/uploads
     environment:
       - SPRING_PROFILES_ACTIVE=prod
-      - SPRING_SQL_INIT_MODE=always
-      - SPRING_SQL_INIT_DATA_LOCATIONS=classpath:data-prod.sql
-      - SPRING_SQL_INIT_CONTINUE_ON_ERROR=true
-      - SPRING_JPA_DEFER_DATASOURCE_INITIALIZATION=true
     restart: unless-stopped
     networks:
       - sgo_backend
@@ -84,7 +73,7 @@ services:
   # Transacciones microservice: financial operations, persisting SQLite in /data.
   # -----------------------
   transacciones-service:
-    image: ghcr.io/412045-carabelli/transacciones-service:latest
+    image: ghcr.io/412045-carabelli/sgo-transacciones-service:latest
     container_name: transacciones_service
     ports:
       - "8086:8086"
@@ -92,10 +81,6 @@ services:
       - transacciones_data:/app/data
     environment:
       - SPRING_PROFILES_ACTIVE=prod
-      - SPRING_SQL_INIT_MODE=always
-      - SPRING_SQL_INIT_DATA_LOCATIONS=classpath:data-prod.sql
-      - SPRING_SQL_INIT_CONTINUE_ON_ERROR=true
-      - SPRING_JPA_DEFER_DATASOURCE_INITIALIZATION=true
     restart: unless-stopped
     networks:
       - sgo_backend
@@ -104,7 +89,7 @@ services:
   # API Gateway (BFF): routes requests to internal services using service URLs (not localhost).
   # -----------------------
   api-gateway:
-    image: ghcr.io/412045-carabelli/api-gateway:latest
+    image: ghcr.io/412045-carabelli/sgo-api-gateway:latest
     container_name: api_gateway_service
     ports:
       - "8080:8080"
@@ -131,7 +116,7 @@ services:
   # Frontend: Angular app served by Nginx on port 80 (mapped to 4200).
   # -----------------------
   frontend:
-    image: ghcr.io/412045-carabelli/sistema-gestion-obras-frontend:latest
+    image: ghcr.io/412045-carabelli/sgo-frontend:latest
     container_name: obras_frontend
     ports:
       - "4200:80"
@@ -145,7 +130,7 @@ services:
   # Reportes microservice: aggregated reporting endpoints.
   # -----------------------
   reportes-service:
-    image: ghcr.io/412045-carabelli/reportes-service:latest
+    image: ghcr.io/412045-carabelli/sgo-reportes-service:latest
     container_name: reportes_service
     ports:
       - "8084:8084"

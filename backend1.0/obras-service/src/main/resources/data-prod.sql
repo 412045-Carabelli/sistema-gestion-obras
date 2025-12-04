@@ -1,0 +1,1 @@
+-- Seed data placeholder for prod profile. Keep file to satisfy Spring SQL init.
