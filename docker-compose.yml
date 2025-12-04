@@ -15,10 +15,6 @@ services:
       - obras_data:/app/data
     environment:
       - SPRING_PROFILES_ACTIVE=prod
-      - SPRING_SQL_INIT_MODE=always
-      - SPRING_SQL_INIT_DATA_LOCATIONS=classpath:data-prod.sql
-      - SPRING_SQL_INIT_CONTINUE_ON_ERROR=true
-      - SPRING_JPA_DEFER_DATASOURCE_INITIALIZATION=true
     restart: unless-stopped
     networks:
       - sgo_backend
@@ -51,10 +47,6 @@ services:
       - proveedores_data:/app/data
     environment:
       - SPRING_PROFILES_ACTIVE=prod
-      - SPRING_SQL_INIT_MODE=always
-      - SPRING_SQL_INIT_DATA_LOCATIONS=classpath:data-prod.sql
-      - SPRING_SQL_INIT_CONTINUE_ON_ERROR=true
-      - SPRING_JPA_DEFER_DATASOURCE_INITIALIZATION=true
     restart: unless-stopped
     networks:
       - sgo_backend
@@ -72,10 +64,6 @@ services:
       - documentos_uploads:/app/uploads
     environment:
       - SPRING_PROFILES_ACTIVE=prod
-      - SPRING_SQL_INIT_MODE=always
-      - SPRING_SQL_INIT_DATA_LOCATIONS=classpath:data-prod.sql
-      - SPRING_SQL_INIT_CONTINUE_ON_ERROR=true
-      - SPRING_JPA_DEFER_DATASOURCE_INITIALIZATION=true
     restart: unless-stopped
     networks:
       - sgo_backend
@@ -92,10 +80,6 @@ services:
       - transacciones_data:/app/data
     environment:
       - SPRING_PROFILES_ACTIVE=prod
-      - SPRING_SQL_INIT_MODE=always
-      - SPRING_SQL_INIT_DATA_LOCATIONS=classpath:data-prod.sql
-      - SPRING_SQL_INIT_CONTINUE_ON_ERROR=true
-      - SPRING_JPA_DEFER_DATASOURCE_INITIALIZATION=true
     restart: unless-stopped
     networks:
       - sgo_backend

@@ -17,9 +17,9 @@ variable "TAG" {}
 
 target "_common" {
   args = {
-    REGISTRY = define("REGISTRY")
-    OWNER    = define("OWNER")
-    TAG      = define("TAG")
+    REGISTRY = "${REGISTRY}"
+    OWNER    = "${OWNER}"
+    TAG      = "${TAG}"
   }
   push = true
 }
