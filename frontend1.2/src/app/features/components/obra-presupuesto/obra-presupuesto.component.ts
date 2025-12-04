@@ -68,6 +68,7 @@ export class ObraPresupuestoComponent implements OnInit, OnChanges {
   @Input() comision = 0;
 
   @Output() costosActualizados = new EventEmitter<ObraCosto[]>();
+  @Output() movimientoCreado = new EventEmitter<void>();
 
   costosFiltrados: ObraCosto[] = [];
   estadosPagoRecords: { label: string; name: string }[] = [];
@@ -261,8 +262,6 @@ export class ObraPresupuestoComponent implements OnInit, OnChanges {
       return;
     }
 
-    this.errorApi = undefined;
-
     const formaPago = (
       this.transaccionForm.forma_pago ??
       (this.estadoPendientePago === 'PAGADO'
@@ -281,11 +280,6 @@ export class ObraPresupuestoComponent implements OnInit, OnChanges {
       0
     );
 
-    if (formaPago === 'TOTAL' && Math.abs(montoIngresado - montoCosto) > 0.01) {
-      this.errorApi = `Para un pago TOTAL el monto debe ser igual al total del costo (${montoCosto}).`;
-      return;
-    }
-
     const payload: any = {
       id_obra: this.obra.id!,
       id_asociado: this.costoPendientePago.id_proveedor,
@@ -300,6 +294,8 @@ export class ObraPresupuestoComponent implements OnInit, OnChanges {
       id_costo: this.costoPendientePago.id
     };
 
+    this.errorApi = undefined;
+
     this.transaccionesService.create(payload as any).subscribe({
       next: () => {
         this.modalPagoVisible = false;
@@ -309,6 +305,7 @@ export class ObraPresupuestoComponent implements OnInit, OnChanges {
         );
         this.costoPendientePago = null;
         this.estadoPendientePago = null;
+        this.movimientoCreado.emit();
       },
       error: err => {
         this.errorApi = this.getErrorMessage(

@@ -166,7 +166,7 @@
         <div class="bg-gradient-to-br from-blue-500 to-blue-700 rounded-xl shadow-md p-6 text-white">
           <h3 class="text-lg font-semibold mb-4 flex items-center gap-2">
             <i class="pi pi-chart-line"></i>
-            Progreso FÃ­sico
+            Progreso Físico
           </h3>
           <div class="relative">
             <p-progressBar
@@ -245,12 +245,14 @@
                 [beneficioGlobal]="obra.beneficio ?? 0"
                 [tieneComision]="obra.tiene_comision ?? false"
                 [comision]="obra.comision ?? 0"
-                (costosActualizados)="onCostosActualizados($event)">
+                (costosActualizados)="onCostosActualizados($event)"
+                (movimientoCreado)="refrescarMovimientos()">
               </app-obra-presupuesto>
             </p-tabpanel>
 
             <p-tabpanel value="2">
               <app-obra-movimientos
+                #movimientosRef
                 [clientes]="[obra.cliente]"
                 [proveedores]="proveedores"
                 [obraId]="obra.id!"
