@@ -28,6 +28,7 @@ import { CostosService } from '../../../services/costos/costos.service';
 import { Select } from 'primeng/select';
 import { ModalComponent } from '../../../shared/modal/modal.component';
 import { TransaccionesService } from '../../../services/transacciones/transacciones.service';
+import { ApiErrorService } from '../../../core/api-error.service';
 
 // PDFMAKE
 import pdfMake from 'pdfmake/build/pdfmake';
@@ -84,7 +85,8 @@ export class ObraPresupuestoComponent implements OnInit, OnChanges {
     private estadoPagoService: EstadoPagoService,
     private costosService: CostosService,
     private messageService: MessageService,
-    private transaccionesService: TransaccionesService
+    private transaccionesService: TransaccionesService,
+    private apiErrorService: ApiErrorService
   ) {}
 
   ngOnInit() {
@@ -115,7 +117,7 @@ export class ObraPresupuestoComponent implements OnInit, OnChanges {
           this.messageService.add({
             severity: 'error',
             summary: 'Error',
-            detail: this.getErrorMessage(
+            detail: this.apiErrorService.getMessage(
               err,
               'No se pudo eliminar el movimiento asociado'
             )
@@ -189,14 +191,17 @@ export class ObraPresupuestoComponent implements OnInit, OnChanges {
             detail: 'Se agregó un nuevo costo a la matriz.'
           });
         },
-        error: () => {
-          this.messageService.add({
-            severity: 'error',
-            summary: 'Error',
-            detail: 'No se pudo crear el costo.'
-          });
-        }
-      });
+      error: err => {
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: this.apiErrorService.getMessage(
+            err,
+            'No se pudo crear el costo.'
+          )
+        });
+      }
+    });
   }
 
   habilitarEdicion(costo: any) {
@@ -221,11 +226,14 @@ export class ObraPresupuestoComponent implements OnInit, OnChanges {
           detail: 'Los cambios se guardaron correctamente.'
         });
       },
-      error: () => {
+      error: err => {
         this.messageService.add({
           severity: 'error',
           summary: 'Error',
-          detail: 'No se pudo actualizar el costo.'
+          detail: this.apiErrorService.getMessage(
+            err,
+            'No se pudo actualizar el costo.'
+          )
         });
       }
     });
@@ -245,11 +253,14 @@ export class ObraPresupuestoComponent implements OnInit, OnChanges {
           detail: 'El costo fue eliminado de la matriz.'
         });
       },
-      error: () => {
+      error: err => {
         this.messageService.add({
           severity: 'error',
           summary: 'Error',
-          detail: 'No se pudo eliminar el costo.'
+          detail: this.apiErrorService.getMessage(
+            err,
+            'No se pudo eliminar el costo.'
+          )
         });
       }
     });
@@ -296,7 +307,7 @@ export class ObraPresupuestoComponent implements OnInit, OnChanges {
         this.estadoPendientePago = null;
       },
       error: err => {
-        this.errorApi = this.getErrorMessage(
+        this.errorApi = this.apiErrorService.getMessage(
           err,
           'No se pudo registrar la transacción'
         );
@@ -649,25 +660,13 @@ export class ObraPresupuestoComponent implements OnInit, OnChanges {
         this.messageService.add({
           severity: 'error',
           summary: 'Error',
-          detail: this.getErrorMessage(
+          detail: this.apiErrorService.getMessage(
             err,
             'No se pudo actualizar el estado de pago'
           )
         });
       }
     });
-  }
-
-  private getErrorMessage(err: any, fallback: string): string {
-    if (err?.error) {
-      return (
-        err.error?.error ||
-        err.error?.mensaje ||
-        err.error?.message ||
-        fallback
-      );
-    }
-    return fallback;
   }
 }
 

@@ -9,6 +9,8 @@ import {CatalogoOption, ProveedoresService} from '../../../services/proveedores/
 import {InputText} from 'primeng/inputtext';
 import {Select} from 'primeng/select';
 import {ModalComponent} from '../../../shared/modal/modal.component';
+import { MessageService } from 'primeng/api';
+import { ApiErrorService } from '../../../core/api-error.service';
 
 @Component({
   selector: 'app-proveedores-form',
@@ -37,7 +39,12 @@ export class ProveedoresFormComponent implements OnInit {
   private readonly NUEVO_TIPO_VALUE = '__nuevo_tipo__';
   private readonly NUEVO_GREMIO_VALUE = '__nuevo_gremio__';
 
-  constructor(private fb: FormBuilder, private service: ProveedoresService) {
+  constructor(
+    private fb: FormBuilder,
+    private service: ProveedoresService,
+    private messageService: MessageService,
+    private apiErrorService: ApiErrorService
+  ) {
   }
 
   ngOnInit(): void {
@@ -105,8 +112,16 @@ export class ProveedoresFormComponent implements OnInit {
         this.showTipoModal = false;
         this.creandoTipo = false;
       },
-      error: () => {
+      error: err => {
         this.creandoTipo = false;
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: this.apiErrorService.getMessage(
+            err,
+            'No se pudo crear el tipo de proveedor.'
+          )
+        });
       }
     });
   }
@@ -124,8 +139,16 @@ export class ProveedoresFormComponent implements OnInit {
         this.showGremioModal = false;
         this.creandoGremio = false;
       },
-      error: () => {
+      error: err => {
         this.creandoGremio = false;
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: this.apiErrorService.getMessage(
+            err,
+            'No se pudo crear el gremio.'
+          )
+        });
       }
     });
   }

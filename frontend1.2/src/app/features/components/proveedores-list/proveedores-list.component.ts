@@ -11,6 +11,8 @@ import {forkJoin} from 'rxjs';
 import {Proveedor} from '../../../core/models/models';
 import {ProveedoresService} from '../../../services/proveedores/proveedores.service';
 import {Router} from '@angular/router';
+import { MessageService } from 'primeng/api';
+import { ApiErrorService } from '../../../core/api-error.service';
 
 interface TipoOption { label: string; name: string | 'todos'; }
 
@@ -42,7 +44,12 @@ export class ProveedoresListComponent implements OnInit {
 
   @Output() proveedorClick = new EventEmitter<Proveedor>();
 
-  constructor(private service: ProveedoresService, private router: Router) {
+  constructor(
+    private service: ProveedoresService,
+    private router: Router,
+    private messageService: MessageService,
+    private apiErrorService: ApiErrorService
+  ) {
   }
 
   ngOnInit() {
@@ -55,7 +62,17 @@ export class ProveedoresListComponent implements OnInit {
         this.loading = false;
         console.log(this.proveedores);
       },
-      error: () => (this.loading = false)
+      error: err => {
+        this.loading = false;
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: this.apiErrorService.getMessage(
+            err,
+            'No se pudieron cargar los proveedores.'
+          )
+        });
+      }
     });
   }
 
