@@ -181,6 +181,8 @@ export class ReportesComponent implements OnInit {
     this.loading = true;
 
     const filtrosReporte = this.buildReportFilter();
+    const filtrosCCObra = this.ensureFilterId(filtrosReporte, 'obraId', this.obrasOptions[0]?.value);
+    const filtrosCCProveedor = this.ensureFilterId(filtrosReporte, 'proveedorId', this.proveedoresOptions[0]?.value);
     const filtrosEstadoObra = this.buildEstadoObraFilter();
 
     forkJoin({
@@ -202,22 +204,40 @@ export class ReportesComponent implements OnInit {
         saldoFinal: 0,
         movimientos: []
       }),
-      cuentaCorrienteObra: this.withDefault(this.reportesService.getCuentaCorrienteObra(filtrosReporte), {
-        obraId: filtrosReporte?.obraId,
+      cuentaCorrienteObra: filtrosCCObra
+        ? this.withDefault(this.reportesService.getCuentaCorrienteObra(filtrosCCObra), {
+        obraId: filtrosCCObra.obraId,
         obraNombre: '',
         totalIngresos: 0,
         totalEgresos: 0,
         saldoFinal: 0,
         movimientos: []
-      }),
-      cuentaCorrienteProveedor: this.withDefault(this.reportesService.getCuentaCorrienteProveedor(filtrosReporte), {
-        proveedorId: filtrosReporte?.proveedorId,
+      })
+        : of({
+          obraId: undefined,
+          obraNombre: '',
+          totalIngresos: 0,
+          totalEgresos: 0,
+          saldoFinal: 0,
+          movimientos: []
+        }),
+      cuentaCorrienteProveedor: filtrosCCProveedor
+        ? this.withDefault(this.reportesService.getCuentaCorrienteProveedor(filtrosCCProveedor), {
+        proveedorId: filtrosCCProveedor.proveedorId,
         proveedorNombre: '',
         totalCostos: 0,
         totalPagos: 0,
         saldoFinal: 0,
         movimientos: []
-      }),
+      })
+        : of({
+          proveedorId: undefined,
+          proveedorNombre: '',
+          totalCostos: 0,
+          totalPagos: 0,
+          saldoFinal: 0,
+          movimientos: []
+        }),
       pendientes: this.withDefault(this.reportesService.getPendientes(filtrosReporte), {pendientes: []}),
       estadoObras: this.withDefault(this.reportesService.getEstadoObras(filtrosEstadoObra), {obras: []}),
       avanceTareas: this.withDefault(this.reportesService.getAvanceTareas(filtrosReporte), {avances: []}),
@@ -236,8 +256,12 @@ export class ReportesComponent implements OnInit {
         this.resumenGeneral = data.resumen;
         this.ingresosEgresos = data.ingresosEgresos;
         this.flujoCaja = data.flujoCaja;
-        this.cuentaCorrienteObra = data.cuentaCorrienteObra;
-        this.cuentaCorrienteProveedor = data.cuentaCorrienteProveedor;
+        this.cuentaCorrienteObra = data.cuentaCorrienteObra
+          ? this.mapCuentaCorrienteObra(data.cuentaCorrienteObra)
+          : null;
+        this.cuentaCorrienteProveedor = data.cuentaCorrienteProveedor
+          ? this.mapCuentaCorrienteProveedor(data.cuentaCorrienteProveedor)
+          : null;
         this.pendientes = data.pendientes;
         this.estadoObras = data.estadoObras;
         this.avanceTareas = data.avanceTareas;
@@ -262,6 +286,40 @@ export class ReportesComponent implements OnInit {
         this.showToast('error', 'Error', 'No se pudieron cargar los reportes. Intenta nuevamente.');
       }
     });
+  }
+
+  private ensureFilterId(filter: ReportFilter | undefined, key: 'obraId' | 'proveedorId', fallback?: number | null): ReportFilter | undefined {
+    const val = filter?.[key] ?? fallback;
+    if (!val) return undefined;
+    return {...(filter ?? {}), [key]: val};
+  }
+
+  private mapCuentaCorrienteObra(data: any): any {
+    const totalEgresos = data.costoTotal ?? data.totalEgresos ?? 0;
+    const totalIngresos = data.pagosRecibidos ?? data.totalIngresos ?? 0;
+    const saldoFinal = data.saldoPendiente ?? data.saldoFinal ?? (totalIngresos - totalEgresos);
+
+    return {
+      ...data,
+      totalEgresos,
+      totalIngresos,
+      saldoFinal,
+      movimientos: this.mapMovimientosObra(data.movimientos || [])
+    };
+  }
+
+  private mapCuentaCorrienteProveedor(data: any): any {
+    const totalCostos = data.costos ?? data.totalCostos ?? 0;
+    const totalPagos = data.pagos ?? data.totalPagos ?? 0;
+    const saldoFinal = data.saldo ?? data.saldoFinal ?? (totalCostos - totalPagos);
+
+    return {
+      ...data,
+      totalCostos,
+      totalPagos,
+      saldoFinal,
+      movimientos: this.mapMovimientosProveedor(data.movimientos || [])
+    };
   }
 
   private loadEstadoFinanciero(obraId: number): void {
@@ -332,6 +390,42 @@ export class ReportesComponent implements OnInit {
 
   saldoSinNegativo(valor?: number): number {
     return Math.max(valor ?? 0, 0);
+  }
+
+  private mapMovimientosObra(movs: any[]): any[] {
+    return movs.map(m => {
+      const tipo = (m.tipo || '').toString().toUpperCase();
+      const concepto =
+        tipo === 'COSTO'
+          ? (m.referencia || m.concepto || '-')
+        : tipo === 'PAGO' || tipo === 'COBRO'
+          ? (m.observacion || m.referencia || m.concepto || '-')
+          : (m.referencia || m.concepto || '-');
+
+      return {
+        ...m,
+        concepto,
+        saldoCliente: m.saldoCliente ?? 0
+      };
+    });
+  }
+
+  private mapMovimientosProveedor(movs: any[]): any[] {
+    return movs.map(m => {
+      const tipo = (m.tipo || '').toString().toUpperCase();
+      const concepto =
+        tipo === 'COSTO'
+          ? (m.concepto || m.referencia || '-')
+          : tipo === 'PAGO' || tipo === 'COBRO'
+            ? (m.observacion || m.concepto || m.referencia || '-')
+            : (m.concepto || m.referencia || '-');
+
+      return {
+        ...m,
+        concepto,
+        saldoProveedor: m.saldoProveedor ?? 0
+      };
+    });
   }
 }
 
