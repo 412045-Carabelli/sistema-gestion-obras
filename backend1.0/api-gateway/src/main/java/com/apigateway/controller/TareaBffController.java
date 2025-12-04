@@ -60,6 +60,21 @@ public class TareaBffController {
                 .map(ResponseEntity::ok);
     }
 
+    // ✅ PUT actualizar
+    @PutMapping("/{id}")
+    public Mono<ResponseEntity<Map<String, Object>>> actualizarTarea(
+            @PathVariable("id") Long id,
+            @RequestBody Map<String, Object> tareaDTO) {
+
+        return webClientBuilder.build()
+                .put()
+                .uri(TAREAS_URL + "/{id}", id)
+                .bodyValue(tareaDTO)
+                .retrieve()
+                .bodyToMono(new ParameterizedTypeReference<Map<String, Object>>() {})
+                .map(ResponseEntity::ok);
+    }
+
     // ✅ PUT completar
     @PutMapping("/{id}/completar")
     public Mono<ResponseEntity<Map<String, Object>>> completarTarea(@PathVariable("id") Long id) {

@@ -10,6 +10,8 @@ import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/bff/reportes")
@@ -42,6 +44,31 @@ public class ReportesBffController {
     @PostMapping("/financieros/pendientes")
     public Mono<ResponseEntity<Object>> pendientes(@RequestBody(required = false) Object filtro) {
         return proxyPost("/financieros/pendientes", filtro, new ParameterizedTypeReference<>() {});
+    }
+
+    @PostMapping("/financieros/cuenta-corriente-obra")
+    public Mono<ResponseEntity<Object>> cuentaCorrienteObra(@RequestBody(required = false) Map<String, Object> filtro) {
+        Long obraId = extractLong(filtro, "obraId");
+        if (obraId == null) {
+            return Mono.just(ResponseEntity.badRequest().body("obraId es requerido"));
+        }
+        return proxyGet("/cuenta-corriente/obra/" + obraId, new ParameterizedTypeReference<>() {});
+    }
+
+    @PostMapping("/financieros/cuenta-corriente-proveedor")
+    public Mono<ResponseEntity<Object>> cuentaCorrienteProveedor(@RequestBody(required = false) Map<String, Object> filtro) {
+        Long proveedorId = extractLong(filtro, "proveedorId");
+        if (proveedorId == null) {
+            return Mono.just(ResponseEntity.badRequest().body("proveedorId es requerido"));
+        }
+        return proxyGet("/cuenta-corriente/proveedor/" + proveedorId, new ParameterizedTypeReference<>() {});
+    }
+
+    @PostMapping("/financieros/comisiones")
+    public Mono<ResponseEntity<Object>> comisiones(@RequestBody(required = false) Map<String, Object> filtro) {
+        Long obraId = extractLong(filtro, "obraId");
+        String path = obraId != null ? "/comisiones/obra/" + obraId : "/comisiones/general";
+        return proxyGet(path, new ParameterizedTypeReference<>() {});
     }
 
     // ---------- OPERATIVOS ----------
@@ -115,5 +142,19 @@ public class ReportesBffController {
                 .map(ResponseEntity::ok)
                 .onErrorResume(e -> Mono.just(ResponseEntity.internalServerError()
                         .body((T) ("Error al enviar datos: " + e.getMessage()))));
+    }
+
+    private Long extractLong(Map<String, Object> filtro, String key) {
+        if (filtro == null) return null;
+        return Optional.ofNullable(filtro.get(key))
+                .map(val -> {
+                    if (val instanceof Number n) return n.longValue();
+                    try {
+                        return Long.parseLong(val.toString());
+                    } catch (NumberFormatException ex) {
+                        return null;
+                    }
+                })
+                .orElse(null);
     }
 }

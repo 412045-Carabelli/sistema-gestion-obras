@@ -4,6 +4,7 @@ import com.obras.dto.ObraCostoDTO;
 import com.obras.entity.ObraCosto;
 import com.obras.enums.EstadoPagoEnum;
 import com.obras.repository.ObraCostoRepository;
+import com.obras.repository.ObraRepository;
 import com.obras.service.ObraCostoService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -20,6 +21,7 @@ import java.util.stream.Collectors;
 public class ObraCostoServiceImpl implements ObraCostoService {
 
     private final ObraCostoRepository costoRepo;
+    private final ObraRepository obraRepo;
 
     // ============================
     // 🔸 Crear costo
@@ -41,6 +43,20 @@ public class ObraCostoServiceImpl implements ObraCostoService {
         entity = costoRepo.save(entity);
 
         return toDto(entity);
+    }
+
+    public ObraCostoDTO actualizar(Long idCosto, ObraCostoDTO dto) {
+        ObraCosto entity = costoRepo.findByIdAndActivoTrue(idCosto)
+                .orElseThrow(() -> new RuntimeException("Costo no encontrado"));
+        entity.setIdProveedor(dto.getId_proveedor());
+        entity.setDescripcion(dto.getDescripcion());
+        entity.setUnidad(dto.getUnidad());
+        entity.setCantidad(dto.getCantidad());
+        entity.setPrecioUnitario(dto.getPrecio_unitario());
+        entity.setBeneficio(dto.getBeneficio());
+        entity.setEstadoPago(dto.getEstado_pago() != null ? dto.getEstado_pago() : entity.getEstadoPago());
+        calcularTotales(entity);
+        return toDto(costoRepo.save(entity));
     }
 
     // ============================
@@ -117,6 +133,8 @@ public class ObraCostoServiceImpl implements ObraCostoService {
         entity.setActivo(dto.getActivo() != null ? dto.getActivo() : Boolean.TRUE);
 
         entity.setEstadoPago(dto.getEstado_pago() != null ? dto.getEstado_pago() : EstadoPagoEnum.PENDIENTE);
+        entity.setObra(obraRepo.findById(dto.getId_obra())
+                .orElseThrow(() -> new RuntimeException("Obra no encontrada para costo")));
 
         return entity;
     }

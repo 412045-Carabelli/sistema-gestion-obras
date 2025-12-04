@@ -1,16 +1,21 @@
 package proveedores.controller;
 
+import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import proveedores.dto.EstadoResponse;
+import proveedores.dto.MovimientoDTO;
+import proveedores.dto.MovimientoRequest;
+import proveedores.dto.NombreRequest;
 import proveedores.dto.ProveedorDTO;
+import proveedores.entity.Gremio;
+import proveedores.entity.Movimiento;
 import proveedores.entity.Proveedor;
 import proveedores.entity.TipoProveedor;
-import proveedores.enums.TipoProveedorEnum;
+import proveedores.exception.ClaveInvalidaException;
 import proveedores.service.ProveedorService;
 
-import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -28,10 +33,13 @@ public class ProveedoresController {
         return new ProveedorDTO(
                 entity.getId(),
                 entity.getNombre(),
-                entity.getTipoProveedor(), // ENUM DIRECTO
+                entity.getDniCuit(),
+                entity.getTipo(),
+                entity.getGremio(),
                 entity.getContacto(),
                 entity.getTelefono(),
                 entity.getEmail(),
+                entity.getDireccion(),
                 entity.getActivo(),
                 entity.getCreadoEn(),
                 entity.getUltimaActualizacion(),
@@ -45,20 +53,17 @@ public class ProveedoresController {
 
         entity.setId(dto.getId());
         entity.setNombre(dto.getNombre());
+        entity.setDniCuit(dto.getDniCuit());
         entity.setContacto(dto.getContacto());
         entity.setTelefono(dto.getTelefono());
         entity.setEmail(dto.getEmail());
+        entity.setDireccion(dto.getDireccion());
+        entity.setTipo(dto.getTipo());
+        entity.setGremio(dto.getGremio());
         entity.setActivo(dto.getActivo() != null ? dto.getActivo() : Boolean.TRUE);
-
-        // 🔥 AQUÍ LA VALIDACIÓN REAL
-        if (dto.getTipo_proveedor() != null) {
-            entity.setTipoProveedor(dto.getTipo_proveedor());
-        }
 
         return entity;
     }
-
-    // ya no se usa DTO para tipo_proveedor
 
     // ======== ENDPOINTS ========
 
@@ -87,7 +92,7 @@ public class ProveedoresController {
     @PostMapping
     public ResponseEntity<ProveedorDTO> create(@RequestBody ProveedorDTO dto) {
         Proveedor saved = service.save(toEntity(dto));
-        return ResponseEntity.ok(toDTO(saved));
+        return ResponseEntity.status(201).body(toDTO(saved));
     }
 
     @PutMapping("/{id}")
@@ -106,28 +111,120 @@ public class ProveedoresController {
         return ResponseEntity.noContent().build();
     }
 
-    @GetMapping("/tipo-proveedor")
-    public ResponseEntity<List<EstadoResponse>> getEstados() {
-        List<EstadoResponse> response = Arrays.stream(TipoProveedorEnum.values())
-                .map(e -> new EstadoResponse(e.name(), formatLabel(e)))
-                .toList();
-
-        return ResponseEntity.ok(response);
+    @PatchMapping("/{id}/desactivar")
+    public ResponseEntity<Void> desactivar(@PathVariable("id") Long id) {
+        service.desactivar(id);
+        return ResponseEntity.ok().build();
     }
 
-    private String formatLabel(TipoProveedorEnum e) {
-        return Arrays.stream(e.name().split("_"))
-                .map(word -> word.charAt(0) + word.substring(1).toLowerCase())
-                .collect(Collectors.joining(" "));
+    @PatchMapping("/{id}/activar")
+    public ResponseEntity<Void> activar(@PathVariable("id") Long id) {
+        service.activar(id);
+        return ResponseEntity.ok().build();
     }
 
+    @PostMapping("/tipos")
+    public ResponseEntity<TipoProveedor> crearTipo(@RequestBody NombreRequest request) {
+        return ResponseEntity.status(201).body(service.agregarTipo(request.getNombre()));
+    }
 
-    @GetMapping("/tipo-proveedor/{tipo}")
-    public ResponseEntity<TipoProveedorEnum> getTipoByNombre(@PathVariable("tipo") String tipo) {
+    @GetMapping("/tipos")
+    public ResponseEntity<List<TipoProveedor>> listarTipos() {
+        return ResponseEntity.ok(service.findAllTipoActivos());
+    }
+
+    @PutMapping("/tipos/{id}")
+    public ResponseEntity<TipoProveedor> actualizarTipo(@PathVariable Long id, @RequestBody NombreRequest request) {
         try {
-            return ResponseEntity.ok(TipoProveedorEnum.valueOf(tipo.toUpperCase()));
-        } catch (IllegalArgumentException ex) {
+            return ResponseEntity.ok(service.actualizarTipo(id, request.getNombre()));
+        } catch (EntityNotFoundException e) {
             return ResponseEntity.notFound().build();
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().build();
         }
+    }
+
+    @DeleteMapping("/tipos/{id}")
+    public ResponseEntity<Void> eliminarTipo(@PathVariable Long id) {
+        boolean eliminado = service.eliminarTipo(id);
+        return eliminado ? ResponseEntity.noContent().build() : ResponseEntity.notFound().build();
+    }
+
+    @PostMapping("/gremios")
+    public ResponseEntity<Gremio> crearGremio(@RequestBody NombreRequest request) {
+        return ResponseEntity.status(201).body(service.agregarGremio(request.getNombre()));
+    }
+
+    @GetMapping("/gremios")
+    public ResponseEntity<List<Gremio>> listarGremios() {
+        return ResponseEntity.ok(service.findAllGremiosActivos());
+    }
+
+    @PutMapping("/gremios/{id}")
+    public ResponseEntity<Gremio> actualizarGremio(@PathVariable Long id, @RequestBody NombreRequest request) {
+        try {
+            return ResponseEntity.ok(service.actualizarGremio(id, request.getNombre()));
+        } catch (EntityNotFoundException e) {
+            return ResponseEntity.notFound().build();
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().build();
+        }
+    }
+
+    @DeleteMapping("/gremios/{id}")
+    public ResponseEntity<Void> eliminarGremio(@PathVariable Long id) {
+        boolean eliminado = service.eliminarGremio(id);
+        return eliminado ? ResponseEntity.noContent().build() : ResponseEntity.notFound().build();
+    }
+
+    @GetMapping("/{proveedorId}/movimientos")
+    public ResponseEntity<List<MovimientoDTO>> listarMovimientos(@PathVariable Long proveedorId) {
+        return ResponseEntity.ok(service.listarMovimientos(proveedorId));
+    }
+
+    @PostMapping("/{proveedorId}/movimientos")
+    public ResponseEntity<MovimientoDTO> crearMovimiento(@PathVariable Long proveedorId, @RequestBody MovimientoRequest request) {
+        Movimiento movimiento = toMovimiento(request);
+        Movimiento guardado = service.crearMovimiento(proveedorId, movimiento);
+        return ResponseEntity.status(201).body(service.listarMovimientos(proveedorId).stream()
+                .filter(m -> m.getId().equals(guardado.getId()))
+                .findFirst()
+                .orElseThrow());
+    }
+
+    @PutMapping("/movimientos/{movimientoId}")
+    public ResponseEntity<MovimientoDTO> actualizarMovimiento(@PathVariable Long movimientoId, @RequestBody MovimientoRequest request) {
+        Movimiento movimiento = toMovimiento(request);
+        Movimiento actualizado = service.actualizarMovimiento(movimientoId, movimiento);
+        return ResponseEntity.ok(service.listarMovimientos(actualizado.getProveedor().getId()).stream()
+                .filter(m -> m.getId().equals(actualizado.getId()))
+                .findFirst()
+                .orElseThrow());
+    }
+
+    @DeleteMapping("/movimientos/{movimientoId}")
+    public ResponseEntity<Void> eliminarMovimiento(@PathVariable Long movimientoId, @RequestParam("clave") String clave) {
+        service.eliminarMovimiento(movimientoId, clave);
+        return ResponseEntity.ok().build();
+    }
+
+    @ExceptionHandler(ClaveInvalidaException.class)
+    public ResponseEntity<Void> handleForbidden() {
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+    }
+
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<String> handleBadRequest(IllegalArgumentException ex) {
+        return ResponseEntity.badRequest().body(ex.getMessage());
+    }
+
+    private Movimiento toMovimiento(MovimientoRequest request) {
+        Movimiento movimiento = new Movimiento();
+        movimiento.setObraId(request.getObraId());
+        movimiento.setDescripcion(request.getDescripcion());
+        movimiento.setMonto(request.getMonto());
+        movimiento.setMontoPagado(request.getMontoPagado());
+        movimiento.setPagado(request.getPagado());
+        return movimiento;
     }
 }

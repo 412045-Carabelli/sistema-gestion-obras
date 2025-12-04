@@ -26,17 +26,20 @@ public class TransaccionService {
 
     public TransaccionDto crear(Transaccion dto) {
         if (dto.getTipo_transaccion() == null) {
-            throw new IllegalArgumentException("Debe especificarse un tipo de transacción válido");
+            throw new IllegalArgumentException("Debe especificarse un tipo de transaccion valido");
         }
 
         Transaccion entity = Transaccion.builder()
                 .idObra(dto.getIdObra())
                 .idAsociado(dto.getIdAsociado())
+                .idCosto(dto.getIdCosto())
                 .tipoAsociado(dto.getTipoAsociado())
                 .tipo_transaccion(dto.getTipo_transaccion())
                 .fecha(dto.getFecha())
                 .monto(dto.getMonto())
                 .forma_pago(dto.getForma_pago())
+                .medio_pago(dto.getMedio_pago())
+                .facturaCobrada(dto.getFacturaCobrada())
                 .activo(dto.getActivo() != null ? dto.getActivo() : true)
                 .build();
 
@@ -45,25 +48,28 @@ public class TransaccionService {
 
     public TransaccionDto obtener(Long id) {
         Transaccion entity = transaccionRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Transacción no encontrada"));
+                .orElseThrow(() -> new RuntimeException("Transaccion no encontrada"));
         return toDto(entity);
     }
 
     public TransaccionDto actualizar(Long id, Transaccion dto) {
         Transaccion entity = transaccionRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Transacción no encontrada"));
+                .orElseThrow(() -> new RuntimeException("Transaccion no encontrada"));
 
         if (dto.getTipo_transaccion() == null) {
-            throw new IllegalArgumentException("Debe especificarse un tipo de transacción válido");
+            throw new IllegalArgumentException("Debe especificarse un tipo de transaccion valido");
         }
 
         entity.setIdObra(dto.getIdObra());
         entity.setIdAsociado(dto.getIdAsociado());
+        entity.setIdCosto(dto.getIdCosto());
         entity.setTipoAsociado(dto.getTipoAsociado());
         entity.setTipo_transaccion(dto.getTipo_transaccion());
         entity.setFecha(dto.getFecha());
         entity.setMonto(dto.getMonto());
         entity.setForma_pago(dto.getForma_pago());
+        entity.setMedio_pago(dto.getMedio_pago());
+        entity.setFacturaCobrada(dto.getFacturaCobrada());
         entity.setActivo(dto.getActivo());
 
         return toDto(transaccionRepository.save(entity));
@@ -71,9 +77,18 @@ public class TransaccionService {
 
     public void eliminar(Long id) {
         if (!transaccionRepository.existsById(id)) {
-            throw new RuntimeException("La transacción no existe");
+            throw new RuntimeException("La transaccion no existe");
         }
         transaccionRepository.deleteById(id);
+    }
+
+    public void eliminarPorCosto(Long idCosto) {
+        transaccionRepository.deleteByIdCosto(idCosto);
+    }
+
+    @Transactional
+    public void desactivarPorObra(Long obraId) {
+        transaccionRepository.softDeleteByObraId(obraId);
     }
 
     @Transactional(readOnly = true)
@@ -99,11 +114,14 @@ public class TransaccionService {
                 .id(transaccion.getId())
                 .id_obra(transaccion.getIdObra())
                 .id_asociado(transaccion.getIdAsociado())
+                .id_costo(transaccion.getIdCosto())
                 .tipo_asociado(transaccion.getTipoAsociado())
                 .tipo_transaccion(transaccion.getTipo_transaccion())
                 .fecha(transaccion.getFecha())
                 .monto(transaccion.getMonto())
                 .forma_pago(transaccion.getForma_pago())
+                .medio_pago(transaccion.getMedio_pago())
+                .factura_cobrada(transaccion.getFacturaCobrada())
                 .activo(transaccion.getActivo())
                 .ultima_actualizacion(transaccion.getUltimaActualizacion())
                 .tipo_actualizacion(transaccion.getTipoActualizacion())
@@ -114,5 +132,3 @@ public class TransaccionService {
         return (long) (e.ordinal() + 1);
     }
 }
-
-

@@ -15,11 +15,14 @@ public class TransaccionDto {
     private Long id;
     private Long id_obra;
     private Long id_asociado;
+    private Long id_costo;
     private String tipo_asociado;
     private TipoTransaccionEnum tipo_transaccion;
     private LocalDate fecha;
     private Double monto;
     private String forma_pago;
+    private String medio_pago;
+    private Boolean factura_cobrada;
     private Boolean activo;
     private Instant ultima_actualizacion;
     private String tipo_actualizacion;

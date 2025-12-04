@@ -1,0 +1,2 @@
+ALTER TABLE clientes ADD COLUMN IF NOT EXISTS condicion_iva VARCHAR(50) NOT NULL DEFAULT 'Consumidor Final';
+ALTER TABLE clientes DROP COLUMN IF EXISTS activo;

@@ -6,7 +6,7 @@ import {MessageService} from 'primeng/api';
 import {ToastModule} from 'primeng/toast';
 import {ButtonModule} from 'primeng/button';
 import {InputTextModule} from 'primeng/inputtext';
-import {CheckboxModule} from 'primeng/checkbox';
+import {Select} from 'primeng/select';
 
 import {ClientesService} from '../../../services/clientes/clientes.service';
 import {Cliente} from '../../../core/models/models';
@@ -14,7 +14,7 @@ import {Cliente} from '../../../core/models/models';
 @Component({
   selector: 'app-clientes-form',
   standalone: true,
-  imports: [PreventInvalidSubmitDirective, RouterLink, ReactiveFormsModule, ToastModule, ButtonModule, InputTextModule, CheckboxModule],
+  imports: [PreventInvalidSubmitDirective, RouterLink, ReactiveFormsModule, ToastModule, ButtonModule, InputTextModule, Select],
   providers: [MessageService],
   templateUrl: './clientes-create.component.html',
   styleUrls: ['./clientes-create.component.css']
@@ -23,6 +23,7 @@ export class ClientesCreateComponent implements OnInit {
   form!: FormGroup;
   editing = false;
   clienteId!: number;
+  ivaOptions: { label: string; name: string }[] = [];
 
   constructor(
     private fb: FormBuilder,
@@ -37,10 +38,11 @@ export class ClientesCreateComponent implements OnInit {
     this.form = this.fb.group({
       nombre: ['', Validators.required],
       contacto: ['', Validators.required],
-      cuit: [''],
+      cuit: ['', Validators.required],
+      condicion_iva: [null, Validators.required],
       telefono: ['', [Validators.required, Validators.minLength(10), Validators.maxLength(15)]],
       email: ['', [Validators.required, Validators.email]],
-      activo: [true]
+      activo: [true, Validators.required]
     });
 
     const idParam = this.route.snapshot.paramMap.get('id');
@@ -49,6 +51,13 @@ export class ClientesCreateComponent implements OnInit {
       this.clienteId = Number(idParam);
       this.cargarCliente(this.clienteId);
     }
+
+    this.clientesService.getCondicionesIva().subscribe({
+      next: (opciones) => (this.ivaOptions = opciones),
+      error: () => {
+        this.ivaOptions = [];
+      }
+    });
   }
 
   onSubmit() {
@@ -98,7 +107,11 @@ export class ClientesCreateComponent implements OnInit {
   private cargarCliente(id: number) {
     this.clientesService.getClienteById(id).subscribe({
       next: (cliente) => {
-        this.form.patchValue(cliente);
+        this.form.patchValue({
+          ...cliente,
+          condicion_iva: (cliente as any).condicionIVA ?? cliente.condicion_iva ?? null,
+          activo: cliente.activo ?? true
+        });
       },
       error: () => {
         this.messageService.add({

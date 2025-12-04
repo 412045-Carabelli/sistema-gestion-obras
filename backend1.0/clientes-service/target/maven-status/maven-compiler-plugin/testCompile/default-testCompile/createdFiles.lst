@@ -1,0 +1,3 @@
+com\clientes\controller\ClientesControllerTest.class
+com\clientes\repository\ClienteRepositoryTest.class
+com\clientes\service\ClienteServiceImplTest.class

@@ -1,0 +1,4 @@
+com\reportes\service\ReportesServiceTest.class
+com\reportes\repository\MovimientoReporteRepositoryTest.class
+com\reportes\repository\ComisionRepositoryTest.class
+com\reportes\controller\ReportesControllerTest.class

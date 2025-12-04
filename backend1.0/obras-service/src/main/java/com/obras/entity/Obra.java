@@ -34,6 +34,8 @@ public class Obra {
     @Column(length = 255)
     private String direccion;
 
+    @Column(name = "fecha_presupuesto")
+    private LocalDateTime fechaPresupuesto;
     private LocalDateTime fechaInicio;
     private LocalDateTime fechaFin;
     private LocalDateTime fechaAdjudicada;
@@ -46,7 +48,7 @@ public class Obra {
     private BigDecimal beneficio;
     private BigDecimal comision;
 
-    private Boolean activo;
+    private Boolean activo = Boolean.TRUE;
 
     @Column(name = "creado_en", updatable = false)
     private Instant creadoEn;
@@ -65,11 +67,17 @@ public class Obra {
 
     @PrePersist
     public void prePersist() {
+        if (this.activo == null) {
+            this.activo = Boolean.TRUE;
+        }
         marcarAuditoria("CREATE");
     }
 
     @PreUpdate
     public void preUpdate() {
+        if (this.activo == null) {
+            this.activo = Boolean.TRUE;
+        }
         marcarAuditoria("UPDATE");
     }
 

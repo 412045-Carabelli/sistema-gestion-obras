@@ -36,4 +36,9 @@ export class TransaccionesService {
   delete(id: number): Observable<void> {
     return this.http.delete<void>(`${this.apiUrl}/${id}`);
   }
+  
+  deleteByCosto(idCosto: number): Observable<void> {
+    return this.http.delete<void>(`${this.apiUrl}/costo/${idCosto}`);
+  }
 }
+
