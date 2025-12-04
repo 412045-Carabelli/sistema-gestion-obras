@@ -1,4 +1,4 @@
-﻿import {Component, OnDestroy, OnInit} from '@angular/core';
+﻿import {Component, OnDestroy, OnInit, ViewChild} from '@angular/core';
 import {ActivatedRoute} from '@angular/router';
 import {CommonModule, CurrencyPipe, DatePipe, NgClass} from '@angular/common';
 import {forkJoin, Subscription} from 'rxjs';
@@ -68,6 +68,8 @@ pdfMake.vfs = pdfFonts.vfs;
   styleUrls: ['./obras-detail.component.css']
 })
 export class ObrasDetailComponent implements OnInit, OnDestroy {
+
+  @ViewChild('movimientosRef') movimientosRef?: ObraMovimientosComponent;
 
   obra!: Obra;
   tareas: Tarea[] = [];
@@ -186,6 +188,10 @@ export class ObrasDetailComponent implements OnInit, OnDestroy {
     this.obra.costos = costosActualizados;
     this.beneficioNeto = this.calcularBeneficioNeto();
     this.obraStateService.setObra(this.obra);
+  }
+
+  refrescarMovimientos() {
+    this.movimientosRef?.cargarDatos();
   }
 
   getProgresoFisico(): number {
@@ -316,7 +322,7 @@ export class ObrasDetailComponent implements OnInit, OnDestroy {
     const movimientos = cc?.movimientos ?? [];
     const totalesIngresos = cc?.totalIngresos ?? 0;
     const totalesEgresos = cc?.totalEgresos ?? 0;
-    const saldoFinal = cc?.saldoFinal ?? 0;
+    const saldoFinal = totalesIngresos - totalesEgresos;
     const totalCobrosMov = movimientos
       .filter(m => (m.tipo || '').toUpperCase() === 'COBRO')
       .reduce((acc, m) => acc + (m.monto ?? 0), 0);
@@ -333,13 +339,11 @@ export class ObrasDetailComponent implements OnInit, OnDestroy {
           {text: m.tipo || '-', fontSize: 9},
           {text: m.concepto || m.referencia || '-', fontSize: 9},
           {text: this.nombreAsociadoMovimiento(m), fontSize: 9},
-          {text: formatCurrency(m.monto ?? 0), alignment: 'right', fontSize: 9},
-          {text: formatCurrency(m.saldoCliente ?? saldoFinal), alignment: 'right', fontSize: 9},
-          {text: formatCurrency(m.saldoProveedor ?? 0), alignment: 'right', fontSize: 9}
+          {text: formatCurrency(m.monto ?? 0), alignment: 'right', fontSize: 9}
         ]))
       : [[
-          {text: 'No hay movimientos registrados', colSpan: 7, alignment: 'center', fontSize: 9, italics: true},
-          {}, {}, {}, {}, {}, {}
+          {text: 'No hay movimientos registrados', colSpan: 5, alignment: 'center', fontSize: 9, italics: true},
+          {}, {}, {}, {}
         ]];
 
     const saldoClienteFinal = obtenerSaldoFinal('saldoCliente') ?? saldoFinal;
@@ -437,16 +441,14 @@ export class ObrasDetailComponent implements OnInit, OnDestroy {
         },
         {
           table: {
-            widths: [70, 50, '*', 110, 70, 70, 70],
+            widths: [70, 50, '*', 110, 70],
             body: [
               [
                 {text: 'Fecha', bold: true},
                 {text: 'Tipo', bold: true},
                 {text: 'Concepto', bold: true},
                 {text: 'Asociado', bold: true},
-                {text: 'Monto', bold: true, alignment: 'right'},
-                {text: 'Saldo cliente', bold: true, alignment: 'right'},
-                {text: 'Saldo proveedor', bold: true, alignment: 'right'}
+                {text: 'Monto', bold: true, alignment: 'right'}
               ],
               ...filasMov
             ]
@@ -467,22 +469,6 @@ export class ObrasDetailComponent implements OnInit, OnDestroy {
           layout: 'noBorders'
         },
 
-        {
-          text: '\nSaldos',
-          style: 'sectionHeader',
-          margin: [0, 10, 0, 4]
-        },
-        {
-          table: {
-            widths: ['*', 110, '*'],
-            body: [
-              ['Saldo cliente', formatCurrency(saldoClienteFinal), descripcionSaldo('cliente', saldoClienteFinal)],
-              ['Saldo proveedores', formatCurrency(saldoProveedorFinal), descripcionSaldo('proveedor', saldoProveedorFinal)],
-              ['Saldo neto de la obra', formatCurrency(saldoFinal), 'Ingresos - egresos (cuenta corriente)']
-            ]
-          },
-          layout: 'lightHorizontalLines'
-        }
       ],
       styles: {
         sectionHeader: {fontSize: 12, bold: true, margin: [0, 10, 0, 4]}

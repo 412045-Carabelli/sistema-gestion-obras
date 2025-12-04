@@ -69,6 +69,12 @@ export class ProveedoresDetailComponent implements OnInit, OnDestroy {
     this.subs.unsubscribe();
   }
 
+  refrescar() {
+    if (this.proveedor?.id) {
+      this.cargarDetalle(this.proveedor.id);
+    }
+  }
+
   getNombreObra(idObra: number): string {
     return this.obrasMap[idObra]?.nombre ?? `Obra #${idObra}`;
   }
@@ -111,7 +117,10 @@ export class ProveedoresDetailComponent implements OnInit, OnDestroy {
           this.estadosPago = estadosPago;
           this.proveedoresStateService.setProveedor(proveedor);
 
-          const obraIds = Array.from(new Set(tareas.map(t => t.id_obra)));
+          const obraIds = Array.from(new Set([
+            ...tareas.map(t => t.id_obra),
+            ...transacciones.map(t => Number(t.id_obra)).filter(Boolean)
+          ]));
           if (obraIds.length === 0) {
             return of([] as ObraCosto[][]);
           }
