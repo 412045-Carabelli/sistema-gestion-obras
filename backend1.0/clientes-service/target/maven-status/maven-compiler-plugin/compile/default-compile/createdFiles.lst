@@ -1,4 +1,6 @@
+com\clientes\controller\ClientesController$1.class
 com\clientes\repository\ClienteRepository.class
+com\clientes\entity\CondicionIva.class
 com\clientes\ClientesServiceApplication.class
 com\clientes\controller\ClientesController.class
 com\clientes\entity\Cliente.class

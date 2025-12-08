@@ -4,9 +4,11 @@ C:\Users\Usuario\Desktop\my-work\sistema-gestion-obras\backend1.0\api-gateway\sr
 C:\Users\Usuario\Desktop\my-work\sistema-gestion-obras\backend1.0\api-gateway\src\main\java\com\apigateway\controller\TipoTransaccionBffController.java
 C:\Users\Usuario\Desktop\my-work\sistema-gestion-obras\backend1.0\api-gateway\src\main\java\com\apigateway\controller\CostoBffController.java
 C:\Users\Usuario\Desktop\my-work\sistema-gestion-obras\backend1.0\api-gateway\src\main\java\com\apigateway\controller\TipoDocumentoBffController.java
+C:\Users\Usuario\Desktop\my-work\sistema-gestion-obras\backend1.0\api-gateway\src\main\java\com\apigateway\controller\GremioBffController.java
 C:\Users\Usuario\Desktop\my-work\sistema-gestion-obras\backend1.0\api-gateway\src\main\java\com\apigateway\controller\ObraBffController.java
 C:\Users\Usuario\Desktop\my-work\sistema-gestion-obras\backend1.0\api-gateway\src\main\java\com\apigateway\controller\EstadosObraBffController.java
 C:\Users\Usuario\Desktop\my-work\sistema-gestion-obras\backend1.0\api-gateway\src\main\java\com\apigateway\config\CorsGlobalConfig.java
+C:\Users\Usuario\Desktop\my-work\sistema-gestion-obras\backend1.0\api-gateway\src\main\java\com\apigateway\controller\CondicionIvaBffController.java
 C:\Users\Usuario\Desktop\my-work\sistema-gestion-obras\backend1.0\api-gateway\src\main\java\com\apigateway\controller\EstadoPagoBffController.java
 C:\Users\Usuario\Desktop\my-work\sistema-gestion-obras\backend1.0\api-gateway\src\main\java\com\apigateway\controller\TipoProveedorBffController.java
 C:\Users\Usuario\Desktop\my-work\sistema-gestion-obras\backend1.0\api-gateway\src\main\java\com\apigateway\ApiGatewayApplication.java
