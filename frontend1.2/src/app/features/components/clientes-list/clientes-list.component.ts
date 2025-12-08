@@ -10,7 +10,7 @@ import {IconFieldModule} from 'primeng/iconfield';
 import {InputIconModule} from 'primeng/inputicon';
 import {forkJoin} from 'rxjs';
 
-import {Cliente} from '../../../core/models/models';
+import {Cliente, CONDICION_IVA_LABELS, CondicionIva} from '../../../core/models/models';
 import {ClientesService} from '../../../services/clientes/clientes.service';
 import {Select} from 'primeng/select';
 
@@ -45,6 +45,7 @@ export class ClientesListComponent implements OnInit {
   searchValue: string = '';
   activoFiltro: string = 'todos';
   activoOptions: ActivoOption[] = [];
+  readonly condicionIvaLabels = CONDICION_IVA_LABELS;
 
   constructor(
     private router: Router,
@@ -75,7 +76,8 @@ export class ClientesListComponent implements OnInit {
         (cliente.contacto?.toLowerCase().includes(this.searchValue.toLowerCase()) ?? false) ||
         (cliente.cuit?.toLowerCase().includes(this.searchValue.toLowerCase()) ?? false) ||
         (cliente.telefono?.toLowerCase().includes(this.searchValue.toLowerCase()) ?? false) ||
-        (cliente.email?.toLowerCase().includes(this.searchValue.toLowerCase()) ?? false)
+        (cliente.email?.toLowerCase().includes(this.searchValue.toLowerCase()) ?? false) ||
+        this.getCondicionIvaLabel(cliente.condicionIva).toLowerCase().includes(this.searchValue.toLowerCase())
         : true;
 
       const matchesActivo =
@@ -98,5 +100,10 @@ export class ClientesListComponent implements OnInit {
 
   getActivoSeverity(activo: boolean): string {
     return activo ? 'success' : 'danger';
+  }
+
+  getCondicionIvaLabel(value?: string | CondicionIva): string {
+    if (!value) return 'No informado';
+    return this.condicionIvaLabels[value as CondicionIva] ?? 'No informado';
   }
 }

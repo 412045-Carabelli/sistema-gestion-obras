@@ -1,6 +1,7 @@
 package com.clientes.controller;
 
 import com.clientes.entity.Cliente;
+import com.clientes.entity.CondicionIva;
 import com.clientes.repository.ClienteRepository;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -22,5 +23,21 @@ public class ClientesController {
     @GetMapping("/{id}") public ResponseEntity<Cliente> one(@PathVariable("id") Long id){ return repo.findById(id).map(ResponseEntity::ok).orElse(ResponseEntity.notFound().build()); }
     @PutMapping("/{id}") public Cliente upd(@PathVariable("id") Long id,@RequestBody Cliente c){ c.setId(id); return repo.save(c); }
     @DeleteMapping("/{id}") public void del(@PathVariable("id") Long id){ repo.deleteById(id); }
+
+    @GetMapping("/condicion-iva")
+    public List<Map<String, String>> condicionesIva() {
+        return Arrays.stream(CondicionIva.values())
+                .map(v -> Map.of("name", v.name(), "label", prettyLabel(v)))
+                .toList();
+    }
+
+    private String prettyLabel(CondicionIva v) {
+        return switch (v) {
+            case RESPONSABLE_INSCRIPTO -> "Responsable Inscripto";
+            case MONOTRIBUTO -> "Monotributo";
+            case EXENTO -> "Exento";
+            case CONSUMIDOR_FINAL -> "Consumidor Final";
+        };
+    }
 }
 

@@ -6,15 +6,16 @@ import {ToastModule} from 'primeng/toast';
 import {ButtonModule} from 'primeng/button';
 import {InputTextModule} from 'primeng/inputtext';
 import {CheckboxModule} from 'primeng/checkbox';
+import {Select} from 'primeng/select';
 
 import {ClientesService} from '../../../services/clientes/clientes.service';
-import {Cliente} from '../../../core/models/models';
+import {Cliente, CONDICIONES_IVA_OPCIONES} from '../../../core/models/models';
 import {ProgressSpinner} from 'primeng/progressspinner';
 
 @Component({
   selector: 'app-clientes-edit',
   standalone: true,
-  imports: [RouterLink, ReactiveFormsModule, ToastModule, ButtonModule, InputTextModule, CheckboxModule, ProgressSpinner],
+  imports: [RouterLink, ReactiveFormsModule, ToastModule, ButtonModule, InputTextModule, CheckboxModule, ProgressSpinner, Select],
   providers: [MessageService],
   templateUrl: './clientes-edit.component.html',
   styleUrls: ['./clientes-edit.component.css']
@@ -23,6 +24,7 @@ export class ClientesEditComponent implements OnInit {
   form!: FormGroup;
   clienteId!: number;
   loading = true;
+  readonly condicionesIva = CONDICIONES_IVA_OPCIONES;
 
   constructor(
     private fb: FormBuilder,
@@ -40,6 +42,7 @@ export class ClientesEditComponent implements OnInit {
       cuit: [''],
       telefono: ['', [Validators.required, Validators.minLength(10), Validators.maxLength(15)]],
       email: ['', [Validators.required, Validators.email]],
+      condicionIva: [this.condicionesIva[0].name, Validators.required],
       activo: [true]
     });
 
@@ -81,7 +84,8 @@ export class ClientesEditComponent implements OnInit {
   private cargarCliente(id: number) {
     this.clientesService.getClienteById(id).subscribe({
       next: (cliente) => {
-        this.form.patchValue(cliente);
+        const condicionIva = cliente.condicionIva ?? this.condicionesIva[0].name;
+        this.form.patchValue({...cliente, condicionIva});
         this.loading = false;
       },
       error: () => {
