@@ -36,6 +36,20 @@ if errorlevel 1 (
   set "COMPOSE_CMD=docker-compose"
 )
 
+rem Opcional: hacer pull antes de construir (salvo que se pase --no-pull)
+set "DO_PULL=1"
+if /I "%~1"=="--no-pull" set "DO_PULL=0"
+
+if %DO_PULL%==1 (
+  echo [INFO] Descargando imagenes publicadas (pull)...
+  %COMPOSE_CMD% -f "docker-compose.yml" pull
+  if errorlevel 1 (
+    echo [WARN] Fallo el pull, se continuara con build local igualmente.
+  ) else (
+    echo [OK] Pull completado.
+  )
+)
+
 echo [INFO] Construyendo y levantando servicios BACKEND. Esto puede tardar...
 rem Levantar todos los servicios excepto el frontend
 %COMPOSE_CMD% -f "docker-compose.yml" up -d --build --remove-orphans ^
