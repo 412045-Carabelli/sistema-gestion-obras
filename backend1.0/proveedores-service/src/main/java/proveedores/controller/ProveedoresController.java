@@ -3,16 +3,13 @@ package proveedores.controller;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import proveedores.dto.EstadoResponse;
 import proveedores.dto.ProveedorDTO;
+import proveedores.entity.Gremio;
 import proveedores.entity.Proveedor;
 import proveedores.entity.TipoProveedor;
-import proveedores.enums.TipoProveedorEnum;
 import proveedores.service.ProveedorService;
 
-import java.util.Arrays;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/proveedores")
@@ -24,21 +21,30 @@ public class ProveedoresController {
     // ======== HELPERS ========
 
     private ProveedorDTO toDTO(Proveedor entity) {
+        ProveedorDTO dto = new ProveedorDTO();
+        dto.setId(entity.getId());
+        dto.setNombre(entity.getNombre());
+        dto.setContacto(entity.getContacto());
+        dto.setTelefono(entity.getTelefono());
+        dto.setEmail(entity.getEmail());
+        dto.setActivo(entity.getActivo());
+        dto.setCreado_en(entity.getCreadoEn());
+        dto.setUltima_actualizacion(entity.getUltimaActualizacion());
+        dto.setTipo_actualizacion(entity.getTipoActualizacion());
 
-        return new ProveedorDTO(
-                entity.getId(),
-                entity.getNombre(),
-                entity.getTipoProveedor(), // ENUM DIRECTO
-                entity.getContacto(),
-                entity.getTelefono(),
-                entity.getEmail(),
-                entity.getActivo(),
-                entity.getCreadoEn(),
-                entity.getUltimaActualizacion(),
-                entity.getTipoActualizacion()
-        );
+        if (entity.getTipoProveedor() != null) {
+            dto.setTipo_proveedor_id(entity.getTipoProveedor().getId());
+            dto.setTipo_proveedor_nombre(entity.getTipoProveedor().getNombre());
+            dto.setTipo_proveedor(entity.getTipoProveedor().getNombre());
+        }
+
+        if (entity.getGremio() != null) {
+            dto.setGremio_id(entity.getGremio().getId());
+            dto.setGremio_nombre(entity.getGremio().getNombre());
+        }
+
+        return dto;
     }
-
 
     private Proveedor toEntity(ProveedorDTO dto) {
         Proveedor entity = new Proveedor();
@@ -50,15 +56,24 @@ public class ProveedoresController {
         entity.setEmail(dto.getEmail());
         entity.setActivo(dto.getActivo() != null ? dto.getActivo() : Boolean.TRUE);
 
-        // 🔥 AQUÍ LA VALIDACIÓN REAL
-        if (dto.getTipo_proveedor() != null) {
-            entity.setTipoProveedor(dto.getTipo_proveedor());
+        if (dto.getTipo_proveedor_id() != null) {
+            TipoProveedor tipo = service.findTipoById(dto.getTipo_proveedor_id())
+                    .orElseThrow(() -> new RuntimeException("Tipo de proveedor no encontrado"));
+            entity.setTipoProveedor(tipo);
+        } else if (dto.getTipo_proveedor() != null) {
+            TipoProveedor tipo = service.findTipoByNombre(dto.getTipo_proveedor())
+                    .orElseThrow(() -> new RuntimeException("Tipo de proveedor no encontrado"));
+            entity.setTipoProveedor(tipo);
+        }
+
+        if (dto.getGremio_id() != null) {
+            Gremio gremio = service.findGremioById(dto.getGremio_id())
+                    .orElseThrow(() -> new RuntimeException("Gremio no encontrado"));
+            entity.setGremio(gremio);
         }
 
         return entity;
     }
-
-    // ya no se usa DTO para tipo_proveedor
 
     // ======== ENDPOINTS ========
 
@@ -67,7 +82,7 @@ public class ProveedoresController {
         List<ProveedorDTO> result = service.findAllActivos()
                 .stream()
                 .map(this::toDTO)
-                .collect(Collectors.toList());
+                .toList();
         return ResponseEntity.ok(result);
     }
 
@@ -86,8 +101,12 @@ public class ProveedoresController {
 
     @PostMapping
     public ResponseEntity<ProveedorDTO> create(@RequestBody ProveedorDTO dto) {
-        Proveedor saved = service.save(toEntity(dto));
-        return ResponseEntity.ok(toDTO(saved));
+        try {
+            Proveedor saved = service.save(toEntity(dto));
+            return ResponseEntity.ok(toDTO(saved));
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().build();
+        }
     }
 
     @PutMapping("/{id}")
@@ -104,30 +123,5 @@ public class ProveedoresController {
     public ResponseEntity<Void> delete(@PathVariable("id") Long id) {
         service.delete(id);
         return ResponseEntity.noContent().build();
-    }
-
-    @GetMapping("/tipo-proveedor")
-    public ResponseEntity<List<EstadoResponse>> getEstados() {
-        List<EstadoResponse> response = Arrays.stream(TipoProveedorEnum.values())
-                .map(e -> new EstadoResponse(e.name(), formatLabel(e)))
-                .toList();
-
-        return ResponseEntity.ok(response);
-    }
-
-    private String formatLabel(TipoProveedorEnum e) {
-        return Arrays.stream(e.name().split("_"))
-                .map(word -> word.charAt(0) + word.substring(1).toLowerCase())
-                .collect(Collectors.joining(" "));
-    }
-
-
-    @GetMapping("/tipo-proveedor/{tipo}")
-    public ResponseEntity<TipoProveedorEnum> getTipoByNombre(@PathVariable("tipo") String tipo) {
-        try {
-            return ResponseEntity.ok(TipoProveedorEnum.valueOf(tipo.toUpperCase()));
-        } catch (IllegalArgumentException ex) {
-            return ResponseEntity.notFound().build();
-        }
     }
 }

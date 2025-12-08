@@ -37,4 +37,19 @@ public class TipoProveedorBffController {
                 .onErrorResume(ex -> Mono.just(List.of()))
                 .map(ResponseEntity::ok);
     }
+
+    // Crear tipo de proveedor
+    @PostMapping
+    public Mono<ResponseEntity<Map<String, Object>>> createTipo(@RequestBody Map<String, Object> payload) {
+        WebClient client = webClientBuilder.build();
+
+        return client.post()
+                .uri(PROVEEDORES_URL)
+                .contentType(MediaType.APPLICATION_JSON)
+                .bodyValue(payload)
+                .retrieve()
+                .bodyToMono(new ParameterizedTypeReference<Map<String, Object>>() {})
+                .map(ResponseEntity::ok)
+                .onErrorResume(ex -> Mono.just(ResponseEntity.badRequest().build()));
+    }
 }
