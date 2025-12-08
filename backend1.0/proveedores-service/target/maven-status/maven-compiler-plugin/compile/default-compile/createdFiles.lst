@@ -1,9 +1,13 @@
 proveedores\service\ProveedorService.class
+proveedores\entity\Gremio.class
 proveedores\enums\TipoProveedorEnum.class
 proveedores\ProveedoresServiceApplication.class
 proveedores\repository\ProveedorRepository.class
+proveedores\repository\GremioRepository.class
+proveedores\controller\GremioController.class
 proveedores\controller\TipoProveedorController.class
 proveedores\repository\TipoProveedorRepository.class
+proveedores\service\GremioService.class
 proveedores\controller\ProveedoresController.class
 proveedores\controller\ProveedoresBffController.class
 proveedores\dto\EstadoResponse.class
