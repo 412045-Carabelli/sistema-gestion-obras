@@ -2,28 +2,22 @@ package proveedores.entity;
 
 import jakarta.persistence.*;
 import lombok.Data;
-import proveedores.entity.Gremio;
-import proveedores.entity.TipoProveedor;
 
 import java.time.Instant;
 
 @Entity
-@Table(name="proveedores")
+@Table(name = "gremios")
 @Data
-public class Proveedor {
+public class Gremio {
     @Id
-    @GeneratedValue(strategy= GenerationType.IDENTITY) private Long id;
-    @Column(nullable=false) private String nombre;
-    @ManyToOne
-    @JoinColumn(name = "tipo_proveedor_id")
-    private TipoProveedor tipoProveedor;
-    @ManyToOne
-    @JoinColumn(name = "gremio_id")
-    private Gremio gremio;
-    private String contacto, telefono, email;
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @Column(nullable = false)
+    private String nombre;
+
+    @Column(nullable = false)
     private Boolean activo = Boolean.TRUE;
-    @Column(name = "creado_en")
-    private Instant creadoEn = Instant.now();
 
     @Column(name = "ultima_actualizacion")
     private Instant ultimaActualizacion;

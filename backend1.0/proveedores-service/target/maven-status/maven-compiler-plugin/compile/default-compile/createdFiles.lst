@@ -2,8 +2,10 @@ proveedores\service\ProveedorService.class
 proveedores\enums\TipoProveedorEnum.class
 proveedores\ProveedoresServiceApplication.class
 proveedores\repository\ProveedorRepository.class
+proveedores\controller\TipoProveedorController.class
 proveedores\repository\TipoProveedorRepository.class
 proveedores\controller\ProveedoresController.class
+proveedores\controller\ProveedoresBffController.class
 proveedores\dto\EstadoResponse.class
 proveedores\entity\TipoProveedor.class
 proveedores\dto\ProveedorDTO.class
