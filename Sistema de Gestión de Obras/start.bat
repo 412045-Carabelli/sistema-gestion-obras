@@ -36,8 +36,19 @@ if errorlevel 1 (
   set "COMPOSE_CMD=docker-compose"
 )
 
-echo Descargando imagenes publicas de GHCR...
-%COMPOSE_CMD% -f "docker-compose.yml" pull || exit /b 1
+rem Permitir omitir pull con --no-pull
+set "DO_PULL=1"
+if /I "%~1"=="--no-pull" set "DO_PULL=0"
+
+if %DO_PULL%==1 (
+  echo Descargando imagenes publicas de GHCR...
+  %COMPOSE_CMD% -f "docker-compose.yml" pull
+  if errorlevel 1 (
+    echo [WARN] Fallo el pull; se continuara con las imagenes locales disponibles.
+  ) else (
+    echo [OK] Pull completado.
+  )
+)
 
 echo Levantando contenedores...
 %COMPOSE_CMD% -f "docker-compose.yml" up -d || exit /b 1
