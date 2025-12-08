@@ -104,4 +104,19 @@ public class ClienteBffController {
                 .map(response -> ResponseEntity.noContent().build())
                 .onErrorResume(ex -> Mono.just(ResponseEntity.notFound().build()));
     }
+
+    // ================================
+    // GET - Condiciones IVA
+    // ================================
+    @GetMapping("/condicion-iva")
+    public Mono<ResponseEntity<List<Map<String, Object>>>> getCondicionIva() {
+        WebClient client = webClientBuilder.build();
+
+        Flux<Map<String, Object>> condicionesFlux = client.get()
+                .uri(CLIENTES_URL + "/condicion-iva")
+                .retrieve()
+                .bodyToFlux(new ParameterizedTypeReference<Map<String, Object>>() {});
+
+        return condicionesFlux.collectList().map(ResponseEntity::ok);
+    }
 }

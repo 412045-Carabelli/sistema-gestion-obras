@@ -40,6 +40,27 @@
         </div>
       </div>
 
+      <!-- Condición IVA -->
+      <div class="flex gap-5">
+        <div class="min-h-[72px] w-full lg:w-[400px]">
+          <label class="block text-sm font-medium text-gray-700">Condición IVA *</label>
+          <p-select
+            appendTo="body"
+            class="w-full"
+            formControlName="condicionIva"
+            optionLabel="label"
+            optionValue="name"
+            [options]="condicionesIva"
+            placeholder="Selecciona una opción">
+          </p-select>
+          @if (form.get('condicionIva')?.invalid && form.get('condicionIva')?.touched) {
+            <small class="text-red-500 text-xs mt-1 h-[16px] block">
+              Selecciona una condición
+            </small>
+          }
+        </div>
+      </div>
+
       <!-- Email y Activo -->
       <div class="flex gap-5">
         <div class="min-h-[72px] w-full lg:w-[400px]">

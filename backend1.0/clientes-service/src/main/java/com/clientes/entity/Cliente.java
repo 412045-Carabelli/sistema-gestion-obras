@@ -13,6 +13,9 @@ public class Cliente {
     @Column(nullable=false) private String nombre;
     private Long id_empresa;
     private String contacto, cuit, telefono, email;
+    @Enumerated(EnumType.STRING)
+    @Column(name = "condicion_iva")
+    private CondicionIva condicionIva = CondicionIva.RESPONSABLE_INSCRIPTO;
     private Boolean activo = Boolean.TRUE;
     private Instant creadoEn = Instant.now();
 

@@ -12,7 +12,7 @@ import {TableModule} from 'primeng/table';
 import {TagModule} from 'primeng/tag';
 import {CurrencyPipe, CommonModule} from '@angular/common';
 
-import {Cliente, Obra} from '../../../core/models/models';
+import {Cliente, CONDICION_IVA_LABELS, CondicionIva, Obra} from '../../../core/models/models';
 import {ClientesService} from '../../../services/clientes/clientes.service';
 import {ObrasService} from '../../../services/obras/obras.service';
 import {ClientesDocumentosComponent} from '../../components/clientes-documentos/clientes-documentos.component';
@@ -48,6 +48,7 @@ export class ClientesDetailComponent implements OnInit, OnDestroy {
   cliente!: Cliente;
   obras: Obra[] = [];
   loading = true;
+  readonly condicionIvaLabels = CONDICION_IVA_LABELS;
 
   // Estadísticas calculadas
   obrasActivas = 0;
@@ -178,5 +179,10 @@ export class ClientesDetailComponent implements OnInit, OnDestroy {
     // Aquí deberías calcular: presupuesto total - pagos realizados
     // Por ahora usamos un cálculo estimado (40% del presupuesto)
     this.saldoPendiente = this.totalPresupuestado * 0.4;
+  }
+
+  getCondicionIvaLabel(value?: string | CondicionIva): string {
+    if (!value) return 'No informado';
+    return this.condicionIvaLabels[value as CondicionIva] ?? 'No informado';
   }
 }
