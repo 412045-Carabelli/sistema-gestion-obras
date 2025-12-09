@@ -2,8 +2,6 @@
 import {ActivatedRoute} from '@angular/router';
 import {CommonModule, CurrencyPipe, DatePipe, NgClass} from '@angular/common';
 import {forkJoin, Subscription} from 'rxjs';
-import pdfMake from 'pdfmake/build/pdfmake';
-import pdfFonts from 'pdfmake/build/vfs_fonts';
 
 import {ButtonModule} from 'primeng/button';
 import {CardModule} from 'primeng/card';
@@ -32,8 +30,6 @@ import {StyleClassModule} from 'primeng/styleclass';
 import {ObraPresupuestoComponent} from '../../components/obra-presupuesto/obra-presupuesto.component';
 import {ReportesService} from '../../../services/reportes/reportes.service';
 import {CuentaCorrienteObraResponse, ReportFilter} from '../../../core/models/models';
-
-pdfMake.vfs = pdfFonts.vfs;
 
 @Component({
   selector: 'app-obra-detail',
@@ -85,6 +81,8 @@ export class ObrasDetailComponent implements OnInit, OnDestroy {
 
   loading = true;
   private subs = new Subscription();
+  private pdfMakeInstance?: any;
+  private pdfMakeLoader?: Promise<any>;
 
   constructor(
     private route: ActivatedRoute,
@@ -273,6 +271,7 @@ export class ObrasDetailComponent implements OnInit, OnDestroy {
   async exportarResumenPdf() {
     if (!this.obra) return;
 
+    const pdfMake = await this.loadPdfMake();
     const logoDataUrl = await this.obtenerLogoDataUrl();
     const fechaHoy = new Date().toLocaleDateString('es-AR');
     const cliente = this.obra.cliente;
@@ -498,6 +497,24 @@ export class ObrasDetailComponent implements OnInit, OnDestroy {
       }
       return 'Cuenta saldada.';
     }
+  }
+
+  private loadPdfMake(): Promise<any> {
+    if (this.pdfMakeInstance) {
+      return Promise.resolve(this.pdfMakeInstance);
+    }
+    if (!this.pdfMakeLoader) {
+      this.pdfMakeLoader = Promise.all([
+        import('pdfmake/build/pdfmake'),
+        import('pdfmake/build/vfs_fonts')
+      ]).then(([pdfMakeModule, pdfFonts]) => {
+        const pdfMake = (pdfMakeModule as any).default || pdfMakeModule;
+        pdfMake.vfs = ((pdfFonts as any).default || pdfFonts as any).vfs;
+        this.pdfMakeInstance = pdfMake;
+        return pdfMake;
+      });
+    }
+    return this.pdfMakeLoader;
   }
 
   private async obtenerLogoDataUrl(): Promise<string | undefined> {
