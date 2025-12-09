@@ -7,6 +7,9 @@ import {
   EstadoFinancieroObraResponse,
   EstadoObrasFilter,
   EstadoObrasResponse,
+  CuentaCorrienteObraResponse,
+  CuentaCorrienteProveedorResponse,
+  ComisionesResponse,
   FlujoCajaResponse,
   IngresosEgresosResponse,
   NotasObraResponse,
@@ -74,5 +77,18 @@ export class ReportesService {
 
   getNotasPorObra(obraId: number): Observable<NotasObraResponse> {
     return this.http.get<NotasObraResponse>(`${this.apiUrl}/obras/${obraId}/notas`);
+  }
+
+  getCuentaCorrienteObra(filtro?: ReportFilter): Observable<CuentaCorrienteObraResponse> {
+    return this.http.post<CuentaCorrienteObraResponse>(`${this.apiUrl}/financieros/cuenta-corriente-obra`, filtro ?? {});
+  }
+
+  getCuentaCorrienteProveedor(filtro?: ReportFilter): Observable<CuentaCorrienteProveedorResponse> {
+    return this.http.post<CuentaCorrienteProveedorResponse>(`${this.apiUrl}/financieros/cuenta-corriente-proveedor`, filtro ?? {});
+  }
+
+  getComisiones(filtro?: ReportFilter): Observable<ComisionesResponse> {
+    // BFF espera POST y redirige a /comisiones/general o /comisiones/obra/{id} segÃºn filtro
+    return this.http.post<ComisionesResponse>(`${this.apiUrl}/financieros/comisiones`, filtro ?? {});
   }
 }

@@ -11,8 +11,8 @@ import java.time.Instant;
 public class TipoProveedor {
     @Id
     @GeneratedValue(strategy= GenerationType.IDENTITY) private Long id;
-    @Column(nullable=false) private String nombre;
-    @Column(nullable = false) private Boolean activo;
+    @Column(nullable=false, unique = true) private String nombre;
+    @Column(nullable = false) private Boolean activo = Boolean.TRUE;
 
     @Column(name = "ultima_actualizacion")
     private Instant ultimaActualizacion;

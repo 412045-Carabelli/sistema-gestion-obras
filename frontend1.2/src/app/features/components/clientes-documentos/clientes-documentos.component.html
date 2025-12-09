@@ -17,11 +17,11 @@
     >
       <ng-template pTemplate="header">
         <tr>
-          <th pSortableColumn="tipo_documento.nombre">
+          <th pSortableColumn="tipo_documento">
             Tipo
-            <p-sortIcon field="tipo_documento.nombre"></p-sortIcon>
+            <p-sortIcon field="tipo_documento"></p-sortIcon>
           </th>
-          <th>Observación</th>
+          <th>Observacion</th>
           <th pSortableColumn="fecha">
             Fecha
             <p-sortIcon field="fecha"></p-sortIcon>
@@ -36,8 +36,8 @@
 
       <ng-template let-d pTemplate="body">
         <tr>
-          <td>{{ d.tipo_documento?.nombre ?? '—' }}</td>
-          <td>{{ d.observacion || '—' }}</td>
+          <td>{{ (d.tipo_documento | estadoFormat) || '-' }}</td>
+          <td>{{ d.observacion || '-' }}</td>
           <td>{{ d.fecha | date: 'dd/MM/yyyy' }}</td>
           <td>
             <span [title]="d.nombre_archivo" class="truncate-text">
@@ -58,7 +58,7 @@
     </p-table>
   } @else {
     <p class="text-center text-gray-500 py-10">
-      No hay documentos registrados para este cliente.
+      No hay documentos registrados para este asociado.
     </p>
   }
 }

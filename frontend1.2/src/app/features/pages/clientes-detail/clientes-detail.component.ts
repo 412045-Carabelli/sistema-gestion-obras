@@ -12,12 +12,14 @@ import {TableModule} from 'primeng/table';
 import {TagModule} from 'primeng/tag';
 import {CurrencyPipe, CommonModule} from '@angular/common';
 
-import {Cliente, CONDICION_IVA_LABELS, CondicionIva, Obra} from '../../../core/models/models';
+import {Cliente, Obra, Transaccion} from '../../../core/models/models';
 import {ClientesService} from '../../../services/clientes/clientes.service';
 import {ObrasService} from '../../../services/obras/obras.service';
 import {ClientesDocumentosComponent} from '../../components/clientes-documentos/clientes-documentos.component';
 import {ClienteStateService} from '../../../services/clientes/clientes-state.service';
 import {StyleClass} from 'primeng/styleclass';
+import {TransaccionesService} from '../../../services/transacciones/transacciones.service';
+import {EstadoFormatPipe} from '../../../shared/pipes/estado-format.pipe';
 
 @Component({
   selector: 'app-clientes-detail',
@@ -38,7 +40,8 @@ import {StyleClass} from 'primeng/styleclass';
     TagModule,
     ClientesDocumentosComponent,
     CurrencyPipe,
-    StyleClass
+    StyleClass,
+    EstadoFormatPipe
   ],
   providers: [MessageService],
   templateUrl: './clientes-detail.component.html',
@@ -47,8 +50,8 @@ import {StyleClass} from 'primeng/styleclass';
 export class ClientesDetailComponent implements OnInit, OnDestroy {
   cliente!: Cliente;
   obras: Obra[] = [];
+  transacciones: Transaccion[] = [];
   loading = true;
-  readonly condicionIvaLabels = CONDICION_IVA_LABELS;
 
   // Estadísticas calculadas
   obrasActivas = 0;
@@ -62,6 +65,7 @@ export class ClientesDetailComponent implements OnInit, OnDestroy {
     private router: Router,
     private clientesService: ClientesService,
     private obrasService: ObrasService,
+    private transaccionesService: TransaccionesService,
     private messageService: MessageService,
     private clienteStateService: ClienteStateService
   ) {
@@ -134,14 +138,30 @@ export class ClientesDetailComponent implements OnInit, OnDestroy {
 
     forkJoin({
       cliente: this.clientesService.getClienteById(idCliente),
-      obras: this.obrasService.getObras()
+      obras: this.obrasService.getObras(),
+      transacciones: this.transaccionesService.getByAsociado('CLIENTE', idCliente)
     }).subscribe({
-      next: ({cliente, obras}) => {
+      next: ({cliente, obras, transacciones}) => {
         this.cliente = cliente;
         this.clienteStateService.setCliente(this.cliente);
 
         // Filtrar obras del cliente
         this.obras = obras.filter(o => o.cliente?.id === idCliente);
+
+        const mapaObras = new Map<number, string>(
+          this.obras
+            .filter(o => o.id !== undefined)
+            .map(o => [Number(o.id), o.nombre])
+        );
+
+        this.transacciones = [...(transacciones || [])]
+          .map(t => ({
+            ...t,
+            obraNombre: t.id_obra ? mapaObras.get(Number(t.id_obra)) : undefined
+          }))
+          .sort((a, b) =>
+            new Date(b.fecha || '').getTime() - new Date(a.fecha || '').getTime()
+          );
 
         // Calcular estadísticas
         this.calcularEstadisticas();
@@ -162,13 +182,12 @@ export class ClientesDetailComponent implements OnInit, OnDestroy {
   }
 
   private calcularEstadisticas() {
-    // Obras activas (estados: en progreso, iniciada, etc.)
-    const estadosActivos = ['en progreso', 'iniciada', 'en curso'];
-    this.obrasActivas = this.obras.filter(o =>
-      estadosActivos.some(estado =>
-        o.obra_estado?.toLowerCase().includes(estado)
-      )
-    ).length;
+    // Obras activas (estados: en progreso, iniciada, en curso, etc.)
+    const estadosActivos = ['en progreso', 'iniciada', 'en curso', 'progreso', 'curso'];
+    this.obrasActivas = this.obras.filter(o => {
+      const estadoRaw = (o.obra_estado || '').toString().toLowerCase().replace(/_/g, ' ').trim();
+      return estadosActivos.some(estado => estadoRaw.includes(estado));
+    }).length;
 
     // Total presupuestado
     this.totalPresupuestado = this.obras.reduce((sum, obra) =>
@@ -179,10 +198,5 @@ export class ClientesDetailComponent implements OnInit, OnDestroy {
     // Aquí deberías calcular: presupuesto total - pagos realizados
     // Por ahora usamos un cálculo estimado (40% del presupuesto)
     this.saldoPendiente = this.totalPresupuestado * 0.4;
-  }
-
-  getCondicionIvaLabel(value?: string | CondicionIva): string {
-    if (!value) return 'No informado';
-    return this.condicionIvaLabels[value as CondicionIva] ?? 'No informado';
   }
 }

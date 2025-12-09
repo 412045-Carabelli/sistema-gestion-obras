@@ -17,6 +17,7 @@ public class ObraDTO {
     private EstadoObraEnum obra_estado;
     private String nombre;
     private String direccion;
+    private LocalDateTime fecha_presupuesto;
     private LocalDateTime fecha_inicio;
     private LocalDateTime fecha_fin;
     private LocalDateTime fecha_adjudicada;
