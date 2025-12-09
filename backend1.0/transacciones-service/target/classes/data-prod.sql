@@ -1,3 +1,1 @@
--- empty seed
-SELECT 1;
-
+-- Seed deshabilitado para PROD (sin inserts)

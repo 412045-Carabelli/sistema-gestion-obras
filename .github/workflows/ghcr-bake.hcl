@@ -11,15 +11,21 @@ group "default" {
   ]
 }
 
-variable "REGISTRY" {}
-variable "OWNER" {}
-variable "TAG" {}
+variable "REGISTRY" {
+  default = "ghcr.io"
+}
+variable "OWNER" {
+  default = "local"
+}
+variable "TAG" {
+  default = "latest"
+}
 
 target "_common" {
   args = {
-    REGISTRY = REGISTRY
-    OWNER    = OWNER
-    TAG      = TAG
+    REGISTRY = "${REGISTRY}"
+    OWNER    = "${OWNER}"
+    TAG      = "${TAG}"
   }
   push = true
 }

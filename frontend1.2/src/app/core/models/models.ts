@@ -1,5 +1,25 @@
 export type RecordOption = { label: string; name: string };
 
+export type CondicionIva =
+  | 'RESPONSABLE_INSCRIPTO'
+  | 'MONOTRIBUTO'
+  | 'EXENTO'
+  | 'CONSUMIDOR_FINAL';
+
+export const CONDICIONES_IVA_OPCIONES: RecordOption[] = [
+  {label: 'Responsable Inscripto', name: 'RESPONSABLE_INSCRIPTO'},
+  {label: 'Monotributo', name: 'MONOTRIBUTO'},
+  {label: 'Exento', name: 'EXENTO'},
+  {label: 'Consumidor Final', name: 'CONSUMIDOR_FINAL'}
+];
+
+export const CONDICION_IVA_LABELS: Record<CondicionIva, string> = {
+  RESPONSABLE_INSCRIPTO: 'Responsable Inscripto',
+  MONOTRIBUTO: 'Monotributo',
+  EXENTO: 'Exento',
+  CONSUMIDOR_FINAL: 'Consumidor Final'
+};
+
 export interface Cliente {
   id: number;
   nombre: string;
@@ -9,6 +29,7 @@ export interface Cliente {
   cuit?: string;
   telefono?: string;
   email?: string;
+  condicionIva?: CondicionIva;
   activo?: boolean;
   creado_en?: string;
   ultima_actualizacion?: string;

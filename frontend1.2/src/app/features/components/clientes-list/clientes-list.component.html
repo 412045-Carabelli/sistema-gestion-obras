@@ -10,7 +10,7 @@
             [(ngModel)]="searchValue"
             class="w-full"
             pInputText
-            placeholder="Buscar por nombre, dirección o cliente"
+            placeholder="Buscar por nombre, direccion o cliente"
             type="text"/>
         </p-iconfield>
       </div>
@@ -45,8 +45,9 @@
         <th class="px-3 py-2 text-left">Nombre</th>
         <th class="px-3 py-2 text-left">Contacto</th>
         <th class="px-3 py-2 text-left">CUIT</th>
-        <th class="px-3 py-2 text-left">Teléfono</th>
+        <th class="px-3 py-2 text-left">Telefono</th>
         <th class="px-3 py-2 text-left">Email</th>
+        <th class="px-3 py-2 text-left">Condicion IVA</th>
         <th class="px-3 py-2 text-center">Activo</th>
         <th class="px-3 py-2 text-center">Acciones</th>
       </tr>
@@ -55,10 +56,11 @@
     <ng-template let-c pTemplate="body">
       <tr (click)="onRowClick(c)" class="hover:bg-gray-100 cursor-pointer">
         <td class="px-3 py-2">{{ c.nombre }}</td>
-        <td class="px-3 py-2">{{ c.contacto || '—' }}</td>
-        <td class="px-3 py-2">{{ c.cuit || '—' }}</td>
-        <td class="px-3 py-2">{{ c.telefono || '—' }}</td>
-        <td class="px-3 py-2">{{ c.email || '—' }}</td>
+        <td class="px-3 py-2">{{ c.contacto || 'Sin dato' }}</td>
+        <td class="px-3 py-2">{{ c.cuit || 'Sin dato' }}</td>
+        <td class="px-3 py-2">{{ c.telefono || 'Sin dato' }}</td>
+        <td class="px-3 py-2">{{ c.email || 'Sin dato' }}</td>
+        <td class="px-3 py-2">{{ getCondicionIvaLabel(c.condicionIva) }}</td>
         <td class="px-3 py-2 text-center">
           <p-tag
             [severity]="getActivoSeverity(c.activo)"
