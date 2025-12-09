@@ -20,7 +20,8 @@ import {ObraCostosTableComponent} from '../../components/obra-costos-table/obra-
 import {ObraPayload, ObrasService} from '../../../services/obras/obras.service';
 import {ClientesService} from '../../../services/clientes/clientes.service';
 import {EstadoObraService} from '../../../services/estado-obra/estado-obra.service';
-import {ProveedoresService} from '../../../services/proveedores/proveedores.service';
+import {CatalogoOption, ProveedoresService} from '../../../services/proveedores/proveedores.service';
+import {ModalComponent} from '../../../shared/modal/modal.component';
 
 @Component({
   selector: 'app-obras-edit',
@@ -41,6 +42,7 @@ import {ProveedoresService} from '../../../services/proveedores/proveedores.serv
     ToastModule,
     Checkbox,
     RouterLink,
+    ModalComponent,
   ],
   providers: [MessageService],
 })
@@ -50,6 +52,15 @@ export class ObrasEditComponent implements OnInit {
   clientes: Cliente[] = [];
   estadosRecords: { label: string; name: string }[] = [];
   proveedores: Proveedor[] = [];
+  tiposProveedor: CatalogoOption[] = [];
+  gremiosProveedor: CatalogoOption[] = [];
+  ivaOptions: {label: string; name: string}[] = [];
+  clienteForm!: FormGroup;
+  proveedorForm!: FormGroup;
+  creandoCliente = false;
+  creandoProveedor = false;
+  showClienteModal = false;
+  showProveedorModal = false;
   form!: FormGroup;
   loading = true;
   private obraId: number | null = null;
@@ -71,8 +82,10 @@ export class ObrasEditComponent implements OnInit {
   }
 
   ngOnInit(): void {
+    this.inicializarFormulariosRapidos();
     this.obraId = Number(this.route.snapshot.paramMap.get('id'));
     if (this.obraId) this.cargarDatosIniciales(this.obraId);
+    this.cargarCatalogosRapidos();
   }
 
   parseDate(value?: string): Date | null {
@@ -84,6 +97,18 @@ export class ObrasEditComponent implements OnInit {
     return new Date(date).toISOString().slice(0, 19);
   }
 
+  private resolveEstadoValue(rawEstado: any): string | null {
+    if (!rawEstado) return null;
+    if (typeof rawEstado === 'string') return rawEstado;
+    return rawEstado.name ?? rawEstado.label ?? null;
+  }
+
+  private resolveClienteId(cliente: any, fallbackId?: number | null): number | null {
+    if (cliente == null && fallbackId == null) return null;
+    if (typeof cliente === 'number') return cliente;
+    return cliente?.id ?? fallbackId ?? null;
+  }
+
   onSubmit() {
     if (this.form.invalid) {
       this.form.markAllAsTouched();
@@ -91,11 +116,13 @@ export class ObrasEditComponent implements OnInit {
     }
 
     const raw = this.form.getRawValue();
+    const clienteId = this.resolveClienteId(raw.cliente, this.obra.id_cliente);
+    const estadoValue = this.resolveEstadoValue(raw.obra_estado);
 
     const payload: ObraPayload = {
       id: this.obraId!,
-      id_cliente: raw.cliente.id,
-      obra_estado: raw.obra_estado,
+      id_cliente: clienteId as number,
+      obra_estado: estadoValue as any,
       nombre: raw.nombre,
       direccion: raw.direccion,
       fecha_inicio: this.formatDate(this.form.value.fecha_inicio)!,
@@ -155,7 +182,7 @@ export class ObrasEditComponent implements OnInit {
       obra: this.obrasService.getObraById(idObra),
     }).subscribe({
       next: ({clientes, estados, proveedores, obra}) => {
-        this.clientes = clientes;
+        this.clientes = clientes.map(c => ({...c, id: Number(c.id)}));
         this.estadosRecords = estados as any;
         this.proveedores = proveedores;
         this.obra = {...obra, costos: obra.costos ?? []} as Obra;
@@ -174,12 +201,34 @@ export class ObrasEditComponent implements OnInit {
     });
   }
 
+  private cargarCatalogosRapidos() {
+    this.clienteService.getCondicionesIva().subscribe({
+      next: data => this.ivaOptions = data,
+      error: () => this.ivaOptions = [],
+    });
+
+    forkJoin({
+      tipos: this.proveedoresService.getTipos(),
+      gremios: this.proveedoresService.getGremios(),
+    }).subscribe({
+      next: ({tipos, gremios}) => {
+        this.tiposProveedor = tipos;
+        this.gremiosProveedor = gremios;
+      },
+      error: () => {
+        this.tiposProveedor = [];
+        this.gremiosProveedor = [];
+      }
+    });
+  }
+
   private inicializarFormulario() {
-    const currentValue = this.estadosRecords.find(e => e.name === this.obra.obra_estado)
+    const currentEstado = this.resolveEstadoValue(this.obra.obra_estado);
+    const currentCliente = this.resolveClienteId(this.obra.cliente, this.obra.id_cliente);
 
     this.form = this.fb.group({
-      cliente: [this.obra.cliente, Validators.required],
-      obra_estado: [currentValue, Validators.required],
+      cliente: [currentCliente, Validators.required],
+      obra_estado: [currentEstado, Validators.required],
       nombre: [this.obra.nombre, [Validators.required, Validators.minLength(3)]],
       direccion: [this.obra.direccion, [Validators.required, Validators.minLength(5)]],
       fecha_inicio: [this.parseDate(this.obra.fecha_inicio), Validators.required],
@@ -196,6 +245,128 @@ export class ObrasEditComponent implements OnInit {
     });
 
     this.cargarCostosEnFormArray(this.obra.costos ?? []);
+  }
+
+  private inicializarFormulariosRapidos() {
+    this.clienteForm = this.fb.group({
+      nombre: ['', Validators.required],
+      contacto: ['', Validators.required],
+      cuit: ['', Validators.required],
+      condicion_iva: [null, Validators.required],
+      telefono: ['', [Validators.required, Validators.minLength(6)]],
+      email: ['', [Validators.required, Validators.email]],
+      activo: [true, Validators.required],
+    });
+
+    this.proveedorForm = this.fb.group({
+      nombre: ['', Validators.required],
+      tipo_proveedor: [null, Validators.required],
+      gremio: [null, Validators.required],
+      contacto: ['', Validators.required],
+      direccion: [''],
+      cuit: ['', Validators.required],
+      telefono: ['', Validators.required],
+      email: ['', Validators.required],
+      activo: [true, Validators.required],
+    });
+  }
+
+  abrirModalCliente() {
+    this.clienteForm.reset({
+      nombre: '',
+      contacto: '',
+      cuit: '',
+      condicion_iva: null,
+      telefono: '',
+      email: '',
+      activo: true
+    });
+    this.showClienteModal = true;
+  }
+
+  cerrarModalCliente() {
+    this.showClienteModal = false;
+    this.creandoCliente = false;
+  }
+
+  guardarCliente() {
+    if (this.clienteForm.invalid || this.creandoCliente) {
+      this.clienteForm.markAllAsTouched();
+      return;
+    }
+    this.creandoCliente = true;
+    const payload = this.clienteForm.getRawValue() as any;
+    this.clienteService.createCliente(payload).subscribe({
+      next: (nuevo) => {
+        const clienteId = Number((nuevo as any)?.id ?? (nuevo as any)?.id_cliente ?? 0);
+        const cliente = {...nuevo, id: clienteId};
+        this.clientes = [...this.clientes, cliente];
+        this.form.get('cliente')?.setValue(cliente.id);
+        this.messageService.add({
+          severity: 'success',
+          summary: 'Cliente creado',
+          detail: 'Ya podés asignarlo a la obra.'
+        });
+        this.cerrarModalCliente();
+      },
+      error: () => {
+        this.creandoCliente = false;
+        this.messageService.add({
+          severity: 'error',
+          summary: 'No se creó el cliente',
+          detail: 'Intentá nuevamente.'
+        });
+      }
+    });
+  }
+
+  abrirModalProveedor() {
+    this.proveedorForm.reset({
+      nombre: '',
+      tipo_proveedor: null,
+      gremio: null,
+      contacto: '',
+      direccion: '',
+      cuit: '',
+      telefono: '',
+      email: '',
+      activo: true
+    });
+    this.showProveedorModal = true;
+  }
+
+  cerrarModalProveedor() {
+    this.showProveedorModal = false;
+    this.creandoProveedor = false;
+  }
+
+  guardarProveedor() {
+    if (this.proveedorForm.invalid || this.creandoProveedor) {
+      this.proveedorForm.markAllAsTouched();
+      return;
+    }
+    this.creandoProveedor = true;
+    const payload = this.proveedorForm.getRawValue() as any;
+    this.proveedoresService.createProveedor(payload).subscribe({
+      next: (nuevo) => {
+        const proveedor = {...nuevo, id: Number((nuevo as any).id ?? 0)};
+        this.proveedores = [...this.proveedores, proveedor];
+        this.messageService.add({
+          severity: 'success',
+          summary: 'Proveedor creado',
+          detail: 'Disponible en la lista de costos.'
+        });
+        this.cerrarModalProveedor();
+      },
+      error: () => {
+        this.creandoProveedor = false;
+        this.messageService.add({
+          severity: 'error',
+          summary: 'No se creó el proveedor',
+          detail: 'Intentá nuevamente.'
+        });
+      }
+    });
   }
 
   private cargarCostosEnFormArray(costos: ObraCosto[]) {
