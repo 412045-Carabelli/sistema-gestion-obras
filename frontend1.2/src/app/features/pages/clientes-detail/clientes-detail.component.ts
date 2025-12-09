@@ -12,7 +12,7 @@ import {TableModule} from 'primeng/table';
 import {TagModule} from 'primeng/tag';
 import {CurrencyPipe, CommonModule} from '@angular/common';
 
-import {Cliente, Obra, Transaccion} from '../../../core/models/models';
+import {Cliente, CondicionIva, CONDICION_IVA_LABELS, Obra, Transaccion} from '../../../core/models/models';
 import {ClientesService} from '../../../services/clientes/clientes.service';
 import {ObrasService} from '../../../services/obras/obras.service';
 import {ClientesDocumentosComponent} from '../../components/clientes-documentos/clientes-documentos.component';
@@ -114,6 +114,15 @@ export class ClientesDetailComponent implements OnInit, OnDestroy {
 
   getActivoSeverity(activo: boolean): string {
     return activo ? 'success' : 'danger';
+  }
+
+  getCondicionIvaLabel(condicion: CondicionIva | string | null | undefined): string {
+    if (!condicion) return 'Sin dato';
+
+    const normalized = condicion.toString().trim();
+    const key = normalized.toUpperCase().replace(/\s+/g, '_') as CondicionIva;
+
+    return CONDICION_IVA_LABELS[key] ?? normalized;
   }
 
   getEstadosResumen(): { nombre: string; cantidad: number }[] {

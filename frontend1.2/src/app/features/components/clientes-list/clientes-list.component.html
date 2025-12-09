@@ -60,7 +60,7 @@
         <td class="px-3 py-2">{{ c.cuit || 'Sin dato' }}</td>
         <td class="px-3 py-2">{{ c.telefono || 'Sin dato' }}</td>
         <td class="px-3 py-2">{{ c.email || 'Sin dato' }}</td>
-        <td class="px-3 py-2">{{ getCondicionIvaLabel(c.condicionIva) }}</td>
+        <td class="px-3 py-2">{{ getCondicionIvaLabel(c.condicionIva ?? c.condicion_iva) }}</td>
         <td class="px-3 py-2 text-center">
           <p-tag
             [severity]="getActivoSeverity(c.activo)"
