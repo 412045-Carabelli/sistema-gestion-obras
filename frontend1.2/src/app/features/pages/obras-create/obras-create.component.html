@@ -51,14 +51,27 @@
               <i class="pi pi-user text-gray-400 text-xs"></i>
               Cliente
             </label>
-            <p-select
-              [options]="clientes"
-              appendTo="body"
-              styleClass="w-full"
-              formControlName="cliente"
-              optionLabel="nombre"
-              placeholder="Selecciona un cliente"
-            ></p-select>
+            <div class="flex gap-2">
+              <div class="flex-1">
+                <p-select
+                  [options]="clientes"
+                  appendTo="body"
+                  styleClass="w-full"
+                  formControlName="cliente"
+                  optionLabel="nombre"
+                  optionValue="id"
+                  placeholder="Selecciona un cliente"
+                ></p-select>
+              </div>
+              <p-button
+                icon="pi pi-plus"
+                label="Nuevo"
+                size="small"
+                (onClick)="abrirModalCliente()"
+                styleClass="h-[42px]"
+                type="button"
+              ></p-button>
+            </div>
             @if (form.get('cliente')?.touched && form.get('cliente')?.hasError('required')) {
               <small class="text-red-500 text-xs mt-1">Selecciona un cliente</small>
             }
@@ -268,13 +281,22 @@
           <i class="pi pi-list text-blue-600"></i>
           Matriz de Costos
         </h2>
-        <p-button
-          (click)="nuevaFilaCosto()"
-          icon="pi pi-plus"
-          label="Agregar costo"
-          styleClass="p-button-sm"
-          type="button"
-        ></p-button>
+        <div class="flex gap-3">
+          <p-button
+            icon="pi pi-briefcase"
+            label="Nuevo proveedor"
+            severity="secondary"
+            type="button"
+            (onClick)="abrirModalProveedor()"
+          ></p-button>
+          <p-button
+            (click)="nuevaFilaCosto()"
+            icon="pi pi-plus"
+            label="Agregar costo"
+            styleClass="p-button-sm"
+            type="button"
+          ></p-button>
+        </div>
       </div>
 
       @if (costos.length > 0) {
@@ -313,3 +335,114 @@
     </div>
   </form>
 </div>
+
+<app-modal
+  [visible]="showClienteModal"
+  [title]="'Nuevo cliente'"
+  [width]="'680px'"
+  [showFooter]="false"
+  (closed)="cerrarModalCliente()"
+>
+  <form class="space-y-4" [formGroup]="clienteForm" (ngSubmit)="guardarCliente()">
+    <div class="grid grid-cols-2 gap-4">
+      <div class="flex flex-col gap-1">
+        <label class="text-sm font-semibold text-gray-700">Nombre</label>
+        <input pInputText formControlName="nombre" placeholder="Razón social" />
+      </div>
+      <div class="flex flex-col gap-1">
+        <label class="text-sm font-semibold text-gray-700">Contacto</label>
+        <input pInputText formControlName="contacto" placeholder="Persona de contacto" />
+      </div>
+      <div class="flex flex-col gap-1">
+        <label class="text-sm font-semibold text-gray-700">CUIT</label>
+        <input pInputText formControlName="cuit" placeholder="00-00000000-0" />
+      </div>
+      <div class="flex flex-col gap-1">
+        <label class="text-sm font-semibold text-gray-700">Condición IVA</label>
+        <p-select
+          [options]="ivaOptions"
+          formControlName="condicion_iva"
+          optionLabel="label"
+          optionValue="name"
+          appendTo="body"
+          placeholder="Seleccioná"
+        ></p-select>
+      </div>
+      <div class="flex flex-col gap-1">
+        <label class="text-sm font-semibold text-gray-700">Teléfono</label>
+        <input pInputText formControlName="telefono" placeholder="Ej. 1122334455" />
+      </div>
+      <div class="flex flex-col gap-1">
+        <label class="text-sm font-semibold text-gray-700">Email</label>
+        <input pInputText formControlName="email" placeholder="correo@cliente.com" />
+      </div>
+    </div>
+    <div class="flex justify-end gap-2 pt-2">
+      <p-button label="Cancelar" severity="secondary" [outlined]="true" (onClick)="cerrarModalCliente()" type="button"></p-button>
+      <p-button type="submit" label="Guardar cliente" icon="pi pi-save" [loading]="creandoCliente"></p-button>
+    </div>
+  </form>
+</app-modal>
+
+<app-modal
+  [visible]="showProveedorModal"
+  [title]="'Nuevo proveedor'"
+  [width]="'700px'"
+  [showFooter]="false"
+  (closed)="cerrarModalProveedor()"
+>
+  <form class="space-y-4" [formGroup]="proveedorForm" (ngSubmit)="guardarProveedor()">
+    <div class="grid grid-cols-2 gap-4">
+      <div class="flex flex-col gap-1">
+        <label class="text-sm font-semibold text-gray-700">Nombre</label>
+        <input pInputText formControlName="nombre" placeholder="Proveedor SA" />
+      </div>
+      <div class="flex flex-col gap-1">
+        <label class="text-sm font-semibold text-gray-700">Tipo</label>
+        <p-select
+          [options]="tiposProveedor"
+          optionLabel="label"
+          optionValue="name"
+          formControlName="tipo_proveedor"
+          appendTo="body"
+          placeholder="Seleccioná"
+        ></p-select>
+      </div>
+      <div class="flex flex-col gap-1">
+        <label class="text-sm font-semibold text-gray-700">Gremio</label>
+        <p-select
+          [options]="gremiosProveedor"
+          optionLabel="label"
+          optionValue="name"
+          formControlName="gremio"
+          appendTo="body"
+          placeholder="Seleccioná"
+        ></p-select>
+      </div>
+      <div class="flex flex-col gap-1">
+        <label class="text-sm font-semibold text-gray-700">Contacto</label>
+        <input pInputText formControlName="contacto" placeholder="Persona de contacto" />
+      </div>
+      <div class="flex flex-col gap-1">
+        <label class="text-sm font-semibold text-gray-700">Dirección</label>
+        <input pInputText formControlName="direccion" placeholder="Calle 123" />
+      </div>
+      <div class="flex flex-col gap-1">
+        <label class="text-sm font-semibold text-gray-700">CUIT</label>
+        <input pInputText formControlName="cuit" placeholder="00-00000000-0" />
+      </div>
+      <div class="flex flex-col gap-1">
+        <label class="text-sm font-semibold text-gray-700">Teléfono</label>
+        <input pInputText formControlName="telefono" placeholder="Ej. 1122334455" />
+      </div>
+      <div class="flex flex-col gap-1">
+        <label class="text-sm font-semibold text-gray-700">Email</label>
+        <input pInputText formControlName="email" placeholder="correo@proveedor.com" />
+      </div>
+    </div>
+    <div class="flex justify-end gap-2 pt-2">
+      <p-button label="Cancelar" severity="secondary" [outlined]="true" (onClick)="cerrarModalProveedor()" type="button"></p-button>
+      <p-button type="submit" label="Guardar proveedor" icon="pi pi-save" [loading]="creandoProveedor"></p-button>
+    </div>
+  </form>
+</app-modal>
