@@ -11,7 +11,7 @@ import {InputIconModule} from 'primeng/inputicon';
 import {ButtonModule} from 'primeng/button';
 import {forkJoin} from 'rxjs';
 
-import {Cliente} from '../../../core/models/models';
+import {Cliente, CondicionIva, CONDICION_IVA_LABELS} from '../../../core/models/models';
 import {Select} from 'primeng/select';
 import {ClientesService} from '../../../services/clientes/clientes.service';
 
@@ -100,6 +100,15 @@ export class ClientesListComponent implements OnInit {
 
   getActivoSeverity(activo: boolean): string {
     return activo ? 'success' : 'danger';
+  }
+
+  getCondicionIvaLabel(condicion: CondicionIva | string | null | undefined): string {
+    if (!condicion) return 'Sin dato';
+
+    const normalized = condicion.toString().trim();
+    const key = normalized.toUpperCase().replace(/\s+/g, '_') as CondicionIva;
+
+    return CONDICION_IVA_LABELS[key] ?? normalized;
   }
 
   toggleActivo(cliente: Cliente, event: Event) {
