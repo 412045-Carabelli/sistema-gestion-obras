@@ -3,9 +3,6 @@ import {CommonModule} from '@angular/common';
 import {RouterOutlet} from '@angular/router';
 import {HeaderComponent} from './shared/header/header.component';
 import {SidebarComponent} from './shared/sidebar/sidebar.component';
-import {HttpClient} from '@angular/common/http';
-import {environment} from '../environments/environment';
-import {ServerSleepComponent} from './features/components/server-sleep/server-sleep.component';
 
 @Component({
   selector: 'app-root',
@@ -15,15 +12,18 @@ import {ServerSleepComponent} from './features/components/server-sleep/server-sl
     RouterOutlet,
     HeaderComponent,
     SidebarComponent,
-    ServerSleepComponent
   ],
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.css']
 })
-export class AppComponent {
+export class AppComponent implements OnInit{
   sidebarVisible: boolean = true;
 
   toggleSidebar() {
     this.sidebarVisible = !this.sidebarVisible;
+  }
+
+  ngOnInit() {
+    console.log("v1.2.4")
   }
 }
