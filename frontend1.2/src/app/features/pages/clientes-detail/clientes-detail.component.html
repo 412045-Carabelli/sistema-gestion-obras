@@ -9,7 +9,7 @@
     <div class="p-4 space-y-8 w-full mx-auto">
 
       <!-- ===================== TARJETAS DE INFO PRINCIPAL ===================== -->
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
 
         <!-- Tarjeta Contacto -->
         <div class="bg-white rounded-xl shadow-md p-6 border-l-4 border-blue-500 hover:shadow-lg transition-shadow">
@@ -31,6 +31,19 @@
             <span class="text-sm font-medium text-gray-500">CUIT</span>
           </div>
           <p class="text-lg font-semibold text-gray-900">{{ cliente.cuit || 'Sin CUIT' }}</p>
+        </div>
+
+        <!-- Condición IVA -->
+        <div class="bg-white rounded-xl shadow-md p-6 border-l-4 border-amber-500 hover:shadow-lg transition-shadow">
+          <div class="flex items-center gap-3 mb-2">
+            <div class="w-10 h-10 bg-amber-100 rounded-lg flex items-center justify-center">
+              <i class="pi pi-percentage text-amber-600 text-lg"></i>
+            </div>
+            <span class="text-sm font-medium text-gray-500">Condición IVA</span>
+          </div>
+          <p class="text-lg font-semibold text-gray-900">
+            {{ getCondicionIvaLabel(cliente.condicionIva) }}
+          </p>
         </div>
 
         <!-- Obras activas -->
