@@ -31,5 +31,5 @@ export class SidebarComponent {
     {label: 'Reportes', icon: 'pi-chart-bar', path: '/reportes'},
   ];
 
-  version: string = 'v1.0';
+  version: string = 'v1.2.4';
 }
