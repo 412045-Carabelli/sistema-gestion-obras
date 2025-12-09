@@ -1,6 +1,6 @@
 import {Component, EventEmitter, OnInit, Output} from '@angular/core';
 import {CommonModule, DatePipe} from '@angular/common';
-import {Router} from '@angular/router';
+import {ActivatedRoute, Router} from '@angular/router';
 import {FormsModule} from '@angular/forms';
 import {TableModule} from 'primeng/table';
 import {InputTextModule} from 'primeng/inputtext';
@@ -9,12 +9,14 @@ import {TagModule} from 'primeng/tag';
 import {IconFieldModule} from 'primeng/iconfield';
 import {InputIconModule} from 'primeng/inputicon';
 import {forkJoin} from 'rxjs';
+import {ButtonModule} from 'primeng/button';
 
 import {Cliente, EstadoObra, Obra} from '../../../core/models/models';
 import {ObrasService} from '../../../services/obras/obras.service';
 import {ClientesService} from '../../../services/clientes/clientes.service';
 import {EstadoObraService} from '../../../services/estado-obra/estado-obra.service';
 import {Select} from 'primeng/select';
+import {EstadoFormatPipe} from '../../../shared/pipes/estado-format.pipe';
 
 interface EstadoOption {
   label: string;
@@ -34,7 +36,9 @@ interface EstadoOption {
     IconFieldModule,
     InputIconModule,
     DatePipe,
-    Select
+    Select,
+    ButtonModule,
+    EstadoFormatPipe
   ],
   templateUrl: './obras-list.component.html',
   styleUrls: ['./obras-list.component.css']
@@ -46,14 +50,22 @@ export class ObrasListComponent implements OnInit {
   obrasFiltradas: Obra[] = [];
   datosCargados = false;
   clientes: Cliente[] = [];
-  estados: { label: string; value: string }[] = [];
+  estados: { label: string; name: string }[] = [];
 
   estadoFiltro: string = 'TODOS';
   searchValue: string = '';
   estadosOptions: EstadoOption[] = [];
+  activoFiltro: string = 'todos';
+  activoOptions = [
+    {label: 'Todos', value: 'todos'},
+    {label: 'Activos', value: 'true'},
+    {label: 'Inactivos', value: 'false'},
+  ];
+  private estadoInicialDesdeRuta: string | null = null;
 
   constructor(
     private router: Router,
+    private route: ActivatedRoute,
     private obrasService: ObrasService,
     private clientesService: ClientesService,
     private estadoObraService: EstadoObraService
@@ -61,13 +73,22 @@ export class ObrasListComponent implements OnInit {
   }
 
   ngOnInit() {
+    // Leer filtro de estado desde query params
+    this.route.queryParams.subscribe(params => {
+      this.estadoInicialDesdeRuta = params['estado'] ?? null;
+      if (this.datosCargados) {
+        this.estadoFiltro = this.estadoInicialDesdeRuta || 'TODOS';
+        this.applyFilter();
+      }
+    });
+
     // Carga todo en paralelo
     forkJoin({
       obras: this.obrasService.getObras(),
       clientes: this.clientesService.getClientes(),
       estados: this.estadoObraService.getEstados()
     }).subscribe(({obras, clientes, estados}) => {
-      this.obras = obras
+      this.obras = obras;
 
       this.clientes = clientes.map(c => ({...c, id: Number(c.id)}));
       this.estados = estados as any;
@@ -76,14 +97,20 @@ export class ObrasListComponent implements OnInit {
 
       this.estadosOptions = [
         { label: 'Todos', value: 'TODOS'},
-        ...this.estados.map(r => ({ label: r.label, value: r.value }))
+        ...this.estados.map(r => ({ label: r.label || r.name, value: r.name }))
       ];
 
+      // Aplicar filtro inicial si vino por query param
+      if (this.estadoInicialDesdeRuta) {
+        this.estadoFiltro = this.estadoInicialDesdeRuta;
+      }
+
+      this.applyFilter();
       this.datosCargados = true;
     });
   }
 
-  // 🔍 Filtrado
+  // Filtrado
   applyFilter() {
     this.obrasFiltradas = this.obras.filter(obra => {
 
@@ -99,7 +126,12 @@ export class ObrasListComponent implements OnInit {
           ? true
           : (estadoValor || '').toUpperCase() === (this.estadoFiltro || '').toUpperCase();
 
-      return matchesSearch && matchesEstado;
+      const matchesActivo =
+        this.activoFiltro === 'todos'
+          ? true
+          : String(obra.activo ?? true) === this.activoFiltro;
+
+      return matchesSearch && matchesEstado && matchesActivo;
     });
   }
 
@@ -108,9 +140,10 @@ export class ObrasListComponent implements OnInit {
     if (!raw) return '';
     if (typeof raw === 'string') return raw;
     if (raw.value) return raw.value;
+    if (raw.name) return raw.name;
     if (raw.nombre) {
       const rec = this.estados.find(r => (r.label || '').toLowerCase() === (raw.nombre || '').toLowerCase());
-      return rec?.value || '';
+      return rec?.name || '';
     }
     return '';
   }
@@ -119,13 +152,17 @@ export class ObrasListComponent implements OnInit {
     const raw = (obra as any)?.obra_estado;
     if (!raw) return '';
     if (typeof raw === 'string') {
-      const rec = this.estados.find(r => (r.value || '').toUpperCase() === raw.toUpperCase());
-      return rec?.label || raw;
+      const rec = this.estados.find(r => ((r.name || '') as string).toUpperCase() === raw.toUpperCase());
+      return rec?.label || rec?.name || raw;
     }
     return raw.label || raw.nombre || '';
   }
 
   onEstadoChange() {
+    this.applyFilter();
+  }
+
+  onActivoChange() {
     this.applyFilter();
   }
 
@@ -150,6 +187,10 @@ export class ObrasListComponent implements OnInit {
       7: 'danger'
     };
     return severities[id_estado] || 'secondary';
+  }
+
+  getActivoSeverity(activo?: boolean): string {
+    return activo ? 'success' : 'danger';
   }
 
   getProgreso(obra: Obra): number {

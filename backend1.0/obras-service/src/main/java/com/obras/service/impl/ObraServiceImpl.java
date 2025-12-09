@@ -34,6 +34,7 @@ public class ObraServiceImpl implements ObraService {
 
     @Override
     public ObraDTO crear(ObraDTO dto) {
+        validarFechas(dto);
         Obra obra = toEntity(dto);
         obra.setActivo(true);
         obra.setCreadoEn(Instant.now());
@@ -47,7 +48,7 @@ public class ObraServiceImpl implements ObraService {
     @Override
     @Transactional(readOnly = true)
     public Optional<ObraDTO> obtener(Long id) {
-        return obraRepo.findByIdAndActivoTrue(id).map(this::toDto);
+        return obraRepo.findById(id).map(this::toDto);
     }
 
     /* ============================================================
@@ -57,7 +58,7 @@ public class ObraServiceImpl implements ObraService {
     @Override
     @Transactional(readOnly = true)
     public Page<ObraDTO> listar(Pageable p) {
-        Page<Obra> page = obraRepo.findByActivoTrue(p);
+        Page<Obra> page = obraRepo.findAll(p);
         List<ObraDTO> dtos = page.stream().map(this::toDto).toList();
         return new PageImpl<>(dtos, p, page.getTotalElements());
     }
@@ -68,8 +69,9 @@ public class ObraServiceImpl implements ObraService {
 
     @Override
     public ObraDTO actualizar(Long id, ObraDTO dto) {
-        Obra existing = obraRepo.findByIdAndActivoTrue(id)
-                .orElseThrow(() -> new RuntimeException("Obra no encontrada o inactiva: " + id));
+        validarFechas(dto);
+        Obra existing = obraRepo.findById(id)
+                .orElseThrow(() -> new RuntimeException("Obra no encontrada: " + id));
 
         existing.setNombre(dto.getNombre());
         existing.setDireccion(dto.getDireccion());
@@ -97,10 +99,16 @@ public class ObraServiceImpl implements ObraService {
 
     @Override
     public void cambiarEstado(Long idObra, EstadoObraEnum estado) {
-        Obra obra = obraRepo.findByIdAndActivoTrue(idObra)
-                .orElseThrow(() -> new EntityNotFoundException("Obra no encontrada o inactiva"));
+        Obra obra = obraRepo.findById(idObra)
+                .orElseThrow(() -> new EntityNotFoundException("Obra no encontrada"));
 
-        obra.setEstadoObra(estado != null ? estado : EstadoObraEnum.PRESUPUESTADA);
+        EstadoObraEnum nuevoEstado = estado != null ? estado : EstadoObraEnum.PRESUPUESTADA;
+        obra.setEstadoObra(nuevoEstado);
+
+        if (nuevoEstado == EstadoObraEnum.ADJUDICADA) {
+            obra.setFechaAdjudicada(java.time.LocalDateTime.now());
+        }
+
         obraRepo.save(obra);
     }
 
@@ -111,11 +119,7 @@ public class ObraServiceImpl implements ObraService {
     @Override
     public void activar(Long idObra) {
         obraRepo.findById(idObra).ifPresent(obra -> {
-            if(obra.getActivo()){
-                obra.setActivo(false);
-            } else {
-                obra.setActivo(true);
-            }
+            obra.setActivo(!Boolean.FALSE.equals(obra.getActivo()));
             obraRepo.save(obra);
         });
     }
@@ -137,6 +141,7 @@ public class ObraServiceImpl implements ObraService {
 
         entity.setNombre(dto.getNombre());
         entity.setDireccion(dto.getDireccion());
+        entity.setFechaPresupuesto(dto.getFecha_presupuesto());
         entity.setFechaInicio(dto.getFecha_inicio());
         entity.setFechaFin(dto.getFecha_fin());
         entity.setFechaAdjudicada(dto.getFecha_adjudicada());
@@ -169,6 +174,7 @@ public class ObraServiceImpl implements ObraService {
         dto.setObra_estado(entity.getEstadoObra());
         dto.setNombre(entity.getNombre());
         dto.setDireccion(entity.getDireccion());
+        dto.setFecha_presupuesto(entity.getFechaPresupuesto());
         dto.setFecha_inicio(entity.getFechaInicio());
         dto.setFecha_fin(entity.getFechaFin());
         dto.setFecha_adjudicada(entity.getFechaAdjudicada());
@@ -207,6 +213,14 @@ public class ObraServiceImpl implements ObraService {
         }
 
         return dto;
+    }
+
+    private void validarFechas(ObraDTO dto) {
+        if (dto == null) return;
+        if (dto.getFecha_inicio() != null && dto.getFecha_fin() != null
+                && dto.getFecha_inicio().isAfter(dto.getFecha_fin())) {
+            throw new IllegalArgumentException("La fecha de inicio no puede ser posterior a la fecha de fin.");
+        }
     }
 
     /* ============================================================

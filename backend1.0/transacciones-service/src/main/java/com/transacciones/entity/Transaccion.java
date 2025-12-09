@@ -29,6 +29,9 @@ public class Transaccion {
     @Column(name = "id_asociado", nullable = false)
     private Long idAsociado;
 
+    @Column(name = "id_costo")
+    private Long idCosto;
+
 
     @Enumerated(EnumType.STRING)
     @Column(name = "id_tipo_transaccion", nullable = false)
@@ -42,6 +45,12 @@ public class Transaccion {
 
     @Column(name = "forma_pago", nullable = false)
     private String forma_pago; // Parcial | Total
+
+    @Column(name = "medio_pago")
+    private String medio_pago; // transferencia, efectivo, cheque, etc.
+
+    @Column(name = "factura_cobrada")
+    private Boolean facturaCobrada;
 
     @Column(name = "activo")
     private Boolean activo = true;

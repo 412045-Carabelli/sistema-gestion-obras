@@ -2,7 +2,6 @@ import {Routes} from '@angular/router';
 import {ObrasCreateComponent} from './features/pages/obras-create/obras-create.component';
 import {ObrasLayoutComponent} from './features/obras-layout/obras-layout.component';
 import {ObrasDetailComponent} from './features/pages/obras-detail/obras-detail.component';
-import {ObrasListComponent} from './features/components/obra-list/obras-list.component';
 import {ObrasEditComponent} from './features/pages/obras-edit/obras-edit.component';
 import {ClientesLayoutComponent} from './features/clientes-layout/clientes-layout.component';
 import {ClientesListComponent} from './features/components/clientes-list/clientes-list.component';
@@ -15,6 +14,7 @@ import {ProveedoresEditComponent} from './features/pages/proveedores-edit/provee
 import {ProveedoresListComponent} from './features/components/proveedores-list/proveedores-list.component';
 import {ReportesComponent} from './features/pages/reportes/reportes.component';
 import {ProveedoresDetailComponent} from './features/pages/proveedores-detail/proveedores-detail.component';
+import {ObrasListComponent} from './features/components/obra-list/obras-list.component';
 
 export const routes: Routes = [
   {
@@ -26,6 +26,11 @@ export const routes: Routes = [
     path: 'dashboard',
     loadComponent: () => import('./features/pages/dashboard/dashboard.component')
       .then(m => m.DashboardComponent)
+  },
+  {
+    path: 'tareas',
+    loadComponent: () => import('./features/pages/tareas/tareas.component')
+      .then(m => m.TareasComponent)
   },
   {
     path: 'obras',

@@ -6,11 +6,12 @@ import { MessageService } from 'primeng/api';
 import { Toast } from 'primeng/toast';
 import { ProgressSpinnerModule } from 'primeng/progressspinner';
 import { Button } from 'primeng/button';
-import {FlujoCajaResponse, MovimientoDashboard, ResumenGeneralResponse, Tarea, Transaccion} from '../../../core/models/models';
+import {FlujoCajaResponse, MovimientoDashboard, ResumenGeneralResponse, Tarea} from '../../../core/models/models';
 import {TareasService} from '../../../services/tareas/tareas.service';
 import {ReportesService} from '../../../services/reportes/reportes.service';
 import {TransaccionesService} from '../../../services/transacciones/transacciones.service';
 import {ObrasService} from '../../../services/obras/obras.service';
+import {EstadoFormatPipe} from '../../../shared/pipes/estado-format.pipe';
 
 @Component({
   selector: 'app-dashboard',
@@ -19,7 +20,8 @@ import {ObrasService} from '../../../services/obras/obras.service';
     CommonModule,
     Toast,
     ProgressSpinnerModule,
-    Button
+    Button,
+    EstadoFormatPipe
   ],
   providers: [MessageService],
   templateUrl: './dashboard.component.html',
@@ -34,6 +36,14 @@ export class DashboardComponent implements OnInit {
   flujoCaja!: FlujoCajaResponse;
   tareasRecientes: Tarea[] = [];
   movimientosRecientes: MovimientoDashboard[] = [];
+  conteoObras = {
+    total: 0,
+    cotizadas: 0,
+    perdidas: 0,
+    adjudicadas: 0,
+    activas: 0,
+    finalizadas: 0,
+  };
 
   constructor(
     private router: Router,
@@ -60,6 +70,7 @@ export class DashboardComponent implements OnInit {
       next: ({ resumen, flujo, obras }) => {
         this.resumenGeneral = resumen;
         this.flujoCaja = flujo;
+        this.conteoObras = this.calcularConteosObras(obras);
 
         // Cargar tareas de las últimas 3 obras
         const obrasRecientes = obras.slice(0, 3);
@@ -71,8 +82,13 @@ export class DashboardComponent implements OnInit {
           forkJoin(tareasPromises).subscribe({
             next: (tareasPorObra) => {
               // Aplanar y ordenar por más recientes
-              this.tareasRecientes = ([] as Tarea[])
+              const mapaObras = new Map(obrasRecientes.map(o => [o.id, o.nombre]));
+              this.tareasRecientes = ([] as (Tarea & { obraNombre?: string })[])
                 .concat(...tareasPorObra)
+                .map(t => ({
+                  ...t,
+                  obraNombre: mapaObras.get(t.id_obra) || 'Obra sin nombre'
+                }))
                 .sort((a, b) => (b.id || 0) - (a.id || 0));
             }
           });
@@ -99,5 +115,27 @@ export class DashboardComponent implements OnInit {
 
   navigateTo(route: string): void {
     this.router.navigate([route]);
+  }
+
+  navigateToObrasEstado(estado?: string): void {
+    if (estado) {
+      this.router.navigate(['/obras'], { queryParams: { estado } });
+    } else {
+      this.router.navigate(['/obras']);
+    }
+  }
+
+  private calcularConteosObras(obras: { obra_estado: string }[]): typeof this.conteoObras {
+    const normalizar = (estado: string | undefined | null) => (estado || '').toUpperCase();
+    return obras.reduce((acc, obra) => {
+      const estado = normalizar((obra as any).obra_estado);
+      acc.total += 1;
+      if (estado.includes('COTIZ')) acc.cotizadas += 1;
+      if (estado.includes('PERDID')) acc.perdidas += 1;
+      if (estado.includes('ADJUDIC')) acc.adjudicadas += 1;
+      if (estado.includes('ACTIV')) acc.activas += 1;
+      if (estado.includes('FINALIZ')) acc.finalizadas += 1;
+      return acc;
+    }, { ...this.conteoObras });
   }
 }

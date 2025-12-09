@@ -1,8 +1,8 @@
-<p-toast position="bottom-right"></p-toast>
+﻿<p-toast position="bottom-right"></p-toast>
 <p-confirmDialog></p-confirmDialog>
 
 <div class="p-4 space-y-5">
-  <!-- 🔹 Título y botón -->
+  <!-- TÃ­tulo y botÃ³n -->
   <div class="flex justify-between items-center flex-wrap gap-3">
     <div>
       <h2 class="text-2xl font-bold text-gray-900">Movimientos</h2>
@@ -19,7 +19,7 @@
     ></p-button>
   </div>
 
-  <!-- 🔸 Tabla de movimientos -->
+  <!-- Tabla de movimientos -->
   @if (transacciones.length > 0) {
     <p-table
       [value]="transacciones"
@@ -31,8 +31,10 @@
           <th>Tipo</th>
           <th>Asociado</th>
           <th>Fecha</th>
-          <th>Forma de pago</th>
+          <th>Condición (Parcial/Total)</th>
+          <th>Medio</th>
           <th>Monto</th>
+          <th>Factura cobrada</th>
           <th class="text-right"></th>
         </tr>
       </ng-template>
@@ -43,23 +45,37 @@
           [ngClass]="rowIndex % 2 === 0 ? 'bg-white' : 'bg-gray-50'"
         >
           <td>
-            {{ t.tipo_transaccion }}
+            <p-tag
+              [value]="tipoMovimiento(t)"
+              [severity]="tipoMovimiento(t) === 'COBRO' ? 'success' : tipoMovimiento(t) === 'PAGO' ? 'danger' : 'info'"
+            ></p-tag>
           </td>
 
           <td>
             {{ proveedorOCliente(t.id_asociado, t.tipo_asociado) }}
           </td>
 
-          <!-- 🔹 Fecha -->
+          <!-- Fecha -->
           <td>{{ t.fecha | date: 'dd/MM/yyyy' }}</td>
 
-          <!-- 🔹 Forma de pago -->
-          <td class="capitalize">{{ t.forma_pago }}</td>
+          <!-- Forma de pago -->
+          <td class="uppercase">{{ t.forma_pago }}</td>
+          <td class="capitalize">{{ t.medio_pago || 'Sin especificar' }}</td>
 
-          <!-- 🔹 Monto -->
-          <td>{{ t.monto | currency: 'ARS' }}</td>
+          <!-- Monto -->
+          <td>
+            <span
+              [ngClass]="tipoMovimiento(t) === 'COBRO' ? 'text-green-600 font-semibold' : tipoMovimiento(t) === 'PAGO' ? 'text-red-600 font-semibold' : 'text-gray-800'">
+              {{ tipoMovimiento(t) === 'COBRO' ? '+' : tipoMovimiento(t) === 'PAGO' ? '-' : '' }}
+              {{ t.monto | currency: 'ARS' }}
+            </span>
+          </td>
 
-          <!-- 🔹 Acciones -->
+        <td>
+          <p-checkbox [binary]="true" [ngModel]="!!t.factura_cobrada" disabled></p-checkbox>
+        </td>
+
+          <!-- Acciones -->
           <td class="flex justify-end gap-2 items-center">
             <!-- Editar -->
             <p-button
@@ -81,7 +97,7 @@
       </ng-template>
     </p-table>
 
-    <!-- 🔸 Totales -->
+    <!-- Totales -->
     <div class="mt-4 p-4 bg-gray-50 rounded-lg text-sm space-y-1">
       <div class="flex justify-between">
         <span class="font-medium">Total Cobros (FC):</span>
@@ -95,6 +111,14 @@
         <span>Saldo:</span>
         <span>{{ saldo | currency: 'ARS' }}</span>
       </div>
+      <div class="flex justify-between text-sm text-gray-700 pt-2 border-t">
+        <span>Saldo cliente</span>
+        <span>{{ saldoCliente | currency: 'ARS' }}</span>
+      </div>
+      <div class="flex justify-between text-sm text-gray-700">
+        <span>Saldo proveedor</span>
+        <span>{{ saldoProveedor | currency: 'ARS' }}</span>
+      </div>
     </div>
   } @else {
     <div class="text-center text-gray-500 py-10 flex flex-col items-center gap-2">
@@ -103,7 +127,7 @@
     </div>
   }
 
-  <!-- 🧾 Modal de creación / edición -->
+  <!-- Modal de creaciÃ³n / ediciÃ³n -->
   <app-modal
     (closed)="cerrarModal()"
     (confirmed)="guardarMovimiento()"
@@ -164,7 +188,7 @@
           </div>
         }
       </div>
-      <!-- 🔸 Tipo de movimiento -->
+      <!-- Tipo de movimiento -->
       <label class="block text-sm font-medium mb-1 text-gray-700">
         Tipo de movimiento
       </label>
@@ -177,9 +201,9 @@
         placeholder="Seleccionar tipo"
       ></p-select>
 
-      <!-- 🔸 Forma de pago -->
+      <!-- Forma de pago -->
       <label class="block text-sm font-medium mb-1 text-gray-700">
-        Forma de pago/cobro
+        Condición de pago/cobro (Total/Parcial)
       </label>
       <p-select
         [(ngModel)]="nuevoMovimiento.forma_pago"
@@ -187,10 +211,21 @@
         class="w-full"
         optionLabel="label"
         optionValue="name"
-        placeholder="Seleccionar forma de pago"
+        placeholder="Seleccionar condición"
       ></p-select>
 
-      <!-- 🔸 Monto y Fecha -->
+      <label class="block text-sm font-medium mb-1 text-gray-700">
+        Medio de pago/cobro
+      </label>
+      <input
+        type="text"
+        pInputText
+        [(ngModel)]="nuevoMovimiento.medio_pago"
+        class="w-full"
+        placeholder="Ej: Transferencia, Efectivo, Cheque"
+      />
+
+      <!-- Monto y Fecha -->
       <div class="flex gap-5">
         <div class="flex flex-col w-1/2">
           <label class="block text-sm font-medium mb-1 text-gray-700">Monto</label>
@@ -213,6 +248,12 @@
           ></p-datepicker>
         </div>
       </div>
+
+      <div class="flex items-center gap-2 pt-2">
+        <p-checkbox [(ngModel)]="nuevoMovimiento.factura_cobrada" [binary]="true"></p-checkbox>
+        <label class="text-sm text-gray-700">Factura cobrada</label>
+      </div>
     </div>
   </app-modal>
 </div>
+

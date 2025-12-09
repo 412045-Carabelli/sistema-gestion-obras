@@ -25,6 +25,7 @@ export interface Cliente {
   nombre: string;
   id_empresa?: number;
   contacto?: string;
+  condicion_iva?: string;
   cuit?: string;
   telefono?: string;
   email?: string;
@@ -41,6 +42,9 @@ export interface Proveedor {
   id: number;
   tipo_proveedor: string;
   nombre: string;
+  direccion?: string;
+  gremio?: string;
+  cuit?: string;
   contacto?: string;
   telefono?: string;
   email?: string;
@@ -64,6 +68,7 @@ export interface Obra {
   nombre: string;
   direccion?: string;
   fecha_inicio: string;
+  fecha_presupuesto?: string;
   fecha_fin?: string;
   fecha_adjudicada?: string;
   fecha_perdida?: string;
@@ -113,6 +118,7 @@ export interface Tarea {
   id?: number;
   id_obra: number;
   id_proveedor?: number;
+  obraNombre: string;
   proveedor?: Proveedor;
   estado_tarea: string;
   nombre: string;
@@ -133,10 +139,17 @@ export interface Transaccion {
   tipo_transaccion: string;
   fecha?: string | Date;
   monto: number;
-  forma_pago: string;
+  forma_pago: string; // PARCIAL | TOTAL
+  medio_pago?: string; // efectivo, transferencia, cheque, etc.
+  factura_cobrada?: boolean;
+  saldo_cliente?: number;
+  saldo_proveedor?: number;
+  tipo_movimiento?: string;
   activo?: boolean;
   ultima_actualizacion?: string;
   tipo_actualizacion?: string;
+  observacion?: string;
+  etiqueta?: string; // auxiliar de UI (FC/RBOS)
 }
 
 export type TipoDocumento = RecordOption;
@@ -210,6 +223,54 @@ export interface FlujoCajaResponse {
     formaPago: string;
     asociadoTipo: string;
     asociadoId: number;
+  }>;
+}
+
+export interface CuentaCorrienteMovimiento {
+  fecha: string;
+  obraId?: number;
+  obraNombre?: string;
+  concepto?: string;
+  referencia?: string;
+  tipo: string;
+  monto: number;
+  asociadoTipo?: string;
+  asociadoId?: number;
+  cobrosAcumulados?: number;
+  costosAcumulados?: number;
+  pagosAcumulados?: number;
+  saldoCliente?: number;
+  saldoProveedor?: number;
+}
+
+export interface CuentaCorrienteObraResponse {
+  obraId?: number;
+  obraNombre?: string;
+  totalIngresos: number;
+  totalEgresos: number;
+  saldoFinal: number;
+  movimientos: CuentaCorrienteMovimiento[];
+}
+
+export interface CuentaCorrienteProveedorResponse {
+  proveedorId?: number;
+  proveedorNombre?: string;
+  totalCostos: number;
+  totalPagos: number;
+  saldoFinal: number;
+  movimientos: CuentaCorrienteMovimiento[];
+}
+
+export interface ComisionesResponse {
+  totalComision: number;
+  totalPagos: number;
+  saldo: number;
+  detalle: Array<{
+    obraId?: number;
+    obraNombre?: string;
+    monto: number;
+    pagos: number;
+    saldo: number;
   }>;
 }
 
@@ -301,6 +362,7 @@ export interface MovimientoDashboard {
   transaccionId: number;
   fecha: string;
   tipo: string;
+  tipo_movimiento?: string;
   monto: number;
   obraId: number;
   obraNombre: string;

@@ -2,7 +2,7 @@ version: '3.9'
 
 services:
   obras-service:
-    image: ghcr.io/${GHCR_OWNER}/sgo-obras-service:${TAG}
+    image: ghcr.io/412045-carabelli/sgo-obras-service:latest
     container_name: obras_service
     ports:
       - "8081:8081"
@@ -18,7 +18,7 @@ services:
       - sgo_backend
 
   clientes-service:
-    image: ghcr.io/${GHCR_OWNER}/sgo-clientes-service:${TAG}
+    image: ghcr.io/412045-carabelli/sgo-clientes-service:latest
     container_name: clientes_service
     ports:
       - "8082:8082"
@@ -31,7 +31,7 @@ services:
       - sgo_backend
 
   proveedores-service:
-    image: ghcr.io/${GHCR_OWNER}/sgo-proveedores-service:${TAG}
+    image: ghcr.io/412045-carabelli/sgo-proveedores-service:latest
     container_name: proveedores_service
     ports:
       - "8083:8083"
@@ -47,7 +47,7 @@ services:
       - sgo_backend
 
   documentos-service:
-    image: ghcr.io/${GHCR_OWNER}/sgo-documentos-service:${TAG}
+    image: ghcr.io/412045-carabelli/sgo-documentos-service:latest
     container_name: documentos_service
     ports:
       - "8087:8087"
@@ -64,7 +64,7 @@ services:
       - sgo_backend
 
   transacciones-service:
-    image: ghcr.io/${GHCR_OWNER}/sgo-transacciones-service:${TAG}
+    image: ghcr.io/412045-carabelli/sgo-transacciones-service:latest
     container_name: transacciones_service
     ports:
       - "8086:8086"
@@ -80,7 +80,7 @@ services:
       - sgo_backend
 
   reportes-service:
-    image: ghcr.io/${GHCR_OWNER}/sgo-reportes-service:${TAG}
+    image: ghcr.io/412045-carabelli/sgo-reportes-service:latest
     container_name: reportes_service
     ports:
       - "8084:8084"
@@ -93,7 +93,7 @@ services:
       - sgo_backend
 
   api-gateway:
-    image: ghcr.io/${GHCR_OWNER}/sgo-api-gateway:${TAG}
+    image: ghcr.io/412045-carabelli/sgo-api-gateway:latest
     container_name: api_gateway_service
     ports:
       - "8080:8080"
@@ -116,7 +116,7 @@ services:
       - sgo_backend
 
   frontend:
-    image: ghcr.io/${GHCR_OWNER}/sgo-frontend:${TAG}
+    image: ghcr.io/412045-carabelli/sgo-frontend:latest
     container_name: obras_frontend
     ports:
       - "4200:80"

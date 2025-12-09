@@ -9,6 +9,8 @@ import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import java.math.BigDecimal;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -22,6 +24,9 @@ public class TransaccionBffController {
 
     @Value("${services.transacciones.url}")
     private String TRANSACCIONES_URL;
+
+    @Value("${services.obras.url}")
+    private String OBRAS_URL;
 
     private final WebClient.Builder webClientBuilder;
 
@@ -103,6 +108,16 @@ public class TransaccionBffController {
                 .then(Mono.just(ResponseEntity.noContent().build()));
     }
 
+    @DeleteMapping("/costo/{idCosto}")
+    public Mono<ResponseEntity<Void>> deleteTransaccionPorCosto(@PathVariable("idCosto") Long idCosto) {
+        return webClientBuilder.build()
+                .delete()
+                .uri(TRANSACCIONES_URL + "/costo/{idCosto}", idCosto)
+                .retrieve()
+                .bodyToMono(Void.class)
+                .then(Mono.just(ResponseEntity.noContent().build()));
+    }
+
     @GetMapping("/asociado/{tipo}/{id}")
     public Mono<ResponseEntity<List<Map<String, Object>>>> getTransaccionesPorAsociado(
             @PathVariable("tipo") String tipo,
@@ -114,5 +129,22 @@ public class TransaccionBffController {
                 .retrieve()
                 .bodyToMono(new ParameterizedTypeReference<List<Map<String, Object>>>() {})
                 .map(ResponseEntity::ok);
+    }
+    private Long parseLongSafe(Object value) {
+        if (value == null) return null;
+        try {
+            return Long.valueOf(value.toString());
+        } catch (NumberFormatException e) {
+            return null;
+        }
+    }
+
+    private BigDecimal parseBigDecimal(Object value) {
+        if (value == null) return null;
+        try {
+            return new BigDecimal(value.toString());
+        } catch (NumberFormatException e) {
+            return null;
+        }
     }
 }

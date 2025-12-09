@@ -8,11 +8,12 @@ import {DropdownModule} from 'primeng/dropdown';
 import {TagModule} from 'primeng/tag';
 import {IconFieldModule} from 'primeng/iconfield';
 import {InputIconModule} from 'primeng/inputicon';
+import {ButtonModule} from 'primeng/button';
 import {forkJoin} from 'rxjs';
 
-import {Cliente, CONDICION_IVA_LABELS, CondicionIva} from '../../../core/models/models';
-import {ClientesService} from '../../../services/clientes/clientes.service';
+import {Cliente} from '../../../core/models/models';
 import {Select} from 'primeng/select';
+import {ClientesService} from '../../../services/clientes/clientes.service';
 
 interface ActivoOption {
   label: string;
@@ -31,7 +32,8 @@ interface ActivoOption {
     TagModule,
     IconFieldModule,
     InputIconModule,
-    Select
+    Select,
+    ButtonModule
   ],
   templateUrl: './clientes-list.component.html',
   styleUrls: ['./clientes-list.component.css']
@@ -45,7 +47,6 @@ export class ClientesListComponent implements OnInit {
   searchValue: string = '';
   activoFiltro: string = 'todos';
   activoOptions: ActivoOption[] = [];
-  readonly condicionIvaLabels = CONDICION_IVA_LABELS;
 
   constructor(
     private router: Router,
@@ -76,8 +77,7 @@ export class ClientesListComponent implements OnInit {
         (cliente.contacto?.toLowerCase().includes(this.searchValue.toLowerCase()) ?? false) ||
         (cliente.cuit?.toLowerCase().includes(this.searchValue.toLowerCase()) ?? false) ||
         (cliente.telefono?.toLowerCase().includes(this.searchValue.toLowerCase()) ?? false) ||
-        (cliente.email?.toLowerCase().includes(this.searchValue.toLowerCase()) ?? false) ||
-        this.getCondicionIvaLabel(cliente.condicionIva).toLowerCase().includes(this.searchValue.toLowerCase())
+        (cliente.email?.toLowerCase().includes(this.searchValue.toLowerCase()) ?? false)
         : true;
 
       const matchesActivo =
@@ -102,8 +102,15 @@ export class ClientesListComponent implements OnInit {
     return activo ? 'success' : 'danger';
   }
 
-  getCondicionIvaLabel(value?: string | CondicionIva): string {
-    if (!value) return 'No informado';
-    return this.condicionIvaLabels[value as CondicionIva] ?? 'No informado';
+  toggleActivo(cliente: Cliente, event: Event) {
+    event.stopPropagation();
+    const accion$ = cliente.activo
+      ? this.clientesService.desactivar(cliente.id)
+      : this.clientesService.activar(cliente.id);
+
+    accion$.subscribe(() => {
+      cliente.activo = !cliente.activo;
+      this.applyFilter();
+    });
   }
 }

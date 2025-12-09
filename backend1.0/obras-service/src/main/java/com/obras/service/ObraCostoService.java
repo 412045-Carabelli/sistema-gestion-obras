@@ -11,6 +11,7 @@ public interface ObraCostoService {
     ObraCostoDTO crear(ObraCostoDTO dto);
 
     ObraCostoDTO actualizarEstadoPago(Long idCosto, EstadoPagoEnum estadoPago);
+    ObraCostoDTO actualizar(Long idCosto, ObraCostoDTO dto);
 
     void eliminar(Long id);
 

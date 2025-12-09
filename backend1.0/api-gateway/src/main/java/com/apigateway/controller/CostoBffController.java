@@ -49,4 +49,44 @@ public class CostoBffController {
                 .map(ResponseEntity::ok);
     }
 
+    @PostMapping("/{idObra}")
+    public Mono<ResponseEntity<Map<String, Object>>> crearCosto(
+            @PathVariable("idObra") Long idObra,
+            @RequestBody Map<String, Object> body
+    ) {
+        WebClient client = webClientBuilder.build();
+        return client.post()
+                .uri(COSTOS_URL + "/{idObra}", idObra)
+                .bodyValue(body)
+                .retrieve()
+                .bodyToMono(new ParameterizedTypeReference<Map<String, Object>>() {})
+                .map(ResponseEntity::ok)
+                .onErrorResume(ex -> Mono.just(ResponseEntity.badRequest().build()));
+    }
+
+    @PutMapping("/{idCosto}")
+    public Mono<ResponseEntity<Map<String, Object>>> actualizarCosto(
+            @PathVariable("idCosto") Long idCosto,
+            @RequestBody Map<String, Object> body
+    ) {
+        return webClientBuilder.build()
+                .put()
+                .uri(COSTOS_URL + "/{id}", idCosto)
+                .bodyValue(body)
+                .retrieve()
+                .bodyToMono(new ParameterizedTypeReference<Map<String, Object>>() {})
+                .map(ResponseEntity::ok)
+                .onErrorResume(ex -> Mono.just(ResponseEntity.status(500).build()));
+    }
+
+    @DeleteMapping("/{idCosto}")
+    public Mono<ResponseEntity<Object>> eliminarCosto(@PathVariable("idCosto") Long idCosto) {
+        return webClientBuilder.build()
+                .delete()
+                .uri(COSTOS_URL + "/{id}", idCosto)
+                .retrieve()
+                .bodyToMono(Void.class)
+                .map(resp -> ResponseEntity.noContent().build())
+                .onErrorResume(ex -> Mono.just(ResponseEntity.status(500).build()));
+    }
 }

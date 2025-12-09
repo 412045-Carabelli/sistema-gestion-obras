@@ -10,4 +10,6 @@ public interface ProveedorRepository extends JpaRepository<Proveedor, Long> {
     List<Proveedor> findByActivoTrue();
 
     Optional<Proveedor> findByIdAndActivoTrue(Long id);
+
+    Optional<Proveedor> findByDniCuit(String dniCuit);
 }

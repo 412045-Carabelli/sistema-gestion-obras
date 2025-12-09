@@ -5,7 +5,7 @@
     <div class="bg-white p-4 rounded-lg border border-gray-200">
       <div class="grid grid-cols-1 md:grid-cols-12 gap-4">
         <!-- Buscar -->
-        <div class="md:col-span-8">
+        <div class="md:col-span-6">
           <p-iconfield iconPosition="left" styleClass="w-full">
             <p-inputicon styleClass="pi pi-search"/>
             <input
@@ -19,11 +19,30 @@
         </div>
 
         <!-- Estado -->
-        <div class="md:col-span-4">
+        <div class="md:col-span-3">
           <p-select
             (onChange)="onEstadoChange()"
             [(ngModel)]="estadoFiltro"
             [options]="estadosOptions"
+            optionLabel="label"
+            optionValue="value"
+            placeholder="Filtrar por estado"
+            styleClass="w-full h-full flex items-center">
+            <ng-template let-option pTemplate="selectedItem">
+              <div class="flex items-center gap-2">
+                <i class="pi pi-filter text-sm"></i>
+                <span>{{ option?.label || 'Todos' }}</span>
+              </div>
+            </ng-template>
+          </p-select>
+        </div>
+
+        <!-- Activo -->
+        <div class="md:col-span-3">
+          <p-select
+            (onChange)="onActivoChange()"
+            [(ngModel)]="activoFiltro"
+            [options]="activoOptions"
             optionLabel="label"
             optionValue="value"
             placeholder="Filtrar por estado"
@@ -59,6 +78,7 @@
             <th class="text-left font-semibold">Estado</th>
             <th class="text-left font-semibold">Período</th>
             <th class="text-right font-semibold">Presupuesto</th>
+            <th class="text-center font-semibold">Activo</th>
           </tr>
         </ng-template>
 
@@ -73,20 +93,29 @@
             <td class="text-gray-700">{{ obra.cliente.nombre }}</td>
             <td>
               <p-tag [severity]="getEstadoSeverity(obra.id_estado_obra)"
-                     [value]="estadoLabelObra(obra)"
+                     [value]="estadoLabelObra(obra) | estadoFormat"
                      styleClass="text-xs"></p-tag>
             </td>
             <td>
-              <div *ngIf="obra.fecha_inicio; else sinFechas" class="flex flex-col gap-1 text-xs text-gray-600">
-                <span>Desde: {{ obra.fecha_inicio | date:'dd/MM/yy' }}</span>
-                <span *ngIf="obra.fecha_fin">Hasta: {{ obra.fecha_fin | date:'dd/MM/yy' }}</span>
-              </div>
-              <ng-template #sinFechas>
+              @if (obra.fecha_inicio) {
+                <div class="flex flex-col gap-1 text-xs text-gray-600">
+                  <span>Desde: {{ obra.fecha_inicio | date:'dd/MM/yy' }}</span>
+                  @if (obra.fecha_fin) {
+                    <span>Hasta: {{ obra.fecha_fin | date:'dd/MM/yy' }}</span>
+                  }
+                </div>
+              } @else {
                 <span class="text-gray-400 text-sm">—</span>
-              </ng-template>
+              }
             </td>
             <td class="text-right font-medium text-gray-900">
               {{ obra.presupuesto | currency:'ARS':'symbol-narrow':'1.0-0' }}
+            </td>
+            <td class="text-center">
+              <p-tag
+                [severity]="getActivoSeverity(obra.activo)"
+                [value]="obra.activo ? 'Activo' : 'Inactivo'">
+              </p-tag>
             </td>
           </tr>
         </ng-template>
@@ -106,12 +135,13 @@
     </div>
   </div>
 } @placeholder {
-  <!-- 🦴 Skeleton tabla -->
+  <!-- Skeleton -->
   <div class="flex flex-col gap-4 animate-pulse">
     <div class="bg-white p-4 rounded-lg border border-gray-200">
       <div class="grid grid-cols-1 md:grid-cols-12 gap-4">
-        <div class="md:col-span-8 h-10 bg-gray-200 rounded"></div>
-        <div class="md:col-span-4 h-10 bg-gray-200 rounded"></div>
+        <div class="md:col-span-6 h-10 bg-gray-200 rounded"></div>
+        <div class="md:col-span-3 h-10 bg-gray-200 rounded"></div>
+        <div class="md:col-span-3 h-10 bg-gray-200 rounded"></div>
       </div>
     </div>
 

@@ -2,7 +2,6 @@
   <!-- Barra de filtros -->
   <div class="bg-white p-4 rounded-lg border border-gray-200">
     <div class="grid grid-cols-1 md:grid-cols-12 gap-4">
-      <!-- Buscador -->
       <div class="md:col-span-8">
         <p-iconfield iconPosition="left" styleClass="w-full">
           <p-inputicon styleClass="pi pi-search"/>
@@ -16,7 +15,6 @@
         </p-iconfield>
       </div>
 
-      <!-- Filtro activo -->
       <div class="md:col-span-4">
         <p-select
           (onChange)="onActivoChange()"
@@ -25,8 +23,7 @@
           optionLabel="label"
           optionValue="value"
           placeholder="Filtrar por estado"
-          styleClass="w-full"
-        >
+          styleClass="w-full">
           <ng-template let-option pTemplate="selectedItem">
             <div class="flex items-center gap-2">
               <i class="pi pi-filter text-sm"></i>
@@ -42,8 +39,7 @@
   <p-table
     [tableStyle]="{ 'min-width': '100%' }"
     [value]="clientesFiltrados"
-    class="w-full"
-  >
+    class="w-full">
     <ng-template pTemplate="header">
       <tr>
         <th class="px-3 py-2 text-left">Nombre</th>
@@ -53,14 +49,12 @@
         <th class="px-3 py-2 text-left">Email</th>
         <th class="px-3 py-2 text-left">Condicion IVA</th>
         <th class="px-3 py-2 text-center">Activo</th>
+        <th class="px-3 py-2 text-center">Acciones</th>
       </tr>
     </ng-template>
 
     <ng-template let-c pTemplate="body">
-      <tr
-        (click)="onRowClick(c)"
-        class="hover:bg-gray-100 cursor-pointer"
-      >
+      <tr (click)="onRowClick(c)" class="hover:bg-gray-100 cursor-pointer">
         <td class="px-3 py-2">{{ c.nombre }}</td>
         <td class="px-3 py-2">{{ c.contacto || 'Sin dato' }}</td>
         <td class="px-3 py-2">{{ c.cuit || 'Sin dato' }}</td>
@@ -70,8 +64,17 @@
         <td class="px-3 py-2 text-center">
           <p-tag
             [severity]="getActivoSeverity(c.activo)"
-            [value]="c.activo ? 'Activo' : 'Inactivo'"
-          ></p-tag>
+            [value]="c.activo ? 'Activo' : 'Inactivo'">
+          </p-tag>
+        </td>
+        <td class="px-3 py-2 text-center">
+          <p-button
+            [icon]="c.activo ? 'pi pi-ban' : 'pi pi-check'"
+            [rounded]="true"
+            [text]="true"
+            [severity]="c.activo ? 'danger' : 'success'"
+            (onClick)="toggleActivo(c, $event)">
+          </p-button>
         </td>
       </tr>
     </ng-template>

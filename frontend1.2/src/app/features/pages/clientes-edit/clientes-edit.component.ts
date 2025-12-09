@@ -5,17 +5,16 @@ import {MessageService} from 'primeng/api';
 import {ToastModule} from 'primeng/toast';
 import {ButtonModule} from 'primeng/button';
 import {InputTextModule} from 'primeng/inputtext';
-import {CheckboxModule} from 'primeng/checkbox';
 import {Select} from 'primeng/select';
 
 import {ClientesService} from '../../../services/clientes/clientes.service';
-import {Cliente, CONDICIONES_IVA_OPCIONES} from '../../../core/models/models';
+import {Cliente} from '../../../core/models/models';
 import {ProgressSpinner} from 'primeng/progressspinner';
 
 @Component({
   selector: 'app-clientes-edit',
   standalone: true,
-  imports: [RouterLink, ReactiveFormsModule, ToastModule, ButtonModule, InputTextModule, CheckboxModule, ProgressSpinner, Select],
+  imports: [RouterLink, ReactiveFormsModule, ToastModule, ButtonModule, InputTextModule, Select, ProgressSpinner],
   providers: [MessageService],
   templateUrl: './clientes-edit.component.html',
   styleUrls: ['./clientes-edit.component.css']
@@ -24,7 +23,7 @@ export class ClientesEditComponent implements OnInit {
   form!: FormGroup;
   clienteId!: number;
   loading = true;
-  readonly condicionesIva = CONDICIONES_IVA_OPCIONES;
+  ivaOptions: { label: string; name: string }[] = [];
 
   constructor(
     private fb: FormBuilder,
@@ -39,11 +38,10 @@ export class ClientesEditComponent implements OnInit {
     this.form = this.fb.group({
       nombre: ['', Validators.required],
       contacto: ['', Validators.required],
-      cuit: [''],
-      telefono: ['', [Validators.required, Validators.minLength(10), Validators.maxLength(15)]],
-      email: ['', [Validators.required, Validators.email]],
-      condicionIva: [this.condicionesIva[0].name, Validators.required],
-      activo: [true]
+      cuit: ['', Validators.required],
+      condicion_iva: [null, Validators.required],
+      telefono: ['', Validators.required],
+      email: ['', [Validators.required, Validators.email]]
     });
 
     const idParam = this.route.snapshot.paramMap.get('id');
@@ -51,6 +49,11 @@ export class ClientesEditComponent implements OnInit {
       this.clienteId = Number(idParam);
       this.cargarCliente(this.clienteId);
     }
+
+    this.clientesService.getCondicionesIva().subscribe({
+      next: (opciones) => (this.ivaOptions = opciones),
+      error: () => (this.ivaOptions = [])
+    });
   }
 
   onSubmit() {
@@ -84,8 +87,10 @@ export class ClientesEditComponent implements OnInit {
   private cargarCliente(id: number) {
     this.clientesService.getClienteById(id).subscribe({
       next: (cliente) => {
-        const condicionIva = cliente.condicionIva ?? this.condicionesIva[0].name;
-        this.form.patchValue({...cliente, condicionIva});
+        this.form.patchValue({
+          ...cliente,
+          condicion_iva: (cliente as any).condicionIVA ?? cliente.condicion_iva ?? null
+        });
         this.loading = false;
       },
       error: () => {
