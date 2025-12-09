@@ -29,12 +29,6 @@ import { Select } from 'primeng/select';
 import { ModalComponent } from '../../../shared/modal/modal.component';
 import { TransaccionesService } from '../../../services/transacciones/transacciones.service';
 
-// PDFMAKE
-import pdfMake from 'pdfmake/build/pdfmake';
-import pdfFonts from 'pdfmake/build/vfs_fonts';
-
-pdfMake.vfs = pdfFonts.vfs;
-
 
 @Component({
   selector: 'app-obra-presupuesto',
@@ -69,6 +63,9 @@ export class ObraPresupuestoComponent implements OnInit, OnChanges {
 
   @Output() costosActualizados = new EventEmitter<ObraCosto[]>();
   @Output() movimientoCreado = new EventEmitter<void>();
+
+  private pdfMakeInstance?: any;
+  private pdfMakeLoader?: Promise<any>;
 
   costosFiltrados: ObraCosto[] = [];
   estadosPagoRecords: { label: string; name: string }[] = [];
@@ -356,6 +353,7 @@ export class ObraPresupuestoComponent implements OnInit, OnChanges {
   // ------------------- EXPORTAR PDF --------------------------
   // ----------------------------------------------------------
   async exportarPDF() {
+    const pdfMake = await this.loadPdfMake();
     const obra = this.obra;
     const cliente = obra.cliente;
 
@@ -613,6 +611,24 @@ export class ObraPresupuestoComponent implements OnInit, OnChanges {
     };
   }
 
+  private loadPdfMake(): Promise<any> {
+    if (this.pdfMakeInstance) {
+      return Promise.resolve(this.pdfMakeInstance);
+    }
+    if (!this.pdfMakeLoader) {
+      this.pdfMakeLoader = Promise.all([
+        import('pdfmake/build/pdfmake'),
+        import('pdfmake/build/vfs_fonts')
+      ]).then(([pdfMakeModule, pdfFonts]) => {
+        const pdfMake = (pdfMakeModule as any).default || pdfMakeModule;
+        pdfMake.vfs = ((pdfFonts as any).default || pdfFonts as any).vfs;
+        this.pdfMakeInstance = pdfMake;
+        return pdfMake;
+      });
+    }
+    return this.pdfMakeLoader;
+  }
+
   private cargarEstadosDePago() {
     this.estadoPagoService.getEstadosPago().subscribe({
       next: records => {
@@ -694,10 +710,6 @@ export class ObraPresupuestoComponent implements OnInit, OnChanges {
     return fallback;
   }
 }
-
-
-
-
 
 
 
