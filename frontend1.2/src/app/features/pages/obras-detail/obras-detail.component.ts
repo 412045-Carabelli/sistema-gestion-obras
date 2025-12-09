@@ -322,7 +322,7 @@ export class ObrasDetailComponent implements OnInit, OnDestroy {
     const movimientos = cc?.movimientos ?? [];
     const totalesIngresos = cc?.totalIngresos ?? 0;
     const totalesEgresos = cc?.totalEgresos ?? 0;
-    const saldoFinal = totalesIngresos - totalesEgresos;
+    const saldoFinal = cc?.saldoFinal ?? (totalesIngresos - totalesEgresos);
     const totalCobrosMov = movimientos
       .filter(m => (m.tipo || '').toUpperCase() === 'COBRO')
       .reduce((acc, m) => acc + (m.monto ?? 0), 0);
@@ -332,6 +332,9 @@ export class ObrasDetailComponent implements OnInit, OnDestroy {
         return tipo === 'PAGO' || tipo === 'COSTO';
       })
       .reduce((acc, m) => acc + (m.monto ?? 0), 0);
+    const totalCobros = totalCobrosMov || totalesIngresos;
+    const totalPagos = totalPagosMov || totalesEgresos;
+    const saldoFinalTabla = totalCobros - totalPagos;
 
     const filasMov = movimientos.length
       ? movimientos.map(m => ([
@@ -461,9 +464,9 @@ export class ObrasDetailComponent implements OnInit, OnDestroy {
           table: {
             widths: ['*', 120],
             body: [
-              ['Total cobros', formatCurrency(totalCobrosMov || totalesIngresos)],
-              ['Total pagos', formatCurrency(totalPagosMov || totalesEgresos)],
-              ['Saldo final', formatCurrency(saldoFinal)]
+              ['Total cobros', formatCurrency(totalCobros)],
+              ['Total pagos', formatCurrency(totalPagos)],
+              ['Saldo final', formatCurrency(saldoFinalTabla)]
             ]
           },
           layout: 'noBorders'
