@@ -23,6 +23,7 @@ import {
   ResumenGeneralResponse,
   CuentaCorrienteObraResponse,
   CuentaCorrienteProveedorResponse,
+  CuentaCorrienteClienteResponse,
   ComisionesResponse
 } from '../../../core/models/models';
 import {ReportesService} from '../../../services/reportes/reportes.service';
@@ -85,6 +86,7 @@ export class ReportesComponent implements OnInit {
 
   private clientesIndex: Record<number, string> = {};
   private proveedoresIndex: Record<number, string> = {};
+  private obrasIndex: Record<number, string> = {};
 
   resumenGeneral: ResumenGeneralResponse | null = null;
   ingresosEgresos: IngresosEgresosResponse | null = null;
@@ -100,6 +102,7 @@ export class ReportesComponent implements OnInit {
   estadoFinancieroObra: EstadoFinancieroObraResponse | null = null;
   cuentaCorrienteObra: CuentaCorrienteObraResponse | null = null;
   cuentaCorrienteProveedor: CuentaCorrienteProveedorResponse | null = null;
+  cuentaCorrienteCliente: CuentaCorrienteClienteResponse | null = null;
   comisiones: ComisionesResponse | null = null;
 
   loading = false;
@@ -134,6 +137,7 @@ export class ReportesComponent implements OnInit {
     this.obrasService.getObras().subscribe({
       next: (obras: Obra[]) => {
         this.obrasOptions = obras.map((obra) => ({label: obra.nombre, value: obra.id!}));
+        this.obrasIndex = Object.fromEntries(obras.map(o => [Number(o.id), o.nombre]));
       },
       error: () => this.showToast('error', 'Error', 'No se pudieron cargar las obras')
     });
@@ -183,6 +187,7 @@ export class ReportesComponent implements OnInit {
     const filtrosReporte = this.buildReportFilter();
     const filtrosCCObra = this.ensureFilterId(filtrosReporte, 'obraId', this.obrasOptions[0]?.value);
     const filtrosCCProveedor = this.ensureFilterId(filtrosReporte, 'proveedorId', this.proveedoresOptions[0]?.value);
+    const filtrosCCCliente = this.ensureFilterId(filtrosReporte, 'clienteId', this.clientesOptions[0]?.value);
     const filtrosEstadoObra = this.buildEstadoObraFilter();
 
     forkJoin({
@@ -238,6 +243,23 @@ export class ReportesComponent implements OnInit {
           saldoFinal: 0,
           movimientos: []
         }),
+      cuentaCorrienteCliente: filtrosCCCliente
+        ? this.withDefault(this.reportesService.getCuentaCorrienteCliente(filtrosCCCliente), {
+          clienteId: filtrosCCCliente.clienteId,
+          clienteNombre: '',
+          totalCobros: 0,
+          totalCostos: 0,
+          saldoFinal: 0,
+          movimientos: []
+        })
+        : of({
+          clienteId: undefined,
+          clienteNombre: '',
+          totalCobros: 0,
+          totalCostos: 0,
+          saldoFinal: 0,
+          movimientos: []
+        }),
       pendientes: this.withDefault(this.reportesService.getPendientes(filtrosReporte), {pendientes: []}),
       estadoObras: this.withDefault(this.reportesService.getEstadoObras(filtrosEstadoObra), {obras: []}),
       avanceTareas: this.withDefault(this.reportesService.getAvanceTareas(filtrosReporte), {avances: []}),
@@ -261,6 +283,9 @@ export class ReportesComponent implements OnInit {
           : null;
         this.cuentaCorrienteProveedor = data.cuentaCorrienteProveedor
           ? this.mapCuentaCorrienteProveedor(data.cuentaCorrienteProveedor)
+          : null;
+        this.cuentaCorrienteCliente = data.cuentaCorrienteCliente
+          ? this.mapCuentaCorrienteCliente(data.cuentaCorrienteCliente)
           : null;
         this.pendientes = data.pendientes;
         this.estadoObras = data.estadoObras;
@@ -288,7 +313,7 @@ export class ReportesComponent implements OnInit {
     });
   }
 
-  private ensureFilterId(filter: ReportFilter | undefined, key: 'obraId' | 'proveedorId', fallback?: number | null): ReportFilter | undefined {
+  private ensureFilterId(filter: ReportFilter | undefined, key: 'obraId' | 'proveedorId' | 'clienteId', fallback?: number | null): ReportFilter | undefined {
     const val = filter?.[key] ?? fallback;
     if (!val) return undefined;
     return {...(filter ?? {}), [key]: val};
@@ -304,7 +329,7 @@ export class ReportesComponent implements OnInit {
       totalEgresos,
       totalIngresos,
       saldoFinal,
-      movimientos: this.mapMovimientosObra(data.movimientos || [])
+      movimientos: this.mapMovimientosObra(data.movimientos || [], data.obraNombre)
     };
   }
 
@@ -319,6 +344,20 @@ export class ReportesComponent implements OnInit {
       totalPagos,
       saldoFinal,
       movimientos: this.mapMovimientosProveedor(data.movimientos || [])
+    };
+  }
+
+  private mapCuentaCorrienteCliente(data: any): any {
+    const totalCobros = data.cobros ?? data.totalCobros ?? data.totalIngresos ?? 0;
+    const totalCostos = data.costos ?? data.totalCostos ?? data.totalEgresos ?? 0;
+    const saldoFinal = data.saldo ?? data.saldoFinal ?? (totalCobros - totalCostos);
+
+    return {
+      ...data,
+      totalCobros,
+      totalCostos,
+      saldoFinal,
+      movimientos: this.mapMovimientosCliente(data.movimientos || [])
     };
   }
 
@@ -383,8 +422,8 @@ export class ReportesComponent implements OnInit {
   nombreAsociado(tipo?: string, id?: number): string {
     if (!id) return '-';
     const t = (tipo || '').toString().toUpperCase();
-    if (t === 'CLIENTE') return this.clientesIndex[id] || `Cliente #${id}`;
-    if (t === 'PROVEEDOR') return this.proveedoresIndex[id] || `Proveedor #${id}`;
+    if (t === 'CLIENTE' || t === 'CLIENTES') return this.clientesIndex[id] || `Cliente #${id}`;
+    if (t === 'PROVEEDOR' || t === 'PROVEEDORES') return this.proveedoresIndex[id] || `Proveedor #${id}`;
     return `#${id}`;
   }
 
@@ -392,7 +431,7 @@ export class ReportesComponent implements OnInit {
     return Math.max(valor ?? 0, 0);
   }
 
-  private mapMovimientosObra(movs: any[]): any[] {
+  private mapMovimientosObra(movs: any[], obraNombre?: string): any[] {
     return movs.map(m => {
       const tipo = (m.tipo || '').toString().toUpperCase();
       const concepto =
@@ -405,6 +444,10 @@ export class ReportesComponent implements OnInit {
       return {
         ...m,
         concepto,
+        obraNombre: m.obraNombre || this.obrasIndex[Number(m.obraId)] || obraNombre,
+        asociadoNombre: this.nombreAsociado(m.asociadoTipo, m.asociadoId),
+        cobrosAcumulados: m.cobrosAcumulados ?? m.ingresosAcumulados ?? m.cobrosAcum ?? m.acumuladoCobros ?? 0,
+        costosAcumulados: m.costosAcumulados ?? m.egresosAcumulados ?? m.costoAcum ?? m.acumuladoCostos ?? 0,
         saldoCliente: m.saldoCliente ?? 0
       };
     });
@@ -423,9 +466,32 @@ export class ReportesComponent implements OnInit {
       return {
         ...m,
         concepto,
+        obraNombre: m.obraNombre || this.obrasIndex[Number(m.obraId)],
+        asociadoNombre: this.nombreAsociado(m.asociadoTipo, m.asociadoId),
         saldoProveedor: m.saldoProveedor ?? 0
       };
     });
   }
-}
 
+  private mapMovimientosCliente(movs: any[]): any[] {
+    return movs.map(m => {
+      const tipo = (m.tipo || '').toString().toUpperCase();
+      const concepto =
+        tipo === 'COSTO'
+          ? (m.referencia || m.concepto || '-')
+          : tipo === 'PAGO' || tipo === 'COBRO'
+            ? (m.observacion || m.referencia || m.concepto || '-')
+            : (m.referencia || m.concepto || '-');
+
+      return {
+        ...m,
+        concepto,
+        obraNombre: m.obraNombre || this.obrasIndex[Number(m.obraId)],
+        asociadoNombre: this.nombreAsociado(m.asociadoTipo, m.asociadoId),
+        cobrosAcumulados: m.cobrosAcumulados ?? m.ingresosAcumulados ?? m.acumuladoCobros ?? 0,
+        costosAcumulados: m.costosAcumulados ?? m.egresosAcumulados ?? m.acumuladoCostos ?? 0,
+        saldoCliente: m.saldoCliente ?? 0
+      };
+    });
+  }
+}

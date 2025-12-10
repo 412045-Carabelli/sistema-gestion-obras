@@ -261,7 +261,7 @@ export class ObrasEditComponent implements OnInit {
     this.proveedorForm = this.fb.group({
       nombre: ['', Validators.required],
       tipo_proveedor: [null, Validators.required],
-      gremio: [null, Validators.required],
+      gremio: [null],
       contacto: ['', Validators.required],
       direccion: [''],
       cuit: ['', Validators.required],

@@ -44,7 +44,7 @@ export class ProveedoresFormComponent implements OnInit {
     this.form = this.fb.group({
       nombre: [this.initialData?.nombre ?? '', Validators.required],
       tipo_proveedor: [this.initialData?.tipo_proveedor ?? null, Validators.required],
-      gremio: [this.initialData?.gremio ?? null, Validators.required],
+      gremio: [this.initialData?.gremio ?? null],
       contacto: [this.initialData?.contacto ?? '', Validators.required],
       direccion: [this.initialData?.direccion ?? ''],
       cuit: [this.initialData?.cuit ?? '', Validators.required],
@@ -154,6 +154,5 @@ export class ProveedoresFormComponent implements OnInit {
     return [...filtered, option];
   }
 }
-
 
 
