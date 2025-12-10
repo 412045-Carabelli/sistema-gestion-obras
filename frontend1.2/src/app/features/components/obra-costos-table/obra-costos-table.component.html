@@ -14,6 +14,7 @@
         <th class="px-3 py-2 text-right w-32">Precio Unitario</th>
         <th class="px-3 py-2 text-right w-28">Beneficio (%)</th>
         <th class="px-3 py-2 text-right w-32">Total</th>
+        <th class="px-3 py-2 text-center w-24">Acciones</th>
       </tr>
     </ng-template>
 
@@ -86,13 +87,26 @@
         <td class="px-2 py-1 text-right font-semibold text-green-700 w-32">
           {{ costos.at(rowIndex).get('total')?.value | currency:'ARS' }}
         </td>
+        <td class="px-2 py-1 text-center w-24">
+          @if (modoEdicion) {
+            <p-button
+              icon="pi pi-trash"
+              severity="danger"
+              styleClass="p-button-text p-button-sm"
+              type="button"
+              (onClick)="eliminarFila(rowIndex)">
+            </p-button>
+          } @else {
+            <span class="text-gray-400 text-xs">-</span>
+          }
+        </td>
       </tr>
     </ng-template>
 
     <!-- PIE DE TABLA -->
     <ng-template pTemplate="footer">
       <tr class="font-semibold border-t bg-gray-50">
-        <td class="text-right px-3 py-2" colspan="6">TOTAL GENERAL:</td>
+        <td class="text-right px-3 py-2" colspan="7">TOTAL GENERAL:</td>
         <td class="text-right px-3 py-2 text-green-700">
           {{ calcularTotalGeneral() | currency:'ARS' }}
         </td>

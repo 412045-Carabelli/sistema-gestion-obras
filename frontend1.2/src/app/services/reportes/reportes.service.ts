@@ -9,6 +9,7 @@ import {
   EstadoObrasResponse,
   CuentaCorrienteObraResponse,
   CuentaCorrienteProveedorResponse,
+  CuentaCorrienteClienteResponse,
   ComisionesResponse,
   FlujoCajaResponse,
   IngresosEgresosResponse,
@@ -85,6 +86,10 @@ export class ReportesService {
 
   getCuentaCorrienteProveedor(filtro?: ReportFilter): Observable<CuentaCorrienteProveedorResponse> {
     return this.http.post<CuentaCorrienteProveedorResponse>(`${this.apiUrl}/financieros/cuenta-corriente-proveedor`, filtro ?? {});
+  }
+
+  getCuentaCorrienteCliente(filtro?: ReportFilter): Observable<CuentaCorrienteClienteResponse> {
+    return this.http.post<CuentaCorrienteClienteResponse>(`${this.apiUrl}/financieros/cuenta-corriente-cliente`, filtro ?? {});
   }
 
   getComisiones(filtro?: ReportFilter): Observable<ComisionesResponse> {

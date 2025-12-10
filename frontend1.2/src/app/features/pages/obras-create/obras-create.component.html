@@ -286,6 +286,8 @@
             icon="pi pi-briefcase"
             label="Nuevo proveedor"
             severity="secondary"
+            size="small"
+            styleClass="p-button-sm"
             type="button"
             (onClick)="abrirModalProveedor()"
           ></p-button>
@@ -304,6 +306,7 @@
           [costos]="costos"
           [modoEdicion]="true"
           [proveedores]="proveedores"
+          (costoEliminado)="recalcularTotales()"
         ></app-obra-costos-table>
       } @else {
         <div class="flex flex-col items-center justify-center py-12 text-gray-400">
@@ -408,13 +411,13 @@
           placeholder="Seleccioná"
         ></p-select>
       </div>
-      <div class="flex flex-col gap-1">
-        <label class="text-sm font-semibold text-gray-700">Gremio</label>
-        <p-select
-          [options]="gremiosProveedor"
-          optionLabel="label"
-          optionValue="name"
-          formControlName="gremio"
+        <div class="flex flex-col gap-1">
+          <label class="text-sm font-semibold text-gray-700">Gremio <span class="text-xs font-normal text-gray-500">(opcional)</span></label>
+          <p-select
+            [options]="gremiosProveedor"
+            optionLabel="label"
+            optionValue="name"
+            formControlName="gremio"
           appendTo="body"
           placeholder="Seleccioná"
         ></p-select>
