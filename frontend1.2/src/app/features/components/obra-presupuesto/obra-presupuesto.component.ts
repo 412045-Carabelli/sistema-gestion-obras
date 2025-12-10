@@ -74,6 +74,7 @@ export class ObraPresupuestoComponent implements OnInit, OnChanges {
   estadosPagoRecords: { label: string; name: string }[] = [];
   loading = true;
   nuevoCosto: Partial<ObraCosto> = this.getNuevoCostoBase();
+  private pdfMakeReady = false;
 
   modalPagoVisible = false;
   costoPendientePago: ObraCosto | null = null;
@@ -356,6 +357,8 @@ export class ObraPresupuestoComponent implements OnInit, OnChanges {
   // ------------------- EXPORTAR PDF --------------------------
   // ----------------------------------------------------------
   async exportarPDF() {
+    this.ensurePdfMakeReady();
+
     const obra = this.obra;
     const cliente = obra.cliente;
 
@@ -521,6 +524,17 @@ export class ObraPresupuestoComponent implements OnInit, OnChanges {
   //----------------------------------------------------------
   // Helpers internos
   //----------------------------------------------------------
+  private ensurePdfMakeReady() {
+    if (this.pdfMakeReady) return;
+
+    const fonts =
+      (pdfFonts as any).pdfMake?.vfs ?? (pdfFonts as any).vfs;
+
+    if (fonts) {
+      (pdfMake as any).vfs = fonts;
+      this.pdfMakeReady = true;
+    }
+  }
 
   private async obtenerLogoDataUrl(): Promise<string | undefined> {
     const base = window.location.origin;
@@ -694,9 +708,6 @@ export class ObraPresupuestoComponent implements OnInit, OnChanges {
     return fallback;
   }
 }
-
-
-
 
 
 
