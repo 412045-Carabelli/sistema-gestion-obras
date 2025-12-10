@@ -10,6 +10,7 @@ com\transacciones\dto\TransaccionDto$TransaccionDtoBuilder.class
 com\transacciones\service\TipoTransaccionService.class
 com\transacciones\controller\TransaccionController.class
 com\transacciones\dto\TransaccionDto.class
+com\transacciones\config\DatabasePatchConfig.class
 com\transacciones\enums\TipoTransaccionEnum.class
 com\transacciones\service\TransaccionService.class
 com\transacciones\repository\TransaccionRepository.class

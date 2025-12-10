@@ -1,6 +1,7 @@
 com\reportes\client\ObrasClient$2.class
 com\reportes\dto\response\RankingClientesResponse.class
 com\reportes\dto\external\TransaccionExternalDto.class
+com\reportes\dto\response\CuentaCorrienteProveedorResponse.class
 com\reportes\dto\response\NotasObraResponse.class
 com\reportes\client\ProveedoresClient$1.class
 com\reportes\dto\response\ResumenGeneralResponse.class
@@ -11,6 +12,7 @@ com\reportes\client\TransaccionesClient$1.class
 com\reportes\config\RestTemplateConfig.class
 com\reportes\client\ObrasClient$1.class
 com\reportes\dto\response\RankingProveedoresResponse.class
+com\reportes\entity\MovimientoReporte.class
 com\reportes\dto\external\ClienteExternalDto.class
 com\reportes\controller\ReportesController.class
 com\reportes\dto\response\CostosPorCategoriaResponse.class
@@ -19,14 +21,19 @@ com\reportes\dto\response\RankingClientesResponse$ItemRankingCliente.class
 com\reportes\ReportesServiceApplication.class
 com\reportes\dto\external\ObraEstadoExternalDto.class
 com\reportes\dto\response\FlujoCajaResponse$Movimiento.class
+com\reportes\repository\MovimientoReporteRepository.class
 com\reportes\client\TransaccionesClient.class
 com\reportes\dto\external\TipoTransaccionExternalDto.class
+com\reportes\dto\response\ComisionesResponse.class
 com\reportes\dto\response\AvanceTareasResponse$AvanceObra.class
+com\reportes\repository\ComisionRepository.class
+com\reportes\dto\response\CuentaCorrienteObraResponse.class
 com\reportes\dto\external\EstadoPagoExternalDto.class
 com\reportes\dto\response\EstadoObrasResponse$DetalleEstadoObra.class
 com\reportes\dto\external\ProgresoExternalDto.class
 com\reportes\dto\request\ReportFilterRequest.class
 com\reportes\dto\request\EstadoObraFilterRequest.class
+com\reportes\dto\response\ComisionesResponse$Detalle.class
 com\reportes\dto\response\ComisionesFrontResponse$ComisionItem.class
 com\reportes\client\ObrasClient$4.class
 com\reportes\dto\response\CostosPorCategoriaResponse$CategoriaCosto.class
@@ -40,6 +47,9 @@ com\reportes\dto\response\EstadoFinancieroObraResponse.class
 com\reportes\dto\response\IngresosEgresosResponse.class
 com\reportes\dto\response\ComisionesFrontResponse.class
 com\reportes\dto\response\PendientesResponse.class
+com\reportes\entity\Comision.class
+com\reportes\dto\response\CuentaCorrienteProveedorResponse$Movimiento.class
+com\reportes\dto\response\CuentaCorrienteObraResponse$Movimiento.class
 com\reportes\client\ObrasClient$3.class
 com\reportes\dto\response\RankingProveedoresResponse$ItemRankingProveedor.class
 com\reportes\client\ProveedoresClient.class
