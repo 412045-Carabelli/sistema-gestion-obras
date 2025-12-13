@@ -1,61 +1,43 @@
 package com.clientes.controller;
 
-import com.clientes.dto.ClienteRequest;
-import com.clientes.dto.ClienteResponse;
-import com.clientes.service.ClienteService;
+import com.clientes.entity.Cliente;
+import com.clientes.entity.CondicionIva;
+import com.clientes.repository.ClienteRepository;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
+import java.util.*;
 
 @RestController
 @RequestMapping("/api/clientes")
 @RequiredArgsConstructor
 public class ClientesController {
-    private final ClienteService service;
+    private final ClienteRepository repo;
 
     @PostMapping
-    public ResponseEntity<ClienteResponse> save(@RequestBody @Valid ClienteRequest request){
-        ClienteResponse response = service.crear(request);
-        return ResponseEntity.status(HttpStatus.CREATED).body(response);
-    }
-
+    public Cliente save(@RequestBody @Valid Cliente c){ return repo.save(c); }
     @GetMapping
-    public List<ClienteResponse> all(){ return service.listar(); }
-
-    @GetMapping("/{id}")
-    public ResponseEntity<ClienteResponse> one(@PathVariable("id") Long id){
-        return ResponseEntity.ok(service.obtener(id));
-    }
-
-    @PutMapping("/{id}")
-    public ResponseEntity<ClienteResponse> upd(@PathVariable("id") Long id,@RequestBody @Valid ClienteRequest request){
-        return ResponseEntity.ok(service.actualizar(id, request));
-    }
-
-    @GetMapping("/{id}/obras")
-    public ResponseEntity<ClienteResponse> obras(@PathVariable("id") Long id){
-        return ResponseEntity.ok(service.obtenerConObras(id));
-    }
+    public List<Cliente> all(){ return repo.findAll(); }
+    @GetMapping("/{id}") public ResponseEntity<Cliente> one(@PathVariable("id") Long id){ return repo.findById(id).map(ResponseEntity::ok).orElse(ResponseEntity.notFound().build()); }
+    @PutMapping("/{id}") public Cliente upd(@PathVariable("id") Long id,@RequestBody Cliente c){ c.setId(id); return repo.save(c); }
+    @DeleteMapping("/{id}") public void del(@PathVariable("id") Long id){ repo.deleteById(id); }
 
     @GetMapping("/condicion-iva")
-    public ResponseEntity<List<String>> condicionesIva() {
-        return ResponseEntity.ok(service.listarCondicionesIva());
+    public List<Map<String, String>> condicionesIva() {
+        return Arrays.stream(CondicionIva.values())
+                .map(v -> Map.of("name", v.name(), "label", prettyLabel(v)))
+                .toList();
     }
 
-    @PatchMapping("/{id}/activar")
-    public ResponseEntity<Void> activar(@PathVariable Long id) {
-        service.activar(id);
-        return ResponseEntity.ok().build();
-    }
-
-    @PatchMapping("/{id}/desactivar")
-    public ResponseEntity<Void> desactivar(@PathVariable Long id) {
-        service.desactivar(id);
-        return ResponseEntity.ok().build();
+    private String prettyLabel(CondicionIva v) {
+        return switch (v) {
+            case RESPONSABLE_INSCRIPTO -> "Responsable Inscripto";
+            case MONOTRIBUTO -> "Monotributo";
+            case EXENTO -> "Exento";
+            case CONSUMIDOR_FINAL -> "Consumidor Final";
+        };
     }
 }
 

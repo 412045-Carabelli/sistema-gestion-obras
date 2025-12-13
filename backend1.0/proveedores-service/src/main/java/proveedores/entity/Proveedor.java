@@ -2,6 +2,8 @@ package proveedores.entity;
 
 import jakarta.persistence.*;
 import lombok.Data;
+import proveedores.entity.Gremio;
+import proveedores.entity.TipoProveedor;
 
 import java.time.Instant;
 
@@ -12,14 +14,13 @@ public class Proveedor {
     @Id
     @GeneratedValue(strategy= GenerationType.IDENTITY) private Long id;
     @Column(nullable=false) private String nombre;
-    @Column(name = "dni_cuit", nullable = false, unique = true)
-    private String dniCuit;
-    private String contacto;
-    private String telefono;
-    private String email;
-    private String direccion;
-    private String tipo;
-    private String gremio;
+    @ManyToOne
+    @JoinColumn(name = "tipo_proveedor_id")
+    private TipoProveedor tipoProveedor;
+    @ManyToOne
+    @JoinColumn(name = "gremio_id")
+    private Gremio gremio;
+    private String contacto, telefono, email;
     private Boolean activo = Boolean.TRUE;
     @Column(name = "creado_en")
     private Instant creadoEn = Instant.now();
