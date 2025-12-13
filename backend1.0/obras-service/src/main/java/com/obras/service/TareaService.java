@@ -9,6 +9,8 @@ public interface TareaService {
 
     TareaDTO crear(TareaDTO dto);
 
+    TareaDTO actualizar(Long id, TareaDTO dto);
+
     TareaDTO completarTarea(Long id);
 
     void borrar(Long id);

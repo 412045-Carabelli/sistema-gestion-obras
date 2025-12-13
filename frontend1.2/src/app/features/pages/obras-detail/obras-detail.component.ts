@@ -81,6 +81,7 @@ export class ObrasDetailComponent implements OnInit, OnDestroy {
   estadosObra: EstadoObra[] = [];
   estadoSeleccionado: string | null = null;
   beneficioNeto = 0;
+  beneficioCostos = 0;
   cronogramaFueraDeRango = false;
 
   loading = true;
@@ -165,6 +166,7 @@ export class ObrasDetailComponent implements OnInit, OnDestroy {
 
         this.progresoFisico = this.getProgresoFisico();
         this.beneficioNeto = this.calcularBeneficioNeto();
+        this.beneficioCostos = this.calcularBeneficioCostos(this.costos);
         this.cronogramaFueraDeRango = this.esCronogramaInvalido();
         this.cargarCuentaCorriente(this.obra.id!);
         this.loading = false;
@@ -187,6 +189,7 @@ export class ObrasDetailComponent implements OnInit, OnDestroy {
     this.costos = costosActualizados;
     this.obra.costos = costosActualizados;
     this.beneficioNeto = this.calcularBeneficioNeto();
+    this.beneficioCostos = this.calcularBeneficioCostos(costosActualizados);
     this.obraStateService.setObra(this.obra);
   }
 
@@ -195,25 +198,23 @@ export class ObrasDetailComponent implements OnInit, OnDestroy {
   }
 
   getProgresoFisico(): number {
-    if (!this.tareas.length || !this.proveedores.length) return 0;
-
-    const tareasDeEstaObra = this.tareas.filter(t =>
-      this.proveedores.some(p => p.id === t.proveedor?.id)
-    );
-
-    if (!tareasDeEstaObra.length) return 0;
-
-    const completadas = tareasDeEstaObra
-      .filter(t => t.estado_tarea?.toLowerCase() === 'completada')
-      .length;
-
-    return Math.round((completadas / tareasDeEstaObra.length) * 100);
+    if (!this.tareas.length) return 0;
+    const completadas = this.tareas.filter(t => (t.estado_tarea || '').toUpperCase() === 'COMPLETADA');
+    const total = completadas.reduce((acc, t) => acc + Number(t.porcentaje ?? 0), 0);
+    return Math.min(Math.round(total), 100);
   }
 
   private calcularBeneficioNeto(): number {
-    const totalCostos = (this.obra.costos ?? []).reduce((acc, costo) => acc + (costo.total ?? 0), 0);
-    const presupuesto = this.obra.presupuesto ?? 0;
-    return presupuesto - totalCostos;
+    return this.calcularBeneficioCostos(this.obra.costos ?? []);
+  }
+
+  private calcularBeneficioCostos(costos: ObraCosto[]): number {
+    const beneficioGlobalPorc = this.obra.beneficio_global ? Number(this.obra.beneficio ?? 0) : null;
+    return (costos ?? []).reduce((acc, costo) => {
+      const base = Number(costo.subtotal ?? (Number(costo.cantidad ?? 0) * Number(costo.precio_unitario ?? 0)));
+      const porc = beneficioGlobalPorc !== null ? beneficioGlobalPorc : Number(costo.beneficio ?? 0);
+      return acc + base * (porc / 100);
+    }, 0);
   }
 
   private esCronogramaInvalido(): boolean {
@@ -280,13 +281,33 @@ export class ObrasDetailComponent implements OnInit, OnDestroy {
     const formatCurrency = (valor: number) =>
       (valor || 0).toLocaleString('es-AR', {style: 'currency', currency: 'ARS'});
 
-    const filasCostos = (this.costos ?? []).map(c => ([
-      {text: c.descripcion, fontSize: 9},
-      {text: c.proveedor?.nombre ?? '-', fontSize: 9},
-      {text: formatCurrency(c.total ?? 0), alignment: 'right', fontSize: 9},
-      {text: c.estado_pago ?? '-', alignment: 'center', fontSize: 9}
-    ]));
-    const totalCostos = (this.costos ?? []).reduce((acc, c) => acc + (c.total ?? 0), 0);
+    const filasCostos = (this.costos ?? []).map(c => {
+      const subtotalBase = Number(c.subtotal ?? (Number(c.cantidad ?? 0) * Number(c.precio_unitario ?? 0)));
+      const beneficioAplicado = this.obra.beneficio_global ? Number(this.obra.beneficio ?? 0) : Number(c.beneficio ?? 0);
+      const totalConBeneficio = subtotalBase * (1 + beneficioAplicado / 100);
+
+      return [
+        {text: c.descripcion, fontSize: 9},
+        {text: c.proveedor?.nombre ?? '-', fontSize: 9},
+        {text: formatCurrency(subtotalBase), fontSize: 9, alignment: 'right'},
+        {text: formatCurrency(totalConBeneficio), fontSize: 9, alignment: 'right'},
+        {text: c.estado_pago ?? '-', alignment: 'center', fontSize: 9}
+      ];
+    });
+
+    const subtotalCostos = (this.costos ?? []).reduce(
+      (acc, c) => acc + Number(c.subtotal ?? (Number(c.cantidad ?? 0) * Number(c.precio_unitario ?? 0))),
+      0
+    );
+    const beneficioCostos = (this.costos ?? []).reduce((acc, c) => {
+      const beneficio = this.obra.beneficio_global ? Number(this.obra.beneficio ?? 0) : Number(c.beneficio ?? 0);
+      const base = Number(c.subtotal ?? (Number(c.cantidad ?? 0) * Number(c.precio_unitario ?? 0)));
+      return acc + base * (beneficio / 100);
+    }, 0);
+    const totalCostos = subtotalCostos + beneficioCostos;
+    const comisionPorc = this.obra.tiene_comision ? Number(this.obra.comision ?? 0) : 0;
+    const comisionMonto = totalCostos * (comisionPorc / 100);
+    const totalCostosConComision = totalCostos + comisionMonto;
 
     const tareasPendientes = (this.tareas ?? []).filter(t => {
       const estado = (t.estado_tarea || '').toUpperCase();
@@ -363,16 +384,15 @@ export class ObrasDetailComponent implements OnInit, OnDestroy {
         {
           columns: [
             [
-              {text: `Nombre: ${this.obra.nombre}`},
-              {text: `Direccion: ${this.obra.direccion ?? '-'}`},
-              {text: `Estado: ${this.formatearEstado(this.obra.obra_estado)}`},
-              {text: `Inicio: ${this.obra.fecha_inicio ? new Date(this.obra.fecha_inicio).toLocaleDateString('es-AR') : '-'}`},
-              {text: `Fin: ${this.obra.fecha_fin ? new Date(this.obra.fecha_fin).toLocaleDateString('es-AR') : '-'}`}
+              {text: `Nombre: ${this.obra.nombre}`, margin: [0, 0, 0, 4]},
+              {text: `Direccion: ${this.obra.direccion ?? '-'}`, margin: [0, 0, 0, 4]},
+              {text: `Estado: ${this.formatearEstado(this.obra.obra_estado)}`, margin: [0, 0, 0, 4]},
+              {text: `Inicio: ${this.obra.fecha_inicio ? new Date(this.obra.fecha_inicio).toLocaleDateString('es-AR') : '-'}`, margin: [0, 0, 0, 4]},
+              {text: `Fin: ${this.obra.fecha_fin ? new Date(this.obra.fecha_fin).toLocaleDateString('es-AR') : '-'}`, margin: [0, 0, 0, 4]}
             ],
             [
-              {text: `Presupuesto: ${(this.obra.presupuesto ?? 0).toLocaleString('es-AR', {style: 'currency', currency: 'ARS'})}`},
-              {text: `Comision: ${this.obra.comision ?? 0}% (${((this.obra.presupuesto || 0) * ((this.obra.comision ?? 0) / 100)).toLocaleString('es-AR', {style: 'currency', currency: 'ARS'})})`},
-              {text: `Beneficio neto: ${this.beneficioNeto.toLocaleString('es-AR', {style: 'currency', currency: 'ARS'})}`}
+              {text: `Presupuesto: ${(this.obra.presupuesto ?? 0).toLocaleString('es-AR', {style: 'currency', currency: 'ARS'})}`, margin: [0, 0, 0, 6]},
+              {text: `Comision: ${this.obra.comision ?? 0}% (${((this.obra.presupuesto || 0) * ((this.obra.comision ?? 0) / 100)).toLocaleString('es-AR', {style: 'currency', currency: 'ARS'})})`, margin: [0, 0, 0, 6]}
             ]
           ]
         },
@@ -392,11 +412,12 @@ export class ObrasDetailComponent implements OnInit, OnDestroy {
         {text: '\nCostos', style: 'sectionHeader'},
         {
           table: {
-            widths: ['*', 120, 80, 80],
+            widths: ['*', 120, 80, 80, 80],
             body: [
               [
                 {text: 'Descripcion', bold: true},
                 {text: 'Proveedor', bold: true},
+                {text: 'Subtotal', bold: true, alignment: 'right'},
                 {text: 'Total', bold: true, alignment: 'right'},
                 {text: 'Estado', bold: true, alignment: 'center'}
               ],
@@ -406,8 +427,18 @@ export class ObrasDetailComponent implements OnInit, OnDestroy {
         },
         {
           alignment: 'right',
-          margin: [0, 4, 0, 10],
-          text: `Total costos: ${formatCurrency(totalCostos)}`
+          margin: [0, 6, 0, 12],
+          table: {
+            widths: ['*', 170],
+            body: [
+              ['Subtotal sin beneficio', formatCurrency(subtotalCostos)],
+              ['Beneficio aplicado', formatCurrency(beneficioCostos)],
+              ['Subtotal con beneficio', formatCurrency(totalCostos)],
+              ['Comision', formatCurrency(comisionMonto)],
+              ['Total costos', formatCurrency(totalCostosConComision)]
+            ]
+          },
+          layout: 'noBorders'
         },
 
         {
