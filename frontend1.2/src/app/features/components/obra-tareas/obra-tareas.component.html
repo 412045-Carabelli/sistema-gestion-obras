@@ -1,77 +1,67 @@
-<p-toast></p-toast>
+﻿<p-toast></p-toast>
 <div class="flex flex-col gap-3">
   <!-- Header -->
   <div class="flex w-full justify-between items-center">
     <div class="p-5">
       <h1 class="text-2xl font-semibold text-black">Gestión de tareas</h1>
-      <p class="text-gray-600">Progreso por proveedor <span class="font-semibold text-gray-800" *ngIf="obraNombre">· {{ obraNombre }}</span></p>
     </div>
     <p-button (onClick)="abrirModal()" icon="pi pi-plus" label="Nueva Tarea"></p-button>
   </div>
 
-  <!-- Lista por proveedor -->
-  @for (proveedor of proveedores; track proveedor.id) {
-    <div class="rounded-lg p-5 bg-gray-50">
-      <div class="flex justify-between items-center mb-2">
-        <div>
-          <h3 class="font-semibold text-xl text-gray-800">{{ proveedor.nombre }}</h3>
-          <p class="text-sm text-gray-700">
-            {{ getCompletadas(proveedor.id) }} / {{ getTotales(proveedor.id) }} completadas
-          </p>
-        </div>
-      </div>
-
-      <p-progressBar [value]="progreso(proveedor.id)"></p-progressBar>
-
-      <div class="space-y-2 mt-3">
-        @for (tarea of tareasProveedor(proveedor.id); track tarea.id) {
-          <div
-            class="flex justify-between items-center border rounded-md p-2 cursor-pointer"
-            [ngClass]="claseEstado(tarea)"
-            (click)="toggleTarea(tarea)"
-          >
-            <div class="flex items-center gap-2">
-              <i
-                class="pi text-lg"
-                [ngClass]="{
-                  'pi-check-circle text-green-600': tarea.estado_tarea === 'COMPLETADA',
-                  'pi-circle text-gray-400': tarea.estado_tarea !== 'COMPLETADA'
-                }"
-              ></i>
-              <span [class.line-through]="tarea.estado_tarea === 'COMPLETADA'">
-                {{ tarea.nombre }}
-              </span>
-              <p-tag
-                [value]="tarea.estado_tarea | estadoFormat"
-                [severity]="tarea.estado_tarea === 'COMPLETADA' ? 'success' : tarea.estado_tarea === 'EN_PROGRESO' ? 'info' : 'warning'"
-                styleClass="text-xs"
-              ></p-tag>
-            </div>
-            <div class="flex items-center gap-2">
-              <p-button
-                icon="pi pi-pencil"
-                styleClass="p-button-text p-button-sm"
-                (onClick)="editarTarea(tarea); $event.stopPropagation()"
-              ></p-button>
-              <p-button
-                icon="pi pi-trash"
-                styleClass="p-button-text p-button-sm text-red-500"
-                (onClick)="eliminarTarea(tarea.id!); $event.stopPropagation()"
-              ></p-button>
-            </div>
+  <!-- Tabla de tareas -->
+  <p-table
+    [value]="ordenarCronologicamente(tareas)"
+    sortMode="multiple"
+    [paginator]="true"
+    [rows]="8"
+    responsiveLayout="scroll"
+    [tableStyle]="{'min-width':'720px'}">
+    <ng-template pTemplate="header">
+      <tr>
+        <th pSortableColumn="nombre">Tarea <p-sortIcon field="nombre"></p-sortIcon></th>
+        <th pSortableColumn="proveedor.nombre">Proveedor <p-sortIcon field="proveedor.nombre"></p-sortIcon></th>
+        <th pSortableColumn="estado_tarea">Estado <p-sortIcon field="estado_tarea"></p-sortIcon></th>
+        <th pSortableColumn="fecha_inicio">Fecha inicio <p-sortIcon field="fecha_inicio"></p-sortIcon></th>
+        <th pSortableColumn="porcentaje">Porcentaje <p-sortIcon field="porcentaje"></p-sortIcon></th>
+        <th class="text-right">Acciones</th>
+      </tr>
+    </ng-template>
+    <ng-template pTemplate="body" let-tarea>
+      <tr [ngClass]="claseEstado(tarea)">
+        <td class="font-medium text-gray-900">{{ tarea.nombre }}</td>
+        <td>{{ tarea.proveedor?.nombre || ('Proveedor #' + tarea.id_proveedor) }}</td>
+        <td>
+          <p-tag
+            [value]="tarea.estado_tarea | estadoFormat"
+            [severity]="tarea.estado_tarea === 'COMPLETADA' ? 'success' : tarea.estado_tarea === 'EN_PROGRESO' ? 'info' : tarea.estado_tarea === 'PENDIENTE' ? 'secondary' : 'warning'">
+          </p-tag>
+        </td>
+        <td>{{ tarea.fecha_inicio ? (tarea.fecha_inicio | date:'dd/MM/yyyy') : 'â€”' }}</td>
+        <td class="text-right font-semibold">{{ tarea.porcentaje ?? 0 }}%</td>
+        <td class="text-right">
+          <div class="flex gap-1">
+            <p-button icon="pi pi-check-circle" styleClass="p-button-text p-button-sm" [severity]="tarea.estado_tarea === 'COMPLETADA' ? 'success' : 'secondary'" (onClick)="toggleTarea(tarea)" pTooltip="Alternar completa"></p-button>
+            <p-button icon="pi pi-step-forward" styleClass="p-button-text p-button-sm" [disabled]="tarea.estado_tarea === 'EN_PROGRESO'" (onClick)="marcarEnProgreso(tarea)" pTooltip="Marcar en progreso"></p-button>
+            <p-button icon="pi pi-eye" styleClass="p-button-text p-button-sm" (onClick)="verTarea(tarea)" pTooltip="Ver"></p-button>
+            <p-button icon="pi pi-pencil" styleClass="p-button-text p-button-sm" (onClick)="editarTarea(tarea)" pTooltip="Editar"></p-button>
+            <p-button icon="pi pi-trash" styleClass="p-button-text p-button-sm text-red-500" (onClick)="eliminarTarea(tarea.id!)" pTooltip="Eliminar"></p-button>
           </div>
-        }
-      </div>
-    </div>
-  }
+        </td>
+      </tr>
+    </ng-template>
+    <ng-template pTemplate="emptymessage">
+      <tr>
+        <td colspan="6" class="text-center text-gray-500 py-6">No hay tareas cargadas</td>
+      </tr>
+    </ng-template>
+  </p-table>
 
   <!-- Modal -->
   <app-modal
     (closed)="cerrarModal()"
-    (confirmed)="guardarTarea()"
+    [showFooter]="false"
     [visible]="showAddTaskModal"
-    [title]="editandoTarea ? 'Editar Tarea' : 'Nueva Tarea'"
-  >
+    [title]="editandoTarea ? (camposDeshabilitados ? 'Detalle de tarea' : 'Editar Tarea') : 'Nueva Tarea'">
     <div class="p-3 space-y-3">
       <label class="block text-sm font-medium">Nombre de la tarea</label>
       <input
@@ -79,6 +69,7 @@
         class="w-full"
         pInputText
         type="text"
+        [disabled]="camposDeshabilitados"
       />
 
       <label class="block text-sm font-medium">Descripción</label>
@@ -86,16 +77,19 @@
         [(ngModel)]="nuevaTarea.descripcion"
         class="w-full p-2 border rounded-md"
         rows="3"
-        placeholder="Detalle o notas de la tarea"></textarea>
+        placeholder="Detalle o notas de la tarea"
+        [disabled]="camposDeshabilitados"></textarea>
 
       <label class="block text-sm font-medium">Proveedor</label>
       <p-select
-        [(ngModel)]="nuevaTarea.proveedor"
+        [(ngModel)]="nuevaTarea.id_proveedor"
         [options]="proveedores"
         appendTo="body"
         class="w-full"
         optionLabel="nombre"
-        placeholder="Seleccionar proveedor">
+        optionValue="id"
+        placeholder="Seleccionar proveedor"
+        [disabled]="camposDeshabilitados">
       </p-select>
 
       <label class="block text-sm font-medium">Estado</label>
@@ -106,8 +100,37 @@
         optionValue="value"
         appendTo="body"
         class="w-full"
-        placeholder="Seleccionar estado">
+        placeholder="Seleccionar estado"
+        [disabled]="camposDeshabilitados">
       </p-select>
+
+      <label class="block text-sm font-medium">Fecha</label>
+      <input
+        [(ngModel)]="nuevaTarea.fecha_inicio"
+        class="w-full"
+        type="date"
+        pInputText
+        [disabled]="camposDeshabilitados" />
+
+      <label class="block text-sm font-medium">Porcentaje de avance</label>
+      <input
+        [(ngModel)]="nuevaTarea.porcentaje"
+        class="w-full"
+        type="number"
+        min="0"
+        max="100"
+        pInputText
+        placeholder="0 - 100"
+        [disabled]="camposDeshabilitados" />
+    </div>
+
+    <div class="flex justify-end gap-2 px-3 pb-3">
+      <p-button label="Cerrar" icon="pi pi-times" (onClick)="cerrarModal()" severity="secondary"></p-button>
+      @if (camposDeshabilitados) {
+        <p-button label="Editar" icon="pi pi-pencil" (onClick)="habilitarEdicion()" severity="info"></p-button>
+      }
+      <p-button label="Guardar" icon="pi pi-check" (onClick)="guardarTarea()" [disabled]="camposDeshabilitados" severity="primary"></p-button>
     </div>
   </app-modal>
 </div>
+

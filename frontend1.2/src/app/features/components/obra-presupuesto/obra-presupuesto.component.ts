@@ -202,6 +202,7 @@ export class ObraPresupuestoComponent implements OnInit, OnChanges {
   }
 
   habilitarEdicion(costo: any) {
+    costo._backup = {...costo};
     costo.enEdicion = true;
   }
 
@@ -216,6 +217,7 @@ export class ObraPresupuestoComponent implements OnInit, OnChanges {
     this.costosService.updateCosto(costo.id, payload).subscribe({
       next: actualizado => {
         Object.assign(costo, actualizado, payload, { enEdicion: false });
+        delete costo._backup;
         this.costosActualizados.emit([...this.costosFiltrados]);
         this.messageService.add({
           severity: 'success',
@@ -231,6 +233,18 @@ export class ObraPresupuestoComponent implements OnInit, OnChanges {
         });
       }
     });
+  }
+
+  cancelarEdicion(costo: any) {
+    if (costo._backup) {
+      Object.assign(costo, costo._backup);
+      delete costo._backup;
+    }
+    costo.enEdicion = false;
+    // Recalcular montos por si dependemos de beneficio global
+    const recalculado = this.calcularMontosPayload(costo);
+    costo.subtotal = recalculado.subtotal;
+    costo.total = recalculado.total;
   }
 
   eliminarCosto(costo: any) {
@@ -324,10 +338,41 @@ export class ObraPresupuestoComponent implements OnInit, OnChanges {
   }
 
   calcularTotal(): number {
+    return this.calcularTotalConBeneficio();
+  }
+
+  calcularSubtotal(): number {
     return this.costosFiltrados.reduce(
-      (acc, c) => acc + (c.total ?? 0),
+      (acc, c) => acc + Number(c.subtotal ?? 0),
       0
     );
+  }
+
+  calcularBeneficioTotal(): number {
+    if (this.usarBeneficioGlobal) {
+      return this.calcularSubtotal() * (this.beneficioGlobal / 100);
+    }
+    return this.costosFiltrados.reduce((acc, c) => {
+      const beneficio = Number(c.beneficio ?? 0) / 100;
+      return acc + Number(c.subtotal ?? 0) * beneficio;
+    }, 0);
+  }
+
+  calcularTotalConBeneficio(): number {
+    return this.calcularSubtotal() + this.calcularBeneficioTotal();
+  }
+
+  calcularComisionMonto(): number {
+    if (!this.tieneComision) return 0;
+    return this.calcularTotalConBeneficio() * (this.comision / 100);
+  }
+
+  calcularBeneficioNeto(): number {
+    return this.calcularBeneficioTotal() - this.calcularComisionMonto();
+  }
+
+  calcularPresupuestoTotal(): number {
+    return this.calcularTotalConBeneficio() + this.calcularComisionMonto();
   }
 
   calcularTotalPorEstado(value: string): number {
@@ -342,9 +387,7 @@ export class ObraPresupuestoComponent implements OnInit, OnChanges {
 
   // *** YA NO SE USARÃ PARA EL PDF (solo cÃ¡lculo interno)
   getPresupuestoTotal(): number {
-    const base = this.calcularTotal();
-    const comisionMonto = this.tieneComision ? base * (this.comision / 100) : 0;
-    return Math.round(base + comisionMonto);
+    return Math.round(this.calcularPresupuestoTotal());
   }
 
   proveedoresFilter(id: number): Proveedor | undefined {
@@ -361,164 +404,176 @@ export class ObraPresupuestoComponent implements OnInit, OnChanges {
 
     const obra = this.obra;
     const cliente = obra.cliente;
-
     const costos = this.costosFiltrados ?? [];
 
-    // Logo desde assets
     const logoDataUrl = await this.obtenerLogoDataUrl();
-
-    // LicitaciÃ³n = id con ceros adelante
     const licitacion = String(obra?.id ?? 0).padStart(5, '0');
-
     const fechaHoy = new Date().toLocaleDateString('es-AR');
 
-    // Tabla de costos
-    const filasCostos = costos.map(c => {
+    const formatCurrency = (valor: number) =>
+      (Number(valor) || 0).toLocaleString('es-AR', {style: 'currency', currency: 'ARS'});
+
+    const filasCostos = costos.map((c, index) => {
+      const subtotalBase = Number(c.subtotal ?? (Number(c.cantidad ?? 0) * Number(c.precio_unitario ?? 0)));
+      const beneficioAplicado = this.usarBeneficioGlobal ? this.beneficioGlobal : Number(c.beneficio ?? 0);
+      const subtotalConBeneficio = subtotalBase * (1 + beneficioAplicado / 100);
+
       return [
-        { text: c.descripcion, fontSize: 9 },
+        { text: String(index + 1), fontSize: 9, alignment: 'center' },
+        { text: c.descripcion || '-', fontSize: 9 },
         { text: c.unidad || '-', fontSize: 9, alignment: 'center' },
         { text: String(c.cantidad ?? 0), fontSize: 9, alignment: 'center' },
-        {
-          text: (c.subtotal ?? 0).toLocaleString('es-AR', {
-            style: 'currency',
-            currency: 'ARS'
-          }),
-          fontSize: 9,
-          alignment: 'right'
-        }
+        { text: formatCurrency(subtotalBase), fontSize: 9, alignment: 'right' },
+        { text: formatCurrency(subtotalConBeneficio), fontSize: 9, alignment: 'right' }
       ];
     });
 
-    // Subtotal real SIN comisiÃ³n ni beneficio
-    const subtotal = costos.reduce(
-      (acc, c) => acc + (c.subtotal ?? 0),
+    const subtotalBase = costos.reduce(
+      (acc, c) => acc + Number(c.subtotal ?? (Number(c.cantidad ?? 0) * Number(c.precio_unitario ?? 0))),
       0
     );
+    const beneficioMonto = this.usarBeneficioGlobal
+      ? subtotalBase * (this.beneficioGlobal / 100)
+      : costos.reduce(
+          (acc, c) => acc + Number(c.subtotal ?? 0) * (Number(c.beneficio ?? 0) / 100),
+          0
+        );
+    const totalConBeneficio = subtotalBase + beneficioMonto;
+    const comisionMonto = this.tieneComision ? totalConBeneficio * (this.comision / 100) : 0;
+    const presupuestoTotal = totalConBeneficio + comisionMonto;
+    const beneficioNeto = beneficioMonto - comisionMonto;
+    const observaciones = (this.obra.notas || '').trim() || 'Sin observaciones adicionales.';
 
     const docDefinition: any = {
-      pageMargins: [20, 20, 20, 20],
-
+      pageMargins: [40, 70, 40, 60],
       content: [
-        // Encabezado: solo logo ocupando el ancho
         logoDataUrl
-          ? {
-              image: logoDataUrl,
-              width: 620,
-              alignment: 'center',
-              margin: [0, 0, 0, 12]
-            }
-          : { text: '', margin: [0, 0, 0, 12] },
+          ? { image: logoDataUrl, width: 520, alignment: 'center', margin: [0, 0, 0, 16] }
+          : { text: '', margin: [0, 0, 0, 16] },
 
-        { text: '\n\nCOTIZACIÓN', fontSize: 16, bold: true, alignment: 'center' },
-        { text: '\n' },
-
-        // DATOS CLIENTE + OBRA
-        {
-          columns: [
-            [
-              { text: 'Cliente', bold: true },
-              { text: cliente?.nombre ?? '---' },
-              { text: `CUIT: ${cliente?.cuit ?? '-'}`, fontSize: 9 },
-              {
-                text: `Condición IVA: ${cliente?.condicion_iva ?? '-'}`,
-                fontSize: 9
-              },
-              { text: `Tel: ${cliente?.telefono ?? '-'}`, fontSize: 9 },
-              { text: `Email: ${cliente?.email ?? '-'}`, fontSize: 9 }
-            ],
-            [
-              { text: 'Obra', bold: true },
-              { text: obra?.nombre ?? '---' },
-              { text: obra?.direccion ?? '', fontSize: 9 },
-              {
-                text: `Licitación/Obra: ${licitacion}`,
-                fontSize: 10,
-                margin: [0, 5, 0, 0]
-              }
-            ],
-            [
-              { text: 'Fecha', bold: true },
-              { text: fechaHoy }
-            ]
-          ]
-        },
-
-        { text: '\n\n' },
-
-        // TABLA
         {
           table: {
-            widths: ['*', 50, 50, 70],
+            widths: ['*', '*', 120],
+            body: [[
+              {
+                stack: [
+                  { text: 'Cliente', bold: true, margin: [0, 0, 0, 4] },
+                  { text: cliente?.nombre ?? '---', margin: [0, 0, 0, 8] },
+                  { text: `Tel: ${cliente?.telefono ?? '-'}`, fontSize: 9 }
+                ]
+              },
+              {
+                stack: [
+                  { text: 'Obra', bold: true, margin: [0, 0, 0, 4] },
+                  { text: obra?.nombre ?? '---', margin: [0, 0, 0, 4] },
+                  { text: obra?.direccion ?? '-', fontSize: 9, margin: [0, 0, 0, 4] },
+                  { text: `Licitacion/Obra: ${licitacion}`, fontSize: 9 }
+                ]
+              },
+              {
+                stack: [
+                  { text: 'Fecha', bold: true, alignment: 'right', margin: [0, 0, 0, 4] },
+                  { text: fechaHoy, alignment: 'right' }
+                ]
+              }
+            ]]
+          },
+          layout: {
+            fillColor: () => '#f8fafc',
+            hLineColor: () => '#e5e7eb',
+            vLineColor: () => '#e5e7eb'
+          },
+          margin: [0, 0, 0, 18]
+        },
+
+        { text: 'Detalle de costos', style: 'sectionHeader' },
+        {
+          table: {
+            widths: [35, '*', 50, 50, 70, 80],
+            headerRows: 1,
             body: [
               [
-                { text: 'DESCRIPCIÓN', bold: true },
-                { text: 'UNI.', bold: true, alignment: 'center' },
-                { text: 'CANT.', bold: true, alignment: 'center' },
-                { text: 'Subtotal', bold: true, alignment: 'right' }
+                { text: 'ITEM', bold: true, fontSize: 10, fillColor: '#f3f4f6' },
+                { text: 'DESCRIPCION', bold: true, fontSize: 10, fillColor: '#f3f4f6' },
+                { text: 'UN', bold: true, fontSize: 10, alignment: 'center', fillColor: '#f3f4f6' },
+                { text: 'CANT', bold: true, fontSize: 10, alignment: 'center', fillColor: '#f3f4f6' },
+                { text: 'Subtotal', bold: true, fontSize: 10, alignment: 'right', fillColor: '#f3f4f6' },
+                { text: 'Total', bold: true, fontSize: 10, alignment: 'right', fillColor: '#f3f4f6' }
               ],
               ...filasCostos
             ]
-          }
+          },
+          layout: {
+            fillColor: (rowIndex: number) => rowIndex === 0 ? '#f3f4f6' : null,
+            hLineColor: () => '#e5e7eb',
+            vLineColor: () => '#e5e7eb'
+          },
+          margin: [0, 0, 0, 12]
         },
 
-        { text: '\n' },
-
-        // TOTALES (SIN mostrar comisiones internas)
         {
           alignment: 'right',
           table: {
-            widths: ['*', 120],
+            widths: ['*', 180],
             body: [
-              [
-                'Subtotal',
-                subtotal.toLocaleString('es-AR', {
-                  style: 'currency',
-                  currency: 'ARS'
-                })
-              ],
-              [
-                'Presupuesto Total',
-                subtotal.toLocaleString('es-AR', {
-                  style: 'currency',
-                  currency: 'ARS'
-                })
-              ]
+              ['Subtotal', formatCurrency(subtotalBase)],
+              ['Presupuesto total', formatCurrency(presupuestoTotal)]
             ]
           },
-          layout: 'noBorders'
+          layout: {
+            hLineColor: () => '#e5e7eb',
+            vLineColor: () => '#e5e7eb'
+          },
+          margin: [0, 0, 0, 12]
         },
 
-        { text: '\n\n' },
-
-        // CONDICIONES
-        { text: 'Validez de oferta', bold: true },
+        { text: 'Condiciones y observaciones', style: 'sectionHeader' },
         {
-          text:
-            'El presente presupuesto tiene una validez de 7 días a partir de la fecha.\n',
-          fontSize: 10
-        },
-
-        { text: 'Plazos de obra', bold: true },
-        { text: '7 días hábiles.\n', fontSize: 10 },
-
-        { text: 'Forma de pago', bold: true },
-        {
-          text:
-            'Al finalizar las tareas.\n',
-          fontSize: 10
-        },
-
-        { text: 'Observaciones', bold: true },
-        {
-          text: this.obra.notas ?? '-',
-          fontSize: 10
+          columns: [
+            {
+              width: '50%',
+              table: {
+                widths: ['*'],
+                body: [
+                  [{ text: 'Validez de oferta: 7 dias corridos.', fontSize: 10, margin: [6, 6, 6, 6] }],
+                  [{ text: 'Forma de pago: Al finalizar las tareas.', fontSize: 10, margin: [6, 6, 6, 6] }]
+                ]
+              },
+              layout: {
+                hLineWidth: () => 0,
+                vLineWidth: () => 0,
+                fillColor: () => '#f8fafc'
+              }
+            },
+            {
+              width: '50%',
+              table: {
+                widths: ['*'],
+                body: [[
+                  {
+                    text: observaciones,
+                    fontSize: 10,
+                    margin: [8, 8, 8, 8]
+                  }
+                ]]
+              },
+              layout: {
+                hLineWidth: () => 0,
+                vLineWidth: () => 0,
+                fillColor: () => '#eef2ff'
+              }
+            }
+          ],
+          columnGap: 12,
+          margin: [0, 0, 0, 4]
         }
-      ]
+      ],
+      styles: {
+        sectionHeader: { fontSize: 11, bold: true, margin: [0, 12, 0, 6] }
+      }
     };
 
-    pdfMake
-      .createPdf(docDefinition)
-      .download(`COTIZACIÓN_${licitacion}.pdf`);
+    pdfMake.createPdf(docDefinition).download(`Presupuesto_${licitacion}.pdf`);
   }
 
   //----------------------------------------------------------
@@ -576,16 +631,18 @@ export class ObraPresupuestoComponent implements OnInit, OnChanges {
   }
 
   private inicializarCostos() {
-    this.costosFiltrados = this.costos.map(c => ({
-      ...c,
-      id_proveedor: c.id_proveedor ?? c.proveedor?.id,
-      precio_unitario: c.precio_unitario ?? 0,
-      subtotal: c.subtotal ?? 0,
-      total: c.total ?? 0,
-      beneficio: c.beneficio ?? 0,
-      estado_pago: c.estado_pago,
-      enEdicion: false
-    }));
+    this.costosFiltrados = this.costos.map(c => {
+      const normalizado = this.calcularMontosPayload(c);
+      return {
+        ...c,
+        ...normalizado,
+        id_proveedor: c.id_proveedor ?? c.proveedor?.id,
+        precio_unitario: c.precio_unitario ?? 0,
+        beneficio: c.beneficio ?? normalizado.beneficio ?? 0,
+        estado_pago: c.estado_pago ?? normalizado.estado_pago,
+        enEdicion: false
+      };
+    });
   }
 
   private calcularMontosPayload(costo: Partial<ObraCosto>) {
@@ -708,7 +765,4 @@ export class ObraPresupuestoComponent implements OnInit, OnChanges {
     return fallback;
   }
 }
-
-
-
 

@@ -5,7 +5,7 @@
     <p-progressSpinner styleClass="w-16 h-16"></p-progressSpinner>
   </div>
 } @else if (proveedor) {
-  <div class="p-6 max-w-2xl mx-auto bg-white rounded-xl shadow-sm">
+  <div class="p-6 w-full mx-auto bg-white rounded-xl shadow-sm">
     <app-proveedores-form
       [initialData]="proveedor"
       (formSubmit)="onFormSubmit($event)">

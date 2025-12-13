@@ -102,6 +102,7 @@ export interface Tarea {
   estado_tarea: string;
   nombre: string;
   descripcion?: string;
+  porcentaje?: number;
   fecha_inicio?: string;
   fecha_fin?: string;
   creado_en?: string;
@@ -358,4 +359,3 @@ export interface MovimientoDashboard {
   asociadoTipo: string;
   asociadoId: number;
 }
-
