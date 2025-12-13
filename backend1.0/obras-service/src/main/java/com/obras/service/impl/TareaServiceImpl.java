@@ -23,11 +23,26 @@ public class TareaServiceImpl implements TareaService {
 
     @Override
     public TareaDTO crear(TareaDTO dto) {
+        validarPorcentaje(dto.getPorcentaje(), dto.getId_obra(), null);
         Tarea t = toEntity(dto);
         t.setActivo(true);
         t.setCreadoEn(Instant.now());
         t = tareaRepo.save(t);
         return toDto(t);
+    }
+
+    @Override
+    public TareaDTO actualizar(Long id, TareaDTO dto) {
+        Tarea existente = tareaRepo.findByIdAndActivoTrue(id)
+                .orElseThrow(() -> new EntityNotFoundException("Tarea no encontrada"));
+        dto.setId(id);
+        dto.setId_obra(existente.getIdObra());
+        validarPorcentaje(dto.getPorcentaje(), existente.getIdObra(), id);
+
+        Tarea entity = toEntity(dto);
+        entity.setCreadoEn(existente.getCreadoEn());
+        entity.setActivo(existente.getActivo());
+        return toDto(tareaRepo.save(entity));
     }
 
     @Override
@@ -54,7 +69,7 @@ public class TareaServiceImpl implements TareaService {
     @Transactional(readOnly = true)
     @Override
     public List<TareaDTO> tareasDeObra(Long idObra) {
-        return tareaRepo.findByIdObraAndActivoTrue(idObra)
+        return tareaRepo.findByIdObraAndActivoTrueOrderByFechaInicioAscCreadoEnAsc(idObra)
                 .stream()
                 .map(this::toDto)
                 .collect(Collectors.toList());
@@ -77,6 +92,7 @@ public class TareaServiceImpl implements TareaService {
         dto.setId_proveedor(entity.getIdProveedor());
         dto.setNombre(entity.getNombre());
         dto.setDescripcion(entity.getDescripcion());
+        dto.setPorcentaje(entity.getPorcentaje());
         dto.setFecha_inicio(entity.getFechaInicio());
         dto.setFecha_fin(entity.getFechaFin());
         dto.setCreado_en(entity.getCreadoEn());
@@ -97,13 +113,28 @@ public class TareaServiceImpl implements TareaService {
         entity.setIdProveedor(dto.getId_proveedor());
         entity.setNombre(dto.getNombre());
         entity.setDescripcion(dto.getDescripcion());
+        entity.setPorcentaje(dto.getPorcentaje() != null ? dto.getPorcentaje() : 0d);
         entity.setFechaInicio(dto.getFecha_inicio());
         entity.setFechaFin(dto.getFecha_fin());
         entity.setActivo(dto.getActivo() != null ? dto.getActivo() : Boolean.TRUE);
 
         if (dto.getEstado_tarea() != null) {
             entity.setEstadoTarea(dto.getEstado_tarea());
+        } else {
+            entity.setEstadoTarea(EstadoTareaEnum.PENDIENTE);
         }
         return entity;
+    }
+
+    private void validarPorcentaje(Double porcentaje, Long idObra, Long excluirId) {
+        double valor = porcentaje != null ? porcentaje : 0d;
+        if (valor < 0 || valor > 100) {
+            throw new IllegalArgumentException("El porcentaje debe estar entre 0 y 100");
+        }
+        Double sumaActual = tareaRepo.sumPorcentajeByObraExcluyendo(idObra, excluirId);
+        double actual = sumaActual != null ? sumaActual : 0d;
+        if (actual + valor > 100 + 1e-6) {
+            throw new IllegalArgumentException("La suma de porcentajes de tareas no puede superar 100%");
+        }
     }
 }
