@@ -69,10 +69,10 @@
               <div class="w-10 h-10 bg-emerald-100 rounded-lg flex items-center justify-center">
                 <i class="pi pi-chart-line text-emerald-600 text-lg"></i>
               </div>
-              <span class="text-sm font-medium text-gray-500">Beneficio neto</span>
+              <span class="text-sm font-medium text-gray-500">Beneficio (costos)</span>
             </div>
             <i class="pi pi-info-circle text-gray-400 cursor-pointer"
-               pTooltip="Presupuesto de la obra menos el total de costos cargados. Se actualiza con la matriz de costos."
+               pTooltip="Suma de los beneficios aplicados a cada costo (global o individual)."
                tooltipPosition="left"></i>
           </div>
           <p class="text-lg font-semibold" [ngClass]="beneficioNeto >= 0 ? 'text-emerald-700' : 'text-red-600'">

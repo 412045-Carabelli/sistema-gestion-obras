@@ -8,7 +8,7 @@
   @defer (when proveedor) {
     <div class="p-4 space-y-8 w-full mx-auto">
       <!-- ===================== TARJETAS DE INFO PRINCIPAL ===================== -->
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
 
         <!-- Tarjeta Tipo -->
         <div class="bg-white rounded-xl shadow-md p-6 border-l-4 border-purple-500 hover:shadow-lg transition-shadow">
@@ -40,6 +40,17 @@
             <span class="text-sm font-medium text-gray-500">Gremio</span>
           </div>
           <p class="text-lg font-semibold text-gray-900">{{ proveedor.gremio || 'Sin gremio' }}</p>
+        </div>
+
+        <!-- Tarjeta CUIT -->
+        <div class="bg-white rounded-xl shadow-md p-6 border-l-4 border-amber-500 hover:shadow-lg transition-shadow">
+          <div class="flex items-center gap-3 mb-2">
+            <div class="w-10 h-10 bg-amber-100 rounded-lg flex items-center justify-center">
+              <i class="pi pi-id-card text-amber-600 text-lg"></i>
+            </div>
+            <span class="text-sm font-medium text-gray-500">CUIT</span>
+          </div>
+          <p class="text-lg font-semibold text-gray-900">{{ proveedor.cuit || 'Sin CUIT' }}</p>
         </div>
       </div>
 
@@ -370,5 +381,4 @@
     </div>
   }
 }
-
 

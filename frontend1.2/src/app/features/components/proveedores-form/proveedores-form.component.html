@@ -14,30 +14,38 @@
     <div class="flex gap-5">
       <div class="min-h-[72px] w-full">
         <label class="block text-sm font-medium mb-1">Tipo</label>
-        <p-select
-          [options]="tiposOptions"
+        <p-autoComplete
+          formControlName="tipo_proveedor"
+          [dropdown]="true"
+          [forceSelection]="false"
+          [suggestions]="filteredTipos"
           appendTo="body"
           class="w-full"
-          formControlName="tipo_proveedor"
-          optionLabel="label"
-          optionValue="name"
+          field="label"
           placeholder="Selecciona un tipo"
-          (onChange)="onTipoChange($event.value)">
-        </p-select>
+          (completeMethod)="filtrarTipos($event)"
+          (onDropdownClick)="filtrarTipos({ query: '' })"
+          (onSelect)="onTipoChange($event.value)"
+          (onClear)="form.get('tipo_proveedor')?.setValue(null)">
+        </p-autoComplete>
       </div>
 
       <div class="min-h-[72px] w-full">
         <label class="block text-sm font-medium mb-1">Gremio <span class="text-xs font-normal text-gray-500">(opcional)</span></label>
-        <p-select
-          [options]="gremiosOptions"
+        <p-autoComplete
+          formControlName="gremio"
+          [dropdown]="true"
+          [forceSelection]="false"
+          [suggestions]="filteredGremios"
           appendTo="body"
           class="w-full"
-          formControlName="gremio"
-          optionLabel="label"
-          optionValue="name"
+          field="label"
           placeholder="Selecciona un gremio"
-          (onChange)="onGremioChange($event.value)">
-        </p-select>
+          (completeMethod)="filtrarGremios($event)"
+          (onDropdownClick)="filtrarGremios({ query: '' })"
+          (onSelect)="onGremioChange($event.value)"
+          (onClear)="form.get('gremio')?.setValue(null)">
+        </p-autoComplete>
       </div>
 
       <div class="min-h-[72px] w-full">
