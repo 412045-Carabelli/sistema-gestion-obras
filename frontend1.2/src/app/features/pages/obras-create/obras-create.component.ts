@@ -101,7 +101,7 @@ export class ObrasCreateComponent implements OnInit {
     this.proveedorForm = this.fb.group({
       nombre: ['', Validators.required],
       tipo_proveedor: [null, Validators.required],
-      gremio: [null, Validators.required],
+      gremio: [null],
       contacto: ['', Validators.required],
       direccion: [''],
       cuit: ['', Validators.required],
@@ -313,8 +313,9 @@ export class ObrasCreateComponent implements OnInit {
     });
   }
 
-  private recalcularTotales() {
+  recalcularTotales() {
     this.costos.controls.forEach(fila => this.calcularSubtotal(fila as FormGroup));
+    this.actualizarPresupuesto();
   }
 
   get fechasFueraDeRango(): boolean {

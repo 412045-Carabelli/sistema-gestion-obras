@@ -25,6 +25,11 @@ public class TareasController {
         return svc.crear(dto);
     }
 
+    @PutMapping("/{id}")
+    public TareaDTO actualizarTarea(@PathVariable("id") Long id, @RequestBody TareaDTO dto) {
+        return svc.actualizar(id, dto);
+    }
+
     @PutMapping("/{id}/completar")
     public TareaDTO completarTarea(@PathVariable("id") Long id) {
         return svc.completarTarea(id);

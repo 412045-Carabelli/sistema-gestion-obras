@@ -272,6 +272,8 @@
               icon="pi pi-briefcase"
               label="Nuevo proveedor"
               severity="secondary"
+              size="small"
+              styleClass="p-button-sm"
               (onClick)="abrirModalProveedor()"
             ></p-button>
           </div>
@@ -387,7 +389,7 @@
           ></p-select>
         </div>
         <div class="flex flex-col gap-1">
-          <label class="text-sm font-semibold text-gray-700">Gremio</label>
+          <label class="text-sm font-semibold text-gray-700">Gremio <span class="text-xs font-normal text-gray-500">(opcional)</span></label>
           <p-select
             [options]="gremiosProveedor"
             optionLabel="label"

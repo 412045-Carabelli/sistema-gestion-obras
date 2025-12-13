@@ -37,24 +37,6 @@
           </p-select>
         </div>
 
-        <!-- Activo -->
-        <div class="md:col-span-3">
-          <p-select
-            (onChange)="onActivoChange()"
-            [(ngModel)]="activoFiltro"
-            [options]="activoOptions"
-            optionLabel="label"
-            optionValue="value"
-            placeholder="Filtrar por estado"
-            styleClass="w-full h-full flex items-center">
-            <ng-template let-option pTemplate="selectedItem">
-              <div class="flex items-center gap-2">
-                <i class="pi pi-filter text-sm"></i>
-                <span>{{ option?.label || 'Todos' }}</span>
-              </div>
-            </ng-template>
-          </p-select>
-        </div>
       </div>
     </div>
 
@@ -78,7 +60,6 @@
             <th class="text-left font-semibold">Estado</th>
             <th class="text-left font-semibold">Período</th>
             <th class="text-right font-semibold">Presupuesto</th>
-            <th class="text-center font-semibold">Activo</th>
           </tr>
         </ng-template>
 
@@ -111,18 +92,12 @@
             <td class="text-right font-medium text-gray-900">
               {{ obra.presupuesto | currency:'ARS':'symbol-narrow':'1.0-0' }}
             </td>
-            <td class="text-center">
-              <p-tag
-                [severity]="getActivoSeverity(obra.activo)"
-                [value]="obra.activo ? 'Activo' : 'Inactivo'">
-              </p-tag>
-            </td>
           </tr>
         </ng-template>
 
         <ng-template pTemplate="emptymessage">
           <tr>
-            <td class="text-center py-12" colspan="7">
+            <td class="text-center py-12" colspan="5">
               <div class="flex flex-col items-center justify-center gap-3 text-gray-400">
                 <i class="pi pi-inbox text-5xl"></i>
                 <p class="text-lg font-medium">No se encontraron obras</p>

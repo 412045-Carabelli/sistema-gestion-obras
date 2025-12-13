@@ -55,12 +55,6 @@ export class ObrasListComponent implements OnInit {
   estadoFiltro: string = 'TODOS';
   searchValue: string = '';
   estadosOptions: EstadoOption[] = [];
-  activoFiltro: string = 'todos';
-  activoOptions = [
-    {label: 'Todos', value: 'todos'},
-    {label: 'Activos', value: 'true'},
-    {label: 'Inactivos', value: 'false'},
-  ];
   private estadoInicialDesdeRuta: string | null = null;
 
   constructor(
@@ -126,12 +120,7 @@ export class ObrasListComponent implements OnInit {
           ? true
           : (estadoValor || '').toUpperCase() === (this.estadoFiltro || '').toUpperCase();
 
-      const matchesActivo =
-        this.activoFiltro === 'todos'
-          ? true
-          : String(obra.activo ?? true) === this.activoFiltro;
-
-      return matchesSearch && matchesEstado && matchesActivo;
+      return matchesSearch && matchesEstado;
     });
   }
 
@@ -162,10 +151,6 @@ export class ObrasListComponent implements OnInit {
     this.applyFilter();
   }
 
-  onActivoChange() {
-    this.applyFilter();
-  }
-
   onRowClick(obra: Obra) {
     this.obraClick.emit(obra);
     this.router.navigate(['/obras', obra.id]);
@@ -187,10 +172,6 @@ export class ObrasListComponent implements OnInit {
       7: 'danger'
     };
     return severities[id_estado] || 'secondary';
-  }
-
-  getActivoSeverity(activo?: boolean): string {
-    return activo ? 'success' : 'danger';
   }
 
   getProgreso(obra: Obra): number {

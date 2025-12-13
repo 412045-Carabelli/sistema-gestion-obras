@@ -123,6 +123,7 @@ export interface Tarea {
   estado_tarea: string;
   nombre: string;
   descripcion?: string;
+  porcentaje?: number;
   fecha_inicio?: string;
   fecha_fin?: string;
   creado_en?: string;
@@ -261,6 +262,15 @@ export interface CuentaCorrienteProveedorResponse {
   movimientos: CuentaCorrienteMovimiento[];
 }
 
+export interface CuentaCorrienteClienteResponse {
+  clienteId?: number;
+  clienteNombre?: string;
+  totalCobros: number;
+  totalCostos: number;
+  saldoFinal: number;
+  movimientos: CuentaCorrienteMovimiento[];
+}
+
 export interface ComisionesResponse {
   totalComision: number;
   totalPagos: number;
@@ -370,5 +380,3 @@ export interface MovimientoDashboard {
   asociadoTipo: string;
   asociadoId: number;
 }
-
-
