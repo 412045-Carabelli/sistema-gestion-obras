@@ -7,13 +7,22 @@ import {CommonModule} from '@angular/common';
 import {Proveedor} from '../../../core/models/models';
 import {CatalogoOption, ProveedoresService} from '../../../services/proveedores/proveedores.service';
 import {InputText} from 'primeng/inputtext';
-import {Select} from 'primeng/select';
 import {ModalComponent} from '../../../shared/modal/modal.component';
+import {AutoCompleteModule} from 'primeng/autocomplete';
 
 @Component({
   selector: 'app-proveedores-form',
   standalone: true,
-  imports: [PreventInvalidSubmitDirective, CommonModule, ReactiveFormsModule, DropdownModule, ButtonModule, InputText, Select, ModalComponent],
+  imports: [
+    PreventInvalidSubmitDirective,
+    CommonModule,
+    ReactiveFormsModule,
+    DropdownModule,
+    ButtonModule,
+    InputText,
+    ModalComponent,
+    AutoCompleteModule
+  ],
   templateUrl: './proveedores-form.component.html'
 })
 export class ProveedoresFormComponent implements OnInit {
@@ -25,6 +34,8 @@ export class ProveedoresFormComponent implements OnInit {
   gremios: CatalogoOption[] = [];
   tiposOptions: CatalogoOption[] = [];
   gremiosOptions: CatalogoOption[] = [];
+  filteredTipos: CatalogoOption[] = [];
+  filteredGremios: CatalogoOption[] = [];
 
   nuevoTipoForm!: FormGroup;
   nuevoGremioForm!: FormGroup;
@@ -64,11 +75,15 @@ export class ProveedoresFormComponent implements OnInit {
     this.service.getTipos().subscribe(t => {
       this.tipos = t;
       this.tiposOptions = this.appendCrearOption(this.tipos, 'tipo');
+      this.filteredTipos = this.tiposOptions;
+      this.setInitialAutocompleteValue('tipo_proveedor', this.tiposOptions);
     });
 
     this.service.getGremios().subscribe(g => {
       this.gremios = g;
       this.gremiosOptions = this.appendCrearOption(this.gremios, 'gremio');
+      this.filteredGremios = this.gremiosOptions;
+      this.setInitialAutocompleteValue('gremio', this.gremiosOptions);
     });
   }
 
@@ -76,20 +91,44 @@ export class ProveedoresFormComponent implements OnInit {
     if (this.form.valid) this.formSubmit.emit(this.form.value);
   }
 
-  onTipoChange(value: string | null) {
-    if (value === this.NUEVO_TIPO_VALUE) {
+  onTipoChange(value: CatalogoOption | string | null) {
+    const val = (value as CatalogoOption)?.name ?? value;
+    if (val === this.NUEVO_TIPO_VALUE) {
       this.form.get('tipo_proveedor')?.setValue(null);
       this.nuevoTipoForm.reset();
       this.showTipoModal = true;
+    } else if (value) {
+      this.form.get('tipo_proveedor')?.setValue(value);
     }
   }
 
-  onGremioChange(value: string | null) {
-    if (value === this.NUEVO_GREMIO_VALUE) {
+  onGremioChange(value: CatalogoOption | string | null) {
+    const val = (value as CatalogoOption)?.name ?? value;
+    if (val === this.NUEVO_GREMIO_VALUE) {
       this.form.get('gremio')?.setValue(null);
       this.nuevoGremioForm.reset();
       this.showGremioModal = true;
+    } else if (value) {
+      this.form.get('gremio')?.setValue(value);
     }
+  }
+
+  filtrarTipos(event: any) {
+    const query = (event?.query || '').toLowerCase();
+    this.filteredTipos = this.filterWithCrear(
+      this.tiposOptions,
+      query,
+      this.NUEVO_TIPO_VALUE
+    );
+  }
+
+  filtrarGremios(event: any) {
+    const query = (event?.query || '').toLowerCase();
+    this.filteredGremios = this.filterWithCrear(
+      this.gremiosOptions,
+      query,
+      this.NUEVO_GREMIO_VALUE
+    );
   }
 
   crearNuevoTipo() {
@@ -101,7 +140,8 @@ export class ProveedoresFormComponent implements OnInit {
       next: (tipo) => {
         this.tipos = this.mergeOption(tipo, this.tipos);
         this.tiposOptions = this.appendCrearOption(this.tipos, 'tipo');
-        this.form.get('tipo_proveedor')?.setValue(tipo.name);
+        this.filteredTipos = this.tiposOptions;
+        this.form.get('tipo_proveedor')?.setValue(tipo);
         this.showTipoModal = false;
         this.creandoTipo = false;
       },
@@ -120,7 +160,8 @@ export class ProveedoresFormComponent implements OnInit {
       next: (gremio) => {
         this.gremios = this.mergeOption(gremio, this.gremios);
         this.gremiosOptions = this.appendCrearOption(this.gremios, 'gremio');
-        this.form.get('gremio')?.setValue(gremio.name);
+        this.filteredGremios = this.gremiosOptions;
+        this.form.get('gremio')?.setValue(gremio);
         this.showGremioModal = false;
         this.creandoGremio = false;
       },
@@ -153,6 +194,34 @@ export class ProveedoresFormComponent implements OnInit {
     const filtered = list.filter(item => item.name !== option.name);
     return [...filtered, option];
   }
+
+  private setInitialAutocompleteValue(control: 'tipo_proveedor' | 'gremio', options: CatalogoOption[]) {
+    const current = this.form.get(control)?.value;
+    if (!current) return;
+
+    const match = options.find(opt =>
+      opt.name === current ||
+      opt.label === current ||
+      opt.nombre === current ||
+      opt.name === (current as any)?.name
+    );
+
+    if (match) {
+      this.form.get(control)?.setValue(match);
+    }
+  }
+
+  private filterWithCrear(list: CatalogoOption[], query: string, crearName: string): CatalogoOption[] {
+    const filtered = (list || []).filter(opt => {
+      if (opt.name === crearName) return true;
+      const texto = (opt.label || opt.nombre || '').toLowerCase();
+      return texto.includes(query);
+    });
+
+    const crear = list.find(o => o.name === crearName);
+    if (crear && !filtered.some(o => o.name === crearName)) {
+      filtered.push(crear);
+    }
+    return filtered;
+  }
 }
-
-

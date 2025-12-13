@@ -12,6 +12,8 @@ export interface TareaPayload {
   estado_tarea: string;
   nombre: string;
   descripcion?: string;
+   porcentaje?: number;
+  fecha_inicio?: string;
 }
 
 @Injectable({providedIn: 'root'})
