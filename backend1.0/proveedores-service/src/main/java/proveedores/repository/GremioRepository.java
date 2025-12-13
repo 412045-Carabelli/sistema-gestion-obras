@@ -9,5 +9,5 @@ import java.util.Optional;
 public interface GremioRepository extends JpaRepository<Gremio, Long> {
     List<Gremio> findByActivoTrue();
 
-    Optional<Gremio> findByNombreIgnoreCase(String nombre);
+    Optional<Gremio> findByIdAndActivoTrue(Long id);
 }

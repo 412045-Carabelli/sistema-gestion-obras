@@ -58,9 +58,9 @@ jobs:
           fi
           echo "tag=${TAG}" >> $GITHUB_OUTPUT
 
-      - name: Normalize owner lowercase (GHCR requires repo in lowercase)
+      - name: Normalize owner to lowercase
         id: owner
-        run: echo "value=${OWNER,,}" >> "$GITHUB_OUTPUT"
+        run: echo "owner=${GITHUB_REPOSITORY_OWNER,,}" >> $GITHUB_OUTPUT
 
       - name: Log in to GHCR
         uses: docker/login-action@v3
@@ -75,11 +75,11 @@ jobs:
       - name: Build and push img
         uses: docker/bake-action@v5
         env:
+          REGISTRY: ${{ env.REGISTRY }}
+          OWNER: ${{ steps.owner.outputs.owner }}
           TAG: ${{ steps.vars.outputs.tag }}
-          OWNER: ${{ steps.owner.outputs.value }}
         with:
           files: |
             .github/workflows/ghcr-bake.hcl
           set: |
             *.platform=linux/amd64
-          push: true

@@ -11,16 +11,12 @@ public class Cliente {
     @Id
     @GeneratedValue(strategy= GenerationType.IDENTITY) private Long id;
     @Column(nullable=false) private String nombre;
-    @Column(name = "id_empresa")
-    private Long idEmpresa;
+    private Long id_empresa;
     private String contacto, cuit, telefono, email;
-
-    @Column(name = "condicion_iva", nullable = false)
-    private String condicionIVA;
-
-    @Column(nullable = false)
+    @Enumerated(EnumType.STRING)
+    @Column(name = "condicion_iva")
+    private CondicionIva condicionIva = CondicionIva.RESPONSABLE_INSCRIPTO;
     private Boolean activo = Boolean.TRUE;
-
     private Instant creadoEn = Instant.now();
 
     @Column(name = "ultima_actualizacion")
@@ -31,23 +27,11 @@ public class Cliente {
 
     @PrePersist
     public void prePersist() {
-        if (this.condicionIVA == null) {
-            this.condicionIVA = "Consumidor Final";
-        }
-        if (this.activo == null) {
-            this.activo = Boolean.TRUE;
-        }
         marcarAuditoria("CREATE");
     }
 
     @PreUpdate
     public void preUpdate() {
-        if (this.condicionIVA == null) {
-            this.condicionIVA = "Consumidor Final";
-        }
-        if (this.activo == null) {
-            this.activo = Boolean.TRUE;
-        }
         marcarAuditoria("UPDATE");
     }
 
