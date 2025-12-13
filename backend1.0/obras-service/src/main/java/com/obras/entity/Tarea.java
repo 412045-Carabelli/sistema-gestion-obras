@@ -31,6 +31,9 @@ public class Tarea {
     @Column(nullable=false, length=150) private String nombre;
     private String descripcion;
 
+    @Column(name = "porcentaje", nullable = false)
+    private Double porcentaje = 0d;
+
     @Column(name = "fecha_inicio")
     private LocalDateTime fechaInicio;
     @Column(name = "fecha_fin")
@@ -67,4 +70,3 @@ public class Tarea {
         this.tipoActualizacion = tipo;
     }
 }
-

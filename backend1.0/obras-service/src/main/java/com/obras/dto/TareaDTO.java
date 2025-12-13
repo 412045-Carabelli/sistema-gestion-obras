@@ -13,6 +13,7 @@ public class TareaDTO {
     private EstadoTareaEnum estado_tarea;
     private String nombre;
     private String descripcion;
+    private Double porcentaje;
     private LocalDateTime fecha_inicio;
     private LocalDateTime fecha_fin;
     private Instant creado_en;
@@ -20,5 +21,4 @@ public class TareaDTO {
     private Instant ultima_actualizacion;
     private String tipo_actualizacion;
 }
-
 
