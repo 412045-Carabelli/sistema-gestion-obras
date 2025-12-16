@@ -1,6 +1,7 @@
 package com.obras.dto;
 
 import com.obras.enums.EstadoPagoEnum;
+import com.obras.enums.TipoCostoEnum;
 import lombok.Data;
 
 import java.math.BigDecimal;
@@ -19,6 +20,7 @@ public class ObraCostoDTO {
     private BigDecimal subtotal;
     private BigDecimal total;
     private EstadoPagoEnum estado_pago;
+    private TipoCostoEnum tipo_costo;
     private Boolean activo;
     private Instant ultima_actualizacion;
     private String tipo_actualizacion;

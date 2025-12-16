@@ -18,6 +18,7 @@ import {ObraPayload, ObrasService} from '../../../services/obras/obras.service';
 import {MessageService} from 'primeng/api';
 import {ToastModule} from 'primeng/toast';
 import {Select} from 'primeng/select';
+import {AutoCompleteModule} from 'primeng/autocomplete';
 import {RouterLink} from '@angular/router';
 import {PreventInvalidSubmitDirective} from '../../../shared/directives/prevent-invalid-submit.directive';
 import {ModalComponent} from '../../../shared/modal/modal.component';
@@ -39,6 +40,7 @@ import {ModalComponent} from '../../../shared/modal/modal.component';
     ToastModule,
     DatePicker,
     Select,
+    AutoCompleteModule,
     RouterLink
     , PreventInvalidSubmitDirective,
     ModalComponent
@@ -55,6 +57,9 @@ export class ObrasCreateComponent implements OnInit {
   ivaOptions: {label: string; name: string}[] = [];
   tiposProveedor: CatalogoOption[] = [];
   gremiosProveedor: CatalogoOption[] = [];
+  filteredClientes: Cliente[] = [];
+  private readonly NUEVO_TIPO_VALUE = '__nuevo_tipo__';
+  private readonly NUEVO_GREMIO_VALUE = '__nuevo_gremio__';
   clienteForm: FormGroup;
   proveedorForm: FormGroup;
   showClienteModal = false;
@@ -117,7 +122,10 @@ export class ObrasCreateComponent implements OnInit {
 
   ngOnInit() {
     this.clientesService.getClientes().subscribe(list =>
-      this.clientes = list.map(c => ({...c, id: Number(c.id)}))
+      {
+        this.clientes = list.map(c => ({...c, id: Number(c.id)}));
+        this.filteredClientes = this.clientes;
+      }
     );
 
     this.estadoObraService.getEstados().subscribe(list => {
@@ -137,15 +145,7 @@ export class ObrasCreateComponent implements OnInit {
       error: () => this.ivaOptions = []
     });
 
-    this.proveedoresService.getTipos().subscribe({
-      next: t => this.tiposProveedor = t,
-      error: () => this.tiposProveedor = []
-    });
-
-    this.proveedoresService.getGremios().subscribe({
-      next: g => this.gremiosProveedor = g,
-      error: () => this.gremiosProveedor = []
-    });
+    this.cargarCatalogosProveedor();
 
     this.form.get('obra_estado')?.valueChanges.subscribe(selected => {
       if (selected) {
@@ -267,16 +267,24 @@ export class ObrasCreateComponent implements OnInit {
       beneficio: raw.beneficio ?? 0,
       tiene_comision: raw.tiene_comision || false,
       comision: raw.comision,
-      costos: (raw.costos || []).map((c: any) => ({
-        id_proveedor: c.id_proveedor,
-        descripcion: c.descripcion,
-        unidad: c.unidad,
-        cantidad: c.cantidad,
-        subtotal: c.total,
-        precio_unitario: c.precio_unitario,
-        beneficio: c.beneficio ?? 0,
-        id_estado_pago: 1
-      })),
+      costos: (raw.costos || []).map((c: any) => {
+        const idProveedor =
+          typeof c.id_proveedor === 'object'
+            ? c.id_proveedor?.id
+            : c.id_proveedor;
+
+        return {
+          id_proveedor: idProveedor,
+          descripcion: c.descripcion,
+          unidad: c.unidad,
+          cantidad: c.cantidad,
+          subtotal: c.total,
+          precio_unitario: c.precio_unitario,
+          beneficio: c.beneficio ?? 0,
+          id_estado_pago: 1,
+          tipo_costo: 'ORIGINAL'
+        };
+      }),
       tareas: []
     };
 
@@ -316,6 +324,24 @@ export class ObrasCreateComponent implements OnInit {
   recalcularTotales() {
     this.costos.controls.forEach(fila => this.calcularSubtotal(fila as FormGroup));
     this.actualizarPresupuesto();
+  }
+
+  filtrarClientes(event: any) {
+    const query = (event?.query || '').toLowerCase();
+    this.filteredClientes = this.clientes.filter(c => {
+      const nombre = (c.nombre || '').toLowerCase();
+      const cuit = (c.cuit || '').toString().toLowerCase();
+      return nombre.includes(query) || cuit.includes(query);
+    });
+  }
+
+  onClienteSeleccionado(cliente: Cliente | null) {
+    this.form.get('cliente')?.setValue(cliente);
+  }
+
+  onClienteLimpiar() {
+    this.form.get('cliente')?.setValue(null);
+    this.filteredClientes = this.clientes;
   }
 
   get fechasFueraDeRango(): boolean {
@@ -361,7 +387,8 @@ export class ObrasCreateComponent implements OnInit {
         const clienteId = Number((nuevo as any)?.id ?? (nuevo as any)?.id_cliente ?? 0);
         const cliente = {...nuevo, id: clienteId};
         this.clientes = [...this.clientes, cliente];
-        this.form.get('cliente')?.setValue(cliente.id);
+        this.filteredClientes = this.clientes;
+        this.form.get('cliente')?.setValue(cliente);
         this.messageService.add({
           severity: 'success',
           summary: 'Cliente creado',
@@ -392,6 +419,14 @@ export class ObrasCreateComponent implements OnInit {
       email: '',
       activo: true
     });
+    this.cargarCatalogosProveedor();
+    // preseleccionar opción "crear" para asegurar disponibilidad
+    this.proveedorForm.patchValue({
+      tipo_proveedor: this.NUEVO_TIPO_VALUE,
+      gremio: this.NUEVO_GREMIO_VALUE
+    });
+    this.onTipoProveedorChange({ value: this.NUEVO_TIPO_VALUE } as any);
+    this.onGremioChange({ value: this.NUEVO_GREMIO_VALUE } as any);
     this.showProveedorModal = true;
   }
 
@@ -433,4 +468,74 @@ export class ObrasCreateComponent implements OnInit {
       }
     });
   }
+
+  private cargarCatalogosProveedor() {
+    this.proveedoresService.getTipos().subscribe({
+      next: t => this.tiposProveedor = [
+        ...t,
+        {label: 'Crear nuevo tipo...', name: this.NUEVO_TIPO_VALUE, nombre: 'Crear nuevo tipo'}
+      ],
+      error: () => this.tiposProveedor = [
+        {label: 'Crear nuevo tipo...', name: this.NUEVO_TIPO_VALUE, nombre: 'Crear nuevo tipo'}
+      ]
+    });
+    this.proveedoresService.getGremios().subscribe({
+      next: g => this.gremiosProveedor = [
+        ...g,
+        {label: 'Crear nuevo gremio...', name: this.NUEVO_GREMIO_VALUE, nombre: 'Crear nuevo gremio'}
+      ],
+      error: () => this.gremiosProveedor = [
+        {label: 'Crear nuevo gremio...', name: this.NUEVO_GREMIO_VALUE, nombre: 'Crear nuevo gremio'}
+      ]
+    });
+  }
+
+  onTipoProveedorChange(value: string | null) {
+    if (value === this.NUEVO_TIPO_VALUE) {
+      const nombre = prompt('Nombre del nuevo tipo de proveedor:');
+      if (!nombre) {
+        this.proveedorForm.get('tipo_proveedor')?.setValue(null);
+        return;
+      }
+      this.proveedoresService.crearTipo(nombre).subscribe({
+        next: t => {
+          this.tiposProveedor = [
+            ...this.tiposProveedor.filter(op => op.name !== this.NUEVO_TIPO_VALUE),
+            t,
+            {label: 'Crear nuevo tipo...', name: this.NUEVO_TIPO_VALUE, nombre: 'Crear nuevo tipo'}
+          ];
+          this.proveedorForm.get('tipo_proveedor')?.setValue(t.name ?? t.label ?? t);
+        },
+        error: () => {
+          alert('No se pudo crear el tipo');
+          this.proveedorForm.get('tipo_proveedor')?.setValue(null);
+        }
+      });
+    }
+  }
+
+  onGremioChange(value: string | null) {
+    if (value === this.NUEVO_GREMIO_VALUE) {
+      const nombre = prompt('Nombre del nuevo gremio:');
+      if (!nombre) {
+        this.proveedorForm.get('gremio')?.setValue(null);
+        return;
+      }
+      this.proveedoresService.crearGremio(nombre).subscribe({
+        next: g => {
+          this.gremiosProveedor = [
+            ...this.gremiosProveedor.filter(op => op.name !== this.NUEVO_GREMIO_VALUE),
+            g,
+            {label: 'Crear nuevo gremio...', name: this.NUEVO_GREMIO_VALUE, nombre: 'Crear nuevo gremio'}
+          ];
+          this.proveedorForm.get('gremio')?.setValue(g.name ?? g.label ?? g);
+        },
+        error: () => {
+          alert('No se pudo crear el gremio');
+          this.proveedorForm.get('gremio')?.setValue(null);
+        }
+      });
+    }
+  }
 }
+

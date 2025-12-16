@@ -1,6 +1,7 @@
 package com.obras.entity;
 
 import com.obras.enums.EstadoPagoEnum;
+import com.obras.enums.TipoCostoEnum;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -33,6 +34,10 @@ public class ObraCosto {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "id_obra", nullable = false)
     private Obra obra;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "tipo_costo", nullable = false)
+    private TipoCostoEnum tipoCosto = TipoCostoEnum.ORIGINAL;
 
     @Column(nullable=false) private String descripcion;
     @Column(nullable=false) private String unidad; // ej: m2, unidad

@@ -91,6 +91,8 @@ public class ProveedoresBffController {
         ProveedorDTO dto = new ProveedorDTO();
         dto.setId(entity.getId());
         dto.setNombre(entity.getNombre());
+        dto.setCuit(entity.getDniCuit());
+        dto.setDireccion(entity.getDireccion());
         dto.setContacto(entity.getContacto());
         dto.setTelefono(entity.getTelefono());
         dto.setEmail(entity.getEmail());
@@ -116,6 +118,8 @@ public class ProveedoresBffController {
         Proveedor entity = new Proveedor();
         entity.setId(dto.getId());
         entity.setNombre(dto.getNombre());
+        entity.setDniCuit(dto.getCuit());
+        entity.setDireccion(dto.getDireccion());
         entity.setContacto(dto.getContacto());
         entity.setTelefono(dto.getTelefono());
         entity.setEmail(dto.getEmail());

@@ -1,4 +1,4 @@
-<p-toast position="bottom-right"></p-toast>
+﻿<p-toast position="bottom-right"></p-toast>
 
 <div class="p-4 space-y-5">
   <!-- Header -->
@@ -46,14 +46,23 @@
     <div class="px-4 py-4 flex flex-wrap items-end gap-3">
       <div class="flex flex-col gap-1 min-w-[220px] flex-1 md:flex-[1.2]">
         <label class="text-xs font-medium text-gray-600">Proveedor</label>
-        <p-select
-          [(ngModel)]="nuevoCosto.id_proveedor"
-          [options]="proveedores"
+        <p-autoComplete
+          [(ngModel)]="nuevoCostoProveedor"
+          [suggestions]="filteredProveedores"
+          [dropdown]="true"
+          [showClear]="true"
           optionLabel="nombre"
-          optionValue="id"
+          field="nombre"
           placeholder="Selecciona proveedor"
-          styleClass="w-full"
-        ></p-select>
+          class="w-full"
+          inputStyleClass="w-full"
+          appendTo="body"
+          fluid
+          (completeMethod)="filtrarProveedores($event)"
+          (onSelect)="seleccionarProveedorNuevo($event.value ?? $event)"
+          (onClear)="limpiarProveedorNuevo()"
+          (onDropdownClick)="filtrarProveedores({ query: '' })"
+        ></p-autoComplete>
       </div>
 
       <div class="flex flex-col gap-1 min-w-[240px] flex-[1.8]">
@@ -102,11 +111,25 @@
         />
       </div>
 
+      <div class="flex flex-col gap-1 w-40">
+        <label class="text-xs font-medium text-gray-600">Tipo de costo</label>
+        <p-select
+          [(ngModel)]="nuevoCosto.tipo_costo"
+          [options]="tipoCostoOptions"
+          optionLabel="label"
+          optionValue="value"
+          placeholder="Selecciona"
+          appendTo="body"
+          (onChange)="onTipoCostoNuevoChange($event.value)"
+          styleClass="w-full"
+        ></p-select>
+      </div>
+
       <div class="flex flex-col gap-1 w-28">
         <label class="text-xs font-medium text-gray-600">Beneficio (%)</label>
         <input
           [(ngModel)]="nuevoCosto.beneficio"
-          [disabled]="usarBeneficioGlobal"
+          [disabled]="usarBeneficioGlobal && nuevoCosto.tipo_costo !== 'ADICIONAL'"
           class="w-full text-right"
           min="0"
           pInputText
@@ -136,8 +159,9 @@
       <!-- Encabezado -->
       <ng-template pTemplate="header">
         <tr class="bg-gray-50 text-gray-700">
+
           <th class="text-left px-3 py-2 font-semibold">Proveedor</th>
-          <th class="text-left px-3 py-2 font-semibold">Descripción</th>
+          <th class="text-left px-3 py-2 font-semibold">Descripcion</th>
           <th class="text-left px-3 py-2 font-semibold">Cantidad</th>
           <th class="text-left px-3 py-2 font-semibold">Precio Unit.</th>
           <th class="text-left px-3 py-2 font-semibold">Beneficio (%)</th>
@@ -151,19 +175,33 @@
       <!-- Filas -->
       <ng-template let-c let-rowIndex="rowIndex" pTemplate="body">
         <tr
-          [ngClass]="rowIndex % 2 === 0 ? 'bg-white' : 'bg-gray-50'"
+          [ngClass]="{
+            'bg-red-200': esAdicional(c),
+            'bg-white': !esAdicional(c) && rowIndex % 2 === 0,
+            'bg-gray-50': !esAdicional(c) && rowIndex % 2 !== 0
+          }"
+          [style.backgroundColor]="esAdicional(c) ? '#facc15' : ''"
           class="hover:bg-gray-50 transition"
         >
             <td class="px-3 py-2">
-              <p-select
-                [(ngModel)]="c.id_proveedor"
+              <p-autoComplete
+                [(ngModel)]="c.proveedor"
                 [disabled]="!c.enEdicion"
-                [options]="proveedores"
+                [suggestions]="filteredProveedores"
+                [dropdown]="true"
+                [showClear]="true"
                 optionLabel="nombre"
                 optionValue="id"
+                field="nombre"
                 placeholder="Proveedor"
-                styleClass="w-full"
-              ></p-select>
+                class="w-full"
+                inputStyleClass="w-full"
+                appendTo="body"
+                (completeMethod)="filtrarProveedores($event)"
+                (onSelect)="seleccionarProveedorFila(c, $event.value ?? $event)"
+                (onClear)="limpiarProveedorFila(c)"
+                (onDropdownClick)="filtrarProveedores({ query: '' })"
+              ></p-autoComplete>
             </td>
           <td class="px-3 py-2">
             <input
@@ -212,7 +250,25 @@
           </td>
 
           <td class="px-3 py-2 text-right">
-            @if (usarBeneficioGlobal) {
+            @if (c.tipo_costo === 'ADICIONAL') {
+              @if (c.enEdicion) {
+                <div class="flex items-center justify-end gap-2 text-xs text-gray-700">
+                  <span>Individual (</span>
+                  <input
+                    [(ngModel)]="c.beneficio"
+                    (input)="recalcularEnEdicion(c)"
+                    class="w-16 text-right"
+                    pInputText
+                    type="number"
+                  />
+                  <span>%)</span>
+                </div>
+              } @else {
+                <span class="text-gray-500 text-xs">
+                  Individual ({{ c.beneficio ?? 0 }}%)
+                </span>
+              }
+            } @else if (usarBeneficioGlobal) {
               <span class="text-gray-500 text-xs">
                 Global ({{ beneficioGlobal }}%)
               </span>
@@ -303,7 +359,7 @@
 
         <tr class="bg-gray-50 text-sm">
           <td class="text-right px-3 py-2 text-gray-600" colspan="8">
-            Beneficio neto (descontando comisi?n):
+            Beneficio neto (descontando comisión):
           </td>
           <td class="px-3 py-2 text-emerald-700 font-semibold">
             {{ calcularBeneficioNeto() | currency:'ARS' }}
@@ -385,3 +441,9 @@
     }
   </div>
 </app-modal>
+
+
+
+
+
+

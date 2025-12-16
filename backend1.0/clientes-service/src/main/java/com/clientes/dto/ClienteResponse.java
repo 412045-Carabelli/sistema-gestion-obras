@@ -13,6 +13,7 @@ public class ClienteResponse {
     private String nombre;
     private Long idEmpresa;
     private String contacto;
+    private String direccion;
     private String cuit;
     private String telefono;
     private String email;

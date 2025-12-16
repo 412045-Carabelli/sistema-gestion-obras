@@ -12,7 +12,7 @@ public class Cliente {
     @GeneratedValue(strategy= GenerationType.IDENTITY) private Long id;
     @Column(nullable=false) private String nombre;
     private Long id_empresa;
-    private String contacto, cuit, telefono, email;
+    private String contacto, cuit, telefono, email, direccion;
     @Enumerated(EnumType.STRING)
     @Column(name = "condicion_iva")
     private CondicionIva condicionIva = CondicionIva.RESPONSABLE_INSCRIPTO;

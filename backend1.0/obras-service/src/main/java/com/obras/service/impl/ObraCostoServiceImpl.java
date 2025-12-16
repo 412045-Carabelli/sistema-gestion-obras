@@ -3,6 +3,7 @@ package com.obras.service.impl;
 import com.obras.dto.ObraCostoDTO;
 import com.obras.entity.ObraCosto;
 import com.obras.enums.EstadoPagoEnum;
+import com.obras.enums.TipoCostoEnum;
 import com.obras.repository.ObraCostoRepository;
 import com.obras.repository.ObraRepository;
 import com.obras.service.ObraCostoService;
@@ -13,6 +14,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -23,11 +25,12 @@ public class ObraCostoServiceImpl implements ObraCostoService {
     private final ObraCostoRepository costoRepo;
     private final ObraRepository obraRepo;
 
-    // ============================
-    // 🔸 Crear costo
-    // ============================
+    // Crear costo
     @Override
     public ObraCostoDTO crear(ObraCostoDTO dto) {
+        if (dto.getTipo_costo() == null) {
+            throw new IllegalArgumentException("Debes indicar el tipo de costo (ORIGINAL o ADICIONAL).");
+        }
         ObraCosto entity = fromDto(dto);
         calcularTotales(entity);
         entity = costoRepo.save(entity);
@@ -54,14 +57,15 @@ public class ObraCostoServiceImpl implements ObraCostoService {
         entity.setCantidad(dto.getCantidad());
         entity.setPrecioUnitario(dto.getPrecio_unitario());
         entity.setBeneficio(dto.getBeneficio());
+        if (dto.getTipo_costo() != null) {
+            entity.setTipoCosto(dto.getTipo_costo());
+        }
         entity.setEstadoPago(dto.getEstado_pago() != null ? dto.getEstado_pago() : entity.getEstadoPago());
         calcularTotales(entity);
         return toDto(costoRepo.save(entity));
     }
 
-    // ============================
-    // 🔸 Eliminar costo (lógico)
-    // ============================
+    // Eliminar costo (lógico)
     @Override
     public void eliminar(Long id) {
         costoRepo.findByIdAndActivoTrue(id).ifPresent(costo -> {
@@ -70,35 +74,52 @@ public class ObraCostoServiceImpl implements ObraCostoService {
         });
     }
 
-    // ============================
-    // 🔸 Listar costos por obra
-    // ============================
+    // Listar costos por obra
     @Transactional(readOnly = true)
     @Override
     public List<ObraCostoDTO> listarPorObra(Long idObra) {
         List<ObraCosto> lst = costoRepo.findByObra_IdAndActivoTrue(idObra);
         return lst
-                .stream()
-                .map(this::toDto)
-                .collect(Collectors.toList());
+            .stream()
+            .sorted((a, b) -> {
+                boolean aAdd = TipoCostoEnum.ADICIONAL.equals(a.getTipoCosto());
+                boolean bAdd = TipoCostoEnum.ADICIONAL.equals(b.getTipoCosto());
+                int tipoCompare = Boolean.compare(aAdd, bAdd);
+                if (tipoCompare != 0) return tipoCompare;
+                return Long.compare(
+                        a.getId() != null ? a.getId() : 0,
+                        b.getId() != null ? b.getId() : 0
+                );
+            })
+            .map(this::toDto)
+            .collect(Collectors.toList());
     }
 
-    // ============================
-    // 🧮 Calcular totales
-    // ============================
+    // Calcular totales
     private void calcularTotales(ObraCosto entity) {
+        TipoCostoEnum tipoCosto = Optional.ofNullable(entity.getTipoCosto()).orElse(TipoCostoEnum.ORIGINAL);
+        entity.setTipoCosto(tipoCosto);
+        validarTipoCosto(tipoCosto);
+
         BigDecimal subtotal = (entity.getCantidad() != null && entity.getPrecioUnitario() != null)
                 ? entity.getCantidad().multiply(entity.getPrecioUnitario()).setScale(2, RoundingMode.HALF_UP)
                 : BigDecimal.ZERO;
 
+        boolean esAdicional = tipoCosto == TipoCostoEnum.ADICIONAL;
+        BigDecimal beneficioAplicado = !esAdicional && Boolean.TRUE.equals(entity.getObra().getBeneficioGlobal())
+                ? Optional.ofNullable(entity.getObra().getBeneficio()).orElse(BigDecimal.ZERO)
+                : Optional.ofNullable(entity.getBeneficio()).orElse(BigDecimal.ZERO);
+
+        BigDecimal total = subtotal.multiply(
+                BigDecimal.ONE.add(beneficioAplicado.divide(new BigDecimal("100"), 6, RoundingMode.HALF_UP))
+        ).setScale(2, RoundingMode.HALF_UP);
+
         entity.setSubtotal(subtotal);
-        entity.setTotal(subtotal);
+        entity.setTotal(total);
         entity.setActivo(true);
     }
 
-    // ============================
-    // 🧭 Mapper: Entity → DTO
-    // ============================
+    // Mapper: Entity -> DTO
     private ObraCostoDTO toDto(ObraCosto entity) {
         ObraCostoDTO dto = new ObraCostoDTO();
         dto.setId(entity.getId());
@@ -112,15 +133,14 @@ public class ObraCostoServiceImpl implements ObraCostoService {
         dto.setSubtotal(entity.getSubtotal());
         dto.setTotal(entity.getTotal());
         dto.setEstado_pago(entity.getEstadoPago());
+        dto.setTipo_costo(entity.getTipoCosto());
         dto.setActivo(entity.getActivo());
         dto.setUltima_actualizacion(entity.getUltimaActualizacion());
         dto.setTipo_actualizacion(entity.getTipoActualizacion());
         return dto;
     }
 
-    // ============================
-    // 🧭 Mapper: DTO → Entity
-    // ============================
+    // Mapper: DTO -> Entity
     private ObraCosto fromDto(ObraCostoDTO dto) {
         ObraCosto entity = new ObraCosto();
         entity.setId(dto.getId());
@@ -130,6 +150,10 @@ public class ObraCostoServiceImpl implements ObraCostoService {
         entity.setCantidad(dto.getCantidad());
         entity.setPrecioUnitario(dto.getPrecio_unitario());
         entity.setBeneficio(dto.getBeneficio());
+
+        TipoCostoEnum tipoCosto = dto.getTipo_costo() != null ? dto.getTipo_costo() : TipoCostoEnum.ORIGINAL;
+        validarTipoCosto(tipoCosto);
+        entity.setTipoCosto(tipoCosto);
         entity.setActivo(dto.getActivo() != null ? dto.getActivo() : Boolean.TRUE);
 
         entity.setEstadoPago(dto.getEstado_pago() != null ? dto.getEstado_pago() : EstadoPagoEnum.PENDIENTE);
@@ -139,20 +163,9 @@ public class ObraCostoServiceImpl implements ObraCostoService {
         return entity;
     }
 
-    private Long mapEstadoPagoToId(EstadoPagoEnum e) {
-        return switch (e) {
-            case PENDIENTE -> 1L;
-            case PARCIAL -> 2L;
-            case PAGADO -> 3L;
-        };
-    }
-
-    private EstadoPagoEnum mapIdToEstadoPago(Long id) {
-        return switch (id != null ? id.intValue() : -1) {
-            case 1 -> EstadoPagoEnum.PENDIENTE;
-            case 2 -> EstadoPagoEnum.PARCIAL;
-            case 3 -> EstadoPagoEnum.PAGADO;
-            default -> EstadoPagoEnum.PENDIENTE;
-        };
+    private void validarTipoCosto(TipoCostoEnum tipo) {
+        if (tipo == null) {
+            throw new IllegalArgumentException("El tipo de costo es obligatorio (ORIGINAL o ADICIONAL).");
+        }
     }
 }

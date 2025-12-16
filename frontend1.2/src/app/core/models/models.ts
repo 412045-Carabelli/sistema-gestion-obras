@@ -101,6 +101,7 @@ export interface ObraCosto {
   id_obra: number;
   id_proveedor?: number;
   proveedor?: Proveedor;
+  tipo_costo?: 'ORIGINAL' | 'ADICIONAL';
   descripcion: string;
   unidad: string;
   cantidad: number;
