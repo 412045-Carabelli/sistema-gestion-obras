@@ -1,11 +1,11 @@
 import {Component} from '@angular/core';
 import {Router} from '@angular/router';
-import {MessageService} from 'primeng/api';
-import {ProveedoresFormComponent} from '../../components/proveedores-form/proveedores-form.component';
 import {Proveedor} from '../../../core/models/models';
 import {ProveedoresService} from '../../../services/proveedores/proveedores.service';
 import {ToastModule} from 'primeng/toast';
 import {CommonModule} from '@angular/common';
+import {ProveedoresFormComponent} from '../../components/proveedores-form/proveedores-form.component';
+import {MessageService} from 'primeng/api';
 
 @Component({
   selector: 'app-proveedores-create',

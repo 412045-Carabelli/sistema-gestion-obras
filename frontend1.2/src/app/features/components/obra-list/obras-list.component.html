@@ -1,11 +1,9 @@
 @defer (when datosCargados) {
   <div class="flex flex-col gap-4">
-
     <!-- Filtros -->
     <div class="bg-white p-4 rounded-lg border border-gray-200">
       <div class="grid grid-cols-1 md:grid-cols-12 gap-4">
-        <!-- Buscar -->
-        <div class="md:col-span-6">
+        <div class="md:col-span-8">
           <p-iconfield iconPosition="left" styleClass="w-full">
             <p-inputicon styleClass="pi pi-search"/>
             <input
@@ -13,13 +11,12 @@
               [(ngModel)]="searchValue"
               class="w-full"
               pInputText
-              placeholder="Buscar por nombre, dirección o cliente"
+              placeholder="Buscar por nombre, direccion o cliente"
               type="text"/>
           </p-iconfield>
         </div>
 
-        <!-- Estado -->
-        <div class="md:col-span-3">
+        <div class="md:col-span-4">
           <p-select
             (onChange)="onEstadoChange()"
             [(ngModel)]="estadoFiltro"
@@ -27,7 +24,7 @@
             optionLabel="label"
             optionValue="value"
             placeholder="Filtrar por estado"
-            styleClass="w-full h-full flex items-center">
+            styleClass="w-full">
             <ng-template let-option pTemplate="selectedItem">
               <div class="flex items-center gap-2">
                 <i class="pi pi-filter text-sm"></i>
@@ -36,21 +33,14 @@
             </ng-template>
           </p-select>
         </div>
-
       </div>
     </div>
 
     <!-- Tabla -->
     <div class="bg-white rounded-lg border border-gray-200 overflow-hidden">
       <p-table
-        [paginator]="true"
-        [paginatorDropdownAppendTo]="'body'"
         [rowHover]="true"
-        [rowsPerPageOptions]="[10, 25, 50]"
-        [rows]="10"
-        [showCurrentPageReport]="true"
         [value]="obrasFiltradas"
-        currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} obras"
         styleClass="p-datatable-sm">
 
         <ng-template pTemplate="header">
@@ -58,7 +48,7 @@
             <th class="text-left font-semibold">Obra</th>
             <th class="text-left font-semibold">Cliente</th>
             <th class="text-left font-semibold">Estado</th>
-            <th class="text-left font-semibold">Período</th>
+            <th class="text-left font-semibold">Periodo</th>
             <th class="text-right font-semibold">Presupuesto</th>
           </tr>
         </ng-template>
@@ -86,7 +76,7 @@
                   }
                 </div>
               } @else {
-                <span class="text-gray-400 text-sm">—</span>
+                <span class="text-gray-400 text-sm">-</span>
               }
             </td>
             <td class="text-right font-medium text-gray-900">
@@ -97,11 +87,11 @@
 
         <ng-template pTemplate="emptymessage">
           <tr>
-            <td class="text-center py-12" colspan="5">
-              <div class="flex flex-col items-center justify-center gap-3 text-gray-400">
-                <i class="pi pi-inbox text-5xl"></i>
-                <p class="text-lg font-medium">No se encontraron obras</p>
-                <p class="text-sm">Intenta ajustar los filtros de búsqueda</p>
+            <td class="text-center py-10" colspan="5">
+              <div class="flex flex-col items-center justify-center gap-2 text-gray-500">
+                <i class="pi pi-inbox text-3xl"></i>
+                <p class="text-base font-medium">No hay registros para mostrar</p>
+                <p class="text-sm">Ajusta los filtros o crea un nuevo registro.</p>
               </div>
             </td>
           </tr>
@@ -110,13 +100,11 @@
     </div>
   </div>
 } @placeholder {
-  <!-- Skeleton -->
   <div class="flex flex-col gap-4 animate-pulse">
     <div class="bg-white p-4 rounded-lg border border-gray-200">
       <div class="grid grid-cols-1 md:grid-cols-12 gap-4">
-        <div class="md:col-span-6 h-10 bg-gray-200 rounded"></div>
-        <div class="md:col-span-3 h-10 bg-gray-200 rounded"></div>
-        <div class="md:col-span-3 h-10 bg-gray-200 rounded"></div>
+        <div class="md:col-span-8 h-10 bg-gray-200 rounded"></div>
+        <div class="md:col-span-4 h-10 bg-gray-200 rounded"></div>
       </div>
     </div>
 

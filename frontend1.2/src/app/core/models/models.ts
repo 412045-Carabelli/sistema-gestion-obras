@@ -25,6 +25,7 @@ export interface Cliente {
   nombre: string;
   id_empresa?: number;
   contacto?: string;
+  direccion?: string;
   condicion_iva?: string;
   cuit?: string;
   telefono?: string;

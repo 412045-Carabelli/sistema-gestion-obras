@@ -43,6 +43,7 @@ export class ClientesListComponent implements OnInit {
   @Output() clienteClick = new EventEmitter<Cliente>();
 
   clientesFiltrados: Cliente[] = [];
+  datosCargados = false;
 
   searchValue: string = '';
   activoFiltro: string = 'todos';
@@ -57,15 +58,21 @@ export class ClientesListComponent implements OnInit {
   ngOnInit() {
     forkJoin({
       clientes: this.clientesService.getClientes()
-    }).subscribe(({clientes}) => {
-      this.clientes = clientes.map(c => ({...c, id: Number(c.id)}));
-      this.clientesFiltrados = [...this.clientes];
+    }).subscribe({
+      next: ({clientes}) => {
+        this.clientes = clientes.map(c => ({...c, id: Number(c.id)}));
+        this.clientesFiltrados = [...this.clientes];
 
-      this.activoOptions = [
-        {label: 'Todos', value: 'todos'},
-        {label: 'Activos', value: 'true'},
-        {label: 'Inactivos', value: 'false'}
-      ];
+        this.activoOptions = [
+          {label: 'Todos', value: 'todos'},
+          {label: 'Activos', value: 'true'},
+          {label: 'Inactivos', value: 'false'}
+        ];
+        this.datosCargados = true;
+      },
+      error: () => {
+        this.datosCargados = true;
+      }
     });
   }
 
@@ -75,6 +82,7 @@ export class ClientesListComponent implements OnInit {
       const matchesSearch = this.searchValue
         ? cliente.nombre.toLowerCase().includes(this.searchValue.toLowerCase()) ||
         (cliente.contacto?.toLowerCase().includes(this.searchValue.toLowerCase()) ?? false) ||
+        (cliente.direccion?.toLowerCase().includes(this.searchValue.toLowerCase()) ?? false) ||
         (cliente.cuit?.toLowerCase().includes(this.searchValue.toLowerCase()) ?? false) ||
         (cliente.telefono?.toLowerCase().includes(this.searchValue.toLowerCase()) ?? false) ||
         (cliente.email?.toLowerCase().includes(this.searchValue.toLowerCase()) ?? false)

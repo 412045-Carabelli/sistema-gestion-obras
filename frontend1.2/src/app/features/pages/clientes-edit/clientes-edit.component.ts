@@ -38,6 +38,7 @@ export class ClientesEditComponent implements OnInit {
     this.form = this.fb.group({
       nombre: ['', Validators.required],
       contacto: ['', Validators.required],
+      direccion: [''],
       cuit: ['', Validators.required],
       condicion_iva: [null, Validators.required],
       telefono: ['', Validators.required],
