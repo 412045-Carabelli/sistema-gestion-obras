@@ -1,9 +1,7 @@
 @defer (when !loading) {
   <div class="flex flex-col gap-4">
-    <!-- =================== FILTROS =================== -->
     <div class="bg-white p-4 rounded-lg border border-gray-200">
       <div class="grid grid-cols-1 md:grid-cols-12 gap-4">
-        <!-- Buscador -->
         <div class="md:col-span-8">
           <p-iconfield iconPosition="left" styleClass="w-full">
             <p-inputicon styleClass="pi pi-search"/>
@@ -17,7 +15,6 @@
           </p-iconfield>
         </div>
 
-        <!-- Filtro tipo de proveedor -->
         <div class="md:col-span-4">
           <p-select
             (onChange)="onTipoChange()"
@@ -36,38 +33,51 @@
       </div>
     </div>
 
-    <!-- =================== TABLA =================== -->
-    <p-table
-      [tableStyle]="{ 'min-width': '100%' }"
-      [value]="proveedoresFiltrados"
-      class="w-full"
-    >
-      <ng-template pTemplate="header">
-        <tr>
-          <th>Nombre</th>
-          <th>Tipo</th>
-          <th>Contacto</th>
-          <th>Teléfono</th>
-          <th>Email</th>
-        </tr>
-      </ng-template>
+    <div class="bg-white rounded-lg border border-gray-200 overflow-hidden">
+      <p-table
+        [rowHover]="true"
+        [tableStyle]="{ 'min-width': '100%' }"
+        [value]="proveedoresFiltrados"
+        class="w-full"
+        styleClass="p-datatable-sm"
+      >
+        <ng-template pTemplate="header">
+          <tr>
+            <th>Nombre</th>
+            <th>Tipo</th>
+            <th>Contacto</th>
+            <th>Telefono</th>
+            <th>Email</th>
+          </tr>
+        </ng-template>
 
-      <ng-template let-row pTemplate="body">
-        <tr (click)="irAlDetalle(row)"
-            class="cursor-pointer hover:bg-gray-200 transition">
-          <td>{{ row.nombre }}</td>
-          <td>{{ formatearTipo(row.tipo_proveedor) ?? '—' }}</td>
-          <td>{{ row.contacto ?? '—' }}</td>
-          <td class="whitespace-nowrap max-w-[160px] overflow-hidden text-ellipsis">{{ row.telefono ?? '—' }}</td>
-          <td>{{ row.email ?? '—' }}</td>
-        </tr>
-      </ng-template>
-    </p-table>
+        <ng-template let-row pTemplate="body">
+          <tr (click)="irAlDetalle(row)"
+              class="cursor-pointer hover:bg-gray-200 transition">
+            <td>{{ row.nombre }}</td>
+            <td>{{ formatearTipo(row.tipo_proveedor) || '-' }}</td>
+            <td>{{ row.contacto || '-' }}</td>
+            <td class="whitespace-nowrap max-w-[160px] overflow-hidden text-ellipsis">{{ row.telefono || '-' }}</td>
+            <td>{{ row.email || '-' }}</td>
+          </tr>
+        </ng-template>
+
+        <ng-template pTemplate="emptymessage">
+          <tr>
+            <td class="text-center py-10" colspan="5">
+              <div class="flex flex-col items-center justify-center gap-2 text-gray-500">
+                <i class="pi pi-inbox text-3xl"></i>
+                <p class="text-base font-medium">No hay registros para mostrar</p>
+                <p class="text-sm">Ajusta los filtros o crea un nuevo registro.</p>
+              </div>
+            </td>
+          </tr>
+        </ng-template>
+      </p-table>
+    </div>
   </div>
 } @placeholder {
-  <!-- 🦴 Skeleton de carga -->
   <div class="flex flex-col gap-4">
-    <!-- Filtros Skeleton -->
     <div class="bg-white p-4 rounded-lg border border-gray-200 animate-pulse">
       <div class="grid grid-cols-1 md:grid-cols-12 gap-4">
         <div class="md:col-span-8 h-10 bg-gray-200 rounded"></div>
@@ -75,7 +85,6 @@
       </div>
     </div>
 
-    <!-- Tabla Skeleton -->
     <div class="bg-white rounded-lg border border-gray-200 p-4 animate-pulse">
       <div class="space-y-3">
         <div class="h-4 bg-gray-200 rounded w-full"></div>
@@ -87,4 +96,3 @@
     </div>
   </div>
 }
-

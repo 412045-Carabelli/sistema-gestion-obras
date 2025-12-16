@@ -13,60 +13,54 @@
 
     <div class="flex gap-5">
       <div class="min-h-[72px] w-full">
-        <label class="block text-sm font-medium mb-1">Tipo</label>
-        <p-autoComplete
-          formControlName="tipo_proveedor"
-          [dropdown]="true"
-          [forceSelection]="false"
-          [suggestions]="filteredTipos"
-          appendTo="body"
-          class="w-full"
-          field="label"
-          placeholder="Selecciona un tipo"
-          (completeMethod)="filtrarTipos($event)"
-          (onDropdownClick)="filtrarTipos({ query: '' })"
-          (onSelect)="onTipoChange($event.value)"
-          (onClear)="form.get('tipo_proveedor')?.setValue(null)">
-        </p-autoComplete>
-      </div>
-
-      <div class="min-h-[72px] w-full">
-        <label class="block text-sm font-medium mb-1">Gremio <span class="text-xs font-normal text-gray-500">(opcional)</span></label>
-        <p-autoComplete
-          formControlName="gremio"
-          [dropdown]="true"
-          [forceSelection]="false"
-          [suggestions]="filteredGremios"
-          appendTo="body"
-          class="w-full"
-          field="label"
-          placeholder="Selecciona un gremio"
-          (completeMethod)="filtrarGremios($event)"
-          (onDropdownClick)="filtrarGremios({ query: '' })"
-          (onSelect)="onGremioChange($event.value)"
-          (onClear)="form.get('gremio')?.setValue(null)">
-        </p-autoComplete>
-      </div>
-
-      <div class="min-h-[72px] w-full">
-        <label class="block text-sm font-medium mb-1">Teléfono</label>
+        <label class="block text-sm font-medium mb-1">Telefono</label>
         <input class="w-full" formControlName="telefono" pInputText/>
       </div>
 
+      <div class="min-h-[72px] w-full">
+        <label class="block text-sm font-medium mb-1">Direccion</label>
+        <input class="w-full" formControlName="direccion" pInputText/>
+      </div>
     </div>
 
     <div class="flex gap-5">
       <div class="min-h-[72px] w-full">
-        <label class="block text-sm font-medium mb-1">Dirección</label>
-        <input class="w-full" formControlName="direccion" pInputText/>
-      </div>
-
-      <div class="min-h-[72px] w-full">
         <label class="block text-sm font-medium mb-1">DNI/CUIT</label>
         <input class="w-full" formControlName="cuit" pInputText/>
       </div>
-    </div>
 
+      <div class="flex gap-5 min-h-[72px] w-full">
+        <div class="min-h-[72px] flex-1">
+          <label class="block text-sm font-medium mb-1">Tipo</label>
+          <p-autoComplete
+            class="w-full"
+            inputStyleClass="w-full"
+            formControlName="tipo_proveedor"
+            [dropdown]="true"
+            [suggestions]="filteredTipos"
+            field="label"
+            fluid
+            placeholder="Selecciona un tipo">
+          </p-autoComplete>
+        </div>
+
+        <div class="min-h-[72px] flex-1">
+          <label class="block text-sm font-medium mb-1">
+            Gremio <span class="text-xs font-normal text-gray-500">(opcional)</span>
+          </label>
+          <p-autoComplete
+            class="w-full"
+            inputStyleClass="w-full"
+            formControlName="gremio"
+            [dropdown]="true"
+            [suggestions]="filteredGremios"
+            field="label"
+            fluid
+            placeholder="Selecciona un gremio">
+          </p-autoComplete>
+        </div>
+      </div>
+    </div>
     <div>
       <label class="block text-sm font-medium mb-1">Email</label>
       <input class="w-full" formControlName="email" pInputText/>
@@ -84,7 +78,7 @@
   (confirmed)="crearNuevoTipo()">
   <form [formGroup]="nuevoTipoForm" class="flex flex-col gap-3 py-2">
     <label class="text-sm font-medium">Nombre del tipo</label>
-    <input pInputText formControlName="nombre" placeholder="Ej: Albañil">
+    <input pInputText formControlName="nombre" placeholder="Ej: Albanil">
   </form>
 </app-modal>
 

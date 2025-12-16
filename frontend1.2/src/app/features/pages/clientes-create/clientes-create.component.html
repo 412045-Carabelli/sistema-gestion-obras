@@ -19,14 +19,6 @@
         }
       </div>
 
-      <div class="w-full">
-        <label class="block text-sm font-medium text-gray-700">CUIT *</label>
-        <input class="w-full" formControlName="cuit" pInputText type="text"/>
-        @if (form.get('cuit')?.invalid && form.get('cuit')?.touched) {
-          <small class="text-red-500 text-xs mt-1 h-[16px] block">Campo obligatorio</small>
-        }
-      </div>
-
       <div class="min-h-[72px] w-full">
         <label class="block text-sm font-medium text-gray-700">Teléfono *</label>
         <input class="w-full" formControlName="telefono" pInputText type="number"/>
@@ -38,12 +30,15 @@
       </div>
 
       <div class="min-h-[72px] w-full">
-        <label class="block text-sm font-medium text-gray-700">Email *</label>
-        <input class="w-full" formControlName="email" pInputText type="email"/>
-        @if (form.get('email')?.invalid && form.get('email')?.touched) {
-          <small class="text-red-500 text-xs mt-1 h-[16px] block">
-            Ingrese un email válido
-          </small>
+        <label class="block text-sm font-medium text-gray-700">Dirección</label>
+        <input class="w-full" formControlName="direccion" pInputText type="text"/>
+      </div>
+
+      <div class="w-full">
+        <label class="block text-sm font-medium text-gray-700">DNI/CUIT *</label>
+        <input class="w-full" formControlName="cuit" pInputText type="text"/>
+        @if (form.get('cuit')?.invalid && form.get('cuit')?.touched) {
+          <small class="text-red-500 text-xs mt-1 h-[16px] block">Campo obligatorio</small>
         }
       </div>
 
@@ -60,6 +55,16 @@
         </p-select>
         @if (form.get('condicion_iva')?.invalid && form.get('condicion_iva')?.touched) {
           <small class="text-red-500 text-xs mt-1 h-[16px] block">Seleccione una opción</small>
+        }
+      </div>
+
+      <div class="min-h-[72px] w-full md:col-span-2">
+        <label class="block text-sm font-medium text-gray-700">Email *</label>
+        <input class="w-full" formControlName="email" pInputText type="email"/>
+        @if (form.get('email')?.invalid && form.get('email')?.touched) {
+          <small class="text-red-500 text-xs mt-1 h-[16px] block">
+            Ingrese un email válido
+          </small>
         }
       </div>
     </div>
