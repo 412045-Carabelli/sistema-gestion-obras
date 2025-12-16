@@ -5,6 +5,7 @@ import com.clientes.dto.ClienteRequest;
 import com.clientes.dto.ClienteResponse;
 import com.clientes.dto.ObraClienteResponse;
 import com.clientes.entity.Cliente;
+import com.clientes.entity.CondicionIva;
 import com.clientes.exception.ClienteNotFoundException;
 import com.clientes.exception.InvalidClienteException;
 import com.clientes.repository.ClienteRepository;
@@ -19,18 +20,18 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
-import java.util.Set;
+import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
 @Slf4j
 public class ClienteServiceImpl implements ClienteService {
 
-    private static final Set<String> CONDICIONES_IVA_VALIDAS = Set.of(
-            "Monotributo",
-            "Responsable Inscripto",
-            "Exento",
-            "Consumidor Final"
+    private static final Map<String, CondicionIva> CONDICIONES_IVA_VALIDAS = Map.of(
+            "MONOTRIBUTO", CondicionIva.MONOTRIBUTO,
+            "RESPONSABLE_INSCRIPTO", CondicionIva.RESPONSABLE_INSCRIPTO,
+            "EXENTO", CondicionIva.EXENTO,
+            "CONSUMIDOR_FINAL", CondicionIva.CONSUMIDOR_FINAL
     );
 
     private final ClienteRepository repository;
@@ -82,7 +83,7 @@ public class ClienteServiceImpl implements ClienteService {
 
     @Override
     public List<String> listarCondicionesIva() {
-        return CONDICIONES_IVA_VALIDAS.stream().toList();
+        return CONDICIONES_IVA_VALIDAS.keySet().stream().toList();
     }
 
     @Override
@@ -104,24 +105,26 @@ public class ClienteServiceImpl implements ClienteService {
     private Cliente mapearEntidad(ClienteRequest request) {
         Cliente entity = new Cliente();
         entity.setNombre(request.getNombre());
-        entity.setIdEmpresa(request.getIdEmpresa());
+        entity.setId_empresa(request.getIdEmpresa());
         entity.setContacto(request.getContacto());
+        entity.setDireccion(request.getDireccion());
         entity.setCuit(request.getCuit());
         entity.setTelefono(request.getTelefono());
         entity.setEmail(request.getEmail());
-        entity.setCondicionIVA(normalizarCondicion(request.getCondicionIVA()));
+        entity.setCondicionIva(mapearCondicionIVA(request.getCondicionIVA()));
         entity.setActivo(request.getActivo() != null ? request.getActivo() : Boolean.TRUE);
         return entity;
     }
 
     private void actualizarEntidad(Cliente existente, ClienteRequest request) {
         existente.setNombre(request.getNombre());
-        existente.setIdEmpresa(request.getIdEmpresa());
+        existente.setId_empresa(request.getIdEmpresa());
         existente.setContacto(request.getContacto());
+        existente.setDireccion(request.getDireccion());
         existente.setCuit(request.getCuit());
         existente.setTelefono(request.getTelefono());
         existente.setEmail(request.getEmail());
-        existente.setCondicionIVA(normalizarCondicion(request.getCondicionIVA()));
+        existente.setCondicionIva(mapearCondicionIVA(request.getCondicionIVA()));
         if (request.getActivo() != null) {
             existente.setActivo(request.getActivo());
         }
@@ -131,12 +134,13 @@ public class ClienteServiceImpl implements ClienteService {
         ClienteResponse response = new ClienteResponse();
         response.setId(cliente.getId());
         response.setNombre(cliente.getNombre());
-        response.setIdEmpresa(cliente.getIdEmpresa());
+        response.setIdEmpresa(cliente.getId_empresa());
         response.setContacto(cliente.getContacto());
+        response.setDireccion(cliente.getDireccion());
         response.setCuit(cliente.getCuit());
         response.setTelefono(cliente.getTelefono());
         response.setEmail(cliente.getEmail());
-        response.setCondicionIVA(cliente.getCondicionIVA() != null ? cliente.getCondicionIVA() : "Consumidor Final");
+        response.setCondicionIVA(cliente.getCondicionIva() != null ? cliente.getCondicionIva().name() : CondicionIva.CONSUMIDOR_FINAL.name());
         response.setActivo(cliente.getActivo() != null ? cliente.getActivo() : Boolean.TRUE);
         response.setCreadoEn(cliente.getCreadoEn());
         response.setUltimaActualizacion(cliente.getUltimaActualizacion());
@@ -153,22 +157,15 @@ public class ClienteServiceImpl implements ClienteService {
         if (!StringUtils.hasText(condicion)) {
             throw new InvalidClienteException("La condición IVA es obligatoria");
         }
-        String valor = mapearCondicionIVA(condicion);
+        CondicionIva valor = mapearCondicionIVA(condicion);
         if (valor == null) {
-            throw new InvalidClienteException("Condición IVA inválida. Valores permitidos: " + Arrays.toString(CONDICIONES_IVA_VALIDAS.toArray()));
+            throw new InvalidClienteException("Condición IVA inválida. Valores permitidos: " + Arrays.toString(CONDICIONES_IVA_VALIDAS.keySet().toArray()));
         }
     }
 
-    private String normalizarCondicion(String condicion) {
-        return mapearCondicionIVA(condicion);
-    }
-
-    private String mapearCondicionIVA(String condicion) {
-        if (condicion == null) return null;
+    private CondicionIva mapearCondicionIVA(String condicion) {
+        if (!StringUtils.hasText(condicion)) return null;
         String normalizado = condicion.trim().toUpperCase(Locale.ROOT);
-        return CONDICIONES_IVA_VALIDAS.stream()
-                .filter(v -> v.toUpperCase(Locale.ROOT).equals(normalizado))
-                .findFirst()
-                .orElse(null);
+        return CONDICIONES_IVA_VALIDAS.get(normalizado);
     }
 }

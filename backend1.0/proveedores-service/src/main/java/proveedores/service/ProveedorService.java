@@ -77,6 +77,8 @@ public class ProveedorService {
         return repository.findById(id)
                 .map(existing -> {
                     existing.setNombre(proveedor.getNombre());
+                    existing.setDniCuit(proveedor.getDniCuit());
+                    existing.setDireccion(proveedor.getDireccion());
                     existing.setContacto(proveedor.getContacto());
                     existing.setTelefono(proveedor.getTelefono());
                     existing.setEmail(proveedor.getEmail());

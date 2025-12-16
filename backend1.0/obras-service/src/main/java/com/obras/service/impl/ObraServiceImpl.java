@@ -3,6 +3,7 @@ package com.obras.service.impl;
 import com.obras.dto.*;
 import com.obras.enums.EstadoObraEnum;
 import com.obras.enums.EstadoPagoEnum;
+import com.obras.enums.TipoCostoEnum;
 import com.obras.entity.Obra;
 import com.obras.entity.ObraCosto;
 import com.obras.repository.ObraRepository;
@@ -192,7 +193,18 @@ public class ObraServiceImpl implements ObraService {
 
         if (entity.getCostos() != null) {
             dto.setCostos(
-                    entity.getCostos().stream().map(c -> {
+                entity.getCostos().stream()
+                    .sorted((a, b) -> {
+                        boolean aAdd = com.obras.enums.TipoCostoEnum.ADICIONAL.equals(a.getTipoCosto());
+                        boolean bAdd = com.obras.enums.TipoCostoEnum.ADICIONAL.equals(b.getTipoCosto());
+                        int tipoCompare = Boolean.compare(aAdd, bAdd);
+                        if (tipoCompare != 0) return tipoCompare;
+                        return Long.compare(
+                                a.getId() != null ? a.getId() : 0,
+                                b.getId() != null ? b.getId() : 0
+                        );
+                    })
+                    .map(c -> {
                         ObraCostoDTO cdto = new ObraCostoDTO();
                         cdto.setId(c.getId());
                         cdto.setId_proveedor(c.getIdProveedor());
@@ -204,6 +216,7 @@ public class ObraServiceImpl implements ObraService {
                         cdto.setSubtotal(c.getSubtotal());
                         cdto.setTotal(c.getTotal());
                         cdto.setEstado_pago(c.getEstadoPago());
+                        cdto.setTipo_costo(c.getTipoCosto());
                         cdto.setActivo(c.getActivo());
                         cdto.setUltima_actualizacion(c.getUltimaActualizacion());
                         cdto.setTipo_actualizacion(c.getTipoActualizacion());
@@ -231,12 +244,17 @@ public class ObraServiceImpl implements ObraService {
         return costosDto.stream().map(cdto -> {
             BigDecimal cantidad = cdto.getCantidad() != null ? cdto.getCantidad() : BigDecimal.ZERO;
             BigDecimal precio = cdto.getPrecio_unitario() != null ? cdto.getPrecio_unitario() : BigDecimal.ZERO;
-            BigDecimal beneficio = cdto.getBeneficio() != null ? cdto.getBeneficio() : BigDecimal.ZERO;
+            BigDecimal beneficioCosto = cdto.getBeneficio() != null ? cdto.getBeneficio() : BigDecimal.ZERO;
+            TipoCostoEnum tipoCosto = TipoCostoEnum.ORIGINAL;
 
             BigDecimal subtotal = cantidad.multiply(precio);
-            BigDecimal total = subtotal.multiply(BigDecimal.ONE.add(
-                    beneficio.divide(new BigDecimal("100"))
-            ));
+            BigDecimal beneficioAplicado = Boolean.TRUE.equals(obra.getBeneficioGlobal()) && tipoCosto == TipoCostoEnum.ORIGINAL
+                    ? Optional.ofNullable(obra.getBeneficio()).orElse(BigDecimal.ZERO)
+                    : beneficioCosto;
+
+            BigDecimal total = subtotal.multiply(
+                    BigDecimal.ONE.add(beneficioAplicado.divide(new BigDecimal("100"), 6, java.math.RoundingMode.HALF_UP))
+            ).setScale(2, java.math.RoundingMode.HALF_UP);
 
             return ObraCosto.builder()
                     .id(cdto.getId())
@@ -246,6 +264,7 @@ public class ObraServiceImpl implements ObraService {
                     .cantidad(cdto.getCantidad())
                     .precioUnitario(cdto.getPrecio_unitario())
                     .beneficio(cdto.getBeneficio())
+                    .tipoCosto(tipoCosto)
                     .subtotal(subtotal)
                     .total(total)
                     .estadoPago(cdto.getEstado_pago() != null ? cdto.getEstado_pago() : EstadoPagoEnum.PENDIENTE)

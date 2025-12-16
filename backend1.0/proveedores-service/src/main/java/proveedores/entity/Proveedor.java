@@ -20,7 +20,9 @@ public class Proveedor {
     @ManyToOne
     @JoinColumn(name = "gremio_id")
     private Gremio gremio;
-    private String contacto, telefono, email;
+    @Column(name = "dni_cuit")
+    private String dniCuit;
+    private String contacto, telefono, email, direccion;
     private Boolean activo = Boolean.TRUE;
     @Column(name = "creado_en")
     private Instant creadoEn = Instant.now();

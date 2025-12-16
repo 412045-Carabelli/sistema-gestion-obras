@@ -203,14 +203,40 @@ export class ObrasDetailComponent implements OnInit, OnDestroy {
   }
 
   private calcularBeneficioNeto(): number {
-    return this.calcularBeneficioCostos(this.obra.costos ?? []);
+    const costos = this.obra.costos ?? [];
+    const subtotalBase = (costos ?? []).reduce(
+      (acc, c) =>
+        acc +
+        Number(
+          c.subtotal ?? (Number(c.cantidad ?? 0) * Number(c.precio_unitario ?? 0))
+        ),
+      0
+    );
+
+    const beneficioCostos = this.calcularBeneficioCostos(costos);
+    const totalConBeneficio = subtotalBase + beneficioCostos;
+
+    const comisionPorc = this.obra.tiene_comision ? Number(this.obra.comision ?? 0) : 0;
+    const comisionMonto = totalConBeneficio * (comisionPorc / 100);
+
+    return beneficioCostos - comisionMonto;
   }
 
   private calcularBeneficioCostos(costos: ObraCosto[]): number {
     const beneficioGlobalPorc = this.obra.beneficio_global ? Number(this.obra.beneficio ?? 0) : null;
     return (costos ?? []).reduce((acc, costo) => {
-      const base = Number(costo.subtotal ?? (Number(costo.cantidad ?? 0) * Number(costo.precio_unitario ?? 0)));
-      const porc = beneficioGlobalPorc !== null ? beneficioGlobalPorc : Number(costo.beneficio ?? 0);
+      const base = Number(
+        costo.subtotal ??
+        (Number(costo.cantidad ?? 0) * Number(costo.precio_unitario ?? 0))
+      );
+
+      const esAdicional =
+        (costo?.tipo_costo || '').toString().toUpperCase() === 'ADICIONAL';
+
+      const porc = esAdicional
+        ? Number(costo.beneficio ?? 0)
+        : (beneficioGlobalPorc !== null ? beneficioGlobalPorc : Number(costo.beneficio ?? 0));
+
       return acc + base * (porc / 100);
     }, 0);
   }
@@ -282,7 +308,10 @@ export class ObrasDetailComponent implements OnInit, OnDestroy {
 
     const filasCostos = (this.costos ?? []).map(c => {
       const subtotalBase = Number(c.subtotal ?? (Number(c.cantidad ?? 0) * Number(c.precio_unitario ?? 0)));
-      const beneficioAplicado = this.obra.beneficio_global ? Number(this.obra.beneficio ?? 0) : Number(c.beneficio ?? 0);
+      const esAdicional = (c.tipo_costo || '').toString().toUpperCase() === 'ADICIONAL';
+      const beneficioAplicado = esAdicional
+        ? Number(c.beneficio ?? 0)
+        : (this.obra.beneficio_global ? Number(this.obra.beneficio ?? 0) : Number(c.beneficio ?? 0));
       const totalConBeneficio = subtotalBase * (1 + beneficioAplicado / 100);
 
       return [
@@ -299,7 +328,10 @@ export class ObrasDetailComponent implements OnInit, OnDestroy {
       0
     );
     const beneficioCostos = (this.costos ?? []).reduce((acc, c) => {
-      const beneficio = this.obra.beneficio_global ? Number(this.obra.beneficio ?? 0) : Number(c.beneficio ?? 0);
+      const esAdicional = (c.tipo_costo || '').toString().toUpperCase() === 'ADICIONAL';
+      const beneficio = esAdicional
+        ? Number(c.beneficio ?? 0)
+        : (this.obra.beneficio_global ? Number(this.obra.beneficio ?? 0) : Number(c.beneficio ?? 0));
       const base = Number(c.subtotal ?? (Number(c.cantidad ?? 0) * Number(c.precio_unitario ?? 0)));
       return acc + base * (beneficio / 100);
     }, 0);

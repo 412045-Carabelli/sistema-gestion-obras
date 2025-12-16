@@ -24,15 +24,22 @@
         <!-- Proveedor -->
         <td class="px-2 py-1 w-48">
           @if (modoEdicion) {
-            <p-select
-              [options]="proveedores"
-              optionLabel="nombre"
-              optionValue="id"
+            <p-autoComplete
               formControlName="id_proveedor"
+              [suggestions]="filteredProveedores"
+              [dropdown]="true"
+              [showClear]="true"
+              optionLabel="nombre"
+              field="nombre"
               placeholder="Seleccionar"
               appendTo="body"
-              styleClass="w-full"
-            ></p-select>
+              class="w-full"
+              inputStyleClass="w-full"
+              (completeMethod)="filtrarProveedores($event)"
+              (onSelect)="seleccionarProveedor(rowIndex, $event.value ?? $event)"
+              (onClear)="limpiarProveedor(rowIndex)"
+              (onDropdownClick)="filtrarProveedores({ query: '' })"
+            ></p-autoComplete>
           } @else {
             {{ getProveedorNombre(costos.at(rowIndex).get('id_proveedor')?.value) }}
           }

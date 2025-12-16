@@ -8,7 +8,6 @@ import {Proveedor} from '../../../core/models/models';
 import {CatalogoOption, ProveedoresService} from '../../../services/proveedores/proveedores.service';
 import {InputText} from 'primeng/inputtext';
 import {ModalComponent} from '../../../shared/modal/modal.component';
-import {AutoCompleteModule} from 'primeng/autocomplete';
 
 @Component({
   selector: 'app-proveedores-form',
@@ -20,8 +19,7 @@ import {AutoCompleteModule} from 'primeng/autocomplete';
     DropdownModule,
     ButtonModule,
     InputText,
-    ModalComponent,
-    AutoCompleteModule
+    ModalComponent
   ],
   templateUrl: './proveedores-form.component.html'
 })
@@ -34,8 +32,6 @@ export class ProveedoresFormComponent implements OnInit {
   gremios: CatalogoOption[] = [];
   tiposOptions: CatalogoOption[] = [];
   gremiosOptions: CatalogoOption[] = [];
-  filteredTipos: CatalogoOption[] = [];
-  filteredGremios: CatalogoOption[] = [];
 
   nuevoTipoForm!: FormGroup;
   nuevoGremioForm!: FormGroup;
@@ -75,15 +71,13 @@ export class ProveedoresFormComponent implements OnInit {
     this.service.getTipos().subscribe(t => {
       this.tipos = t;
       this.tiposOptions = this.appendCrearOption(this.tipos, 'tipo');
-      this.filteredTipos = this.tiposOptions;
-      this.setInitialAutocompleteValue('tipo_proveedor', this.tiposOptions);
+      this.setInitialDropdownValue('tipo_proveedor', this.tiposOptions);
     });
 
     this.service.getGremios().subscribe(g => {
       this.gremios = g;
       this.gremiosOptions = this.appendCrearOption(this.gremios, 'gremio');
-      this.filteredGremios = this.gremiosOptions;
-      this.setInitialAutocompleteValue('gremio', this.gremiosOptions);
+      this.setInitialDropdownValue('gremio', this.gremiosOptions);
     });
   }
 
@@ -97,8 +91,8 @@ export class ProveedoresFormComponent implements OnInit {
       this.form.get('tipo_proveedor')?.setValue(null);
       this.nuevoTipoForm.reset();
       this.showTipoModal = true;
-    } else if (value) {
-      this.form.get('tipo_proveedor')?.setValue(value);
+    } else if (val) {
+      this.form.get('tipo_proveedor')?.setValue(val);
     }
   }
 
@@ -108,27 +102,9 @@ export class ProveedoresFormComponent implements OnInit {
       this.form.get('gremio')?.setValue(null);
       this.nuevoGremioForm.reset();
       this.showGremioModal = true;
-    } else if (value) {
-      this.form.get('gremio')?.setValue(value);
+    } else if (val) {
+      this.form.get('gremio')?.setValue(val);
     }
-  }
-
-  filtrarTipos(event: any) {
-    const query = (event?.query || '').toLowerCase();
-    this.filteredTipos = this.filterWithCrear(
-      this.tiposOptions,
-      query,
-      this.NUEVO_TIPO_VALUE
-    );
-  }
-
-  filtrarGremios(event: any) {
-    const query = (event?.query || '').toLowerCase();
-    this.filteredGremios = this.filterWithCrear(
-      this.gremiosOptions,
-      query,
-      this.NUEVO_GREMIO_VALUE
-    );
   }
 
   crearNuevoTipo() {
@@ -140,8 +116,7 @@ export class ProveedoresFormComponent implements OnInit {
       next: (tipo) => {
         this.tipos = this.mergeOption(tipo, this.tipos);
         this.tiposOptions = this.appendCrearOption(this.tipos, 'tipo');
-        this.filteredTipos = this.tiposOptions;
-        this.form.get('tipo_proveedor')?.setValue(tipo);
+        this.form.get('tipo_proveedor')?.setValue(tipo.name);
         this.showTipoModal = false;
         this.creandoTipo = false;
       },
@@ -160,8 +135,7 @@ export class ProveedoresFormComponent implements OnInit {
       next: (gremio) => {
         this.gremios = this.mergeOption(gremio, this.gremios);
         this.gremiosOptions = this.appendCrearOption(this.gremios, 'gremio');
-        this.filteredGremios = this.gremiosOptions;
-        this.form.get('gremio')?.setValue(gremio);
+        this.form.get('gremio')?.setValue(gremio.name);
         this.showGremioModal = false;
         this.creandoGremio = false;
       },
@@ -195,7 +169,7 @@ export class ProveedoresFormComponent implements OnInit {
     return [...filtered, option];
   }
 
-  private setInitialAutocompleteValue(control: 'tipo_proveedor' | 'gremio', options: CatalogoOption[]) {
+  private setInitialDropdownValue(control: 'tipo_proveedor' | 'gremio', options: CatalogoOption[]) {
     const current = this.form.get(control)?.value;
     if (!current) return;
 
@@ -207,21 +181,7 @@ export class ProveedoresFormComponent implements OnInit {
     );
 
     if (match) {
-      this.form.get(control)?.setValue(match);
+      this.form.get(control)?.setValue(match.name);
     }
-  }
-
-  private filterWithCrear(list: CatalogoOption[], query: string, crearName: string): CatalogoOption[] {
-    const filtered = (list || []).filter(opt => {
-      if (opt.name === crearName) return true;
-      const texto = (opt.label || opt.nombre || '').toLowerCase();
-      return texto.includes(query);
-    });
-
-    const crear = list.find(o => o.name === crearName);
-    if (crear && !filtered.some(o => o.name === crearName)) {
-      filtered.push(crear);
-    }
-    return filtered;
   }
 }

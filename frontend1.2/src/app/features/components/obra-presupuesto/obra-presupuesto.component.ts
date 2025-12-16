@@ -28,6 +28,7 @@ import { CostosService } from '../../../services/costos/costos.service';
 import { Select } from 'primeng/select';
 import { ModalComponent } from '../../../shared/modal/modal.component';
 import { TransaccionesService } from '../../../services/transacciones/transacciones.service';
+import { AutoCompleteModule } from 'primeng/autocomplete';
 
 // PDFMAKE
 import pdfMake from 'pdfmake/build/pdfmake';
@@ -51,6 +52,7 @@ pdfMake.vfs = pdfFonts.vfs;
     ToastModule,
     NgClass,
     Select,
+    AutoCompleteModule,
     ModalComponent
   ],
   providers: [MessageService],
@@ -74,6 +76,12 @@ export class ObraPresupuestoComponent implements OnInit, OnChanges {
   estadosPagoRecords: { label: string; name: string }[] = [];
   loading = true;
   nuevoCosto: Partial<ObraCosto> = this.getNuevoCostoBase();
+  nuevoCostoProveedor?: Proveedor | null;
+  filteredProveedores: Proveedor[] = [];
+  tipoCostoOptions = [
+    { label: 'Original', value: 'ORIGINAL' },
+    { label: 'Adicional', value: 'ADICIONAL' }
+  ];
   private pdfMakeReady = false;
 
   modalPagoVisible = false;
@@ -90,6 +98,8 @@ export class ObraPresupuestoComponent implements OnInit, OnChanges {
   ) {}
 
   ngOnInit() {
+    this.filteredProveedores = this.proveedores || [];
+    this.nuevoCostoProveedor = undefined;
     if (this.costos?.length > 0) {
       this.inicializarCostos();
     }
@@ -103,6 +113,9 @@ export class ObraPresupuestoComponent implements OnInit, OnChanges {
     if (changes['beneficioGlobal'] || changes['tieneComision']) {
       this.costosFiltrados = this.costosFiltrados.map(c => ({ ...c }));
       this.costosFiltrados.forEach(c => this.recalcularEnEdicion(c));
+    }
+    if (changes['proveedores']) {
+      this.filteredProveedores = this.proveedores || [];
     }
   }
 
@@ -167,7 +180,16 @@ export class ObraPresupuestoComponent implements OnInit, OnChanges {
       this.messageService.add({
         severity: 'warn',
         summary: 'Datos incompletos',
-        detail: 'Completa proveedor y descripción para agregar el costo.'
+        detail: 'Completa proveedor y descripcion para agregar el costo.'
+      });
+      return;
+    }
+
+    if (!this.nuevoCosto.tipo_costo) {
+      this.messageService.add({
+        severity: 'warn',
+        summary: 'Falta tipo de costo',
+        detail: 'Selecciona si el costo es ORIGINAL o ADICIONAL.'
       });
       return;
     }
@@ -182,13 +204,13 @@ export class ObraPresupuestoComponent implements OnInit, OnChanges {
             ...payload,
             enEdicion: false
           } as ObraCosto;
-          this.costosFiltrados = [...this.costosFiltrados, actualizado];
+          this.costosFiltrados = this.ordenarCostos([...this.costosFiltrados, actualizado]);
           this.costosActualizados.emit(this.costosFiltrados);
           this.nuevoCosto = this.getNuevoCostoBase();
           this.messageService.add({
             severity: 'success',
             summary: 'Costo agregado',
-            detail: 'Se agregó un nuevo costo a la matriz.'
+            detail: 'Se agrego un nuevo costo a la matriz.'
           });
         },
         error: () => {
@@ -210,6 +232,16 @@ export class ObraPresupuestoComponent implements OnInit, OnChanges {
     const { subtotal, total } = this.calcularMontosPayload(costo);
     costo.subtotal = subtotal;
     costo.total = total;
+    costo.tipo_costo = (costo.tipo_costo as 'ORIGINAL' | 'ADICIONAL') || 'ORIGINAL';
+  }
+
+  onTipoCostoNuevoChange(tipo: 'ORIGINAL' | 'ADICIONAL') {
+    if (tipo === 'ADICIONAL' && this.usarBeneficioGlobal) {
+      this.nuevoCosto.beneficio = 0;
+    }
+    if (tipo === 'ORIGINAL' && this.usarBeneficioGlobal) {
+      this.nuevoCosto.beneficio = this.beneficioGlobal;
+    }
   }
 
   guardarEdicion(costo: any) {
@@ -217,6 +249,7 @@ export class ObraPresupuestoComponent implements OnInit, OnChanges {
     this.costosService.updateCosto(costo.id, payload).subscribe({
       next: actualizado => {
         Object.assign(costo, actualizado, payload, { enEdicion: false });
+        this.costosFiltrados = this.ordenarCostos([...this.costosFiltrados]);
         delete costo._backup;
         this.costosActualizados.emit([...this.costosFiltrados]);
         this.messageService.add({
@@ -349,17 +382,18 @@ export class ObraPresupuestoComponent implements OnInit, OnChanges {
   }
 
   calcularBeneficioTotal(): number {
-    if (this.usarBeneficioGlobal) {
-      return this.calcularSubtotal() * (this.beneficioGlobal / 100);
-    }
     return this.costosFiltrados.reduce((acc, c) => {
-      const beneficio = Number(c.beneficio ?? 0) / 100;
-      return acc + Number(c.subtotal ?? 0) * beneficio;
+      const subtotal = Number(c.subtotal ?? 0);
+      const total = Number(c.total ?? subtotal);
+      return acc + (total - subtotal);
     }, 0);
   }
 
   calcularTotalConBeneficio(): number {
-    return this.calcularSubtotal() + this.calcularBeneficioTotal();
+    return this.costosFiltrados.reduce(
+      (acc, c) => acc + Number(c.total ?? 0),
+      0
+    );
   }
 
   calcularComisionMonto(): number {
@@ -385,7 +419,7 @@ export class ObraPresupuestoComponent implements OnInit, OnChanges {
       .reduce((acc: number, c: any) => acc + (c.total ?? 0), 0);
   }
 
-  // *** YA NO SE USARÃ PARA EL PDF (solo cÃ¡lculo interno)
+  // *** YA NO SE USARÁ PARA EL PDF (solo cálculo interno)
   getPresupuestoTotal(): number {
     return Math.round(this.calcularPresupuestoTotal());
   }
@@ -415,7 +449,9 @@ export class ObraPresupuestoComponent implements OnInit, OnChanges {
 
     const filasCostos = costos.map((c, index) => {
       const subtotalBase = Number(c.subtotal ?? (Number(c.cantidad ?? 0) * Number(c.precio_unitario ?? 0)));
-      const beneficioAplicado = this.usarBeneficioGlobal ? this.beneficioGlobal : Number(c.beneficio ?? 0);
+      const beneficioAplicado = this.usarBeneficioGlobal && c.tipo_costo !== 'ADICIONAL'
+        ? this.beneficioGlobal
+        : Number(c.beneficio ?? 0);
       const subtotalConBeneficio = subtotalBase * (1 + beneficioAplicado / 100);
 
       return [
@@ -432,12 +468,12 @@ export class ObraPresupuestoComponent implements OnInit, OnChanges {
       (acc, c) => acc + Number(c.subtotal ?? (Number(c.cantidad ?? 0) * Number(c.precio_unitario ?? 0))),
       0
     );
-    const beneficioMonto = this.usarBeneficioGlobal
-      ? subtotalBase * (this.beneficioGlobal / 100)
-      : costos.reduce(
-          (acc, c) => acc + Number(c.subtotal ?? 0) * (Number(c.beneficio ?? 0) / 100),
-          0
-        );
+    const beneficioMonto = costos.reduce((acc, c) => {
+      const beneficioAplicado = this.usarBeneficioGlobal && c.tipo_costo !== 'ADICIONAL'
+        ? this.beneficioGlobal
+        : Number(c.beneficio ?? 0);
+      return acc + Number(c.subtotal ?? 0) * (beneficioAplicado / 100);
+    }, 0);
     const totalConBeneficio = subtotalBase + beneficioMonto;
     const comisionMonto = this.tieneComision ? totalConBeneficio * (this.comision / 100) : 0;
     const presupuestoTotal = totalConBeneficio + comisionMonto;
@@ -624,25 +660,30 @@ export class ObraPresupuestoComponent implements OnInit, OnChanges {
       }
     }
 
-    console.error('No se pudo cargar el logo de la cotizaciÃ‡Ã¼n', {
+    console.error('No se pudo cargar el logo de la cotizaciÇün', {
       intentos: candidates
     });
     return undefined;
   }
 
   private inicializarCostos() {
-    this.costosFiltrados = this.costos.map(c => {
+    const lista = this.costos.map(c => {
       const normalizado = this.calcularMontosPayload(c);
+      const proveedorObj = this.proveedores.find(
+        p => Number(p.id) === Number(normalizado.id_proveedor)
+      );
       return {
         ...c,
         ...normalizado,
-        id_proveedor: c.id_proveedor ?? c.proveedor?.id,
+        id_proveedor: c.id_proveedor ?? c.proveedor?.id ?? proveedorObj?.id,
+        proveedor: c.proveedor ?? proveedorObj,
         precio_unitario: c.precio_unitario ?? 0,
         beneficio: c.beneficio ?? normalizado.beneficio ?? 0,
         estado_pago: c.estado_pago ?? normalizado.estado_pago,
         enEdicion: false
       };
     });
+    this.costosFiltrados = this.ordenarCostos(lista);
   }
 
   private calcularMontosPayload(costo: Partial<ObraCosto>) {
@@ -651,16 +692,25 @@ export class ObraPresupuestoComponent implements OnInit, OnChanges {
 
     const subtotal = cantidad * precio;
 
-    // EL PDF no usa beneficio ni comisiÃ³n, pero el sistema sÃ­.
-    const beneficio = this.usarBeneficioGlobal
-      ? this.beneficioGlobal
-      : Number(costo.beneficio ?? 0);
+    const tipoCosto: 'ORIGINAL' | 'ADICIONAL' =
+      costo.tipo_costo === 'ADICIONAL' ? 'ADICIONAL' : 'ORIGINAL';
 
-    const total =
-      subtotal * (1 + beneficio / 100);
+    // EL PDF no usa beneficio ni comision, pero el sistema si.
+    const beneficio = tipoCosto === 'ADICIONAL'
+      ? Number(costo.beneficio ?? 0)
+      : this.usarBeneficioGlobal
+        ? this.beneficioGlobal
+        : Number(costo.beneficio ?? 0);
+
+    const total = subtotal * (1 + beneficio / 100);
+
+    const idProveedorVal =
+      typeof costo.id_proveedor === 'object'
+        ? (costo.id_proveedor as any)?.id
+        : costo.id_proveedor ?? costo.proveedor?.id;
 
     return {
-      id_proveedor: Number(costo.id_proveedor),
+      id_proveedor: idProveedorVal != null ? Number(idProveedorVal) : undefined,
       descripcion: costo.descripcion ?? '',
       unidad: costo.unidad ?? '',
       cantidad,
@@ -668,10 +718,10 @@ export class ObraPresupuestoComponent implements OnInit, OnChanges {
       beneficio,
       subtotal,
       total,
-      estado_pago: costo.estado_pago ?? 'PENDIENTE'
+      estado_pago: costo.estado_pago ?? 'PENDIENTE',
+      tipo_costo: tipoCosto
     };
   }
-
   private getNuevoCostoBase(): Partial<ObraCosto> {
     return {
       descripcion: '',
@@ -679,9 +729,46 @@ export class ObraPresupuestoComponent implements OnInit, OnChanges {
       precio_unitario: 0,
       unidad: '',
       id_proveedor: undefined,
+      proveedor: undefined,
       beneficio: this.usarBeneficioGlobal ? this.beneficioGlobal : 0,
-      estado_pago: 'PENDIENTE'
+      estado_pago: 'PENDIENTE',
+      tipo_costo: 'ORIGINAL' as const
     };
+  }
+
+  filtrarProveedores(event: any) {
+    const query = (event?.query || '').toLowerCase();
+    this.filteredProveedores = (this.proveedores || []).filter(p => {
+      const nombre = (p.nombre || '').toLowerCase();
+      const cuit = (p.cuit || '').toString().toLowerCase();
+      return nombre.includes(query) || cuit.includes(query);
+    });
+  }
+
+  seleccionarProveedorNuevo(value: any) {
+    const seleccionado = typeof value === 'object' ? value : undefined;
+    this.nuevoCostoProveedor = seleccionado ?? null;
+    this.nuevoCosto.id_proveedor = seleccionado?.id ?? undefined;
+    this.nuevoCosto.proveedor = seleccionado;
+  }
+
+  limpiarProveedorNuevo() {
+    this.nuevoCostoProveedor = null;
+    this.nuevoCosto.id_proveedor = undefined;
+    this.nuevoCosto.proveedor = undefined;
+    this.filteredProveedores = this.proveedores || [];
+  }
+
+  seleccionarProveedorFila(costo: ObraCosto, value: any) {
+    const seleccionado = typeof value === 'object' ? value : undefined;
+    costo.proveedor = seleccionado ?? null;
+    costo.id_proveedor = seleccionado?.id ?? undefined;
+  }
+
+  limpiarProveedorFila(costo: ObraCosto) {
+    costo.proveedor = undefined;
+    costo.id_proveedor = undefined;
+    this.filteredProveedores = this.proveedores || [];
   }
 
   private cargarEstadosDePago() {
@@ -764,5 +851,27 @@ export class ObraPresupuestoComponent implements OnInit, OnChanges {
     }
     return fallback;
   }
+
+  esAdicional(costo: ObraCosto): boolean {
+    return (costo?.tipo_costo || '').toString().toUpperCase() === 'ADICIONAL';
+  }
+
+  private ordenarCostos(lista: ObraCosto[]): ObraCosto[] {
+    return [...lista].sort((a, b) => {
+      const aAdd = (a.tipo_costo || 'ORIGINAL') === 'ADICIONAL';
+      const bAdd = (b.tipo_costo || 'ORIGINAL') === 'ADICIONAL';
+      if (aAdd !== bAdd) return aAdd ? 1 : -1;
+      return (a.id ?? 0) - (b.id ?? 0);
+    });
+  }
 }
+
+
+
+
+
+
+
+
+
 

@@ -32,32 +32,36 @@
       <div class="flex gap-5 min-h-[72px] w-full">
         <div class="min-h-[72px] flex-1">
           <label class="block text-sm font-medium mb-1">Tipo</label>
-          <p-autoComplete
+          <p-dropdown
             class="w-full"
-            inputStyleClass="w-full"
+            styleClass="w-full"
             formControlName="tipo_proveedor"
-            [dropdown]="true"
-            [suggestions]="filteredTipos"
-            field="label"
-            fluid
-            placeholder="Selecciona un tipo">
-          </p-autoComplete>
+            [options]="tiposOptions"
+            optionLabel="label"
+            optionValue="name"
+            [showClear]="true"
+            [filter]="true"
+            placeholder="Selecciona un tipo"
+            (onChange)="onTipoChange($event.value)">
+          </p-dropdown>
         </div>
 
         <div class="min-h-[72px] flex-1">
           <label class="block text-sm font-medium mb-1">
             Gremio <span class="text-xs font-normal text-gray-500">(opcional)</span>
           </label>
-          <p-autoComplete
+          <p-dropdown
             class="w-full"
-            inputStyleClass="w-full"
+            styleClass="w-full"
             formControlName="gremio"
-            [dropdown]="true"
-            [suggestions]="filteredGremios"
-            field="label"
-            fluid
-            placeholder="Selecciona un gremio">
-          </p-autoComplete>
+            [options]="gremiosOptions"
+            optionLabel="label"
+            optionValue="name"
+            [showClear]="true"
+            [filter]="true"
+            placeholder="Selecciona un gremio"
+            (onChange)="onGremioChange($event.value)">
+          </p-dropdown>
         </div>
       </div>
     </div>

@@ -34,6 +34,7 @@ export interface CostoPayload {
   precio_unitario: number;
   beneficio: number;
   subtotal: number;
+  tipo_costo?: 'ORIGINAL' | 'ADICIONAL';
 }
 
 

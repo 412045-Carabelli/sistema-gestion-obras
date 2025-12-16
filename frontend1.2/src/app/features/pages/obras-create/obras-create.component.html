@@ -1,6 +1,6 @@
 <div class="p-4 space-y-8 mx-auto">
   <!-- ===================== FORMULARIO ===================== -->
-  <form appPreventInvalidSubmit (ngSubmit)="onSubmit()" [formGroup]="form" class="space-y-6">
+  <form appPreventInvalidSubmit (ngSubmit)="onSubmit()" [formGroup]="form" class="space-y-6" (keydown.enter)="$event.preventDefault()">
 
     <div class="grid grid-cols-3 gap-6 w-full">
       <!-- ========== INFORMACIÓN BÁSICA ========== -->
@@ -53,15 +53,22 @@
             </label>
             <div class="flex gap-2">
               <div class="flex-1">
-                <p-select
-                  [options]="clientes"
-                  appendTo="body"
-                  styleClass="w-full"
+                <p-autoComplete
                   formControlName="cliente"
-                  optionLabel="nombre"
-                  optionValue="id"
+                  [suggestions]="filteredClientes"
+                  [dropdown]="true"
+                  [showClear]="true"
+                  appendTo="body"
+                  fluid
+                  class="w-full"
+                  inputStyleClass="w-full"
+                  field="nombre"
                   placeholder="Selecciona un cliente"
-                ></p-select>
+                  (completeMethod)="filtrarClientes($event)"
+                  (onSelect)="onClienteSeleccionado($event?.value)"
+                  (onClear)="onClienteLimpiar()"
+                  (onDropdownClick)="filtrarClientes({ query: '' })"
+                ></p-autoComplete>
               </div>
               <p-button
                 icon="pi pi-plus"
@@ -403,7 +410,7 @@
       <div class="flex flex-col gap-1">
         <label class="text-sm font-semibold text-gray-700">Tipo</label>
         <p-select
-          [options]="tiposProveedor"
+          [options]="tiposProveedor" [filter]="true" (onChange)="onTipoProveedorChange($event.value)"
           optionLabel="label"
           optionValue="name"
           formControlName="tipo_proveedor"
@@ -414,7 +421,7 @@
         <div class="flex flex-col gap-1">
           <label class="text-sm font-semibold text-gray-700">Gremio <span class="text-xs font-normal text-gray-500">(opcional)</span></label>
           <p-select
-            [options]="gremiosProveedor"
+            [options]="gremiosProveedor" [filter]="true" (onChange)="onGremioChange($event.value)"
             optionLabel="label"
             optionValue="name"
             formControlName="gremio"
@@ -449,3 +456,8 @@
     </div>
   </form>
 </app-modal>
+
+
+
+
+

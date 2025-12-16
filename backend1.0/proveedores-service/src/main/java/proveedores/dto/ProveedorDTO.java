@@ -16,7 +16,7 @@ public class ProveedorDTO {
     private String gremio_nombre;
     // retro-compat: value used for selects that still expect a flat string
     private String tipo_proveedor;
-    private String contacto, telefono, email;
+    private String contacto, telefono, email, direccion, cuit;
     private Boolean activo;
     private Instant creado_en;
     private Instant ultima_actualizacion;
