@@ -163,8 +163,12 @@ export class ObrasDetailComponent implements OnInit, OnDestroy {
         this.proveedores = proveedores;
 
         this.progresoFisico = this.getProgresoFisico();
-        this.beneficioNeto = this.calcularBeneficioNeto();
-        this.beneficioCostos = this.calcularBeneficioCostos(this.costos);
+        this.beneficioCostos = obra.beneficio_costos != null
+          ? Number(obra.beneficio_costos)
+          : this.calcularBeneficioCostos(this.costos);
+        this.beneficioNeto = obra.beneficio_neto != null
+          ? Number(obra.beneficio_neto)
+          : this.calcularBeneficioNeto();
         this.cronogramaFueraDeRango = this.esCronogramaInvalido();
         this.cargarCuentaCorriente(this.obra.id!);
         this.loading = false;
@@ -186,8 +190,10 @@ export class ObrasDetailComponent implements OnInit, OnDestroy {
   onCostosActualizados(costosActualizados: ObraCosto[]) {
     this.costos = costosActualizados;
     this.obra.costos = costosActualizados;
-    this.beneficioNeto = this.calcularBeneficioNeto();
     this.beneficioCostos = this.calcularBeneficioCostos(costosActualizados);
+    this.beneficioNeto = this.calcularBeneficioNeto();
+    this.obra.beneficio_costos = this.beneficioCostos;
+    this.obra.beneficio_neto = this.beneficioNeto;
     this.obraStateService.setObra(this.obra);
   }
 

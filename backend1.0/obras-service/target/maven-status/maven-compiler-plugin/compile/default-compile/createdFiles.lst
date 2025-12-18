@@ -6,7 +6,6 @@ com\obras\service\ObraCostoService.class
 com\obras\entity\EstadoPago.class
 com\obras\entity\Tarea.class
 com\obras\enums\EstadoPagoEnum.class
-com\obras\service\impl\ObraCostoServiceImpl$1.class
 com\obras\enums\EstadoTareaEnum.class
 com\obras\entity\Obra.class
 com\obras\entity\ObraProveedor.class

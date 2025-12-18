@@ -79,6 +79,11 @@ export interface Obra {
   beneficio?: number;
   comision?: number;
   tiene_comision?: boolean;
+  subtotal_costos?: number;
+  beneficio_costos?: number;
+  total_con_beneficio?: number;
+  comision_monto?: number;
+  beneficio_neto?: number;
   activo?: boolean;
   creado_en?: string;
   notas?: string;

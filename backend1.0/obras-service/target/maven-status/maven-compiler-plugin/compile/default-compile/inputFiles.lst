@@ -27,6 +27,7 @@ C:\Users\Usuario\Desktop\my-work\sistema-gestion-obras\backend1.0\obras-service\
 C:\Users\Usuario\Desktop\my-work\sistema-gestion-obras\backend1.0\obras-service\src\main\java\com\obras\service\ProgresoService.java
 C:\Users\Usuario\Desktop\my-work\sistema-gestion-obras\backend1.0\obras-service\src\main\java\com\obras\entity\EstadoObra.java
 C:\Users\Usuario\Desktop\my-work\sistema-gestion-obras\backend1.0\obras-service\src\main\java\com\obras\dto\ObraDTO.java
+C:\Users\Usuario\Desktop\my-work\sistema-gestion-obras\backend1.0\obras-service\src\main\java\com\obras\enums\TipoCostoEnum.java
 C:\Users\Usuario\Desktop\my-work\sistema-gestion-obras\backend1.0\obras-service\src\main\java\com\obras\controller\EstadosTareasController.java
 C:\Users\Usuario\Desktop\my-work\sistema-gestion-obras\backend1.0\obras-service\src\main\java\com\obras\repository\TareaRepository.java
 C:\Users\Usuario\Desktop\my-work\sistema-gestion-obras\backend1.0\obras-service\src\main\java\com\obras\controller\ObrasProveedoresController.java

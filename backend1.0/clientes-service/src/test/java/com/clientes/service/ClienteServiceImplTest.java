@@ -45,7 +45,7 @@ class ClienteServiceImplTest {
     void setup() {
         baseRequest = new ClienteRequest();
         baseRequest.setNombre("Nuevo Cliente");
-        baseRequest.setCondicionIVA("Monotributo");
+        baseRequest.setCondicionIva("Monotributo");
     }
 
     @Test
@@ -53,7 +53,7 @@ class ClienteServiceImplTest {
         Cliente guardado = new Cliente();
         guardado.setId(1L);
         guardado.setNombre(baseRequest.getNombre());
-        guardado.setCondicionIVA("Monotributo");
+        guardado.setCondicionIva("Monotributo");
         guardado.setCreadoEn(Instant.now());
 
         when(repository.save(any(Cliente.class))).thenReturn(guardado);
@@ -68,13 +68,13 @@ class ClienteServiceImplTest {
 
     @Test
     void errorCuandoFaltaCondicionIVA_badRequest() {
-        baseRequest.setCondicionIVA(null);
+        baseRequest.setCondicionIva(null);
         assertThrows(InvalidClienteException.class, () -> service.crear(baseRequest));
     }
 
     @Test
     void fuerzaEstadoActivoSiempre() {
-        baseRequest.setCondicionIVA("Consumidor Final");
+        baseRequest.setCondicionIva("Consumidor Final");
         when(repository.save(any(Cliente.class))).thenAnswer(invocation -> {
             Cliente incoming = invocation.getArgument(0);
             incoming.setId(2L);
@@ -90,7 +90,7 @@ class ClienteServiceImplTest {
         Cliente cliente = new Cliente();
         cliente.setId(5L);
         cliente.setNombre("Cliente Obras");
-        cliente.setCondicionIVA("Exento");
+        cliente.setCondicionIva("Exento");
         when(repository.findById(5L)).thenReturn(Optional.of(cliente));
 
         ObraClienteResponse obra = new ObraClienteResponse();
@@ -109,7 +109,7 @@ class ClienteServiceImplTest {
         Cliente cliente = new Cliente();
         cliente.setId(6L);
         cliente.setNombre("Cliente sin obras");
-        cliente.setCondicionIVA("Consumidor Final");
+        cliente.setCondicionIva("Consumidor Final");
         when(repository.findById(6L)).thenReturn(Optional.of(cliente));
 
         when(obrasClient.obtenerObrasPorCliente(6L)).thenThrow(new RestClientException("Service down"));

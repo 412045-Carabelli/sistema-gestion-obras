@@ -42,7 +42,7 @@ class ClientesControllerTest {
 
         ClienteRequest request = new ClienteRequest();
         request.setNombre("Nuevo");
-        request.setCondicionIVA("Monotributo");
+        request.setCondicionIva("Monotributo");
 
         mockMvc.perform(post("/api/clientes")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -58,7 +58,7 @@ class ClientesControllerTest {
 
         ClienteRequest request = new ClienteRequest();
         request.setNombre("Actualizado");
-        request.setCondicionIVA("Exento");
+        request.setCondicionIva("Exento");
 
         mockMvc.perform(put("/api/clientes/1")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -93,7 +93,7 @@ class ClientesControllerTest {
         ClienteResponse response = new ClienteResponse();
         response.setId(1L);
         response.setNombre("Cliente Test");
-        response.setCondicionIVA("Monotributo");
+        response.setCondicionIva("Monotributo");
         response.setCreadoEn(Instant.now());
         response.setObras(Collections.emptyList());
         return response;

@@ -68,6 +68,9 @@ export class ObraPresupuestoComponent implements OnInit, OnChanges {
   @Input() beneficioGlobal = 0;
   @Input() tieneComision = false;
   @Input() comision = 0;
+  get Comision(): number {
+    return this.comision;
+  }
 
   @Output() costosActualizados = new EventEmitter<ObraCosto[]>();
   @Output() movimientoCreado = new EventEmitter<void>();
@@ -372,6 +375,13 @@ export class ObraPresupuestoComponent implements OnInit, OnChanges {
 
   calcularTotal(): number {
     return this.calcularTotalConBeneficio();
+  }
+
+  calcularGastos(): number {
+    return this.costosFiltrados.reduce(
+      (acc, c) => acc + Number(c.subtotal ?? 0),
+      0
+    );
   }
 
   calcularSubtotal(): number {

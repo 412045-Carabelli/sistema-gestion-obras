@@ -31,7 +31,7 @@ class ClienteRepositoryTest {
     void guardarClienteConCondicionIVA() {
         Cliente cliente = new Cliente();
         cliente.setNombre("Repo Cliente");
-        cliente.setCondicionIVA("Exento");
+        cliente.setCondicionIva("Exento");
 
         Cliente saved = clienteRepository.save(cliente);
 
@@ -43,7 +43,7 @@ class ClienteRepositoryTest {
     void buscarPorIdCorrectamente() {
         Cliente cliente = new Cliente();
         cliente.setNombre("Buscado");
-        cliente.setCondicionIVA("Consumidor Final");
+        cliente.setCondicionIva("Consumidor Final");
         Cliente saved = clienteRepository.save(cliente);
 
         Optional<Cliente> encontrado = clienteRepository.findById(saved.getId());

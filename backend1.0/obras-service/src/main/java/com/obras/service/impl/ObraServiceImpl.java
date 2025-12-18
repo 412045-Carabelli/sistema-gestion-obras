@@ -17,6 +17,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
@@ -191,6 +192,14 @@ public class ObraServiceImpl implements ObraService {
         dto.setUltima_actualizacion(entity.getUltimaActualizacion());
         dto.setTipo_actualizacion(entity.getTipoActualizacion());
 
+        TotalesObra totales = calcularTotalesObra(entity);
+        dto.setSubtotal_costos(totales.subtotalCostos());
+        dto.setBeneficio_costos(totales.beneficioCostos());
+        dto.setTotal_con_beneficio(totales.totalConBeneficio());
+        dto.setComision_monto(totales.comisionMonto());
+        dto.setBeneficio_neto(totales.beneficioNeto());
+        dto.setPresupuesto(totales.presupuestoFinal());
+
         if (entity.getCostos() != null) {
             dto.setCostos(
                 entity.getCostos().stream()
@@ -245,7 +254,7 @@ public class ObraServiceImpl implements ObraService {
             BigDecimal cantidad = cdto.getCantidad() != null ? cdto.getCantidad() : BigDecimal.ZERO;
             BigDecimal precio = cdto.getPrecio_unitario() != null ? cdto.getPrecio_unitario() : BigDecimal.ZERO;
             BigDecimal beneficioCosto = cdto.getBeneficio() != null ? cdto.getBeneficio() : BigDecimal.ZERO;
-            TipoCostoEnum tipoCosto = TipoCostoEnum.ORIGINAL;
+            TipoCostoEnum tipoCosto = cdto.getTipo_costo() != null ? cdto.getTipo_costo() : TipoCostoEnum.ORIGINAL;
 
             BigDecimal subtotal = cantidad.multiply(precio);
             BigDecimal beneficioAplicado = Boolean.TRUE.equals(obra.getBeneficioGlobal()) && tipoCosto == TipoCostoEnum.ORIGINAL
@@ -290,5 +299,62 @@ public class ObraServiceImpl implements ObraService {
         }
 
         throw new RuntimeException("Valor de estado de obra no soportado: " + estado);
+    }
+    private TotalesObra calcularTotalesObra(Obra obra) {
+        if (obra == null || obra.getCostos() == null || obra.getCostos().isEmpty()) {
+            return new TotalesObra(BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO, obra != null ? obra.getPresupuesto() : BigDecimal.ZERO);
+        }
+
+        BigDecimal subtotalCostos = BigDecimal.ZERO;
+        BigDecimal beneficioCostos = BigDecimal.ZERO;
+
+        for (ObraCosto costo : obra.getCostos()) {
+            BigDecimal base = costo.getSubtotal() != null
+                    ? costo.getSubtotal()
+                    : Optional.ofNullable(costo.getCantidad()).orElse(BigDecimal.ZERO)
+                    .multiply(Optional.ofNullable(costo.getPrecioUnitario()).orElse(BigDecimal.ZERO));
+
+            boolean esAdicional = TipoCostoEnum.ADICIONAL.equals(costo.getTipoCosto());
+            BigDecimal beneficioAplicado = esAdicional
+                    ? Optional.ofNullable(costo.getBeneficio()).orElse(BigDecimal.ZERO)
+                    : (Boolean.TRUE.equals(obra.getBeneficioGlobal())
+                    ? Optional.ofNullable(obra.getBeneficio()).orElse(BigDecimal.ZERO)
+                    : Optional.ofNullable(costo.getBeneficio()).orElse(BigDecimal.ZERO));
+
+            subtotalCostos = subtotalCostos.add(base);
+            beneficioCostos = beneficioCostos.add(
+                    base.multiply(beneficioAplicado).divide(new BigDecimal("100"), 6, RoundingMode.HALF_UP)
+            );
+        }
+
+        BigDecimal totalConBeneficio = subtotalCostos.add(beneficioCostos);
+        BigDecimal comisionMonto = BigDecimal.ZERO;
+        if (Boolean.TRUE.equals(obra.getTieneComision()) && obra.getComision() != null) {
+            comisionMonto = totalConBeneficio.multiply(
+                    obra.getComision().divide(new BigDecimal("100"), 6, RoundingMode.HALF_UP)
+            );
+        }
+
+        BigDecimal beneficioNeto = beneficioCostos.subtract(comisionMonto);
+        BigDecimal presupuestoFinal = totalConBeneficio.add(comisionMonto);
+
+        return new TotalesObra(
+                subtotalCostos.setScale(2, RoundingMode.HALF_UP),
+                beneficioCostos.setScale(2, RoundingMode.HALF_UP),
+                totalConBeneficio.setScale(2, RoundingMode.HALF_UP),
+                comisionMonto.setScale(2, RoundingMode.HALF_UP),
+                beneficioNeto.setScale(2, RoundingMode.HALF_UP),
+                presupuestoFinal.setScale(2, RoundingMode.HALF_UP)
+        );
+    }
+
+    private record TotalesObra(
+            BigDecimal subtotalCostos,
+            BigDecimal beneficioCostos,
+            BigDecimal totalConBeneficio,
+            BigDecimal comisionMonto,
+            BigDecimal beneficioNeto,
+            BigDecimal presupuestoFinal
+    ) {
     }
 }

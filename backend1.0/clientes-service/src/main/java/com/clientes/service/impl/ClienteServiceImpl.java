@@ -111,7 +111,7 @@ public class ClienteServiceImpl implements ClienteService {
         entity.setCuit(request.getCuit());
         entity.setTelefono(request.getTelefono());
         entity.setEmail(request.getEmail());
-        entity.setCondicionIva(mapearCondicionIVA(request.getCondicionIVA()));
+        entity.setCondicionIva(request.getCondicionIVA());
         entity.setActivo(request.getActivo() != null ? request.getActivo() : Boolean.TRUE);
         return entity;
     }
@@ -124,7 +124,7 @@ public class ClienteServiceImpl implements ClienteService {
         existente.setCuit(request.getCuit());
         existente.setTelefono(request.getTelefono());
         existente.setEmail(request.getEmail());
-        existente.setCondicionIva(mapearCondicionIVA(request.getCondicionIVA()));
+        existente.setCondicionIva(request.getCondicionIVA());
         if (request.getActivo() != null) {
             existente.setActivo(request.getActivo());
         }
@@ -140,7 +140,13 @@ public class ClienteServiceImpl implements ClienteService {
         response.setCuit(cliente.getCuit());
         response.setTelefono(cliente.getTelefono());
         response.setEmail(cliente.getEmail());
-        response.setCondicionIVA(cliente.getCondicionIva() != null ? cliente.getCondicionIva().name() : CondicionIva.CONSUMIDOR_FINAL.name());
+        String condicion = null;
+        if (cliente.getCondicionIVA() != null) {
+            condicion = cliente.getCondicionIVA();
+        } else if (cliente.getCondicionIVA() != null) {
+            condicion = cliente.getCondicionIVA();
+        }
+        response.setCondicionIVA(condicion != null ? condicion : CondicionIva.CONSUMIDOR_FINAL.name());
         response.setActivo(cliente.getActivo() != null ? cliente.getActivo() : Boolean.TRUE);
         response.setCreadoEn(cliente.getCreadoEn());
         response.setUltimaActualizacion(cliente.getUltimaActualizacion());
