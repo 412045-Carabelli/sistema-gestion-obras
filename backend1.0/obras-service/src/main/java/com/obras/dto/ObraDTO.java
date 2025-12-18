@@ -27,6 +27,11 @@ public class ObraDTO {
     private Boolean tiene_comision;
     private BigDecimal beneficio;
     private BigDecimal comision;
+    private BigDecimal subtotal_costos;
+    private BigDecimal beneficio_costos;
+    private BigDecimal total_con_beneficio;
+    private BigDecimal comision_monto;
+    private BigDecimal beneficio_neto;
     private List<TareaDTO> tareas;
     private List<ObraCostoDTO> costos;
     private String notas;

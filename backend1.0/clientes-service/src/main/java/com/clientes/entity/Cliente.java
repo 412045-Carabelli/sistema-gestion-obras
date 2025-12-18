@@ -44,4 +44,21 @@ public class Cliente {
         this.ultimaActualizacion = Instant.now();
         this.tipoActualizacion = tipo;
     }
+
+    // Compatibilidad con tests/DTOs que usan el nombre en mayúsculas
+    public void setCondicionIva(String condicion) {
+        if (condicion == null) {
+            this.condicionIva = CondicionIva.RESPONSABLE_INSCRIPTO;
+            return;
+        }
+        try {
+            this.condicionIva = CondicionIva.valueOf(condicion.toUpperCase().replace(" ", "_"));
+        } catch (IllegalArgumentException ex) {
+            this.condicionIva = CondicionIva.RESPONSABLE_INSCRIPTO;
+        }
+    }
+
+    public String getCondicionIVA() {
+        return this.condicionIva != null ? this.condicionIva.name() : null;
+    }
 }
