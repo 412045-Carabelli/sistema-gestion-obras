@@ -44,6 +44,17 @@
     </div>
 
     <div class="px-4 py-4 flex flex-wrap items-end gap-3">
+      <div class="flex flex-col gap-1 w-24">
+        <label class="text-xs font-medium text-gray-600">Item</label>
+        <input
+          [(ngModel)]="nuevoCosto.item_numero"
+          class="w-full"
+          pInputText
+          placeholder="Ej: 1.1"
+          type="text"
+        />
+      </div>
+
       <div class="flex flex-col gap-1 min-w-[220px] flex-1 md:flex-[1.2]">
         <label class="text-xs font-medium text-gray-600">Proveedor</label>
         <p-autoComplete
@@ -115,7 +126,7 @@
         <label class="text-xs font-medium text-gray-600">Tipo de costo</label>
         <p-select
           [(ngModel)]="nuevoCosto.tipo_costo"
-          [options]="tipoCostoOptions"
+          [options]="getTipoCostoOptions()"
           optionLabel="label"
           optionValue="value"
           placeholder="Selecciona"
@@ -143,7 +154,8 @@
           (onClick)="agregarCosto()"
           icon="pi pi-plus"
           label="Agregar costo"
-          styleClass="p-button-sm p-button-primary">
+          styleClass="p-button-sm p-button-primary"
+          [disabled]="estaSelladaCotizacion() && nuevoCosto.tipo_costo !== 'ADICIONAL'">
         </p-button>
       </div>
     </div>
@@ -159,7 +171,7 @@
       <!-- Encabezado -->
       <ng-template pTemplate="header">
         <tr class="bg-gray-50 text-gray-700">
-
+          <th class="text-left px-3 py-2 font-semibold">Item</th>
           <th class="text-left px-3 py-2 font-semibold">Proveedor</th>
           <th class="text-left px-3 py-2 font-semibold">Descripcion</th>
           <th class="text-left px-3 py-2 font-semibold">Cantidad</th>
@@ -183,6 +195,18 @@
           [style.backgroundColor]="esAdicional(c) ? '#facc15' : ''"
           class="hover:bg-gray-50 transition"
         >
+          <td class="px-3 py-2">
+            @if (c.enEdicion) {
+              <input
+                [(ngModel)]="c.item_numero"
+                class="w-full"
+                pInputText
+                type="text"
+              />
+            } @else {
+              <span class="text-gray-700">{{ getItemNumeroDisplay(c, rowIndex) }}</span>
+            }
+          </td>
             <td class="px-3 py-2">
               <p-autoComplete
                 [(ngModel)]="c.proveedor"
@@ -310,14 +334,16 @@
 
           <td class="px-3 py-2">
             <div class="flex gap-1">
-              @if (!c.enEdicion) {
+              @if (!c.enEdicion && puedeEditarCosto(c)) {
                 <p-button icon="pi pi-pencil" styleClass="p-button-text p-button-sm" (onClick)="habilitarEdicion(c)"></p-button>
               }
               @if (c.enEdicion) {
                 <p-button icon="pi pi-check" styleClass="p-button-success p-button-sm" (onClick)="guardarEdicion(c)"></p-button>
                 <p-button icon="pi pi-times" styleClass="p-button-secondary p-button-sm" (onClick)="cancelarEdicion(c)"></p-button>
               }
-              <p-button icon="pi pi-trash" styleClass="p-button-danger p-button-text p-button-sm" (onClick)="eliminarCosto(c)"></p-button>
+              @if (puedeEditarCosto(c)) {
+                <p-button icon="pi pi-trash" styleClass="p-button-danger p-button-text p-button-sm" (onClick)="eliminarCosto(c)"></p-button>
+              }
             </div>
           </td>
         </tr>
@@ -326,39 +352,39 @@
       <!-- Footer -->
       <ng-template pTemplate="footer">
         <tr class="bg-gray-100 font-semibold">
-          <td class="text-right px-3 py-2" colspan="8">Subtotal (sin beneficio):</td>
+          <td class="text-right px-3 py-2" colspan="9">Subtotal (sin beneficio):</td>
           <td class="px-3 py-2">{{ calcularSubtotal() | currency:'ARS' }}</td>
         </tr>
 
         <tr class="bg-gray-50 text-sm">
-          <td class="text-right px-3 py-2 text-gray-600" colspan="8">Gastos (sin beneficio):</td>
+          <td class="text-right px-3 py-2 text-gray-600" colspan="9">Gastos (sin beneficio):</td>
           <td class="px-3 py-2 text-gray-700 font-medium">{{ calcularGastos() | currency:'ARS' }}</td>
         </tr>
 
         <tr class="bg-gray-50 text-sm">
-          <td class="text-right px-3 py-2 text-gray-600" colspan="8">Beneficio aplicado:</td>
+          <td class="text-right px-3 py-2 text-gray-600" colspan="9">Beneficio neto:</td>
           <td class="px-3 py-2 text-blue-600 font-medium">{{ calcularBeneficioTotal() | currency:'ARS' }}</td>
         </tr>
 
         <tr class="bg-gray-50 text-sm">
-          <td class="text-right px-3 py-2 text-gray-600" colspan="8">Comision ({{ comision }}%):</td>
+          <td class="text-right px-3 py-2 text-gray-600" colspan="9">Comision ({{ comision }}%):</td>
           <td class="px-3 py-2 text-indigo-600 font-medium">{{ calcularComisionMonto() | currency:'ARS' }}</td>
         </tr>
 
         <tr class="bg-gray-200 font-bold">
-          <td class="text-right px-3 py-2" colspan="8">Total:</td>
+          <td class="text-right px-3 py-2" colspan="9">Total:</td>
           <td class="px-3 py-2 text-green-700">{{ calcularPresupuestoTotal() | currency:'ARS' }}</td>
         </tr>
 
         <tr class="bg-gray-50 text-sm">
-          <td class="text-right px-3 py-2 text-gray-600" colspan="8">Pagado:</td>
+          <td class="text-right px-3 py-2 text-gray-600" colspan="9">Pagado:</td>
           <td class="px-3 py-2 text-green-600 font-medium">
             {{ calcularTotalPorEstado('PAGADO') | currency:'ARS' }}
           </td>
         </tr>
 
         <tr class="bg-gray-50 text-sm">
-          <td class="text-right px-3 py-2 text-gray-600" colspan="8">Pendiente:</td>
+          <td class="text-right px-3 py-2 text-gray-600" colspan="9">Pendiente:</td>
           <td class="px-3 py-2 text-amber-600 font-medium">
             {{ calcularTotalPorEstado('PENDIENTE') | currency:'ARS' }}
           </td>

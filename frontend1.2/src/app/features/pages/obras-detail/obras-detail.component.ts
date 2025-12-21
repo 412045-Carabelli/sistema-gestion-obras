@@ -469,7 +469,7 @@ export class ObrasDetailComponent implements OnInit, OnDestroy {
             widths: ['*', 170],
             body: [
               ['Subtotal sin beneficio', formatCurrency(subtotalCostos)],
-              ['Beneficio aplicado', formatCurrency(beneficioCostos)],
+              ['Beneficio neto', formatCurrency(beneficioCostos)],
               ['Subtotal con beneficio', formatCurrency(totalCostos)],
               ['Comision', formatCurrency(comisionMonto)],
               ['Total costos', formatCurrency(totalCostosConComision)]

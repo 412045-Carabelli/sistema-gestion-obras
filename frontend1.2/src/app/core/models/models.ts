@@ -104,6 +104,7 @@ export type EstadoPago = RecordOption;
 export interface ObraCosto {
   id?: number;
   id_obra: number;
+  item_numero?: string;
   id_proveedor?: number;
   proveedor?: Proveedor;
   tipo_costo?: 'ORIGINAL' | 'ADICIONAL';

@@ -217,6 +217,7 @@ public class ObraServiceImpl implements ObraService {
                         ObraCostoDTO cdto = new ObraCostoDTO();
                         cdto.setId(c.getId());
                         cdto.setId_proveedor(c.getIdProveedor());
+                        cdto.setItem_numero(c.getItemNumero());
                         cdto.setDescripcion(c.getDescripcion());
                         cdto.setUnidad(c.getUnidad());
                         cdto.setCantidad(c.getCantidad());
@@ -268,6 +269,7 @@ public class ObraServiceImpl implements ObraService {
             return ObraCosto.builder()
                     .id(cdto.getId())
                     .idProveedor(cdto.getId_proveedor())
+                    .itemNumero(normalizarItemNumero(cdto.getItem_numero()))
                     .descripcion(cdto.getDescripcion())
                     .unidad(cdto.getUnidad())
                     .cantidad(cdto.getCantidad())
@@ -281,6 +283,12 @@ public class ObraServiceImpl implements ObraService {
                     .obra(obra)
                     .build();
         }).toList();
+    }
+
+    private String normalizarItemNumero(String itemNumero) {
+        if (itemNumero == null) return null;
+        String trimmed = itemNumero.trim();
+        return trimmed.isEmpty() ? null : trimmed;
     }
 
     /* ============================================================

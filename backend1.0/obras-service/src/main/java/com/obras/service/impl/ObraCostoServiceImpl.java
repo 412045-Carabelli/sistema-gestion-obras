@@ -32,6 +32,7 @@ public class ObraCostoServiceImpl implements ObraCostoService {
             throw new IllegalArgumentException("Debes indicar el tipo de costo (ORIGINAL o ADICIONAL).");
         }
         ObraCosto entity = fromDto(dto);
+        validarOperacionOriginalEnProgreso(entity, "crear");
         calcularTotales(entity);
         entity = costoRepo.save(entity);
         return toDto(entity);
@@ -51,7 +52,9 @@ public class ObraCostoServiceImpl implements ObraCostoService {
     public ObraCostoDTO actualizar(Long idCosto, ObraCostoDTO dto) {
         ObraCosto entity = costoRepo.findByIdAndActivoTrue(idCosto)
                 .orElseThrow(() -> new RuntimeException("Costo no encontrado"));
+        validarOperacionOriginalEnProgreso(entity, dto.getTipo_costo(), "actualizar");
         entity.setIdProveedor(dto.getId_proveedor());
+        entity.setItemNumero(normalizarItemNumero(dto.getItem_numero()));
         entity.setDescripcion(dto.getDescripcion());
         entity.setUnidad(dto.getUnidad());
         entity.setCantidad(dto.getCantidad());
@@ -69,6 +72,7 @@ public class ObraCostoServiceImpl implements ObraCostoService {
     @Override
     public void eliminar(Long id) {
         costoRepo.findByIdAndActivoTrue(id).ifPresent(costo -> {
+            validarOperacionOriginalEnProgreso(costo, "eliminar");
             costo.setActivo(false);
             costoRepo.save(costo);
         });
@@ -125,6 +129,7 @@ public class ObraCostoServiceImpl implements ObraCostoService {
         dto.setId(entity.getId());
         dto.setId_obra(entity.getObra().getId());
         dto.setId_proveedor(entity.getIdProveedor());
+        dto.setItem_numero(entity.getItemNumero());
         dto.setDescripcion(entity.getDescripcion());
         dto.setUnidad(entity.getUnidad());
         dto.setCantidad(entity.getCantidad());
@@ -145,6 +150,7 @@ public class ObraCostoServiceImpl implements ObraCostoService {
         ObraCosto entity = new ObraCosto();
         entity.setId(dto.getId());
         entity.setIdProveedor(dto.getId_proveedor());
+        entity.setItemNumero(normalizarItemNumero(dto.getItem_numero()));
         entity.setDescripcion(dto.getDescripcion());
         entity.setUnidad(dto.getUnidad());
         entity.setCantidad(dto.getCantidad());
@@ -163,9 +169,30 @@ public class ObraCostoServiceImpl implements ObraCostoService {
         return entity;
     }
 
+    private String normalizarItemNumero(String itemNumero) {
+        if (itemNumero == null) return null;
+        String trimmed = itemNumero.trim();
+        return trimmed.isEmpty() ? null : trimmed;
+    }
+
     private void validarTipoCosto(TipoCostoEnum tipo) {
         if (tipo == null) {
             throw new IllegalArgumentException("El tipo de costo es obligatorio (ORIGINAL o ADICIONAL).");
+        }
+    }
+
+    private void validarOperacionOriginalEnProgreso(ObraCosto entity, String accion) {
+        validarOperacionOriginalEnProgreso(entity, null, accion);
+    }
+
+    private void validarOperacionOriginalEnProgreso(ObraCosto entity, TipoCostoEnum tipoNuevo, String accion) {
+        if (entity == null || entity.getObra() == null) return;
+        if (entity.getObra().getEstadoObra() == null) return;
+        if (entity.getObra().getEstadoObra() != com.obras.enums.EstadoObraEnum.EN_PROGRESO) return;
+        if (TipoCostoEnum.ORIGINAL.equals(entity.getTipoCosto()) || TipoCostoEnum.ORIGINAL.equals(tipoNuevo)) {
+            throw new IllegalStateException(
+                "No se puede " + accion + " un costo ORIGINAL mientras la obra esta en progreso."
+            );
         }
     }
 }

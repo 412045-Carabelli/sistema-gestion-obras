@@ -195,6 +195,7 @@ export class ObrasCreateComponent implements OnInit {
   nuevaFilaCosto() {
 
     const fila = this.fb.group({
+      item_numero: [''],
       id_proveedor: [null, Validators.required],
       descripcion: ['', Validators.required],
       unidad: [''],
@@ -272,9 +273,11 @@ export class ObrasCreateComponent implements OnInit {
           typeof c.id_proveedor === 'object'
             ? c.id_proveedor?.id
             : c.id_proveedor;
+        const itemNumero = (c.item_numero ?? '').toString().trim();
 
         return {
           id_proveedor: idProveedor,
+          item_numero: itemNumero || undefined,
           descripcion: c.descripcion,
           unidad: c.unidad,
           cantidad: c.cantidad,

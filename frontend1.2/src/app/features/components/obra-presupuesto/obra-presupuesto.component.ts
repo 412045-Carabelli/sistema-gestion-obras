@@ -107,11 +107,15 @@ export class ObraPresupuestoComponent implements OnInit, OnChanges {
       this.inicializarCostos();
     }
     this.cargarEstadosDePago();
+    this.ajustarTipoCostoNuevoSegunEstado();
   }
 
   ngOnChanges(changes: SimpleChanges) {
     if (changes['costos'] && this.costos?.length > 0) {
       this.inicializarCostos();
+    }
+    if (changes['obra']) {
+      this.ajustarTipoCostoNuevoSegunEstado();
     }
     if (changes['beneficioGlobal'] || changes['tieneComision']) {
       this.costosFiltrados = this.costosFiltrados.map(c => ({ ...c }));
@@ -179,6 +183,14 @@ export class ObraPresupuestoComponent implements OnInit, OnChanges {
   }
 
   agregarCosto() {
+    if (this.estaSelladaCotizacion() && this.nuevoCosto.tipo_costo !== 'ADICIONAL') {
+      this.messageService.add({
+        severity: 'warn',
+        summary: 'Cotizacion sellada',
+        detail: 'No podes agregar costos originales mientras la obra esta en progreso.'
+      });
+      return;
+    }
     if (!this.nuevoCosto.descripcion || !this.nuevoCosto.id_proveedor) {
       this.messageService.add({
         severity: 'warn',
@@ -227,6 +239,14 @@ export class ObraPresupuestoComponent implements OnInit, OnChanges {
   }
 
   habilitarEdicion(costo: any) {
+    if (this.estaSelladaCotizacion() && !this.esAdicional(costo)) {
+      this.messageService.add({
+        severity: 'warn',
+        summary: 'Cotizacion sellada',
+        detail: 'No podes editar costos originales mientras la obra esta en progreso.'
+      });
+      return;
+    }
     costo._backup = {...costo};
     costo.enEdicion = true;
   }
@@ -248,6 +268,14 @@ export class ObraPresupuestoComponent implements OnInit, OnChanges {
   }
 
   guardarEdicion(costo: any) {
+    if (this.estaSelladaCotizacion() && !this.esAdicional(costo)) {
+      this.messageService.add({
+        severity: 'warn',
+        summary: 'Cotizacion sellada',
+        detail: 'No podes editar costos originales mientras la obra esta en progreso.'
+      });
+      return;
+    }
     const payload = this.calcularMontosPayload(costo);
     this.costosService.updateCosto(costo.id, payload).subscribe({
       next: actualizado => {
@@ -285,6 +313,14 @@ export class ObraPresupuestoComponent implements OnInit, OnChanges {
 
   eliminarCosto(costo: any) {
     if (!costo.id) return;
+    if (this.estaSelladaCotizacion() && !this.esAdicional(costo)) {
+      this.messageService.add({
+        severity: 'warn',
+        summary: 'Cotizacion sellada',
+        detail: 'No podes eliminar costos originales mientras la obra esta en progreso.'
+      });
+      return;
+    }
     this.costosService.deleteCosto(costo.id).subscribe({
       next: () => {
         this.costosFiltrados = this.costosFiltrados.filter(
@@ -463,9 +499,10 @@ export class ObraPresupuestoComponent implements OnInit, OnChanges {
         ? this.beneficioGlobal
         : Number(c.beneficio ?? 0);
       const subtotalConBeneficio = subtotalBase * (1 + beneficioAplicado / 100);
+      const itemNumero = (c.item_numero ?? '').toString().trim() || String(index + 1);
 
       return [
-        { text: String(index + 1), fontSize: 9, alignment: 'center' },
+        { text: itemNumero, fontSize: 9, alignment: 'center' },
         { text: c.descripcion || '-', fontSize: 9 },
         { text: c.unidad || '-', fontSize: 9, alignment: 'center' },
         { text: String(c.cantidad ?? 0), fontSize: 9, alignment: 'center' },
@@ -699,6 +736,7 @@ export class ObraPresupuestoComponent implements OnInit, OnChanges {
   private calcularMontosPayload(costo: Partial<ObraCosto>) {
     const cantidad = Number(costo.cantidad ?? 0);
     const precio = Number(costo.precio_unitario ?? 0);
+    const itemNumeroRaw = (costo.item_numero ?? '').toString().trim();
 
     const subtotal = cantidad * precio;
 
@@ -720,6 +758,7 @@ export class ObraPresupuestoComponent implements OnInit, OnChanges {
         : costo.id_proveedor ?? costo.proveedor?.id;
 
     return {
+      item_numero: itemNumeroRaw || undefined,
       id_proveedor: idProveedorVal != null ? Number(idProveedorVal) : undefined,
       descripcion: costo.descripcion ?? '',
       unidad: costo.unidad ?? '',
@@ -734,6 +773,7 @@ export class ObraPresupuestoComponent implements OnInit, OnChanges {
   }
   private getNuevoCostoBase(): Partial<ObraCosto> {
     return {
+      item_numero: '',
       descripcion: '',
       cantidad: 1,
       precio_unitario: 0,
@@ -866,6 +906,20 @@ export class ObraPresupuestoComponent implements OnInit, OnChanges {
     return (costo?.tipo_costo || '').toString().toUpperCase() === 'ADICIONAL';
   }
 
+  getTipoCostoOptions() {
+    if (!this.estaSelladaCotizacion()) return this.tipoCostoOptions;
+    return this.tipoCostoOptions.filter(o => o.value === 'ADICIONAL');
+  }
+
+  puedeEditarCosto(costo: ObraCosto): boolean {
+    return !this.estaSelladaCotizacion() || this.esAdicional(costo);
+  }
+
+  getItemNumeroDisplay(costo: ObraCosto, index: number): string {
+    const itemNumero = (costo?.item_numero ?? '').toString().trim();
+    return itemNumero || String(index + 1);
+  }
+
   private ordenarCostos(lista: ObraCosto[]): ObraCosto[] {
     return [...lista].sort((a, b) => {
       const aAdd = (a.tipo_costo || 'ORIGINAL') === 'ADICIONAL';
@@ -873,6 +927,28 @@ export class ObraPresupuestoComponent implements OnInit, OnChanges {
       if (aAdd !== bAdd) return aAdd ? 1 : -1;
       return (a.id ?? 0) - (b.id ?? 0);
     });
+  }
+
+  estaSelladaCotizacion(): boolean {
+    const estado = this.normalizarEstadoObra(this.obra?.obra_estado);
+    return estado === 'EN_PROGRESO';
+  }
+
+  private normalizarEstadoObra(raw: any): string {
+    if (!raw) return '';
+    if (typeof raw === 'string') {
+      return raw.trim().toUpperCase().replace(/\s+/g, '_');
+    }
+    const value = raw?.name ?? raw?.label ?? '';
+    return value.toString().trim().toUpperCase().replace(/\s+/g, '_');
+  }
+
+  private ajustarTipoCostoNuevoSegunEstado() {
+    if (!this.estaSelladaCotizacion()) return;
+    if (this.nuevoCosto.tipo_costo !== 'ADICIONAL') {
+      this.nuevoCosto.tipo_costo = 'ADICIONAL';
+      this.onTipoCostoNuevoChange('ADICIONAL');
+    }
   }
 }
 

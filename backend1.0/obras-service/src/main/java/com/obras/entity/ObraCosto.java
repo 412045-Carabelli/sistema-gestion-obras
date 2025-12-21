@@ -39,6 +39,9 @@ public class ObraCosto {
     @Column(name = "tipo_costo", nullable = false)
     private TipoCostoEnum tipoCosto = TipoCostoEnum.ORIGINAL;
 
+    @Column(name = "item_numero")
+    private String itemNumero;
+
     @Column(nullable=false) private String descripcion;
     @Column(nullable=false) private String unidad; // ej: m2, unidad
     @Column(nullable=false, precision=14, scale=3) private BigDecimal cantidad;

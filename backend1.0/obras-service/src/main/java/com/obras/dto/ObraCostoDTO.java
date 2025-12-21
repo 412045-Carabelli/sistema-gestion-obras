@@ -12,6 +12,7 @@ public class ObraCostoDTO {
     private Long id;
     private Long id_obra;
     private Long id_proveedor;
+    private String item_numero;
     private String descripcion;
     private String unidad;
     private BigDecimal cantidad;
