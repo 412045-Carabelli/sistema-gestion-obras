@@ -27,6 +27,7 @@ export interface ObraPayload {
 
 export interface CostoPayload {
   id_proveedor: number;
+  item_numero?: string;
   descripcion: string;
   unidad: string;
   id_estado_pago: number;

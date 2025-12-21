@@ -59,6 +59,12 @@ export class ObraCostosTableComponent implements OnInit, OnChanges {
     }, 0);
   }
 
+  getItemNumeroDisplay(rowIndex: number): string {
+    const fila = this.costos.at(rowIndex) as FormGroup;
+    const itemNumero = (fila.get('item_numero')?.value ?? '').toString().trim();
+    return itemNumero || String(rowIndex + 1);
+  }
+
   eliminarFila(index: number) {
     if (index < 0 || index >= this.costos.length) return;
     this.costos.removeAt(index);

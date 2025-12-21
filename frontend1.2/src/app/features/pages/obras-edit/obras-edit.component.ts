@@ -136,11 +136,15 @@ export class ObrasEditComponent implements OnInit {
       notas: raw.notas,
       beneficio_global: raw.beneficio_global,
       tareas: [],
-      costos: raw.costos.map((c: any) => ({
-        ...c,
-        id_proveedor: c.proveedor?.id ?? null,
-        proveedor: undefined // eliminamos el objeto proveedor para no romper el contrato
-      }))
+      costos: raw.costos.map((c: any) => {
+        const itemNumero = (c.item_numero ?? '').toString().trim();
+        return {
+          ...c,
+          item_numero: itemNumero || undefined,
+          id_proveedor: c.proveedor?.id ?? null,
+          proveedor: undefined // eliminamos el objeto proveedor para no romper el contrato
+        };
+      })
     };
 
     // 🧼 limpiar undefined
@@ -377,6 +381,7 @@ export class ObrasEditComponent implements OnInit {
         this.fb.group({
           id: [costo.id],
           id_obra: [costo.id_obra],
+          item_numero: [costo.item_numero ?? ''],
           descripcion: [costo.descripcion, Validators.required],
           unidad: [costo.unidad],
           cantidad: [costo.cantidad, [Validators.required, Validators.min(0)]],
