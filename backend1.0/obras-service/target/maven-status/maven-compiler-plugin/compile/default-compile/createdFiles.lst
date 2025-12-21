@@ -36,7 +36,9 @@ com\obras\service\TareaService.class
 com\obras\controller\EstadosPagosController.class
 com\obras\entity\ObraProveedor$PK.class
 com\obras\service\ObraProveedorService.class
+com\obras\service\impl\ObraServiceImpl$TotalesObra.class
 com\obras\repository\ObraCostoRepository.class
+com\obras\enums\TipoCostoEnum.class
 com\obras\entity\Obra$ObraBuilder.class
 com\obras\dto\TareaDTO.class
 com\obras\controller\TareasController.class
