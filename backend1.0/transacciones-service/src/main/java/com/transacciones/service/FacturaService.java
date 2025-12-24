@@ -1,0 +1,198 @@
+package com.transacciones.service;
+
+import com.transacciones.dto.FacturaDto;
+import com.transacciones.entity.Factura;
+import com.transacciones.repository.FacturaRepository;
+import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.FileSystemResource;
+import org.springframework.core.io.Resource;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
+import java.time.LocalDate;
+import java.util.List;
+import java.util.stream.Collectors;
+
+@Service
+@RequiredArgsConstructor
+public class FacturaService {
+
+    private final FacturaRepository facturaRepository;
+
+    @Value("${file.upload-dir}")
+    private String uploadDirBase;
+
+    @Transactional(readOnly = true)
+    public List<FacturaDto> listar() {
+        return facturaRepository.findAll()
+                .stream()
+                .map(this::toDto)
+                .collect(Collectors.toList());
+    }
+
+    @Transactional(readOnly = true)
+    public List<FacturaDto> listarPorCliente(Long idCliente) {
+        return facturaRepository.findByIdCliente(idCliente)
+                .stream()
+                .map(this::toDto)
+                .collect(Collectors.toList());
+    }
+
+    @Transactional(readOnly = true)
+    public List<FacturaDto> listarPorObra(Long idObra) {
+        return facturaRepository.findByIdObra(idObra)
+                .stream()
+                .map(this::toDto)
+                .collect(Collectors.toList());
+    }
+
+    @Transactional(readOnly = true)
+    public FacturaDto obtener(Long id) {
+        Factura entity = facturaRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Factura no encontrada"));
+        return toDto(entity);
+    }
+
+    @Transactional
+    public FacturaDto crear(FacturaDto dto, MultipartFile file) {
+        String relativePath = null;
+        String nombreArchivo = null;
+
+        if (file != null && !file.isEmpty()) {
+            relativePath = guardarArchivo(dto.getId_cliente(), file);
+            nombreArchivo = file.getOriginalFilename();
+        }
+
+        Factura entity = Factura.builder()
+                .idCliente(dto.getId_cliente())
+                .idObra(dto.getId_obra())
+                .monto(dto.getMonto())
+                .montoRestante(dto.getMonto_restante() != null ? dto.getMonto_restante() : 0d)
+                .fecha(dto.getFecha() != null ? dto.getFecha() : LocalDate.now())
+                .nombreArchivo(nombreArchivo)
+                .pathArchivo(relativePath)
+                .activo(dto.getActivo() != null ? dto.getActivo() : true)
+                .build();
+
+        return toDto(facturaRepository.save(entity));
+    }
+
+    @Transactional
+    public FacturaDto actualizar(Long id, FacturaDto dto, MultipartFile file) {
+        Factura entity = facturaRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Factura no encontrada"));
+
+        entity.setIdCliente(dto.getId_cliente());
+        entity.setIdObra(dto.getId_obra());
+        entity.setMonto(dto.getMonto());
+        if (dto.getMonto_restante() != null) {
+            entity.setMontoRestante(dto.getMonto_restante());
+        }
+        entity.setFecha(dto.getFecha() != null ? dto.getFecha() : entity.getFecha());
+        entity.setActivo(dto.getActivo() != null ? dto.getActivo() : entity.getActivo());
+
+        if (file != null && !file.isEmpty()) {
+            eliminarArchivoSiExiste(entity.getPathArchivo());
+            String relativePath = guardarArchivo(dto.getId_cliente(), file);
+            entity.setPathArchivo(relativePath);
+            entity.setNombreArchivo(file.getOriginalFilename());
+        }
+
+        return toDto(facturaRepository.save(entity));
+    }
+
+    @Transactional
+    public void eliminar(Long id) {
+        Factura entity = facturaRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Factura no encontrada"));
+        eliminarArchivoSiExiste(entity.getPathArchivo());
+        facturaRepository.deleteById(id);
+    }
+
+    public ResponseEntity<Resource> descargarArchivo(Long id) {
+        Factura entity = facturaRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Factura no encontrada"));
+
+        if (entity.getPathArchivo() == null || entity.getPathArchivo().isEmpty()) {
+            throw new RuntimeException("La factura no tiene archivo adjunto");
+        }
+
+        Path filePath = Paths.get(uploadDirBase, entity.getPathArchivo()).normalize();
+        FileSystemResource resource = new FileSystemResource(filePath);
+
+        if (!resource.exists()) {
+            throw new RuntimeException("Archivo no encontrado: " + entity.getPathArchivo());
+        }
+
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION,
+                        "attachment; filename=\"" + (entity.getNombreArchivo() != null ? entity.getNombreArchivo() : "factura") + "\"")
+                .contentType(MediaType.APPLICATION_OCTET_STREAM)
+                .body(resource);
+    }
+
+    private String guardarArchivo(Long idCliente, MultipartFile file) {
+        String cleanName = sanitizeFilename(file.getOriginalFilename());
+        String fileName = System.currentTimeMillis() + "_" + cleanName;
+        Path folder = Paths.get(uploadDirBase, "facturas", String.valueOf(idCliente));
+        Path destPath = folder.resolve(fileName).normalize();
+
+        try {
+            Files.createDirectories(destPath.getParent());
+            Files.copy(file.getInputStream(), destPath, StandardCopyOption.REPLACE_EXISTING);
+        } catch (IOException e) {
+            throw new RuntimeException("No se pudo guardar el archivo de factura", e);
+        }
+
+        return Paths.get("facturas", String.valueOf(idCliente), fileName)
+                .toString()
+                .replace('\\', '/');
+    }
+
+    private void eliminarArchivoSiExiste(String relativePath) {
+        if (relativePath == null || relativePath.isEmpty()) {
+            return;
+        }
+        try {
+            Path path = Paths.get(uploadDirBase, relativePath).normalize();
+            Files.deleteIfExists(path);
+        } catch (IOException e) {
+            // No interrumpir la eliminacion por fallas en el filesystem
+        }
+    }
+
+    private String sanitizeFilename(String filename) {
+        if (filename == null || filename.isEmpty()) {
+            return "factura";
+        }
+        return filename.replaceAll("[^a-zA-Z0-9._-]", "_");
+    }
+
+    private FacturaDto toDto(Factura factura) {
+        if (factura == null) return null;
+
+        return FacturaDto.builder()
+                .id(factura.getId())
+                .id_cliente(factura.getIdCliente())
+                .id_obra(factura.getIdObra())
+                .monto(factura.getMonto())
+                .monto_restante(factura.getMontoRestante())
+                .fecha(factura.getFecha())
+                .nombre_archivo(factura.getNombreArchivo())
+                .path_archivo(factura.getPathArchivo())
+                .activo(factura.getActivo())
+                .ultima_actualizacion(factura.getUltimaActualizacion())
+                .tipo_actualizacion(factura.getTipoActualizacion())
+                .build();
+    }
+}

@@ -1,4 +1,4 @@
-﻿<p-toast position="bottom-right"></p-toast>
+<p-toast position="bottom-right"></p-toast>
 
 <div class="p-4 space-y-5">
   <!-- Header -->
@@ -25,7 +25,7 @@
     </div>
   </div>
 
-  <!-- Formulario rápido para agregar costos -->
+  <!-- Formulario r�pido para agregar costos -->
   <div class="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden">
     <div class="flex items-center justify-between px-4 py-3 border-b border-gray-100">
       <div class="flex items-center gap-3">
@@ -308,16 +308,10 @@
             }
           </td>
 
-          <td class="px-3 py-2">
-            <p-select
-              (ngModelChange)="actualizarEstadoPago(c, $event)"
-              [(ngModel)]="c.estado_pago"
-              [disabled]="c.enEdicion"
-              [options]="estadosPagoRecords"
-              optionLabel="label"
-              optionValue="name"
-              styleClass="w-40"
-            ></p-select>
+                    <td class="px-3 py-2">
+            <span class="inline-flex items-center rounded-full bg-gray-100 px-2 py-1 text-xs font-medium text-gray-700">
+              {{ getEstadoPagoLabel(c.estado_pago) }}
+            </span>
           </td>
 
           <td class="px-3 py-2 text-right">

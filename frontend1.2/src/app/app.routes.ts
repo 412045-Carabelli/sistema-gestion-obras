@@ -15,6 +15,11 @@ import {ProveedoresListComponent} from './features/components/proveedores-list/p
 import {ReportesComponent} from './features/pages/reportes/reportes.component';
 import {ProveedoresDetailComponent} from './features/pages/proveedores-detail/proveedores-detail.component';
 import {ObrasListComponent} from './features/components/obra-list/obras-list.component';
+import {FacturasLayoutComponent} from './features/facturas-layout/facturas-layout.component';
+import {FacturasListComponent} from './features/components/facturas-list/facturas-list.component';
+import {FacturasCreateComponent} from './features/pages/facturas-create/facturas-create.component';
+import {FacturasDetailComponent} from './features/pages/facturas-detail/facturas-detail.component';
+import {FacturasEditComponent} from './features/pages/facturas-edit/facturas-edit.component';
 
 export const routes: Routes = [
   {
@@ -60,6 +65,16 @@ export const routes: Routes = [
       {path: 'nueva', component: ProveedoresCreateComponent},
       {path: ':id', component: ProveedoresDetailComponent},
       {path: 'editar/:id', component: ProveedoresEditComponent},
+    ],
+  },
+  {
+    path: 'facturas',
+    component: FacturasLayoutComponent,
+    children: [
+      {path: '', component: FacturasListComponent},
+      {path: 'nueva', component: FacturasCreateComponent},
+      {path: ':id', component: FacturasDetailComponent},
+      {path: 'editar/:id', component: FacturasEditComponent},
     ],
   },
   {path: 'reportes', component: ReportesComponent},

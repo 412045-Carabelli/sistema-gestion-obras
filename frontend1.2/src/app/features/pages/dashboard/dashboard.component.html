@@ -1,4 +1,4 @@
-﻿<p-toast position="bottom-right"></p-toast>
+<p-toast position="bottom-right"></p-toast>
 
 <!-- ===================== HEADER CON GRADIENTE ===================== -->
 <div class="relative bg-gradient-to-r from-indigo-600 to-purple-800 shadow-lg p-8 text-white overflow-hidden">
@@ -21,188 +21,135 @@
     </div>
   } @else {
 
-    <!-- ===================== ATAJOS RÃPIDOS ===================== -->
+    <!-- ===================== ATAJOS R�PIDOS ===================== -->
     <div class="bg-white rounded-xl shadow-md p-6">
       <h2 class="text-lg font-semibold text-gray-900 mb-5 flex items-center gap-2 pb-3 border-b border-gray-200">
         <i class="pi pi-bolt text-indigo-600"></i>
         Accesos Rápidos
       </h2>
 
-      <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div class="grid grid-cols-2 md:grid-cols-5 gap-4">
         <button
-          (click)="navigateTo('/obras')"
-          class="cursor-pointer flex flex-col items-center gap-3 p-4 rounded-lg bg-gradient-to-br from-blue-50 to-blue-100 hover:from-blue-100 hover:to-blue-200 transition-all border border-blue-200 hover:shadow-md">
-          <div class="w-12 h-12 bg-blue-500 rounded-full flex items-center justify-center">
-            <i class="pi pi-building text-white text-xl"></i>
+          (click)="abrirMovimientoModal()"
+          class="cursor-pointer flex flex-col items-center gap-3 p-4 rounded-lg bg-gradient-to-br from-green-50 to-green-100 hover:from-green-100 hover:to-green-200 transition-all border border-green-200 hover:shadow-md">
+          <div class="w-12 h-12 bg-green-500 rounded-full flex items-center justify-center">
+            <i class="pi pi-arrow-right-arrow-left text-white text-xl"></i>
           </div>
-          <span class="text-sm font-semibold text-gray-700 text-center">Obras</span>
+          <span class="text-sm font-semibold text-gray-700 text-center">Nuevo movimiento</span>
+        </button>
+        <button
+          (click)="abrirFacturaModal()"
+          class="cursor-pointer flex flex-col items-center gap-3 p-4 rounded-lg bg-gradient-to-br from-teal-50 to-teal-100 hover:from-teal-100 hover:to-teal-200 transition-all border border-teal-200 hover:shadow-md">
+          <div class="w-12 h-12 bg-teal-500 rounded-full flex items-center justify-center">
+            <i class="pi pi-file text-white text-xl"></i>
+          </div>
+          <span class="text-sm font-semibold text-gray-700 text-center">Nueva factura</span>
         </button>
 
         <button
-          (click)="navigateTo('/proveedores')"
+          (click)="abrirClienteModal()"
+          class="cursor-pointer flex flex-col items-center gap-3 p-4 rounded-lg bg-gradient-to-br from-blue-50 to-blue-100 hover:from-blue-100 hover:to-blue-200 transition-all border border-blue-200 hover:shadow-md">
+          <div class="w-12 h-12 bg-blue-500 rounded-full flex items-center justify-center">
+            <i class="pi pi-user-plus text-white text-xl"></i>
+          </div>
+          <span class="text-sm font-semibold text-gray-700 text-center">Nuevo cliente</span>
+        </button>
+
+        <button
+          (click)="abrirProveedorModal()"
           class="cursor-pointer flex flex-col items-center gap-3 p-4 rounded-lg bg-gradient-to-br from-purple-50 to-purple-100 hover:from-purple-100 hover:to-purple-200 transition-all border border-purple-200 hover:shadow-md">
           <div class="w-12 h-12 bg-purple-500 rounded-full flex items-center justify-center">
             <i class="pi pi-truck text-white text-xl"></i>
           </div>
-          <span class="text-sm font-semibold text-gray-700 text-center">Proveedores</span>
+          <span class="text-sm font-semibold text-gray-700 text-center">Nuevo proveedor</span>
         </button>
 
         <button
-          (click)="navigateTo('/clientes')"
-          class="cursor-pointer flex flex-col items-center gap-3 p-4 rounded-lg bg-gradient-to-br from-green-50 to-green-100 hover:from-green-100 hover:to-green-200 transition-all border border-green-200 hover:shadow-md">
-          <div class="w-12 h-12 bg-green-500 rounded-full flex items-center justify-center">
-            <i class="pi pi-users text-white text-xl"></i>
-          </div>
-          <span class="text-sm font-semibold text-gray-700 text-center">Clientes</span>
-        </button>
-
-        <button
-          (click)="navigateTo('/reportes')"
+          (click)="abrirTareaModal()"
           class="cursor-pointer flex flex-col items-center gap-3 p-4 rounded-lg bg-gradient-to-br from-orange-50 to-orange-100 hover:from-orange-100 hover:to-orange-200 transition-all border border-orange-200 hover:shadow-md">
           <div class="w-12 h-12 bg-orange-500 rounded-full flex items-center justify-center">
-            <i class="pi pi-chart-bar text-white text-xl"></i>
+            <i class="pi pi-list-check text-white text-xl"></i>
           </div>
-          <span class="text-sm font-semibold text-gray-700 text-center">Reportes</span>
+          <span class="text-sm font-semibold text-gray-700 text-center">Nueva tarea</span>
         </button>
       </div>
     </div>
-
     <!-- ===================== KPIs DE OBRAS ===================== -->
     @defer (when resumenGeneral) {
-      <div class="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
-        <div class="bg-white rounded-xl shadow-md p-6 border-l-4 border-blue-500 hover:shadow-lg transition-shadow cursor-pointer" (click)="navigateToObrasEstado()">
+      <div class="grid gap-6 md:grid-cols-5">
+        <div class="flex flex-col justify-between bg-white rounded-xl shadow-md p-6 border-l-4 border-blue-500 hover:shadow-lg transition-shadow cursor-pointer md:col-span-1" (click)="navigateToObrasEstado()">
           <div class="flex items-center gap-3 mb-3">
             <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
               <i class="pi pi-building text-blue-600 text-xl"></i>
             </div>
             <span class="text-sm font-medium text-gray-500">Obras Totales</span>
           </div>
-          <div class="text-3xl font-bold text-gray-900">{{ conteoObras.total }}</div>
-          <div class="text-sm text-gray-500 mt-1">Registradas en el sistema</div>
+          <div class="flex flex-col gap-2">
+            <div class="text-3xl font-bold text-gray-900">{{ conteoObras.total }}</div>
+            <div class="text-sm text-gray-500 mt-1">Registradas en el sistema</div>
+          </div>
         </div>
 
-        <div class="bg-white rounded-xl shadow-md p-6 border-l-4 border-amber-500 hover:shadow-lg transition-shadow cursor-pointer" (click)="navigateToObrasEstado('COTIZADA')">
-          <div class="flex items-center gap-3 mb-3">
-            <div class="w-12 h-12 bg-amber-100 rounded-lg flex items-center justify-center">
-              <i class="pi pi-percentage text-amber-600 text-xl"></i>
-            </div>
-            <span class="text-sm font-medium text-gray-500">Cotizadas</span>
-          </div>
-          <div class="text-3xl font-bold text-gray-900">{{ conteoObras.cotizadas }}</div>
-          <div class="text-sm text-gray-500 mt-1">En etapa de cotización</div>
-        </div>
+        <div class="bg-white rounded-xl shadow-md p-6 border-l-4 border-indigo-500 md:col-span-4">
+          <h2 class="text-lg font-semibold text-gray-900 mb-5 flex items-center gap-2 pb-3 border-b border-gray-200">
+            <i class="pi pi-wallet text-indigo-600"></i>
+            Cuenta corriente
+          </h2>
 
-        <div class="bg-white rounded-xl shadow-md p-6 border-l-4 border-red-500 hover:shadow-lg transition-shadow cursor-pointer" (click)="navigateToObrasEstado('PERDIDA')">
-          <div class="flex items-center gap-3 mb-3">
-            <div class="w-12 h-12 bg-red-100 rounded-lg flex items-center justify-center">
-              <i class="pi pi-times-circle text-red-600 text-xl"></i>
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div class="bg-green-50 rounded-lg p-4 border border-green-200">
+              <div class="flex items-center gap-2 mb-2">
+                <i class="pi pi-arrow-up text-green-600"></i>
+                <span class="text-sm font-medium text-gray-600">Cobros</span>
+              </div>
+              <div class="text-2xl font-bold text-green-600">
+                {{ totalCobrosDashboard | currency:'ARS':'symbol-narrow':'1.0-0' }}
+              </div>
             </div>
-            <span class="text-sm font-medium text-gray-500">Perdidas</span>
-          </div>
-          <div class="text-3xl font-bold text-gray-900">{{ conteoObras.perdidas }}</div>
-          <div class="text-sm text-gray-500 mt-1">Cotizaciones no adjudicadas</div>
-        </div>
 
-        <div class="bg-white rounded-xl shadow-md p-6 border-l-4 border-emerald-500 hover:shadow-lg transition-shadow cursor-pointer" (click)="navigateToObrasEstado('ADJUDICADA')">
-          <div class="flex items-center gap-3 mb-3">
-            <div class="w-12 h-12 bg-emerald-100 rounded-lg flex items-center justify-center">
-              <i class="pi pi-check-circle text-emerald-600 text-xl"></i>
+            <div class="bg-red-50 rounded-lg p-4 border border-red-200">
+              <div class="flex items-center gap-2 mb-2">
+                <i class="pi pi-arrow-down text-red-600"></i>
+                <span class="text-sm font-medium text-gray-600">Pagos</span>
+              </div>
+              <div class="text-2xl font-bold text-red-600">
+                {{ totalPagosDashboard | currency:'ARS':'symbol-narrow':'1.0-0' }}
+              </div>
             </div>
-            <span class="text-sm font-medium text-gray-500">Adjudicadas</span>
-          </div>
-          <div class="text-3xl font-bold text-gray-900">{{ conteoObras.adjudicadas }}</div>
-          <div class="text-sm text-gray-500 mt-1">Ganadas</div>
-        </div>
 
-        <div class="bg-white rounded-xl shadow-md p-6 border-l-4 border-indigo-500 hover:shadow-lg transition-shadow cursor-pointer" (click)="navigateToObrasEstado('EN_PROGRESO')">
-          <div class="flex items-center gap-3 mb-3">
-            <div class="w-12 h-12 bg-indigo-100 rounded-lg flex items-center justify-center">
-              <i class="pi pi-play text-indigo-600 text-xl"></i>
-            </div>
-            <span class="text-sm font-medium text-gray-500">Activas</span>
-          </div>
-          <div class="text-3xl font-bold text-gray-900">{{ conteoObras.activas }}</div>
-          <div class="text-sm text-gray-500 mt-1">En ejecución</div>
-        </div>
-
-        <div class="bg-white rounded-xl shadow-md p-6 border-l-4 border-gray-500 hover:shadow-lg transition-shadow cursor-pointer" (click)="navigateToObrasEstado('FINALIZADA')">
-          <div class="flex items-center gap-3 mb-3">
-            <div class="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center">
-              <i class="pi pi-flag text-gray-600 text-xl"></i>
-            </div>
-            <span class="text-sm font-medium text-gray-500">Finalizadas</span>
-          </div>
-          <div class="text-3xl font-bold text-gray-900">{{ conteoObras.finalizadas }}</div>
-          <div class="text-sm text-gray-500 mt-1">Cerradas</div>
-        </div>
-      </div>
-    } @placeholder {
-      <div class="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
-        @for (item of [1,2,3,4,5,6]; track item) {
-          <div class="bg-white rounded-xl shadow-md p-6 animate-pulse">
-            <div class="flex items-center gap-3 mb-3">
-              <div class="w-12 h-12 bg-gray-200 rounded-lg"></div>
-              <div class="h-4 bg-gray-200 rounded w-20"></div>
-            </div>
-            <div class="h-8 bg-gray-200 rounded w-16 mb-2"></div>
-            <div class="h-3 bg-gray-200 rounded w-24"></div>
-          </div>
-        }
-      </div>
-    }
-
-    <!-- ===================== FLUJO DE CAJA ===================== -->
-    @defer (when flujoCaja) {
-      <div class="bg-white rounded-xl shadow-md p-6">
-        <h2 class="text-lg font-semibold text-gray-900 mb-5 flex items-center gap-2 pb-3 border-b border-gray-200">
-          <i class="pi pi-wallet text-indigo-600"></i>
-          Flujo de Caja Reciente
-        </h2>
-
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-          <div class="bg-green-50 rounded-lg p-4 border border-green-200">
-            <div class="flex items-center gap-2 mb-2">
-              <i class="pi pi-arrow-up text-green-600"></i>
-              <span class="text-sm font-medium text-gray-600">Ingresos</span>
-            </div>
-            <div class="text-2xl font-bold text-green-600">
-              {{ flujoCaja.totalIngresos | currency:'ARS':'symbol-narrow':'1.0-0' }}
-            </div>
-          </div>
-
-          <div class="bg-red-50 rounded-lg p-4 border border-red-200">
-            <div class="flex items-center gap-2 mb-2">
-              <i class="pi pi-arrow-down text-red-600"></i>
-              <span class="text-sm font-medium text-gray-600">Egresos</span>
-            </div>
-            <div class="text-2xl font-bold text-red-600">
-              {{ flujoCaja.totalEgresos | currency:'ARS':'symbol-narrow':'1.0-0' }}
-            </div>
-          </div>
-
-          <div class="bg-indigo-50 rounded-lg p-4 border border-indigo-200">
-            <div class="flex items-center gap-2 mb-2">
-              <i class="pi pi-wallet text-indigo-600"></i>
-              <span class="text-sm font-medium text-gray-600">Saldo</span>
-            </div>
-            <div class="text-2xl font-bold text-indigo-600">
-              {{ flujoCaja.saldoFinal | currency:'ARS':'symbol-narrow':'1.0-0' }}
+            <div class="bg-indigo-50 rounded-lg p-4 border border-indigo-200">
+              <div class="flex items-center gap-2 mb-2">
+                <i class="pi pi-wallet text-indigo-600"></i>
+                <span class="text-sm font-medium text-gray-600">Por cobrar</span>
+              </div>
+              <div class="text-2xl font-bold text-indigo-600">
+                {{ saldoPorCobrarDashboard | currency:'ARS':'symbol-narrow':'1.0-0' }}
+              </div>
             </div>
           </div>
         </div>
       </div>
     } @placeholder {
-      <div class="bg-white rounded-xl shadow-md p-6 animate-pulse">
-        <div class="h-6 bg-gray-200 rounded w-1/4 mb-5"></div>
-        <div class="grid grid-cols-3 gap-4">
-          <div class="h-24 bg-gray-100 rounded-lg"></div>
-          <div class="h-24 bg-gray-100 rounded-lg"></div>
-          <div class="h-24 bg-gray-100 rounded-lg"></div>
+      <div class="grid gap-6 md:grid-cols-5">
+        <div class="bg-white rounded-xl shadow-md p-6 animate-pulse">
+          <div class="flex items-center gap-3 mb-3">
+            <div class="w-12 h-12 bg-gray-200 rounded-lg"></div>
+            <div class="h-4 bg-gray-200 rounded w-20"></div>
+          </div>
+          <div class="h-8 bg-gray-200 rounded w-16 mb-2"></div>
+          <div class="h-3 bg-gray-200 rounded w-24"></div>
+        </div>
+        <div class="bg-white rounded-xl shadow-md p-6 animate-pulse">
+          <div class="h-6 bg-gray-200 rounded w-1/3 mb-5"></div>
+          <div class="grid grid-cols-3 gap-4">
+            <div class="h-24 bg-gray-100 rounded-lg"></div>
+            <div class="h-24 bg-gray-100 rounded-lg"></div>
+            <div class="h-24 bg-gray-100 rounded-lg"></div>
+          </div>
         </div>
       </div>
     }
-
-    <!-- ===================== TAREAS Y MOVIMIENTOS RECIENTES ===================== -->
+<!-- ===================== TAREAS Y MOVIMIENTOS RECIENTES ===================== -->
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
 
       <!-- Tareas Recientes -->
@@ -233,7 +180,7 @@
                   <div class="flex-1 min-w-0">
                     <p class="text-sm font-semibold text-gray-900 truncate">{{ tarea.nombre }}</p>
                     <p class="text-xs text-gray-500">{{ tarea.descripcion || 'Sin descripción' }}</p>
-                    <p class="text-xs text-indigo-600 font-semibold mt-1">Obra {{ tarea.obraNombre || 'Sin referencia' }}</p>
+                    <p class="text-xs text-indigo-600 font-semibold mt-1">{{ tarea.obraNombre || 'Sin referencia' }}</p>
                   </div>
                   <span class="px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800">
                     {{ tarea.estado_tarea | estadoFormat }}
@@ -329,6 +276,337 @@
 
   }
 </div>
+
+<app-modal
+  (closed)="cerrarMovimientoModal()"
+  (confirmed)="guardarMovimientoRapido()"
+  [title]="'Nuevo movimiento'"
+  [visible]="showMovimientoModal"
+>
+  <div class="p-3 space-y-3">
+    <label class="block text-sm font-medium mb-1 text-gray-700">Obra</label>
+    <p-autoComplete
+      [(ngModel)]="movimientoObra"
+      [suggestions]="filteredObras"
+      (completeMethod)="filtrarObras($event)"
+      field="nombre"
+      [dropdown]="true"
+      placeholder="Buscar obra"
+      styleClass="w-full"
+      (onSelect)="onMovimientoObraSelect($event.value ?? $event)"
+    ></p-autoComplete>
+
+    <label class="block text-sm font-medium mb-1 text-gray-700">Tipo de asociado</label>
+    <p-select
+      [(ngModel)]="movimientoTipoEntidad"
+      [options]="[
+        { label: 'Cliente', value: 'CLIENTE' },
+        { label: 'Proveedor', value: 'PROVEEDOR' }
+      ]"
+      placeholder="Seleccionar"
+      styleClass="w-full"
+      (onChange)="onMovimientoTipoEntidadChange()"
+    ></p-select>
+
+    @if (movimientoTipoEntidad === 'CLIENTE') {
+      <label class="block text-sm font-medium mb-1 text-gray-700">Cliente</label>
+      <p-autoComplete
+        [(ngModel)]="movimientoCliente"
+        [suggestions]="filteredMovimientoClientes"
+        (completeMethod)="filtrarMovimientoClientes($event)"
+        field="nombre"
+        [dropdown]="true"
+        placeholder="Cliente de la obra"
+        styleClass="w-full"
+        (onSelect)="onMovimientoClienteSelect($event.value ?? $event)"
+      ></p-autoComplete>
+    }
+
+    @if (movimientoTipoEntidad === 'PROVEEDOR') {
+      <label class="block text-sm font-medium mb-1 text-gray-700">Proveedor</label>
+      <p-autoComplete
+        [(ngModel)]="movimientoProveedor"
+        [suggestions]="filteredMovimientoProveedores"
+        (completeMethod)="filtrarMovimientoProveedores($event)"
+        field="nombre"
+        [dropdown]="true"
+        placeholder="Proveedor de la obra"
+        styleClass="w-full"
+        (onSelect)="onMovimientoProveedorSelect($event.value ?? $event)"
+      ></p-autoComplete>
+    }
+
+    @if (movimientoTipoEntidad === 'PROVEEDOR' && movimientoProveedor) {
+      <label class="block text-sm font-medium mb-1 text-gray-700">Costo asociado (opcional)</label>
+      <p-select
+        [(ngModel)]="movimientoCosto"
+        [options]="getCostosMovimientoProveedor()"
+        optionLabel="descripcion"
+        [showClear]="true"
+        placeholder="Seleccionar costo"
+        styleClass="w-full"
+        (onChange)="onMovimientoCostoSelect($event.value ?? $event)"
+      ></p-select>
+      @if (movimientoCosto) {
+        <p class="text-xs text-gray-500 mt-1">
+          Estado: {{ movimientoCosto.estado_pago || 'PENDIENTE' }} - Total:
+          {{ movimientoCosto.total | currency:'ARS' }}
+        </p>
+      }
+    }
+
+    <label class="block text-sm font-medium mb-1 text-gray-700">Condicion de pago/cobro</label>
+    <div class="flex items-center gap-6">
+      <div class="flex items-center gap-2">
+        <p-radiobutton
+          name="movFormaPago"
+          inputId="movFormaParcial"
+          value="PARCIAL"
+          [(ngModel)]="movimientoForm.forma_pago"
+        ></p-radiobutton>
+        <label for="movFormaParcial" class="text-sm text-gray-700">Parcial</label>
+      </div>
+      <div class="flex items-center gap-2">
+        <p-radiobutton
+          name="movFormaPago"
+          inputId="movFormaTotal"
+          value="TOTAL"
+          [(ngModel)]="movimientoForm.forma_pago"
+        ></p-radiobutton>
+        <label for="movFormaTotal" class="text-sm text-gray-700">Total</label>
+      </div>
+    </div>
+
+    <label class="block text-sm font-medium mb-1 text-gray-700">Medio</label>
+    <input
+      type="text"
+      pInputText
+      [(ngModel)]="movimientoForm.medio_pago"
+      class="w-full"
+      placeholder="Ej: Transferencia"
+    />
+
+    <div class="flex gap-5">
+      <div class="flex flex-col w-1/2">
+        <label class="block text-sm font-medium mb-1 text-gray-700">Monto</label>
+        <p-inputNumber
+          [(ngModel)]="movimientoForm.monto"
+          class="w-full"
+          currency="ARS"
+          locale="es-AR"
+          mode="currency"
+        ></p-inputNumber>
+      </div>
+      <div class="flex flex-col w-1/2">
+        <label class="block text-sm font-medium mb-1 text-gray-700">Fecha</label>
+        <p-datepicker
+          [(ngModel)]="movimientoForm.fecha"
+          appendTo="body"
+          class="w-full"
+          dateFormat="dd/mm/yy"
+        ></p-datepicker>
+      </div>
+    </div>
+  </div>
+</app-modal>
+
+<app-modal
+  (closed)="cerrarTareaModal()"
+  (confirmed)="guardarTareaRapida()"
+  [title]="'Nueva tarea'"
+  [visible]="showTareaModal"
+>
+  <div class="p-3 space-y-3">
+    <label class="block text-sm font-medium mb-1 text-gray-700">Obra</label>
+    <p-autoComplete
+      [(ngModel)]="tareaObra"
+      [suggestions]="filteredObras"
+      (completeMethod)="filtrarObras($event)"
+      field="nombre"
+      [dropdown]="true"
+      placeholder="Buscar obra"
+      styleClass="w-full"
+      (onSelect)="onTareaObraSelect($event.value ?? $event)"
+    ></p-autoComplete>
+
+    <label class="block text-sm font-medium mb-1 text-gray-700">Proveedor</label>
+    <p-select
+      [(ngModel)]="tareaProveedor"
+      [options]="tareaProveedoresObra"
+      optionLabel="nombre"
+      placeholder="Proveedor de la obra"
+      styleClass="w-full"
+    ></p-select>
+
+    <label class="block text-sm font-medium mb-1 text-gray-700">Nombre</label>
+    <input pInputText type="text" [(ngModel)]="tareaForm.nombre" class="w-full" />
+
+    <label class="block text-sm font-medium mb-1 text-gray-700">Descripcion</label>
+    <textarea class="w-full border rounded p-2 text-sm" [(ngModel)]="tareaForm.descripcion" rows="3"></textarea>
+
+    <label class="block text-sm font-medium mb-1 text-gray-700">Porcentaje</label>
+    <p-inputNumber
+      [(ngModel)]="tareaForm.porcentaje"
+      class="w-full"
+      mode="decimal"
+      [min]="0"
+      [max]="100"
+    ></p-inputNumber>
+
+    <label class="block text-sm font-medium mb-1 text-gray-700">Fecha inicio</label>
+    <input pInputText type="date" [(ngModel)]="tareaForm.fecha_inicio" class="w-full" />
+  </div>
+</app-modal>
+
+<app-modal
+  (closed)="cerrarClienteModal()"
+  (confirmed)="guardarClienteRapido()"
+  [title]="'Nuevo cliente'"
+  [visible]="showClienteModal"
+>
+  <div class="p-3 space-y-3">
+    <label class="block text-sm font-medium mb-1 text-gray-700">Nombre</label>
+    <input pInputText type="text" [(ngModel)]="clienteForm.nombre" class="w-full" />
+
+    <label class="block text-sm font-medium mb-1 text-gray-700">Contacto</label>
+    <input pInputText type="text" [(ngModel)]="clienteForm.contacto" class="w-full" />
+
+    <label class="block text-sm font-medium mb-1 text-gray-700">Direccion</label>
+    <input pInputText type="text" [(ngModel)]="clienteForm.direccion" class="w-full" />
+
+    <label class="block text-sm font-medium mb-1 text-gray-700">CUIT</label>
+    <input pInputText type="text" [(ngModel)]="clienteForm.cuit" class="w-full" />
+
+    <label class="block text-sm font-medium mb-1 text-gray-700">Condicion IVA</label>
+    <p-select
+      [(ngModel)]="clienteForm.condicion_iva"
+      [options]="ivaOptions"
+      optionLabel="label"
+      optionValue="name"
+      placeholder="Seleccionar"
+      styleClass="w-full"
+    ></p-select>
+
+    <label class="block text-sm font-medium mb-1 text-gray-700">Telefono</label>
+    <input pInputText type="text" [(ngModel)]="clienteForm.telefono" class="w-full" />
+
+    <label class="block text-sm font-medium mb-1 text-gray-700">Email</label>
+    <input pInputText type="email" [(ngModel)]="clienteForm.email" class="w-full" />
+  </div>
+</app-modal>
+
+<app-modal
+  (closed)="cerrarProveedorModal()"
+  (confirmed)="guardarProveedorRapido()"
+  [title]="'Nuevo proveedor'"
+  [visible]="showProveedorModal"
+>
+  <div class="p-3 space-y-3">
+    <label class="block text-sm font-medium mb-1 text-gray-700">Nombre</label>
+    <input pInputText type="text" [(ngModel)]="proveedorForm.nombre" class="w-full" />
+
+    <label class="block text-sm font-medium mb-1 text-gray-700">Tipo proveedor</label>
+    <p-select
+      [(ngModel)]="proveedorForm.tipo_proveedor"
+      [options]="tiposProveedor"
+      optionLabel="label"
+      optionValue="name"
+      placeholder="Seleccionar"
+      styleClass="w-full"
+    ></p-select>
+
+    <label class="block text-sm font-medium mb-1 text-gray-700">Gremio</label>
+    <p-select
+      [(ngModel)]="proveedorForm.gremio"
+      [options]="gremiosProveedor"
+      optionLabel="label"
+      optionValue="name"
+      placeholder="Seleccionar"
+      styleClass="w-full"
+    ></p-select>
+
+    <label class="block text-sm font-medium mb-1 text-gray-700">Contacto</label>
+    <input pInputText type="text" [(ngModel)]="proveedorForm.contacto" class="w-full" />
+
+    <label class="block text-sm font-medium mb-1 text-gray-700">Direccion</label>
+    <input pInputText type="text" [(ngModel)]="proveedorForm.direccion" class="w-full" />
+
+    <label class="block text-sm font-medium mb-1 text-gray-700">CUIT</label>
+    <input pInputText type="text" [(ngModel)]="proveedorForm.cuit" class="w-full" />
+
+    <label class="block text-sm font-medium mb-1 text-gray-700">Telefono</label>
+    <input pInputText type="text" [(ngModel)]="proveedorForm.telefono" class="w-full" />
+
+    <label class="block text-sm font-medium mb-1 text-gray-700">Email</label>
+    <input pInputText type="email" [(ngModel)]="proveedorForm.email" class="w-full" />
+  </div>
+</app-modal>
+<app-modal
+  (closed)="cerrarFacturaModal()"
+  (confirmed)="guardarFacturaRapida()"
+  [title]="'Nueva factura'"
+  [visible]="showFacturaModal"
+>
+  <div class="p-3 space-y-3">
+    <label class="block text-sm font-medium mb-1 text-gray-700">Cliente</label>
+    <p-select
+      [(ngModel)]="facturaForm.id_cliente"
+      [options]="clientes"
+      optionLabel="nombre"
+      optionValue="id"
+      placeholder="Seleccionar cliente"
+      styleClass="w-full"
+      (onChange)="onFacturaClienteChange()"
+    ></p-select>
+
+    <label class="block text-sm font-medium mb-1 text-gray-700">Obra</label>
+    <p-select
+      [(ngModel)]="facturaForm.id_obra"
+      [options]="facturaObrasFiltradas"
+      optionLabel="nombre"
+      optionValue="id"
+      placeholder="Seleccionar obra"
+      styleClass="w-full"
+    ></p-select>
+
+    <div class="flex gap-5">
+      <div class="flex flex-col w-1/2">
+        <label class="block text-sm font-medium mb-1 text-gray-700">Fecha</label>
+        <p-datepicker
+          [(ngModel)]="facturaForm.fecha"
+          appendTo="body"
+          class="w-full"
+          dateFormat="dd/mm/yy"
+        ></p-datepicker>
+      </div>
+      <div class="flex flex-col w-1/2">
+        <label class="block text-sm font-medium mb-1 text-gray-700">Monto</label>
+        <p-inputNumber
+          [(ngModel)]="facturaForm.monto"
+          class="w-full"
+          mode="decimal"
+          locale="es-AR"
+        ></p-inputNumber>
+      </div>
+    </div>
+
+    <label class="block text-sm font-medium mb-1 text-gray-700">Adjuntar factura (opcional)</label>
+    <p-fileUpload
+      mode="basic"
+      chooseLabel="Seleccionar archivo"
+      chooseIcon="pi pi-upload"
+      accept=".jpg,.jpeg,.png,.pdf"
+      [auto]="false"
+      (onSelect)="onFacturaFileSelected($event)"
+    ></p-fileUpload>
+    @if (facturaFile) {
+      <div class="flex items-center gap-2 text-sm text-gray-700">
+        <span>{{ facturaFile.name }}</span>
+        <button type="button" class="text-red-500 hover:text-red-700" (click)="quitarFacturaArchivo()">x</button>
+      </div>
+    }
+  </div>
+</app-modal>
 
 
 

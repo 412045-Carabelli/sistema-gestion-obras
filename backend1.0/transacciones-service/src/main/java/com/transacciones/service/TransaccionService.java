@@ -1,10 +1,13 @@
 package com.transacciones.service;
 
+import com.transacciones.dto.ObraCostoDto;
 import com.transacciones.dto.TransaccionDto;
 import com.transacciones.entity.Transaccion;
 import com.transacciones.enums.TipoTransaccionEnum;
 import com.transacciones.repository.TransaccionRepository;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -15,7 +18,10 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class TransaccionService {
 
+    private static final Logger log = LoggerFactory.getLogger(TransaccionService.class);
+
     private final TransaccionRepository transaccionRepository;
+    private final ObraCostoClient obraCostoClient;
 
     public List<TransaccionDto> listar() {
         return transaccionRepository.findAll()
@@ -28,6 +34,8 @@ public class TransaccionService {
         if (dto.getTipo_transaccion() == null) {
             throw new IllegalArgumentException("Debe especificarse un tipo de transaccion valido");
         }
+        validarTipoAsociado(dto);
+        validarMontoContraCosto(dto);
 
         Transaccion entity = Transaccion.builder()
                 .idObra(dto.getIdObra())
@@ -43,7 +51,9 @@ public class TransaccionService {
                 .activo(dto.getActivo() != null ? dto.getActivo() : true)
                 .build();
 
-        return toDto(transaccionRepository.save(entity));
+        Transaccion guardado = transaccionRepository.save(entity);
+        actualizarEstadoCostoDesdeMovimiento(guardado);
+        return toDto(guardado);
     }
 
     public TransaccionDto obtener(Long id) {
@@ -59,6 +69,8 @@ public class TransaccionService {
         if (dto.getTipo_transaccion() == null) {
             throw new IllegalArgumentException("Debe especificarse un tipo de transaccion valido");
         }
+        validarTipoAsociado(dto);
+        validarMontoContraCosto(dto);
 
         entity.setIdObra(dto.getIdObra());
         entity.setIdAsociado(dto.getIdAsociado());
@@ -72,7 +84,9 @@ public class TransaccionService {
         entity.setFacturaCobrada(dto.getFacturaCobrada());
         entity.setActivo(dto.getActivo());
 
-        return toDto(transaccionRepository.save(entity));
+        Transaccion guardado = transaccionRepository.save(entity);
+        actualizarEstadoCostoDesdeMovimiento(guardado);
+        return toDto(guardado);
     }
 
     public void eliminar(Long id) {
@@ -130,5 +144,76 @@ public class TransaccionService {
 
     private Long mapTipoTransaccionToId(TipoTransaccionEnum e) {
         return (long) (e.ordinal() + 1);
+    }
+
+    private void actualizarEstadoCostoDesdeMovimiento(Transaccion transaccion) {
+        if (transaccion == null) return;
+        if (transaccion.getIdCosto() == null || transaccion.getIdObra() == null) return;
+        if (transaccion.getTipo_transaccion() != TipoTransaccionEnum.PAGO) return;
+
+        try {
+            ObraCostoDto costo = obraCostoClient.obtenerCosto(transaccion.getIdObra(), transaccion.getIdCosto());
+            if (costo == null || costo.getTotal() == null) return;
+
+            String formaPago = transaccion.getForma_pago() == null
+                    ? ""
+                    : transaccion.getForma_pago().toUpperCase();
+            double totalCosto = costo.getTotal();
+            double totalPagos = transaccionRepository.sumarPagosPorCosto(transaccion.getIdCosto());
+
+            String nuevoEstado = null;
+            if (totalPagos >= totalCosto) {
+                nuevoEstado = "PAGADO";
+            } else if (totalPagos > 0) {
+                nuevoEstado = "PARCIAL";
+            } else if ("PARCIAL".equals(formaPago) || "TOTAL".equals(formaPago)) {
+                nuevoEstado = "PENDIENTE";
+            }
+
+            if (nuevoEstado == null) return;
+
+            String estadoActual = costo.getEstado_pago() == null
+                    ? ""
+                    : costo.getEstado_pago().toUpperCase();
+            if (estadoActual.equals(nuevoEstado)) return;
+
+            obraCostoClient.actualizarEstadoPago(costo.getId(), nuevoEstado);
+        } catch (Exception ex) {
+            log.warn("No se pudo actualizar estado de pago del costo {}", transaccion.getIdCosto(), ex);
+        }
+    }
+
+    private void validarTipoAsociado(Transaccion dto) {
+        if (dto == null) return;
+        String tipoAsociado = dto.getTipoAsociado() == null ? "" : dto.getTipoAsociado().toUpperCase();
+        if ("CLIENTE".equals(tipoAsociado) && dto.getTipo_transaccion() != TipoTransaccionEnum.COBRO) {
+            throw new IllegalArgumentException("Para clientes solo se permite COBRO");
+        }
+        if ("PROVEEDOR".equals(tipoAsociado) && dto.getTipo_transaccion() != TipoTransaccionEnum.PAGO) {
+            throw new IllegalArgumentException("Para proveedores solo se permite PAGO");
+        }
+    }
+
+    private void validarMontoContraCosto(Transaccion dto) {
+        if (dto == null) return;
+        if (dto.getIdCosto() == null || dto.getIdObra() == null) return;
+        if (dto.getTipo_transaccion() != TipoTransaccionEnum.PAGO) return;
+
+        ObraCostoDto costo = obraCostoClient.obtenerCosto(dto.getIdObra(), dto.getIdCosto());
+        if (costo == null || costo.getTotal() == null) {
+            throw new IllegalArgumentException("Costo no encontrado para validar el monto");
+        }
+
+        String formaPago = dto.getForma_pago() == null ? "" : dto.getForma_pago().toUpperCase();
+        double monto = dto.getMonto() != null ? dto.getMonto() : 0;
+        double totalCosto = costo.getTotal();
+        double diferencia = Math.abs(monto - totalCosto);
+
+        if ("TOTAL".equals(formaPago) && diferencia >= 0.01) {
+            throw new IllegalArgumentException("Para pago total, el monto debe ser igual al total del costo");
+        }
+        if ("PARCIAL".equals(formaPago) && monto >= totalCosto) {
+            throw new IllegalArgumentException("Para pago parcial, el monto debe ser menor al total del costo");
+        }
     }
 }

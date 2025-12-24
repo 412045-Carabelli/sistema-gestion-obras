@@ -28,6 +28,7 @@ export class SidebarComponent {
     {label: 'Obras', icon: 'pi-building', path: '/obras'},
     {label: 'Clientes', icon: 'pi-users', path: '/clientes'},
     {label: 'Proveedores', icon: 'pi-truck', path: '/proveedores'},
+    {label: 'Facturas', icon: 'pi-receipt', path: '/facturas'},
     {label: 'Reportes', icon: 'pi-chart-bar', path: '/reportes'},
   ];
 

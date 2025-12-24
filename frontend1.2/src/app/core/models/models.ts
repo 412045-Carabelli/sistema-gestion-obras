@@ -144,6 +144,7 @@ export interface Transaccion {
   id?: number;
   id_obra: number;
   id_asociado?: number;
+  id_costo?: number;
   tipo_asociado?: string;
   tipo_transaccion: string;
   fecha?: string | Date;
@@ -159,6 +160,22 @@ export interface Transaccion {
   tipo_actualizacion?: string;
   observacion?: string;
   etiqueta?: string; // auxiliar de UI (FC/RBOS)
+}
+
+export interface Factura {
+  id?: number;
+  id_cliente: number;
+  id_obra: number;
+  cliente_nombre?: string;
+  obra_nombre?: string;
+  monto: number;
+  monto_restante: number;
+  fecha?: string;
+  nombre_archivo?: string;
+  path_archivo?: string;
+  activo?: boolean;
+  ultima_actualizacion?: string;
+  tipo_actualizacion?: string;
 }
 
 export type TipoDocumento = RecordOption;

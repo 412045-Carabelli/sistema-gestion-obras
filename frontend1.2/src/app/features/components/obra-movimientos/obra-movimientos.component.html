@@ -1,8 +1,8 @@
-﻿<p-toast position="bottom-right"></p-toast>
+<p-toast position="bottom-right"></p-toast>
 <p-confirmDialog></p-confirmDialog>
 
 <div class="p-4 space-y-5">
-  <!-- TÃ­tulo y botÃ³n -->
+  <!-- Titulo y boton -->
   <div class="flex justify-between items-center flex-wrap gap-3">
     <div>
       <h2 class="text-2xl font-bold text-gray-900">Movimientos</h2>
@@ -31,10 +31,9 @@
           <th>Tipo</th>
           <th>Asociado</th>
           <th>Fecha</th>
-          <th>Condición (Parcial/Total)</th>
+          <th>Condicion (Parcial/Total)</th>
           <th>Medio</th>
           <th>Monto</th>
-          <th>Factura cobrada</th>
           <th class="text-right"></th>
         </tr>
       </ng-template>
@@ -70,10 +69,6 @@
               {{ t.monto | currency: 'ARS' }}
             </span>
           </td>
-
-        <td>
-          <p-checkbox [binary]="true" [ngModel]="!!t.factura_cobrada" disabled></p-checkbox>
-        </td>
 
           <!-- Acciones -->
           <td class="flex justify-end gap-2 items-center">
@@ -127,7 +122,7 @@
     </div>
   }
 
-  <!-- Modal de creaciÃ³n / ediciÃ³n -->
+  <!-- Modal de creacion / edicion -->
   <app-modal
     (closed)="cerrarModal()"
     (confirmed)="guardarMovimiento()"
@@ -148,7 +143,7 @@
           ]"
             placeholder="Seleccionar tipo de entidad"
             styleClass="w-full"
-            (onChange)="cargarDatos()"
+            (onChange)="onTipoEntidadChange()"
           ></p-select>
         </div>
 
@@ -165,8 +160,31 @@
               [dropdown]="true"
               placeholder="Buscar proveedor"
               styleClass="w-full"
-              (onSelect)="cargarDatos()"
+              (onSelect)="onProveedorSeleccionado()"
             ></p-autoComplete>
+          </div>
+        }
+
+        @if (tipoEntidad === 'PROVEEDOR' && selectedProveedor) {
+          <div class="col-span-5">
+            <label class="block text-sm font-medium mb-1 text-gray-700">
+              Costo asociado (opcional)
+            </label>
+            <p-select
+              [(ngModel)]="selectedCosto"
+              [options]="costosProveedor"
+              optionLabel="descripcion"
+              [showClear]="true"
+              placeholder="Seleccionar costo"
+              styleClass="w-full"
+              (onChange)="onCostoSeleccionado($event.value ?? $event)"
+            ></p-select>
+            @if (selectedCosto) {
+              <p class="text-xs text-gray-500 mt-1">
+                Estado: {{ selectedCosto.estado_pago || 'PENDIENTE' }} - Total:
+                {{ selectedCosto.total | currency:'ARS' }}
+              </p>
+            }
           </div>
         }
 
@@ -188,31 +206,54 @@
           </div>
         }
       </div>
-      <!-- Tipo de movimiento -->
-      <label class="block text-sm font-medium mb-1 text-gray-700">
-        Tipo de movimiento
-      </label>
-      <p-select
-        [(ngModel)]="nuevoMovimiento.tipo_transaccion"
-        [options]="tiposTransaccion"
-        class="w-full"
-        optionLabel="label"
-        optionValue="name"
-        placeholder="Seleccionar tipo"
-      ></p-select>
+
+      @if (getTiposTransaccionDisponibles().length === 1) {
+        <label class="block text-sm font-medium mb-1 text-gray-700">
+          Tipo de movimiento
+        </label>
+        <p-tag
+          [value]="getTipoTransaccionDisponibleLabel()"
+          [severity]="getTipoTransaccionSeverity()"
+        ></p-tag>
+      }
 
       <!-- Forma de pago -->
       <label class="block text-sm font-medium mb-1 text-gray-700">
-        Condición de pago/cobro (Total/Parcial)
+        Condicion de pago/cobro (Total/Parcial)
       </label>
-      <p-select
-        [(ngModel)]="nuevoMovimiento.forma_pago"
-        [options]="parcial_o_total_options"
-        class="w-full"
-        optionLabel="label"
-        optionValue="name"
-        placeholder="Seleccionar condición"
-      ></p-select>
+      <div class="flex items-center gap-6">
+        <div class="flex items-center gap-2">
+          <p-radiobutton
+            name="formaPago"
+            inputId="formaPagoParcial"
+            value="PARCIAL"
+            [(ngModel)]="nuevoMovimiento.forma_pago"
+          ></p-radiobutton>
+          <label for="formaPagoParcial" class="text-sm text-gray-700">Parcial</label>
+        </div>
+        <div class="flex items-center gap-2">
+          <p-radiobutton
+            name="formaPago"
+            inputId="formaPagoTotal"
+            value="TOTAL"
+            [(ngModel)]="nuevoMovimiento.forma_pago"
+          ></p-radiobutton>
+          <label for="formaPagoTotal" class="text-sm text-gray-700">Total</label>
+        </div>
+      </div>
+      @if (getTiposTransaccionDisponibles().length > 1) {
+        <label class="block text-sm font-medium mb-1 text-gray-700">
+          Tipo de movimiento
+        </label>
+        <p-select
+          [(ngModel)]="nuevoMovimiento.tipo_transaccion"
+          [options]="getTiposTransaccionDisponibles()"
+          class="w-full"
+          optionLabel="label"
+          optionValue="name"
+          placeholder="Seleccionar tipo"
+        ></p-select>
+      }
 
       <label class="block text-sm font-medium mb-1 text-gray-700">
         Medio de pago/cobro
@@ -248,12 +289,6 @@
           ></p-datepicker>
         </div>
       </div>
-
-      <div class="flex items-center gap-2 pt-2">
-        <p-checkbox [(ngModel)]="nuevoMovimiento.factura_cobrada" [binary]="true"></p-checkbox>
-        <label class="text-sm text-gray-700">Factura cobrada</label>
-      </div>
     </div>
   </app-modal>
 </div>
-

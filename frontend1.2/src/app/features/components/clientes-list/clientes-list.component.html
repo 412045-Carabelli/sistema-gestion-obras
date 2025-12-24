@@ -53,8 +53,6 @@
             <th class="px-3 py-2 text-left">Telefono</th>
             <th class="px-3 py-2 text-left">Email</th>
             <th class="px-3 py-2 text-left">Condicion IVA</th>
-            <th class="px-3 py-2 text-center">Activo</th>
-            <th class="px-3 py-2 text-center">Acciones</th>
           </tr>
         </ng-template>
 
@@ -67,21 +65,6 @@
             <td class="px-3 py-2">{{ c.telefono || '-' }}</td>
             <td class="px-3 py-2">{{ c.email || '-' }}</td>
             <td class="px-3 py-2">{{ getCondicionIvaLabel(c.condicionIva ?? c.condicion_iva) }}</td>
-            <td class="px-3 py-2 text-center">
-              <p-tag
-                [severity]="getActivoSeverity(c.activo)"
-                [value]="c.activo ? 'Activo' : 'Inactivo'">
-              </p-tag>
-            </td>
-            <td class="px-3 py-2 text-center">
-              <p-button
-                [icon]="c.activo ? 'pi pi-ban' : 'pi pi-check'"
-                [rounded]="true"
-                [text]="true"
-                [severity]="c.activo ? 'danger' : 'success'"
-                (onClick)="toggleActivo(c, $event)">
-              </p-button>
-            </td>
           </tr>
         </ng-template>
 
