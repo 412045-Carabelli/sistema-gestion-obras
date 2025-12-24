@@ -21,6 +21,7 @@ com\apigateway\controller\EstadosObraBffController$1.class
 com\apigateway\controller\TareaBffController$3.class
 com\apigateway\controller\TransaccionBffController$3.class
 com\apigateway\controller\ProveedorBffController$4.class
+com\apigateway\controller\FacturaBffController$4.class
 com\apigateway\controller\ClienteBffController$1.class
 com\apigateway\controller\TipoTransaccionBffController.class
 com\apigateway\controller\TareaBffController$4.class
@@ -30,6 +31,7 @@ com\apigateway\controller\ReportesBffController$13.class
 com\apigateway\controller\GremioBffController$1.class
 com\apigateway\controller\GremioBffController.class
 com\apigateway\controller\ReportesBffController$4.class
+com\apigateway\controller\FacturaBffController$5.class
 com\apigateway\controller\ReportesBffController$3.class
 com\apigateway\controller\DocumentoBffController$3.class
 com\apigateway\controller\ProveedorBffController$3.class
@@ -54,9 +56,12 @@ com\apigateway\config\WebClientConfig.class
 com\apigateway\controller\DocumentoBffController$1.class
 com\apigateway\controller\ReportesBffController$15.class
 com\apigateway\controller\TipoDocumentoBffController$3.class
+com\apigateway\controller\FacturaBffController$6.class
+com\apigateway\controller\FacturaBffController.class
 com\apigateway\controller\ClienteBffController$3.class
 com\apigateway\controller\TareaBffController.class
 com\apigateway\controller\TransaccionBffController$2.class
+com\apigateway\controller\FacturaBffController$3.class
 com\apigateway\controller\ObraBffController$8.class
 com\apigateway\controller\DocumentoBffController.class
 com\apigateway\controller\TareaBffController$2.class
@@ -68,6 +73,7 @@ com\apigateway\controller\TransaccionBffController$6.class
 com\apigateway\controller\ClienteBffController$4.class
 com\apigateway\controller\TipoProveedorBffController.class
 com\apigateway\controller\TipoTransaccionBffController$2.class
+com\apigateway\controller\FacturaBffController$1.class
 com\apigateway\controller\ReportesBffController$10.class
 com\apigateway\controller\ReportesBffController$7.class
 com\apigateway\controller\ReportesBffController$1.class
@@ -82,4 +88,5 @@ com\apigateway\controller\ReportesBffController$11.class
 com\apigateway\controller\TransaccionBffController.class
 com\apigateway\controller\TipoDocumentoBffController$4.class
 com\apigateway\controller\ReportesBffController.class
+com\apigateway\controller\FacturaBffController$2.class
 com\apigateway\controller\ObraBffController$6.class

@@ -12,6 +12,7 @@ export const environment = {
     tareas: '/bff/tareas',
     costos: '/bff/costos',
     documentos: '/bff/documentos',
+    facturas: '/bff/facturas',
     transacciones: '/bff/transacciones',
     tipo_transaccion: '/bff/tipo-transaccion',
     reportes: '/bff/reportes',

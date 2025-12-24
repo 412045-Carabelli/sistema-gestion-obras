@@ -920,6 +920,12 @@ export class ObraPresupuestoComponent implements OnInit, OnChanges {
     return itemNumero || String(index + 1);
   }
 
+  getEstadoPagoLabel(estado?: string): string {
+    const estadoNormalizado = (estado || 'PENDIENTE').toString().toUpperCase();
+    const record = this.estadosPagoRecords.find(e => e.name === estadoNormalizado);
+    return record?.label ?? estadoNormalizado;
+  }
+
   private ordenarCostos(lista: ObraCosto[]): ObraCosto[] {
     return [...lista].sort((a, b) => {
       const aAdd = (a.tipo_costo || 'ORIGINAL') === 'ADICIONAL';
