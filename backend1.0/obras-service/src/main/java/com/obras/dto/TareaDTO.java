@@ -10,6 +10,7 @@ public class TareaDTO {
     private Long id;
     private Long id_obra;
     private Long id_proveedor;
+    private Long numero_orden;
     private EstadoTareaEnum estado_tarea;
     private String nombre;
     private String descripcion;

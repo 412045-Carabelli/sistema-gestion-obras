@@ -23,7 +23,11 @@ public class TareaServiceImpl implements TareaService {
 
     @Override
     public TareaDTO crear(TareaDTO dto) {
+        if (dto.getNumero_orden() == null) {
+            dto.setNumero_orden(siguienteNumeroOrden(dto.getId_obra()));
+        }
         validarPorcentaje(dto.getPorcentaje(), dto.getId_obra(), null);
+        validarNumeroOrden(dto.getNumero_orden(), dto.getId_obra(), null);
         Tarea t = toEntity(dto);
         t.setActivo(true);
         t.setCreadoEn(Instant.now());
@@ -37,7 +41,11 @@ public class TareaServiceImpl implements TareaService {
                 .orElseThrow(() -> new EntityNotFoundException("Tarea no encontrada"));
         dto.setId(id);
         dto.setId_obra(existente.getIdObra());
+        if (dto.getNumero_orden() == null) {
+            dto.setNumero_orden(existente.getNumeroOrden());
+        }
         validarPorcentaje(dto.getPorcentaje(), existente.getIdObra(), id);
+        validarNumeroOrden(dto.getNumero_orden(), existente.getIdObra(), id);
 
         Tarea entity = toEntity(dto);
         entity.setCreadoEn(existente.getCreadoEn());
@@ -69,7 +77,7 @@ public class TareaServiceImpl implements TareaService {
     @Transactional(readOnly = true)
     @Override
     public List<TareaDTO> tareasDeObra(Long idObra) {
-        return tareaRepo.findByIdObraAndActivoTrueOrderByFechaInicioAscCreadoEnAsc(idObra)
+        return tareaRepo.findByIdObraAndActivoTrueOrderByNumeroOrdenAscFechaInicioAscCreadoEnAsc(idObra)
                 .stream()
                 .map(this::toDto)
                 .collect(Collectors.toList());
@@ -90,6 +98,7 @@ public class TareaServiceImpl implements TareaService {
         dto.setId(entity.getId());
         dto.setId_obra(entity.getIdObra());
         dto.setId_proveedor(entity.getIdProveedor());
+        dto.setNumero_orden(entity.getNumeroOrden());
         dto.setNombre(entity.getNombre());
         dto.setDescripcion(entity.getDescripcion());
         dto.setPorcentaje(entity.getPorcentaje());
@@ -111,6 +120,7 @@ public class TareaServiceImpl implements TareaService {
         entity.setId(dto.getId());
         entity.setIdObra(dto.getId_obra());
         entity.setIdProveedor(dto.getId_proveedor());
+        entity.setNumeroOrden(dto.getNumero_orden());
         entity.setNombre(dto.getNombre());
         entity.setDescripcion(dto.getDescripcion());
         entity.setPorcentaje(dto.getPorcentaje() != null ? dto.getPorcentaje() : 0d);
@@ -136,5 +146,27 @@ public class TareaServiceImpl implements TareaService {
         if (actual + valor > 100 + 1e-6) {
             throw new IllegalArgumentException("La suma de porcentajes de tareas no puede superar 100%");
         }
+    }
+
+    private void validarNumeroOrden(Long numeroOrden, Long idObra, Long excluirId) {
+        if (numeroOrden == null || idObra == null) return;
+        if (numeroOrden <= 0) {
+            throw new IllegalArgumentException("El numero de orden debe ser mayor a 0");
+        }
+        long repetidos = (excluirId == null)
+                ? tareaRepo.countByIdObraAndNumeroOrdenAndActivoTrue(idObra, numeroOrden)
+                : tareaRepo.countByIdObraAndNumeroOrdenAndIdNotAndActivoTrue(idObra, numeroOrden, excluirId);
+        if (repetidos > 0) {
+            throw new IllegalArgumentException("Ya existe una tarea con ese numero de orden en la obra");
+        }
+    }
+
+    private Long siguienteNumeroOrden(Long idObra) {
+        if (idObra == null) return 1L;
+        Long max = tareaRepo.maxNumeroOrdenByObra(idObra);
+        if (max == null || max < 1) {
+            return 1L;
+        }
+        return max + 1;
     }
 }

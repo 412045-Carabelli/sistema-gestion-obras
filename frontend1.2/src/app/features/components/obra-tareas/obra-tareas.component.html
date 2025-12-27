@@ -10,25 +10,28 @@
 
   <!-- Tabla de tareas -->
   <p-table
-    [value]="ordenarCronologicamente(tareas)"
+    [value]="tareas"
     sortMode="multiple"
+    [multiSortMeta]="sortTareasMeta"
     [paginator]="true"
     [rows]="8"
     responsiveLayout="scroll"
     [tableStyle]="{'min-width':'720px'}">
     <ng-template pTemplate="header">
       <tr>
-        <th pSortableColumn="nombre">Tarea <p-sortIcon field="nombre"></p-sortIcon></th>
+        <th pSortableColumn="numero_orden">Orden <p-sortIcon field="numero_orden"></p-sortIcon></th>
+        <th pSortableColumn="nombre" class="w-[260px]">Tarea <p-sortIcon field="nombre"></p-sortIcon></th>
         <th pSortableColumn="proveedor.nombre">Proveedor <p-sortIcon field="proveedor.nombre"></p-sortIcon></th>
         <th pSortableColumn="estado_tarea">Estado <p-sortIcon field="estado_tarea"></p-sortIcon></th>
         <th pSortableColumn="fecha_inicio">Fecha inicio <p-sortIcon field="fecha_inicio"></p-sortIcon></th>
-        <th pSortableColumn="porcentaje">Porcentaje <p-sortIcon field="porcentaje"></p-sortIcon></th>
+        <th pSortableColumn="porcentaje">% Avance <p-sortIcon field="porcentaje"></p-sortIcon></th>
         <th class="text-right">Acciones</th>
       </tr>
     </ng-template>
     <ng-template pTemplate="body" let-tarea>
       <tr [ngClass]="claseEstado(tarea)">
-        <td class="font-medium text-gray-900">{{ tarea.nombre }}</td>
+        <td class="font-semibold text-gray-700">{{ tarea.numero_orden ?? '—' }}</td>
+        <td class="font-medium text-gray-900 w-[260px]">{{ tarea.nombre }}</td>
         <td>{{ tarea.proveedor?.nombre || ('Proveedor #' + tarea.id_proveedor) }}</td>
         <td>
           <p-tag
@@ -51,7 +54,7 @@
     </ng-template>
     <ng-template pTemplate="emptymessage">
       <tr>
-        <td colspan="6" class="text-center text-gray-500 py-6">No hay tareas cargadas</td>
+        <td colspan="7" class="text-center text-gray-500 py-6">No hay tareas cargadas</td>
       </tr>
     </ng-template>
   </p-table>
@@ -92,39 +95,58 @@
         [disabled]="camposDeshabilitados">
       </p-select>
 
-      <label class="block text-sm font-medium">Estado</label>
-      <p-select
-        [(ngModel)]="nuevaTarea.estado_tarea"
-        [options]="estadoOptions"
-        optionLabel="label"
-        optionValue="value"
-        appendTo="body"
-        class="w-full"
-        placeholder="Seleccionar estado"
-        [disabled]="camposDeshabilitados">
-      </p-select>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+        <div>
+          <label class="block text-sm font-medium">Estado</label>
+          <p-select
+            [(ngModel)]="nuevaTarea.estado_tarea"
+            [options]="estadoOptions"
+            optionLabel="label"
+            optionValue="value"
+            appendTo="body"
+            class="w-full"
+            placeholder="Seleccionar estado"
+            [disabled]="camposDeshabilitados">
+          </p-select>
+        </div>
+        <div>
+          <label class="block text-sm font-medium">Fecha</label>
+          <input
+            [(ngModel)]="nuevaTarea.fecha_inicio"
+            class="w-full"
+            type="date"
+            pInputText
+            [disabled]="camposDeshabilitados" />
+        </div>
+      </div>
 
-      <label class="block text-sm font-medium">Fecha</label>
-      <input
-        [(ngModel)]="nuevaTarea.fecha_inicio"
-        class="w-full"
-        type="date"
-        pInputText
-        [disabled]="camposDeshabilitados" />
-
-      <label class="block text-sm font-medium">Porcentaje de avance</label>
-      <input
-        [(ngModel)]="nuevaTarea.porcentaje"
-        class="w-full"
-        type="number"
-        min="0"
-        max="100"
-        pInputText
-        placeholder="0 - 100"
-        [disabled]="camposDeshabilitados" />
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+        <div>
+          <label class="block text-sm font-medium">Nro de orden</label>
+          <p-inputNumber
+            [(ngModel)]="nuevaTarea.numero_orden"
+            class="w-full"
+            mode="decimal"
+            [useGrouping]="false"
+            [disabled]="camposDeshabilitados">
+          </p-inputNumber>
+        </div>
+        <div>
+          <label class="block text-sm font-medium">Porcentaje de avance</label>
+          <input
+            [(ngModel)]="nuevaTarea.porcentaje"
+            class="w-full"
+            type="number"
+            min="0"
+            max="100"
+            pInputText
+            placeholder="0 - 100"
+            [disabled]="camposDeshabilitados" />
+        </div>
+      </div>
     </div>
 
-    <div class="flex justify-end gap-2 px-3 pb-3">
+    <div class="flex justify-end gap-2 p-3">
       <p-button label="Cerrar" icon="pi pi-times" (onClick)="cerrarModal()" severity="secondary"></p-button>
       @if (camposDeshabilitados) {
         <p-button label="Editar" icon="pi pi-pencil" (onClick)="habilitarEdicion()" severity="info"></p-button>
@@ -133,4 +155,3 @@
     </div>
   </app-modal>
 </div>
-

@@ -128,6 +128,7 @@ export interface Tarea {
   id_proveedor?: number;
   obraNombre: string;
   proveedor?: Proveedor;
+  numero_orden?: number;
   estado_tarea: string;
   nombre: string;
   descripcion?: string;
@@ -243,6 +244,7 @@ export interface FlujoCajaResponse {
     transaccionId: number;
     fecha: string;
     tipo: string;
+    tipo_movimiento?: string;
     monto: number;
     obraId: number;
     obraNombre: string;

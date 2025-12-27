@@ -3,10 +3,11 @@ import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { forkJoin } from 'rxjs';
 import { MessageService } from 'primeng/api';
+import { HttpErrorResponse } from '@angular/common/http';
 import { Toast } from 'primeng/toast';
 import { ProgressSpinnerModule } from 'primeng/progressspinner';
 import { Button } from 'primeng/button';
-import {FlujoCajaResponse, MovimientoDashboard, ResumenGeneralResponse, Tarea, Obra, Cliente, Proveedor, Transaccion, ObraCosto} from '../../../core/models/models';
+import {FlujoCajaResponse, MovimientoDashboard, ResumenGeneralResponse, Tarea, Obra, Cliente, Proveedor, Transaccion, ObraCosto, ReportFilter} from '../../../core/models/models';
 import {TareasService} from '../../../services/tareas/tareas.service';
 import {ReportesService} from '../../../services/reportes/reportes.service';
 import {TransaccionesService} from '../../../services/transacciones/transacciones.service';
@@ -57,10 +58,21 @@ export class DashboardComponent implements OnInit {
   flujoCaja!: FlujoCajaResponse;
   tareasRecientes: Tarea[] = [];
   movimientosRecientes: MovimientoDashboard[] = [];
+  obrasComparativo: Array<{ id: number; nombre: string; presupuesto: number; porcentaje: number }> = [];
+  flujoDineroSerie: Array<{ fecha: string; ingresos: number; egresos: number; saldo: number }> = [];
+  flujoDineroMax = 0;
   obras: Obra[] = [];
   filteredObras: Obra[] = [];
   proveedores: Proveedor[] = [];
   clientes: Cliente[] = [];
+  filtrosDashboard = {
+    obra: null as Obra | null,
+    cliente: null as Cliente | null,
+    proveedor: null as Proveedor | null,
+    rangoFechas: null as Date[] | null
+  };
+  filteredClientes: Cliente[] = [];
+  filteredProveedores: Proveedor[] = [];
   ivaOptions: { label: string; name: string }[] = [];
   tiposProveedor: CatalogoOption[] = [];
   gremiosProveedor: CatalogoOption[] = [];
@@ -106,6 +118,7 @@ export class DashboardComponent implements OnInit {
     nombre: '',
     descripcion: '',
     estado_tarea: 'PENDIENTE',
+    numero_orden: undefined,
     porcentaje: 0,
     fecha_inicio: new Date().toISOString()
   };
@@ -163,13 +176,13 @@ export class DashboardComponent implements OnInit {
     this.cargarDashboard();
   }
 
-  private cargarDashboard(): void {
+  private cargarDashboard(filtro?: ReportFilter): void {
     this.loadingGeneral = true;
 
     // Cargar datos principales en paralelo
     forkJoin({
       resumen: this.reportesService.getResumenGeneral(),
-      flujo: this.reportesService.getFlujoCaja(),
+      flujo: this.reportesService.getFlujoCaja(filtro),
       obras: this.obrasService.getObras(),
       proveedores: this.proveedoresService.getProveedores(),
       clientes: this.clientesService.getClientes()
@@ -182,6 +195,10 @@ export class DashboardComponent implements OnInit {
         this.proveedores = proveedores || [];
         this.clientes = clientes || [];
         this.facturaObrasFiltradas = [...this.obras];
+        this.filteredObras = [...this.obras];
+        this.filteredClientes = [...this.clientes];
+        this.filteredProveedores = [...this.proveedores];
+        this.obrasComparativo = this.construirComparativoObras(this.obras, filtro);
 
         // Cargar tareas de las últimas 3 obras
         const obrasRecientes = obras.slice(0, 3);
@@ -209,6 +226,7 @@ export class DashboardComponent implements OnInit {
         this.movimientosRecientes = (flujo.movimientos || [])
           .sort((a, b) => new Date(b.fecha).getTime() - new Date(a.fecha).getTime())
           .slice(0, 10);
+        this.flujoDineroSerie = this.construirSerieFlujo(flujo.movimientos || []);
 
         this.loadingGeneral = false;
       },
@@ -233,6 +251,40 @@ export class DashboardComponent implements OnInit {
     this.filteredObras = (this.obras || []).filter(o =>
       (o.nombre || '').toLowerCase().includes(query)
     );
+  }
+
+  filtrarClientes(event: any) {
+    const query = (event?.query || '').toLowerCase();
+    this.filteredClientes = (this.clientes || []).filter(c =>
+      (c.nombre || '').toLowerCase().includes(query)
+    );
+  }
+
+  filtrarProveedores(event: any) {
+    const query = (event?.query || '').toLowerCase();
+    this.filteredProveedores = (this.proveedores || []).filter(p =>
+      (p.nombre || '').toLowerCase().includes(query)
+    );
+  }
+
+  aplicarFiltrosDashboard() {
+    const filtro = this.construirFiltroDashboard();
+    this.cargarDashboard(filtro);
+    this.obrasComparativo = this.construirComparativoObras(this.obras, filtro);
+  }
+
+  limpiarFiltrosDashboard() {
+    this.filtrosDashboard = {
+      obra: null,
+      cliente: null,
+      proveedor: null,
+      rangoFechas: null
+    };
+    this.filteredObras = [...this.obras];
+    this.filteredClientes = [...this.clientes];
+    this.filteredProveedores = [...this.proveedores];
+    this.cargarDashboard();
+    this.obrasComparativo = this.construirComparativoObras(this.obras);
   }
 
   abrirMovimientoModal() {
@@ -491,6 +543,7 @@ export class DashboardComponent implements OnInit {
       id_obra: this.tareaObra.id,
       id_proveedor: this.tareaProveedor.id,
       estado_tarea: 'PENDIENTE',
+      numero_orden: this.tareaForm.numero_orden ?? undefined,
       nombre: this.tareaForm.nombre,
       descripcion: this.tareaForm.descripcion ?? '',
       porcentaje: this.tareaForm.porcentaje ?? 0,
@@ -506,11 +559,11 @@ export class DashboardComponent implements OnInit {
           detail: 'Se creo la tarea correctamente.'
         });
       },
-      error: () => {
+      error: (err) => {
         this.messageService.add({
           severity: 'error',
           summary: 'Error',
-          detail: 'No se pudo crear la tarea.'
+          detail: this.obtenerMensajeError(err, 'No se pudo crear la tarea.')
         });
       }
     });
@@ -630,20 +683,48 @@ export class DashboardComponent implements OnInit {
     }
   }
 
+  get totalCobrosDashboard(): number {
+    return this.calcularTotalMovimientos(['INGRESO', 'COBRO']);
+  }
+
+  get totalPagosDashboard(): number {
+    return this.calcularTotalMovimientos(['EGRESO', 'PAGO']);
+  }
+
   get totalPresupuestoObras(): number {
     return (this.obras || []).reduce((acc, o) => acc + Number(o.presupuesto || 0), 0);
   }
 
-  get totalCobrosDashboard(): number {
-    return Number(this.flujoCaja?.totalIngresos ?? 0);
+  get totalPresupuestoFiltradoDashboard(): number {
+    const obraSeleccionada = this.filtrosDashboard?.obra;
+    if (obraSeleccionada?.id) {
+      return Number(obraSeleccionada.presupuesto || 0);
+    }
+    return this.totalPresupuestoObras;
   }
 
-  get totalPagosDashboard(): number {
-    return Number(this.flujoCaja?.totalEgresos ?? 0);
+  get totalCostosObras(): number {
+    return (this.obras || []).reduce((acc, obra) => {
+      const costos = obra.costos || [];
+      const totalObra = costos.reduce((sum, costo) => sum + Number(costo.total ?? costo.subtotal ?? 0), 0);
+      return acc + totalObra;
+    }, 0);
   }
 
-  get saldoPorCobrarDashboard(): number {
+  get porCobrarPendienteDashboard(): number {
     return Math.max(0, this.totalPresupuestoObras - this.totalCobrosDashboard);
+  }
+
+  get porPagarPendienteDashboard(): number {
+    return Math.max(0, this.totalCostosObras - this.totalPagosDashboard);
+  }
+
+  get saldoPendienteDashboard(): number {
+    return this.porCobrarPendienteDashboard - this.porPagarPendienteDashboard;
+  }
+
+  get saldoFlujoDashboard(): number {
+    return this.totalCobrosDashboard - this.totalPagosDashboard;
   }
 
   private calcularConteosObras(obras: { obra_estado: string }[]): typeof this.conteoObras {
@@ -676,6 +757,85 @@ export class DashboardComponent implements OnInit {
       if (id) ids.add(id);
     });
     return this.proveedores.filter(p => ids.has(Number(p.id)));
+  }
+
+  private construirComparativoObras(obras: Obra[], filtro?: ReportFilter): Array<{ id: number; nombre: string; presupuesto: number; porcentaje: number }> {
+    let filtradas = obras || [];
+
+    if (filtro?.obraId) {
+      filtradas = filtradas.filter(obra => Number(obra.id) === Number(filtro.obraId));
+    }
+
+    if (filtro?.clienteId) {
+      filtradas = filtradas.filter(obra => Number(obra.cliente?.id) === Number(filtro.clienteId));
+    }
+
+    const ordenadas = filtradas
+      .map((obra, index) => ({
+        id: Number(obra.id ?? index),
+        nombre: obra.nombre || 'Obra sin nombre',
+        presupuesto: Number(obra.presupuesto ?? 0)
+      }))
+      .sort((a, b) => b.presupuesto - a.presupuesto)
+      .slice(0, 5);
+
+    const max = ordenadas.reduce((acc, obra) => Math.max(acc, obra.presupuesto), 0);
+
+    return ordenadas.map(obra => ({
+      ...obra,
+      porcentaje: max > 0 ? Math.round((obra.presupuesto / max) * 100) : 0
+    }));
+  }
+
+  private calcularTotalMovimientos(tipos: string[]): number {
+    const buscados = new Set(tipos.map(t => t.toUpperCase()));
+    return (this.flujoCaja?.movimientos || []).reduce((acc, mov) => {
+      const tipo = (mov.tipo_movimiento || mov.tipo || '').toString().toUpperCase();
+      if (buscados.has(tipo)) {
+        return acc + Number(mov.monto ?? 0);
+      }
+      return acc;
+    }, 0);
+  }
+
+  private construirSerieFlujo(movimientos: MovimientoDashboard[]): Array<{ fecha: string; ingresos: number; egresos: number; saldo: number }> {
+    const agrupados = new Map<string, { ingresos: number; egresos: number }>();
+    (movimientos || []).forEach(mov => {
+      const fecha = (mov.fecha || '').toString().split('T')[0] || 'Sin fecha';
+      const actual = agrupados.get(fecha) ?? { ingresos: 0, egresos: 0 };
+      const tipo = (mov.tipo_movimiento || mov.tipo || '').toString().toUpperCase();
+      if (tipo === 'INGRESO' || tipo === 'COBRO') {
+        actual.ingresos += Number(mov.monto ?? 0);
+      } else if (tipo === 'EGRESO' || tipo === 'PAGO') {
+        actual.egresos += Number(mov.monto ?? 0);
+      }
+      agrupados.set(fecha, actual);
+    });
+
+    const ordenadas = Array.from(agrupados.entries())
+      .map(([fecha, data]) => ({ fecha, ingresos: data.ingresos, egresos: data.egresos }))
+      .sort((a, b) => new Date(a.fecha).getTime() - new Date(b.fecha).getTime());
+
+    this.flujoDineroMax = ordenadas.reduce((acc, item) => Math.max(acc, item.ingresos, item.egresos), 0);
+
+    let saldo = 0;
+    return ordenadas.map(item => {
+      saldo += item.ingresos - item.egresos;
+      return { ...item, saldo };
+    });
+  }
+
+  private construirFiltroDashboard(): ReportFilter {
+    const { obra, cliente, proveedor, rangoFechas } = this.filtrosDashboard;
+    const filtro: ReportFilter = {};
+
+    if (obra?.id) filtro.obraId = obra.id;
+    if (cliente?.id) filtro.clienteId = cliente.id;
+    if (proveedor?.id) filtro.proveedorId = proveedor.id;
+    if (rangoFechas?.[0]) filtro.fechaInicio = this.formatDate(rangoFechas[0]);
+    if (rangoFechas?.[1]) filtro.fechaFin = this.formatDate(rangoFechas[1]);
+
+    return filtro;
   }
 
   private aplicarFormaPagoDesdeCosto(costo: ObraCosto) {
@@ -742,6 +902,7 @@ export class DashboardComponent implements OnInit {
       nombre: '',
       descripcion: '',
       estado_tarea: 'PENDIENTE',
+      numero_orden: undefined,
       porcentaje: 0,
       fecha_inicio: new Date().toISOString()
     };
@@ -828,5 +989,15 @@ export class DashboardComponent implements OnInit {
     }
 
     return true;
+  }
+
+  private obtenerMensajeError(err: unknown, fallback: string): string {
+    if (err instanceof HttpErrorResponse) {
+      const body = err.error as any;
+      if (typeof body === 'string') return body;
+      if (body?.message) return body.message;
+      if (body?.error) return body.error;
+    }
+    return fallback;
   }
 }

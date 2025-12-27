@@ -9,6 +9,7 @@ export interface TareaPayload {
   id_obra: number;
   id_proveedor: number;
   proveedor?: Proveedor;
+  numero_orden?: number;
   estado_tarea: string;
   nombre: string;
   descripcion?: string;

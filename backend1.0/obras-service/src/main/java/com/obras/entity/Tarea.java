@@ -24,6 +24,9 @@ public class Tarea {
     @Column(nullable=false, name = "id_obra") private Long idObra;
     @Column(nullable=false, name = "id_proveedor") private Long idProveedor;
 
+    @Column(name = "numero_orden")
+    private Long numeroOrden;
+
     @Enumerated(EnumType.STRING)
     @Column(name = "estado_tarea", nullable = false)
     private EstadoTareaEnum estadoTarea;

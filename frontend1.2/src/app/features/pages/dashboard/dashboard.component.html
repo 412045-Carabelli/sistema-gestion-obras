@@ -21,6 +21,85 @@
     </div>
   } @else {
 
+    <div class="bg-white rounded-xl shadow-md p-6">
+      <div class="flex items-center justify-between mb-5 pb-3 border-b border-gray-200">
+        <h2 class="text-lg font-semibold text-gray-900 flex items-center gap-2">
+          <i class="pi pi-filter text-indigo-600"></i>
+          Filtros del dashboard
+        </h2>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-5 gap-4">
+        <div>
+          <label class="block text-sm font-medium mb-1 text-gray-700">Obra</label>
+          <p-autoComplete
+            [(ngModel)]="filtrosDashboard.obra"
+            [suggestions]="filteredObras"
+            (completeMethod)="filtrarObras($event)"
+            field="nombre"
+            [dropdown]="true"
+            placeholder="Buscar obra"
+            styleClass="w-full"
+          ></p-autoComplete>
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium mb-1 text-gray-700">Cliente</label>
+          <p-autoComplete
+            [(ngModel)]="filtrosDashboard.cliente"
+            [suggestions]="filteredClientes"
+            (completeMethod)="filtrarClientes($event)"
+            field="nombre"
+            [dropdown]="true"
+            placeholder="Buscar cliente"
+            styleClass="w-full"
+          ></p-autoComplete>
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium mb-1 text-gray-700">Proveedor</label>
+          <p-autoComplete
+            [(ngModel)]="filtrosDashboard.proveedor"
+            [suggestions]="filteredProveedores"
+            (completeMethod)="filtrarProveedores($event)"
+            field="nombre"
+            [dropdown]="true"
+            placeholder="Buscar proveedor"
+            styleClass="w-full"
+          ></p-autoComplete>
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium mb-1 text-gray-700">Rango de fechas</label>
+          <p-datePicker
+            fluid
+            [(ngModel)]="filtrosDashboard.rangoFechas"
+            selectionMode="range"
+            appendTo="body"
+            class="w-full"
+            dateFormat="dd/mm/yy"
+            placeholder="Seleccionar rango"
+          ></p-datePicker>
+        </div>
+        <div class="flex flex-wrap gap-3 mt-4 justify-end">
+          <button
+            class="w-auto cursor-pointeren que  px-4 py-2 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50"
+            type="button"
+            (click)="limpiarFiltrosDashboard()"
+          >
+            Limpiar
+          </button>
+          <button
+            class="w-auto cursor-pointer px-4 py-2 rounded-lg bg-indigo-600 text-white hover:bg-indigo-700"
+            type="button"
+            (click)="aplicarFiltrosDashboard()"
+          >
+            Aplicar filtros
+          </button>
+        </div>
+      </div>
+      </div>
+
     <!-- ===================== ATAJOS R�PIDOS ===================== -->
     <div class="bg-white rounded-xl shadow-md p-6">
       <h2 class="text-lg font-semibold text-gray-900 mb-5 flex items-center gap-2 pb-3 border-b border-gray-200">
@@ -77,30 +156,28 @@
     <!-- ===================== KPIs DE OBRAS ===================== -->
     @defer (when resumenGeneral) {
       <div class="grid gap-6 md:grid-cols-5">
-        <div class="flex flex-col justify-between bg-white rounded-xl shadow-md p-6 border-l-4 border-blue-500 hover:shadow-lg transition-shadow cursor-pointer md:col-span-1" (click)="navigateToObrasEstado()">
-          <div class="flex items-center gap-3 mb-3">
-            <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
-              <i class="pi pi-building text-blue-600 text-xl"></i>
-            </div>
-            <span class="text-sm font-medium text-gray-500">Obras Totales</span>
+        <div class="bg-white rounded-xl shadow-md p-6 border-l-4 border-indigo-500 md:col-span-5">
+          <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3 mb-5 pb-3 border-b border-gray-200">
+            <h2 class="text-lg font-semibold text-gray-900 flex items-center gap-2">
+              <i class="pi pi-wallet text-indigo-600"></i>
+              Cuenta corriente
+            </h2>
+            <p-select
+              [(ngModel)]="filtrosDashboard.obra"
+              [options]="obras"
+              optionLabel="nombre"
+              placeholder="Todas las obras"
+              [showClear]="true"
+              styleClass="w-full md:w-64 text-sm"
+              (onChange)="aplicarFiltrosDashboard()"
+            ></p-select>
           </div>
-          <div class="flex flex-col gap-2">
-            <div class="text-3xl font-bold text-gray-900">{{ conteoObras.total }}</div>
-            <div class="text-sm text-gray-500 mt-1">Registradas en el sistema</div>
-          </div>
-        </div>
 
-        <div class="bg-white rounded-xl shadow-md p-6 border-l-4 border-indigo-500 md:col-span-4">
-          <h2 class="text-lg font-semibold text-gray-900 mb-5 flex items-center gap-2 pb-3 border-b border-gray-200">
-            <i class="pi pi-wallet text-indigo-600"></i>
-            Cuenta corriente
-          </h2>
-
-          <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
             <div class="bg-green-50 rounded-lg p-4 border border-green-200">
               <div class="flex items-center gap-2 mb-2">
                 <i class="pi pi-arrow-up text-green-600"></i>
-                <span class="text-sm font-medium text-gray-600">Cobros</span>
+                <span class="text-sm font-medium text-gray-600">Cobrado</span>
               </div>
               <div class="text-2xl font-bold text-green-600">
                 {{ totalCobrosDashboard | currency:'ARS':'symbol-narrow':'1.0-0' }}
@@ -110,7 +187,7 @@
             <div class="bg-red-50 rounded-lg p-4 border border-red-200">
               <div class="flex items-center gap-2 mb-2">
                 <i class="pi pi-arrow-down text-red-600"></i>
-                <span class="text-sm font-medium text-gray-600">Pagos</span>
+                <span class="text-sm font-medium text-gray-600">Pagado</span>
               </div>
               <div class="text-2xl font-bold text-red-600">
                 {{ totalPagosDashboard | currency:'ARS':'symbol-narrow':'1.0-0' }}
@@ -120,10 +197,20 @@
             <div class="bg-indigo-50 rounded-lg p-4 border border-indigo-200">
               <div class="flex items-center gap-2 mb-2">
                 <i class="pi pi-wallet text-indigo-600"></i>
-                <span class="text-sm font-medium text-gray-600">Por cobrar</span>
+                <span class="text-sm font-medium text-gray-600">Saldo</span>
               </div>
-              <div class="text-2xl font-bold text-indigo-600">
-                {{ saldoPorCobrarDashboard | currency:'ARS':'symbol-narrow':'1.0-0' }}
+              <div class="text-2xl font-bold" [ngClass]="saldoFlujoDashboard >= 0 ? 'text-indigo-600' : 'text-red-600'">
+                {{ saldoFlujoDashboard | currency:'ARS':'symbol-narrow':'1.0-0' }}
+              </div>
+            </div>
+
+            <div class="bg-amber-50 rounded-lg p-4 border border-amber-200">
+              <div class="flex items-center gap-2 mb-2">
+                <i class="pi pi-chart-line text-amber-600"></i>
+                <span class="text-sm font-medium text-gray-600">Presupuestos</span>
+              </div>
+              <div class="text-2xl font-bold text-amber-700">
+                {{ totalPresupuestoFiltradoDashboard | currency:'ARS':'symbol-narrow':'1.0-0' }}
               </div>
             </div>
           </div>
@@ -131,15 +218,7 @@
       </div>
     } @placeholder {
       <div class="grid gap-6 md:grid-cols-5">
-        <div class="bg-white rounded-xl shadow-md p-6 animate-pulse">
-          <div class="flex items-center gap-3 mb-3">
-            <div class="w-12 h-12 bg-gray-200 rounded-lg"></div>
-            <div class="h-4 bg-gray-200 rounded w-20"></div>
-          </div>
-          <div class="h-8 bg-gray-200 rounded w-16 mb-2"></div>
-          <div class="h-3 bg-gray-200 rounded w-24"></div>
-        </div>
-        <div class="bg-white rounded-xl shadow-md p-6 animate-pulse">
+        <div class="bg-white rounded-xl shadow-md p-6 animate-pulse md:col-span-5">
           <div class="h-6 bg-gray-200 rounded w-1/3 mb-5"></div>
           <div class="grid grid-cols-3 gap-4">
             <div class="h-24 bg-gray-100 rounded-lg"></div>
@@ -149,6 +228,109 @@
         </div>
       </div>
     }
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div class="bg-white rounded-xl shadow-md p-6">
+        <div class="flex items-center justify-between mb-5 pb-3 border-b border-gray-200">
+          <h2 class="text-lg font-semibold text-gray-900 flex items-center gap-2">
+            <i class="pi pi-chart-bar text-indigo-600"></i>
+            Comparativo de obras
+          </h2>
+          <span class="text-xs text-gray-500">Top 5 por presupuesto</span>
+        </div>
+
+        @if (obrasComparativo.length > 0) {
+          <div class="space-y-4">
+            @for (obra of obrasComparativo; track obra.id) {
+              <div class="flex items-center gap-3">
+                <div class="w-36 text-xs text-gray-600 truncate">{{ obra.nombre }}</div>
+                <div class="flex-1">
+                  <div class="h-3 bg-gray-100 rounded-full overflow-hidden">
+                    <div
+                      class="h-3 bg-gradient-to-r from-indigo-500 to-blue-500 rounded-full"
+                      [style.width.%]="obra.porcentaje"
+                    ></div>
+                  </div>
+                </div>
+                <div class="text-xs font-semibold text-gray-700 w-28 text-right">
+                  {{ obra.presupuesto | currency:'ARS':'symbol-narrow':'1.0-0' }}
+                </div>
+              </div>
+            }
+          </div>
+        } @else {
+          <div class="text-center py-8 text-gray-400">
+            <i class="pi pi-inbox text-4xl mb-2"></i>
+            <p class="text-sm">No hay obras para comparar</p>
+          </div>
+        }
+      </div>
+
+      <div class="bg-white rounded-xl shadow-md p-6">
+        <div class="flex items-center justify-between mb-5 pb-3 border-b border-gray-200">
+          <h2 class="text-lg font-semibold text-gray-900 flex items-center gap-2">
+            <i class="pi pi-chart-line text-indigo-600"></i>
+            Flujo de dinero
+          </h2>
+          <span class="text-xs text-gray-500">Ingresos vs egresos</span>
+        </div>
+
+        <div class="grid grid-cols-3 gap-3 mb-5">
+          <div class="text-xs text-gray-500">
+            Ingresos
+            <div class="text-sm font-semibold text-green-600">
+              {{ totalCobrosDashboard | currency:'ARS':'symbol-narrow':'1.0-0' }}
+            </div>
+          </div>
+          <div class="text-xs text-gray-500">
+            Egresos
+            <div class="text-sm font-semibold text-red-600">
+              {{ totalPagosDashboard | currency:'ARS':'symbol-narrow':'1.0-0' }}
+            </div>
+          </div>
+          <div class="text-xs text-gray-500">
+            Saldo
+            <div class="text-sm font-semibold" [ngClass]="saldoFlujoDashboard >= 0 ? 'text-indigo-600' : 'text-red-600'">
+              {{ saldoFlujoDashboard | currency:'ARS':'symbol-narrow':'1.0-0' }}
+            </div>
+          </div>
+        </div>
+
+        @if (flujoDineroSerie.length > 0) {
+          <div class="flex items-end gap-3 h-40 overflow-x-auto">
+            @for (item of flujoDineroSerie; track item.fecha) {
+              <div class="flex flex-col items-center min-w-[44px]">
+                <div class="flex items-end gap-1 h-28">
+                  <div
+                    class="w-2 bg-green-500 rounded-t"
+                    [style.height.%]="flujoDineroMax ? (item.ingresos / flujoDineroMax) * 100 : 0"
+                  ></div>
+                  <div
+                    class="w-2 bg-red-500 rounded-t"
+                    [style.height.%]="flujoDineroMax ? (item.egresos / flujoDineroMax) * 100 : 0"
+                  ></div>
+                </div>
+                <span class="text-[10px] text-gray-500 mt-2">{{ item.fecha | date:'dd/MM' }}</span>
+              </div>
+            }
+          </div>
+          <div class="flex items-center gap-4 mt-4 text-xs text-gray-500">
+            <div class="flex items-center gap-2">
+              <span class="w-3 h-3 bg-green-500 rounded-sm"></span>
+              Ingresos
+            </div>
+            <div class="flex items-center gap-2">
+              <span class="w-3 h-3 bg-red-500 rounded-sm"></span>
+              Egresos
+            </div>
+          </div>
+        } @else {
+          <div class="text-center py-8 text-gray-400">
+            <i class="pi pi-inbox text-4xl mb-2"></i>
+            <p class="text-sm">No hay movimientos para graficar</p>
+          </div>
+        }
+      </div>
+    </div>
 <!-- ===================== TAREAS Y MOVIMIENTOS RECIENTES ===================== -->
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
 
@@ -441,6 +623,14 @@
     <label class="block text-sm font-medium mb-1 text-gray-700">Nombre</label>
     <input pInputText type="text" [(ngModel)]="tareaForm.nombre" class="w-full" />
 
+    <label class="block text-sm font-medium mb-1 text-gray-700">Nro de orden</label>
+    <p-inputNumber
+      [(ngModel)]="tareaForm.numero_orden"
+      class="w-full"
+      mode="decimal"
+      [useGrouping]="false"
+    ></p-inputNumber>
+
     <label class="block text-sm font-medium mb-1 text-gray-700">Descripcion</label>
     <textarea class="w-full border rounded p-2 text-sm" [(ngModel)]="tareaForm.descripcion" rows="3"></textarea>
 
@@ -607,10 +797,3 @@
     }
   </div>
 </app-modal>
-
-
-
-
-
-
-

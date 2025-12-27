@@ -5,11 +5,13 @@ import {ButtonModule} from 'primeng/button';
 import {DropdownModule} from 'primeng/dropdown';
 import {ToastModule} from 'primeng/toast';
 import {MessageService} from 'primeng/api';
+import {HttpErrorResponse} from '@angular/common/http';
 import {InputText} from 'primeng/inputtext';
 import {Select} from 'primeng/select';
 import {TagModule} from 'primeng/tag';
 import {TableModule} from 'primeng/table';
 import {Tooltip} from 'primeng/tooltip';
+import {InputNumber} from 'primeng/inputnumber';
 
 import {EstadoFormatPipe} from '../../../shared/pipes/estado-format.pipe';
 import {EstadoTarea, Proveedor, Tarea} from '../../../core/models/models';
@@ -32,6 +34,7 @@ import {TareaPayload, TareasService} from '../../../services/tareas/tareas.servi
     TagModule,
     TableModule,
     Tooltip,
+    InputNumber,
     EstadoFormatPipe
   ],
   providers: [MessageService],
@@ -54,6 +57,11 @@ export class ObraTareasComponent {
   editandoTarea: Tarea | null = null;
   nuevaTarea: Partial<Tarea> = {};
   camposDeshabilitados = false;
+  sortTareasMeta = [
+    {field: 'numero_orden', order: 1},
+    {field: 'proveedor.nombre', order: 1},
+    {field: 'porcentaje', order: -1}
+  ];
 
   constructor(
     private tareasService: TareasService,
@@ -64,6 +72,7 @@ export class ObraTareasComponent {
     this.nuevaTarea = {
       proveedor: this.proveedores[0] ?? null,
       id_proveedor: this.proveedores[0]?.id,
+      numero_orden: undefined,
       estado_tarea: 'PENDIENTE',
       porcentaje: 0,
       fecha_inicio: new Date().toISOString().slice(0, 10)
@@ -113,6 +122,7 @@ export class ObraTareasComponent {
       id: this.editandoTarea?.id,
       id_obra: this.obraId,
       id_proveedor: Number(this.nuevaTarea.id_proveedor),
+      numero_orden: this.nuevaTarea.numero_orden ?? undefined,
       estado_tarea: this.nuevaTarea.estado_tarea || 'PENDIENTE',
       nombre: this.nuevaTarea.nombre!,
       descripcion: this.nuevaTarea.descripcion,
@@ -139,15 +149,14 @@ export class ObraTareasComponent {
           ];
         }
 
-        this.tareas = this.ordenarCronologicamente(this.tareas);
         this.tareasActualizadas.emit(this.tareas);
         this.showAddTaskModal = false;
       },
-      error: () => {
+      error: (err) => {
         this.messageService.add({
           severity: 'error',
           summary: 'Error',
-          detail: 'No se pudo guardar la tarea'
+          detail: this.obtenerMensajeError(err, 'No se pudo guardar la tarea')
         });
       }
     });
@@ -161,11 +170,11 @@ export class ObraTareasComponent {
         );
         this.tareasActualizadas.emit(this.tareas);
       },
-      error: () => {
+      error: (err) => {
         this.messageService.add({
           severity: 'error',
           summary: 'Error',
-          detail: 'No se pudo actualizar la tarea'
+          detail: this.obtenerMensajeError(err, 'No se pudo actualizar la tarea')
         });
       }
     });
@@ -182,11 +191,11 @@ export class ObraTareasComponent {
           detail: 'La tarea fue eliminada correctamente'
         });
       },
-      error: () => {
+      error: (err) => {
         this.messageService.add({
           severity: 'error',
           summary: 'Error',
-          detail: 'No se pudo eliminar la tarea'
+          detail: this.obtenerMensajeError(err, 'No se pudo eliminar la tarea')
         });
       }
     });
@@ -213,6 +222,7 @@ export class ObraTareasComponent {
       estado_tarea: tarea.estado_tarea,
       proveedor: prov,
       id_proveedor: prov?.id ?? tarea.id_proveedor,
+      numero_orden: tarea.numero_orden ?? undefined,
       porcentaje: tarea.porcentaje ?? 0,
       fecha_inicio: tarea.fecha_inicio ? tarea.fecha_inicio.slice(0, 10) : new Date().toISOString().slice(0, 10)
     };
@@ -230,6 +240,7 @@ export class ObraTareasComponent {
       estado_tarea: tarea.estado_tarea,
       proveedor: prov,
       id_proveedor: prov?.id ?? tarea.id_proveedor,
+      numero_orden: tarea.numero_orden ?? undefined,
       porcentaje: tarea.porcentaje ?? 0,
       fecha_inicio: tarea.fecha_inicio ? tarea.fecha_inicio.slice(0, 10) : undefined
     };
@@ -242,6 +253,7 @@ export class ObraTareasComponent {
       id: tarea.id,
       id_obra: this.obraId,
       id_proveedor: tarea.id_proveedor || tarea.proveedor?.id!,
+      numero_orden: tarea.numero_orden ?? undefined,
       estado_tarea: 'EN_PROGRESO',
       nombre: tarea.nombre,
       descripcion: tarea.descripcion,
@@ -250,27 +262,16 @@ export class ObraTareasComponent {
     };
     this.tareasService.updateTarea(tarea.id!, payload).subscribe({
       next: updated => {
-        this.tareas = this.ordenarCronologicamente(
-          this.tareas.map(t => (t.id === tarea.id ? {...t, ...updated, proveedor: t.proveedor} : t))
-        );
+        this.tareas = this.tareas.map(t => (t.id === tarea.id ? {...t, ...updated, proveedor: t.proveedor} : t));
         this.tareasActualizadas.emit(this.tareas);
       },
-      error: () => {
+      error: (err) => {
         this.messageService.add({
           severity: 'error',
           summary: 'Error',
-          detail: 'No se pudo marcar la tarea en progreso'
+          detail: this.obtenerMensajeError(err, 'No se pudo marcar la tarea en progreso')
         });
       }
-    });
-  }
-
-  ordenarCronologicamente(lista: Tarea[]): Tarea[] {
-    return [...lista].sort((a, b) => {
-      const fa = a.fecha_inicio ? new Date(a.fecha_inicio).getTime() : 0;
-      const fb = b.fecha_inicio ? new Date(b.fecha_inicio).getTime() : 0;
-      if (fa === fb) return (a.creado_en ? new Date(a.creado_en).getTime() : 0) - (b.creado_en ? new Date(b.creado_en).getTime() : 0);
-      return fa - fb;
     });
   }
 
@@ -298,5 +299,15 @@ export class ObraTareasComponent {
     // si ya viene con hora, se deja
     if (fecha.includes('T')) return fecha;
     return `${fecha}T00:00:00`;
+  }
+
+  private obtenerMensajeError(err: unknown, fallback: string): string {
+    if (err instanceof HttpErrorResponse) {
+      const body = err.error as any;
+      if (typeof body === 'string') return body;
+      if (body?.message) return body.message;
+      if (body?.error) return body.error;
+    }
+    return fallback;
   }
 }
