@@ -11,10 +11,14 @@ import {TooltipModule} from 'primeng/tooltip';
 import {DropdownModule} from 'primeng/dropdown';
 import {FormsModule} from '@angular/forms';
 import {Select} from 'primeng/select';
+import {InputNumber} from 'primeng/inputnumber';
+import {DatePicker} from 'primeng/datepicker';
+import {FileUploadModule} from 'primeng/fileupload';
+import {TableModule} from 'primeng/table';
 import {MessageService} from 'primeng/api';
 import {ToastModule} from 'primeng/toast';
 
-import {Cliente, EstadoObra, Obra, ObraCosto, Proveedor, Tarea, CuentaCorrienteMovimiento} from '../../../core/models/models';
+import {Cliente, EstadoObra, Obra, ObraCosto, Proveedor, Tarea, CuentaCorrienteMovimiento, Factura} from '../../../core/models/models';
 import {ObraMovimientosComponent} from '../../components/obra-movimientos/obra-movimientos.component';
 import {ObraTareasComponent} from '../../components/obra-tareas/obra-tareas.component';
 
@@ -30,6 +34,8 @@ import {StyleClassModule} from 'primeng/styleclass';
 import {ObraPresupuestoComponent} from '../../components/obra-presupuesto/obra-presupuesto.component';
 import {ReportesService} from '../../../services/reportes/reportes.service';
 import {CuentaCorrienteObraResponse, ReportFilter} from '../../../core/models/models';
+import {FacturasService} from '../../../services/facturas/facturas.service';
+import {ModalComponent} from '../../../shared/modal/modal.component';
 
 @Component({
   selector: 'app-obra-detail',
@@ -49,6 +55,10 @@ import {CuentaCorrienteObraResponse, ReportFilter} from '../../../core/models/mo
     DatePipe,
     Select,
     FormsModule,
+    InputNumber,
+    DatePicker,
+    FileUploadModule,
+    TableModule,
     ToastModule,
     ObraDocumentosComponent,
     Tabs,
@@ -58,6 +68,7 @@ import {CuentaCorrienteObraResponse, ReportFilter} from '../../../core/models/mo
     TabPanel,
     StyleClassModule,
     NgClass,
+    ModalComponent,
   ],
   providers: [MessageService],
   templateUrl: './obras-detail.component.html',
@@ -73,6 +84,14 @@ export class ObrasDetailComponent implements OnInit, OnDestroy {
   proveedores!: Proveedor[];
   clientes!: Cliente[];
   cuentaCorrienteObra: CuentaCorrienteObraResponse | null = null;
+  facturasObra: Factura[] = [];
+  facturasFiltradas: Factura[] = [];
+  showFacturaModal = false;
+  facturaForm = {
+    fecha: new Date(),
+    monto: null as number | null
+  };
+  facturaFile: File | null = null;
   progresoFisico = 0;
   estadosObra: EstadoObra[] = [];
   estadoSeleccionado: string | null = null;
@@ -93,7 +112,8 @@ export class ObrasDetailComponent implements OnInit, OnDestroy {
     private estadoObraService: EstadoObraService,
     private messageService: MessageService,
     private obraStateService: ObrasStateService,
-    private reportesService: ReportesService
+    private reportesService: ReportesService,
+    private facturasService: FacturasService
   ) {}
 
   ngOnInit(): void {
@@ -171,6 +191,7 @@ export class ObrasDetailComponent implements OnInit, OnDestroy {
           : this.calcularBeneficioNeto();
         this.cronogramaFueraDeRango = this.esCronogramaInvalido();
         this.cargarCuentaCorriente(this.obra.id!);
+        this.cargarFacturasObra();
         this.loading = false;
         this.obraStateService.setObra(this.obra);
       },
@@ -262,6 +283,78 @@ export class ObrasDetailComponent implements OnInit, OnDestroy {
     });
   }
 
+  private cargarFacturasObra() {
+    if (!this.obra?.id) return;
+    this.facturasService.getFacturasByObra(this.obra.id).subscribe({
+      next: (facturas) => {
+        this.facturasObra = facturas || [];
+        this.facturasFiltradas = [...this.facturasObra];
+      },
+      error: () => {
+        this.facturasObra = [];
+        this.facturasFiltradas = [];
+      }
+    });
+  }
+
+  abrirFacturaModal() {
+    this.resetFacturaForm();
+    this.showFacturaModal = true;
+  }
+
+  cerrarFacturaModal() {
+    this.showFacturaModal = false;
+  }
+
+  guardarFacturaObra() {
+    if (!this.obra?.id || !this.obra?.cliente?.id) return;
+    const monto = Number(this.facturaForm.monto ?? 0);
+    if (!monto || monto <= 0) {
+      this.messageService.add({
+        severity: 'warn',
+        summary: 'Monto invalido',
+        detail: 'Ingresa un monto mayor a 0.'
+      });
+      return;
+    }
+
+    const payload = {
+      id_cliente: Number(this.obra.cliente.id),
+      id_obra: Number(this.obra.id),
+      monto,
+      fecha: this.formatDate(this.facturaForm.fecha)
+    };
+
+    this.facturasService.createFactura(payload, this.facturaFile).subscribe({
+      next: () => {
+        this.showFacturaModal = false;
+        this.messageService.add({
+          severity: 'success',
+          summary: 'Factura creada',
+          detail: 'La factura se guardo correctamente.'
+        });
+        this.resetFacturaForm();
+        this.cargarFacturasObra();
+      },
+      error: () => {
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: 'No se pudo crear la factura.'
+        });
+      }
+    });
+  }
+
+  onFacturaFileSelected(event: any) {
+    const files = event?.currentFiles ?? event?.files ?? [];
+    this.facturaFile = files?.[0] ?? null;
+  }
+
+  quitarFacturaArchivo() {
+    this.facturaFile = null;
+  }
+
   onTareasActualizadas(nuevasTareas: Tarea[]) {
     this.tareas = nuevasTareas;
     this.obra.tareas = nuevasTareas;
@@ -299,6 +392,10 @@ export class ObrasDetailComponent implements OnInit, OnDestroy {
         });
       }
     });
+  }
+
+  get totalFacturasMonto(): number {
+    return (this.facturasFiltradas || []).reduce((acc, factura) => acc + Number(factura.monto ?? 0), 0);
   }
 
   async exportarResumenPdf() {
@@ -689,5 +786,21 @@ export class ObrasDetailComponent implements OnInit, OnDestroy {
       if (prov?.nombre) return prov.nombre;
     }
     return null;
+  }
+
+  private resetFacturaForm() {
+    this.facturaForm = {
+      fecha: new Date(),
+      monto: null
+    };
+    this.facturaFile = null;
+  }
+
+  private formatDate(value: any): string {
+    if (!value) return '';
+    if (value instanceof Date) {
+      return value.toISOString().split('T')[0];
+    }
+    return String(value);
   }
 }

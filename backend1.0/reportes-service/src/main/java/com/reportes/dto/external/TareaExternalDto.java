@@ -13,6 +13,8 @@ public class TareaExternalDto {
     private Long idObra;
     @JsonProperty("id_proveedor")
     private Long idProveedor;
+    @JsonProperty("numero_orden")
+    private Long numeroOrden;
     @JsonProperty("estado_tarea")
     private String estadoTarea;
     private String nombre;

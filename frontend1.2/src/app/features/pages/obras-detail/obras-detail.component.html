@@ -220,6 +220,12 @@
             <p-tab value="3" pStyleClass="px-6 py-4">
               <div class="flex items-center gap-2">
                 <i class="pi pi-file"></i>
+                <span class="font-medium">Facturas</span>
+              </div>
+            </p-tab>
+            <p-tab value="4" pStyleClass="px-6 py-4">
+              <div class="flex items-center gap-2">
+                <i class="pi pi-file"></i>
                 <span class="font-medium">Documentos</span>
               </div>
             </p-tab>
@@ -262,6 +268,144 @@
             </p-tabpanel>
 
             <p-tabpanel value="3">
+              <div class="p-4 space-y-5">
+                <div class="flex justify-between items-center flex-wrap gap-3">
+                  <div>
+                    <h2 class="text-2xl font-bold text-gray-900">Facturas</h2>
+                    <p class="text-gray-500 text-sm mt-1">
+                      Facturas asociadas a la obra
+                    </p>
+                  </div>
+
+                  <p-button
+                    (onClick)="abrirFacturaModal()"
+                    icon="pi pi-plus"
+                    label="Nueva Factura"
+                    styleClass="p-button-md p-button-primary"
+                  ></p-button>
+                </div>
+
+                @if (facturasFiltradas.length > 0) {
+                  <p-table
+                    [value]="facturasFiltradas"
+                    [sortField]="'fecha'"
+                    [sortOrder]="-1"
+                    responsiveLayout="scroll"
+                    class="text-sm p-datatable-sm border border-gray-200 rounded-lg overflow-hidden"
+                  >
+                    <ng-template pTemplate="header">
+                      <tr class="bg-gray-50 text-gray-700">
+                        <th pSortableColumn="fecha">
+                          Fecha
+                          <p-sortIcon field="fecha"></p-sortIcon>
+                        </th>
+                        <th>Monto</th>
+                        <th>Archivo</th>
+                      </tr>
+                    </ng-template>
+
+                    <ng-template pTemplate="body" let-f let-rowIndex="rowIndex">
+                      <tr
+                        class="hover:bg-gray-50 transition"
+                        [ngClass]="rowIndex % 2 === 0 ? 'bg-white' : 'bg-gray-50'"
+                      >
+                        <td>{{ f.fecha | date: 'dd/MM/yyyy' }}</td>
+                        <td class="font-semibold text-gray-900">{{ f.monto | currency: 'ARS' }}</td>
+                        <td class="text-gray-600">{{ f.nombre_archivo || 'Sin archivo' }}</td>
+                      </tr>
+                    </ng-template>
+                  </p-table>
+
+                  <div class="mt-4 p-4 bg-gray-50 rounded-lg text-sm space-y-1">
+                    <div class="flex justify-between font-semibold">
+                      <span>Total facturado:</span>
+                      <span>{{ totalFacturasMonto | currency: 'ARS' }}</span>
+                    </div>
+                    <div class="flex justify-between text-sm text-gray-700 border-t pt-2">
+                      <span>Cantidad de facturas</span>
+                      <span>{{ facturasFiltradas.length }}</span>
+                    </div>
+                  </div>
+                } @else {
+                  <div class="text-center text-gray-500 py-10 flex flex-col items-center gap-2">
+                    <i class="pi pi-inbox text-4xl"></i>
+                    <p>No hay facturas registradas para esta obra.</p>
+                  </div>
+                }
+
+              </div>
+
+              <app-modal
+                (closed)="cerrarFacturaModal()"
+                (confirmed)="guardarFacturaObra()"
+                [title]="'Nueva factura'"
+                [visible]="showFacturaModal"
+              >
+                <div class="p-3 space-y-3">
+                  <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <div>
+                      <label class="block text-sm font-medium mb-1 text-gray-700">Obra</label>
+                      <input
+                        type="text"
+                        class="w-full border rounded-md px-3 py-2 text-sm bg-gray-50"
+                        [value]="obra.nombre"
+                        readonly
+                      />
+                    </div>
+                    <div>
+                      <label class="block text-sm font-medium mb-1 text-gray-700">Cliente</label>
+                      <input
+                        type="text"
+                        class="w-full border rounded-md px-3 py-2 text-sm bg-gray-50"
+                        [value]="obra.cliente.nombre"
+                        readonly
+                      />
+                    </div>
+                  </div>
+
+                  <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <div>
+                      <label class="block text-sm font-medium mb-1 text-gray-700">Fecha</label>
+                      <p-datepicker
+                        [(ngModel)]="facturaForm.fecha"
+                        appendTo="body"
+                        class="w-full"
+                        dateFormat="dd/mm/yy"
+                      ></p-datepicker>
+                    </div>
+                    <div>
+                      <label class="block text-sm font-medium mb-1 text-gray-700">Monto</label>
+                      <p-inputNumber
+                        [(ngModel)]="facturaForm.monto"
+                        class="w-full"
+                        mode="decimal"
+                        locale="es-AR"
+                      ></p-inputNumber>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label class="block text-sm font-medium mb-1 text-gray-700">Adjuntar factura (opcional)</label>
+                    <p-fileUpload
+                      mode="basic"
+                      chooseLabel="Seleccionar archivo"
+                      chooseIcon="pi pi-upload"
+                      accept=".jpg,.jpeg,.png,.pdf"
+                      [auto]="false"
+                      (onSelect)="onFacturaFileSelected($event)"
+                    ></p-fileUpload>
+                    @if (facturaFile) {
+                      <div class="flex items-center gap-2 text-sm text-gray-700 mt-2">
+                        <span>{{ facturaFile.name }}</span>
+                        <button type="button" class="text-red-500 hover:text-red-700" (click)="quitarFacturaArchivo()">x</button>
+                      </div>
+                    }
+                  </div>
+                </div>
+              </app-modal>
+            </p-tabpanel>
+
+            <p-tabpanel value="4">
               <app-obra-documentos
                 [obraId]="obra.id!"
                 [proveedores]="proveedores"
