@@ -1,4 +1,4 @@
-import {Component, Input, OnInit} from '@angular/core';
+import {Component, Input, OnInit, ViewChild} from '@angular/core';
 import {CommonModule, DatePipe} from '@angular/common';
 import {TableModule} from 'primeng/table';
 import {ButtonModule} from 'primeng/button';
@@ -44,6 +44,7 @@ export class ObraDocumentosComponent implements OnInit {
   @Input() obraId!: number;
   @Input() proveedores: Proveedor[] = [];
   @Input() clientes: Cliente[] = [];
+  @ViewChild('documentFileUpload') documentFileUpload?: FileUpload;
 
   documentos: Documento[] = [];
   tiposDocumento: { label: string; value: string }[] = [];
@@ -139,6 +140,7 @@ export class ObraDocumentosComponent implements OnInit {
     this.modalVisible = true;
     this.observacion = '';
     this.selectedFiles = [];
+    this.documentFileUpload?.clear();
 
     // Si solo hay un cliente (el de la obra), seleccionarlo por defecto
     if (this.tipoEntidad === 'CLIENTE' && this.clientes && this.clientes.length === 1) {
@@ -216,6 +218,7 @@ export class ObraDocumentosComponent implements OnInit {
         this.documentos = [...this.documentos, ...nuevos];
         this.modalVisible = false;
         this.selectedFiles = [];
+        this.documentFileUpload?.clear();
         this.observacion = '';
         this.messageService.add({
           severity: 'success',
