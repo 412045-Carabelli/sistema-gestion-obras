@@ -41,6 +41,7 @@ export class ObraMovimientosComponent implements OnInit {
   @Input() clientes!: Cliente[];
   @Input() proveedores!: Proveedor[];
   @Input() obraNombre = '';
+  @Input() presupuestoTotal?: number;
 
   transacciones: Transaccion[] = [];
   tiposTransaccion: { label: string; name: string }[] = [];
@@ -408,10 +409,11 @@ export class ObraMovimientosComponent implements OnInit {
       return;
     }
     const proveedorId = Number(this.selectedProveedor.id);
-    this.costosProveedor = (this.costosObra || []).filter(c =>
-      Number(c.id_proveedor) === proveedorId &&
+    this.costosProveedor = (this.costosObra || []).filter(c => {
+      const costoProveedorId = Number((c as any)?.id_proveedor ?? (c as any)?.proveedor?.id ?? 0);
+      return costoProveedorId === proveedorId &&
       (c.estado_pago || "").toString().toUpperCase() !== "PAGADO"
-    );
+    });
     if (this.pendingCostoId && !this.selectedCosto) {
       this.selectedCosto = this.costosProveedor.find(c => Number(c.id) === Number(this.pendingCostoId)) || null;
       if (this.selectedCosto) {
@@ -419,8 +421,11 @@ export class ObraMovimientosComponent implements OnInit {
         this.pendingCostoId = null;
       }
     }
-    if (this.selectedCosto && Number(this.selectedCosto.id_proveedor) !== proveedorId) {
-      this.selectedCosto = null;
+    if (this.selectedCosto) {
+      const costoProveedorId = Number((this.selectedCosto as any)?.id_proveedor ?? (this.selectedCosto as any)?.proveedor?.id ?? 0);
+      if (costoProveedorId !== proveedorId) {
+        this.selectedCosto = null;
+      }
     }
     if (this.selectedCosto && (this.selectedCosto.estado_pago || "").toString().toUpperCase() === "PAGADO") {
       this.selectedCosto = null;
@@ -467,8 +472,10 @@ export class ObraMovimientosComponent implements OnInit {
   }
 
   private validarMontoContraCosto(): boolean {
+    if (this.tipoEntidad === 'CLIENTE') {
+      return this.validarMontoContraPresupuesto();
+    }
     if (!this.selectedCosto?.id) return true;
-    if (this.tipoEntidad !== 'PROVEEDOR') return true;
 
     const formaPago = (this.nuevoMovimiento.forma_pago || '').toString().toUpperCase();
     const monto = Number(this.nuevoMovimiento.monto ?? 0);
@@ -489,6 +496,42 @@ export class ObraMovimientosComponent implements OnInit {
         severity: 'warn',
         summary: 'Monto invalido',
         detail: 'Para pago parcial, el monto debe ser menor al total del costo.'
+      });
+      return false;
+    }
+
+    return true;
+  }
+
+  private validarMontoContraPresupuesto(): boolean {
+    if (this.presupuestoTotal == null) {
+      this.messageService.add({
+        severity: 'warn',
+        summary: 'Sin presupuesto',
+        detail: 'No se pudo obtener el presupuesto total de la obra.'
+      });
+      return false;
+    }
+
+    const formaPago = (this.nuevoMovimiento.forma_pago || '').toString().toUpperCase();
+    const monto = Number(this.nuevoMovimiento.monto ?? 0);
+    const presupuesto = Number(this.presupuestoTotal ?? 0);
+    const diferencia = Math.abs(monto - presupuesto);
+
+    if (formaPago === 'TOTAL' && diferencia >= 0.01) {
+      this.messageService.add({
+        severity: 'warn',
+        summary: 'Monto invalido',
+        detail: 'Para cobro total, el monto debe ser igual al presupuesto total de la obra.'
+      });
+      return false;
+    }
+
+    if (formaPago === 'PARCIAL' && monto >= presupuesto) {
+      this.messageService.add({
+        severity: 'warn',
+        summary: 'Monto invalido',
+        detail: 'Para cobro parcial, el monto debe ser menor al presupuesto total de la obra.'
       });
       return false;
     }

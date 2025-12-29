@@ -61,6 +61,7 @@ com\apigateway\controller\FacturaBffController.class
 com\apigateway\controller\ClienteBffController$3.class
 com\apigateway\controller\TareaBffController.class
 com\apigateway\controller\TransaccionBffController$2.class
+com\apigateway\dto\ErrorApi.class
 com\apigateway\controller\FacturaBffController$3.class
 com\apigateway\controller\ObraBffController$8.class
 com\apigateway\controller\DocumentoBffController.class
@@ -85,6 +86,7 @@ com\apigateway\controller\TipoTransaccionBffController$1.class
 com\apigateway\controller\ObraBffController$10.class
 com\apigateway\controller\CondicionIvaBffController.class
 com\apigateway\controller\ReportesBffController$11.class
+com\apigateway\handler\RestExceptionHandler.class
 com\apigateway\controller\TransaccionBffController.class
 com\apigateway\controller\TipoDocumentoBffController$4.class
 com\apigateway\controller\ReportesBffController.class

@@ -21,7 +21,7 @@ public class ObraCosto {
     @Id
     @GeneratedValue(strategy= GenerationType.IDENTITY) private Long id;
 
-    @Column(name = "id_proveedor", nullable = false)
+    @Column(name = "id_proveedor")
     private Long idProveedor;
 
     @Column(name = "precio_unitario", nullable = false)

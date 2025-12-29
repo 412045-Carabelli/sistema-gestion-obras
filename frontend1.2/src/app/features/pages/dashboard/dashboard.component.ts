@@ -200,8 +200,8 @@ export class DashboardComponent implements OnInit {
         this.filteredProveedores = [...this.proveedores];
         this.obrasComparativo = this.construirComparativoObras(this.obras, filtro);
 
-        // Cargar tareas de las últimas 3 obras
-        const obrasRecientes = obras.slice(0, 3);
+        // Cargar tareas de las ultimas 3 obras segun filtros
+        const obrasRecientes = this.obtenerObrasFiltradasDashboard().slice(0, 3);
         const tareasPromises = obrasRecientes.map(obra =>
           this.tareasService.getTareasByObra(obra.id!)
         );
@@ -222,7 +222,7 @@ export class DashboardComponent implements OnInit {
           });
         }
 
-        // Cargar movimientos recientes (últimos movimientos del flujo de caja)
+        // Cargar movimientos recientes
         this.movimientosRecientes = (flujo.movimientos || [])
           .sort((a, b) => new Date(b.fecha).getTime() - new Date(a.fecha).getTime())
           .slice(0, 10);
@@ -283,7 +283,6 @@ export class DashboardComponent implements OnInit {
     this.filteredObras = [...this.obras];
     this.filteredClientes = [...this.clientes];
     this.filteredProveedores = [...this.proveedores];
-    this.cargarDashboard();
     this.obrasComparativo = this.construirComparativoObras(this.obras);
   }
 
@@ -696,11 +695,8 @@ export class DashboardComponent implements OnInit {
   }
 
   get totalPresupuestoFiltradoDashboard(): number {
-    const obraSeleccionada = this.filtrosDashboard?.obra;
-    if (obraSeleccionada?.id) {
-      return Number(obraSeleccionada.presupuesto || 0);
-    }
-    return this.totalPresupuestoObras;
+    const obrasFiltradas = this.obtenerObrasFiltradasDashboard();
+    return obrasFiltradas.reduce((acc, obra) => acc + Number(obra.presupuesto || 0), 0);
   }
 
   get totalCostosObras(): number {
@@ -725,6 +721,59 @@ export class DashboardComponent implements OnInit {
 
   get saldoFlujoDashboard(): number {
     return this.totalCobrosDashboard - this.totalPagosDashboard;
+  }
+
+  get tareasRecientesFiltradas(): Tarea[] {
+    let tareas = this.tareasRecientes || [];
+    const obraId = this.filtrosDashboard?.obra?.id;
+    const proveedorId = this.filtrosDashboard?.proveedor?.id;
+    const rangoFechas = this.filtrosDashboard?.rangoFechas;
+
+    if (obraId) {
+      tareas = tareas.filter(t => Number(t.id_obra) === Number(obraId));
+    }
+
+    if (proveedorId) {
+      tareas = tareas.filter(t => Number(t.proveedor?.id ?? t.id_proveedor) === Number(proveedorId));
+    }
+
+    if (rangoFechas?.[0] || rangoFechas?.[1]) {
+      tareas = tareas.filter(t =>
+        this.estaEnRangoFecha(t.fecha_inicio ?? t.creado_en, rangoFechas)
+      );
+    }
+
+    return tareas;
+  }
+
+  get movimientosRecientesFiltradas(): MovimientoDashboard[] {
+    return this.obtenerMovimientosFiltradosDashboard()
+      .sort((a, b) => new Date(b.fecha).getTime() - new Date(a.fecha).getTime());
+  }
+
+  get cuentaCorrienteModo(): 'CLIENTE' | 'PROVEEDOR' | 'GENERAL' {
+    if (this.filtrosDashboard?.proveedor?.id) return 'PROVEEDOR';
+    if (this.filtrosDashboard?.cliente?.id) return 'CLIENTE';
+    return 'GENERAL';
+  }
+
+  get cuentaCorrientePresupuesto(): number {
+    if (this.cuentaCorrienteModo === 'PROVEEDOR') {
+      const proveedorId = this.filtrosDashboard?.proveedor?.id;
+      if (!proveedorId) return this.totalCostosObras;
+      return this.calcularTotalCostosProveedor(this.obtenerObrasFiltradasDashboard(), proveedorId);
+    }
+    return this.totalPresupuestoFiltradoDashboard;
+  }
+
+  get cuentaCorrienteSaldo(): number {
+    if (this.cuentaCorrienteModo === 'PROVEEDOR') {
+      return this.cuentaCorrientePresupuesto - this.totalPagosDashboard;
+    }
+    if (this.cuentaCorrienteModo === 'CLIENTE') {
+      return this.cuentaCorrientePresupuesto - this.totalCobrosDashboard;
+    }
+    return this.saldoFlujoDashboard;
   }
 
   private calcularConteosObras(obras: { obra_estado: string }[]): typeof this.conteoObras {
@@ -789,13 +838,84 @@ export class DashboardComponent implements OnInit {
 
   private calcularTotalMovimientos(tipos: string[]): number {
     const buscados = new Set(tipos.map(t => t.toUpperCase()));
-    return (this.flujoCaja?.movimientos || []).reduce((acc, mov) => {
+    return this.obtenerMovimientosFiltradosDashboard().reduce((acc, mov) => {
       const tipo = (mov.tipo_movimiento || mov.tipo || '').toString().toUpperCase();
       if (buscados.has(tipo)) {
         return acc + Number(mov.monto ?? 0);
       }
       return acc;
     }, 0);
+  }
+
+  private obtenerMovimientosFiltradosDashboard(): MovimientoDashboard[] {
+    let movimientos = this.flujoCaja?.movimientos || [];
+    const obraId = this.filtrosDashboard?.obra?.id;
+    const clienteId = this.filtrosDashboard?.cliente?.id;
+    const proveedorId = this.filtrosDashboard?.proveedor?.id;
+    const rangoFechas = this.filtrosDashboard?.rangoFechas;
+
+    if (obraId) {
+      movimientos = movimientos.filter(mov => Number(mov.obraId) === Number(obraId));
+    }
+
+    if (clienteId) {
+      movimientos = movimientos.filter(mov =>
+        (mov.asociadoTipo || '').toString().toUpperCase() === 'CLIENTE' &&
+        Number(mov.asociadoId) === Number(clienteId)
+      );
+    }
+
+    if (proveedorId) {
+      movimientos = movimientos.filter(mov =>
+        (mov.asociadoTipo || '').toString().toUpperCase() === 'PROVEEDOR' &&
+        Number(mov.asociadoId) === Number(proveedorId)
+      );
+    }
+
+    if (rangoFechas?.[0] || rangoFechas?.[1]) {
+      movimientos = movimientos.filter(mov =>
+        this.estaEnRangoFecha(mov.fecha, rangoFechas)
+      );
+    }
+
+    return movimientos;
+  }
+
+  private estaEnRangoFecha(
+    fecha: string | Date | undefined | null,
+    rangoFechas: Date[] | null
+  ): boolean {
+    if (!rangoFechas?.[0] && !rangoFechas?.[1]) return true;
+    const inicio = rangoFechas?.[0] ? this.normalizarFechaLocal(rangoFechas[0]) : null;
+    const fin = rangoFechas?.[1] ? this.normalizarFechaLocal(rangoFechas[1]) : null;
+    const fechaMov = this.normalizarFechaLocal(fecha);
+    if (!fechaMov) return false;
+    if (inicio && fechaMov < inicio) return false;
+    if (fin && fechaMov > fin) return false;
+    return true;
+  }
+
+  private normalizarFechaLocal(valor: string | Date | undefined | null): Date | null {
+    if (!valor) return null;
+    if (valor instanceof Date) {
+      return new Date(valor.getFullYear(), valor.getMonth(), valor.getDate());
+    }
+
+    const raw = valor.toString().split('T')[0];
+    if (raw.includes('-')) {
+      const [y, m, d] = raw.split('-').map(Number);
+      if (!y || !m || !d) return null;
+      return new Date(y, m - 1, d);
+    }
+    if (raw.includes('/')) {
+      const [d, m, y] = raw.split('/').map(Number);
+      if (!y || !m || !d) return null;
+      const year = y < 100 ? 2000 + y : y;
+      return new Date(year, m - 1, d);
+    }
+    const parsed = new Date(raw);
+    if (Number.isNaN(parsed.getTime())) return null;
+    return new Date(parsed.getFullYear(), parsed.getMonth(), parsed.getDate());
   }
 
   private construirSerieFlujo(movimientos: MovimientoDashboard[]): Array<{ fecha: string; ingresos: number; egresos: number; saldo: number }> {
@@ -962,8 +1082,10 @@ export class DashboardComponent implements OnInit {
   }
 
   private validarMontoMovimientoRapido(): boolean {
+    if (this.movimientoTipoEntidad === 'CLIENTE') {
+      return this.validarMontoMovimientoRapidoCliente();
+    }
     if (!this.movimientoCosto?.id) return true;
-    if (this.movimientoTipoEntidad !== 'PROVEEDOR') return true;
 
     const formaPago = (this.movimientoForm.forma_pago || '').toString().toUpperCase();
     const monto = Number(this.movimientoForm.monto ?? 0);
@@ -991,6 +1113,83 @@ export class DashboardComponent implements OnInit {
     return true;
   }
 
+  private obtenerObrasFiltradasDashboard(): Obra[] {
+    let filtradas = this.obras || [];
+    const obraSeleccionada = this.filtrosDashboard?.obra;
+    const clienteSeleccionado = this.filtrosDashboard?.cliente;
+    const proveedorSeleccionado = this.filtrosDashboard?.proveedor;
+
+    if (obraSeleccionada?.id) {
+      filtradas = filtradas.filter(obra => Number(obra.id) === Number(obraSeleccionada.id));
+    }
+
+    if (clienteSeleccionado?.id) {
+      filtradas = filtradas.filter(obra => Number(obra.cliente?.id) === Number(clienteSeleccionado.id));
+    }
+
+    if (proveedorSeleccionado?.id) {
+      filtradas = filtradas.filter(obra =>
+        this.obraTieneProveedor(obra, proveedorSeleccionado.id)
+      );
+    }
+
+    return filtradas;
+  }
+
+  private obraTieneProveedor(obra: Obra, proveedorId: number): boolean {
+    return (obra?.costos || []).some(c => {
+      const id = Number((c as any).id_proveedor ?? (c as any).proveedor?.id ?? 0);
+      return id === Number(proveedorId);
+    });
+  }
+
+  private calcularTotalCostosProveedor(obras: Obra[], proveedorId: number): number {
+    return (obras || []).reduce((acc, obra) => {
+      const totalObra = (obra?.costos || []).reduce((sum, costo) => {
+        const id = Number((costo as any).id_proveedor ?? (costo as any).proveedor?.id ?? 0);
+        if (id !== Number(proveedorId)) return sum;
+        return sum + Number(costo.total ?? costo.subtotal ?? 0);
+      }, 0);
+      return acc + totalObra;
+    }, 0);
+  }
+
+  private validarMontoMovimientoRapidoCliente(): boolean {
+    const presupuesto = Number(this.movimientoObraDetalle?.presupuesto ?? NaN);
+    if (Number.isNaN(presupuesto)) {
+      this.messageService.add({
+        severity: 'warn',
+        summary: 'Sin presupuesto',
+        detail: 'No se pudo obtener el presupuesto total de la obra.'
+      });
+      return false;
+    }
+
+    const formaPago = (this.movimientoForm.forma_pago || '').toString().toUpperCase();
+    const monto = Number(this.movimientoForm.monto ?? 0);
+    const diferencia = Math.abs(monto - presupuesto);
+
+    if (formaPago === 'TOTAL' && diferencia >= 0.01) {
+      this.messageService.add({
+        severity: 'warn',
+        summary: 'Monto invalido',
+        detail: 'Para cobro total, el monto debe ser igual al presupuesto total de la obra.'
+      });
+      return false;
+    }
+
+    if (formaPago === 'PARCIAL' && monto >= presupuesto) {
+      this.messageService.add({
+        severity: 'warn',
+        summary: 'Monto invalido',
+        detail: 'Para cobro parcial, el monto debe ser menor al presupuesto total de la obra.'
+      });
+      return false;
+    }
+
+    return true;
+  }
+
   private obtenerMensajeError(err: unknown, fallback: string): string {
     if (err instanceof HttpErrorResponse) {
       const body = err.error as any;
@@ -1000,4 +1199,27 @@ export class DashboardComponent implements OnInit {
     }
     return fallback;
   }
+
+  getAsociadoNombre(mov: MovimientoDashboard): string {
+    const tipo = (mov.asociadoTipo || '').toString().toUpperCase();
+    if (tipo === 'CLIENTE') {
+      const cliente = this.clientes.find(c => Number(c.id) === Number(mov.asociadoId));
+      if (cliente?.nombre) return cliente.nombre;
+    }
+    if (tipo === 'PROVEEDOR') {
+      const proveedor = this.proveedores.find(p => Number(p.id) === Number(mov.asociadoId));
+      if (proveedor?.nombre) return proveedor.nombre;
+    }
+    return mov.asociadoId ? `Asociado #${mov.asociadoId}` : 'Asociado';
+  }
+
+  getProveedorNombreTarea(tarea: Tarea): string {
+    if (tarea.proveedor?.nombre) return tarea.proveedor.nombre;
+    const proveedorId = tarea.id_proveedor;
+    if (!proveedorId) return 'Proveedor';
+    const proveedor = this.proveedores.find(p => Number(p.id) === Number(proveedorId));
+    return proveedor?.nombre || `Proveedor #${proveedorId}`;
+  }
 }
+
+

@@ -120,6 +120,9 @@ export class ObraPresupuestoComponent implements OnInit, OnChanges {
     if (changes['beneficioGlobal'] || changes['tieneComision']) {
       this.costosFiltrados = this.costosFiltrados.map(c => ({ ...c }));
       this.costosFiltrados.forEach(c => this.recalcularEnEdicion(c));
+      if (this.usarBeneficioGlobal && this.nuevoCosto.tipo_costo !== 'ADICIONAL') {
+        this.nuevoCosto.beneficio = this.beneficioGlobal;
+      }
     }
     if (changes['proveedores']) {
       this.filteredProveedores = this.proveedores || [];
@@ -191,11 +194,21 @@ export class ObraPresupuestoComponent implements OnInit, OnChanges {
       });
       return;
     }
-    if (!this.nuevoCosto.descripcion || !this.nuevoCosto.id_proveedor) {
+    const esAdicional = this.nuevoCosto.tipo_costo === 'ADICIONAL';
+    const subtotalNuevo = this.calcularMontosPayload(this.nuevoCosto).subtotal;
+    if (!esAdicional && (!this.nuevoCosto.descripcion || !this.nuevoCosto.id_proveedor)) {
       this.messageService.add({
         severity: 'warn',
         summary: 'Datos incompletos',
         detail: 'Completa proveedor y descripcion para agregar el costo.'
+      });
+      return;
+    }
+    if (esAdicional && subtotalNuevo <= 0) {
+      this.messageService.add({
+        severity: 'warn',
+        summary: 'Importe invalido',
+        detail: 'Ingresa un importe mayor a 0 para el adicional.'
       });
       return;
     }
@@ -207,6 +220,10 @@ export class ObraPresupuestoComponent implements OnInit, OnChanges {
         detail: 'Selecciona si el costo es ORIGINAL o ADICIONAL.'
       });
       return;
+    }
+
+    if (esAdicional && !this.nuevoCosto.descripcion) {
+      this.nuevoCosto.descripcion = 'Adicional';
     }
 
     const payload = this.calcularMontosPayload(this.nuevoCosto);
@@ -411,6 +428,14 @@ export class ObraPresupuestoComponent implements OnInit, OnChanges {
 
   calcularTotal(): number {
     return this.calcularTotalConBeneficio();
+  }
+
+  calcularNuevoCostoSubtotal(): number {
+    return this.calcularMontosPayload(this.nuevoCosto).subtotal;
+  }
+
+  calcularNuevoCostoTotal(): number {
+    return this.calcularMontosPayload(this.nuevoCosto).total;
   }
 
   calcularGastos(): number {

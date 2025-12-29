@@ -19,6 +19,7 @@ com\transacciones\service\ObraCostoClient.class
 com\transacciones\config\RestTemplateConfig.class
 com\transacciones\entity\TipoTransaccion$TipoTransaccionBuilder.class
 com\transacciones\repository\TipoTransaccionRepository.class
+com\transacciones\dto\ObraResumenDto.class
 com\transacciones\entity\Factura.class
 com\transacciones\controller\FacturaController.class
 com\transacciones\controller\TransaccionController.class

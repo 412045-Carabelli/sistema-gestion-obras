@@ -1,6 +1,7 @@
 package com.transacciones.service;
 
 import com.transacciones.dto.ObraCostoDto;
+import com.transacciones.dto.ObraResumenDto;
 import com.transacciones.dto.TransaccionDto;
 import com.transacciones.entity.Transaccion;
 import com.transacciones.enums.TipoTransaccionEnum;
@@ -36,6 +37,7 @@ public class TransaccionService {
         }
         validarTipoAsociado(dto);
         validarMontoContraCosto(dto);
+        validarMontoContraPresupuesto(dto);
 
         Transaccion entity = Transaccion.builder()
                 .idObra(dto.getIdObra())
@@ -71,6 +73,7 @@ public class TransaccionService {
         }
         validarTipoAsociado(dto);
         validarMontoContraCosto(dto);
+        validarMontoContraPresupuesto(dto);
 
         entity.setIdObra(dto.getIdObra());
         entity.setIdAsociado(dto.getIdAsociado());
@@ -214,6 +217,32 @@ public class TransaccionService {
         }
         if ("PARCIAL".equals(formaPago) && monto >= totalCosto) {
             throw new IllegalArgumentException("Para pago parcial, el monto debe ser menor al total del costo");
+        }
+    }
+
+    private void validarMontoContraPresupuesto(Transaccion dto) {
+        if (dto == null) return;
+        if (dto.getIdObra() == null) return;
+
+        String tipoAsociado = dto.getTipoAsociado() == null ? "" : dto.getTipoAsociado().toUpperCase();
+        if (!"CLIENTE".equals(tipoAsociado)) return;
+        if (dto.getTipo_transaccion() != TipoTransaccionEnum.COBRO) return;
+
+        ObraResumenDto obra = obraCostoClient.obtenerObra(dto.getIdObra());
+        if (obra == null || obra.getPresupuesto() == null) {
+            throw new IllegalArgumentException("Presupuesto de la obra no encontrado para validar el cobro");
+        }
+
+        String formaPago = dto.getForma_pago() == null ? "" : dto.getForma_pago().toUpperCase();
+        double monto = dto.getMonto() != null ? dto.getMonto() : 0;
+        double presupuesto = obra.getPresupuesto();
+        double diferencia = Math.abs(monto - presupuesto);
+
+        if ("TOTAL".equals(formaPago) && diferencia >= 0.01) {
+            throw new IllegalArgumentException("Para cobro total, el monto debe ser igual al presupuesto total de la obra");
+        }
+        if ("PARCIAL".equals(formaPago) && monto >= presupuesto) {
+            throw new IllegalArgumentException("Para cobro parcial, el monto debe ser menor al presupuesto total de la obra");
         }
     }
 }

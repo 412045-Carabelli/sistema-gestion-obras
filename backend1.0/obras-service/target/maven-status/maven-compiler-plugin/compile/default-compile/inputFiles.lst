@@ -7,6 +7,7 @@ C:\Users\Usuario\Desktop\my-work\sistema-gestion-obras\backend1.0\obras-service\
 C:\Users\Usuario\Desktop\my-work\sistema-gestion-obras\backend1.0\obras-service\src\main\java\com\obras\enums\EstadoPagoEnum.java
 C:\Users\Usuario\Desktop\my-work\sistema-gestion-obras\backend1.0\obras-service\src\main\java\com\obras\service\TareaService.java
 C:\Users\Usuario\Desktop\my-work\sistema-gestion-obras\backend1.0\obras-service\src\main\java\com\obras\enums\EstadoObraEnum.java
+C:\Users\Usuario\Desktop\my-work\sistema-gestion-obras\backend1.0\obras-service\src\main\java\com\obras\handler\RestExceptionHandler.java
 C:\Users\Usuario\Desktop\my-work\sistema-gestion-obras\backend1.0\obras-service\src\main\java\com\obras\service\impl\ObraCostoServiceImpl.java
 C:\Users\Usuario\Desktop\my-work\sistema-gestion-obras\backend1.0\obras-service\src\main\java\com\obras\controller\TareasController.java
 C:\Users\Usuario\Desktop\my-work\sistema-gestion-obras\backend1.0\obras-service\src\main\java\com\obras\repository\ObraRepository.java
@@ -29,6 +30,7 @@ C:\Users\Usuario\Desktop\my-work\sistema-gestion-obras\backend1.0\obras-service\
 C:\Users\Usuario\Desktop\my-work\sistema-gestion-obras\backend1.0\obras-service\src\main\java\com\obras\dto\ObraDTO.java
 C:\Users\Usuario\Desktop\my-work\sistema-gestion-obras\backend1.0\obras-service\src\main\java\com\obras\enums\TipoCostoEnum.java
 C:\Users\Usuario\Desktop\my-work\sistema-gestion-obras\backend1.0\obras-service\src\main\java\com\obras\controller\EstadosTareasController.java
+C:\Users\Usuario\Desktop\my-work\sistema-gestion-obras\backend1.0\obras-service\src\main\java\com\obras\dto\ErrorApi.java
 C:\Users\Usuario\Desktop\my-work\sistema-gestion-obras\backend1.0\obras-service\src\main\java\com\obras\repository\TareaRepository.java
 C:\Users\Usuario\Desktop\my-work\sistema-gestion-obras\backend1.0\obras-service\src\main\java\com\obras\controller\ObrasProveedoresController.java
 C:\Users\Usuario\Desktop\my-work\sistema-gestion-obras\backend1.0\obras-service\src\main\java\com\obras\entity\EstadoPago.java
