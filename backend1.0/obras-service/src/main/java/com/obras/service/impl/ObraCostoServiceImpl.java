@@ -32,6 +32,7 @@ public class ObraCostoServiceImpl implements ObraCostoService {
             throw new IllegalArgumentException("Debes indicar el tipo de costo (ORIGINAL o ADICIONAL).");
         }
         ObraCosto entity = fromDto(dto);
+        validarProveedorRequerido(entity, null);
         validarOperacionOriginalEnProgreso(entity, "crear");
         calcularTotales(entity);
         entity = costoRepo.save(entity);
@@ -64,6 +65,7 @@ public class ObraCostoServiceImpl implements ObraCostoService {
             entity.setTipoCosto(dto.getTipo_costo());
         }
         entity.setEstadoPago(dto.getEstado_pago() != null ? dto.getEstado_pago() : entity.getEstadoPago());
+        validarProveedorRequerido(entity, null);
         calcularTotales(entity);
         return toDto(costoRepo.save(entity));
     }
@@ -178,6 +180,14 @@ public class ObraCostoServiceImpl implements ObraCostoService {
     private void validarTipoCosto(TipoCostoEnum tipo) {
         if (tipo == null) {
             throw new IllegalArgumentException("El tipo de costo es obligatorio (ORIGINAL o ADICIONAL).");
+        }
+    }
+
+    private void validarProveedorRequerido(ObraCosto entity, TipoCostoEnum tipoOverride) {
+        if (entity == null) return;
+        TipoCostoEnum tipo = tipoOverride != null ? tipoOverride : entity.getTipoCosto();
+        if (TipoCostoEnum.ORIGINAL.equals(tipo) && entity.getIdProveedor() == null) {
+            throw new IllegalArgumentException("Debes indicar un proveedor para costos ORIGINAL.");
         }
     }
 

@@ -2,6 +2,7 @@ C:\Users\Usuario\Desktop\my-work\sistema-gestion-obras\backend1.0\api-gateway\sr
 C:\Users\Usuario\Desktop\my-work\sistema-gestion-obras\backend1.0\api-gateway\src\main\java\com\apigateway\controller\ClienteBffController.java
 C:\Users\Usuario\Desktop\my-work\sistema-gestion-obras\backend1.0\api-gateway\src\main\java\com\apigateway\controller\DocumentoBffController.java
 C:\Users\Usuario\Desktop\my-work\sistema-gestion-obras\backend1.0\api-gateway\src\main\java\com\apigateway\controller\TipoTransaccionBffController.java
+C:\Users\Usuario\Desktop\my-work\sistema-gestion-obras\backend1.0\api-gateway\src\main\java\com\apigateway\handler\RestExceptionHandler.java
 C:\Users\Usuario\Desktop\my-work\sistema-gestion-obras\backend1.0\api-gateway\src\main\java\com\apigateway\controller\FacturaBffController.java
 C:\Users\Usuario\Desktop\my-work\sistema-gestion-obras\backend1.0\api-gateway\src\main\java\com\apigateway\controller\CostoBffController.java
 C:\Users\Usuario\Desktop\my-work\sistema-gestion-obras\backend1.0\api-gateway\src\main\java\com\apigateway\controller\TipoDocumentoBffController.java
@@ -14,6 +15,7 @@ C:\Users\Usuario\Desktop\my-work\sistema-gestion-obras\backend1.0\api-gateway\sr
 C:\Users\Usuario\Desktop\my-work\sistema-gestion-obras\backend1.0\api-gateway\src\main\java\com\apigateway\controller\TipoProveedorBffController.java
 C:\Users\Usuario\Desktop\my-work\sistema-gestion-obras\backend1.0\api-gateway\src\main\java\com\apigateway\ApiGatewayApplication.java
 C:\Users\Usuario\Desktop\my-work\sistema-gestion-obras\backend1.0\api-gateway\src\main\java\com\apigateway\controller\TareaBffController.java
+C:\Users\Usuario\Desktop\my-work\sistema-gestion-obras\backend1.0\api-gateway\src\main\java\com\apigateway\dto\ErrorApi.java
 C:\Users\Usuario\Desktop\my-work\sistema-gestion-obras\backend1.0\api-gateway\src\main\java\com\apigateway\controller\ProveedorBffController.java
 C:\Users\Usuario\Desktop\my-work\sistema-gestion-obras\backend1.0\api-gateway\src\main\java\com\apigateway\controller\ReportesBffController.java
 C:\Users\Usuario\Desktop\my-work\sistema-gestion-obras\backend1.0\api-gateway\src\main\java\com\apigateway\controller\TransaccionBffController.java

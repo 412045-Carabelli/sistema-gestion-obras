@@ -1,6 +1,7 @@
 package com.transacciones.service;
 
 import com.transacciones.dto.ObraCostoDto;
+import com.transacciones.dto.ObraResumenDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -26,6 +27,12 @@ public class ObraCostoClient {
                 .filter(c -> idCosto.equals(c.getId()))
                 .findFirst()
                 .orElse(null);
+    }
+
+    public ObraResumenDto obtenerObra(Long idObra) {
+        if (idObra == null) return null;
+        String url = String.format("%s/%s", obrasServiceUrl, idObra);
+        return restTemplate.getForObject(url, ObraResumenDto.class);
     }
 
     public void actualizarEstadoPago(Long idCosto, String estado) {

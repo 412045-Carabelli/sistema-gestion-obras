@@ -11,6 +11,7 @@ com\obras\entity\Obra.class
 com\obras\entity\ObraProveedor.class
 com\obras\entity\ObraCosto$ObraCostoBuilder.class
 com\obras\entity\EstadoObra.class
+com\obras\handler\RestExceptionHandler.class
 com\obras\service\ProgresoService.class
 com\obras\controller\ObrasProveedoresController.class
 com\obras\entity\Tarea$TareaBuilder.class
@@ -36,6 +37,7 @@ com\obras\service\TareaService.class
 com\obras\controller\EstadosPagosController.class
 com\obras\entity\ObraProveedor$PK.class
 com\obras\service\ObraProveedorService.class
+com\obras\dto\ErrorApi.class
 com\obras\service\impl\ObraServiceImpl$TotalesObra.class
 com\obras\repository\ObraCostoRepository.class
 com\obras\enums\TipoCostoEnum.class

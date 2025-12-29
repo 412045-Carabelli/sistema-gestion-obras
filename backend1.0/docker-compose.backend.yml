@@ -12,7 +12,7 @@ services:
       - ./obras-service/data:/app/data
     environment:
       SPRING_PROFILES_ACTIVE: prod
-      SPRING_SQL_INIT_MODE: always
+      SPRING_SQL_INIT_MODE: never
       SPRING_SQL_INIT_DATA_LOCATIONS: classpath:data-prod.sql
       SPRING_JPA_DEFER_DATASOURCE_INITIALIZATION: "true"
     restart: unless-stopped
@@ -45,7 +45,7 @@ services:
       - ./proveedores-service/data:/app/data
     environment:
       SPRING_PROFILES_ACTIVE: prod
-      SPRING_SQL_INIT_MODE: always
+      SPRING_SQL_INIT_MODE: never
       SPRING_SQL_INIT_DATA_LOCATIONS: classpath:data-prod.sql
       SPRING_JPA_DEFER_DATASOURCE_INITIALIZATION: "true"
     restart: unless-stopped
@@ -64,7 +64,7 @@ services:
       - ./documentos-service/uploads:/app/uploads
     environment:
       SPRING_PROFILES_ACTIVE: prod
-      SPRING_SQL_INIT_MODE: always
+      SPRING_SQL_INIT_MODE: never
       SPRING_SQL_INIT_DATA_LOCATIONS: classpath:data-prod.sql
       SPRING_JPA_DEFER_DATASOURCE_INITIALIZATION: "true"
     restart: unless-stopped
@@ -82,7 +82,7 @@ services:
       - ./transacciones-service/data:/app/data
     environment:
       SPRING_PROFILES_ACTIVE: prod
-      SPRING_SQL_INIT_MODE: always
+      SPRING_SQL_INIT_MODE: never
       SPRING_SQL_INIT_DATA_LOCATIONS: classpath:data-prod.sql
       SPRING_JPA_DEFER_DATASOURCE_INITIALIZATION: "true"
     restart: unless-stopped

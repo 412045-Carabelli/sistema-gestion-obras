@@ -5,6 +5,7 @@ C:\Users\Usuario\Desktop\my-work\sistema-gestion-obras\backend1.0\transacciones-
 C:\Users\Usuario\Desktop\my-work\sistema-gestion-obras\backend1.0\transacciones-service\src\main\java\com\transacciones\config\DatabasePatchConfig.java
 C:\Users\Usuario\Desktop\my-work\sistema-gestion-obras\backend1.0\transacciones-service\src\main\java\com\transacciones\controller\FacturaController.java
 C:\Users\Usuario\Desktop\my-work\sistema-gestion-obras\backend1.0\transacciones-service\src\main\java\com\transacciones\entity\Transaccion.java
+C:\Users\Usuario\Desktop\my-work\sistema-gestion-obras\backend1.0\transacciones-service\src\main\java\com\transacciones\dto\ObraResumenDto.java
 C:\Users\Usuario\Desktop\my-work\sistema-gestion-obras\backend1.0\transacciones-service\src\main\java\com\transacciones\repository\FacturaRepository.java
 C:\Users\Usuario\Desktop\my-work\sistema-gestion-obras\backend1.0\transacciones-service\src\main\java\com\transacciones\service\TransaccionService.java
 C:\Users\Usuario\Desktop\my-work\sistema-gestion-obras\backend1.0\transacciones-service\src\main\java\com\transacciones\controller\TransaccionController.java
