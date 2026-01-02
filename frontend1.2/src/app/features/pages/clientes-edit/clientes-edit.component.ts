@@ -42,7 +42,7 @@ export class ClientesEditComponent implements OnInit {
       cuit: ['', Validators.required],
       condicion_iva: [null, Validators.required],
       telefono: ['', Validators.required],
-      email: ['', [Validators.required, Validators.email]]
+      email: ['', [Validators.email]]
     });
 
     const idParam = this.route.snapshot.paramMap.get('id');

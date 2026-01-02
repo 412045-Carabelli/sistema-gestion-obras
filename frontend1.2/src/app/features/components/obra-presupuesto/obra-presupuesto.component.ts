@@ -13,6 +13,7 @@ import { ButtonModule } from 'primeng/button';
 import { DropdownModule } from 'primeng/dropdown';
 import { InputTextModule } from 'primeng/inputtext';
 import { CheckboxModule } from 'primeng/checkbox';
+import { InputNumber } from 'primeng/inputnumber';
 import { FormsModule } from '@angular/forms';
 import { MessageService } from 'primeng/api';
 import { ToastModule } from 'primeng/toast';
@@ -29,6 +30,8 @@ import { Select } from 'primeng/select';
 import { ModalComponent } from '../../../shared/modal/modal.component';
 import { TransaccionesService } from '../../../services/transacciones/transacciones.service';
 import { AutoCompleteModule } from 'primeng/autocomplete';
+import { MenuModule } from 'primeng/menu';
+import { MenuItem } from 'primeng/api';
 
 // PDFMAKE
 import pdfMake from 'pdfmake/build/pdfmake';
@@ -48,12 +51,14 @@ pdfMake.vfs = pdfFonts.vfs;
     DropdownModule,
     InputTextModule,
     CheckboxModule,
+    InputNumber,
     FormsModule,
     ToastModule,
     NgClass,
     Select,
     AutoCompleteModule,
-    ModalComponent
+    ModalComponent,
+    MenuModule
   ],
   providers: [MessageService],
   templateUrl: './obra-presupuesto.component.html'
@@ -81,6 +86,7 @@ export class ObraPresupuestoComponent implements OnInit, OnChanges {
   nuevoCosto: Partial<ObraCosto> = this.getNuevoCostoBase();
   nuevoCostoProveedor?: Proveedor | null;
   filteredProveedores: Proveedor[] = [];
+  exportOptions: MenuItem[] = [];
   tipoCostoOptions = [
     { label: 'Original', value: 'ORIGINAL' },
     { label: 'Adicional', value: 'ADICIONAL' }
@@ -108,6 +114,23 @@ export class ObraPresupuestoComponent implements OnInit, OnChanges {
     }
     this.cargarEstadosDePago();
     this.ajustarTipoCostoNuevoSegunEstado();
+    this.exportOptions = [
+      {
+        label: 'Matriz de costos detallada',
+        icon: 'pi pi-list',
+        command: () => this.exportarPDF('DETALLADO')
+      },
+      {
+        label: 'Memoria descriptiva (GL)',
+        icon: 'pi pi-align-left',
+        command: () => this.exportarPDF('MEMORIA')
+      },
+      {
+        label: 'Memoria + matriz de costos',
+        icon: 'pi pi-copy',
+        command: () => this.exportarPDF('AMBOS')
+      }
+    ];
   }
 
   ngOnChanges(changes: SimpleChanges) {
@@ -504,7 +527,7 @@ export class ObraPresupuestoComponent implements OnInit, OnChanges {
   // ----------------------------------------------------------
   // ------------------- EXPORTAR PDF --------------------------
   // ----------------------------------------------------------
-  async exportarPDF() {
+  async exportarPDF(modo: 'DETALLADO' | 'MEMORIA' | 'AMBOS' = 'DETALLADO') {
     this.ensurePdfMakeReady();
 
     const obra = this.obra;
@@ -517,24 +540,6 @@ export class ObraPresupuestoComponent implements OnInit, OnChanges {
 
     const formatCurrency = (valor: number) =>
       (Number(valor) || 0).toLocaleString('es-AR', {style: 'currency', currency: 'ARS'});
-
-    const filasCostos = costos.map((c, index) => {
-      const subtotalBase = Number(c.subtotal ?? (Number(c.cantidad ?? 0) * Number(c.precio_unitario ?? 0)));
-      const beneficioAplicado = this.usarBeneficioGlobal && c.tipo_costo !== 'ADICIONAL'
-        ? this.beneficioGlobal
-        : Number(c.beneficio ?? 0);
-      const subtotalConBeneficio = subtotalBase * (1 + beneficioAplicado / 100);
-      const itemNumero = (c.item_numero ?? '').toString().trim() || String(index + 1);
-
-      return [
-        { text: itemNumero, fontSize: 9, alignment: 'center' },
-        { text: c.descripcion || '-', fontSize: 9 },
-        { text: c.unidad || '-', fontSize: 9, alignment: 'center' },
-        { text: String(c.cantidad ?? 0), fontSize: 9, alignment: 'center' },
-        { text: formatCurrency(subtotalBase), fontSize: 9, alignment: 'right' },
-        { text: formatCurrency(subtotalConBeneficio), fontSize: 9, alignment: 'right' }
-      ];
-    });
 
     const subtotalBase = costos.reduce(
       (acc, c) => acc + Number(c.subtotal ?? (Number(c.cantidad ?? 0) * Number(c.precio_unitario ?? 0))),
@@ -551,6 +556,50 @@ export class ObraPresupuestoComponent implements OnInit, OnChanges {
     const presupuestoTotal = totalConBeneficio + comisionMonto;
     const beneficioNeto = beneficioMonto - comisionMonto;
     const observaciones = (this.obra.notas || '').trim() || 'Sin observaciones adicionales.';
+
+    const memoriaTexto = this.normalizarMemoriaTexto(this.obra.memoria_descriptiva);
+    if ((modo === 'MEMORIA' || modo === 'AMBOS') && !memoriaTexto) {
+      this.messageService.add({
+        severity: 'warn',
+        summary: 'Falta memoria descriptiva',
+        detail: 'Completa la memoria descriptiva para exportarla como GL.'
+      });
+      return;
+    }
+
+    const memoriaContenido = modo === 'MEMORIA' || modo === 'AMBOS'
+      ? this.convertirMemoriaPdfMake(this.obra.memoria_descriptiva) ?? memoriaTexto
+      : null;
+
+    const memoriaRow = (modo === 'MEMORIA' || modo === 'AMBOS') && memoriaContenido
+      ? [
+        { text: '1.1', fontSize: 9, alignment: 'center' },
+        memoriaContenido,
+        { text: 'gl', fontSize: 9, alignment: 'center' },
+        { text: '1', fontSize: 9, alignment: 'center' },
+        { text: formatCurrency(presupuestoTotal), fontSize: 9, alignment: 'right' }
+      ]
+      : null;
+
+    const filasCostos = costos.map((c, index) => {
+      const subtotalBase = Number(c.subtotal ?? (Number(c.cantidad ?? 0) * Number(c.precio_unitario ?? 0)));
+      const beneficioAplicado = this.usarBeneficioGlobal && c.tipo_costo !== 'ADICIONAL'
+        ? this.beneficioGlobal
+        : Number(c.beneficio ?? 0);
+      const subtotalConBeneficio = subtotalBase * (1 + beneficioAplicado / 100);
+
+      return [
+        { text: this.getItemNumeroDisplay(c, index), fontSize: 9, alignment: 'center' },
+        { text: c.descripcion || '-', fontSize: 9 },
+        { text: c.unidad || '-', fontSize: 9, alignment: 'center' },
+        { text: String(c.cantidad ?? 0), fontSize: 9, alignment: 'center' },
+        { text: formatCurrency(subtotalConBeneficio), fontSize: 9, alignment: 'right' }
+      ];
+    });
+    const filasTabla = modo === 'MEMORIA'
+      ? (memoriaRow ? [memoriaRow] : [])
+      : (modo === 'AMBOS' && memoriaRow ? [memoriaRow, ...filasCostos] : filasCostos);
+    const subtotalMostrar = modo === 'MEMORIA' ? presupuestoTotal : totalConBeneficio;
 
     const docDefinition: any = {
       pageMargins: [40, 70, 40, 60],
@@ -597,18 +646,17 @@ export class ObraPresupuestoComponent implements OnInit, OnChanges {
         { text: 'Detalle de costos', style: 'sectionHeader' },
         {
           table: {
-            widths: [35, '*', 50, 50, 70, 80],
+            widths: [40, '*', 20, 35, 80],
             headerRows: 1,
             body: [
               [
-                { text: 'ITEM', bold: true, fontSize: 10, fillColor: '#f3f4f6' },
-                { text: 'DESCRIPCION', bold: true, fontSize: 10, fillColor: '#f3f4f6' },
+                { text: 'ITEM', bold: true, fontSize: 10, alignment: 'center', fillColor: '#f3f4f6' },
+                { text: 'DESCRIPCION', bold: true, fontSize: 10, alignment: 'center', fillColor: '#f3f4f6' },
                 { text: 'UN', bold: true, fontSize: 10, alignment: 'center', fillColor: '#f3f4f6' },
                 { text: 'CANT', bold: true, fontSize: 10, alignment: 'center', fillColor: '#f3f4f6' },
-                { text: 'Subtotal', bold: true, fontSize: 10, alignment: 'right', fillColor: '#f3f4f6' },
-                { text: 'Total', bold: true, fontSize: 10, alignment: 'right', fillColor: '#f3f4f6' }
+                { text: 'Subtotal', bold: true, fontSize: 10, alignment: 'center', fillColor: '#f3f4f6' }
               ],
-              ...filasCostos
+              ...filasTabla
             ]
           },
           layout: {
@@ -624,8 +672,7 @@ export class ObraPresupuestoComponent implements OnInit, OnChanges {
           table: {
             widths: ['*', 180],
             body: [
-              ['Subtotal', formatCurrency(subtotalBase)],
-              ['Presupuesto total', formatCurrency(presupuestoTotal)]
+              ['Subtotal', formatCurrency(presupuestoTotal)]
             ]
           },
           layout: {
@@ -980,6 +1027,88 @@ export class ObraPresupuestoComponent implements OnInit, OnChanges {
       this.nuevoCosto.tipo_costo = 'ADICIONAL';
       this.onTipoCostoNuevoChange('ADICIONAL');
     }
+  }
+
+  private normalizarMemoriaTexto(raw?: string | null): string | null {
+    if (!raw) return null;
+    const div = document.createElement('div');
+    div.innerHTML = raw;
+    const texto = (div.innerText || '').replace(/\s+\n/g, '\n').replace(/\n\s+/g, '\n').trim();
+    return texto || null;
+  }
+
+  private convertirMemoriaPdfMake(raw?: string | null): any | null {
+    if (!raw) return null;
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(raw, 'text/html');
+    const blocks: any[] = [];
+    doc.body.childNodes.forEach(node => {
+      const block = this.convertirBloqueHtml(node);
+      if (block) {
+        blocks.push(block);
+      }
+    });
+    if (!blocks.length) return null;
+    return { stack: blocks };
+  }
+
+  private convertirBloqueHtml(node: ChildNode): any | null {
+    if (node.nodeType === Node.TEXT_NODE) {
+      const text = (node.textContent || '').trim();
+      return text ? { text, fontSize: 9, margin: [0, 0, 0, 4] } : null;
+    }
+
+    if (node.nodeType !== Node.ELEMENT_NODE) return null;
+
+    const element = node as HTMLElement;
+    const tag = element.tagName.toLowerCase();
+
+    if (tag === 'ul' || tag === 'ol') {
+      const items: any[] = [];
+      element.childNodes.forEach(child => {
+        if (child.nodeType !== Node.ELEMENT_NODE) return;
+        const li = child as HTMLElement;
+        if (li.tagName.toLowerCase() !== 'li') return;
+        const runs = this.convertirInlineHtml(li);
+        if (runs.length) {
+          items.push({ text: runs, fontSize: 9 });
+        }
+      });
+      return items.length ? (tag === 'ul' ? { ul: items } : { ol: items }) : null;
+    }
+
+    const runs = this.convertirInlineHtml(element);
+    if (!runs.length) return null;
+    return { text: runs, fontSize: 9, margin: [0, 0, 0, 4] };
+  }
+
+  private convertirInlineHtml(node: ChildNode, style: any = {}): any[] {
+    if (node.nodeType === Node.TEXT_NODE) {
+      const text = node.textContent || '';
+      return text ? [{ text, ...style }] : [];
+    }
+
+    if (node.nodeType !== Node.ELEMENT_NODE) return [];
+
+    const element = node as HTMLElement;
+    const tag = element.tagName.toLowerCase();
+    const nextStyle = { ...style };
+
+    if (tag === 'b' || tag === 'strong') {
+      nextStyle.bold = true;
+    } else if (tag === 'i' || tag === 'em') {
+      nextStyle.italics = true;
+    } else if (tag === 'u') {
+      nextStyle.decoration = 'underline';
+    } else if (tag === 'br') {
+      return [{ text: '\n', ...style }];
+    }
+
+    const runs: any[] = [];
+    element.childNodes.forEach(child => {
+      runs.push(...this.convertirInlineHtml(child, nextStyle));
+    });
+    return runs;
   }
 }
 

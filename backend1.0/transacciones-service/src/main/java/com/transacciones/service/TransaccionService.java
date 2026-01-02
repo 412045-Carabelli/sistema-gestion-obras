@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -127,7 +128,7 @@ public class TransaccionService {
     private TransaccionDto toDto(Transaccion transaccion) {
         if (transaccion == null) return null;
 
-        return TransaccionDto.builder()
+        TransaccionDto dto = TransaccionDto.builder()
                 .id(transaccion.getId())
                 .id_obra(transaccion.getIdObra())
                 .id_asociado(transaccion.getIdAsociado())
@@ -143,6 +144,48 @@ public class TransaccionService {
                 .ultima_actualizacion(transaccion.getUltimaActualizacion())
                 .tipo_actualizacion(transaccion.getTipoActualizacion())
                 .build();
+
+        completarPagadoRestante(transaccion, dto);
+        return dto;
+    }
+
+    private void completarPagadoRestante(Transaccion transaccion, TransaccionDto dto) {
+        if (transaccion == null || dto == null) return;
+        if (transaccion.getTipo_transaccion() == null) return;
+
+        if (transaccion.getTipo_transaccion() == TipoTransaccionEnum.PAGO
+                && transaccion.getIdCosto() != null
+                && transaccion.getIdObra() != null) {
+            try {
+                ObraCostoDto costo = obraCostoClient.obtenerCosto(transaccion.getIdObra(), transaccion.getIdCosto());
+                if (costo == null) return;
+                Double totalCosto = costo.getTotal() != null ? costo.getTotal() : costo.getSubtotal();
+                if (totalCosto == null) return;
+                Double pagado = transaccionRepository.sumarPagosPorCosto(transaccion.getIdCosto());
+                double pagadoVal = pagado != null ? pagado : 0d;
+                dto.setPagado(pagadoVal);
+                dto.setRestante(Math.max(0d, totalCosto - pagadoVal));
+            } catch (Exception ex) {
+                log.debug("No se pudo calcular pagado/restante para costo {}", transaccion.getIdCosto(), ex);
+            }
+            return;
+        }
+
+        String tipoAsociado = transaccion.getTipoAsociado() == null ? "" : transaccion.getTipoAsociado().toUpperCase();
+        if (transaccion.getTipo_transaccion() == TipoTransaccionEnum.COBRO
+                && "CLIENTE".equals(tipoAsociado)
+                && transaccion.getIdObra() != null) {
+            try {
+                ObraResumenDto obra = obraCostoClient.obtenerObra(transaccion.getIdObra());
+                if (obra == null || obra.getPresupuesto() == null) return;
+                Double cobrado = transaccionRepository.sumarCobrosPorObra(transaccion.getIdObra());
+                double cobradoVal = cobrado != null ? cobrado : 0d;
+                dto.setPagado(cobradoVal);
+                dto.setRestante(Math.max(0d, obra.getPresupuesto() - cobradoVal));
+            } catch (Exception ex) {
+                log.debug("No se pudo calcular pagado/restante para obra {}", transaccion.getIdObra(), ex);
+            }
+        }
     }
 
     private Long mapTipoTransaccionToId(TipoTransaccionEnum e) {
@@ -156,12 +199,12 @@ public class TransaccionService {
 
         try {
             ObraCostoDto costo = obraCostoClient.obtenerCosto(transaccion.getIdObra(), transaccion.getIdCosto());
-            if (costo == null || costo.getTotal() == null) return;
+            if (costo == null || (costo.getSubtotal() == null && costo.getTotal() == null)) return;
 
             String formaPago = transaccion.getForma_pago() == null
                     ? ""
                     : transaccion.getForma_pago().toUpperCase();
-            double totalCosto = costo.getTotal();
+            double totalCosto = costo.getSubtotal() != null ? costo.getSubtotal() : costo.getTotal();
             double totalPagos = transaccionRepository.sumarPagosPorCosto(transaccion.getIdCosto());
 
             String nuevoEstado = null;
@@ -203,20 +246,23 @@ public class TransaccionService {
         if (dto.getTipo_transaccion() != TipoTransaccionEnum.PAGO) return;
 
         ObraCostoDto costo = obraCostoClient.obtenerCosto(dto.getIdObra(), dto.getIdCosto());
-        if (costo == null || costo.getTotal() == null) {
+        if (costo == null || (costo.getSubtotal() == null && costo.getTotal() == null)) {
             throw new IllegalArgumentException("Costo no encontrado para validar el monto");
         }
 
         String formaPago = dto.getForma_pago() == null ? "" : dto.getForma_pago().toUpperCase();
         double monto = dto.getMonto() != null ? dto.getMonto() : 0;
-        double totalCosto = costo.getTotal();
-        double diferencia = Math.abs(monto - totalCosto);
+        double totalCosto = costo.getSubtotal() != null ? costo.getSubtotal() : costo.getTotal();
+        double pagosPrevios = Optional.ofNullable(transaccionRepository.sumarPagosPorCosto(dto.getIdCosto()))
+                .orElse(0d);
+        double totalDespues = pagosPrevios + monto;
+        double diferencia = Math.abs(totalDespues - totalCosto);
 
         if ("TOTAL".equals(formaPago) && diferencia >= 0.01) {
-            throw new IllegalArgumentException("Para pago total, el monto debe ser igual al total del costo");
+            throw new IllegalArgumentException("Para pago total, el monto debe completar el total del costo");
         }
-        if ("PARCIAL".equals(formaPago) && monto >= totalCosto) {
-            throw new IllegalArgumentException("Para pago parcial, el monto debe ser menor al total del costo");
+        if ("PARCIAL".equals(formaPago) && totalDespues >= totalCosto) {
+            throw new IllegalArgumentException("Para pago parcial, el monto no debe completar el total del costo");
         }
     }
 
@@ -236,13 +282,16 @@ public class TransaccionService {
         String formaPago = dto.getForma_pago() == null ? "" : dto.getForma_pago().toUpperCase();
         double monto = dto.getMonto() != null ? dto.getMonto() : 0;
         double presupuesto = obra.getPresupuesto();
-        double diferencia = Math.abs(monto - presupuesto);
+        double cobrosPrevios = Optional.ofNullable(transaccionRepository.sumarCobrosPorObra(dto.getIdObra()))
+                .orElse(0d);
+        double totalDespues = cobrosPrevios + monto;
+        double diferencia = Math.abs(totalDespues - presupuesto);
 
         if ("TOTAL".equals(formaPago) && diferencia >= 0.01) {
-            throw new IllegalArgumentException("Para cobro total, el monto debe ser igual al presupuesto total de la obra");
+            throw new IllegalArgumentException("Para cobro total, el monto debe completar el presupuesto total de la obra");
         }
-        if ("PARCIAL".equals(formaPago) && monto >= presupuesto) {
-            throw new IllegalArgumentException("Para cobro parcial, el monto debe ser menor al presupuesto total de la obra");
+        if ("PARCIAL".equals(formaPago) && totalDespues >= presupuesto) {
+            throw new IllegalArgumentException("Para cobro parcial, el monto no debe completar el presupuesto total de la obra");
         }
     }
 }

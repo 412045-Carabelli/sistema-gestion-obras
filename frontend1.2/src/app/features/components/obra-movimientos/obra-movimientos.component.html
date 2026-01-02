@@ -182,8 +182,14 @@
             @if (selectedCosto) {
               <p class="text-xs text-gray-500 mt-1">
                 Estado: {{ selectedCosto.estado_pago || 'PENDIENTE' }} - Total:
-                {{ selectedCosto.total | currency:'ARS' }}
+                {{ selectedCosto.subtotal | currency:'ARS' }}
               </p>
+              @if (totalPagadoCostoSeleccionado != null && restanteCostoSeleccionado != null) {
+                <p class="text-xs text-gray-500">
+                  Pagado: {{ totalPagadoCostoSeleccionado | currency:'ARS' }} -
+                  Restante: {{ restanteCostoSeleccionado | currency:'ARS' }}
+                </p>
+              }
             }
           </div>
         }
@@ -201,8 +207,19 @@
               [dropdown]="true"
               placeholder="Buscar cliente"
               styleClass="w-full"
-              (onSelect)="cargarDatos()"
+              (onSelect)="onClienteSeleccionado()"
             ></p-autoComplete>
+            @if (deudaClienteSeleccionado != null) {
+              <p class="text-xs text-gray-500 mt-1">
+                Debe: {{ deudaClienteSeleccionado | currency:'ARS' }}
+              </p>
+            }
+            @if (deudaClienteSeleccionado != null) {
+              <p class="text-xs text-gray-500">
+                Cobrado: {{ totalCobrosClienteSeleccionado | currency:'ARS' }} -
+                Restante: {{ deudaClienteSeleccionado | currency:'ARS' }}
+              </p>
+            }
           </div>
         }
       </div>
@@ -272,6 +289,7 @@
           <label class="block text-sm font-medium mb-1 text-gray-700">Monto</label>
           <p-inputNumber
             [(ngModel)]="nuevoMovimiento.monto"
+            (ngModelChange)="onMontoChange($event)"
             class="w-full"
             currency="ARS"
             locale="es-AR"

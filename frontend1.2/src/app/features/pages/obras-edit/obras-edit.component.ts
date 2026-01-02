@@ -1,5 +1,5 @@
 import {Component, Input, OnInit} from '@angular/core';
-import {FormArray, FormBuilder, FormGroup, ReactiveFormsModule, Validators} from '@angular/forms';
+import {FormArray, FormBuilder, FormGroup, ReactiveFormsModule, Validators, FormsModule} from '@angular/forms';
 import {ActivatedRoute, Router, RouterLink} from '@angular/router';
 import {CommonModule} from '@angular/common';
 import {forkJoin} from 'rxjs';
@@ -22,6 +22,7 @@ import {ClientesService} from '../../../services/clientes/clientes.service';
 import {EstadoObraService} from '../../../services/estado-obra/estado-obra.service';
 import {CatalogoOption, ProveedoresService} from '../../../services/proveedores/proveedores.service';
 import {ModalComponent} from '../../../shared/modal/modal.component';
+import {EditorModule} from 'primeng/editor';
 
 @Component({
   selector: 'app-obras-edit',
@@ -30,6 +31,7 @@ import {ModalComponent} from '../../../shared/modal/modal.component';
   styleUrls: ['./obras-edit.component.css'],
   imports: [
     CommonModule,
+    FormsModule,
     ReactiveFormsModule,
     InputTextModule,
     ButtonModule,
@@ -43,6 +45,7 @@ import {ModalComponent} from '../../../shared/modal/modal.component';
     Checkbox,
     RouterLink,
     ModalComponent,
+    EditorModule,
   ],
   providers: [MessageService],
 })
@@ -134,6 +137,7 @@ export class ObrasEditComponent implements OnInit {
       comision: raw.comision,
       beneficio: raw.beneficio,
       notas: raw.notas,
+      memoria_descriptiva: raw.memoria_descriptiva,
       beneficio_global: raw.beneficio_global,
       tareas: [],
       costos: raw.costos.map((c: any) => {
@@ -243,6 +247,7 @@ export class ObrasEditComponent implements OnInit {
       fecha_perdida: [this.parseDate(this.obra.fecha_perdida)],
       presupuesto: [{value: this.obra.presupuesto, disabled: true}, Validators.required],
       notas: [this.obra.notas ?? ""],
+      memoria_descriptiva: [this.obra.memoria_descriptiva ?? ""],
       tiene_comision: [this.obra.tiene_comision ?? false],
       comision: [this.obra.comision ?? 0, [Validators.min(0), Validators.max(100)]],
       costos: this.fb.array<FormGroup>([])
@@ -258,7 +263,7 @@ export class ObrasEditComponent implements OnInit {
       cuit: ['', Validators.required],
       condicion_iva: [null, Validators.required],
       telefono: ['', [Validators.required, Validators.minLength(6)]],
-      email: ['', [Validators.required, Validators.email]],
+      email: ['', [Validators.email]],
       activo: [true, Validators.required],
     });
 
@@ -270,7 +275,7 @@ export class ObrasEditComponent implements OnInit {
       direccion: [''],
       cuit: ['', Validators.required],
       telefono: ['', Validators.required],
-      email: ['', Validators.required],
+      email: ['', [Validators.email]],
       activo: [true, Validators.required],
     });
   }

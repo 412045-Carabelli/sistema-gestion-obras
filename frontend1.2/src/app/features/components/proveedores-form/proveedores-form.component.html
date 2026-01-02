@@ -66,12 +66,21 @@
       </div>
     </div>
     <div>
-      <label class="block text-sm font-medium mb-1">Email</label>
+      <label class="block text-sm font-medium mb-1">Email (opcional)</label>
       <input class="w-full" formControlName="email" pInputText/>
     </div>
   </div>
 
-  <p-button [disabled]="form.invalid" icon="pi pi-check" label="Guardar" type="submit"></p-button>
+  <div class="flex justify-end gap-2 pt-4">
+    <p-button
+      [routerLink]="['/proveedores']"
+      icon="pi pi-times"
+      label="Cancelar"
+      severity="secondary"
+      styleClass="p-button-text">
+    </p-button>
+    <p-button [disabled]="form.invalid" icon="pi pi-check" label="Guardar" type="submit"></p-button>
+  </div>
 </form>
 
 <app-modal

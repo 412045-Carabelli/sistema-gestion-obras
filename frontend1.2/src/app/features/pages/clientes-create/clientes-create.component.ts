@@ -42,7 +42,7 @@ export class ClientesCreateComponent implements OnInit {
       cuit: ['', Validators.required],
       condicion_iva: [null, Validators.required],
       telefono: ['', [Validators.required, Validators.minLength(10), Validators.maxLength(15)]],
-      email: ['', [Validators.required, Validators.email]],
+      email: ['', [Validators.email]],
       activo: [true, Validators.required]
     });
 

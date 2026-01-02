@@ -1,5 +1,7 @@
 package com.clientes.entity;
 
+import com.fasterxml.jackson.annotation.JsonAlias;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
 import lombok.Data;
 
@@ -13,6 +15,8 @@ public class Cliente {
     @Column(nullable=false) private String nombre;
     private Long id_empresa;
     private String contacto, cuit, telefono, email, direccion;
+    @JsonProperty("condicionIVA")
+    @JsonAlias({"condicionIva", "condicion_iva"})
     @Enumerated(EnumType.STRING)
     @Column(name = "condicion_iva")
     private CondicionIva condicionIva = CondicionIva.RESPONSABLE_INSCRIPTO;
@@ -46,6 +50,8 @@ public class Cliente {
     }
 
     // Compatibilidad con tests/DTOs que usan el nombre en mayúsculas
+    @JsonProperty("condicionIVA")
+    @JsonAlias({"condicionIva", "condicion_iva"})
     public void setCondicionIva(String condicion) {
         if (condicion == null) {
             this.condicionIva = CondicionIva.RESPONSABLE_INSCRIPTO;
@@ -58,7 +64,9 @@ public class Cliente {
         }
     }
 
+    @JsonProperty("condicionIVA")
     public String getCondicionIVA() {
         return this.condicionIva != null ? this.condicionIva.name() : null;
     }
+
 }

@@ -56,6 +56,9 @@ public class Obra {
     @Column(columnDefinition = "TEXT")
     private String notas;
 
+    @Column(name = "memoria_descriptiva", columnDefinition = "TEXT")
+    private String memoriaDescriptiva;
+
     @Column(name = "ultima_actualizacion")
     private Instant ultimaActualizacion;
 
