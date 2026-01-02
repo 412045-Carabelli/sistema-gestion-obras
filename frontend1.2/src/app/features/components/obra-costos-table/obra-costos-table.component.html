@@ -84,7 +84,16 @@
         <!-- Precio Unitario -->
         <td class="px-2 py-1 text-right w-32">
           @if (modoEdicion) {
-            <input type="number" pInputText formControlName="precio_unitario" class="w-full text-right"/>
+            <p-inputNumber
+              formControlName="precio_unitario"
+              mode="decimal"
+              locale="es-AR"
+              [useGrouping]="true"
+              [minFractionDigits]="2"
+              [maxFractionDigits]="2"
+              inputStyleClass="w-full text-right"
+              [min]="0">
+            </p-inputNumber>
           } @else {
             {{ costos.at(rowIndex).get('precio_unitario')?.value | currency:'ARS' }}
           }

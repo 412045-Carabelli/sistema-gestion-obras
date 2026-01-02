@@ -1,0 +1,7 @@
+:host ::ng-deep .memoria-editor .p-editor-container {
+  min-height: 200px;
+}
+
+:host ::ng-deep .memoria-editor .p-editor-content {
+  min-height: 160px;
+}

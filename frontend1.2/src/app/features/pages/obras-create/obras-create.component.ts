@@ -1,5 +1,5 @@
 import {Component, OnInit} from '@angular/core';
-import {FormArray, FormBuilder, FormControl, FormGroup, ReactiveFormsModule, Validators} from '@angular/forms';
+import {FormArray, FormBuilder, FormControl, FormGroup, ReactiveFormsModule, Validators, FormsModule} from '@angular/forms';
 import {CommonModule, DatePipe} from '@angular/common';
 import {CardModule} from 'primeng/card';
 import {InputTextModule} from 'primeng/inputtext';
@@ -22,12 +22,14 @@ import {AutoCompleteModule} from 'primeng/autocomplete';
 import {RouterLink} from '@angular/router';
 import {PreventInvalidSubmitDirective} from '../../../shared/directives/prevent-invalid-submit.directive';
 import {ModalComponent} from '../../../shared/modal/modal.component';
+import {EditorModule} from 'primeng/editor';
 
 @Component({
   selector: 'app-obras-create',
   standalone: true,
   imports: [
     CommonModule,
+    FormsModule,
     ReactiveFormsModule,
     CardModule,
     InputTextModule,
@@ -43,7 +45,8 @@ import {ModalComponent} from '../../../shared/modal/modal.component';
     AutoCompleteModule,
     RouterLink
     , PreventInvalidSubmitDirective,
-    ModalComponent
+    ModalComponent,
+    EditorModule
   ],
   templateUrl: './obras-create.component.html',
   styleUrls: ['./obras-create.component.css'],
@@ -85,6 +88,7 @@ export class ObrasCreateComponent implements OnInit {
       fecha_fin: [null],
       // Campos de adjudicación/perdida removidos del alta
       notas: [''],
+      memoria_descriptiva: [''],
       tiene_comision: [false],
       comision: new FormControl({value: null, disabled: true}),
       presupuesto: new FormControl({value: null, disabled: true}),
@@ -99,7 +103,7 @@ export class ObrasCreateComponent implements OnInit {
       cuit: ['', [Validators.required]],
       condicion_iva: [null, [Validators.required]],
       telefono: ['', [Validators.required, Validators.minLength(6)]],
-      email: ['', [Validators.required, Validators.email]],
+      email: ['', [Validators.email]],
       activo: [true, Validators.required]
     });
 
@@ -111,7 +115,7 @@ export class ObrasCreateComponent implements OnInit {
       direccion: [''],
       cuit: ['', Validators.required],
       telefono: ['', Validators.required],
-      email: ['', Validators.required],
+      email: ['', [Validators.email]],
       activo: [true, Validators.required]
     });
   }
@@ -263,6 +267,7 @@ export class ObrasCreateComponent implements OnInit {
       fecha_fin: this.formatToLocalDateTime(raw.fecha_fin),
       // No enviar fechas adjudicada/perdida en creación
       notas: raw.notas?.trim() || undefined,
+      memoria_descriptiva: raw.memoria_descriptiva?.trim() || undefined,
       presupuesto: raw.presupuesto ?? 0,
       beneficio_global: raw.beneficio_global,
       beneficio: raw.beneficio ?? 0,

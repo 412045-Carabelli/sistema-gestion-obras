@@ -175,6 +175,31 @@
       </div>
     </div>
 
+    <div class="bg-white rounded-xl shadow-md p-6">
+      <h2 class="text-lg font-semibold text-gray-900 mb-5 flex items-center gap-2 pb-3 border-b border-gray-200">
+        <i class="pi pi-align-left text-blue-600"></i>
+        Memoria Descriptiva
+      </h2>
+
+      <p-editor
+        formControlName="memoria_descriptiva"
+        styleClass="memoria-editor"
+        placeholder="Describe el alcance de la obra"
+      >
+        <ng-template pTemplate="header">
+          <span class="ql-formats">
+            <button type="button" class="ql-bold" aria-label="Negrita"></button>
+            <button type="button" class="ql-italic" aria-label="Cursiva"></button>
+            <button type="button" class="ql-underline" aria-label="Subrayado"></button>
+          </span>
+          <span class="ql-formats">
+            <button type="button" class="ql-list" value="ordered" aria-label="Lista ordenada"></button>
+            <button type="button" class="ql-list" value="bullet" aria-label="Viñetas"></button>
+          </span>
+        </ng-template>
+      </p-editor>
+    </div>
+
     <div class="grid grid-cols-2 gap-6 justify-between">
       <!-- ========== INFORMACIÓN FINANCIERA ========== -->
       <div class="bg-white rounded-xl shadow-md p-6">
@@ -383,7 +408,7 @@
         <input pInputText formControlName="telefono" placeholder="Ej. 1122334455" />
       </div>
       <div class="flex flex-col gap-1">
-        <label class="text-sm font-semibold text-gray-700">Email</label>
+        <label class="text-sm font-semibold text-gray-700">Email (opcional)</label>
         <input pInputText formControlName="email" placeholder="correo@cliente.com" />
       </div>
     </div>
@@ -446,7 +471,7 @@
         <input pInputText formControlName="telefono" placeholder="Ej. 1122334455" />
       </div>
       <div class="flex flex-col gap-1">
-        <label class="text-sm font-semibold text-gray-700">Email</label>
+        <label class="text-sm font-semibold text-gray-700">Email (opcional)</label>
         <input pInputText formControlName="email" placeholder="correo@proveedor.com" />
       </div>
     </div>

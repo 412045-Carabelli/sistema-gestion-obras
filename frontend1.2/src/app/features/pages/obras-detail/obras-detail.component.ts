@@ -1,4 +1,4 @@
-﻿import {Component, OnDestroy, OnInit, ViewChild} from '@angular/core';
+﻿import {AfterViewInit, Component, ElementRef, OnDestroy, OnInit, ViewChild} from '@angular/core';
 import {ActivatedRoute} from '@angular/router';
 import {CommonModule, CurrencyPipe, DatePipe, NgClass} from '@angular/common';
 import {forkJoin, Subscription} from 'rxjs';
@@ -74,9 +74,10 @@ import {ModalComponent} from '../../../shared/modal/modal.component';
   templateUrl: './obras-detail.component.html',
   styleUrls: ['./obras-detail.component.css']
 })
-export class ObrasDetailComponent implements OnInit, OnDestroy {
+export class ObrasDetailComponent implements OnInit, OnDestroy, AfterViewInit {
 
   @ViewChild('movimientosRef') movimientosRef?: ObraMovimientosComponent;
+  @ViewChild('notasBody') notasBody?: ElementRef<HTMLDivElement>;
 
   obra!: Obra;
   tareas: Tarea[] = [];
@@ -98,6 +99,9 @@ export class ObrasDetailComponent implements OnInit, OnDestroy {
   beneficioNeto = 0;
   beneficioCostos = 0;
   cronogramaFueraDeRango = false;
+  memoriaExpandida = false;
+  notasExpandida = false;
+  notasOverflow = false;
 
   loading = true;
   private subs = new Subscription();
@@ -121,6 +125,10 @@ export class ObrasDetailComponent implements OnInit, OnDestroy {
     if (id) this.cargarDetalle(id);
   }
 
+  ngAfterViewInit(): void {
+    this.scheduleNotasOverflowCheck();
+  }
+
   ngOnDestroy() {
     this.subs.unsubscribe();
     this.obraStateService.clearObra();
@@ -141,6 +149,7 @@ export class ObrasDetailComponent implements OnInit, OnDestroy {
 
         this.estadoSeleccionado = nuevoEstado;
         this.obraStateService.setObra(this.obra);
+        this.scheduleNotasOverflowCheck();
 
         this.messageService.add({
           severity: 'success',
@@ -194,6 +203,7 @@ export class ObrasDetailComponent implements OnInit, OnDestroy {
         this.cargarFacturasObra();
         this.loading = false;
         this.obraStateService.setObra(this.obra);
+        this.scheduleNotasOverflowCheck();
       },
 
       error: () => {
@@ -378,6 +388,7 @@ export class ObrasDetailComponent implements OnInit, OnDestroy {
       next: () => {
         this.obra.activo = !this.obra.activo;
         this.obraStateService.setObra(this.obra);
+        this.scheduleNotasOverflowCheck();
         this.messageService.add({
           severity: 'success',
           summary: this.obra.activo ? 'Obra activada' : 'Obra desactivada',
@@ -392,6 +403,28 @@ export class ObrasDetailComponent implements OnInit, OnDestroy {
         });
       }
     });
+  }
+
+  toggleMemoria() {
+    this.memoriaExpandida = !this.memoriaExpandida;
+  }
+
+  toggleNotas() {
+    this.notasExpandida = !this.notasExpandida;
+    this.scheduleNotasOverflowCheck();
+  }
+
+  private scheduleNotasOverflowCheck() {
+    setTimeout(() => this.checkNotasOverflow(), 0);
+  }
+
+  private checkNotasOverflow() {
+    if (!this.notasBody) {
+      this.notasOverflow = false;
+      return;
+    }
+    const el = this.notasBody.nativeElement;
+    this.notasOverflow = el.scrollHeight > el.clientHeight + 2;
   }
 
   get totalFacturasMonto(): number {
@@ -767,7 +800,7 @@ export class ObrasDetailComponent implements OnInit, OnDestroy {
       return 'Proveedor';
     }
 
-    // Fallback genérico: si es cobro sin asociado, asumimos cliente de la obra
+    // Fallback gen�rico: si es cobro sin asociado, asumimos cliente de la obra
     if ((mov.tipo || '').toUpperCase() === 'COBRO') {
       return this.obra?.cliente?.nombre || 'Cliente';
     }
@@ -804,3 +837,12 @@ export class ObrasDetailComponent implements OnInit, OnDestroy {
     return String(value);
   }
 }
+
+
+
+
+
+
+
+
+

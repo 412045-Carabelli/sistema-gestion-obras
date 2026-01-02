@@ -26,4 +26,6 @@ public class TransaccionDto {
     private Boolean activo;
     private Instant ultima_actualizacion;
     private String tipo_actualizacion;
+    private Double pagado;
+    private Double restante;
 }

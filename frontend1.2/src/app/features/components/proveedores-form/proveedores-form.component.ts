@@ -8,6 +8,7 @@ import {Proveedor} from '../../../core/models/models';
 import {CatalogoOption, ProveedoresService} from '../../../services/proveedores/proveedores.service';
 import {InputText} from 'primeng/inputtext';
 import {ModalComponent} from '../../../shared/modal/modal.component';
+import {RouterLink} from '@angular/router';
 
 @Component({
   selector: 'app-proveedores-form',
@@ -19,7 +20,8 @@ import {ModalComponent} from '../../../shared/modal/modal.component';
     DropdownModule,
     ButtonModule,
     InputText,
-    ModalComponent
+    ModalComponent,
+    RouterLink
   ],
   templateUrl: './proveedores-form.component.html'
 })
@@ -56,7 +58,7 @@ export class ProveedoresFormComponent implements OnInit {
       direccion: [this.initialData?.direccion ?? ''],
       cuit: [this.initialData?.cuit ?? '', Validators.required],
       telefono: [this.initialData?.telefono ?? '', Validators.required],
-      email: [this.initialData?.email ?? '', Validators.required],
+      email: [this.initialData?.email ?? '', Validators.email],
       activo: [this.initialData?.activo ?? true]
     });
 

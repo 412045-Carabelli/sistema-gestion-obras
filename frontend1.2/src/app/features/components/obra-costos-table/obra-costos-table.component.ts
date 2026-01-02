@@ -7,6 +7,7 @@ import {InputText} from 'primeng/inputtext';
 import {Proveedor} from '../../../core/models/models';
 import {AutoComplete} from 'primeng/autocomplete';
 import {ButtonModule} from 'primeng/button';
+import {InputNumber} from 'primeng/inputnumber';
 
 @Component({
   selector: 'app-obra-costos-table',
@@ -19,7 +20,8 @@ import {ButtonModule} from 'primeng/button';
     Select,
     InputText,
     AutoComplete,
-    ButtonModule
+    ButtonModule,
+    InputNumber
   ]
 })
 export class ObraCostosTableComponent implements OnInit, OnChanges {

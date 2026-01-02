@@ -7,6 +7,7 @@ import lombok.Setter;
 @Setter
 public class ObraCostoDto {
     private Long id;
+    private Double subtotal;
     private Double total;
     private String estado_pago;
 }

@@ -36,6 +36,7 @@ public class ObraCostoServiceImpl implements ObraCostoService {
         validarOperacionOriginalEnProgreso(entity, "crear");
         calcularTotales(entity);
         entity = costoRepo.save(entity);
+        actualizarPresupuestoObra(entity.getObra().getId());
         return toDto(entity);
     }
 
@@ -67,7 +68,9 @@ public class ObraCostoServiceImpl implements ObraCostoService {
         entity.setEstadoPago(dto.getEstado_pago() != null ? dto.getEstado_pago() : entity.getEstadoPago());
         validarProveedorRequerido(entity, null);
         calcularTotales(entity);
-        return toDto(costoRepo.save(entity));
+        entity = costoRepo.save(entity);
+        actualizarPresupuestoObra(entity.getObra().getId());
+        return toDto(entity);
     }
 
     // Eliminar costo (lógico)
@@ -77,6 +80,7 @@ public class ObraCostoServiceImpl implements ObraCostoService {
             validarOperacionOriginalEnProgreso(costo, "eliminar");
             costo.setActivo(false);
             costoRepo.save(costo);
+            actualizarPresupuestoObra(costo.getObra().getId());
         });
     }
 
@@ -204,5 +208,52 @@ public class ObraCostoServiceImpl implements ObraCostoService {
                 "No se puede " + accion + " un costo ORIGINAL mientras la obra esta en progreso."
             );
         }
+    }
+
+    private void actualizarPresupuestoObra(Long idObra) {
+        if (idObra == null) return;
+        final var obraOpt = obraRepo.findById(idObra);
+        if (obraOpt.isEmpty()) return;
+
+        final var obra = obraOpt.get();
+        final List<ObraCosto> costos = costoRepo.findByObra_IdAndActivoTrue(idObra);
+        if (costos == null || costos.isEmpty()) return;
+
+        BigDecimal subtotalCostos = BigDecimal.ZERO;
+        BigDecimal beneficioCostos = BigDecimal.ZERO;
+
+        for (ObraCosto costo : costos) {
+            BigDecimal base = costo.getSubtotal();
+            if (base == null) {
+                BigDecimal cantidad = Optional.ofNullable(costo.getCantidad()).orElse(BigDecimal.ZERO);
+                BigDecimal precio = Optional.ofNullable(costo.getPrecioUnitario()).orElse(BigDecimal.ZERO);
+                base = cantidad.multiply(precio);
+            }
+
+            boolean esAdicional = TipoCostoEnum.ADICIONAL.equals(costo.getTipoCosto());
+            BigDecimal beneficioAplicado = esAdicional
+                    ? Optional.ofNullable(costo.getBeneficio()).orElse(BigDecimal.ZERO)
+                    : (Boolean.TRUE.equals(obra.getBeneficioGlobal())
+                        ? Optional.ofNullable(obra.getBeneficio()).orElse(BigDecimal.ZERO)
+                        : Optional.ofNullable(costo.getBeneficio()).orElse(BigDecimal.ZERO));
+
+            subtotalCostos = subtotalCostos.add(base);
+            beneficioCostos = beneficioCostos.add(
+                    base.multiply(beneficioAplicado).divide(new BigDecimal("100"), 6, RoundingMode.HALF_UP)
+            );
+        }
+
+        BigDecimal totalConBeneficio = subtotalCostos.add(beneficioCostos);
+        BigDecimal comisionMonto = BigDecimal.ZERO;
+        if (Boolean.TRUE.equals(obra.getTieneComision()) && obra.getComision() != null) {
+            comisionMonto = totalConBeneficio.multiply(
+                    obra.getComision().divide(new BigDecimal("100"), 6, RoundingMode.HALF_UP)
+            );
+        }
+
+        BigDecimal presupuestoFinal = totalConBeneficio.add(comisionMonto)
+                .setScale(2, RoundingMode.HALF_UP);
+        obra.setPresupuesto(presupuestoFinal);
+        obraRepo.save(obra);
     }
 }

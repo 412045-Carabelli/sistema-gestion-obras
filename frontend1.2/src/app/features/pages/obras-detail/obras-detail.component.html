@@ -162,7 +162,7 @@
           </div>
         </div>
 
-        <!-- Progreso FÃ­sico -->
+        <!-- Progreso Físico -->
         <div class="bg-gradient-to-br from-blue-500 to-blue-700 rounded-xl shadow-md p-6 text-white">
           <h3 class="text-lg font-semibold mb-4 flex items-center gap-2">
             <i class="pi pi-chart-line"></i>
@@ -179,19 +179,6 @@
               <p class="text-sm text-blue-100 mt-1">completado</p>
             </div>
           </div>
-        </div>
-      </div>
-
-      <!-- ===================== NOTAS / OBSERVACIONES ===================== -->
-      <div class="bg-white rounded-xl shadow-md p-6">
-        <h3 class="text-lg font-semibold text-gray-900 mb-3 flex items-center gap-2">
-          <i class="pi pi-file-edit text-gray-600"></i>
-          Notas y Observaciones
-        </h3>
-        <div class="p-4 rounded-lg flex items-center bg-amber-50 border border-amber-200 text-gray-800 whitespace-pre-wrap min-h-[4rem]">
-          <p>
-            {{ obra.notas?.trim() || 'Sin notas registradas' }}
-          </p>
         </div>
       </div>
 
@@ -229,6 +216,12 @@
                 <span class="font-medium">Documentos</span>
               </div>
             </p-tab>
+            <p-tab value="5" pStyleClass="px-6 py-4">
+              <div class="flex items-center gap-2">
+                <i class="pi pi-align-left"></i>
+                <span class="font-medium">Notas y Memoria</span>
+              </div>
+            </p-tab>
           </p-tablist>
 
           <p-tabpanels pStyleClass="p-6">
@@ -264,6 +257,7 @@
                 [obraId]="obra.id!"
                 [obraNombre]="obra.nombre"
                 [presupuestoTotal]="obra.presupuesto ?? 0"
+                (costosActualizados)="onCostosActualizados($event)"
               >
               </app-obra-movimientos>
             </p-tabpanel>
@@ -414,11 +408,73 @@
               ></app-obra-documentos>
             </p-tabpanel>
 
+            <p-tabpanel value="5">
+              <div class="flex flex-col lg:flex-row items-stretch gap-6">
+                <div class="bg-white rounded-xl shadow-md p-6 flex-1 h-full flex flex-col">
+                  <h3 class="text-lg font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                    <i class="pi pi-file-edit text-gray-600"></i>
+                    Notas y Observaciones
+                  </h3>
+                  <div class="p-4 rounded-lg bg-amber-50 border border-amber-200 text-gray-800 min-h-[4rem] relative flex-1">
+                    @if (obra.notas?.trim()) {
+                      <div
+                        #notasBody
+                        class="notas-body"
+                        [ngClass]="{ 'notas-collapsed': !notasExpandida }"
+                      >
+                        {{ obra.notas?.trim() }}
+                      </div>
+                      @if (notasOverflow) {
+                        <button
+                          type="button"
+                          class="text-sm text-amber-700 font-semibold absolute bottom-3 right-4"
+                          (click)="toggleNotas()"
+                        >
+                          {{ notasExpandida ? 'Ver menos' : 'Ver mas' }}
+                        </button>
+                      }
+                    } @else {
+                      <div class="text-gray-700 flex items-center h-full">
+                        Sin notas registradas
+                      </div>
+                    }
+                  </div>
+                </div>
+
+                <div class="bg-white rounded-xl shadow-md p-6 flex-1">
+                  <h3 class="text-lg font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                    <i class="pi pi-align-left text-gray-600"></i>
+                    Memoria Descriptiva
+                  </h3>
+                  @if (obra.memoria_descriptiva?.trim()) {
+                    <div class="p-4 rounded-lg bg-blue-50 border border-blue-200 text-gray-800 memoria-view">
+                      <div
+                        class="memoria-body"
+                        [ngClass]="{ 'memoria-collapsed': !memoriaExpandida }"
+                        [innerHTML]="obra.memoria_descriptiva"
+                      ></div>
+                      <button
+                        type="button"
+                        class="text-sm text-blue-700 font-semibold mt-3"
+                        (click)="toggleMemoria()"
+                      >
+                        {{ memoriaExpandida ? 'Ver menos' : 'Ver mas' }}
+                      </button>
+                    </div>
+                  } @else {
+                    <div class="p-4 rounded-lg bg-blue-50 border border-blue-200 text-gray-700 min-h-[4rem] flex items-center">
+                      Sin memoria descriptiva registrada
+                    </div>
+                  }
+                </div>
+              </div>
+            </p-tabpanel>
+
           </p-tabpanels>
         </p-tabs>
       </div>
 
-      <!-- ===================== GESTIÃ“N DE ESTADO ===================== -->
+      <!-- ===================== GESTIÓN DE ESTADO ===================== -->
       <div class="bg-white rounded-xl shadow-md p-6 mt-5 w-full">
         <div class="flex items-center justify-between">
           <div class="flex items-center gap-4">
@@ -448,7 +504,7 @@
       </div>
     </div>
   } @placeholder {
-    <!-- ðŸ¦´ Skeleton Mejorado -->
+    <!-- 🦴 Skeleton Mejorado -->
     <div class="p-8 space-y-8 max-w-6xl mx-auto">
       <!-- Header skeleton -->
       <div class="bg-gradient-to-r from-gray-300 to-gray-400 rounded-2xl p-8 animate-pulse">
@@ -488,3 +544,5 @@
     </div>
   }
 }
+
+

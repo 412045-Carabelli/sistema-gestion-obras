@@ -79,6 +79,7 @@ export interface Obra {
   beneficio?: number;
   comision?: number;
   tiene_comision?: boolean;
+  memoria_descriptiva?: string;
   subtotal_costos?: number;
   beneficio_costos?: number;
   total_con_beneficio?: number;
@@ -155,6 +156,8 @@ export interface Transaccion {
   factura_cobrada?: boolean;
   saldo_cliente?: number;
   saldo_proveedor?: number;
+  pagado?: number;
+  restante?: number;
   tipo_movimiento?: string;
   activo?: boolean;
   ultima_actualizacion?: string;

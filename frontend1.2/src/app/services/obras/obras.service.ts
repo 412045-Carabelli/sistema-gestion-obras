@@ -21,6 +21,7 @@ export interface ObraPayload {
   beneficio?: number;
   comision?: number;
   notas?: string;
+  memoria_descriptiva?: string;
   tareas?: Tarea[];
   costos?: CostoPayload[];
 }

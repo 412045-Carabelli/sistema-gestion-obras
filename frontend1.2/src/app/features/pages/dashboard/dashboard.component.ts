@@ -97,6 +97,7 @@ export class DashboardComponent implements OnInit {
   movimientoClientesObra: Cliente[] = [];
   movimientoProveedoresObra: Proveedor[] = [];
   movimientoCostosObra: ObraCosto[] = [];
+  movimientoTransaccionesObra: Transaccion[] = [];
   filteredMovimientoClientes: Cliente[] = [];
   filteredMovimientoProveedores: Proveedor[] = [];
   movimientoCosto: ObraCosto | null = null;
@@ -361,6 +362,8 @@ export class DashboardComponent implements OnInit {
     this.movimientoClientesObra = [];
     this.movimientoProveedoresObra = [];
     this.movimientoCostosObra = [];
+    this.movimientoTransaccionesObra = [];
+    this.movimientoTransaccionesObra = [];
     this.filteredMovimientoClientes = [];
     this.filteredMovimientoProveedores = [];
     this.movimientoCosto = null;
@@ -378,6 +381,14 @@ export class DashboardComponent implements OnInit {
       if (this.movimientoTipoEntidad === 'CLIENTE') {
         this.movimientoCliente = this.movimientoClientesObra[0] || null;
       }
+      this.transaccionesService.getByObra(obra.id!).subscribe({
+        next: (transacciones) => {
+          this.movimientoTransaccionesObra = transacciones || [];
+        },
+        error: () => {
+          this.movimientoTransaccionesObra = [];
+        }
+      });
     });
   }
 
@@ -412,7 +423,40 @@ export class DashboardComponent implements OnInit {
     this.movimientoCosto = costo;
     if (costo) {
       this.aplicarFormaPagoDesdeCosto(costo);
+      this.aplicarMontoDesdeCosto(costo);
     }
+  }
+
+  get movimientoPagadoCosto(): number | null {
+    if (!this.movimientoCosto?.id) return null;
+    return this.movimientoTransaccionesObra
+      .filter(t => Number(t.id_costo) === Number(this.movimientoCosto?.id))
+      .filter(t => (t.tipo_transaccion || '').toString().toUpperCase() === 'PAGO')
+      .reduce((acc, t) => acc + Number(t.monto ?? 0), 0);
+  }
+
+  get movimientoRestanteCosto(): number | null {
+    if (!this.movimientoCosto?.id) return null;
+    const total = Number(this.movimientoCosto.total ?? 0);
+    const pagado = this.movimientoPagadoCosto ?? 0;
+    return Math.max(0, total - pagado);
+  }
+
+  get movimientoPagadoCliente(): number | null {
+    if (!this.movimientoCliente?.id) return null;
+    return this.movimientoTransaccionesObra
+      .filter(t => (t.tipo_asociado || '').toString().toUpperCase() === 'CLIENTE')
+      .filter(t => Number(t.id_asociado) === Number(this.movimientoCliente?.id))
+      .filter(t => (t.tipo_transaccion || '').toString().toUpperCase() === 'COBRO')
+      .reduce((acc, t) => acc + Number(t.monto ?? 0), 0);
+  }
+
+  get movimientoRestanteCliente(): number | null {
+    if (!this.movimientoCliente?.id) return null;
+    const presupuesto = Number(this.movimientoObraDetalle?.presupuesto ?? NaN);
+    if (!Number.isFinite(presupuesto)) return null;
+    const cobrado = this.movimientoPagadoCliente ?? 0;
+    return Math.max(0, presupuesto - cobrado);
   }
 
   getCostosMovimientoProveedor(): ObraCosto[] {
@@ -570,7 +614,7 @@ export class DashboardComponent implements OnInit {
 
   guardarClienteRapido() {
     if (!this.clienteForm.nombre || !this.clienteForm.contacto || !this.clienteForm.cuit ||
-      !this.clienteForm.condicion_iva || !this.clienteForm.telefono || !this.clienteForm.email) {
+      !this.clienteForm.condicion_iva || !this.clienteForm.telefono) {
       this.messageService.add({
         severity: 'warn',
         summary: 'Datos incompletos',
@@ -600,7 +644,7 @@ export class DashboardComponent implements OnInit {
 
   guardarProveedorRapido() {
     if (!this.proveedorForm.nombre || !this.proveedorForm.tipo_proveedor || !this.proveedorForm.contacto ||
-      !this.proveedorForm.cuit || !this.proveedorForm.telefono || !this.proveedorForm.email) {
+      !this.proveedorForm.cuit || !this.proveedorForm.telefono) {
       this.messageService.add({
         severity: 'warn',
         summary: 'Datos incompletos',
@@ -702,7 +746,16 @@ export class DashboardComponent implements OnInit {
   get totalCostosObras(): number {
     return (this.obras || []).reduce((acc, obra) => {
       const costos = obra.costos || [];
-      const totalObra = costos.reduce((sum, costo) => sum + Number(costo.total ?? costo.subtotal ?? 0), 0);
+      const totalObra = costos.reduce((sum, costo) => sum + this.obtenerSubtotalCosto(costo), 0);
+      return acc + totalObra;
+    }, 0);
+  }
+
+  get totalCostosFiltradosDashboard(): number {
+    const obrasFiltradas = this.obtenerObrasFiltradasDashboard();
+    return (obrasFiltradas || []).reduce((acc, obra) => {
+      const costos = obra.costos || [];
+      const totalObra = costos.reduce((sum, costo) => sum + this.obtenerSubtotalCosto(costo), 0);
       return acc + totalObra;
     }, 0);
   }
@@ -774,6 +827,103 @@ export class DashboardComponent implements OnInit {
       return this.cuentaCorrientePresupuesto - this.totalCobrosDashboard;
     }
     return this.saldoFlujoDashboard;
+  }
+
+  get dashboardCobrado(): number {
+    const obraSeleccionada = this.obtenerObraSeleccionada();
+    if (obraSeleccionada?.id) {
+      return this.calcularTotalMovimientosDesdeLista(
+        this.obtenerMovimientosPorObra(obraSeleccionada.id),
+        ['INGRESO', 'COBRO']
+      );
+    }
+    if (this.filtrosDashboard?.proveedor?.id) return 0;
+    return this.totalCobrosDashboard;
+  }
+
+  get dashboardPorCobrar(): number {
+    const obraSeleccionada = this.obtenerObraSeleccionada();
+    if (obraSeleccionada?.id) {
+      const cobrado = this.dashboardCobrado;
+      const presupuesto = Number(obraSeleccionada.presupuesto ?? 0);
+      return Math.max(0, presupuesto - cobrado);
+    }
+    if (this.filtrosDashboard?.proveedor?.id) return 0;
+    const tieneRangoFechas = !!(this.filtrosDashboard?.rangoFechas?.[0] || this.filtrosDashboard?.rangoFechas?.[1]);
+    const base = (this.filtrosDashboard?.cliente?.id || tieneRangoFechas)
+      ? this.totalPresupuestoFiltradoDashboard
+      : this.totalPresupuestoObras;
+    return Math.max(0, base - this.totalCobrosDashboard);
+  }
+
+  get dashboardPagado(): number {
+    const obraSeleccionada = this.obtenerObraSeleccionada();
+    if (obraSeleccionada?.id) {
+      return this.calcularTotalMovimientosDesdeLista(
+        this.obtenerMovimientosPorObra(obraSeleccionada.id),
+        ['EGRESO', 'PAGO']
+      );
+    }
+    if (this.filtrosDashboard?.cliente?.id) return 0;
+    return this.totalPagosDashboard;
+  }
+
+  get dashboardPorPagar(): number {
+    const obraSeleccionada = this.obtenerObraSeleccionada();
+    if (obraSeleccionada?.id) {
+      const pagado = this.dashboardPagado;
+      const totalCostos = this.totalCostosDeObra(obraSeleccionada);
+      return Math.max(0, totalCostos - pagado);
+    }
+    if (this.filtrosDashboard?.cliente?.id) return 0;
+    if (this.filtrosDashboard?.proveedor?.id) {
+      const proveedorId = this.filtrosDashboard?.proveedor?.id ?? 0;
+      const totalProveedor = this.calcularTotalCostosProveedor(this.obtenerObrasFiltradasDashboard(), proveedorId);
+      return Math.max(0, totalProveedor - this.totalPagosDashboard);
+    }
+    const tieneRangoFechas = !!(this.filtrosDashboard?.rangoFechas?.[0] || this.filtrosDashboard?.rangoFechas?.[1]);
+    const base = tieneRangoFechas ? this.totalCostosFiltradosDashboard : this.totalCostosObras;
+    return Math.max(0, base - this.totalPagosDashboard);
+  }
+
+  private obtenerMovimientosPorObra(obraId: number): MovimientoDashboard[] {
+    let movimientos = this.flujoCaja?.movimientos || [];
+    const rangoFechas = this.filtrosDashboard?.rangoFechas;
+    movimientos = movimientos.filter(mov => Number(mov.obraId) === Number(obraId));
+    if (rangoFechas?.[0] || rangoFechas?.[1]) {
+      movimientos = movimientos.filter(mov =>
+        this.estaEnRangoFecha(mov.fecha, rangoFechas)
+      );
+    }
+    return movimientos;
+  }
+
+  private calcularTotalMovimientosDesdeLista(movimientos: MovimientoDashboard[], tipos: string[]): number {
+    const tiposUpper = tipos.map(t => t.toUpperCase());
+    return (movimientos || []).reduce((acc, mov) => {
+      const tipo = (mov.tipo_movimiento || mov.tipo || '').toString().toUpperCase();
+      if (!tiposUpper.includes(tipo)) return acc;
+      return acc + Number(mov.monto ?? 0);
+    }, 0);
+  }
+
+  private obtenerObraSeleccionada(): Obra | null {
+    const obraId = this.filtrosDashboard?.obra?.id;
+    if (!obraId) return null;
+    const obra = (this.obras || []).find(o => Number(o.id) === Number(obraId)) ?? null;
+    if (!obra) return null;
+    const rangoFechas = this.filtrosDashboard?.rangoFechas;
+    if (rangoFechas?.[0] || rangoFechas?.[1]) {
+      const fechaBase = this.obtenerFechaCreacionObra(obra);
+      if (!this.estaEnRangoFecha(fechaBase, rangoFechas)) return null;
+    }
+    return obra;
+  }
+
+  private totalCostosDeObra(obra: Obra): number {
+    return (obra?.costos || []).reduce((sum, costo) => {
+      return sum + this.obtenerSubtotalCosto(costo);
+    }, 0);
   }
 
   private calcularConteosObras(obras: { obra_estado: string }[]): typeof this.conteoObras {
@@ -959,14 +1109,17 @@ export class DashboardComponent implements OnInit {
   }
 
   private aplicarFormaPagoDesdeCosto(costo: ObraCosto) {
-    const estado = (costo.estado_pago || '').toString().toUpperCase();
-    if (estado === 'PARCIAL') {
-      this.movimientoForm.forma_pago = 'PARCIAL';
-      return;
-    }
-    if (estado === 'PAGADO') {
-      this.movimientoForm.forma_pago = 'TOTAL';
-    }
+    this.movimientoForm.forma_pago = 'TOTAL';
+  }
+
+  private aplicarMontoDesdeCosto(costo: ObraCosto) {
+    const total = Number(costo.total ?? 0);
+    const pagado = this.movimientoTransaccionesObra
+      .filter(t => Number(t.id_costo) === Number(costo.id))
+      .filter(t => (t.tipo_transaccion || '').toString().toUpperCase() === 'PAGO')
+      .reduce((acc, t) => acc + Number(t.monto ?? 0), 0);
+    const restante = Math.max(0, total - pagado);
+    this.movimientoForm.monto = restante;
   }
 
   private cargarCondicionesIva() {
@@ -1089,14 +1242,14 @@ export class DashboardComponent implements OnInit {
 
     const formaPago = (this.movimientoForm.forma_pago || '').toString().toUpperCase();
     const monto = Number(this.movimientoForm.monto ?? 0);
-    const totalCosto = Number(this.movimientoCosto.total ?? 0);
+    const totalCosto = Number(this.movimientoRestanteCosto ?? this.movimientoCosto.total ?? 0);
     const diferencia = Math.abs(monto - totalCosto);
 
     if (formaPago === 'TOTAL' && diferencia >= 0.01) {
       this.messageService.add({
         severity: 'warn',
         summary: 'Monto invalido',
-        detail: 'Para pago total, el monto debe ser igual al total del costo.'
+        detail: 'Para pago total, el monto debe ser igual al restante del costo.'
       });
       return false;
     }
@@ -1105,7 +1258,7 @@ export class DashboardComponent implements OnInit {
       this.messageService.add({
         severity: 'warn',
         summary: 'Monto invalido',
-        detail: 'Para pago parcial, el monto debe ser menor al total del costo.'
+        detail: 'Para pago parcial, el monto debe ser menor al restante del costo.'
       });
       return false;
     }
@@ -1118,6 +1271,7 @@ export class DashboardComponent implements OnInit {
     const obraSeleccionada = this.filtrosDashboard?.obra;
     const clienteSeleccionado = this.filtrosDashboard?.cliente;
     const proveedorSeleccionado = this.filtrosDashboard?.proveedor;
+    const rangoFechas = this.filtrosDashboard?.rangoFechas;
 
     if (obraSeleccionada?.id) {
       filtradas = filtradas.filter(obra => Number(obra.id) === Number(obraSeleccionada.id));
@@ -1130,6 +1284,12 @@ export class DashboardComponent implements OnInit {
     if (proveedorSeleccionado?.id) {
       filtradas = filtradas.filter(obra =>
         this.obraTieneProveedor(obra, proveedorSeleccionado.id)
+      );
+    }
+
+    if (rangoFechas?.[0] || rangoFechas?.[1]) {
+      filtradas = filtradas.filter(obra =>
+        this.estaEnRangoFecha(this.obtenerFechaCreacionObra(obra), rangoFechas)
       );
     }
 
@@ -1148,10 +1308,18 @@ export class DashboardComponent implements OnInit {
       const totalObra = (obra?.costos || []).reduce((sum, costo) => {
         const id = Number((costo as any).id_proveedor ?? (costo as any).proveedor?.id ?? 0);
         if (id !== Number(proveedorId)) return sum;
-        return sum + Number(costo.total ?? costo.subtotal ?? 0);
+        return sum + this.obtenerSubtotalCosto(costo);
       }, 0);
       return acc + totalObra;
     }, 0);
+  }
+
+  private obtenerSubtotalCosto(costo: any): number {
+    return Number(costo?.subtotal ?? costo?.total ?? 0);
+  }
+
+  private obtenerFechaCreacionObra(obra: Obra): string | Date | null {
+    return obra?.creado_en ?? obra?.fecha_presupuesto ?? obra?.fecha_inicio ?? null;
   }
 
   private validarMontoMovimientoRapidoCliente(): boolean {
@@ -1167,22 +1335,23 @@ export class DashboardComponent implements OnInit {
 
     const formaPago = (this.movimientoForm.forma_pago || '').toString().toUpperCase();
     const monto = Number(this.movimientoForm.monto ?? 0);
-    const diferencia = Math.abs(monto - presupuesto);
+    const totalPendiente = Number(this.movimientoRestanteCliente ?? presupuesto);
+    const diferencia = Math.abs(monto - totalPendiente);
 
     if (formaPago === 'TOTAL' && diferencia >= 0.01) {
       this.messageService.add({
         severity: 'warn',
         summary: 'Monto invalido',
-        detail: 'Para cobro total, el monto debe ser igual al presupuesto total de la obra.'
+        detail: 'Para cobro total, el monto debe ser igual al restante de la obra.'
       });
       return false;
     }
 
-    if (formaPago === 'PARCIAL' && monto >= presupuesto) {
+    if (formaPago === 'PARCIAL' && monto >= totalPendiente) {
       this.messageService.add({
         severity: 'warn',
         summary: 'Monto invalido',
-        detail: 'Para cobro parcial, el monto debe ser menor al presupuesto total de la obra.'
+        detail: 'Para cobro parcial, el monto debe ser menor al restante de la obra.'
       });
       return false;
     }

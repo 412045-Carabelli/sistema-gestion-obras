@@ -35,6 +35,7 @@ public class ObraDTO {
     private List<TareaDTO> tareas;
     private List<ObraCostoDTO> costos;
     private String notas;
+    private String memoria_descriptiva;
     private Boolean activo;
     private Instant creado_en;
     private Instant ultima_actualizacion;
