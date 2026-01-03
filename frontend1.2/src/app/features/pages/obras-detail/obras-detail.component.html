@@ -45,22 +45,16 @@
           <p class="text-lg font-semibold text-gray-900">{{ obra.presupuesto | currency:'ARS' }}</p>
         </div>
 
-        <!-- Tarjeta Comision -->
+        <!-- Tarjeta Costos -->
         <div class="bg-white rounded-xl shadow-md p-6 border-l-4 border-purple-500">
           <div class="flex items-center gap-3 mb-2">
             <div class="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
-              <i class="pi pi-percentage text-purple-600 text-lg"></i>
+              <i class="pi pi-wallet text-purple-600 text-lg"></i>
             </div>
-            <span class="text-sm font-medium text-gray-500">Comision</span>
+            <span class="text-sm font-medium text-gray-500">Costos</span>
           </div>
-          <div class="space-y-1">
-            <p class="text-lg font-semibold text-gray-900">
-              {{ obra.comision != null ? (obra.comision + '%') : 'Sin comision' }}
-            </p>
-            <p class="text-sm text-gray-600">
-              {{ ((obra.presupuesto || 0) * ((obra.comision || 0) / 100)) | currency:'ARS' }}
-            </p>
-          </div>
+          <p class="text-lg font-semibold text-gray-900">{{ totalCostosBase | currency:'ARS' }}</p>
+          <p class="text-xs text-gray-600">Subtotal sin beneficio</p>
         </div>
 
         <div class="bg-white rounded-xl shadow-md p-6 border-l-4 border-emerald-500">
@@ -69,7 +63,7 @@
               <div class="w-10 h-10 bg-emerald-100 rounded-lg flex items-center justify-center">
                 <i class="pi pi-chart-line text-emerald-600 text-lg"></i>
               </div>
-              <span class="text-sm font-medium text-gray-500">Beneficio (costos)</span>
+            <span class="text-sm font-medium text-gray-500">Beneficio</span>
             </div>
             <i class="pi pi-info-circle text-gray-400 cursor-pointer"
                pTooltip="Suma de los beneficios aplicados a cada costo (global o individual)."
@@ -80,8 +74,6 @@
           </p>
           <p class="text-xs text-gray-500">Actualizado con la matriz de costos</p>
         </div>
-
-        <!-- Tarjeta Estado -->
         <div class="bg-white rounded-xl shadow-md p-6 border-l-4 border-orange-500">
           <div class="flex items-center gap-3 mb-2">
             <div class="w-10 h-10 bg-orange-100 rounded-lg flex items-center justify-center">
@@ -99,7 +91,9 @@
             styleClass="w-full text-sm">
           </p-select>
         </div>
+
       </div>
+
 
       <!-- ===================== FECHAS Y PROGRESO ===================== -->
       <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -188,14 +182,14 @@
           <p-tablist pStyleClass="border-b border-gray-200 px-6">
             <p-tab value="0" pStyleClass="px-6 py-4">
               <div class="flex items-center gap-2">
-                <i class="pi pi-list-check"></i>
-                <span class="font-medium">Tareas</span>
+                <i class="pi pi-calculator"></i>
+                <span class="font-medium">Presupuesto</span>
               </div>
             </p-tab>
             <p-tab value="1" pStyleClass="px-6 py-4">
               <div class="flex items-center gap-2">
-                <i class="pi pi-calculator"></i>
-                <span class="font-medium">Presupuesto</span>
+                <i class="pi pi-list-check"></i>
+                <span class="font-medium">Tareas</span>
               </div>
             </p-tab>
             <p-tab value="2" pStyleClass="px-6 py-4">
@@ -212,20 +206,14 @@
             </p-tab>
             <p-tab value="4" pStyleClass="px-6 py-4">
               <div class="flex items-center gap-2">
-                <i class="pi pi-file"></i>
-                <span class="font-medium">Documentos</span>
-              </div>
-            </p-tab>
-            <p-tab value="5" pStyleClass="px-6 py-4">
-              <div class="flex items-center gap-2">
                 <i class="pi pi-align-left"></i>
-                <span class="font-medium">Notas y Memoria</span>
+                <span class="font-medium">Notas y documentos</span>
               </div>
             </p-tab>
           </p-tablist>
 
           <p-tabpanels pStyleClass="p-6">
-            <p-tabpanel value="0">
+            <p-tabpanel value="1">
               <app-obra-tareas
                 [obraId]="obra.id!"
                 [obraNombre]="obra.nombre"
@@ -235,7 +223,7 @@
               </app-obra-tareas>
             </p-tabpanel>
 
-            <p-tabpanel value="1">
+            <p-tabpanel value="0">
               <app-obra-presupuesto
                 [obra]="obra!"
                 [proveedores]="proveedores"
@@ -401,15 +389,14 @@
             </p-tabpanel>
 
             <p-tabpanel value="4">
-              <app-obra-documentos
-                [obraId]="obra.id!"
-                [proveedores]="proveedores"
-                [clientes]="[obra.cliente]"
-              ></app-obra-documentos>
-            </p-tabpanel>
+              <div class="flex flex-col gap-6">
+                <app-obra-documentos
+                  [obraId]="obra.id!"
+                  [proveedores]="proveedores"
+                  [clientes]="[obra.cliente]"
+                ></app-obra-documentos>
 
-            <p-tabpanel value="5">
-              <div class="flex flex-col lg:flex-row items-stretch gap-6">
+                <div class="flex flex-col lg:flex-row items-stretch gap-6">
                 <div class="bg-white rounded-xl shadow-md p-6 flex-1 h-full flex flex-col">
                   <h3 class="text-lg font-semibold text-gray-900 mb-3 flex items-center gap-2">
                     <i class="pi pi-file-edit text-gray-600"></i>
@@ -468,6 +455,7 @@
                   }
                 </div>
               </div>
+            </div>
             </p-tabpanel>
 
           </p-tabpanels>

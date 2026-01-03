@@ -1,0 +1,39 @@
+.memoria-view {
+  line-height: 1.55;
+}
+
+.memoria-body {
+  position: relative;
+}
+
+.memoria-body.memoria-collapsed {
+  max-height: 180px;
+  overflow: hidden;
+}
+
+.memoria-body.memoria-collapsed::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 2.5rem;
+  background: linear-gradient(to bottom, rgba(239, 246, 255, 0), rgba(239, 246, 255, 1));
+  pointer-events: none;
+}
+
+.memoria-view :is(p, ul, ol) {
+  margin: 0 0 0.75rem 0;
+}
+
+.memoria-view :is(ul, ol) {
+  padding-left: 1.25rem;
+}
+
+.memoria-view li {
+  margin-bottom: 0.35rem;
+}
+
+.memoria-view :is(strong, b) {
+  font-weight: 600;
+}

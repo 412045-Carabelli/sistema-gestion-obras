@@ -5,7 +5,10 @@
   OnInit,
   SimpleChanges,
   Output,
-  EventEmitter
+  EventEmitter,
+  AfterViewInit,
+  ElementRef,
+  ViewChild
 } from '@angular/core';
 import { CommonModule, CurrencyPipe, NgClass } from '@angular/common';
 import { TableModule } from 'primeng/table';
@@ -32,10 +35,12 @@ import { TransaccionesService } from '../../../services/transacciones/transaccio
 import { AutoCompleteModule } from 'primeng/autocomplete';
 import { MenuModule } from 'primeng/menu';
 import { MenuItem } from 'primeng/api';
+import { EditorModule } from 'primeng/editor';
 
 // PDFMAKE
 import pdfMake from 'pdfmake/build/pdfmake';
 import pdfFonts from 'pdfmake/build/vfs_fonts';
+import { ObrasService } from '../../../services/obras/obras.service';
 
 pdfMake.vfs = pdfFonts.vfs;
 
@@ -58,12 +63,15 @@ pdfMake.vfs = pdfFonts.vfs;
     Select,
     AutoCompleteModule,
     ModalComponent,
-    MenuModule
+    MenuModule,
+    EditorModule
   ],
   providers: [MessageService],
-  templateUrl: './obra-presupuesto.component.html'
+  templateUrl: './obra-presupuesto.component.html',
+  styleUrls: ['./obra-presupuesto.component.css']
 })
-export class ObraPresupuestoComponent implements OnInit, OnChanges {
+export class ObraPresupuestoComponent implements OnInit, OnChanges, AfterViewInit {
+  @ViewChild('memoriaBody') memoriaBody?: ElementRef<HTMLDivElement>;
   @Input() obra!: Obra;
 
   @Input() proveedores: Proveedor[] = [];
@@ -98,12 +106,18 @@ export class ObraPresupuestoComponent implements OnInit, OnChanges {
   estadoPendientePago: string | null = null;
   transaccionForm: Partial<Transaccion> = {};
   errorApi?: string;
+  memoriaExpandida = false;
+  memoriaOverflow = false;
+  memoriaEditando = false;
+  memoriaDraft = '';
+  guardandoMemoria = false;
 
   constructor(
     private estadoPagoService: EstadoPagoService,
     private costosService: CostosService,
     private messageService: MessageService,
-    private transaccionesService: TransaccionesService
+    private transaccionesService: TransaccionesService,
+    private obrasService: ObrasService
   ) {}
 
   ngOnInit() {
@@ -133,12 +147,17 @@ export class ObraPresupuestoComponent implements OnInit, OnChanges {
     ];
   }
 
+  ngAfterViewInit(): void {
+    this.scheduleMemoriaOverflowCheck();
+  }
+
   ngOnChanges(changes: SimpleChanges) {
     if (changes['costos'] && this.costos?.length > 0) {
       this.inicializarCostos();
     }
     if (changes['obra']) {
       this.ajustarTipoCostoNuevoSegunEstado();
+      this.scheduleMemoriaOverflowCheck();
     }
     if (changes['beneficioGlobal'] || changes['tieneComision']) {
       this.costosFiltrados = this.costosFiltrados.map(c => ({ ...c }));
@@ -1109,6 +1128,86 @@ export class ObraPresupuestoComponent implements OnInit, OnChanges {
       runs.push(...this.convertirInlineHtml(child, nextStyle));
     });
     return runs;
+  }
+
+  toggleMemoria() {
+    this.memoriaExpandida = !this.memoriaExpandida;
+    this.scheduleMemoriaOverflowCheck();
+  }
+
+  iniciarEdicionMemoria() {
+    this.memoriaDraft = this.obra?.memoria_descriptiva ?? '';
+    this.memoriaEditando = true;
+    this.memoriaExpandida = true;
+    this.memoriaOverflow = false;
+  }
+
+  cancelarEdicionMemoria() {
+    this.memoriaEditando = false;
+    this.memoriaDraft = '';
+    this.scheduleMemoriaOverflowCheck();
+  }
+
+  guardarMemoriaDescriptiva() {
+    if (!this.obra?.id || this.guardandoMemoria) return;
+    this.guardandoMemoria = true;
+    const payload: any = {
+      id: this.obra.id,
+      id_cliente: this.obra.id_cliente ?? this.obra.cliente?.id,
+      obra_estado: this.obra.obra_estado,
+      nombre: this.obra.nombre,
+      direccion: this.obra.direccion,
+      fecha_inicio: this.obra.fecha_inicio,
+      fecha_presupuesto: this.obra.fecha_presupuesto,
+      fecha_fin: this.obra.fecha_fin,
+      fecha_adjudicada: this.obra.fecha_adjudicada,
+      fecha_perdida: this.obra.fecha_perdida,
+      tiene_comision: this.obra.tiene_comision ?? false,
+      presupuesto: this.obra.presupuesto,
+      beneficio_global: this.obra.beneficio_global,
+      beneficio: this.obra.beneficio,
+      comision: this.obra.comision,
+      notas: this.obra.notas,
+      memoria_descriptiva: this.memoriaDraft
+    };
+    Object.keys(payload).forEach(
+      key => payload[key] === undefined && delete payload[key]
+    );
+
+    this.obrasService.updateObra(this.obra.id, payload).subscribe({
+      next: (updated) => {
+        this.obra = { ...this.obra, memoria_descriptiva: updated?.memoria_descriptiva ?? this.memoriaDraft };
+        this.memoriaEditando = false;
+        this.guardandoMemoria = false;
+        this.scheduleMemoriaOverflowCheck();
+        this.messageService.add({
+          severity: 'success',
+          summary: 'Memoria actualizada',
+          detail: 'Se guardaron los cambios.'
+        });
+      },
+      error: () => {
+        this.guardandoMemoria = false;
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: 'No se pudo guardar la memoria descriptiva.'
+        });
+      }
+    });
+  }
+
+  private scheduleMemoriaOverflowCheck() {
+    setTimeout(() => this.checkMemoriaOverflow(), 0);
+  }
+
+  private checkMemoriaOverflow() {
+    if (!this.memoriaBody) {
+      this.memoriaOverflow = false;
+      return;
+    }
+    const el = this.memoriaBody.nativeElement;
+    this.memoriaOverflow = el.scrollHeight > el.clientHeight + 2;
   }
 }
 

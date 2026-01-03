@@ -43,8 +43,12 @@
         <td class="text-right font-semibold">{{ tarea.porcentaje ?? 0 }}%</td>
         <td class="text-right">
           <div class="flex gap-1">
-            <p-button icon="pi pi-check-circle" styleClass="p-button-text p-button-sm" [severity]="tarea.estado_tarea === 'COMPLETADA' ? 'success' : 'secondary'" (onClick)="toggleTarea(tarea)" pTooltip="Alternar completa"></p-button>
-            <p-button icon="pi pi-step-forward" styleClass="p-button-text p-button-sm" [disabled]="tarea.estado_tarea === 'EN_PROGRESO'" (onClick)="marcarEnProgreso(tarea)" pTooltip="Marcar en progreso"></p-button>
+            <p-button
+              [icon]="getSiguienteEstadoIcon(tarea)"
+              styleClass="p-button-text p-button-sm"
+              (onClick)="cambiarEstadoSecuencial(tarea)"
+              [pTooltip]="'Cambiar a ' + getSiguienteEstadoLabel(tarea)">
+            </p-button>
             <p-button icon="pi pi-eye" styleClass="p-button-text p-button-sm" (onClick)="verTarea(tarea)" pTooltip="Ver"></p-button>
             <p-button icon="pi pi-pencil" styleClass="p-button-text p-button-sm" (onClick)="editarTarea(tarea)" pTooltip="Editar"></p-button>
             <p-button icon="pi pi-trash" styleClass="p-button-text p-button-sm text-red-500" (onClick)="eliminarTarea(tarea.id!)" pTooltip="Eliminar"></p-button>

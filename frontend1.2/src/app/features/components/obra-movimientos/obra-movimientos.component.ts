@@ -117,6 +117,25 @@ export class ObraMovimientosComponent implements OnInit {
       .reduce((acc, t) => acc + (t.monto || 0), 0);
   }
 
+  get totalCliente(): number {
+    return Number(this.presupuestoTotal ?? 0);
+  }
+
+  get totalProveedores(): number {
+    return (this.costosObra || []).reduce(
+      (acc, c) => acc + this.getMontoBaseCosto(c),
+      0
+    );
+  }
+
+  get saldoClienteResumen(): number {
+    return this.totalCliente - this.totalCobros;
+  }
+
+  get saldoProveedorResumen(): number {
+    return this.totalProveedores - this.totalPagos;
+  }
+
   get saldo(): number {
     return this.totalCobros - this.totalPagos;
   }
@@ -269,6 +288,26 @@ export class ObraMovimientosComponent implements OnInit {
     if (costo) {
       this.aplicarFormaPagoDesdeCosto(costo);
       this.aplicarMontoDesdeCosto(costo);
+    }
+  }
+
+  onFormaPagoChange(value: 'TOTAL' | 'PARCIAL') {
+    if (value === 'TOTAL') {
+      if (this.tipoEntidad === 'CLIENTE') {
+        this.aplicarMontoClienteSeleccionado();
+      } else if (this.selectedCosto) {
+        this.aplicarMontoDesdeCosto(this.selectedCosto);
+      }
+      return;
+    }
+
+    const montoActual = Number(this.nuevoMovimiento.monto ?? 0);
+    const totalEsperado = this.tipoEntidad === 'CLIENTE'
+      ? this.deudaClienteSeleccionado
+      : this.selectedCosto ? this.restanteCostoSeleccionado : null;
+
+    if (totalEsperado != null && Math.abs(montoActual - totalEsperado) < 0.01) {
+      this.nuevoMovimiento.monto = 0;
     }
   }
 
@@ -490,6 +529,7 @@ export class ObraMovimientosComponent implements OnInit {
   }
 
   private aplicarMontoDesdeCosto(costo: ObraCosto) {
+    if ((this.nuevoMovimiento.forma_pago || '').toString().toUpperCase() === 'PARCIAL') return;
     const total = this.getMontoBaseCosto(costo);
     const pagado = this.transacciones
       .filter(t => Number(t.id_costo) === Number(costo.id))
@@ -501,6 +541,7 @@ export class ObraMovimientosComponent implements OnInit {
 
   private aplicarMontoClienteSeleccionado() {
     if (!this.selectedCliente || this.presupuestoTotal == null) return;
+    if ((this.nuevoMovimiento.forma_pago || '').toString().toUpperCase() === 'PARCIAL') return;
     const deuda = this.deudaClienteSeleccionado;
     if (deuda == null) return;
     this.nuevoMovimiento.monto = deuda;
@@ -543,9 +584,11 @@ export class ObraMovimientosComponent implements OnInit {
     const formaPago = (this.nuevoMovimiento.forma_pago || '').toString().toUpperCase();
     const monto = Number(this.nuevoMovimiento.monto ?? 0);
     const totalCosto = this.getMontoBaseCosto(this.selectedCosto);
+    const currentId = this.modoEdicion ? Number(this.nuevoMovimiento.id) : null;
     const pagado = this.transacciones
       .filter(t => Number(t.id_costo) === Number(this.selectedCosto?.id))
       .filter(t => this.tipoValue(t) === 'PAGO')
+      .filter(t => currentId == null || Number(t.id) !== currentId)
       .reduce((acc, t) => acc + Number(t.monto ?? 0), 0);
     const restante = Math.max(0, totalCosto - pagado);
     const diferencia = Math.abs(monto - restante);
@@ -584,7 +627,13 @@ export class ObraMovimientosComponent implements OnInit {
     const formaPago = (this.nuevoMovimiento.forma_pago || '').toString().toUpperCase();
     const monto = Number(this.nuevoMovimiento.monto ?? 0);
     const presupuesto = Number(this.presupuestoTotal ?? 0);
-    const cobrado = this.totalCobrosClienteSeleccionado;
+    const currentId = this.modoEdicion ? Number(this.nuevoMovimiento.id) : null;
+    const cobrado = (this.transacciones || [])
+      .filter(t => (t.tipo_asociado || '').toUpperCase() === 'CLIENTE')
+      .filter(t => Number(t.id_asociado) === Number(this.selectedCliente?.id))
+      .filter(t => this.tipoValue(t) === 'COBRO')
+      .filter(t => currentId == null || Number(t.id) !== currentId)
+      .reduce((acc, t) => acc + Number(t.monto ?? 0), 0);
     const restante = Math.max(0, presupuesto - cobrado);
     const diferencia = Math.abs(monto - restante);
 

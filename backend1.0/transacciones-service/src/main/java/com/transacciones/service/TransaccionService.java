@@ -74,7 +74,7 @@ public class TransaccionService {
         }
         validarTipoAsociado(dto);
         validarMontoContraCosto(dto);
-        validarMontoContraPresupuesto(dto);
+        validarMontoContraPresupuesto(dto, entity);
 
         entity.setIdObra(dto.getIdObra());
         entity.setIdAsociado(dto.getIdAsociado());
@@ -267,6 +267,10 @@ public class TransaccionService {
     }
 
     private void validarMontoContraPresupuesto(Transaccion dto) {
+        validarMontoContraPresupuesto(dto, null);
+    }
+
+    private void validarMontoContraPresupuesto(Transaccion dto, Transaccion existente) {
         if (dto == null) return;
         if (dto.getIdObra() == null) return;
 
@@ -284,6 +288,13 @@ public class TransaccionService {
         double presupuesto = obra.getPresupuesto();
         double cobrosPrevios = Optional.ofNullable(transaccionRepository.sumarCobrosPorObra(dto.getIdObra()))
                 .orElse(0d);
+        if (existente != null
+                && existente.getIdObra() != null
+                && existente.getIdObra().equals(dto.getIdObra())
+                && existente.getTipo_transaccion() == TipoTransaccionEnum.COBRO
+                && "CLIENTE".equalsIgnoreCase(existente.getTipoAsociado())) {
+            cobrosPrevios -= Optional.ofNullable(existente.getMonto()).orElse(0d);
+        }
         double totalDespues = cobrosPrevios + monto;
         double diferencia = Math.abs(totalDespues - presupuesto);
 
