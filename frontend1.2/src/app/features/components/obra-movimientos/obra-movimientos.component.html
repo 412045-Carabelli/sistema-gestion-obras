@@ -95,24 +95,28 @@
     <!-- Totales -->
     <div class="mt-4 p-4 bg-gray-50 rounded-lg text-sm space-y-1">
       <div class="flex justify-between">
-        <span class="font-medium">Total Cobros (FC):</span>
-        <span>{{ totalCobros | currency: 'ARS' }}</span>
+        <span class="font-medium">Total cliente:</span>
+        <span>{{ totalCliente | currency: 'ARS' }}</span>
       </div>
       <div class="flex justify-between">
-        <span class="font-medium">Total Pagos (RBOS):</span>
+        <span class="font-medium">Total cobros:</span>
+        <span>{{ totalCobros | currency: 'ARS' }}</span>
+      </div>
+      <div class="flex justify-between font-semibold text-base border-t pt-2">
+        <span>Saldo cliente:</span>
+        <span>{{ saldoClienteResumen | currency: 'ARS' }}</span>
+      </div>
+      <div class="flex justify-between text-sm text-gray-700 pt-2 border-t">
+        <span>Total proveedores:</span>
+        <span>{{ totalProveedores | currency: 'ARS' }}</span>
+      </div>
+      <div class="flex justify-between text-sm text-gray-700">
+        <span>Total pagos:</span>
         <span>{{ totalPagos | currency: 'ARS' }}</span>
       </div>
       <div class="flex justify-between font-semibold text-base border-t pt-2">
-        <span>Saldo:</span>
-        <span>{{ saldo | currency: 'ARS' }}</span>
-      </div>
-      <div class="flex justify-between text-sm text-gray-700 pt-2 border-t">
-        <span>Saldo cliente</span>
-        <span>{{ saldoCliente | currency: 'ARS' }}</span>
-      </div>
-      <div class="flex justify-between text-sm text-gray-700">
-        <span>Saldo proveedor</span>
-        <span>{{ saldoProveedor | currency: 'ARS' }}</span>
+        <span>Saldo proveedor:</span>
+        <span>{{ saldoProveedorResumen | currency: 'ARS' }}</span>
       </div>
     </div>
   } @else {
@@ -245,6 +249,7 @@
             inputId="formaPagoParcial"
             value="PARCIAL"
             [(ngModel)]="nuevoMovimiento.forma_pago"
+            (onChange)="onFormaPagoChange('PARCIAL')"
           ></p-radiobutton>
           <label for="formaPagoParcial" class="text-sm text-gray-700">Parcial</label>
         </div>
@@ -254,6 +259,7 @@
             inputId="formaPagoTotal"
             value="TOTAL"
             [(ngModel)]="nuevoMovimiento.forma_pago"
+            (onChange)="onFormaPagoChange('TOTAL')"
           ></p-radiobutton>
           <label for="formaPagoTotal" class="text-sm text-gray-700">Total</label>
         </div>

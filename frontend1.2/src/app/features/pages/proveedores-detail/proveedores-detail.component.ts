@@ -130,17 +130,24 @@ export class ProveedoresDetailComponent implements OnInit, OnDestroy {
       .subscribe({
         next: (listadosCostos) => {
           const planos = ([] as ObraCosto[]).concat(...(listadosCostos || []));
-          this.costosProveedor = planos.filter(c => Number(c.id_proveedor) === Number(this.proveedor.id));
+          this.costosProveedor = planos.filter(c =>
+            this.getIdProveedorCosto(c) === Number(this.proveedor.id)
+          );
 
           const mapa: Record<string, { cantidad: number; total: number }> = {};
           for (const c of this.costosProveedor) {
-            if (!mapa[c.estado_pago!]) {
-              mapa[c.estado_pago!] = {cantidad: 0, total: 0};
+            const estado = this.getEstadoPagoCosto(c);
+            if (!mapa[estado]) {
+              mapa[estado] = {cantidad: 0, total: 0};
             }
-            mapa[c.estado_pago!].cantidad += 1;
-            mapa[c.estado_pago!].total += Number(c.total || 0);
+            mapa[estado].cantidad += 1;
+            mapa[estado].total += Number(c.total || 0);
           }
-          this.resumenEstados = Object.entries(mapa).map(([estado, v]) => ({estado, cantidad: v.cantidad, total: v.total}));
+          this.resumenEstados = Object.entries(mapa).map(([estado, v]) => ({
+            estado,
+            cantidad: v.cantidad,
+            total: v.total
+          }));
 
           this.calcularSaldoProveedor();
 
@@ -195,5 +202,13 @@ export class ProveedoresDetailComponent implements OnInit, OnDestroy {
     const total = this.tareas.length;
     const completadas = this.tareasCompletadasCount;
     return total - completadas;
+  }
+
+  private getIdProveedorCosto(c: ObraCosto): number {
+    return Number((c as any)?.id_proveedor ?? (c as any)?.proveedor?.id ?? 0);
+  }
+
+  private getEstadoPagoCosto(c: ObraCosto): string {
+    return (c.estado_pago || (c as any).estado_pago_value || 'PENDIENTE').toString().toUpperCase();
   }
 }

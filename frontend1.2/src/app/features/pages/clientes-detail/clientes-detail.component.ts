@@ -199,9 +199,15 @@ export class ClientesDetailComponent implements OnInit, OnDestroy {
       sum + (obra.presupuesto || 0), 0
     );
 
-    // Saldo pendiente (ejemplo simplificado)
-    // Aquí deberías calcular: presupuesto total - pagos realizados
-    // Por ahora usamos un cálculo estimado (40% del presupuesto)
-    this.saldoPendiente = this.totalPresupuestado * 0.4;
+    
+    // Saldo pendiente = presupuesto total - cobros realizados al cliente
+    const totalCobros = (this.transacciones || []).reduce((acc, t) => {
+      const tipo = (t.tipo_transaccion || (t as any).tipo || '').toString().toUpperCase();
+      if (tipo !== 'COBRO' && tipo !== 'INGRESO') return acc;
+      return acc + Number(t.monto ?? 0);
+    }, 0);
+    this.saldoPendiente = Math.max(0, this.totalPresupuestado - totalCobros);
+
   }
 }
+

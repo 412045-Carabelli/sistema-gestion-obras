@@ -94,7 +94,7 @@ export class ObrasCreateComponent implements OnInit {
       presupuesto: new FormControl({value: null, disabled: true}),
       beneficio_global: [false],
       beneficio: new FormControl({value: null, disabled: true}),
-      costos: this.fb.array([]),
+      costos: this.fb.array([], Validators.minLength(1)),
     });
 
     this.clienteForm = this.fb.group({
@@ -250,6 +250,15 @@ export class ObrasCreateComponent implements OnInit {
   }
 
   onSubmit() {
+    if (this.costos.length === 0) {
+      this.messageService.add({
+        severity: 'warn',
+        summary: 'Falta matriz de costos',
+        detail: 'Agrega al menos un costo para crear la obra.'
+      });
+      this.costos.markAsTouched();
+      return;
+    }
     if (this.form.invalid) {
       this.form.markAllAsTouched();
       return;

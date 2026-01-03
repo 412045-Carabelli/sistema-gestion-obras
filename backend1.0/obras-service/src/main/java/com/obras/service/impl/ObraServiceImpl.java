@@ -109,8 +109,10 @@ public class ObraServiceImpl implements ObraService {
         EstadoObraEnum nuevoEstado = estado != null ? estado : EstadoObraEnum.PRESUPUESTADA;
         obra.setEstadoObra(nuevoEstado);
 
-        if (nuevoEstado == EstadoObraEnum.ADJUDICADA) {
-            obra.setFechaAdjudicada(java.time.LocalDateTime.now());
+        if (nuevoEstado == EstadoObraEnum.ADJUDICADA || nuevoEstado == EstadoObraEnum.EN_PROGRESO) {
+            if (obra.getFechaAdjudicada() == null) {
+                obra.setFechaAdjudicada(java.time.LocalDateTime.now());
+            }
         }
 
         obraRepo.save(obra);

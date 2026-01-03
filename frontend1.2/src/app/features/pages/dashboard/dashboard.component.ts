@@ -76,6 +76,7 @@ export class DashboardComponent implements OnInit {
   ivaOptions: { label: string; name: string }[] = [];
   tiposProveedor: CatalogoOption[] = [];
   gremiosProveedor: CatalogoOption[] = [];
+  private readonly NUEVO_TIPO_VALUE = '__nuevo_tipo__';
   conteoObras = {
     total: 0,
     cotizadas: 0,
@@ -160,6 +161,9 @@ export class DashboardComponent implements OnInit {
   };
   facturaObrasFiltradas: Obra[] = [];
   facturaFile: File | null = null;
+  showTipoProveedorModal = false;
+  nuevoTipoProveedorNombre = '';
+  guardandoTipoProveedor = false;
 
   constructor(
     private router: Router,
@@ -1133,8 +1137,8 @@ export class DashboardComponent implements OnInit {
   private cargarCatalogosProveedor() {
     if (this.tiposProveedor.length === 0) {
       this.proveedoresService.getTipos().subscribe({
-        next: (tipos) => this.tiposProveedor = tipos,
-        error: () => this.tiposProveedor = []
+        next: (tipos) => this.tiposProveedor = this.agregarOpcionNuevoTipo(tipos),
+        error: () => this.tiposProveedor = this.agregarOpcionNuevoTipo([])
       });
     }
     if (this.gremiosProveedor.length === 0) {
@@ -1143,6 +1147,57 @@ export class DashboardComponent implements OnInit {
         error: () => this.gremiosProveedor = []
       });
     }
+  }
+
+  onTipoProveedorChange(value: string | null) {
+    if (value !== this.NUEVO_TIPO_VALUE) return;
+    this.abrirTipoProveedorModal();
+  }
+
+  abrirTipoProveedorModal() {
+    this.nuevoTipoProveedorNombre = '';
+    this.guardandoTipoProveedor = false;
+    this.showTipoProveedorModal = true;
+  }
+
+  cerrarTipoProveedorModal() {
+    this.showTipoProveedorModal = false;
+    this.guardandoTipoProveedor = false;
+    this.nuevoTipoProveedorNombre = '';
+    if (this.proveedorForm.tipo_proveedor === this.NUEVO_TIPO_VALUE) {
+      this.proveedorForm.tipo_proveedor = undefined;
+    }
+  }
+
+  guardarTipoProveedorModal() {
+    const nombre = (this.nuevoTipoProveedorNombre || '').trim();
+    if (!nombre || this.guardandoTipoProveedor) return;
+    this.guardandoTipoProveedor = true;
+    this.proveedoresService.crearTipo(nombre).subscribe({
+      next: (tipo) => {
+        this.tiposProveedor = this.agregarOpcionNuevoTipo([
+          ...this.tiposProveedor.filter(op => op.name !== this.NUEVO_TIPO_VALUE),
+          tipo
+        ]);
+        this.proveedorForm.tipo_proveedor = tipo.name ?? tipo.label ?? tipo;
+        this.cerrarTipoProveedorModal();
+      },
+      error: () => {
+        this.guardandoTipoProveedor = false;
+        this.messageService.add({
+          severity: 'error',
+          summary: 'No se pudo crear el tipo',
+          detail: 'Intentá nuevamente.'
+        });
+      }
+    });
+  }
+
+  private agregarOpcionNuevoTipo(tipos: CatalogoOption[]): CatalogoOption[] {
+    return [
+      ...tipos.filter(op => op?.name !== this.NUEVO_TIPO_VALUE),
+      {label: 'Crear nuevo tipo...', name: this.NUEVO_TIPO_VALUE, nombre: 'Crear nuevo tipo'}
+    ];
   }
 
   private resetMovimientoForm() {

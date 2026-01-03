@@ -143,8 +143,9 @@ export class ObrasDetailComponent implements OnInit, OnDestroy, AfterViewInit {
           this.obra.obra_estado = encontrado.label;
         }
 
-        if (nuevoEstado?.toUpperCase() === 'ADJUDICADA') {
-          this.obra.fecha_adjudicada = new Date().toISOString();
+        const estadoUpper = (nuevoEstado || '').toUpperCase();
+        if (estadoUpper === 'ADJUDICADA' || estadoUpper === 'EN_PROGRESO') {
+          this.obra.fecha_adjudicada = this.obra.fecha_adjudicada || new Date().toISOString();
         }
 
         this.estadoSeleccionado = nuevoEstado;
@@ -275,6 +276,13 @@ export class ObrasDetailComponent implements OnInit, OnDestroy, AfterViewInit {
         : (beneficioGlobalPorc !== null ? beneficioGlobalPorc : Number(costo.beneficio ?? 0));
 
       return acc + base * (porc / 100);
+    }, 0);
+  }
+
+  get totalCostosBase(): number {
+    return (this.costos ?? []).reduce((acc, costo) => {
+      const subtotal = costo.subtotal ?? (Number(costo.cantidad ?? 0) * Number(costo.precio_unitario ?? 0));
+      return acc + Number(subtotal ?? 0);
     }, 0);
   }
 

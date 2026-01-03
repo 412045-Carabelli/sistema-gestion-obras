@@ -14,7 +14,7 @@ import {Tooltip} from 'primeng/tooltip';
 import {InputNumber} from 'primeng/inputnumber';
 
 import {EstadoFormatPipe} from '../../../shared/pipes/estado-format.pipe';
-import {EstadoTarea, Proveedor, Tarea} from '../../../core/models/models';
+import {Proveedor, Tarea} from '../../../core/models/models';
 import {ModalComponent} from '../../../shared/modal/modal.component';
 import {TareaPayload, TareasService} from '../../../services/tareas/tareas.service';
 
@@ -180,6 +180,34 @@ export class ObraTareasComponent {
     });
   }
 
+  cambiarEstadoSecuencial(tarea: Tarea) {
+    const siguienteEstado = this.obtenerSiguienteEstado(tarea.estado_tarea);
+    const payload: TareaPayload = {
+      id: tarea.id,
+      id_obra: this.obraId,
+      id_proveedor: tarea.id_proveedor || tarea.proveedor?.id!,
+      numero_orden: tarea.numero_orden ?? undefined,
+      estado_tarea: siguienteEstado,
+      nombre: tarea.nombre,
+      descripcion: tarea.descripcion,
+      porcentaje: tarea.porcentaje ?? 0,
+      fecha_inicio: this.normalizarFecha(tarea.fecha_inicio)
+    };
+    this.tareasService.updateTarea(tarea.id!, payload).subscribe({
+      next: updated => {
+        this.tareas = this.tareas.map(t => (t.id === tarea.id ? {...t, ...updated, proveedor: t.proveedor} : t));
+        this.tareasActualizadas.emit(this.tareas);
+      },
+      error: (err) => {
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: this.obtenerMensajeError(err, 'No se pudo actualizar la tarea')
+        });
+      }
+    });
+  }
+
   eliminarTarea(id: number) {
     this.tareasService.deleteTarea(id, this.obraId).subscribe({
       next: () => {
@@ -275,10 +303,32 @@ export class ObraTareasComponent {
     });
   }
 
+  getSiguienteEstadoLabel(tarea: Tarea): string {
+    const siguiente = this.obtenerSiguienteEstado(tarea.estado_tarea);
+    if (siguiente === 'EN_PROGRESO') return 'En progreso';
+    if (siguiente === 'COMPLETADA') return 'Completada';
+    return 'Pendiente';
+  }
+
+  getSiguienteEstadoIcon(tarea: Tarea): string {
+    const siguiente = this.obtenerSiguienteEstado(tarea.estado_tarea);
+    if (siguiente === 'EN_PROGRESO') return 'pi pi-step-forward';
+    if (siguiente === 'COMPLETADA') return 'pi pi-check-circle';
+    return 'pi pi-refresh';
+  }
+
   private totalPorcentajeSin(id?: number): number {
     return this.tareas
       .filter(t => t.id !== id)
       .reduce((acc, t) => acc + Number(t.porcentaje ?? 0), 0);
+  }
+
+  private obtenerSiguienteEstado(actual?: string): string {
+    const orden = ['PENDIENTE', 'EN_PROGRESO', 'COMPLETADA'];
+    const actualNorm = (actual || 'PENDIENTE').toString().toUpperCase();
+    const idx = orden.indexOf(actualNorm);
+    if (idx === -1) return 'PENDIENTE';
+    return orden[(idx + 1) % orden.length];
   }
 
   private validarTopePorcentaje(nuevo: number, idActual?: number): boolean {
