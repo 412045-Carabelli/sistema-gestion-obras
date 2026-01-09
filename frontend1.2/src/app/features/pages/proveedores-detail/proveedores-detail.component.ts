@@ -141,7 +141,7 @@ export class ProveedoresDetailComponent implements OnInit, OnDestroy {
               mapa[estado] = {cantidad: 0, total: 0};
             }
             mapa[estado].cantidad += 1;
-            mapa[estado].total += Number(c.total || 0);
+            mapa[estado].total += this.getCostoBase(c);
           }
           this.resumenEstados = Object.entries(mapa).map(([estado, v]) => ({
             estado,
@@ -179,7 +179,7 @@ export class ProveedoresDetailComponent implements OnInit, OnDestroy {
   }
 
   private calcularSaldoProveedor() {
-    this.totalCostos = this.costosProveedor.reduce((sum, c) => sum + Number(c.total || 0), 0);
+    this.totalCostos = this.costosProveedor.reduce((sum, c) => sum + this.getCostoBase(c), 0);
     this.totalPagos = this.transacciones.reduce((sum, t) => sum + Number(t.monto || 0), 0);
     this.saldoProveedor = this.totalCostos - this.totalPagos;
 
@@ -210,5 +210,10 @@ export class ProveedoresDetailComponent implements OnInit, OnDestroy {
 
   private getEstadoPagoCosto(c: ObraCosto): string {
     return (c.estado_pago || (c as any).estado_pago_value || 'PENDIENTE').toString().toUpperCase();
+  }
+
+  private getCostoBase(costo: ObraCosto): number {
+    const subtotal = costo.subtotal ?? (Number(costo.cantidad ?? 0) * Number(costo.precio_unitario ?? 0));
+    return Number(subtotal ?? 0);
   }
 }

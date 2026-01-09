@@ -533,7 +533,7 @@
       @if (movimientoCosto) {
         <p class="text-xs text-gray-500 mt-1">
           Estado: {{ movimientoCosto.estado_pago || 'PENDIENTE' }} - Total:
-          {{ movimientoCosto.total | currency:'ARS' }}
+          {{ getMontoBaseCosto(movimientoCosto) | currency:'ARS' }}
         </p>
         @if (movimientoPagadoCosto != null && movimientoRestanteCosto != null) {
           <p class="text-xs text-gray-500">
@@ -690,53 +690,16 @@
     <input pInputText type="email" [(ngModel)]="clienteForm.email" class="w-full" />
   </div>
 </app-modal>
-<app-modal
+<app-proveedor-quick-modal
+  [visible]="showProveedorModal"
+  [tiposProveedor]="tiposProveedor"
+  [gremiosProveedor]="gremiosProveedor"
+  [model]="proveedorForm"
   (closed)="cerrarProveedorModal()"
   (confirmed)="guardarProveedorRapido()"
-  [title]="'Nuevo proveedor'"
-  [visible]="showProveedorModal"
->
-  <div class="p-3 space-y-3">
-    <label class="block text-sm font-medium mb-1 text-gray-700">Nombre</label>
-    <input pInputText type="text" [(ngModel)]="proveedorForm.nombre" class="w-full" />
-
-    <label class="block text-sm font-medium mb-1 text-gray-700">Tipo proveedor</label>
-    <p-select
-      [(ngModel)]="proveedorForm.tipo_proveedor"
-      [options]="tiposProveedor"
-      optionLabel="label"
-      optionValue="name"
-      placeholder="Seleccionar"
-      styleClass="w-full"
-      (onChange)="onTipoProveedorChange($event.value)"
-    ></p-select>
-
-    <label class="block text-sm font-medium mb-1 text-gray-700">Gremio</label>
-    <p-select
-      [(ngModel)]="proveedorForm.gremio"
-      [options]="gremiosProveedor"
-      optionLabel="label"
-      optionValue="name"
-      placeholder="Seleccionar"
-      styleClass="w-full"
-    ></p-select>
-
-    <label class="block text-sm font-medium mb-1 text-gray-700">Contacto</label>
-    <input pInputText type="text" [(ngModel)]="proveedorForm.contacto" class="w-full" />
-
-    <label class="block text-sm font-medium mb-1 text-gray-700">Direccion</label>
-    <input pInputText type="text" [(ngModel)]="proveedorForm.direccion" class="w-full" />
-
-    <label class="block text-sm font-medium mb-1 text-gray-700">CUIT</label>
-    <input pInputText type="text" [(ngModel)]="proveedorForm.cuit" class="w-full" />
-
-    <label class="block text-sm font-medium mb-1 text-gray-700">Telefono</label>
-    <input pInputText type="text" [(ngModel)]="proveedorForm.telefono" class="w-full" />
-
-    <label class="block text-sm font-medium mb-1 text-gray-700">Email</label>
-    <input pInputText type="email" [(ngModel)]="proveedorForm.email" class="w-full" />
-  </div>
-</app-modal>
+  (tipoChange)="onTipoProveedorChange($event)"
+  (gremioChange)="onGremioChange($event)"
+></app-proveedor-quick-modal>
 <app-modal
   (closed)="cerrarFacturaModal()"
   (confirmed)="guardarFacturaRapida()"
@@ -818,6 +781,24 @@
       [(ngModel)]="nuevoTipoProveedorNombre"
       class="w-full"
       placeholder="Ej: Electricista"
+    />
+  </div>
+</app-modal>
+
+<app-modal
+  (closed)="cerrarGremioModal()"
+  (confirmed)="guardarGremioModal()"
+  [title]="'Nuevo gremio'"
+  [visible]="showGremioModal"
+>
+  <div class="p-3 space-y-3">
+    <label class="block text-sm font-medium mb-1 text-gray-700">Nombre</label>
+    <input
+      pInputText
+      type="text"
+      [(ngModel)]="nuevoGremioNombre"
+      class="w-full"
+      placeholder="Ej: Electricistas"
     />
   </div>
 </app-modal>

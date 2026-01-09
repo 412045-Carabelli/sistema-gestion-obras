@@ -64,6 +64,10 @@ public class ProveedorService {
         return gremioRepo.findByIdAndActivoTrue(id);
     }
 
+    public Optional<Gremio> findGremioByNombre(String nombre) {
+        return gremioRepo.findByNombreIgnoreCase(nombre);
+    }
+
     public Optional<Proveedor> findById(Long id) {
         return repository.findByIdAndActivoTrue(id);
     }

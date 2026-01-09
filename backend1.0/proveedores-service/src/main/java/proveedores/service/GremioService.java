@@ -22,6 +22,10 @@ public class GremioService {
         return repo.findByIdAndActivoTrue(id);
     }
 
+    public Optional<Gremio> findByNombre(String nombre) {
+        return repo.findByNombreIgnoreCase(nombre);
+    }
+
     public Gremio save(Gremio g) {
         if (g.getActivo() == null) g.setActivo(true);
         return repo.save(g);

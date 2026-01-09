@@ -139,6 +139,10 @@ public class ProveedoresBffController {
             Gremio gremio = gremioService.findById(dto.getGremio_id())
                     .orElseThrow(() -> new RuntimeException("Gremio no encontrado"));
             entity.setGremio(gremio);
+        } else if (dto.getGremio_nombre() != null) {
+            Gremio gremio = gremioService.findByNombre(dto.getGremio_nombre())
+                    .orElseThrow(() -> new RuntimeException("Gremio no encontrado"));
+            entity.setGremio(gremio);
         }
 
         return entity;

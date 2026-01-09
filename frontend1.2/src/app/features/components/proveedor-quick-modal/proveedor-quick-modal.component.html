@@ -1,0 +1,48 @@
+<app-modal
+  (closed)="closed.emit()"
+  (confirmed)="confirmed.emit()"
+  [title]="title"
+  [visible]="visible"
+>
+  <div class="p-3 space-y-3">
+    <label class="block text-sm font-medium mb-1 text-gray-700">Nombre</label>
+    <input pInputText type="text" [(ngModel)]="model.nombre" class="w-full" />
+
+    <label class="block text-sm font-medium mb-1 text-gray-700">Tipo proveedor</label>
+    <p-select
+      [(ngModel)]="model.tipo_proveedor"
+      [options]="tiposProveedor"
+      optionLabel="label"
+      optionValue="name"
+      placeholder="Seleccionar"
+      styleClass="w-full"
+      (onChange)="onTipoChange($event.value)"
+    ></p-select>
+
+    <label class="block text-sm font-medium mb-1 text-gray-700">Gremio</label>
+    <p-select
+      [(ngModel)]="model.gremio"
+      [options]="gremiosProveedor"
+      optionLabel="label"
+      optionValue="name"
+      placeholder="Seleccionar"
+      styleClass="w-full"
+      (onChange)="onGremioChange($event.value)"
+    ></p-select>
+
+    <label class="block text-sm font-medium mb-1 text-gray-700">Contacto</label>
+    <input pInputText type="text" [(ngModel)]="model.contacto" class="w-full" />
+
+    <label class="block text-sm font-medium mb-1 text-gray-700">Direccion</label>
+    <input pInputText type="text" [(ngModel)]="model.direccion" class="w-full" />
+
+    <label class="block text-sm font-medium mb-1 text-gray-700">CUIT</label>
+    <input pInputText type="text" [(ngModel)]="model.cuit" class="w-full" />
+
+    <label class="block text-sm font-medium mb-1 text-gray-700">Telefono</label>
+    <input pInputText type="text" [(ngModel)]="model.telefono" class="w-full" />
+
+    <label class="block text-sm font-medium mb-1 text-gray-700">Email</label>
+    <input pInputText type="email" [(ngModel)]="model.email" class="w-full" />
+  </div>
+</app-modal>

@@ -419,68 +419,17 @@
   </form>
 </app-modal>
 
-<app-modal
+<app-proveedor-quick-modal
   [visible]="showProveedorModal"
-  [title]="'Nuevo proveedor'"
-  [width]="'700px'"
-  [showFooter]="false"
+  [tiposProveedor]="tiposProveedor"
+  [gremiosProveedor]="gremiosProveedor"
+  [model]="proveedorForm"
   (closed)="cerrarModalProveedor()"
->
-  <form class="space-y-4" [formGroup]="proveedorForm" (ngSubmit)="guardarProveedor()">
-    <div class="grid grid-cols-2 gap-4">
-      <div class="flex flex-col gap-1">
-        <label class="text-sm font-semibold text-gray-700">Nombre</label>
-        <input pInputText formControlName="nombre" placeholder="Proveedor SA" />
-      </div>
-      <div class="flex flex-col gap-1">
-        <label class="text-sm font-semibold text-gray-700">Tipo</label>
-        <p-select
-          [options]="tiposProveedor" [filter]="true" (onChange)="onTipoProveedorChange($event.value)"
-          optionLabel="label"
-          optionValue="name"
-          formControlName="tipo_proveedor"
-          appendTo="body"
-          placeholder="Seleccioná"
-        ></p-select>
-      </div>
-        <div class="flex flex-col gap-1">
-          <label class="text-sm font-semibold text-gray-700">Gremio <span class="text-xs font-normal text-gray-500">(opcional)</span></label>
-          <p-select
-            [options]="gremiosProveedor" [filter]="true" (onChange)="onGremioChange($event.value)"
-            optionLabel="label"
-            optionValue="name"
-            formControlName="gremio"
-          appendTo="body"
-          placeholder="Seleccioná"
-        ></p-select>
-      </div>
-      <div class="flex flex-col gap-1">
-        <label class="text-sm font-semibold text-gray-700">Contacto</label>
-        <input pInputText formControlName="contacto" placeholder="Persona de contacto" />
-      </div>
-      <div class="flex flex-col gap-1">
-        <label class="text-sm font-semibold text-gray-700">Dirección</label>
-        <input pInputText formControlName="direccion" placeholder="Calle 123" />
-      </div>
-      <div class="flex flex-col gap-1">
-        <label class="text-sm font-semibold text-gray-700">DNI/CUIT</label>
-        <input pInputText formControlName="cuit" placeholder="00-00000000-0" />
-      </div>
-      <div class="flex flex-col gap-1">
-        <label class="text-sm font-semibold text-gray-700">Teléfono</label>
-        <input pInputText formControlName="telefono" placeholder="Ej. 1122334455" />
-      </div>
-      <div class="flex flex-col gap-1">
-        <label class="text-sm font-semibold text-gray-700">Email (opcional)</label>
-        <input pInputText formControlName="email" placeholder="correo@proveedor.com" />
-      </div>
-    </div>
-    <div class="flex justify-end gap-2 pt-2">
-      <p-button label="Cancelar" severity="secondary" [outlined]="true" (onClick)="cerrarModalProveedor()" type="button"></p-button>
-      <p-button type="submit" label="Guardar proveedor" icon="pi pi-save" [loading]="creandoProveedor"></p-button>
-    </div>
-  </form>
-</app-modal>
+  (confirmed)="guardarProveedor()"
+  (tipoChange)="onTipoProveedorChange($event)"
+  (gremioChange)="onGremioChange($event)"
+></app-proveedor-quick-modal>
+
 
 
 

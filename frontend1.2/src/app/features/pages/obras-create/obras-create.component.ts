@@ -23,6 +23,7 @@ import {RouterLink} from '@angular/router';
 import {PreventInvalidSubmitDirective} from '../../../shared/directives/prevent-invalid-submit.directive';
 import {ModalComponent} from '../../../shared/modal/modal.component';
 import {EditorModule} from 'primeng/editor';
+import {ProveedorQuickModalComponent} from '../../components/proveedor-quick-modal/proveedor-quick-modal.component';
 
 @Component({
   selector: 'app-obras-create',
@@ -46,6 +47,7 @@ import {EditorModule} from 'primeng/editor';
     RouterLink
     , PreventInvalidSubmitDirective,
     ModalComponent,
+    ProveedorQuickModalComponent,
     EditorModule
   ],
   templateUrl: './obras-create.component.html',
@@ -64,7 +66,7 @@ export class ObrasCreateComponent implements OnInit {
   private readonly NUEVO_TIPO_VALUE = '__nuevo_tipo__';
   private readonly NUEVO_GREMIO_VALUE = '__nuevo_gremio__';
   clienteForm: FormGroup;
-  proveedorForm: FormGroup;
+  proveedorForm: Partial<Proveedor> = {};
   showClienteModal = false;
   showProveedorModal = false;
   creandoCliente = false;
@@ -107,17 +109,7 @@ export class ObrasCreateComponent implements OnInit {
       activo: [true, Validators.required]
     });
 
-    this.proveedorForm = this.fb.group({
-      nombre: ['', Validators.required],
-      tipo_proveedor: [null, Validators.required],
-      gremio: [null],
-      contacto: ['', Validators.required],
-      direccion: [''],
-      cuit: ['', Validators.required],
-      telefono: ['', Validators.required],
-      email: ['', [Validators.email]],
-      activo: [true, Validators.required]
-    });
+    this.resetProveedorForm();
   }
 
   get costos(): FormArray {
@@ -425,25 +417,8 @@ export class ObrasCreateComponent implements OnInit {
   }
 
   abrirModalProveedor() {
-    this.proveedorForm.reset({
-      nombre: '',
-      tipo_proveedor: null,
-      gremio: null,
-      contacto: '',
-      direccion: '',
-      cuit: '',
-      telefono: '',
-      email: '',
-      activo: true
-    });
+    this.resetProveedorForm();
     this.cargarCatalogosProveedor();
-    // preseleccionar opción "crear" para asegurar disponibilidad
-    this.proveedorForm.patchValue({
-      tipo_proveedor: this.NUEVO_TIPO_VALUE,
-      gremio: this.NUEVO_GREMIO_VALUE
-    });
-    this.onTipoProveedorChange({ value: this.NUEVO_TIPO_VALUE } as any);
-    this.onGremioChange({ value: this.NUEVO_GREMIO_VALUE } as any);
     this.showProveedorModal = true;
   }
 
@@ -452,13 +427,35 @@ export class ObrasCreateComponent implements OnInit {
     this.creandoProveedor = false;
   }
 
+  private resetProveedorForm() {
+    this.proveedorForm = {
+      nombre: '',
+      tipo_proveedor: '',
+      gremio: '',
+      direccion: '',
+      contacto: '',
+      cuit: '',
+      telefono: '',
+      email: '',
+      activo: true
+    };
+  }
+
   guardarProveedor() {
-    if (this.proveedorForm.invalid || this.creandoProveedor) {
-      this.proveedorForm.markAllAsTouched();
+    if (!this.proveedorForm.nombre || !this.proveedorForm.tipo_proveedor || !this.proveedorForm.contacto ||
+      !this.proveedorForm.cuit || !this.proveedorForm.telefono) {
+      this.messageService.add({
+        severity: 'warn',
+        summary: 'Datos incompletos',
+        detail: 'Completa los datos obligatorios del proveedor.'
+      });
+      return;
+    }
+    if (this.creandoProveedor) {
       return;
     }
     this.creandoProveedor = true;
-    const payload = this.proveedorForm.getRawValue() as any;
+    const payload = this.proveedorForm as any;
     this.proveedoresService.createProveedor(payload).subscribe({
       next: (nuevo) => {
         const proveedor = {...nuevo, id: Number((nuevo as any)?.id ?? 0)};
@@ -507,11 +504,12 @@ export class ObrasCreateComponent implements OnInit {
     });
   }
 
-  onTipoProveedorChange(value: string | null) {
-    if (value === this.NUEVO_TIPO_VALUE) {
+  onTipoProveedorChange(value: CatalogoOption | string | null) {
+    const val = (value as CatalogoOption)?.name ?? (value as any)?.value ?? value;
+    if (val === this.NUEVO_TIPO_VALUE) {
       const nombre = prompt('Nombre del nuevo tipo de proveedor:');
       if (!nombre) {
-        this.proveedorForm.get('tipo_proveedor')?.setValue(null);
+        this.proveedorForm.tipo_proveedor = undefined;
         return;
       }
       this.proveedoresService.crearTipo(nombre).subscribe({
@@ -521,21 +519,24 @@ export class ObrasCreateComponent implements OnInit {
             t,
             {label: 'Crear nuevo tipo...', name: this.NUEVO_TIPO_VALUE, nombre: 'Crear nuevo tipo'}
           ];
-          this.proveedorForm.get('tipo_proveedor')?.setValue(t.name ?? t.label ?? t);
+          this.proveedorForm.tipo_proveedor = t.name ?? t.label ?? t;
         },
         error: () => {
           alert('No se pudo crear el tipo');
-          this.proveedorForm.get('tipo_proveedor')?.setValue(null);
+          this.proveedorForm.tipo_proveedor = undefined;
         }
       });
+    } else if (val) {
+      this.proveedorForm.tipo_proveedor = val;
     }
   }
 
-  onGremioChange(value: string | null) {
-    if (value === this.NUEVO_GREMIO_VALUE) {
+  onGremioChange(value: CatalogoOption | string | null) {
+    const val = (value as CatalogoOption)?.name ?? (value as any)?.value ?? value;
+    if (val === this.NUEVO_GREMIO_VALUE) {
       const nombre = prompt('Nombre del nuevo gremio:');
       if (!nombre) {
-        this.proveedorForm.get('gremio')?.setValue(null);
+        this.proveedorForm.gremio = undefined;
         return;
       }
       this.proveedoresService.crearGremio(nombre).subscribe({
@@ -545,14 +546,18 @@ export class ObrasCreateComponent implements OnInit {
             g,
             {label: 'Crear nuevo gremio...', name: this.NUEVO_GREMIO_VALUE, nombre: 'Crear nuevo gremio'}
           ];
-          this.proveedorForm.get('gremio')?.setValue(g.name ?? g.label ?? g);
+          this.proveedorForm.gremio = g.name ?? g.label ?? g;
         },
         error: () => {
           alert('No se pudo crear el gremio');
-          this.proveedorForm.get('gremio')?.setValue(null);
+          this.proveedorForm.gremio = undefined;
         }
       });
+    } else if (val) {
+      this.proveedorForm.gremio = val;
     }
   }
 }
+
+
 

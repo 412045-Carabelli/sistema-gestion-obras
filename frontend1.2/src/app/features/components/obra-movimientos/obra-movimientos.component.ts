@@ -502,8 +502,7 @@ export class ObraMovimientosComponent implements OnInit {
     const proveedorId = Number(this.selectedProveedor.id);
     this.costosProveedor = (this.costosObra || []).filter(c => {
       const costoProveedorId = Number((c as any)?.id_proveedor ?? (c as any)?.proveedor?.id ?? 0);
-      return costoProveedorId === proveedorId &&
-      (c.estado_pago || "").toString().toUpperCase() !== "PAGADO"
+      return costoProveedorId === proveedorId;
     });
     if (this.pendingCostoId && !this.selectedCosto) {
       this.selectedCosto = this.costosProveedor.find(c => Number(c.id) === Number(this.pendingCostoId)) || null;
