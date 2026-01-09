@@ -101,8 +101,15 @@ export class ProveedoresService {
 
     if (gremio) {
       body.gremio = gremio;
+      body.gremio_nombre = gremio;
     }
 
+    if (body?.dniCuit && !body?.cuit) {
+      body.cuit = body.dniCuit;
+    }
+    if (body?.dni_cuit && !body?.cuit) {
+      body.cuit = body.dni_cuit;
+    }
     if (body?.cuit && !body?.dniCuit) {
       body.dniCuit = body.cuit;
     }
@@ -123,13 +130,15 @@ export class ProveedoresService {
 
   private toFrontProveedor(raw: any): Proveedor {
     // Normaliza campos que vienen del backend a la forma usada en el front
+    const cuit = raw?.dniCuit ?? raw?.dni_cuit ?? raw?.cuit;
+    const direccion = raw?.direccion ?? raw?.domicilio ?? raw?.direccion_proveedor;
     return {
       id: raw?.id,
       nombre: raw?.nombre,
       tipo_proveedor: raw?.tipo ?? raw?.tipo_proveedor,
-      gremio: raw?.gremio,
-      direccion: raw?.direccion,
-      cuit: raw?.dniCuit ?? raw?.cuit,
+      gremio: raw?.gremio ?? raw?.gremio_nombre,
+      direccion,
+      cuit,
       contacto: raw?.contacto,
       telefono: raw?.telefono,
       email: raw?.email,

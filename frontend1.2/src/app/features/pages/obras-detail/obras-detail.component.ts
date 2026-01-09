@@ -135,27 +135,31 @@ export class ObrasDetailComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   actualizarEstadoObra(nuevoEstado: string) {
-    console.log(nuevoEstado)
-    this.obraService.updateEstadoObra(this.obra.id!, nuevoEstado).subscribe({
+    const estadoNormalizado = (nuevoEstado || '')
+      .toString()
+      .trim()
+      .toUpperCase()
+      .replace(/\s+/g, '_');
+
+    this.obraService.updateEstadoObra(this.obra.id!, estadoNormalizado).subscribe({
       next: () => {
-        const encontrado = this.estadosObra.find(e => e.name === nuevoEstado);
+        const encontrado = this.estadosObra.find(e => e.name === estadoNormalizado || e.label === nuevoEstado);
         if (encontrado) {
-          this.obra.obra_estado = encontrado.label;
+          this.obra.obra_estado = encontrado.name;
         }
 
-        const estadoUpper = (nuevoEstado || '').toUpperCase();
-        if (estadoUpper === 'ADJUDICADA' || estadoUpper === 'EN_PROGRESO') {
+        if (estadoNormalizado === 'ADJUDICADA' || estadoNormalizado === 'EN_PROGRESO') {
           this.obra.fecha_adjudicada = this.obra.fecha_adjudicada || new Date().toISOString();
         }
 
-        this.estadoSeleccionado = nuevoEstado;
+        this.estadoSeleccionado = estadoNormalizado;
         this.obraStateService.setObra(this.obra);
         this.scheduleNotasOverflowCheck();
 
         this.messageService.add({
           severity: 'success',
           summary: 'Estado actualizado',
-          detail: 'La obra ahora esta en estado "' + this.obra.obra_estado + '".'
+          detail: 'La obra ahora esta en estado "' + (encontrado?.label ?? this.obra.obra_estado) + '".'
         });
       },
       error: () => {
@@ -244,10 +248,12 @@ export class ObrasDetailComponent implements OnInit, OnDestroy, AfterViewInit {
     const costos = this.obra.costos ?? [];
     const subtotalBase = (costos ?? []).reduce(
       (acc, c) =>
-        acc +
-        Number(
-          c.subtotal ?? (Number(c.cantidad ?? 0) * Number(c.precio_unitario ?? 0))
-        ),
+        this.costoTieneProveedor(c)
+          ? acc +
+          Number(
+            c.subtotal ?? (Number(c.cantidad ?? 0) * Number(c.precio_unitario ?? 0))
+          )
+          : acc,
       0
     );
 
@@ -268,6 +274,10 @@ export class ObrasDetailComponent implements OnInit, OnDestroy, AfterViewInit {
         (Number(costo.cantidad ?? 0) * Number(costo.precio_unitario ?? 0))
       );
 
+      if (!this.costoTieneProveedor(costo)) {
+        return acc + base;
+      }
+
       const esAdicional =
         (costo?.tipo_costo || '').toString().toUpperCase() === 'ADICIONAL';
 
@@ -281,6 +291,7 @@ export class ObrasDetailComponent implements OnInit, OnDestroy, AfterViewInit {
 
   get totalCostosBase(): number {
     return (this.costos ?? []).reduce((acc, costo) => {
+      if (!this.costoTieneProveedor(costo)) return acc;
       const subtotal = costo.subtotal ?? (Number(costo.cantidad ?? 0) * Number(costo.precio_unitario ?? 0));
       return acc + Number(subtotal ?? 0);
     }, 0);
@@ -452,11 +463,14 @@ export class ObrasDetailComponent implements OnInit, OnDestroy, AfterViewInit {
 
     const filasCostos = (this.costos ?? []).map(c => {
       const subtotalBase = Number(c.subtotal ?? (Number(c.cantidad ?? 0) * Number(c.precio_unitario ?? 0)));
+      const tieneProveedor = this.costoTieneProveedor(c);
       const esAdicional = (c.tipo_costo || '').toString().toUpperCase() === 'ADICIONAL';
       const beneficioAplicado = esAdicional
         ? Number(c.beneficio ?? 0)
         : (this.obra.beneficio_global ? Number(this.obra.beneficio ?? 0) : Number(c.beneficio ?? 0));
-      const totalConBeneficio = subtotalBase * (1 + beneficioAplicado / 100);
+      const totalConBeneficio = tieneProveedor
+        ? subtotalBase * (1 + beneficioAplicado / 100)
+        : subtotalBase;
 
       return [
         {text: c.descripcion, fontSize: 9},
@@ -468,7 +482,10 @@ export class ObrasDetailComponent implements OnInit, OnDestroy, AfterViewInit {
     });
 
     const subtotalCostos = (this.costos ?? []).reduce(
-      (acc, c) => acc + Number(c.subtotal ?? (Number(c.cantidad ?? 0) * Number(c.precio_unitario ?? 0))),
+      (acc, c) =>
+        this.costoTieneProveedor(c)
+          ? acc + Number(c.subtotal ?? (Number(c.cantidad ?? 0) * Number(c.precio_unitario ?? 0)))
+          : acc,
       0
     );
     const beneficioCostos = (this.costos ?? []).reduce((acc, c) => {
@@ -477,6 +494,9 @@ export class ObrasDetailComponent implements OnInit, OnDestroy, AfterViewInit {
         ? Number(c.beneficio ?? 0)
         : (this.obra.beneficio_global ? Number(this.obra.beneficio ?? 0) : Number(c.beneficio ?? 0));
       const base = Number(c.subtotal ?? (Number(c.cantidad ?? 0) * Number(c.precio_unitario ?? 0)));
+      if (!this.costoTieneProveedor(c)) {
+        return acc + base;
+      }
       return acc + base * (beneficio / 100);
     }, 0);
     const totalCostos = subtotalCostos + beneficioCostos;
@@ -827,6 +847,11 @@ export class ObrasDetailComponent implements OnInit, OnDestroy, AfterViewInit {
       if (prov?.nombre) return prov.nombre;
     }
     return null;
+  }
+
+  private costoTieneProveedor(costo: ObraCosto): boolean {
+    const id = Number((costo as any)?.id_proveedor ?? (costo as any)?.proveedor?.id ?? 0);
+    return id > 0;
   }
 
   private resetFacturaForm() {

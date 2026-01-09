@@ -10,4 +10,6 @@ public interface GremioRepository extends JpaRepository<Gremio, Long> {
     List<Gremio> findByActivoTrue();
 
     Optional<Gremio> findByIdAndActivoTrue(Long id);
+
+    Optional<Gremio> findByNombreIgnoreCase(String nombre);
 }

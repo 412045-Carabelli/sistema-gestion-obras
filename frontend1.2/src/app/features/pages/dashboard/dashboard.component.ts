@@ -22,6 +22,7 @@ import {DatePicker} from 'primeng/datepicker';
 import {RadioButtonModule} from 'primeng/radiobutton';
 import {FileUploadModule} from 'primeng/fileupload';
 import {ModalComponent} from '../../../shared/modal/modal.component';
+import {ProveedorQuickModalComponent} from '../../components/proveedor-quick-modal/proveedor-quick-modal.component';
 import {ClientesService} from '../../../services/clientes/clientes.service';
 import {ProveedoresService, CatalogoOption} from '../../../services/proveedores/proveedores.service';
 import {FacturasService} from '../../../services/facturas/facturas.service';
@@ -43,7 +44,8 @@ import {FacturasService} from '../../../services/facturas/facturas.service';
     DatePicker,
     RadioButtonModule,
     FileUploadModule,
-    ModalComponent
+    ModalComponent,
+    ProveedorQuickModalComponent
   ],
   providers: [MessageService],
   templateUrl: './dashboard.component.html',
@@ -77,6 +79,7 @@ export class DashboardComponent implements OnInit {
   tiposProveedor: CatalogoOption[] = [];
   gremiosProveedor: CatalogoOption[] = [];
   private readonly NUEVO_TIPO_VALUE = '__nuevo_tipo__';
+  private readonly NUEVO_GREMIO_VALUE = '__nuevo_gremio__';
   conteoObras = {
     total: 0,
     cotizadas: 0,
@@ -89,6 +92,7 @@ export class DashboardComponent implements OnInit {
   showMovimientoModal = false;
   showClienteModal = false;
   showProveedorModal = false;
+  showGremioModal = false;
   showTareaModal = false;
   showFacturaModal = false;
 
@@ -163,7 +167,9 @@ export class DashboardComponent implements OnInit {
   facturaFile: File | null = null;
   showTipoProveedorModal = false;
   nuevoTipoProveedorNombre = '';
+  nuevoGremioNombre = '';
   guardandoTipoProveedor = false;
+  guardandoGremio = false;
 
   constructor(
     private router: Router,
@@ -441,7 +447,7 @@ export class DashboardComponent implements OnInit {
 
   get movimientoRestanteCosto(): number | null {
     if (!this.movimientoCosto?.id) return null;
-    const total = Number(this.movimientoCosto.total ?? 0);
+    const total = this.getMontoBaseCosto(this.movimientoCosto);
     const pagado = this.movimientoPagadoCosto ?? 0;
     return Math.max(0, total - pagado);
   }
@@ -467,8 +473,7 @@ export class DashboardComponent implements OnInit {
     if (!this.movimientoProveedor?.id) return [];
     const proveedorId = Number(this.movimientoProveedor.id);
     return (this.movimientoCostosObra || []).filter(c =>
-      Number((c as any).id_proveedor ?? (c as any).proveedor?.id) === proveedorId &&
-      (c.estado_pago || '').toString().toUpperCase() !== 'PAGADO'
+      Number((c as any).id_proveedor ?? (c as any).proveedor?.id) === proveedorId
     );
   }
 
@@ -1117,13 +1122,20 @@ export class DashboardComponent implements OnInit {
   }
 
   private aplicarMontoDesdeCosto(costo: ObraCosto) {
-    const total = Number(costo.total ?? 0);
+    const total = this.getMontoBaseCosto(costo);
     const pagado = this.movimientoTransaccionesObra
       .filter(t => Number(t.id_costo) === Number(costo.id))
       .filter(t => (t.tipo_transaccion || '').toString().toUpperCase() === 'PAGO')
       .reduce((acc, t) => acc + Number(t.monto ?? 0), 0);
     const restante = Math.max(0, total - pagado);
     this.movimientoForm.monto = restante;
+  }
+
+  getMontoBaseCosto(costo: ObraCosto | null | undefined): number {
+    if (!costo) return 0;
+    const subtotal = Number((costo as any)?.subtotal ?? NaN);
+    if (!Number.isNaN(subtotal) && subtotal > 0) return subtotal;
+    return Number((costo as any)?.total ?? 0);
   }
 
   private cargarCondicionesIva() {
@@ -1143,14 +1155,15 @@ export class DashboardComponent implements OnInit {
     }
     if (this.gremiosProveedor.length === 0) {
       this.proveedoresService.getGremios().subscribe({
-        next: (gremios) => this.gremiosProveedor = gremios,
-        error: () => this.gremiosProveedor = []
+        next: (gremios) => this.gremiosProveedor = this.agregarOpcionNuevoGremio(gremios),
+        error: () => this.gremiosProveedor = this.agregarOpcionNuevoGremio([])
       });
     }
   }
 
-  onTipoProveedorChange(value: string | null) {
-    if (value !== this.NUEVO_TIPO_VALUE) return;
+  onTipoProveedorChange(value: CatalogoOption | string | null) {
+    const val = (value as CatalogoOption)?.name ?? (value as any)?.value ?? value;
+    if (val !== this.NUEVO_TIPO_VALUE) return;
     this.abrirTipoProveedorModal();
   }
 
@@ -1198,6 +1211,58 @@ export class DashboardComponent implements OnInit {
       ...tipos.filter(op => op?.name !== this.NUEVO_TIPO_VALUE),
       {label: 'Crear nuevo tipo...', name: this.NUEVO_TIPO_VALUE, nombre: 'Crear nuevo tipo'}
     ];
+  }
+
+  private agregarOpcionNuevoGremio(gremios: CatalogoOption[]): CatalogoOption[] {
+    return [
+      ...gremios.filter(op => op?.name !== this.NUEVO_GREMIO_VALUE),
+      {label: 'Crear nuevo gremio...', name: this.NUEVO_GREMIO_VALUE, nombre: 'Crear nuevo gremio'}
+    ];
+  }
+
+  onGremioChange(value: CatalogoOption | string | null) {
+    const val = (value as CatalogoOption)?.name ?? (value as any)?.value ?? value;
+    if (val !== this.NUEVO_GREMIO_VALUE) return;
+    this.abrirGremioModal();
+  }
+
+  abrirGremioModal() {
+    this.nuevoGremioNombre = '';
+    this.guardandoGremio = false;
+    this.showGremioModal = true;
+  }
+
+  cerrarGremioModal() {
+    this.showGremioModal = false;
+    this.guardandoGremio = false;
+    this.nuevoGremioNombre = '';
+    if (this.proveedorForm.gremio === this.NUEVO_GREMIO_VALUE) {
+      this.proveedorForm.gremio = undefined;
+    }
+  }
+
+  guardarGremioModal() {
+    const nombre = (this.nuevoGremioNombre || '').trim();
+    if (!nombre || this.guardandoGremio) return;
+    this.guardandoGremio = true;
+    this.proveedoresService.crearGremio(nombre).subscribe({
+      next: (gremio) => {
+        this.gremiosProveedor = this.agregarOpcionNuevoGremio([
+          ...this.gremiosProveedor.filter(op => op.name !== this.NUEVO_GREMIO_VALUE),
+          gremio
+        ]);
+        this.proveedorForm.gremio = gremio.name ?? gremio.label ?? gremio;
+        this.cerrarGremioModal();
+      },
+      error: () => {
+        this.guardandoGremio = false;
+        this.messageService.add({
+          severity: 'error',
+          summary: 'No se pudo crear el gremio',
+          detail: 'Intentá nuevamente.'
+        });
+      }
+    });
   }
 
   private resetMovimientoForm() {
@@ -1369,7 +1434,13 @@ export class DashboardComponent implements OnInit {
     }, 0);
   }
 
+  private costoTieneProveedor(costo: any): boolean {
+    const id = Number((costo as any)?.id_proveedor ?? (costo as any)?.proveedor?.id ?? 0);
+    return id > 0;
+  }
+
   private obtenerSubtotalCosto(costo: any): number {
+    if (!this.costoTieneProveedor(costo)) return 0;
     return Number(costo?.subtotal ?? costo?.total ?? 0);
   }
 

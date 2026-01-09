@@ -27,6 +27,8 @@ public class ProveedoresController {
         dto.setContacto(entity.getContacto());
         dto.setTelefono(entity.getTelefono());
         dto.setEmail(entity.getEmail());
+        dto.setDireccion(entity.getDireccion());
+        dto.setCuit(entity.getDniCuit());
         dto.setActivo(entity.getActivo());
         dto.setCreado_en(entity.getCreadoEn());
         dto.setUltima_actualizacion(entity.getUltimaActualizacion());
@@ -54,6 +56,8 @@ public class ProveedoresController {
         entity.setContacto(dto.getContacto());
         entity.setTelefono(dto.getTelefono());
         entity.setEmail(dto.getEmail());
+        entity.setDireccion(dto.getDireccion());
+        entity.setDniCuit(dto.getCuit());
         entity.setActivo(dto.getActivo() != null ? dto.getActivo() : Boolean.TRUE);
 
         if (dto.getTipo_proveedor_id() != null) {
@@ -68,6 +72,10 @@ public class ProveedoresController {
 
         if (dto.getGremio_id() != null) {
             Gremio gremio = service.findGremioById(dto.getGremio_id())
+                    .orElseThrow(() -> new RuntimeException("Gremio no encontrado"));
+            entity.setGremio(gremio);
+        } else if (dto.getGremio_nombre() != null) {
+            Gremio gremio = service.findGremioByNombre(dto.getGremio_nombre())
                     .orElseThrow(() -> new RuntimeException("Gremio no encontrado"));
             entity.setGremio(gremio);
         }
