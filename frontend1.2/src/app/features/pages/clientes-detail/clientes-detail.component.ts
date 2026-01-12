@@ -57,6 +57,8 @@ export class ClientesDetailComponent implements OnInit, OnDestroy {
   obrasActivas = 0;
   totalPresupuestado = 0;
   saldoPendiente = 0;
+  totalCobrosCliente = 0;
+  private saldoPendientePorObra = new Map<number, number>();
 
   private subs = new Subscription();
 
@@ -142,6 +144,16 @@ export class ClientesDetailComponent implements OnInit, OnDestroy {
       .sort((a, b) => b.cantidad - a.cantidad);
   }
 
+  getSaldoPendienteObra(obra: Obra): number {
+    const id = Number(obra.id);
+    if (!Number.isFinite(id)) {
+      return Math.max(0, Number(obra.presupuesto ?? 0));
+    }
+
+    return this.saldoPendientePorObra.get(id)
+      ?? Math.max(0, Number(obra.presupuesto ?? 0));
+  }
+
   private cargarDetalle(idCliente: number) {
     this.loading = true;
 
@@ -200,13 +212,34 @@ export class ClientesDetailComponent implements OnInit, OnDestroy {
     );
 
     
-    // Saldo pendiente = presupuesto total - cobros realizados al cliente
+    const cobrosPorObra = new Map<number, number>();
     const totalCobros = (this.transacciones || []).reduce((acc, t) => {
       const tipo = (t.tipo_transaccion || (t as any).tipo || '').toString().toUpperCase();
       if (tipo !== 'COBRO' && tipo !== 'INGRESO') return acc;
-      return acc + Number(t.monto ?? 0);
+
+      const monto = Number(t.monto ?? 0);
+      const obraId = Number((t as any).id_obra ?? t.id_obra);
+
+      if (Number.isFinite(obraId)) {
+        cobrosPorObra.set(obraId, (cobrosPorObra.get(obraId) ?? 0) + monto);
+      }
+
+      return acc + monto;
     }, 0);
+    this.totalCobrosCliente = totalCobros;
     this.saldoPendiente = Math.max(0, this.totalPresupuestado - totalCobros);
+
+    this.saldoPendientePorObra = new Map<number, number>();
+    for (const obra of this.obras) {
+      const id = Number(obra.id);
+      if (!Number.isFinite(id)) {
+        continue;
+      }
+
+      const presupuesto = Number(obra.presupuesto ?? 0);
+      const cobros = cobrosPorObra.get(id) ?? 0;
+      this.saldoPendientePorObra.set(id, Math.max(0, presupuesto - cobros));
+    }
 
   }
 }
