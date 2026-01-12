@@ -34,3 +34,4 @@ export class SidebarComponent {
 
   version: string = 'v1.5.8';
 }
+

@@ -1,4 +1,4 @@
-import {Component, OnDestroy, OnInit} from '@angular/core';
+﻿import {Component, OnDestroy, OnInit} from '@angular/core';
 import {ActivatedRoute, Router, RouterLink} from '@angular/router';
 import {forkJoin, of, Subscription} from 'rxjs';
 import {switchMap} from 'rxjs/operators';
@@ -8,18 +8,18 @@ import {Tab, TabList, TabPanel, TabPanels, Tabs} from 'primeng/tabs';
 import {ProveedoresService} from '../../../services/proveedores/proveedores.service';
 import {TareasService} from '../../../services/tareas/tareas.service';
 import {ObrasService} from '../../../services/obras/obras.service';
-import {EstadoPago, Obra, ObraCosto, Proveedor, Tarea, Transaccion} from '../../../core/models/models';
+import {Obra, ObraCosto, Proveedor, Tarea, Transaccion} from '../../../core/models/models';
 import {ProgressSpinnerModule} from 'primeng/progressspinner';
 import {TableModule} from 'primeng/table';
 import {Tooltip} from 'primeng/tooltip';
 import {TransaccionesService} from '../../../services/transacciones/transacciones.service';
-import {EstadoPagoService} from '../../../services/estado-pago/estado-pago.service';
 import {CostosService} from '../../../services/costos/costos.service';
 import {ProveedoresStateService} from '../../../services/proveedores/proveedores-state.service';
 import {StyleClass} from 'primeng/styleclass';
 import {Toast} from 'primeng/toast';
 import {EstadoFormatPipe} from '../../../shared/pipes/estado-format.pipe';
 import {ClientesDocumentosComponent} from '../../components/clientes-documentos/clientes-documentos.component';
+import {ModalComponent} from '../../../shared/modal/modal.component';
 
 @Component({
   selector: 'app-proveedores-detail',
@@ -29,7 +29,7 @@ import {ClientesDocumentosComponent} from '../../components/clientes-documentos/
     ButtonModule,
     Tabs, TabList, Tab, TabPanels, TabPanel,
     ProgressSpinnerModule,
-    TableModule, Tooltip, StyleClass, Toast, EstadoFormatPipe, ClientesDocumentosComponent
+    TableModule, Tooltip, StyleClass, Toast, EstadoFormatPipe, ClientesDocumentosComponent, ModalComponent
   ],
   templateUrl: './proveedores-detail.component.html'
 })
@@ -38,13 +38,14 @@ export class ProveedoresDetailComponent implements OnInit, OnDestroy {
   tareas: Tarea[] = [];
   obrasMap: Record<number, Obra> = {};
   transacciones: Transaccion[] = [];
-  estadosPago: EstadoPago[] = [];
   costosProveedor: ObraCosto[] = [];
-  resumenEstados: { estado: string; cantidad: number; total: number }[] = [];
+  costosMap: Record<number, ObraCosto> = {};
   transaccionesConSaldo: (Transaccion & { saldoRestante?: number })[] = [];
   totalCostos = 0;
   totalPagos = 0;
   saldoProveedor = 0;
+  showMovimientoModal = false;
+  movimientoSeleccionado?: (Transaccion & { saldoRestante?: number });
   loading = true;
   private subs = new Subscription();
 
@@ -55,7 +56,6 @@ export class ProveedoresDetailComponent implements OnInit, OnDestroy {
     private tareasService: TareasService,
     private obrasService: ObrasService,
     private transaccionesService: TransaccionesService,
-    private estadoPagoService: EstadoPagoService,
     private costosService: CostosService,
     private proveedoresStateService: ProveedoresStateService
   ) {}
@@ -84,8 +84,36 @@ export class ProveedoresDetailComponent implements OnInit, OnDestroy {
   }
 
   irADetalleObraMov(idObra: number) {
-    // Navega a la obra y abre la pestaña de movimientos si existe (tab index 2).
+    // Navega a la obra y abre la pestaÃ±a de movimientos si existe (tab index 2).
     this.router.navigate(['/obras', idObra], { queryParams: { tab: 2 } });
+  }
+
+  abrirMovimientoModal(movimiento: Transaccion & { saldoRestante?: number }) {
+    this.movimientoSeleccionado = movimiento;
+    this.showMovimientoModal = true;
+  }
+
+  cerrarMovimientoModal() {
+    this.showMovimientoModal = false;
+    this.movimientoSeleccionado = undefined;
+  }
+
+  getTipoTransaccionLabel(transaccion: Transaccion): string {
+    const tipo = (transaccion as any)?.tipo_transaccion;
+    if (tipo && typeof tipo === 'object' && 'nombre' in tipo) {
+      return (tipo as { nombre?: string }).nombre || '-';
+    }
+
+    return (tipo as string) || '-';
+  }
+
+  getReferenciaImputacion(transaccion: Transaccion): string {
+    const idCosto = Number((transaccion as any)?.id_costo ?? 0);
+    if (!idCosto) return '-';
+    const costo = this.costosMap[idCosto];
+    if (!costo) return 'Costo #' + idCosto;
+    const base = costo.item_numero ? 'Item ' + costo.item_numero : 'Costo #' + idCosto;
+    return costo.descripcion ? base + ' - ' + costo.descripcion : base;
   }
 
   toggleActivo() {
@@ -106,15 +134,13 @@ export class ProveedoresDetailComponent implements OnInit, OnDestroy {
     forkJoin({
       proveedor: this.proveedoresService.getProveedorById(id),
       tareas: this.tareasService.getTareasByProveedor(id),
-      transacciones: this.transaccionesService.getByAsociado('PROVEEDOR', id),
-      estadosPago: this.estadoPagoService.getEstadosPago()
+      transacciones: this.transaccionesService.getByAsociado('PROVEEDOR', id)
     })
       .pipe(
-        switchMap(({proveedor, tareas, transacciones, estadosPago}) => {
+        switchMap(({proveedor, tareas, transacciones}) => {
           this.proveedor = proveedor;
           this.tareas = tareas;
           this.transacciones = transacciones;
-          this.estadosPago = estadosPago;
           this.proveedoresStateService.setProveedor(proveedor);
 
           const obraIds = Array.from(new Set([
@@ -133,21 +159,12 @@ export class ProveedoresDetailComponent implements OnInit, OnDestroy {
           this.costosProveedor = planos.filter(c =>
             this.getIdProveedorCosto(c) === Number(this.proveedor.id)
           );
-
-          const mapa: Record<string, { cantidad: number; total: number }> = {};
-          for (const c of this.costosProveedor) {
-            const estado = this.getEstadoPagoCosto(c);
-            if (!mapa[estado]) {
-              mapa[estado] = {cantidad: 0, total: 0};
+          this.costosMap = this.costosProveedor.reduce((acc, costo) => {
+            if (costo.id != null) {
+              acc[Number(costo.id)] = costo;
             }
-            mapa[estado].cantidad += 1;
-            mapa[estado].total += this.getCostoBase(c);
-          }
-          this.resumenEstados = Object.entries(mapa).map(([estado, v]) => ({
-            estado,
-            cantidad: v.cantidad,
-            total: v.total
-          }));
+            return acc;
+          }, {} as Record<number, ObraCosto>);
 
           this.calcularSaldoProveedor();
 
@@ -172,7 +189,7 @@ export class ProveedoresDetailComponent implements OnInit, OnDestroy {
   }
 
   formatearTipo(tipo: string | null | undefined): string {
-    if (!tipo) return '—';
+    if (!tipo) return 'â€”';
 
     const limpio = tipo.replace(/_/g, ' ').toLowerCase();
     return limpio.charAt(0).toUpperCase() + limpio.slice(1);
@@ -194,22 +211,8 @@ export class ProveedoresDetailComponent implements OnInit, OnDestroy {
     });
   }
 
-  get tareasCompletadasCount(): number {
-    return this.tareas.filter(t => (t.estado_tarea || '').toUpperCase() === 'COMPLETADA').length;
-  }
-
-  get tareasPendientesCount(): number {
-    const total = this.tareas.length;
-    const completadas = this.tareasCompletadasCount;
-    return total - completadas;
-  }
-
   private getIdProveedorCosto(c: ObraCosto): number {
     return Number((c as any)?.id_proveedor ?? (c as any)?.proveedor?.id ?? 0);
-  }
-
-  private getEstadoPagoCosto(c: ObraCosto): string {
-    return (c.estado_pago || (c as any).estado_pago_value || 'PENDIENTE').toString().toUpperCase();
   }
 
   private getCostoBase(costo: ObraCosto): number {
