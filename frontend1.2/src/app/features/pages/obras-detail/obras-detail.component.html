@@ -1,4 +1,5 @@
 ﻿<p-toast></p-toast>
+<p-confirmDialog></p-confirmDialog>
 
 @if (loading) {
   <div class="flex justify-center items-center min-h-[60vh]">
@@ -107,7 +108,7 @@
               <span class="ml-2 px-2 py-1 text-xs font-semibold text-white bg-red-500 rounded-full">Fuera de rango</span>
             }
           </h3>
-          <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <div class="grid grid-cols-1 md:grid-cols-5 gap-4">
             <div class="flex items-center gap-3 p-4 bg-gray-50 rounded-lg">
               <div class="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0">
                 <i class="pi pi-calendar-plus text-blue-600"></i>
@@ -153,6 +154,17 @@
                 </p>
               </div>
             </div>
+            <div class="flex items-center gap-3 p-4 bg-gray-50 rounded-lg">
+              <div class="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center flex-shrink-0">
+                <i class="pi pi-times text-red-600"></i>
+              </div>
+              <div>
+                <p class="text-xs text-gray-500 mb-1">Fecha perdida</p>
+                <p class="font-semibold text-gray-900">
+                  {{ obra.fecha_perdida ? (obra.fecha_perdida | date:'dd/MM/yyyy') : 'Sin perdida' }}
+                </p>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -181,33 +193,48 @@
         <p-tabs value="0">
           <p-tablist pStyleClass="border-b border-gray-200 px-6">
             <p-tab value="0" pStyleClass="px-6 py-4">
-              <div class="flex items-center gap-2">
+              <div class="flex items-center gap-3">
                 <i class="pi pi-calculator"></i>
-                <span class="font-medium">Presupuesto</span>
+                <div class="flex flex-col leading-tight">
+                  <span class="font-semibold text-sm">Presupuesto</span>
+                  <span class="text-xs text-gray-500">Costos y beneficios</span>
+                </div>
               </div>
             </p-tab>
             <p-tab value="1" pStyleClass="px-6 py-4">
-              <div class="flex items-center gap-2">
+              <div class="flex items-center gap-3">
                 <i class="pi pi-list-check"></i>
-                <span class="font-medium">Tareas</span>
+                <div class="flex flex-col leading-tight">
+                  <span class="font-semibold text-sm">Tareas</span>
+                  <span class="text-xs text-gray-500">Planificacion y avance</span>
+                </div>
               </div>
             </p-tab>
             <p-tab value="2" pStyleClass="px-6 py-4">
-              <div class="flex items-center gap-2">
+              <div class="flex items-center gap-3">
                 <i class="pi pi-arrow-right-arrow-left"></i>
-                <span class="font-medium">Movimientos</span>
+                <div class="flex flex-col leading-tight">
+                  <span class="font-semibold text-sm">Movimientos</span>
+                  <span class="text-xs text-gray-500">Cobros y pagos</span>
+                </div>
               </div>
             </p-tab>
             <p-tab value="3" pStyleClass="px-6 py-4">
-              <div class="flex items-center gap-2">
+              <div class="flex items-center gap-3">
                 <i class="pi pi-file"></i>
-                <span class="font-medium">Facturas</span>
+                <div class="flex flex-col leading-tight">
+                  <span class="font-semibold text-sm">Facturas</span>
+                  <span class="text-xs text-gray-500">Documentos de la obra</span>
+                </div>
               </div>
             </p-tab>
             <p-tab value="4" pStyleClass="px-6 py-4">
-              <div class="flex items-center gap-2">
+              <div class="flex items-center gap-3">
                 <i class="pi pi-align-left"></i>
-                <span class="font-medium">Notas y documentos</span>
+                <div class="flex flex-col leading-tight">
+                  <span class="font-semibold text-sm">Notas y documentos</span>
+                  <span class="text-xs text-gray-500">Notas, memoria y archivos</span>
+                </div>
               </div>
             </p-tab>
           </p-tablist>
@@ -282,6 +309,8 @@
                           Fecha
                           <p-sortIcon field="fecha"></p-sortIcon>
                         </th>
+                        <th>Descripcion</th>
+                        <th>Estado</th>
                         <th>Monto</th>
                         <th>Archivo</th>
                       </tr>
@@ -289,11 +318,23 @@
 
                     <ng-template pTemplate="body" let-f let-rowIndex="rowIndex">
                       <tr
-                        class="hover:bg-gray-50 transition"
+                        class="hover:bg-emerald-50 hover:shadow-sm transition cursor-pointer"
                         [ngClass]="rowIndex % 2 === 0 ? 'bg-white' : 'bg-gray-50'"
+                        (click)="abrirDetalleFactura(f)"
                       >
                         <td>{{ f.fecha | date: 'dd/MM/yyyy' }}</td>
-                        <td class="font-semibold text-gray-900">{{ f.monto | currency: 'ARS' }}</td>
+                        <td class="text-gray-700">
+                          {{ stripFacturaDescripcion(f.descripcion) || '—' }}
+                        </td>
+                        <td>
+                          <p-tag
+                            [value]="f.estado || 'EMITIDA'"
+                            [severity]="(f.estado || 'EMITIDA') === 'COBRADA' ? 'success' : 'info'">
+                          </p-tag>
+                        </td>
+                        <td class="font-semibold text-gray-900">
+                          <div class="flex justify-start">{{ f.monto | currency: 'ARS' }}</div>
+                        </td>
                         <td class="text-gray-600">{{ f.nombre_archivo || 'Sin archivo' }}</td>
                       </tr>
                     </ng-template>
@@ -302,7 +343,7 @@
                   <div class="mt-4 p-4 bg-gray-50 rounded-lg text-sm space-y-1">
                     <div class="flex justify-between font-semibold">
                       <span>Total facturado:</span>
-                      <span>{{ totalFacturasMonto | currency: 'ARS' }}</span>
+                      <span class="flex justify-start">{{ totalFacturasMonto | currency: 'ARS' }}</span>
                     </div>
                     <div class="flex justify-between text-sm text-gray-700 border-t pt-2">
                       <span>Cantidad de facturas</span>
@@ -364,7 +405,35 @@
                         mode="decimal"
                         locale="es-AR"
                       ></p-inputNumber>
+                      <p class="text-xs text-gray-500 mt-1">
+                        Restante por facturar: {{ (obra.presupuesto ?? 0) - totalFacturasMonto | currency:'ARS' }}
+                      </p>
                     </div>
+                  </div>
+
+                  <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <div>
+                      <label class="block text-sm font-medium mb-1 text-gray-700">Estado</label>
+                      <p-select
+                        [(ngModel)]="facturaForm.estado"
+                        [options]="[
+                          { label: 'Emitida', value: 'EMITIDA' },
+                          { label: 'Cobrada', value: 'COBRADA' }
+                        ]"
+                        optionLabel="label"
+                        optionValue="value"
+                        appendTo="body"
+                        class="w-full"
+                      ></p-select>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label class="block text-sm font-medium mb-1 text-gray-700">Descripcion</label>
+                    <p-editor
+                      [(ngModel)]="facturaForm.descripcion"
+                      [style]="{ height: '180px' }"
+                    ></p-editor>
                   </div>
 
                   <div>
@@ -384,6 +453,70 @@
                       </div>
                     }
                   </div>
+                </div>
+              </app-modal>
+
+              <app-modal
+                [visible]="showFacturaDetalleModal"
+                [title]="'Detalle de factura'"
+                [showFooter]="false"
+                (closed)="cerrarDetalleFactura()"
+              >
+                <div class="p-3 space-y-4">
+                  @if (facturaDetalle) {
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div class="flex flex-col gap-2">
+                        <label class="text-sm font-medium text-gray-700">Fecha</label>
+                        <input
+                          class="p-inputtext p-component w-full"
+                          [value]="(facturaDetalle.fecha | date:'dd/MM/yyyy') || ''"
+                          disabled
+                          type="text"/>
+                      </div>
+                      <div class="flex flex-col gap-2">
+                        <label class="text-sm font-medium text-gray-700">Estado</label>
+                        <input
+                          class="p-inputtext p-component w-full"
+                          [value]="facturaDetalle.estado || 'EMITIDA'"
+                          disabled
+                          type="text"/>
+                      </div>
+                      <div class="flex flex-col gap-2 md:col-span-2">
+                        <label class="text-sm font-medium text-gray-700">Descripcion</label>
+                        <textarea
+                          class="p-inputtext p-component w-full h-24 resize-none"
+                          [value]="stripFacturaDescripcion(facturaDetalle.descripcion) || ''"
+                          disabled></textarea>
+                      </div>
+                      <div class="flex flex-col gap-2">
+                        <label class="text-sm font-medium text-gray-700">Monto</label>
+                        <input
+                          class="p-inputtext p-component w-full"
+                          [value]="(facturaDetalle.monto | currency:'ARS':'symbol':'1.0-2') || ''"
+                          disabled
+                          type="text"/>
+                      </div>
+                      <div class="flex flex-col gap-2">
+                        <label class="text-sm font-medium text-gray-700">Archivo</label>
+                        <input
+                          class="p-inputtext p-component w-full"
+                          [value]="facturaDetalle.nombre_archivo || 'Sin archivo'"
+                          disabled
+                          type="text"/>
+                      </div>
+                    </div>
+
+                    <div class="flex justify-end gap-2">
+                      <p-button label="Cerrar" icon="pi pi-times" (onClick)="cerrarDetalleFactura()"></p-button>
+                      <p-button label="Editar" icon="pi pi-pencil" (onClick)="editarFacturaDetalle()"></p-button>
+                      <p-button
+                        label="Eliminar"
+                        icon="pi pi-trash"
+                        severity="danger"
+                        (onClick)="eliminarFacturaDetalle()">
+                      </p-button>
+                    </div>
+                  }
                 </div>
               </app-modal>
             </p-tabpanel>
@@ -462,6 +595,33 @@
         </p-tabs>
       </div>
 
+      <app-modal
+        [visible]="showEstadoFechaModal"
+        [title]="estadoFechaModalTitle"
+        [showFooter]="false"
+        (closed)="cancelarCambioEstado()"
+      >
+        <div class="p-3 space-y-4">
+          <p class="text-sm text-gray-600">
+            Selecciona la fecha para confirmar el cambio de estado.
+          </p>
+          <div class="flex flex-col gap-2">
+            <label class="text-sm font-medium text-gray-700">{{ estadoFechaLabel }}</label>
+            <p-datepicker
+              [(ngModel)]="fechaEstadoSeleccionada"
+              appendTo="body"
+              class="w-full"
+              dateFormat="dd/mm/yy"
+              [showIcon]="true"
+            ></p-datepicker>
+          </div>
+          <div class="flex justify-end gap-2">
+            <p-button label="Cancelar" icon="pi pi-times" (onClick)="cancelarCambioEstado()"></p-button>
+            <p-button label="Guardar" icon="pi pi-check" (onClick)="confirmarCambioEstadoConFecha()"></p-button>
+          </div>
+        </div>
+      </app-modal>
+
       <!-- ===================== GESTIÓN DE ESTADO ===================== -->
       <div class="bg-white rounded-xl shadow-md p-6 mt-5 w-full">
         <div class="flex items-center justify-between">
@@ -479,15 +639,6 @@
               </p>
             </div>
           </div>
-          <p-button
-            [icon]="obra.activo ? 'pi pi-ban' : 'pi pi-check'"
-            [label]="obra.activo ? 'Desactivar' : 'Activar'"
-            [severity]="obra.activo ? 'danger' : 'success'"
-            [outlined]="true"
-            [pTooltip]="obra.activo ? 'Desactivar esta obra' : 'Activar esta obra'"
-            tooltipPosition="top"
-            (onClick)="toggleActivo()">
-          </p-button>
         </div>
       </div>
     </div>

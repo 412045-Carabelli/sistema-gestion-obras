@@ -1,4 +1,4 @@
-<p-toast position="bottom-right"></p-toast>
+﻿<p-toast position="bottom-right"></p-toast>
 
 <!-- ===================== HEADER CON GRADIENTE ===================== -->
 <div class="relative bg-gradient-to-r from-indigo-600 to-purple-800 shadow-lg p-8 text-white overflow-hidden">
@@ -21,7 +21,7 @@
     </div>
   } @else {
 
-    <!-- ===================== ATAJOS Râ€¹Â¨Â«PIDOS ===================== -->
+    <!-- ===================== ATAJOS Râ”œÃ³Ã”Ã©Â¼â”¬â•£â”œÃ©â”¬Â¿â”œÃ©â”¬Â½PIDOS ===================== -->
     <div class="bg-white rounded-xl shadow-md p-6">
       <h2 class="text-lg font-semibold text-gray-900 mb-5 flex items-center gap-2 pb-3 border-b border-gray-200">
         <i class="pi pi-bolt text-indigo-600"></i>
@@ -498,10 +498,11 @@
         (onSelect)="onMovimientoClienteSelect($event.value ?? $event)"
       ></p-autoComplete>
       @if (movimientoPagadoCliente != null && movimientoRestanteCliente != null) {
-        <p class="text-xs text-gray-500 mt-1">
-          Cobrado: {{ movimientoPagadoCliente | currency:'ARS' }} -
-          Restante: {{ movimientoRestanteCliente | currency:'ARS' }}
-        </p>
+        <div class="mt-1 text-xs text-gray-500 flex flex-col gap-1">
+          <div>Total: {{ (movimientoTotalCliente ?? 0) | currency:'ARS' }}</div>
+          <div>Cobrado: {{ (movimientoPagadoCliente ?? 0) | currency:'ARS' }}</div>
+          <div>Por cobrar: {{ (movimientoRestanteCliente ?? 0) | currency:'ARS' }}</div>
+        </div>
       }
     }
 
@@ -517,30 +518,12 @@
         styleClass="w-full"
         (onSelect)="onMovimientoProveedorSelect($event.value ?? $event)"
       ></p-autoComplete>
-    }
-
-    @if (movimientoTipoEntidad === 'PROVEEDOR' && movimientoProveedor) {
-      <label class="block text-sm font-medium mb-1 text-gray-700">Costo asociado (opcional)</label>
-      <p-select
-        [(ngModel)]="movimientoCosto"
-        [options]="getCostosMovimientoProveedor()"
-        optionLabel="descripcion"
-        [showClear]="true"
-        placeholder="Seleccionar costo"
-        styleClass="w-full"
-        (onChange)="onMovimientoCostoSelect($event.value ?? $event)"
-      ></p-select>
-      @if (movimientoCosto) {
-        <p class="text-xs text-gray-500 mt-1">
-          Estado: {{ movimientoCosto.estado_pago || 'PENDIENTE' }} - Total:
-          {{ getMontoBaseCosto(movimientoCosto) | currency:'ARS' }}
-        </p>
-        @if (movimientoPagadoCosto != null && movimientoRestanteCosto != null) {
-          <p class="text-xs text-gray-500">
-            Pagado: {{ movimientoPagadoCosto | currency:'ARS' }} -
-            Restante: {{ movimientoRestanteCosto | currency:'ARS' }}
-          </p>
-        }
+      @if (movimientoProveedor?.id) {
+        <div class="mt-1 text-xs text-gray-500 flex flex-col gap-1">
+          <div>Total: {{ (movimientoTotalProveedor ?? 0) | currency:'ARS' }}</div>
+          <div>Pagado: {{ (movimientoPagadoProveedor ?? 0) | currency:'ARS' }}</div>
+          <div>Saldo: {{ (movimientoSaldoProveedor ?? 0) | currency:'ARS' }}</div>
+        </div>
       }
     }
     <label class="block text-sm font-medium mb-1 text-gray-700">Condicion de pago/cobro</label>
@@ -551,6 +534,8 @@
           inputId="movFormaParcial"
           value="PARCIAL"
           [(ngModel)]="movimientoForm.forma_pago"
+          (ngModelChange)="onMovimientoFormaPagoChange($event)"
+          (onClick)="onMovimientoFormaPagoChange('PARCIAL')"
         ></p-radiobutton>
         <label for="movFormaParcial" class="text-sm text-gray-700">Parcial</label>
       </div>
@@ -560,6 +545,8 @@
           inputId="movFormaTotal"
           value="TOTAL"
           [(ngModel)]="movimientoForm.forma_pago"
+          (ngModelChange)="onMovimientoFormaPagoChange($event)"
+          (onClick)="onMovimientoFormaPagoChange('TOTAL')"
         ></p-radiobutton>
         <label for="movFormaTotal" class="text-sm text-gray-700">Total</label>
       </div>
@@ -726,6 +713,7 @@
       optionValue="id"
       placeholder="Seleccionar obra"
       styleClass="w-full"
+      (onChange)="onFacturaObraChange()"
     ></p-select>
 
     <div class="flex gap-5">
@@ -746,8 +734,32 @@
           mode="decimal"
           locale="es-AR"
         ></p-inputNumber>
+        @if (facturaRestanteObra != null) {
+          <p class="text-xs text-gray-500 mt-1">
+            Restante por facturar: {{ facturaRestanteObra | currency:'ARS' }}
+          </p>
+        }
       </div>
     </div>
+
+    <label class="block text-sm font-medium mb-1 text-gray-700">Estado</label>
+    <p-select
+      [(ngModel)]="facturaForm.estado"
+      [options]="[
+        { label: 'Emitida', value: 'EMITIDA' },
+        { label: 'Cobrada', value: 'COBRADA' }
+      ]"
+      optionLabel="label"
+      optionValue="value"
+      placeholder="Seleccionar estado"
+      styleClass="w-full"
+    ></p-select>
+
+    <label class="block text-sm font-medium mb-1 text-gray-700">Descripcion</label>
+    <p-editor
+      [(ngModel)]="facturaForm.descripcion"
+      [style]="{ height: '160px' }"
+    ></p-editor>
 
     <label class="block text-sm font-medium mb-1 text-gray-700">Adjuntar factura (opcional)</label>
     <p-fileUpload

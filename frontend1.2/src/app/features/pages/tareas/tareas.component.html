@@ -28,7 +28,7 @@
           </tr>
         </ng-template>
         <ng-template pTemplate="body" let-row>
-          <tr>
+          <tr class="cursor-pointer hover:bg-gray-50 transition-colors" (click)="irAObra(row.id_obra)">
             <td>
               <div class="font-semibold text-gray-800">{{ row.nombre }}</div>
               <div class="text-xs text-gray-500">{{ row.descripcion || 'Sin descripción' }}</div>
@@ -37,13 +37,13 @@
               <p-tag [value]="row.estado_tarea | estadoFormat" [severity]="row.estado_tarea === 'COMPLETADA' ? 'success' : row.estado_tarea === 'EN_PROGRESO' ? 'info' : 'warning'"></p-tag>
             </td>
             <td>
-              <button class="text-indigo-600 hover:underline" (click)="irAObra(row.id_obra)">
+              <button class="text-indigo-600 hover:underline" (click)="irAObra(row.id_obra); $event.stopPropagation()">
                 {{ row.obraNombre }}
               </button>
             </td>
             <td>{{ row.proveedor?.nombre || 'Sin proveedor' }}</td>
             <td>
-              <button class="text-sm text-indigo-600 hover:underline" (click)="irAObra(row.id_obra)">Ver obra</button>
+              <button class="text-sm text-indigo-600 hover:underline" (click)="irAObra(row.id_obra); $event.stopPropagation()">Ver obra</button>
             </td>
           </tr>
         </ng-template>

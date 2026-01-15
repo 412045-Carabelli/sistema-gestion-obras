@@ -19,6 +19,7 @@ public class FlujoCajaResponse {
         private Long transaccionId;
         private LocalDate fecha;
         private String tipo;
+        private String detalle;
         private BigDecimal monto = BigDecimal.ZERO;
         private Long obraId;
         private String obraNombre;

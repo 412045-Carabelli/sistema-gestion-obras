@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, map } from 'rxjs';
-import { Cliente } from '../../core/models/models';
+import { Cliente, CondicionIva, CONDICION_IVA_LABELS } from '../../core/models/models';
 import { environment } from '../../../environments/environment';
 
 @Injectable({
@@ -32,7 +32,9 @@ export class ClientesService {
     return this.http.get<any[]>(this.ivaUrl).pipe(
       map(items => items.map((i: any) => {
         const valor = (i?.name ?? i?.label ?? i) as string;
-        return { label: valor, name: valor };
+        const normalized = valor.toString().trim().toUpperCase().replace(/\s+/g, '_');
+        const label = CONDICION_IVA_LABELS[normalized as CondicionIva] ?? valor;
+        return { label, name: normalized };
       }))
     );
   }

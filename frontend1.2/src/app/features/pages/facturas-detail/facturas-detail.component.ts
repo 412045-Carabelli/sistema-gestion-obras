@@ -38,7 +38,7 @@ import {TransaccionesService} from '../../../services/transacciones/transaccione
 export class FacturasDetailComponent implements OnInit, OnDestroy {
   factura?: Factura;
   cliente?: Cliente;
-  obra?: Obra;
+  obra: Obra | null = null;
   facturasObra: Factura[] = [];
   cobrosObra = 0;
   previewUrl?: string;
@@ -78,13 +78,16 @@ export class FacturasDetailComponent implements OnInit, OnDestroy {
     this.loading = true;
     this.subs.add(
       this.facturasService.getFacturaById(id).pipe(
-        switchMap(factura => forkJoin({
-          factura: of(factura),
-          cliente: this.clientesService.getClienteById(factura.id_cliente),
-          obra: this.obrasService.getObraById(factura.id_obra),
-          facturasObra: this.facturasService.getFacturasByObra(factura.id_obra),
-          movimientos: this.transaccionesService.getByObra(factura.id_obra)
-        }))
+        switchMap(factura => {
+          const obraId = factura.id_obra;
+          return forkJoin({
+            factura: of(factura),
+            cliente: this.clientesService.getClienteById(factura.id_cliente),
+            obra: obraId ? this.obrasService.getObraById(obraId) : of(null),
+            facturasObra: obraId ? this.facturasService.getFacturasByObra(obraId) : of([]),
+            movimientos: obraId ? this.transaccionesService.getByObra(obraId) : of([])
+          });
+        })
       ).subscribe({
         next: ({factura, cliente, obra, facturasObra, movimientos}) => {
           this.factura = {
@@ -114,19 +117,26 @@ export class FacturasDetailComponent implements OnInit, OnDestroy {
     );
   }
 
-  descargarFactura() {
-    if (!this.factura?.id) return;
+  descargarAdjunto() {
+    if (!this.factura?.id || !this.factura?.nombre_archivo) return;
+    const nombre = this.factura.nombre_archivo;
     this.facturasService.downloadFactura(this.factura.id).subscribe(blob => {
-      const fileName = this.factura?.nombre_archivo || `factura_${this.factura?.id}`;
       const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = fileName;
-      a.rel = 'noopener';
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-      window.URL.revokeObjectURL(url);
+      const link = document.createElement('a');
+      link.style.display = 'none';
+      link.href = url;
+      link.download = nombre;
+      link.rel = 'noopener';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      setTimeout(() => URL.revokeObjectURL(url), 10000);
+    }, () => {
+      this.messageService.add({
+        severity: 'error',
+        summary: 'Error',
+        detail: 'No se pudo descargar el adjunto.'
+      });
     });
   }
 
@@ -206,6 +216,11 @@ export class FacturasDetailComponent implements OnInit, OnDestroy {
   protected isImageFile(nombre?: string): boolean {
     if (!nombre) return false;
     return /\.(jpg|jpeg|png)$/i.test(nombre);
+  }
+
+  protected isPdfFile(nombre?: string): boolean {
+    if (!nombre) return false;
+    return /\.pdf$/i.test(nombre);
   }
 
   private esCobro(mov: Transaccion): boolean {

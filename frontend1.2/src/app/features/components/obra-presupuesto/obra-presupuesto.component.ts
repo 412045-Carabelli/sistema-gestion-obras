@@ -18,20 +18,19 @@ import { InputTextModule } from 'primeng/inputtext';
 import { CheckboxModule } from 'primeng/checkbox';
 import { InputNumber } from 'primeng/inputnumber';
 import { FormsModule } from '@angular/forms';
-import { MessageService } from 'primeng/api';
+import {ConfirmationService, MessageService} from 'primeng/api';
 import { ToastModule } from 'primeng/toast';
 import {
   EstadoPago,
   Obra,
   ObraCosto,
   Proveedor,
-  Transaccion
 } from '../../../core/models/models';
 import { EstadoPagoService } from '../../../services/estado-pago/estado-pago.service';
 import { CostosService } from '../../../services/costos/costos.service';
 import { Select } from 'primeng/select';
 import { ModalComponent } from '../../../shared/modal/modal.component';
-import { TransaccionesService } from '../../../services/transacciones/transacciones.service';
+import {ConfirmDialog} from 'primeng/confirmdialog';
 import { AutoCompleteModule } from 'primeng/autocomplete';
 import { MenuModule } from 'primeng/menu';
 import { MenuItem } from 'primeng/api';
@@ -64,9 +63,10 @@ pdfMake.vfs = pdfFonts.vfs;
     AutoCompleteModule,
     ModalComponent,
     MenuModule,
-    EditorModule
+    EditorModule,
+    ConfirmDialog
   ],
-  providers: [MessageService],
+  providers: [MessageService, ConfirmationService],
   templateUrl: './obra-presupuesto.component.html',
   styleUrls: ['./obra-presupuesto.component.css']
 })
@@ -100,12 +100,11 @@ export class ObraPresupuestoComponent implements OnInit, OnChanges, AfterViewIni
     { label: 'Adicional', value: 'ADICIONAL' }
   ];
   private pdfMakeReady = false;
+  showCostoDetalleModal = false;
+  costoDetalle?: ObraCosto;
+  costoDetalleEditando = false;
+  costoDetalleDraft?: ObraCosto;
 
-  modalPagoVisible = false;
-  costoPendientePago: ObraCosto | null = null;
-  estadoPendientePago: string | null = null;
-  transaccionForm: Partial<Transaccion> = {};
-  errorApi?: string;
   memoriaExpandida = false;
   memoriaOverflow = false;
   memoriaEditando = false;
@@ -116,8 +115,8 @@ export class ObraPresupuestoComponent implements OnInit, OnChanges, AfterViewIni
     private estadoPagoService: EstadoPagoService,
     private costosService: CostosService,
     private messageService: MessageService,
-    private transaccionesService: TransaccionesService,
-    private obrasService: ObrasService
+    private obrasService: ObrasService,
+    private confirmationService: ConfirmationService
   ) {}
 
   ngOnInit() {
@@ -130,19 +129,14 @@ export class ObraPresupuestoComponent implements OnInit, OnChanges, AfterViewIni
     this.ajustarTipoCostoNuevoSegunEstado();
     this.exportOptions = [
       {
-        label: 'Matriz de costos detallada',
+        label: 'Itemizado',
         icon: 'pi pi-list',
         command: () => this.exportarPDF('DETALLADO')
       },
       {
-        label: 'Memoria descriptiva (GL)',
+        label: 'Global',
         icon: 'pi pi-align-left',
         command: () => this.exportarPDF('MEMORIA')
-      },
-      {
-        label: 'Memoria + matriz de costos',
-        icon: 'pi pi-copy',
-        command: () => this.exportarPDF('AMBOS')
       }
     ];
   }
@@ -172,58 +166,6 @@ export class ObraPresupuestoComponent implements OnInit, OnChanges, AfterViewIni
   }
 
   actualizarEstadoPago(c: ObraCosto, nuevoEstadoName: string) {
-    if (
-      (c.estado_pago === 'PAGADO' || c.estado_pago === 'PARCIAL') &&
-      nuevoEstadoName === 'PENDIENTE'
-    ) {
-      this.transaccionesService.deleteByCosto(c.id!).subscribe({
-        next: () => this.actualizarEstadoPagoDirecto(c, nuevoEstadoName),
-        error: err => {
-          this.messageService.add({
-            severity: 'error',
-            summary: 'Error',
-            detail: this.getErrorMessage(
-              err,
-              'No se pudo eliminar el movimiento asociado'
-            )
-          });
-        }
-      });
-      return;
-    }
-
-    const requiereMovimiento =
-      nuevoEstadoName === 'PAGADO' || nuevoEstadoName === 'PARCIAL';
-
-    if (requiereMovimiento) {
-      const forma =
-        nuevoEstadoName === 'PAGADO'
-          ? 'TOTAL'
-          : nuevoEstadoName === 'PARCIAL'
-            ? 'PARCIAL'
-            : 'TOTAL';
-
-      this.costoPendientePago = c;
-      this.estadoPendientePago = nuevoEstadoName;
-      this.errorApi = undefined;
-
-      this.transaccionForm = {
-        id_obra: this.obra.id!,
-        id_asociado: c.id_proveedor,
-        tipo_asociado: 'PROVEEDOR',
-        tipo_transaccion: 'PAGO',
-        tipo_movimiento: 'PAGO',
-        monto: c.total ?? 0,
-        forma_pago: forma,
-        medio_pago: 'Transferencia',
-        fecha: new Date().toISOString().slice(0, 10),
-        observacion: ''
-      } as any;
-
-      this.modalPagoVisible = true;
-      return;
-    }
-
     this.actualizarEstadoPagoDirecto(c, nuevoEstadoName);
   }
 
@@ -308,6 +250,103 @@ export class ObraPresupuestoComponent implements OnInit, OnChanges, AfterViewIni
     }
     costo._backup = {...costo};
     costo.enEdicion = true;
+  }
+
+  abrirDetalleCosto(costo: ObraCosto) {
+    if (!costo) return;
+    this.costoDetalle = costo;
+    this.costoDetalleDraft = {
+      ...costo,
+      proveedor: costo.proveedor ?? this.proveedores.find(p => Number(p.id) === Number(costo.id_proveedor))
+    };
+    this.costoDetalleEditando = false;
+    this.showCostoDetalleModal = true;
+  }
+
+  cerrarDetalleCosto() {
+    this.showCostoDetalleModal = false;
+    this.costoDetalleEditando = false;
+  }
+
+
+  editarDetalleCosto() {
+    if (!this.costoDetalle) return;
+    if (!this.puedeEditarCosto(this.costoDetalle)) {
+      this.messageService.add({
+        severity: 'warn',
+        summary: 'Edicion no disponible',
+        detail: 'No podes editar este costo en el estado actual de la obra.'
+      });
+      return;
+    }
+    this.costoDetalleEditando = true;
+  }
+
+  cancelarEdicionDetalleCosto() {
+    if (!this.costoDetalle) return;
+    this.costoDetalleDraft = {
+      ...this.costoDetalle,
+      proveedor: this.costoDetalle.proveedor ?? this.proveedores.find(p => Number(p.id) === Number(this.costoDetalle?.id_proveedor))
+    };
+    this.costoDetalleEditando = false;
+  }
+
+  guardarDetalleCosto() {
+    if (!this.costoDetalleDraft?.id) return;
+    if (!this.puedeEditarCosto(this.costoDetalleDraft)) {
+      this.messageService.add({
+        severity: 'warn',
+        summary: 'Edicion no disponible',
+        detail: 'No podes editar este costo en el estado actual de la obra.'
+      });
+      return;
+    }
+    const payload = this.calcularMontosPayload(this.costoDetalleDraft);
+    this.costosService.updateCosto(this.costoDetalleDraft.id, payload).subscribe({
+      next: actualizado => {
+        const actualizadoFull = {
+          ...this.costoDetalleDraft,
+          ...actualizado,
+          ...payload
+        } as ObraCosto;
+        this.costoDetalle = actualizadoFull;
+        this.costoDetalleDraft = { ...actualizadoFull };
+        this.costosFiltrados = this.costosFiltrados.map(c =>
+          c.id === actualizadoFull.id ? { ...c, ...actualizadoFull } : c
+        );
+        this.costosActualizados.emit([...this.costosFiltrados]);
+        this.costoDetalleEditando = false;
+        this.messageService.add({
+          severity: 'success',
+          summary: 'Costo actualizado',
+          detail: 'Los cambios se guardaron correctamente.'
+        });
+      },
+      error: () => {
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: 'No se pudo actualizar el costo.'
+        });
+      }
+    });
+  }
+
+  eliminarDetalleCosto() {
+    if (!this.costoDetalle?.id) return;
+    this.confirmationService.confirm({
+      header: 'Confirmar eliminacion',
+      message: '¿Seguro que queres eliminar este costo?',
+      icon: 'pi pi-exclamation-triangle',
+      acceptLabel: 'Eliminar',
+      rejectLabel: 'Cancelar',
+      acceptButtonStyleClass: 'p-button-danger p-button-sm',
+      rejectButtonStyleClass: 'p-button-text p-button-sm',
+      accept: () => {
+        this.eliminarCosto(this.costoDetalle!);
+        this.cerrarDetalleCosto();
+      }
+    });
   }
 
   recalcularEnEdicion(costo: any) {
@@ -400,72 +439,6 @@ export class ObraPresupuestoComponent implements OnInit, OnChanges, AfterViewIni
         });
       }
     });
-  }
-
-  confirmarPago() {
-    if (!this.costoPendientePago || !this.estadoPendientePago) {
-      this.modalPagoVisible = false;
-      return;
-    }
-
-    const formaPago = (
-      this.transaccionForm.forma_pago ??
-      (this.estadoPendientePago === 'PAGADO'
-        ? 'TOTAL'
-        : this.estadoPendientePago === 'PARCIAL'
-          ? 'PARCIAL'
-          : 'TOTAL')
-    )
-      .toString()
-      .toUpperCase();
-
-    const montoCosto = Number(this.costoPendientePago.total ?? 0);
-    const montoIngresado = Number(
-      this.transaccionForm.monto ??
-      this.costoPendientePago.total ??
-      0
-    );
-
-    const payload: any = {
-      id_obra: this.obra.id!,
-      id_asociado: this.costoPendientePago.id_proveedor,
-      tipo_asociado: 'PROVEEDOR',
-      tipo_transaccion: this.transaccionForm.tipo_transaccion || 'PAGO',
-      tipo_movimiento: this.transaccionForm.tipo_movimiento || 'PAGO',
-      monto: montoIngresado,
-      forma_pago: formaPago,
-      medio_pago: this.transaccionForm.medio_pago ?? 'Transferencia',
-      fecha: this.transaccionForm.fecha ?? new Date().toISOString(),
-      observacion: this.transaccionForm.observacion ?? '',
-      id_costo: this.costoPendientePago.id
-    };
-
-    this.errorApi = undefined;
-
-    this.transaccionesService.create(payload as any).subscribe({
-      next: () => {
-        this.modalPagoVisible = false;
-        this.actualizarEstadoPagoDirecto(
-          this.costoPendientePago!,
-          this.estadoPendientePago!
-        );
-        this.costoPendientePago = null;
-        this.estadoPendientePago = null;
-        this.movimientoCreado.emit();
-      },
-      error: err => {
-        this.errorApi = this.getErrorMessage(
-          err,
-          'No se pudo registrar la transaccion'
-        );
-      }
-    });
-  }
-
-  cancelarPago() {
-    this.modalPagoVisible = false;
-    this.costoPendientePago = null;
-    this.estadoPendientePago = null;
   }
 
   calcularTotal(): number {
@@ -581,7 +554,7 @@ export class ObraPresupuestoComponent implements OnInit, OnChanges, AfterViewIni
       this.messageService.add({
         severity: 'warn',
         summary: 'Falta memoria descriptiva',
-        detail: 'Completa la memoria descriptiva para exportarla como GL.'
+        detail: 'Completa la memoria descriptiva para exportarla como Global.'
       });
       return;
     }
@@ -1011,12 +984,6 @@ export class ObraPresupuestoComponent implements OnInit, OnChanges, AfterViewIni
     return itemNumero || String(index + 1);
   }
 
-  getEstadoPagoLabel(estado?: string): string {
-    const estadoNormalizado = (estado || 'PENDIENTE').toString().toUpperCase();
-    const record = this.estadosPagoRecords.find(e => e.name === estadoNormalizado);
-    return record?.label ?? estadoNormalizado;
-  }
-
   private ordenarCostos(lista: ObraCosto[]): ObraCosto[] {
     return [...lista].sort((a, b) => {
       const aAdd = (a.tipo_costo || 'ORIGINAL') === 'ADICIONAL';
@@ -1128,6 +1095,11 @@ export class ObraPresupuestoComponent implements OnInit, OnChanges, AfterViewIni
       runs.push(...this.convertirInlineHtml(child, nextStyle));
     });
     return runs;
+  }
+
+  stripDescripcion(raw?: string | null): string {
+    if (!raw) return '';
+    return raw.replace(/<[^>]*>/g, '').trim();
   }
 
   toggleMemoria() {

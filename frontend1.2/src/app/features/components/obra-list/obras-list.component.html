@@ -3,20 +3,20 @@
     <!-- Filtros -->
     <div class="bg-white p-4 rounded-lg border border-gray-200">
       <div class="grid grid-cols-1 md:grid-cols-12 gap-4">
-        <div class="md:col-span-8">
+        <div class="md:col-span-6">
           <p-iconfield iconPosition="left" styleClass="w-full">
             <p-inputicon styleClass="pi pi-search"/>
             <input
               (input)="applyFilter()"
               [(ngModel)]="searchValue"
-              class="w-full"
+              class="w-full p-inputtext-sm h-12"
               pInputText
               placeholder="Buscar por nombre, direccion o cliente"
               type="text"/>
           </p-iconfield>
         </div>
 
-        <div class="md:col-span-4">
+        <div class="md:col-span-3">
           <p-select
             (onChange)="onEstadoChange()"
             [(ngModel)]="estadoFiltro"
@@ -24,7 +24,7 @@
             optionLabel="label"
             optionValue="value"
             placeholder="Filtrar por estado"
-            styleClass="w-full">
+            styleClass="w-full p-inputtext-sm h-12">
             <ng-template let-option pTemplate="selectedItem">
               <div class="flex items-center gap-2">
                 <i class="pi pi-filter text-sm"></i>
@@ -32,6 +32,17 @@
               </div>
             </ng-template>
           </p-select>
+        </div>
+        <div class="md:col-span-3 flex items-center gap-2 h-12">
+          <p-checkbox
+            [(ngModel)]="mostrarInactivos"
+            [binary]="true"
+            inputId="obrasMostrarInactivos"
+            (ngModelChange)="onMostrarInactivosChange()">
+          </p-checkbox>
+          <label for="obrasMostrarInactivos" class="text-base text-gray-700">
+            Ver inactivos
+          </label>
         </div>
       </div>
     </div>
@@ -41,6 +52,9 @@
       <p-table
         [rowHover]="true"
         [value]="obrasFiltradas"
+        [paginator]="true"
+        [rows]="8"
+        responsiveLayout="scroll"
         styleClass="p-datatable-sm">
 
         <ng-template pTemplate="header">

@@ -1,6 +1,5 @@
 package com.transacciones.service;
 
-import com.transacciones.dto.ObraCostoDto;
 import com.transacciones.dto.ObraResumenDto;
 import com.transacciones.dto.TransaccionDto;
 import com.transacciones.entity.Transaccion;
@@ -37,13 +36,11 @@ public class TransaccionService {
             throw new IllegalArgumentException("Debe especificarse un tipo de transaccion valido");
         }
         validarTipoAsociado(dto);
-        validarMontoContraCosto(dto);
         validarMontoContraPresupuesto(dto);
 
         Transaccion entity = Transaccion.builder()
                 .idObra(dto.getIdObra())
                 .idAsociado(dto.getIdAsociado())
-                .idCosto(dto.getIdCosto())
                 .tipoAsociado(dto.getTipoAsociado())
                 .tipo_transaccion(dto.getTipo_transaccion())
                 .fecha(dto.getFecha())
@@ -55,7 +52,6 @@ public class TransaccionService {
                 .build();
 
         Transaccion guardado = transaccionRepository.save(entity);
-        actualizarEstadoCostoDesdeMovimiento(guardado);
         return toDto(guardado);
     }
 
@@ -73,12 +69,10 @@ public class TransaccionService {
             throw new IllegalArgumentException("Debe especificarse un tipo de transaccion valido");
         }
         validarTipoAsociado(dto);
-        validarMontoContraCosto(dto);
         validarMontoContraPresupuesto(dto, entity);
 
         entity.setIdObra(dto.getIdObra());
         entity.setIdAsociado(dto.getIdAsociado());
-        entity.setIdCosto(dto.getIdCosto());
         entity.setTipoAsociado(dto.getTipoAsociado());
         entity.setTipo_transaccion(dto.getTipo_transaccion());
         entity.setFecha(dto.getFecha());
@@ -89,7 +83,6 @@ public class TransaccionService {
         entity.setActivo(dto.getActivo());
 
         Transaccion guardado = transaccionRepository.save(entity);
-        actualizarEstadoCostoDesdeMovimiento(guardado);
         return toDto(guardado);
     }
 
@@ -98,10 +91,6 @@ public class TransaccionService {
             throw new RuntimeException("La transaccion no existe");
         }
         transaccionRepository.deleteById(id);
-    }
-
-    public void eliminarPorCosto(Long idCosto) {
-        transaccionRepository.deleteByIdCosto(idCosto);
     }
 
     @Transactional
@@ -132,7 +121,6 @@ public class TransaccionService {
                 .id(transaccion.getId())
                 .id_obra(transaccion.getIdObra())
                 .id_asociado(transaccion.getIdAsociado())
-                .id_costo(transaccion.getIdCosto())
                 .tipo_asociado(transaccion.getTipoAsociado())
                 .tipo_transaccion(transaccion.getTipo_transaccion())
                 .fecha(transaccion.getFecha())
@@ -152,24 +140,6 @@ public class TransaccionService {
     private void completarPagadoRestante(Transaccion transaccion, TransaccionDto dto) {
         if (transaccion == null || dto == null) return;
         if (transaccion.getTipo_transaccion() == null) return;
-
-        if (transaccion.getTipo_transaccion() == TipoTransaccionEnum.PAGO
-                && transaccion.getIdCosto() != null
-                && transaccion.getIdObra() != null) {
-            try {
-                ObraCostoDto costo = obraCostoClient.obtenerCosto(transaccion.getIdObra(), transaccion.getIdCosto());
-                if (costo == null) return;
-                Double totalCosto = costo.getTotal() != null ? costo.getTotal() : costo.getSubtotal();
-                if (totalCosto == null) return;
-                Double pagado = transaccionRepository.sumarPagosPorCosto(transaccion.getIdCosto());
-                double pagadoVal = pagado != null ? pagado : 0d;
-                dto.setPagado(pagadoVal);
-                dto.setRestante(Math.max(0d, totalCosto - pagadoVal));
-            } catch (Exception ex) {
-                log.debug("No se pudo calcular pagado/restante para costo {}", transaccion.getIdCosto(), ex);
-            }
-            return;
-        }
 
         String tipoAsociado = transaccion.getTipoAsociado() == null ? "" : transaccion.getTipoAsociado().toUpperCase();
         if (transaccion.getTipo_transaccion() == TipoTransaccionEnum.COBRO
@@ -192,43 +162,6 @@ public class TransaccionService {
         return (long) (e.ordinal() + 1);
     }
 
-    private void actualizarEstadoCostoDesdeMovimiento(Transaccion transaccion) {
-        if (transaccion == null) return;
-        if (transaccion.getIdCosto() == null || transaccion.getIdObra() == null) return;
-        if (transaccion.getTipo_transaccion() != TipoTransaccionEnum.PAGO) return;
-
-        try {
-            ObraCostoDto costo = obraCostoClient.obtenerCosto(transaccion.getIdObra(), transaccion.getIdCosto());
-            if (costo == null || (costo.getSubtotal() == null && costo.getTotal() == null)) return;
-
-            String formaPago = transaccion.getForma_pago() == null
-                    ? ""
-                    : transaccion.getForma_pago().toUpperCase();
-            double totalCosto = costo.getSubtotal() != null ? costo.getSubtotal() : costo.getTotal();
-            double totalPagos = transaccionRepository.sumarPagosPorCosto(transaccion.getIdCosto());
-
-            String nuevoEstado = null;
-            if (totalPagos >= totalCosto) {
-                nuevoEstado = "PAGADO";
-            } else if (totalPagos > 0) {
-                nuevoEstado = "PARCIAL";
-            } else if ("PARCIAL".equals(formaPago) || "TOTAL".equals(formaPago)) {
-                nuevoEstado = "PENDIENTE";
-            }
-
-            if (nuevoEstado == null) return;
-
-            String estadoActual = costo.getEstado_pago() == null
-                    ? ""
-                    : costo.getEstado_pago().toUpperCase();
-            if (estadoActual.equals(nuevoEstado)) return;
-
-            obraCostoClient.actualizarEstadoPago(costo.getId(), nuevoEstado);
-        } catch (Exception ex) {
-            log.warn("No se pudo actualizar estado de pago del costo {}", transaccion.getIdCosto(), ex);
-        }
-    }
-
     private void validarTipoAsociado(Transaccion dto) {
         if (dto == null) return;
         String tipoAsociado = dto.getTipoAsociado() == null ? "" : dto.getTipoAsociado().toUpperCase();
@@ -237,32 +170,6 @@ public class TransaccionService {
         }
         if ("PROVEEDOR".equals(tipoAsociado) && dto.getTipo_transaccion() != TipoTransaccionEnum.PAGO) {
             throw new IllegalArgumentException("Para proveedores solo se permite PAGO");
-        }
-    }
-
-    private void validarMontoContraCosto(Transaccion dto) {
-        if (dto == null) return;
-        if (dto.getIdCosto() == null || dto.getIdObra() == null) return;
-        if (dto.getTipo_transaccion() != TipoTransaccionEnum.PAGO) return;
-
-        ObraCostoDto costo = obraCostoClient.obtenerCosto(dto.getIdObra(), dto.getIdCosto());
-        if (costo == null || (costo.getSubtotal() == null && costo.getTotal() == null)) {
-            throw new IllegalArgumentException("Costo no encontrado para validar el monto");
-        }
-
-        String formaPago = dto.getForma_pago() == null ? "" : dto.getForma_pago().toUpperCase();
-        double monto = dto.getMonto() != null ? dto.getMonto() : 0;
-        double totalCosto = costo.getSubtotal() != null ? costo.getSubtotal() : costo.getTotal();
-        double pagosPrevios = Optional.ofNullable(transaccionRepository.sumarPagosPorCosto(dto.getIdCosto()))
-                .orElse(0d);
-        double totalDespues = pagosPrevios + monto;
-        double diferencia = Math.abs(totalDespues - totalCosto);
-
-        if ("TOTAL".equals(formaPago) && diferencia >= 0.01) {
-            throw new IllegalArgumentException("Para pago total, el monto debe completar el total del costo");
-        }
-        if ("PARCIAL".equals(formaPago) && totalDespues >= totalCosto) {
-            throw new IllegalArgumentException("Para pago parcial, el monto no debe completar el total del costo");
         }
     }
 

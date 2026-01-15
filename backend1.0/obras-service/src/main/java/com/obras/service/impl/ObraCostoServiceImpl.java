@@ -217,7 +217,11 @@ public class ObraCostoServiceImpl implements ObraCostoService {
 
         final var obra = obraOpt.get();
         final List<ObraCosto> costos = costoRepo.findByObra_IdAndActivoTrue(idObra);
-        if (costos == null || costos.isEmpty()) return;
+        if (costos == null || costos.isEmpty()) {
+            obra.setPresupuesto(BigDecimal.ZERO.setScale(2, RoundingMode.HALF_UP));
+            obraRepo.save(obra);
+            return;
+        }
 
         BigDecimal subtotalCostos = BigDecimal.ZERO;
         BigDecimal beneficioCostos = BigDecimal.ZERO;

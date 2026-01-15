@@ -114,6 +114,12 @@ export class ClientesDetailComponent implements OnInit, OnDestroy {
     this.router.navigate(['/obras', obra.id]);
   }
 
+  irAObraDesdeMovimiento(mov: Transaccion) {
+    const obraId = Number(mov?.id_obra ?? (mov as any)?.idObra ?? 0);
+    if (!Number.isFinite(obraId) || obraId <= 0) return;
+    this.router.navigate(['/obras', obraId], { queryParams: { tab: 2 } });
+  }
+
   getActivoSeverity(activo: boolean): string {
     return activo ? 'success' : 'danger';
   }
@@ -208,7 +214,7 @@ export class ClientesDetailComponent implements OnInit, OnDestroy {
 
     // Total presupuestado
     this.totalPresupuestado = this.obras.reduce((sum, obra) =>
-      sum + (obra.presupuesto || 0), 0
+      sum + this.calcularPresupuestoObra(obra), 0
     );
 
     
@@ -236,11 +242,44 @@ export class ClientesDetailComponent implements OnInit, OnDestroy {
         continue;
       }
 
-      const presupuesto = Number(obra.presupuesto ?? 0);
+      const presupuesto = this.calcularPresupuestoObra(obra);
       const cobros = cobrosPorObra.get(id) ?? 0;
       this.saldoPendientePorObra.set(id, Math.max(0, presupuesto - cobros));
     }
 
+  }
+
+  private calcularPresupuestoObra(obra: Obra): number {
+    if (!obra) return 0;
+    const costos = obra.costos ?? [];
+    if (!costos.length) {
+      return Number(obra.presupuesto ?? 0);
+    }
+
+    const beneficioGlobal = obra.beneficio_global ? Number(obra.beneficio ?? 0) : null;
+    const subtotalCostos = costos.reduce((acc, c) => {
+      const base = Number(
+        c.subtotal ??
+        (Number(c.cantidad ?? 0) * Number(c.precio_unitario ?? 0))
+      );
+      return acc + base;
+    }, 0);
+
+    const beneficioCostos = costos.reduce((acc, c) => {
+      const esAdicional = (c.tipo_costo || '').toString().toUpperCase() === 'ADICIONAL';
+      const porc = esAdicional
+        ? Number(c.beneficio ?? 0)
+        : (beneficioGlobal !== null ? beneficioGlobal : Number(c.beneficio ?? 0));
+      const base = Number(
+        c.subtotal ??
+        (Number(c.cantidad ?? 0) * Number(c.precio_unitario ?? 0))
+      );
+      return acc + (base * (porc / 100));
+    }, 0);
+
+    const totalConBeneficio = subtotalCostos + beneficioCostos;
+    const comisionPorc = obra.tiene_comision ? Number(obra.comision ?? 0) : 0;
+    return totalConBeneficio * (1 + (comisionPorc / 100));
   }
 }
 

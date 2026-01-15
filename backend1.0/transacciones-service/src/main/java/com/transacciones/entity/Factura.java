@@ -22,7 +22,7 @@ public class Factura {
     @Column(name = "id_cliente", nullable = false)
     private Long idCliente;
 
-    @Column(name = "id_obra", nullable = false)
+    @Column(name = "id_obra")
     private Long idObra;
 
     @Column(name = "monto", nullable = false)
@@ -34,6 +34,13 @@ public class Factura {
     @Column(name = "fecha")
     private LocalDate fecha;
 
+    @Lob
+    @Column(name = "descripcion")
+    private String descripcion;
+
+    @Column(name = "estado")
+    private String estado = "EMITIDA";
+
     @Column(name = "nombre_archivo")
     private String nombreArchivo;
 
@@ -42,6 +49,12 @@ public class Factura {
 
     @Column(name = "activo")
     private Boolean activo = true;
+
+    @Column(name = "impacta_cta_cte")
+    private Boolean impactaCtaCte = false;
+
+    @Column(name = "id_transaccion")
+    private Long idTransaccion;
 
     @Column(name = "ultima_actualizacion")
     private Instant ultimaActualizacion;

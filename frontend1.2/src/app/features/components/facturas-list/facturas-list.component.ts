@@ -8,7 +8,11 @@ import {ButtonModule} from 'primeng/button';
 import {Select} from 'primeng/select';
 import {ProgressSpinnerModule} from 'primeng/progressspinner';
 import {TooltipModule} from 'primeng/tooltip';
+import {TagModule} from 'primeng/tag';
 import {forkJoin, Observable} from 'rxjs';
+import {CheckboxModule} from 'primeng/checkbox';
+import {IconFieldModule} from 'primeng/iconfield';
+import {InputIconModule} from 'primeng/inputicon';
 
 import {Cliente, Factura, Obra, Transaccion} from '../../../core/models/models';
 import {FacturasService} from '../../../services/facturas/facturas.service';
@@ -20,6 +24,7 @@ interface FacturaView extends Factura {
   clienteNombre?: string;
   obraNombre?: string;
   porCobrarObra?: number;
+  descripcionTexto?: string;
 }
 
 interface SelectOption<T> {
@@ -36,11 +41,15 @@ interface SelectOption<T> {
     TableModule,
     InputTextModule,
     ButtonModule,
+    IconFieldModule,
+    InputIconModule,
     Select,
     ProgressSpinnerModule,
     TooltipModule,
+    TagModule,
     CurrencyPipe,
-    DatePipe
+    DatePipe,
+    CheckboxModule
   ],
   templateUrl: './facturas-list.component.html',
   styleUrls: ['./facturas-list.component.css']
@@ -57,6 +66,7 @@ export class FacturasListComponent implements OnInit {
   searchValue: string = '';
   clienteFiltro: number | 'todos' = 'todos';
   obraFiltro: number | 'todos' = 'todos';
+  mostrarInactivos = false;
   clientesOptions: SelectOption<number | 'todos'>[] = [];
   obrasOptions: SelectOption<number | 'todos'>[] = [];
   datosCargados = false;
@@ -74,7 +84,7 @@ export class FacturasListComponent implements OnInit {
     forkJoin({
       facturas: this.facturasService.getFacturas(),
       clientes: this.clientesService.getClientes(),
-      obras: this.obrasService.getObras()
+      obras: this.obrasService.getObrasAll()
     }).subscribe({
       next: ({facturas, clientes, obras}) => {
         this.clientes = clientes.map(c => ({...c, id: Number(c.id)}));
@@ -95,20 +105,23 @@ export class FacturasListComponent implements OnInit {
 
         const presupuestoPorObra = this.obras.reduce((acc, o) => {
           const key = Number(o.id || 0);
-          acc[key] = Number(o.presupuesto || 0);
+          acc[key] = this.calcularPresupuestoObra(o);
           return acc;
         }, {} as Record<number, number>);
 
         this.facturas = (facturas || []).map(f => {
-          const obraId = Number(f.id_obra || 0);
-          const presupuesto = presupuestoPorObra[obraId] ?? 0;
-          const facturado = facturadoPorObra[obraId] ?? 0;
-          const porCobrar = Math.max(0, presupuesto - facturado);
+          const obraId = f.id_obra != null ? Number(f.id_obra) : null;
+          const presupuesto = obraId != null ? (presupuestoPorObra[obraId] ?? 0) : 0;
+          const facturado = obraId != null ? (facturadoPorObra[obraId] ?? 0) : 0;
+          const porCobrar = obraId != null ? Math.max(0, presupuesto - facturado) : undefined;
           return {
             ...f,
             clienteNombre: clientesIndex.get(Number(f.id_cliente)) || 'Sin cliente',
-            obraNombre: obrasIndex.get(Number(f.id_obra)) || `Obra #${f.id_obra}`,
-            porCobrarObra: porCobrar
+            obraNombre: obraId != null
+              ? (obrasIndex.get(obraId) || `Obra #${obraId}`)
+              : 'Sin obra',
+            porCobrarObra: porCobrar,
+            descripcionTexto: this.stripHtml(f.descripcion)
           };
         });
 
@@ -118,7 +131,7 @@ export class FacturasListComponent implements OnInit {
         ];
         this.updateObrasOptions();
 
-        this.facturasFiltradas = [...this.facturas];
+        this.applyFilter();
         this.cargarCobrosPorObra();
       },
       error: () => {
@@ -128,7 +141,8 @@ export class FacturasListComponent implements OnInit {
   }
 
   applyFilter() {
-    this.facturasFiltradas = this.facturas.filter(factura => {
+    this.facturasFiltradas = this.facturas
+      .filter(factura => {
       const search = this.searchValue.trim().toLowerCase();
       const matchesSearch = search
         ? (factura.clienteNombre || '').toLowerCase().includes(search) ||
@@ -146,8 +160,13 @@ export class FacturasListComponent implements OnInit {
           ? true
           : Number(factura.id_obra) === Number(this.obraFiltro);
 
-      return matchesSearch && matchesCliente && matchesObra;
-    });
+      const matchesActivo = this.mostrarInactivos
+        ? true
+        : Boolean(factura.activo ?? true);
+
+      return matchesSearch && matchesCliente && matchesObra && matchesActivo;
+    })
+      .sort((a, b) => Number(b.id ?? 0) - Number(a.id ?? 0));
   }
 
   onClienteChange() {
@@ -181,31 +200,36 @@ export class FacturasListComponent implements OnInit {
     this.router.navigate(['/facturas', factura.id]);
   }
 
-  downloadFactura(event: Event, factura: FacturaView) {
+  descargarAdjunto(event: Event, factura: FacturaView) {
     event.stopPropagation();
-    if (!factura.id) {
+    if (!factura.id || !factura.nombre_archivo) {
       return;
     }
+    const nombre = factura.nombre_archivo;
     this.facturasService.downloadFactura(factura.id).subscribe(blob => {
-      const fileName = factura.nombre_archivo || `factura_${factura.id}`;
       const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = fileName;
-      a.rel = 'noopener';
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-      window.URL.revokeObjectURL(url);
+      const link = document.createElement('a');
+      link.style.display = 'none';
+      link.href = url;
+      link.download = nombre;
+      link.rel = 'noopener';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      setTimeout(() => window.URL.revokeObjectURL(url), 10000);
     });
   }
 
   get totalPresupuesto(): number {
-    return this.obrasScope.reduce((sum, o) => sum + Number(o.presupuesto || 0), 0);
+    return this.obrasScope.reduce((sum, o) => sum + this.calcularPresupuestoObra(o), 0);
   }
 
   get totalFacturado(): number {
     return this.facturasScope.reduce((sum, f) => sum + Number(f.monto || 0), 0);
+  }
+
+  get totalPorFacturar(): number {
+    return Math.max(0, this.totalPresupuesto - this.totalFacturado);
   }
 
   get totalCobrado(): number {
@@ -287,5 +311,48 @@ export class FacturasListComponent implements OnInit {
     if (raw && typeof raw.id === 'number') return raw.id === 1;
     const nombre = (raw?.nombre || '').toString().toUpperCase();
     return nombre.includes('COBRO');
+  }
+
+  private calcularPresupuestoObra(obra: Obra): number {
+    if (!obra) return 0;
+    const costos = obra.costos ?? [];
+    if (!costos.length) {
+      return Number(obra.presupuesto ?? 0);
+    }
+
+    const beneficioGlobal = obra.beneficio_global ? Number(obra.beneficio ?? 0) : null;
+    const subtotalCostos = costos.reduce((acc, c) => {
+      const base = Number(
+        c.subtotal ??
+        (Number(c.cantidad ?? 0) * Number(c.precio_unitario ?? 0))
+      );
+      return acc + base;
+    }, 0);
+
+    const beneficioCostos = costos.reduce((acc, c) => {
+      const esAdicional = (c.tipo_costo || '').toString().toUpperCase() === 'ADICIONAL';
+      const porc = esAdicional
+        ? Number(c.beneficio ?? 0)
+        : (beneficioGlobal !== null ? beneficioGlobal : Number(c.beneficio ?? 0));
+      const base = Number(
+        c.subtotal ??
+        (Number(c.cantidad ?? 0) * Number(c.precio_unitario ?? 0))
+      );
+      return acc + (base * (porc / 100));
+    }, 0);
+
+    const totalConBeneficio = subtotalCostos + beneficioCostos;
+    const comisionPorc = obra.tiene_comision ? Number(obra.comision ?? 0) : 0;
+    return totalConBeneficio * (1 + (comisionPorc / 100));
+  }
+
+  private stripHtml(html?: string): string {
+    if (!html) return '';
+    return html.replace(/<[^>]*>/g, '').trim();
+  }
+
+  private isPdfFile(nombre?: string): boolean {
+    if (!nombre) return false;
+    return /\.pdf$/i.test(nombre);
   }
 }

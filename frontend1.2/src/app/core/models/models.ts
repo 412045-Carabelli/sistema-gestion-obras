@@ -146,7 +146,6 @@ export interface Transaccion {
   id?: number;
   id_obra: number;
   id_asociado?: number;
-  id_costo?: number;
   tipo_asociado?: string;
   tipo_transaccion: string;
   fecha?: string | Date;
@@ -169,15 +168,19 @@ export interface Transaccion {
 export interface Factura {
   id?: number;
   id_cliente: number;
-  id_obra: number;
+  id_obra?: number;
   cliente_nombre?: string;
   obra_nombre?: string;
   monto: number;
   monto_restante: number;
   fecha?: string;
+  descripcion?: string;
+  estado?: string;
   nombre_archivo?: string;
   path_archivo?: string;
   activo?: boolean;
+  impacta_cta_cte?: boolean;
+  id_transaccion?: number;
   ultima_actualizacion?: string;
   tipo_actualizacion?: string;
 }
@@ -248,6 +251,7 @@ export interface FlujoCajaResponse {
     fecha: string;
     tipo: string;
     tipo_movimiento?: string;
+    detalle?: string;
     monto: number;
     obraId: number;
     obraNombre: string;

@@ -4,21 +4,16 @@ import {Router} from '@angular/router';
 import {FormsModule} from '@angular/forms';
 import {TableModule} from 'primeng/table';
 import {InputTextModule} from 'primeng/inputtext';
-import {DropdownModule} from 'primeng/dropdown';
 import {TagModule} from 'primeng/tag';
 import {IconFieldModule} from 'primeng/iconfield';
 import {InputIconModule} from 'primeng/inputicon';
 import {ButtonModule} from 'primeng/button';
+import {CheckboxModule} from 'primeng/checkbox';
+import {Select} from 'primeng/select';
 import {forkJoin} from 'rxjs';
 
 import {Cliente, CondicionIva, CONDICION_IVA_LABELS} from '../../../core/models/models';
-import {Select} from 'primeng/select';
 import {ClientesService} from '../../../services/clientes/clientes.service';
-
-interface ActivoOption {
-  label: string;
-  value: string;
-}
 
 @Component({
   selector: 'app-clientes-list',
@@ -28,12 +23,12 @@ interface ActivoOption {
     FormsModule,
     TableModule,
     InputTextModule,
-    DropdownModule,
     TagModule,
     IconFieldModule,
     InputIconModule,
-    Select,
-    ButtonModule
+    ButtonModule,
+    CheckboxModule,
+    Select
   ],
   templateUrl: './clientes-list.component.html',
   styleUrls: ['./clientes-list.component.css']
@@ -44,10 +39,11 @@ export class ClientesListComponent implements OnInit {
 
   clientesFiltrados: Cliente[] = [];
   datosCargados = false;
+  ivaOptions: { label: string; name: string }[] = [];
 
   searchValue: string = '';
-  activoFiltro: string = 'todos';
-  activoOptions: ActivoOption[] = [];
+  condicionIvaFiltro: string | 'todos' = 'todos';
+  mostrarInactivos = false;
 
   constructor(
     private router: Router,
@@ -57,17 +53,17 @@ export class ClientesListComponent implements OnInit {
 
   ngOnInit() {
     forkJoin({
-      clientes: this.clientesService.getClientes()
+      clientes: this.clientesService.getClientes(),
+      condicionesIva: this.clientesService.getCondicionesIva()
     }).subscribe({
-      next: ({clientes}) => {
+      next: ({clientes, condicionesIva}) => {
         this.clientes = clientes.map(c => ({...c, id: Number(c.id)}));
-        this.clientesFiltrados = [...this.clientes];
-
-        this.activoOptions = [
-          {label: 'Todos', value: 'todos'},
-          {label: 'Activos', value: 'true'},
-          {label: 'Inactivos', value: 'false'}
+        this.ivaOptions = [
+          {label: 'Todas', name: 'todos'},
+          ...condicionesIva
         ];
+
+        this.applyFilter();
         this.datosCargados = true;
       },
       error: () => {
@@ -78,7 +74,8 @@ export class ClientesListComponent implements OnInit {
 
   // 🔍 Filtrado por búsqueda y activo
   applyFilter() {
-    this.clientesFiltrados = this.clientes.filter(cliente => {
+    this.clientesFiltrados = this.clientes
+      .filter(cliente => {
       const matchesSearch = this.searchValue
         ? cliente.nombre.toLowerCase().includes(this.searchValue.toLowerCase()) ||
         (cliente.contacto?.toLowerCase().includes(this.searchValue.toLowerCase()) ?? false) ||
@@ -88,16 +85,31 @@ export class ClientesListComponent implements OnInit {
         (cliente.email?.toLowerCase().includes(this.searchValue.toLowerCase()) ?? false)
         : true;
 
-      const matchesActivo =
-        this.activoFiltro === 'todos'
-          ? true
-          : String(cliente.activo) === this.activoFiltro;
+      const condicionCliente = (cliente.condicionIva ?? cliente.condicion_iva ?? '')
+        .toString()
+        .trim()
+        .toUpperCase()
+        .replace(/\s+/g, '_');
 
-      return matchesSearch && matchesActivo;
-    });
+      const matchesCondicion =
+        this.condicionIvaFiltro === 'todos'
+          ? true
+          : condicionCliente === this.condicionIvaFiltro;
+
+      const matchesActivo = this.mostrarInactivos
+        ? true
+        : Boolean(cliente.activo ?? true);
+
+      return matchesSearch && matchesCondicion && matchesActivo;
+    })
+      .sort((a, b) => Number(b.id ?? 0) - Number(a.id ?? 0));
   }
 
-  onActivoChange() {
+  onMostrarInactivosChange() {
+    this.applyFilter();
+  }
+
+  onCondicionIvaChange() {
     this.applyFilter();
   }
 

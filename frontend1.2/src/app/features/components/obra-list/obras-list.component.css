@@ -33,7 +33,7 @@
 /* Estilos para el input de búsqueda */
 :host ::ng-deep .p-inputtext {
   border: 1px solid #e5e7eb;
-  padding: 0.75rem;
+  padding: 0.375rem 0.75rem;
 }
 
 :host ::ng-deep .p-inputtext:enabled:hover {

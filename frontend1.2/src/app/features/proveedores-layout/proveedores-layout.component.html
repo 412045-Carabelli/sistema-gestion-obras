@@ -1,4 +1,5 @@
 <p-toast position="bottom-right"></p-toast>
+<p-confirmDialog></p-confirmDialog>
 
 <div class="flex justify-between items-center">
   @switch (true) {
@@ -98,6 +99,15 @@
                 styleClass="p-button-rounded bg-white/20 hover:bg-white/30 border-white/30 text-white"
                 [routerLink]="['/proveedores/editar', proveedor.id]"
                 pTooltip="Editar proveedor"
+                tooltipPosition="top">
+              </p-button>
+              <p-button
+                [icon]="proveedor.activo ? 'pi pi-ban' : 'pi pi-check'"
+                [severity]="proveedor.activo ? 'danger' : 'success'"
+                [outlined]="true"
+                styleClass="p-button-rounded bg-white/20 hover:bg-white/30 border-white/30 text-white"
+                (onClick)="toggleActivo()"
+                [pTooltip]="proveedor.activo ? 'Desactivar proveedor' : 'Activar proveedor'"
                 tooltipPosition="top">
               </p-button>
               <p-button

@@ -6,9 +6,12 @@ import {Factura} from '../../core/models/models';
 
 export interface FacturaPayload {
   id_cliente: number;
-  id_obra: number;
+  id_obra?: number | null;
   monto: number;
   fecha: string;
+  descripcion?: string;
+  estado?: string;
+  impacta_cta_cte?: boolean;
 }
 
 @Injectable({
@@ -57,10 +60,21 @@ export class FacturasService {
   private buildFormData(payload: FacturaPayload, file?: File): FormData {
     const formData = new FormData();
     formData.append('id_cliente', String(payload.id_cliente));
-    formData.append('id_obra', String(payload.id_obra));
+    if (payload.id_obra != null) {
+      formData.append('id_obra', String(payload.id_obra));
+    }
     formData.append('monto', String(payload.monto));
     formData.append('monto_restante', '0');
     formData.append('fecha', payload.fecha);
+    if (payload.descripcion != null) {
+      formData.append('descripcion', payload.descripcion);
+    }
+    if (payload.estado != null) {
+      formData.append('estado', payload.estado);
+    }
+    if (payload.impacta_cta_cte != null) {
+      formData.append('impacta_cta_cte', String(payload.impacta_cta_cte));
+    }
     if (file) {
       formData.append('file', file, file.name);
     }

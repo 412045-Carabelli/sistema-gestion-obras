@@ -17,9 +17,13 @@ public class FacturaDto {
     private Double monto;
     private Double monto_restante;
     private LocalDate fecha;
+    private String descripcion;
+    private String estado;
     private String nombre_archivo;
     private String path_archivo;
     private Boolean activo;
+    private Boolean impacta_cta_cte;
+    private Long id_transaccion;
     private Instant ultima_actualizacion;
     private String tipo_actualizacion;
 }

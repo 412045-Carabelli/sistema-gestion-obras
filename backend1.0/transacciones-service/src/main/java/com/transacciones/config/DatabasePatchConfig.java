@@ -14,11 +14,11 @@ public class DatabasePatchConfig {
     private final JdbcTemplate jdbcTemplate;
 
     @PostConstruct
-    public void ensureIdCostoColumn() {
+    public void ensureIdCostoColumnRemoved() {
         try {
-            jdbcTemplate.execute("ALTER TABLE transacciones ADD COLUMN IF NOT EXISTS id_costo INTEGER");
+            jdbcTemplate.execute("ALTER TABLE transacciones DROP COLUMN IF EXISTS id_costo");
         } catch (Exception ex) {
-            log.warn("No se pudo agregar columna id_costo (posiblemente ya exista): {}", ex.getMessage());
+            log.warn("No se pudo eliminar columna id_costo: {}", ex.getMessage());
         }
     }
 }

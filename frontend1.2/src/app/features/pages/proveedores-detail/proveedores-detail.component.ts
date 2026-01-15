@@ -11,15 +11,14 @@ import {ObrasService} from '../../../services/obras/obras.service';
 import {Obra, ObraCosto, Proveedor, Tarea, Transaccion} from '../../../core/models/models';
 import {ProgressSpinnerModule} from 'primeng/progressspinner';
 import {TableModule} from 'primeng/table';
+import {TagModule} from 'primeng/tag';
 import {Tooltip} from 'primeng/tooltip';
 import {TransaccionesService} from '../../../services/transacciones/transacciones.service';
 import {CostosService} from '../../../services/costos/costos.service';
 import {ProveedoresStateService} from '../../../services/proveedores/proveedores-state.service';
 import {StyleClass} from 'primeng/styleclass';
-import {Toast} from 'primeng/toast';
 import {EstadoFormatPipe} from '../../../shared/pipes/estado-format.pipe';
 import {ClientesDocumentosComponent} from '../../components/clientes-documentos/clientes-documentos.component';
-import {ModalComponent} from '../../../shared/modal/modal.component';
 
 @Component({
   selector: 'app-proveedores-detail',
@@ -29,7 +28,7 @@ import {ModalComponent} from '../../../shared/modal/modal.component';
     ButtonModule,
     Tabs, TabList, Tab, TabPanels, TabPanel,
     ProgressSpinnerModule,
-    TableModule, Tooltip, StyleClass, Toast, EstadoFormatPipe, ClientesDocumentosComponent, ModalComponent
+    TableModule, TagModule, Tooltip, StyleClass, EstadoFormatPipe, ClientesDocumentosComponent
   ],
   templateUrl: './proveedores-detail.component.html'
 })
@@ -39,13 +38,9 @@ export class ProveedoresDetailComponent implements OnInit, OnDestroy {
   obrasMap: Record<number, Obra> = {};
   transacciones: Transaccion[] = [];
   costosProveedor: ObraCosto[] = [];
-  costosMap: Record<number, ObraCosto> = {};
-  transaccionesConSaldo: (Transaccion & { saldoRestante?: number })[] = [];
   totalCostos = 0;
   totalPagos = 0;
   saldoProveedor = 0;
-  showMovimientoModal = false;
-  movimientoSeleccionado?: (Transaccion & { saldoRestante?: number });
   loading = true;
   private subs = new Subscription();
 
@@ -88,15 +83,6 @@ export class ProveedoresDetailComponent implements OnInit, OnDestroy {
     this.router.navigate(['/obras', idObra], { queryParams: { tab: 2 } });
   }
 
-  abrirMovimientoModal(movimiento: Transaccion & { saldoRestante?: number }) {
-    this.movimientoSeleccionado = movimiento;
-    this.showMovimientoModal = true;
-  }
-
-  cerrarMovimientoModal() {
-    this.showMovimientoModal = false;
-    this.movimientoSeleccionado = undefined;
-  }
 
   getTipoTransaccionLabel(transaccion: Transaccion): string {
     const tipo = (transaccion as any)?.tipo_transaccion;
@@ -107,13 +93,14 @@ export class ProveedoresDetailComponent implements OnInit, OnDestroy {
     return (tipo as string) || '-';
   }
 
-  getReferenciaImputacion(transaccion: Transaccion): string {
-    const idCosto = Number((transaccion as any)?.id_costo ?? 0);
-    if (!idCosto) return '-';
-    const costo = this.costosMap[idCosto];
-    if (!costo) return 'Costo #' + idCosto;
-    const base = costo.item_numero ? 'Item ' + costo.item_numero : 'Costo #' + idCosto;
-    return costo.descripcion ? base + ' - ' + costo.descripcion : base;
+  private esPago(transaccion: Transaccion): boolean {
+    const raw: any = (transaccion as any)?.tipo_transaccion ?? (transaccion as any)?.tipo_movimiento;
+    if (typeof raw === 'string') return raw.toUpperCase() === 'PAGO';
+    if (raw && typeof raw === 'object' && 'nombre' in raw) {
+      return ((raw as { nombre?: string }).nombre || '').toUpperCase() === 'PAGO';
+    }
+    if (raw && typeof raw.id === 'number') return raw.id === 2;
+    return false;
   }
 
   toggleActivo() {
@@ -159,13 +146,6 @@ export class ProveedoresDetailComponent implements OnInit, OnDestroy {
           this.costosProveedor = planos.filter(c =>
             this.getIdProveedorCosto(c) === Number(this.proveedor.id)
           );
-          this.costosMap = this.costosProveedor.reduce((acc, costo) => {
-            if (costo.id != null) {
-              acc[Number(costo.id)] = costo;
-            }
-            return acc;
-          }, {} as Record<number, ObraCosto>);
-
           this.calcularSaldoProveedor();
 
           const obraIds = Array.from(new Set(this.costosProveedor.map(c => c.id_obra)));
@@ -197,18 +177,11 @@ export class ProveedoresDetailComponent implements OnInit, OnDestroy {
 
   private calcularSaldoProveedor() {
     this.totalCostos = this.costosProveedor.reduce((sum, c) => sum + this.getCostoBase(c), 0);
-    this.totalPagos = this.transacciones.reduce((sum, t) => sum + Number(t.monto || 0), 0);
+    this.totalPagos = this.transacciones
+      .filter(t => this.esPago(t))
+      .reduce((sum, t) => sum + Number(t.monto || 0), 0);
     this.saldoProveedor = this.totalCostos - this.totalPagos;
 
-    const ordenadas = [...this.transacciones].sort((a, b) =>
-      new Date(a.fecha || '').getTime() - new Date(b.fecha || '').getTime()
-    );
-
-    let saldo = this.totalCostos;
-    this.transaccionesConSaldo = ordenadas.map(t => {
-      saldo -= Number(t.monto || 0);
-      return {...t, saldoRestante: saldo};
-    });
   }
 
   private getIdProveedorCosto(c: ObraCosto): number {

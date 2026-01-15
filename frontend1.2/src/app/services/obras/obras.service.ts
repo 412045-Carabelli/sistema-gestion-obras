@@ -1,5 +1,5 @@
 import {Injectable} from '@angular/core';
-import {HttpClient} from '@angular/common/http';
+import {HttpClient, HttpParams} from '@angular/common/http';
 import {Observable} from 'rxjs';
 import {EstadoObra, Obra, Tarea} from '../../core/models/models';
 import {environment} from '../../../environments/environment';
@@ -51,6 +51,11 @@ export class ObrasService {
 
   getObras(): Observable<Obra[]> {
     return this.http.get<Obra[]>(this.apiUrl, {withCredentials: true});
+  }
+
+  getObrasAll(): Observable<Obra[]> {
+    const params = new HttpParams().set('size', '1000');
+    return this.http.get<Obra[]>(this.apiUrl, {withCredentials: true, params});
   }
 
   getObraById(id: number): Observable<Obra> {
