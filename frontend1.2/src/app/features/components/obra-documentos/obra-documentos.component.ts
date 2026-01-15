@@ -53,8 +53,6 @@ export class ObraDocumentosComponent implements OnInit {
   selectedTipo: string = 'FACTURA';
   observacion = '';
   selectedFiles: File[] = [];
-  confirmModalVisible = false;
-  docAEliminar: Documento | null = null;
   tipoEntidad: 'PROVEEDOR' | 'CLIENTE' = 'CLIENTE';
   selectedProveedor: Proveedor | null = null;
   selectedCliente: Cliente | null = null;
@@ -63,7 +61,8 @@ export class ObraDocumentosComponent implements OnInit {
 
   constructor(
     private documentosService: DocumentosService,
-    private messageService: MessageService
+    private messageService: MessageService,
+    private confirmationService: ConfirmationService
   ) {}
 
   ngOnInit(): void {
@@ -78,11 +77,11 @@ export class ObraDocumentosComponent implements OnInit {
           label: t.label ?? t.nombre ?? t.name ?? t.value,
           value: t.value ?? t.name ?? t.id ?? t.label
         })) ?? [];
-        this.loading = false;
+        this.cargarDocumentosObra();
       },
       error: () => {
         this.tiposDocumento = [];
-        this.loading = false;
+        this.cargarDocumentosObra();
       }
     });
   }
@@ -119,14 +118,31 @@ export class ObraDocumentosComponent implements OnInit {
           : null;
 
     if (!tipoAsociado || !idAsociado) {
-      this.documentos = [];
-      this.loading = false;
+      this.cargarDocumentosObra();
       return;
     }
 
     this.documentosService.getDocumentosPorAsociado(tipoAsociado, idAsociado).subscribe({
       next: documentos => {
         this.documentos = documentos;
+        this.loading = false;
+      },
+      error: () => {
+        this.documentos = [];
+        this.loading = false;
+      }
+    });
+  }
+
+  private cargarDocumentosObra() {
+    if (!this.obraId) {
+      this.documentos = [];
+      this.loading = false;
+      return;
+    }
+    this.documentosService.getDocumentosByObra(this.obraId).subscribe({
+      next: documentos => {
+        this.documentos = documentos || [];
         this.loading = false;
       },
       error: () => {
@@ -237,33 +253,31 @@ export class ObraDocumentosComponent implements OnInit {
   }
 
   eliminarDocumento(doc: Documento) {
-    this.docAEliminar = doc;
-    this.confirmModalVisible = true;
-  }
-
-  cancelarEliminacion() {
-    this.docAEliminar = null;
-    this.confirmModalVisible = false;
-  }
-
-  confirmarEliminacion() {
-    if (!this.docAEliminar) return;
-    this.documentosService.deleteDocumento(this.docAEliminar.id_documento).subscribe({
-      next: () => {
-        this.documentos = this.documentos.filter(d => d.id_documento !== this.docAEliminar?.id_documento);
-        this.messageService.add({
-          severity: 'success',
-          summary: 'Eliminado',
-          detail: 'Documento eliminado correctamente'
-        });
-        this.docAEliminar = null;
-        this.confirmModalVisible = false;
-      },
-      error: () => {
-        this.messageService.add({
-          severity: 'error',
-          summary: 'Error',
-          detail: 'No se pudo eliminar el documento.'
+    this.confirmationService.confirm({
+      header: 'Confirmar eliminacion',
+      message: `¿Seguro que queres eliminar el documento ${doc.nombre_archivo}?`,
+      icon: 'pi pi-exclamation-triangle',
+      acceptLabel: 'Eliminar',
+      rejectLabel: 'Cancelar',
+      acceptButtonStyleClass: 'p-button-danger p-button-sm',
+      rejectButtonStyleClass: 'p-button-text p-button-sm',
+      accept: () => {
+        this.documentosService.deleteDocumento(doc.id_documento).subscribe({
+          next: () => {
+            this.documentos = this.documentos.filter(d => d.id_documento !== doc.id_documento);
+            this.messageService.add({
+              severity: 'success',
+              summary: 'Eliminado',
+              detail: 'Documento eliminado correctamente'
+            });
+          },
+          error: () => {
+            this.messageService.add({
+              severity: 'error',
+              summary: 'Error',
+              detail: 'No se pudo eliminar el documento.'
+            });
+          }
         });
       }
     });
@@ -295,3 +309,4 @@ export class ObraDocumentosComponent implements OnInit {
     });
   }
 }
+

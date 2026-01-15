@@ -21,6 +21,8 @@ public class TransaccionExternalDto {
     private Double monto;
     @JsonProperty("forma_pago")
     private String formaPago;
+    @JsonProperty("medio_pago")
+    private String medioPago;
     private Boolean activo;
     @JsonProperty("ultima_actualizacion")
     private Instant ultimaActualizacion;

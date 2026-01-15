@@ -2,26 +2,28 @@
   <div class="flex flex-col gap-4">
     <div class="bg-white p-4 rounded-lg border border-gray-200">
       <div class="grid grid-cols-1 md:grid-cols-12 gap-4">
-        <div class="md:col-span-8">
+        <div class="md:col-span-6">
           <p-iconfield iconPosition="left" styleClass="w-full">
             <p-inputicon styleClass="pi pi-search"/>
             <input
               (input)="applyFilter()"
               [(ngModel)]="searchValue"
-              class="w-full"
+              class="w-full p-inputtext-sm h-12"
               pInputText
               placeholder="Buscar por nombre, contacto, email o tipo"
               type="text"/>
           </p-iconfield>
         </div>
 
-        <div class="md:col-span-4">
+        <div class="md:col-span-3">
           <p-select
             (onChange)="onTipoChange()"
             [(ngModel)]="tipoFiltro"
             [options]="tipoOptions"
+            optionLabel="label"
+            optionValue="name"
             placeholder="Filtrar por tipo"
-            styleClass="w-full">
+            styleClass="w-full p-inputtext-sm h-12">
             <ng-template let-option pTemplate="selectedItem">
               <div class="flex items-center gap-2">
                 <i class="pi pi-filter text-sm"></i>
@@ -29,6 +31,17 @@
               </div>
             </ng-template>
           </p-select>
+        </div>
+        <div class="md:col-span-3 flex items-center gap-2 h-12">
+          <p-checkbox
+            [(ngModel)]="mostrarInactivos"
+            [binary]="true"
+            inputId="proveedoresMostrarInactivos"
+            (ngModelChange)="onMostrarInactivosChange()">
+          </p-checkbox>
+          <label for="proveedoresMostrarInactivos" class="text-base text-gray-700">
+            Ver inactivos
+          </label>
         </div>
       </div>
     </div>
@@ -38,6 +51,9 @@
         [rowHover]="true"
         [tableStyle]="{ 'min-width': '100%' }"
         [value]="proveedoresFiltrados"
+        [paginator]="true"
+        [rows]="8"
+        responsiveLayout="scroll"
         class="w-full"
         styleClass="p-datatable-sm"
       >
@@ -48,6 +64,7 @@
             <th>Contacto</th>
             <th>Telefono</th>
             <th>Email</th>
+            <th class="text-right">Saldo</th>
           </tr>
         </ng-template>
 
@@ -59,12 +76,13 @@
             <td>{{ row.contacto || '-' }}</td>
             <td class="whitespace-nowrap max-w-[160px] overflow-hidden text-ellipsis">{{ row.telefono || '-' }}</td>
             <td>{{ row.email || '-' }}</td>
+            <td class="text-right font-semibold">{{ obtenerSaldoProveedor(row.id) | currency:'ARS':'symbol':'1.0-2' }}</td>
           </tr>
         </ng-template>
 
         <ng-template pTemplate="emptymessage">
           <tr>
-            <td class="text-center py-10" colspan="5">
+            <td class="text-center py-10" colspan="6">
               <div class="flex flex-col items-center justify-center gap-2 text-gray-500">
                 <i class="pi pi-inbox text-3xl"></i>
                 <p class="text-base font-medium">No hay registros para mostrar</p>

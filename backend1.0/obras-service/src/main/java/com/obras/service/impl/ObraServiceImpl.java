@@ -6,6 +6,7 @@ import com.obras.enums.EstadoPagoEnum;
 import com.obras.enums.TipoCostoEnum;
 import com.obras.entity.Obra;
 import com.obras.entity.ObraCosto;
+import com.obras.repository.ObraCostoRepository;
 import com.obras.repository.ObraRepository;
 import com.obras.service.ObraService;
 import jakarta.persistence.EntityNotFoundException;
@@ -29,6 +30,7 @@ import java.util.stream.Collectors;
 public class ObraServiceImpl implements ObraService {
 
     private final ObraRepository obraRepo;
+    private final ObraCostoRepository costoRepo;
 
     /* ============================================================
                              CREAR
@@ -109,12 +111,6 @@ public class ObraServiceImpl implements ObraService {
         EstadoObraEnum nuevoEstado = estado != null ? estado : EstadoObraEnum.PRESUPUESTADA;
         obra.setEstadoObra(nuevoEstado);
 
-        if (nuevoEstado == EstadoObraEnum.ADJUDICADA || nuevoEstado == EstadoObraEnum.EN_PROGRESO) {
-            if (obra.getFechaAdjudicada() == null) {
-                obra.setFechaAdjudicada(java.time.LocalDateTime.now());
-            }
-        }
-
         obraRepo.save(obra);
     }
 
@@ -125,7 +121,8 @@ public class ObraServiceImpl implements ObraService {
     @Override
     public void activar(Long idObra) {
         obraRepo.findById(idObra).ifPresent(obra -> {
-            obra.setActivo(!Boolean.FALSE.equals(obra.getActivo()));
+            boolean activoActual = Boolean.TRUE.equals(obra.getActivo());
+            obra.setActivo(!activoActual);
             obraRepo.save(obra);
         });
     }
@@ -206,39 +203,42 @@ public class ObraServiceImpl implements ObraService {
         dto.setBeneficio_neto(totales.beneficioNeto());
         dto.setPresupuesto(totales.presupuestoFinal());
 
-        if (entity.getCostos() != null) {
-            dto.setCostos(
-                entity.getCostos().stream()
-                    .sorted((a, b) -> {
-                        boolean aAdd = com.obras.enums.TipoCostoEnum.ADICIONAL.equals(a.getTipoCosto());
-                        boolean bAdd = com.obras.enums.TipoCostoEnum.ADICIONAL.equals(b.getTipoCosto());
-                        int tipoCompare = Boolean.compare(aAdd, bAdd);
-                        if (tipoCompare != 0) return tipoCompare;
-                        return Long.compare(
-                                a.getId() != null ? a.getId() : 0,
-                                b.getId() != null ? b.getId() : 0
-                        );
-                    })
-                    .map(c -> {
-                        ObraCostoDTO cdto = new ObraCostoDTO();
-                        cdto.setId(c.getId());
-                        cdto.setId_proveedor(c.getIdProveedor());
-                        cdto.setItem_numero(c.getItemNumero());
-                        cdto.setDescripcion(c.getDescripcion());
-                        cdto.setUnidad(c.getUnidad());
-                        cdto.setCantidad(c.getCantidad());
-                        cdto.setPrecio_unitario(c.getPrecioUnitario());
-                        cdto.setBeneficio(c.getBeneficio());
-                        cdto.setSubtotal(c.getSubtotal());
-                        cdto.setTotal(c.getTotal());
-                        cdto.setEstado_pago(c.getEstadoPago());
-                        cdto.setTipo_costo(c.getTipoCosto());
-                        cdto.setActivo(c.getActivo());
-                        cdto.setUltima_actualizacion(c.getUltimaActualizacion());
-                        cdto.setTipo_actualizacion(c.getTipoActualizacion());
-                        return cdto;
-                    }).toList()
-            );
+        if (entity.getId() != null) {
+            List<ObraCosto> costosActivos = costoRepo.findByObra_IdAndActivoTrue(entity.getId());
+            if (costosActivos != null && !costosActivos.isEmpty()) {
+                dto.setCostos(
+                    costosActivos.stream()
+                        .sorted((a, b) -> {
+                            boolean aAdd = com.obras.enums.TipoCostoEnum.ADICIONAL.equals(a.getTipoCosto());
+                            boolean bAdd = com.obras.enums.TipoCostoEnum.ADICIONAL.equals(b.getTipoCosto());
+                            int tipoCompare = Boolean.compare(aAdd, bAdd);
+                            if (tipoCompare != 0) return tipoCompare;
+                            return Long.compare(
+                                    a.getId() != null ? a.getId() : 0,
+                                    b.getId() != null ? b.getId() : 0
+                            );
+                        })
+                        .map(c -> {
+                            ObraCostoDTO cdto = new ObraCostoDTO();
+                            cdto.setId(c.getId());
+                            cdto.setId_proveedor(c.getIdProveedor());
+                            cdto.setItem_numero(c.getItemNumero());
+                            cdto.setDescripcion(c.getDescripcion());
+                            cdto.setUnidad(c.getUnidad());
+                            cdto.setCantidad(c.getCantidad());
+                            cdto.setPrecio_unitario(c.getPrecioUnitario());
+                            cdto.setBeneficio(c.getBeneficio());
+                            cdto.setSubtotal(c.getSubtotal());
+                            cdto.setTotal(c.getTotal());
+                            cdto.setEstado_pago(c.getEstadoPago());
+                            cdto.setTipo_costo(c.getTipoCosto());
+                            cdto.setActivo(c.getActivo());
+                            cdto.setUltima_actualizacion(c.getUltimaActualizacion());
+                            cdto.setTipo_actualizacion(c.getTipoActualizacion());
+                            return cdto;
+                        }).toList()
+                );
+            }
         }
 
         return dto;
@@ -315,14 +315,33 @@ public class ObraServiceImpl implements ObraService {
         throw new RuntimeException("Valor de estado de obra no soportado: " + estado);
     }
     private TotalesObra calcularTotalesObra(Obra obra) {
-        if (obra == null || obra.getCostos() == null || obra.getCostos().isEmpty()) {
-            return new TotalesObra(BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO, obra != null ? obra.getPresupuesto() : BigDecimal.ZERO);
+        if (obra == null || obra.getId() == null) {
+            return new TotalesObra(
+                BigDecimal.ZERO,
+                BigDecimal.ZERO,
+                BigDecimal.ZERO,
+                BigDecimal.ZERO,
+                BigDecimal.ZERO,
+                BigDecimal.ZERO
+            );
+        }
+
+        List<ObraCosto> costos = costoRepo.findByObra_IdAndActivoTrue(obra.getId());
+        if (costos == null || costos.isEmpty()) {
+            return new TotalesObra(
+                BigDecimal.ZERO,
+                BigDecimal.ZERO,
+                BigDecimal.ZERO,
+                BigDecimal.ZERO,
+                BigDecimal.ZERO,
+                BigDecimal.ZERO
+            );
         }
 
         BigDecimal subtotalCostos = BigDecimal.ZERO;
         BigDecimal beneficioCostos = BigDecimal.ZERO;
 
-        for (ObraCosto costo : obra.getCostos()) {
+        for (ObraCosto costo : costos) {
             BigDecimal base = costo.getSubtotal() != null
                     ? costo.getSubtotal()
                     : Optional.ofNullable(costo.getCantidad()).orElse(BigDecimal.ZERO)

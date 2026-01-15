@@ -28,6 +28,11 @@ export class ProveedoresService {
     return this.http.get<any[]>(this.apiUrl).pipe(map(items => items.map(i => this.toFrontProveedor(i))));
   }
 
+  // Obtener todos los proveedores (incluye inactivos)
+  getProveedoresAll(): Observable<Proveedor[]> {
+    return this.http.get<any[]>(`${this.apiUrl}/all`).pipe(map(items => items.map(i => this.toFrontProveedor(i))));
+  }
+
   // Obtener proveedor por ID
   getProveedorById(id: number): Observable<Proveedor> {
     return this.http.get<any>(`${this.apiUrl}/${id}`).pipe(map(p => this.toFrontProveedor(p)));
@@ -132,10 +137,16 @@ export class ProveedoresService {
     // Normaliza campos que vienen del backend a la forma usada en el front
     const cuit = raw?.dniCuit ?? raw?.dni_cuit ?? raw?.cuit;
     const direccion = raw?.direccion ?? raw?.domicilio ?? raw?.direccion_proveedor;
+    const tipoProveedor =
+      raw?.tipo ??
+      raw?.tipo_proveedor ??
+      raw?.tipo_proveedor_nombre ??
+      raw?.tipoProveedor?.nombre ??
+      raw?.tipoProveedor?.name;
     return {
       id: raw?.id,
       nombre: raw?.nombre,
-      tipo_proveedor: raw?.tipo ?? raw?.tipo_proveedor,
+      tipo_proveedor: tipoProveedor,
       gremio: raw?.gremio ?? raw?.gremio_nombre,
       direccion,
       cuit,

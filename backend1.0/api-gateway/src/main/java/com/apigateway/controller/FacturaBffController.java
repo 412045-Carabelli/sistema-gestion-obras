@@ -5,16 +5,12 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
-import org.springframework.core.io.buffer.DataBuffer;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.client.MultipartBodyBuilder;
 import org.springframework.http.codec.multipart.FilePart;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.reactive.function.BodyInserters;
 import org.springframework.web.reactive.function.client.WebClient;
-import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.util.List;
@@ -77,13 +73,16 @@ public class FacturaBffController {
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public Mono<ResponseEntity<Map<String, Object>>> create(
             @RequestPart("id_cliente") String idCliente,
-            @RequestPart("id_obra") String idObra,
+            @RequestPart(value = "id_obra", required = false) String idObra,
             @RequestPart("monto") String monto,
             @RequestPart("monto_restante") String montoRestante,
             @RequestPart("fecha") String fecha,
+            @RequestPart(value = "descripcion", required = false) String descripcion,
+            @RequestPart(value = "estado", required = false) String estado,
+            @RequestPart(value = "impacta_cta_cte", required = false) String impactaCtaCte,
             @RequestPart(value = "file", required = false) FilePart filePart
     ) {
-        MultipartBodyBuilder builder = buildMultipart(idCliente, idObra, monto, montoRestante, fecha, filePart);
+        MultipartBodyBuilder builder = buildMultipart(idCliente, idObra, monto, montoRestante, fecha, descripcion, estado, impactaCtaCte, filePart);
         return webClientBuilder.build()
                 .post()
                 .uri(FACTURAS_URL)
@@ -98,13 +97,16 @@ public class FacturaBffController {
     public Mono<ResponseEntity<Map<String, Object>>> update(
             @PathVariable("id") Long id,
             @RequestPart("id_cliente") String idCliente,
-            @RequestPart("id_obra") String idObra,
+            @RequestPart(value = "id_obra", required = false) String idObra,
             @RequestPart("monto") String monto,
             @RequestPart("monto_restante") String montoRestante,
             @RequestPart("fecha") String fecha,
+            @RequestPart(value = "descripcion", required = false) String descripcion,
+            @RequestPart(value = "estado", required = false) String estado,
+            @RequestPart(value = "impacta_cta_cte", required = false) String impactaCtaCte,
             @RequestPart(value = "file", required = false) FilePart filePart
     ) {
-        MultipartBodyBuilder builder = buildMultipart(idCliente, idObra, monto, montoRestante, fecha, filePart);
+        MultipartBodyBuilder builder = buildMultipart(idCliente, idObra, monto, montoRestante, fecha, descripcion, estado, impactaCtaCte, filePart);
         return webClientBuilder.build()
                 .put()
                 .uri(FACTURAS_URL + "/{id}", id)
@@ -126,24 +128,13 @@ public class FacturaBffController {
     }
 
     @GetMapping(value = "/{id}/download", produces = MediaType.APPLICATION_OCTET_STREAM_VALUE)
-    public Mono<ResponseEntity<Flux<DataBuffer>>> download(@PathVariable("id") Long id) {
+    public Mono<ResponseEntity<byte[]>> download(@PathVariable("id") Long id) {
         return webClientBuilder.build()
                 .get()
                 .uri(FACTURAS_URL + "/{id}/download", id)
-                .exchangeToMono(response -> {
-                    HttpHeaders headers = new HttpHeaders();
-                    headers.putAll(response.headers().asHttpHeaders());
-                    MediaType contentType = response.headers()
-                            .contentType()
-                            .orElse(MediaType.APPLICATION_OCTET_STREAM);
-                    headers.setContentType(contentType);
-
-                    return Mono.just(new ResponseEntity<>(
-                            response.bodyToFlux(DataBuffer.class),
-                            headers,
-                            response.statusCode()
-                    ));
-                });
+                .retrieve()
+                .toEntity(byte[].class)
+                .onErrorResume(ex -> Mono.just(ResponseEntity.notFound().build()));
     }
 
     private MultipartBodyBuilder buildMultipart(
@@ -152,14 +143,28 @@ public class FacturaBffController {
             String monto,
             String montoRestante,
             String fecha,
+            String descripcion,
+            String estado,
+            String impactaCtaCte,
             FilePart filePart
     ) {
         MultipartBodyBuilder builder = new MultipartBodyBuilder();
         builder.part("id_cliente", idCliente);
-        builder.part("id_obra", idObra);
+        if (idObra != null && !idObra.isBlank()) {
+            builder.part("id_obra", idObra);
+        }
         builder.part("monto", monto);
         builder.part("monto_restante", montoRestante);
         builder.part("fecha", fecha);
+        if (descripcion != null) {
+            builder.part("descripcion", descripcion);
+        }
+        if (estado != null) {
+            builder.part("estado", estado);
+        }
+        if (impactaCtaCte != null) {
+            builder.part("impacta_cta_cte", impactaCtaCte);
+        }
 
         if (filePart != null) {
             builder.part("file", filePart)

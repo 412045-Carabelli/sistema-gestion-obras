@@ -50,14 +50,13 @@ export class ObraMovimientosComponent implements OnInit {
   tipoEntidad: 'PROVEEDOR' | 'CLIENTE' = 'CLIENTE';
   selectedProveedor: Proveedor | null = null;
   selectedCliente: Cliente | null = null;
-  selectedCosto: ObraCosto | null = null;
-  pendingCostoId: number | null = null;
   filteredProveedores: Proveedor[] = [];
   filteredClientes: Cliente[] = [];
   costosObra: ObraCosto[] = [];
-  costosProveedor: ObraCosto[] = [];
   showAddMovementModal = false;
   modoEdicion = false;
+  showDetalleMovimientoModal = false;
+  movimientoDetalle?: Transaccion;
 
   nuevoMovimiento: Transaccion = {
     id_obra: this.obraId,
@@ -122,10 +121,10 @@ export class ObraMovimientosComponent implements OnInit {
   }
 
   get totalProveedores(): number {
-    return (this.costosObra || []).reduce(
-      (acc, c) => acc + this.getMontoBaseCosto(c),
-      0
-    );
+    return (this.costosObra || []).reduce((acc, c) => {
+      if (!this.costoTieneProveedor(c)) return acc;
+      return acc + this.getMontoBaseCosto(c);
+    }, 0);
   }
 
   get saldoClienteResumen(): number {
@@ -173,6 +172,12 @@ export class ObraMovimientosComponent implements OnInit {
       .reduce((acc, t) => acc + (t.monto || 0), 0);
   }
 
+  get totalClienteSeleccionado(): number | null {
+    if (!this.selectedCliente?.id) return null;
+    if (this.presupuestoTotal == null) return null;
+    return Number(this.presupuestoTotal ?? 0);
+  }
+
   get deudaClienteSeleccionado(): number | null {
     if (!this.selectedCliente?.id) return null;
     if (this.presupuestoTotal == null) return null;
@@ -180,19 +185,29 @@ export class ObraMovimientosComponent implements OnInit {
     return Math.max(0, deuda);
   }
 
-  get totalPagadoCostoSeleccionado(): number | null {
-    if (!this.selectedCosto?.id) return null;
-    return this.transacciones
-      .filter(t => Number(t.id_costo) === Number(this.selectedCosto?.id))
-      .filter(t => this.tipoValue(t) === 'PAGO')
-      .reduce((acc, t) => acc + Number(t.monto ?? 0), 0);
+  get totalProveedorSeleccionado(): number | null {
+    if (!this.selectedProveedor?.id) return null;
+    return (this.costosObra || []).reduce((acc, costo) => {
+      const id = Number((costo as any)?.id_proveedor ?? (costo as any)?.proveedor?.id ?? 0);
+      if (id !== Number(this.selectedProveedor?.id)) return acc;
+      return acc + this.getMontoBaseCosto(costo);
+    }, 0);
   }
 
-  get restanteCostoSeleccionado(): number | null {
-    if (!this.selectedCosto?.id) return null;
-    const totalCosto = this.getMontoBaseCosto(this.selectedCosto);
-    const pagado = this.totalPagadoCostoSeleccionado ?? 0;
-    return Math.max(0, totalCosto - pagado);
+  get pagadoProveedorSeleccionado(): number | null {
+    if (!this.selectedProveedor?.id) return null;
+    return this.transacciones
+      .filter(t => (t.tipo_asociado || '').toUpperCase() === 'PROVEEDOR')
+      .filter(t => Number(t.id_asociado) === Number(this.selectedProveedor?.id))
+      .filter(t => this.tipoValue(t) === 'PAGO')
+      .reduce((acc, t) => acc + (t.monto || 0), 0);
+  }
+
+  get saldoProveedorSeleccionado(): number | null {
+    if (!this.selectedProveedor?.id) return null;
+    const total = this.totalProveedorSeleccionado ?? 0;
+    const pagado = this.pagadoProveedorSeleccionado ?? 0;
+    return Math.max(0, total - pagado);
   }
 
   ngOnInit() {
@@ -215,8 +230,6 @@ export class ObraMovimientosComponent implements OnInit {
     this.modoEdicion = !!movimiento;
     this.selectedCliente = null;
     this.selectedProveedor = null;
-    this.selectedCosto = null;
-    this.pendingCostoId = null;
 
     const tipoAsociado = (movimiento?.tipo_asociado || 'CLIENTE').toUpperCase() as 'CLIENTE' | 'PROVEEDOR';
     this.tipoEntidad = tipoAsociado;
@@ -232,15 +245,6 @@ export class ObraMovimientosComponent implements OnInit {
       }
       if (tipoAsociado === 'PROVEEDOR' && movimiento.id_asociado) {
         this.selectedProveedor = this.proveedores.find(p => Number(p.id) === Number(movimiento.id_asociado)) || null;
-        this.actualizarCostosProveedor();
-        const idCosto = (movimiento as any)?.id_costo ?? movimiento.id_costo;
-        if (idCosto) {
-          this.pendingCostoId = Number(idCosto);
-          this.selectedCosto = this.costosProveedor.find(c => Number(c.id) === Number(idCosto)) || null;
-          if (this.selectedCosto) {
-            this.aplicarFormaPagoDesdeCosto(this.selectedCosto);
-          }
-        }
       }
       this.asegurarTipoTransaccionSegunAsociado();
     } else {
@@ -268,10 +272,23 @@ export class ObraMovimientosComponent implements OnInit {
   onTipoEntidadChange() {
     this.selectedCliente = null;
     this.selectedProveedor = null;
-    this.selectedCosto = null;
-    this.pendingCostoId = null;
-    this.costosProveedor = [];
     this.asegurarTipoTransaccionSegunAsociado();
+  }
+
+  abrirDetalleMovimiento(movimiento: Transaccion) {
+    if (!movimiento) return;
+    this.movimientoDetalle = movimiento;
+    this.showDetalleMovimientoModal = true;
+  }
+
+  cerrarDetalleMovimiento() {
+    this.showDetalleMovimientoModal = false;
+  }
+
+  editarDetalleMovimiento() {
+    if (!this.movimientoDetalle) return;
+    this.cerrarDetalleMovimiento();
+    this.openModal(this.movimientoDetalle);
   }
 
   onClienteSeleccionado() {
@@ -280,48 +297,26 @@ export class ObraMovimientosComponent implements OnInit {
   }
 
   onProveedorSeleccionado() {
-    this.actualizarCostosProveedor();
-  }
-
-  onCostoSeleccionado(costo: ObraCosto | null) {
-    this.selectedCosto = costo;
-    if (costo) {
-      this.aplicarFormaPagoDesdeCosto(costo);
-      this.aplicarMontoDesdeCosto(costo);
-    }
+    if (!this.selectedProveedor) return;
+    this.aplicarMontoProveedorSeleccionado();
   }
 
   onFormaPagoChange(value: 'TOTAL' | 'PARCIAL') {
-    if (value === 'TOTAL') {
-      if (this.tipoEntidad === 'CLIENTE') {
-        this.aplicarMontoClienteSeleccionado();
-      } else if (this.selectedCosto) {
-        this.aplicarMontoDesdeCosto(this.selectedCosto);
-      }
+    if (value === 'PARCIAL') {
+      this.nuevoMovimiento.monto = 0;
       return;
     }
-
-    const montoActual = Number(this.nuevoMovimiento.monto ?? 0);
-    const totalEsperado = this.tipoEntidad === 'CLIENTE'
-      ? this.deudaClienteSeleccionado
-      : this.selectedCosto ? this.restanteCostoSeleccionado : null;
-
-    if (totalEsperado != null && Math.abs(montoActual - totalEsperado) < 0.01) {
-      this.nuevoMovimiento.monto = 0;
+    if (this.tipoEntidad === 'CLIENTE') {
+      this.aplicarMontoClienteSeleccionado();
+      return;
+    }
+    if (this.tipoEntidad === 'PROVEEDOR') {
+      this.aplicarMontoProveedorSeleccionado();
     }
   }
 
   onMontoChange(value: any) {
-    if (this.tipoEntidad !== 'PROVEEDOR' || !this.selectedCosto) return;
-    const monto = Number(value ?? 0);
-    const totalCosto = this.getMontoBaseCosto(this.selectedCosto);
-    if (!totalCosto) return;
-    const pagado = this.transacciones
-      .filter(t => Number(t.id_costo) === Number(this.selectedCosto?.id))
-      .filter(t => this.tipoValue(t) === 'PAGO')
-      .reduce((acc, t) => acc + Number(t.monto ?? 0), 0);
-    const restante = Math.max(0, totalCosto - pagado);
-    this.nuevoMovimiento.forma_pago = Math.abs(monto - restante) < 0.01 ? 'TOTAL' : 'PARCIAL';
+    return;
   }
 
   getTiposTransaccionDisponibles() {
@@ -362,7 +357,7 @@ export class ObraMovimientosComponent implements OnInit {
       return;
     }
 
-    if (!this.validarMontoContraCosto()) {
+    if (this.tipoEntidad === 'CLIENTE' && !this.validarMontoContraPresupuesto()) {
       return;
     }
 
@@ -371,7 +366,6 @@ export class ObraMovimientosComponent implements OnInit {
       id_obra: this.obraId,
       tipo_transaccion: this.nuevoMovimiento.tipo_transaccion,
       id_asociado: asociadoId,
-      id_costo: this.selectedCosto?.id ?? undefined,
       tipo_asociado: this.tipoEntidad,
       factura_cobrada: !!this.nuevoMovimiento.factura_cobrada
     };
@@ -387,7 +381,6 @@ export class ObraMovimientosComponent implements OnInit {
     action.subscribe({
       next: (resp) => {
         const movGuardado = this.normalizarTransaccion(resp);
-        this.actualizarEstadoCostoAsociado(movGuardado, this.selectedCosto);
         if (this.modoEdicion) {
           this.transacciones = this.transacciones.map(t =>
             t.id === movGuardado.id ? movGuardado : t
@@ -396,9 +389,7 @@ export class ObraMovimientosComponent implements OnInit {
           this.transacciones = [movGuardado, ...this.transacciones];
         }
 
-        if (this.selectedCosto?.id) {
-          this.refrescarCostosObra();
-        }
+        this.refrescarCostosObra();
 
         this.showAddMovementModal = false;
         this.messageService.add({
@@ -430,6 +421,9 @@ export class ObraMovimientosComponent implements OnInit {
         this.transaccionesService.delete(t.id!).subscribe({
           next: () => {
             this.cargarDatos();
+            if (this.movimientoDetalle?.id === t.id) {
+              this.cerrarDetalleMovimiento();
+            }
             this.messageService.add({
               severity: 'success',
               summary: 'Eliminado',
@@ -446,6 +440,11 @@ export class ObraMovimientosComponent implements OnInit {
         });
       }
     });
+  }
+
+  eliminarDetalleMovimiento() {
+    if (!this.movimientoDetalle) return;
+    this.eliminarMovimiento(this.movimientoDetalle);
   }
 
   verPDF(t: Transaccion) {
@@ -493,51 +492,6 @@ export class ObraMovimientosComponent implements OnInit {
     };
   }
 
-  private actualizarCostosProveedor() {
-    if (this.tipoEntidad !== 'PROVEEDOR' || !this.selectedProveedor) {
-      this.costosProveedor = [];
-      this.selectedCosto = null;
-      return;
-    }
-    const proveedorId = Number(this.selectedProveedor.id);
-    this.costosProveedor = (this.costosObra || []).filter(c => {
-      const costoProveedorId = Number((c as any)?.id_proveedor ?? (c as any)?.proveedor?.id ?? 0);
-      return costoProveedorId === proveedorId;
-    });
-    if (this.pendingCostoId && !this.selectedCosto) {
-      this.selectedCosto = this.costosProveedor.find(c => Number(c.id) === Number(this.pendingCostoId)) || null;
-      if (this.selectedCosto) {
-        this.aplicarFormaPagoDesdeCosto(this.selectedCosto);
-        this.aplicarMontoDesdeCosto(this.selectedCosto);
-        this.pendingCostoId = null;
-      }
-    }
-    if (this.selectedCosto) {
-      const costoProveedorId = Number((this.selectedCosto as any)?.id_proveedor ?? (this.selectedCosto as any)?.proveedor?.id ?? 0);
-      if (costoProveedorId !== proveedorId) {
-        this.selectedCosto = null;
-      }
-    }
-    if (this.selectedCosto && (this.selectedCosto.estado_pago || "").toString().toUpperCase() === "PAGADO") {
-      this.selectedCosto = null;
-    }
-  }
-
-  private aplicarFormaPagoDesdeCosto(costo: ObraCosto) {
-    this.nuevoMovimiento.forma_pago = 'TOTAL';
-  }
-
-  private aplicarMontoDesdeCosto(costo: ObraCosto) {
-    if ((this.nuevoMovimiento.forma_pago || '').toString().toUpperCase() === 'PARCIAL') return;
-    const total = this.getMontoBaseCosto(costo);
-    const pagado = this.transacciones
-      .filter(t => Number(t.id_costo) === Number(costo.id))
-      .filter(t => this.tipoValue(t) === 'PAGO')
-      .reduce((acc, t) => acc + Number(t.monto ?? 0), 0);
-    const restante = Math.max(0, total - pagado);
-    this.nuevoMovimiento.monto = restante;
-  }
-
   private aplicarMontoClienteSeleccionado() {
     if (!this.selectedCliente || this.presupuestoTotal == null) return;
     if ((this.nuevoMovimiento.forma_pago || '').toString().toUpperCase() === 'PARCIAL') return;
@@ -546,71 +500,12 @@ export class ObraMovimientosComponent implements OnInit {
     this.nuevoMovimiento.monto = deuda;
   }
 
-  private actualizarEstadoCostoAsociado(mov: Transaccion, costo: ObraCosto | null) {
-    if (!costo?.id) return;
-    if (this.tipoValue(mov) === 'COBRO') return;
-
-    const formaPago = (mov.forma_pago || '').toString().toUpperCase();
-    const monto = Number(mov.monto ?? 0);
-    const totalCosto = this.getMontoBaseCosto(costo);
-    const diferencia = Math.abs(monto - totalCosto);
-
-    let nuevoEstado: string | null = null;
-    if (formaPago === 'PARCIAL' && monto < totalCosto) {
-      nuevoEstado = 'PARCIAL';
-    }
-    if (formaPago === 'TOTAL' && diferencia < 0.01) {
-      nuevoEstado = 'PAGADO';
-    }
-
-    if (!nuevoEstado || (costo.estado_pago || '').toString().toUpperCase() === nuevoEstado) {
-      return;
-    }
-
-    this.costosService.updateEstadoPago(costo.id, nuevoEstado).subscribe({
-      next: () => {
-        costo.estado_pago = nuevoEstado;
-      }
-    });
-  }
-
-  private validarMontoContraCosto(): boolean {
-    if (this.tipoEntidad === 'CLIENTE') {
-      return this.validarMontoContraPresupuesto();
-    }
-    if (!this.selectedCosto?.id) return true;
-
-    const formaPago = (this.nuevoMovimiento.forma_pago || '').toString().toUpperCase();
-    const monto = Number(this.nuevoMovimiento.monto ?? 0);
-    const totalCosto = this.getMontoBaseCosto(this.selectedCosto);
-    const currentId = this.modoEdicion ? Number(this.nuevoMovimiento.id) : null;
-    const pagado = this.transacciones
-      .filter(t => Number(t.id_costo) === Number(this.selectedCosto?.id))
-      .filter(t => this.tipoValue(t) === 'PAGO')
-      .filter(t => currentId == null || Number(t.id) !== currentId)
-      .reduce((acc, t) => acc + Number(t.monto ?? 0), 0);
-    const restante = Math.max(0, totalCosto - pagado);
-    const diferencia = Math.abs(monto - restante);
-
-    if (formaPago === 'TOTAL' && diferencia >= 0.01) {
-      this.messageService.add({
-        severity: 'warn',
-        summary: 'Monto invalido',
-        detail: 'Para pago total, el monto debe ser igual al restante del costo.'
-      });
-      return false;
-    }
-
-    if (formaPago === 'PARCIAL' && monto >= restante) {
-      this.messageService.add({
-        severity: 'warn',
-        summary: 'Monto invalido',
-        detail: 'Para pago parcial, el monto debe ser menor al restante del costo.'
-      });
-      return false;
-    }
-
-    return true;
+  private aplicarMontoProveedorSeleccionado() {
+    if (!this.selectedProveedor) return;
+    if ((this.nuevoMovimiento.forma_pago || '').toString().toUpperCase() === 'PARCIAL') return;
+    const saldo = this.saldoProveedorSeleccionado;
+    if (saldo == null) return;
+    this.nuevoMovimiento.monto = saldo;
   }
 
   private validarMontoContraPresupuesto(): boolean {
@@ -665,14 +560,16 @@ export class ObraMovimientosComponent implements OnInit {
   private getMontoBaseCosto(costo: ObraCosto): number {
     const subtotal = Number(costo.subtotal ?? NaN);
     if (!Number.isNaN(subtotal) && subtotal > 0) return subtotal;
-    return Number(costo.total ?? 0);
+    const cantidad = Number(costo.cantidad ?? NaN);
+    const precio = Number(costo.precio_unitario ?? NaN);
+    if (!Number.isNaN(cantidad) && !Number.isNaN(precio)) return cantidad * precio;
+    return 0;
   }
 
   private refrescarCostosObra() {
     this.costosService.getByObra(this.obraId).subscribe(costos => {
       this.costosObra = costos || [];
       this.costosActualizados.emit([...this.costosObra]);
-      this.actualizarCostosProveedor();
     });
   }
 
@@ -683,6 +580,11 @@ export class ObraMovimientosComponent implements OnInit {
       if (id) ids.add(id);
     });
     return (this.proveedores || []).filter(p => ids.has(Number(p.id)));
+  }
+
+  private costoTieneProveedor(costo: ObraCosto): boolean {
+    const id = Number((costo as any)?.id_proveedor ?? (costo as any)?.proveedor?.id ?? 0);
+    return id > 0;
   }
 }
 

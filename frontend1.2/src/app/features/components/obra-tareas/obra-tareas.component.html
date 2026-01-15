@@ -29,7 +29,11 @@
       </tr>
     </ng-template>
     <ng-template pTemplate="body" let-tarea>
-      <tr [ngClass]="claseEstado(tarea)">
+      <tr
+        [ngClass]="claseEstado(tarea)"
+        class="cursor-pointer hover:bg-gray-100 transition-colors"
+        (click)="verTarea(tarea)"
+      >
         <td class="font-semibold text-gray-700">{{ tarea.numero_orden ?? '—' }}</td>
         <td class="font-medium text-gray-900 w-[260px]">{{ tarea.nombre }}</td>
         <td>{{ tarea.proveedor?.nombre || ('Proveedor #' + tarea.id_proveedor) }}</td>
@@ -46,12 +50,12 @@
             <p-button
               [icon]="getSiguienteEstadoIcon(tarea)"
               styleClass="p-button-text p-button-sm"
-              (onClick)="cambiarEstadoSecuencial(tarea)"
+              (onClick)="cambiarEstadoSecuencial(tarea); $event.stopPropagation()"
               [pTooltip]="'Cambiar a ' + getSiguienteEstadoLabel(tarea)">
             </p-button>
-            <p-button icon="pi pi-eye" styleClass="p-button-text p-button-sm" (onClick)="verTarea(tarea)" pTooltip="Ver"></p-button>
-            <p-button icon="pi pi-pencil" styleClass="p-button-text p-button-sm" (onClick)="editarTarea(tarea)" pTooltip="Editar"></p-button>
-            <p-button icon="pi pi-trash" styleClass="p-button-text p-button-sm text-red-500" (onClick)="eliminarTarea(tarea.id!)" pTooltip="Eliminar"></p-button>
+            <p-button icon="pi pi-eye" styleClass="p-button-text p-button-sm" (onClick)="verTarea(tarea); $event.stopPropagation()" pTooltip="Ver"></p-button>
+            <p-button icon="pi pi-pencil" styleClass="p-button-text p-button-sm" (onClick)="editarTarea(tarea); $event.stopPropagation()" pTooltip="Editar"></p-button>
+            <p-button icon="pi pi-trash" styleClass="p-button-text p-button-sm text-red-500" (onClick)="eliminarTarea(tarea.id!); $event.stopPropagation()" pTooltip="Eliminar"></p-button>
           </div>
         </td>
       </tr>

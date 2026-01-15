@@ -43,10 +43,13 @@ public class FacturaController {
     @PostMapping(consumes = {MediaType.MULTIPART_FORM_DATA_VALUE, MediaType.APPLICATION_FORM_URLENCODED_VALUE})
     public ResponseEntity<FacturaDto> create(
             @RequestParam("id_cliente") Long idCliente,
-            @RequestParam("id_obra") Long idObra,
+            @RequestParam(value = "id_obra", required = false) Long idObra,
             @RequestParam("monto") Double monto,
             @RequestParam(value = "monto_restante", required = false) Double montoRestante,
             @RequestParam("fecha") String fecha,
+            @RequestParam(value = "descripcion", required = false) String descripcion,
+            @RequestParam(value = "estado", required = false) String estado,
+            @RequestParam(value = "impacta_cta_cte", required = false) Boolean impactaCtaCte,
             @RequestParam(value = "file", required = false) MultipartFile file
     ) {
         FacturaDto dto = FacturaDto.builder()
@@ -55,6 +58,9 @@ public class FacturaController {
                 .monto(monto)
                 .monto_restante(montoRestante)
                 .fecha(parseFecha(fecha))
+                .descripcion(descripcion)
+                .estado(estado)
+                .impacta_cta_cte(impactaCtaCte)
                 .build();
 
         return ResponseEntity.ok(facturaService.crear(dto, file));
@@ -64,10 +70,13 @@ public class FacturaController {
     public ResponseEntity<FacturaDto> update(
             @PathVariable("id") Long id,
             @RequestParam("id_cliente") Long idCliente,
-            @RequestParam("id_obra") Long idObra,
+            @RequestParam(value = "id_obra", required = false) Long idObra,
             @RequestParam("monto") Double monto,
             @RequestParam(value = "monto_restante", required = false) Double montoRestante,
             @RequestParam("fecha") String fecha,
+            @RequestParam(value = "descripcion", required = false) String descripcion,
+            @RequestParam(value = "estado", required = false) String estado,
+            @RequestParam(value = "impacta_cta_cte", required = false) Boolean impactaCtaCte,
             @RequestParam(value = "file", required = false) MultipartFile file
     ) {
         FacturaDto dto = FacturaDto.builder()
@@ -77,6 +86,9 @@ public class FacturaController {
                 .monto(monto)
                 .monto_restante(montoRestante)
                 .fecha(parseFecha(fecha))
+                .descripcion(descripcion)
+                .estado(estado)
+                .impacta_cta_cte(impactaCtaCte)
                 .build();
 
         return ResponseEntity.ok(facturaService.actualizar(id, dto, file));

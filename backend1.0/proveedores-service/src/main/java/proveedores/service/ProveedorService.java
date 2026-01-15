@@ -69,7 +69,7 @@ public class ProveedorService {
     }
 
     public Optional<Proveedor> findById(Long id) {
-        return repository.findByIdAndActivoTrue(id);
+        return repository.findById(id);
     }
 
     public Proveedor save(Proveedor proveedor) {

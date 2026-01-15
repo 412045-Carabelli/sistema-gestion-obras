@@ -13,6 +13,7 @@ com\apigateway\controller\TransaccionBffController$1.class
 com\apigateway\controller\GremioBffController$2.class
 com\apigateway\controller\ObraBffController$4.class
 com\apigateway\controller\ClienteBffController.class
+com\apigateway\controller\ProveedorBffController$5.class
 com\apigateway\controller\DocumentoBffController$2.class
 com\apigateway\controller\ReportesBffController$5.class
 com\apigateway\controller\ReportesBffController$8.class

@@ -29,10 +29,6 @@ public class Transaccion {
     @Column(name = "id_asociado", nullable = false)
     private Long idAsociado;
 
-    @Column(name = "id_costo")
-    private Long idCosto;
-
-
     @Enumerated(EnumType.STRING)
     @Column(name = "id_tipo_transaccion", nullable = false)
     private TipoTransaccionEnum tipo_transaccion;

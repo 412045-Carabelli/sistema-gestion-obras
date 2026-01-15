@@ -1,8 +1,8 @@
-import {Component, OnInit} from '@angular/core';
+import {Component, OnDestroy, OnInit} from '@angular/core';
 import {CommonModule, formatDate} from '@angular/common';
 import {FormBuilder, FormGroup, ReactiveFormsModule} from '@angular/forms';
-import {forkJoin, Observable, of} from 'rxjs';
-import {catchError} from 'rxjs/operators';
+import {forkJoin, Observable, of, Subscription} from 'rxjs';
+import {catchError, debounceTime} from 'rxjs/operators';
 import {
   AvanceTareasResponse,
   Cliente,
@@ -12,7 +12,6 @@ import {
   EstadoObrasFilter,
   EstadoObrasResponse,
   FlujoCajaResponse,
-  IngresosEgresosResponse,
   NotasObraResponse,
   Obra,
   PendientesResponse,
@@ -24,7 +23,8 @@ import {
   CuentaCorrienteObraResponse,
   CuentaCorrienteProveedorResponse,
   CuentaCorrienteClienteResponse,
-  ComisionesResponse
+  ComisionesResponse,
+  ObraCosto
 } from '../../../core/models/models';
 import {ReportesService} from '../../../services/reportes/reportes.service';
 import {ObrasService} from '../../../services/obras/obras.service';
@@ -45,6 +45,7 @@ import {Toast} from 'primeng/toast';
 import {ConfirmDialog} from 'primeng/confirmdialog';
 import {ConfirmationService, MessageService} from 'primeng/api';
 import {ProveedoresService} from '../../../services/proveedores/proveedores.service';
+import {Router} from '@angular/router';
 
 interface SelectOption<T> {
   label: string;
@@ -75,7 +76,7 @@ interface SelectOption<T> {
   templateUrl: './reportes.component.html',
   styleUrls: ['./reportes.component.css']
 })
-export class ReportesComponent implements OnInit {
+export class ReportesComponent implements OnInit, OnDestroy {
 
   filtrosForm!: FormGroup;
 
@@ -87,9 +88,9 @@ export class ReportesComponent implements OnInit {
   private clientesIndex: Record<number, string> = {};
   private proveedoresIndex: Record<number, string> = {};
   private obrasIndex: Record<number, string> = {};
+  private obras: Obra[] = [];
 
   resumenGeneral: ResumenGeneralResponse | null = null;
-  ingresosEgresos: IngresosEgresosResponse | null = null;
   flujoCaja: FlujoCajaResponse | null = null;
   pendientes: PendientesResponse | null = null;
   estadoObras: EstadoObrasResponse | null = null;
@@ -104,8 +105,11 @@ export class ReportesComponent implements OnInit {
   cuentaCorrienteProveedor: CuentaCorrienteProveedorResponse | null = null;
   cuentaCorrienteCliente: CuentaCorrienteClienteResponse | null = null;
   comisiones: ComisionesResponse | null = null;
+  deudaClientesTotal = 0;
+  deudaProveedoresTotal = 0;
 
   loading = false;
+  private filtrosSub?: Subscription;
 
   constructor(
     private fb: FormBuilder,
@@ -114,15 +118,22 @@ export class ReportesComponent implements OnInit {
     private clientesService: ClientesService,
     private proveedoresService: ProveedoresService,
     private estadoObraService: EstadoObraService,
-    private messageService: MessageService
+    private messageService: MessageService,
+    private router: Router
   ) {}
 
   ngOnInit(): void {
     this.initForm();
+    this.filtrosSub = this.filtrosForm.valueChanges
+      .pipe(debounceTime(300))
+      .subscribe(() => this.loadReportes());
     this.loadCatalogos();
     this.loadReportes();
   }
 
+  ngOnDestroy(): void {
+    this.filtrosSub?.unsubscribe();
+  }
   initForm(): void {
     this.filtrosForm = this.fb.group({
       obraId: [null],
@@ -136,6 +147,7 @@ export class ReportesComponent implements OnInit {
   loadCatalogos(): void {
     this.obrasService.getObras().subscribe({
       next: (obras: Obra[]) => {
+        this.obras = obras || [];
         this.obrasOptions = obras.map((obra) => ({label: obra.nombre, value: obra.id!}));
         this.obrasIndex = Object.fromEntries(obras.map(o => [Number(o.id), o.nombre]));
       },
@@ -177,7 +189,7 @@ export class ReportesComponent implements OnInit {
       proveedorId: null,
       estadosObra: [],
       rangoFechas: null
-    });
+    }, { emitEvent: false });
     this.loadReportes();
   }
 
@@ -187,7 +199,6 @@ export class ReportesComponent implements OnInit {
     const filtrosReporte = this.buildReportFilter();
     const filtrosCCObra = this.ensureFilterId(filtrosReporte, 'obraId', this.obrasOptions[0]?.value);
     const filtrosCCProveedor = this.ensureFilterId(filtrosReporte, 'proveedorId', this.proveedoresOptions[0]?.value);
-    const filtrosCCCliente = this.ensureFilterId(filtrosReporte, 'clienteId', this.clientesOptions[0]?.value);
     const filtrosEstadoObra = this.buildEstadoObraFilter();
 
     forkJoin({
@@ -197,11 +208,6 @@ export class ReportesComponent implements OnInit {
         totalProveedores: 0,
         totalIngresos: 0,
         totalEgresos: 0
-      }),
-      ingresosEgresos: this.withDefault(this.reportesService.getIngresosEgresos(filtrosReporte), {
-        totalIngresos: 0,
-        totalEgresos: 0,
-        detallePorObra: []
       }),
       flujoCaja: this.withDefault(this.reportesService.getFlujoCaja(filtrosReporte), {
         totalIngresos: 0,
@@ -243,23 +249,6 @@ export class ReportesComponent implements OnInit {
           saldoFinal: 0,
           movimientos: []
         }),
-      cuentaCorrienteCliente: filtrosCCCliente
-        ? this.withDefault(this.reportesService.getCuentaCorrienteCliente(filtrosCCCliente), {
-          clienteId: filtrosCCCliente.clienteId,
-          clienteNombre: '',
-          totalCobros: 0,
-          totalCostos: 0,
-          saldoFinal: 0,
-          movimientos: []
-        })
-        : of({
-          clienteId: undefined,
-          clienteNombre: '',
-          totalCobros: 0,
-          totalCostos: 0,
-          saldoFinal: 0,
-          movimientos: []
-        }),
       pendientes: this.withDefault(this.reportesService.getPendientes(filtrosReporte), {pendientes: []}),
       estadoObras: this.withDefault(this.reportesService.getEstadoObras(filtrosEstadoObra), {obras: []}),
       avanceTareas: this.withDefault(this.reportesService.getAvanceTareas(filtrosReporte), {avances: []}),
@@ -276,7 +265,6 @@ export class ReportesComponent implements OnInit {
     }).subscribe({
       next: (data) => {
         this.resumenGeneral = data.resumen;
-        this.ingresosEgresos = data.ingresosEgresos;
         this.flujoCaja = data.flujoCaja;
         this.cuentaCorrienteObra = data.cuentaCorrienteObra
           ? this.mapCuentaCorrienteObra(data.cuentaCorrienteObra)
@@ -284,9 +272,7 @@ export class ReportesComponent implements OnInit {
         this.cuentaCorrienteProveedor = data.cuentaCorrienteProveedor
           ? this.mapCuentaCorrienteProveedor(data.cuentaCorrienteProveedor)
           : null;
-        this.cuentaCorrienteCliente = data.cuentaCorrienteCliente
-          ? this.mapCuentaCorrienteCliente(data.cuentaCorrienteCliente)
-          : null;
+        this.cuentaCorrienteCliente = null;
         this.pendientes = data.pendientes;
         this.estadoObras = data.estadoObras;
         this.avanceTareas = data.avanceTareas;
@@ -295,6 +281,8 @@ export class ReportesComponent implements OnInit {
         this.rankingProveedores = data.rankingProveedores;
         this.notasGenerales = data.notasGenerales;
         this.comisiones = data.comisiones;
+        this.deudaClientesTotal = this.calcularDeudaClientesPorCobros(this.flujoCaja, filtrosReporte);
+        this.deudaProveedoresTotal = this.calcularDeudaProveedores(data.pendientes);
 
         const obraId = filtrosReporte?.obraId ?? null;
         if (obraId) {
@@ -415,6 +403,66 @@ export class ReportesComponent implements OnInit {
     );
   }
 
+  private calcularDeudaClientesPorCobros(flujo: FlujoCajaResponse | null, filtros?: ReportFilter): number {
+    if (filtros?.proveedorId && !filtros?.obraId && !filtros?.clienteId) {
+      return 0;
+    }
+
+    const obrasFiltradas = this.filtrarObrasPorFiltro(filtros);
+    const totalPresupuesto = obrasFiltradas.reduce((sum, obra) => sum + this.obtenerPresupuestoObra(obra), 0);
+    const cobros = Number(flujo?.totalIngresos ?? 0);
+    return Math.max(0, totalPresupuesto - cobros);
+  }
+
+  private filtrarObrasPorFiltro(filtros?: ReportFilter): Obra[] {
+    let lista = this.obras || [];
+    if (filtros?.obraId) {
+      lista = lista.filter(o => Number(o.id) === Number(filtros.obraId));
+    }
+    if (filtros?.clienteId) {
+      lista = lista.filter(o => Number(o.cliente?.id) === Number(filtros.clienteId));
+    }
+    return lista;
+  }
+
+  private obtenerPresupuestoObra(obra: Obra): number {
+    if (!obra) return 0;
+    const costos = obra.costos ?? [];
+    if (!costos.length) {
+      return Number(obra.presupuesto ?? 0);
+    }
+
+    const beneficioGlobal = obra.beneficio_global ? Number(obra.beneficio ?? 0) : null;
+    const subtotalCostos = costos.reduce((acc, c: ObraCosto) => {
+      const base = Number(
+        c.subtotal ??
+        (Number(c.cantidad ?? 0) * Number(c.precio_unitario ?? 0))
+      );
+      return acc + base;
+    }, 0);
+
+    const beneficioCostos = costos.reduce((acc, c: ObraCosto) => {
+      const esAdicional = (c.tipo_costo || '').toString().toUpperCase() === 'ADICIONAL';
+      const porc = esAdicional
+        ? Number(c.beneficio ?? 0)
+        : (beneficioGlobal !== null ? beneficioGlobal : Number(c.beneficio ?? 0));
+      const base = Number(
+        c.subtotal ??
+        (Number(c.cantidad ?? 0) * Number(c.precio_unitario ?? 0))
+      );
+      return acc + (base * (porc / 100));
+    }, 0);
+
+    const totalConBeneficio = subtotalCostos + beneficioCostos;
+    const comisionPorc = obra.tiene_comision ? Number(obra.comision ?? 0) : 0;
+    return totalConBeneficio * (1 + (comisionPorc / 100));
+  }
+
+  private calcularDeudaProveedores(pendientes: PendientesResponse | null): number {
+    const lista = pendientes?.pendientes || [];
+    return lista.reduce((sum, p) => sum + Number(p.total ?? 0), 0);
+  }
+
   private showToast(severity: 'success' | 'info' | 'warn' | 'error', summary: string, detail: string): void {
     this.messageService.add({severity, summary, detail});
   }
@@ -429,6 +477,24 @@ export class ReportesComponent implements OnInit {
 
   saldoSinNegativo(valor?: number): number {
     return Math.max(valor ?? 0, 0);
+  }
+
+  irAObra(obraId?: number | null) {
+    const id = Number(obraId ?? 0);
+    if (!Number.isFinite(id) || id <= 0) return;
+    this.router.navigate(['/obras', id]);
+  }
+
+  irACliente(clienteId?: number | null) {
+    const id = Number(clienteId ?? 0);
+    if (!Number.isFinite(id) || id <= 0) return;
+    this.router.navigate(['/clientes', id]);
+  }
+
+  irAProveedor(proveedorId?: number | null) {
+    const id = Number(proveedorId ?? 0);
+    if (!Number.isFinite(id) || id <= 0) return;
+    this.router.navigate(['/proveedores', id]);
   }
 
   private mapMovimientosObra(movs: any[], obraNombre?: string): any[] {

@@ -1,4 +1,5 @@
 <p-toast position="bottom-right"></p-toast>
+<p-confirmDialog></p-confirmDialog>
 
 <div class="flex justify-between items-center">
   @switch (true) {
@@ -93,6 +94,15 @@
                 styleClass="p-button-rounded bg-white/20 hover:bg-white/30 border-white/30 text-white"
                 [routerLink]="['/facturas/editar', factura.id]"
                 pTooltip="Editar factura"
+                tooltipPosition="top">
+              </p-button>
+              <p-button
+                icon="pi pi-trash"
+                severity="danger"
+                [outlined]="true"
+                styleClass="p-button-rounded bg-white/20 hover:bg-white/30 border-white/30 text-white"
+                (onClick)="eliminarFactura()"
+                pTooltip="Eliminar factura"
                 tooltipPosition="top">
               </p-button>
               <p-button

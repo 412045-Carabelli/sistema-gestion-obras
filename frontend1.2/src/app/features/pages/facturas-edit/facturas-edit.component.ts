@@ -10,6 +10,8 @@ import {FileUploadModule} from 'primeng/fileupload';
 import {MessageService} from 'primeng/api';
 import {ProgressSpinnerModule} from 'primeng/progressspinner';
 import {InputNumber} from 'primeng/inputnumber';
+import {EditorModule} from 'primeng/editor';
+import {CheckboxModule} from 'primeng/checkbox';
 
 import {Cliente, Factura, Obra} from '../../../core/models/models';
 import {ClientesService} from '../../../services/clientes/clientes.service';
@@ -29,7 +31,9 @@ import {FacturasService} from '../../../services/facturas/facturas.service';
     DatePicker,
     FileUploadModule,
     ProgressSpinnerModule,
-    InputNumber
+    InputNumber,
+    EditorModule,
+    CheckboxModule
   ],
   providers: [MessageService],
   templateUrl: './facturas-edit.component.html',
@@ -44,6 +48,11 @@ export class FacturasEditComponent implements OnInit {
   obrasFiltradas: Obra[] = [];
   selectedFile: File | null = null;
   loading = true;
+  restanteObra: number | null = null;
+  estadoOptions = [
+    {label: 'Emitida', value: 'EMITIDA'},
+    {label: 'Cobrada', value: 'COBRADA'}
+  ];
 
   constructor(
     private fb: FormBuilder,
@@ -59,9 +68,12 @@ export class FacturasEditComponent implements OnInit {
   ngOnInit(): void {
     this.form = this.fb.group({
       id_cliente: [null, Validators.required],
-      id_obra: [null, Validators.required],
+      id_obra: [null],
       fecha: [null, Validators.required],
-      monto: [null, [Validators.required, Validators.min(0)]]
+      monto: [null, [Validators.required, Validators.min(0)]],
+      descripcion: [''],
+      estado: ['EMITIDA', Validators.required],
+      impacta_cta_cte: [false]
     });
 
     const idParam = this.route.snapshot.paramMap.get('id');
@@ -74,10 +86,20 @@ export class FacturasEditComponent implements OnInit {
       if (!clienteId) {
         this.obrasFiltradas = [...this.obras];
         this.form.get('id_obra')?.setValue(null);
+        this.restanteObra = null;
         return;
       }
       this.obrasFiltradas = this.obras.filter(o => Number(o.cliente?.id) === Number(clienteId));
       this.form.get('id_obra')?.setValue(null);
+      this.restanteObra = null;
+    });
+
+    this.form.get('id_obra')?.valueChanges.subscribe((obraId) => {
+      if (!obraId) {
+        this.restanteObra = null;
+        return;
+      }
+      this.actualizarRestanteObra(Number(obraId), this.facturaId);
     });
   }
 
@@ -90,7 +112,10 @@ export class FacturasEditComponent implements OnInit {
           id_cliente: factura.id_cliente,
           id_obra: factura.id_obra,
           fecha: this.parseDate(factura.fecha),
-          monto: factura.monto
+          monto: factura.monto,
+          descripcion: factura.descripcion || '',
+          estado: factura.estado || 'EMITIDA',
+          impacta_cta_cte: !!factura.impacta_cta_cte
         });
         this.cargarCatalogos();
       },
@@ -119,6 +144,10 @@ export class FacturasEditComponent implements OnInit {
         this.obrasFiltradas = clienteId
           ? obras.filter(o => Number(o.cliente?.id) === Number(clienteId))
           : [...obras];
+        const obraId = this.form.get('id_obra')?.value;
+        if (obraId) {
+          this.actualizarRestanteObra(Number(obraId), this.facturaId);
+        }
         this.loading = false;
       },
       error: () => {
@@ -143,11 +172,31 @@ export class FacturasEditComponent implements OnInit {
     }
 
     const raw = this.form.value;
+    const monto = Number(raw.monto);
+    if (raw.impacta_cta_cte && !raw.id_obra) {
+      this.messageService.add({
+        severity: 'warn',
+        summary: 'Falta obra',
+        detail: 'Selecciona una obra para impactar en cuenta corriente.'
+      });
+      return;
+    }
+    if (this.restanteObra != null && monto > this.restanteObra + 0.01) {
+      this.messageService.add({
+        severity: 'warn',
+        summary: 'Monto invalido',
+        detail: 'El monto supera el restante disponible de la obra.'
+      });
+      return;
+    }
     const payload = {
       id_cliente: Number(raw.id_cliente),
-      id_obra: Number(raw.id_obra),
-      monto: Number(raw.monto),
-      fecha: this.formatDate(raw.fecha)
+      id_obra: raw.id_obra != null ? Number(raw.id_obra) : null,
+      monto,
+      fecha: this.formatDate(raw.fecha),
+      descripcion: raw.descripcion || '',
+      estado: raw.estado,
+      impacta_cta_cte: !!raw.impacta_cta_cte
     };
 
     this.facturasService.updateFactura(this.facturaId, payload, this.selectedFile).subscribe({
@@ -179,5 +228,25 @@ export class FacturasEditComponent implements OnInit {
 
   private parseDate(value?: string): Date | null {
     return value ? new Date(value) : null;
+  }
+
+  private actualizarRestanteObra(obraId: number, facturaId?: number) {
+    const obra = this.obras.find(o => Number(o.id) === Number(obraId));
+    const presupuesto = Number(obra?.presupuesto ?? NaN);
+    if (!Number.isFinite(presupuesto)) {
+      this.restanteObra = null;
+      return;
+    }
+    this.facturasService.getFacturasByObra(obraId).subscribe({
+      next: facturas => {
+        const facturado = (facturas || [])
+          .filter(f => !facturaId || Number(f.id) !== Number(facturaId))
+          .reduce((sum, f) => sum + Number(f.monto || 0), 0);
+        this.restanteObra = Math.max(0, presupuesto - facturado);
+      },
+      error: () => {
+        this.restanteObra = null;
+      }
+    });
   }
 }

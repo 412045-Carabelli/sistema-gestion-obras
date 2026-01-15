@@ -3,35 +3,47 @@
     <!-- Barra de filtros -->
     <div class="bg-white p-4 rounded-lg border border-gray-200">
       <div class="grid grid-cols-1 md:grid-cols-12 gap-4">
-        <div class="md:col-span-8">
+        <div class="md:col-span-6">
           <p-iconfield iconPosition="left" styleClass="w-full">
             <p-inputicon styleClass="pi pi-search"/>
             <input
               (input)="applyFilter()"
               [(ngModel)]="searchValue"
-              class="w-full"
+              class="w-full p-inputtext-sm h-12"
               pInputText
               placeholder="Buscar por nombre, direccion o cliente"
               type="text"/>
           </p-iconfield>
         </div>
 
-        <div class="md:col-span-4">
+        <div class="md:col-span-3">
           <p-select
-            (onChange)="onActivoChange()"
-            [(ngModel)]="activoFiltro"
-            [options]="activoOptions"
+            (onChange)="onCondicionIvaChange()"
+            [(ngModel)]="condicionIvaFiltro"
+            [options]="ivaOptions"
             optionLabel="label"
-            optionValue="value"
-            placeholder="Filtrar por estado"
-            styleClass="w-full">
+            optionValue="name"
+            placeholder="Condicion IVA"
+            styleClass="w-full p-inputtext-sm h-12">
             <ng-template let-option pTemplate="selectedItem">
               <div class="flex items-center gap-2">
                 <i class="pi pi-filter text-sm"></i>
-                <span>{{ option?.label || 'Todos' }}</span>
+                <span>{{ option?.label || 'Todas' }}</span>
               </div>
             </ng-template>
           </p-select>
+        </div>
+
+        <div class="md:col-span-3 flex items-center gap-2 h-12">
+          <p-checkbox
+            [(ngModel)]="mostrarInactivos"
+            [binary]="true"
+            inputId="clientesMostrarInactivos"
+            (ngModelChange)="onMostrarInactivosChange()">
+          </p-checkbox>
+          <label for="clientesMostrarInactivos" class="text-base text-gray-700">
+            Ver inactivos
+          </label>
         </div>
       </div>
     </div>
@@ -42,6 +54,9 @@
         [rowHover]="true"
         [tableStyle]="{ 'min-width': '100%' }"
         [value]="clientesFiltrados"
+        [paginator]="true"
+        [rows]="8"
+        responsiveLayout="scroll"
         class="w-full"
         styleClass="p-datatable-sm">
         <ng-template pTemplate="header">

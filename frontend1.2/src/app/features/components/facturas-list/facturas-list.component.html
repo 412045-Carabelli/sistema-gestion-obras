@@ -4,13 +4,20 @@
   </div>
 } @else {
   <div class="space-y-6">
-    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+    <div class="grid grid-cols-1 md:grid-cols-5 gap-4">
       <div
         class="bg-white rounded-xl shadow-md p-5 border-l-4 border-emerald-500"
         pTooltip="Total facturado de las obras segun el filtro actual."
         tooltipPosition="top">
         <p class="text-xs text-emerald-700 font-semibold uppercase">Facturado</p>
         <p class="text-2xl font-bold text-gray-900">{{ totalFacturado | currency:'ARS':'symbol':'1.0-2' }}</p>
+      </div>
+      <div
+        class="bg-white rounded-xl shadow-md p-5 border-l-4 border-amber-500"
+        pTooltip="Presupuesto menos facturado segun el filtro actual."
+        tooltipPosition="top">
+        <p class="text-xs text-amber-700 font-semibold uppercase">Por facturar</p>
+        <p class="text-2xl font-bold text-gray-900">{{ totalPorFacturar | currency:'ARS':'symbol':'1.0-2' }}</p>
       </div>
       <div
         class="bg-white rounded-xl shadow-md p-5 border-l-4 border-blue-500"
@@ -20,35 +27,37 @@
         <p class="text-2xl font-bold text-gray-900">{{ totalCobrado | currency:'ARS':'symbol':'1.0-2' }}</p>
       </div>
       <div
-        class="bg-white rounded-xl shadow-md p-5 border-l-4 border-amber-500"
-        pTooltip="Presupuesto menos cobrado, segun el filtro actual."
-        tooltipPosition="top">
-        <p class="text-xs text-amber-700 font-semibold uppercase">Por cobrar</p>
-        <p class="text-2xl font-bold text-gray-900">{{ totalPorCobrar | currency:'ARS':'symbol':'1.0-2' }}</p>
-      </div>
-      <div
         class="bg-white rounded-xl shadow-md p-5 border-l-4 border-indigo-500"
         pTooltip="Cobrado menos presupuesto, segun el filtro actual."
         tooltipPosition="top">
         <p class="text-xs text-indigo-700 font-semibold uppercase">Saldo</p>
         <p class="text-2xl font-bold text-gray-900">{{ saldoFinal | currency:'ARS':'symbol':'1.0-2' }}</p>
       </div>
+      <div
+        class="bg-white rounded-xl shadow-md p-5 border-l-4 border-rose-500"
+        pTooltip="Presupuesto menos cobros segun el filtro actual."
+        tooltipPosition="top">
+        <p class="text-xs text-rose-700 font-semibold uppercase">Por cobrar</p>
+        <p class="text-2xl font-bold text-gray-900">{{ totalPorCobrar | currency:'ARS':'symbol':'1.0-2' }}</p>
+      </div>
     </div>
 
     <div class="bg-white rounded-xl shadow-md p-4">
       <div class="grid grid-cols-1 md:grid-cols-12 gap-4">
-        <div class="flex flex-col gap-2 md:col-span-6">
-          <label class="text-sm font-medium text-gray-700">Buscar</label>
-          <input
-            pInputText
-            type="text"
-            [(ngModel)]="searchValue"
-            (input)="applyFilter()"
-            placeholder="Cliente, obra o # factura"
-          />
+        <div class="md:col-span-4">
+          <p-iconfield iconPosition="left" styleClass="w-full">
+            <p-inputicon styleClass="pi pi-search"/>
+            <input
+              pInputText
+              type="text"
+              [(ngModel)]="searchValue"
+              (input)="applyFilter()"
+              placeholder="Buscar por cliente, obra o nro. de factura"
+              class="w-full p-inputtext-sm h-12"
+            />
+          </p-iconfield>
         </div>
         <div class="flex flex-col gap-2 md:col-span-3">
-          <label class="text-sm font-medium text-gray-700">Cliente</label>
           <p-select
             [options]="clientesOptions"
             [(ngModel)]="clienteFiltro"
@@ -56,11 +65,17 @@
             placeholder="Todos los clientes"
             optionLabel="label"
             optionValue="value"
-            appendTo="body">
+            appendTo="body"
+            styleClass="w-full p-inputtext-sm h-12">
+            <ng-template let-option pTemplate="selectedItem">
+              <div class="flex items-center gap-2">
+                <i class="pi pi-filter text-sm"></i>
+                <span>{{ option?.label || 'Todos los clientes' }}</span>
+              </div>
+            </ng-template>
           </p-select>
         </div>
         <div class="flex flex-col gap-2 md:col-span-3">
-          <label class="text-sm font-medium text-gray-700">Obra</label>
           <p-select
             [options]="obrasOptions"
             [(ngModel)]="obraFiltro"
@@ -68,8 +83,26 @@
             placeholder="Todas las obras"
             optionLabel="label"
             optionValue="value"
-            appendTo="body">
+            appendTo="body"
+            styleClass="w-full p-inputtext-sm h-12">
+            <ng-template let-option pTemplate="selectedItem">
+              <div class="flex items-center gap-2">
+                <i class="pi pi-filter text-sm"></i>
+                <span>{{ option?.label || 'Todas las obras' }}</span>
+              </div>
+            </ng-template>
           </p-select>
+        </div>
+        <div class="flex items-center gap-2 md:col-span-2 h-12">
+          <p-checkbox
+            [(ngModel)]="mostrarInactivos"
+            [binary]="true"
+            inputId="facturasMostrarInactivos"
+            (ngModelChange)="applyFilter()">
+          </p-checkbox>
+          <label for="facturasMostrarInactivos" class="text-base text-gray-700">
+            Ver inactivos
+          </label>
         </div>
       </div>
     </div>
@@ -85,31 +118,38 @@
           <tr>
             <th class="bg-gray-50 px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Cliente</th>
             <th class="bg-gray-50 px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Obra</th>
+            <th class="bg-gray-50 px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Descripcion</th>
+            <th class="bg-gray-50 px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Estado</th>
             <th class="bg-gray-50 px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Fecha</th>
             <th class="bg-gray-50 px-4 py-3 text-right text-xs font-semibold text-gray-500 uppercase">Monto</th>
             <th class="bg-gray-50 px-4 py-3 text-right text-xs font-semibold text-gray-500 uppercase">Por cobrar</th>
-            <th class="bg-gray-50 px-4 py-3 text-right text-xs font-semibold text-gray-500 uppercase">Acciones</th>
           </tr>
         </ng-template>
         <ng-template pTemplate="body" let-f>
           <tr class="hover:bg-gray-50 transition-colors cursor-pointer" (click)="onRowClick(f)">
             <td class="px-4 py-3 text-sm text-gray-700">{{ f.clienteNombre }}</td>
             <td class="px-4 py-3 text-sm text-gray-700">{{ f.obraNombre }}</td>
+            <td class="px-4 py-3 text-sm text-gray-700">
+              {{ f.descripcionTexto || '—' }}
+            </td>
+            <td class="px-4 py-3 text-sm text-gray-700">
+              <p-tag
+                [value]="f.estado || 'EMITIDA'"
+                [severity]="(f.estado || 'EMITIDA') === 'COBRADA' ? 'success' : 'info'">
+              </p-tag>
+            </td>
             <td class="px-4 py-3 text-sm text-gray-700">{{ f.fecha | date:'dd/MM/yyyy' }}</td>
             <td class="px-4 py-3 text-sm text-gray-900 text-right">
               {{ f.monto | currency:'ARS':'symbol':'1.0-2' }}
             </td>
             <td class="px-4 py-3 text-sm text-gray-900 text-right">
-              {{ f.porCobrarObra | currency:'ARS':'symbol':'1.0-2' }}
+              @if (f.porCobrarObra != null) {
+                {{ f.porCobrarObra | currency:'ARS':'symbol':'1.0-2' }}
+              } @else {
+                —
+              }
             </td>
             <td class="px-4 py-3 text-right">
-              <p-button
-                icon="pi pi-download"
-                styleClass="p-button-text p-button-sm"
-                (onClick)="downloadFactura($event, f)"
-                pTooltip="Descargar factura"
-                tooltipPosition="left">
-              </p-button>
             </td>
           </tr>
         </ng-template>

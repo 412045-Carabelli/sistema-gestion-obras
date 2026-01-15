@@ -38,6 +38,21 @@ public class ProveedorBffController {
     }
 
     // ===============================
+    // 📥 GET /bff/proveedores/all
+    // ===============================
+    @GetMapping("/all")
+    public Mono<ResponseEntity<List<Map<String, Object>>>> getAllProveedoresSinFiltro() {
+        WebClient client = webClientBuilder.build();
+
+        Flux<Map<String, Object>> proveedoresFlux = client.get()
+                .uri(PROVEEDORES_URL + "/all")
+                .retrieve()
+                .bodyToFlux(new ParameterizedTypeReference<Map<String, Object>>() {});
+
+        return proveedoresFlux.collectList().map(ResponseEntity::ok);
+    }
+
+    // ===============================
     // 🔸 GET /bff/proveedores/{id}
     // ===============================
     @GetMapping("/{id}")

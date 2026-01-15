@@ -92,7 +92,7 @@ public class ReportesService {
                 for (ObraCostoExternalDto costo : costos) {
                     if (Boolean.FALSE.equals(costo.getActivo())) continue;
                     if (!Objects.equals(filtros.getProveedorId(), costo.getIdProveedor())) continue;
-                    BigDecimal total = Optional.ofNullable(costo.getTotal()).orElse(BigDecimal.ZERO);
+                    BigDecimal total = costoBase(costo);
                     egresosPorObra.merge(obra.getId(), total, BigDecimal::add);
                     totalEgresos = totalEgresos.add(total);
                 }
@@ -181,6 +181,7 @@ public class ReportesService {
             movimiento.setTipo(tipo);
             movimiento.setMonto(monto);
             movimiento.setFormaPago(tx.getFormaPago());
+            movimiento.setDetalle(tx.getMedioPago());
             movimiento.setAsociadoTipo(tx.getTipoAsociado());
             movimiento.setAsociadoId(tx.getIdAsociado());
 
@@ -206,7 +207,7 @@ public class ReportesService {
                 for (ObraCostoExternalDto costo : costos) {
                     if (Boolean.FALSE.equals(costo.getActivo())) continue;
                     if (!Objects.equals(filtros.getProveedorId(), costo.getIdProveedor())) continue;
-                    BigDecimal monto = Optional.ofNullable(costo.getTotal()).orElse(BigDecimal.ZERO);
+                    BigDecimal monto = costoBase(costo);
                     egresos = egresos.add(monto);
                     FlujoCajaResponse.Movimiento mov = new FlujoCajaResponse.Movimiento();
                     mov.setTransaccionId(null);
@@ -217,6 +218,7 @@ public class ReportesService {
                     mov.setTipo("COSTO");
                     mov.setMonto(monto);
                     mov.setFormaPago("PENDIENTE");
+                    mov.setDetalle(costo.getDescripcion());
                     mov.setAsociadoTipo("PROVEEDOR");
                     mov.setAsociadoId(filtros.getProveedorId());
                     mov.setObraId(obra.getId());
@@ -264,7 +266,7 @@ public class ReportesService {
                 pendiente.setObraId(obra.getId());
                 pendiente.setObraNombre(obra.getNombre());
                 pendiente.setDescripcion(costo.getDescripcion());
-                pendiente.setTotal(Optional.ofNullable(costo.getTotal()).orElse(BigDecimal.ZERO));
+                pendiente.setTotal(costoBase(costo));
                 pendiente.setEstadoPago(estadoNombre);
 
                 ProveedorExternalDto proveedor = proveedores.get(costo.getIdProveedor());
@@ -366,7 +368,7 @@ public class ReportesService {
                 if (filtros.getProveedorId() != null && !Objects.equals(filtros.getProveedorId(), costo.getIdProveedor())) {
                     continue;
                 }
-                BigDecimal total = Optional.ofNullable(costo.getTotal()).orElse(BigDecimal.ZERO);
+                BigDecimal total = costoBase(costo);
                 ProveedorExternalDto proveedor = proveedores.get(costo.getIdProveedor());
                 String categoria = proveedor != null && proveedor.getTipoProveedor() != null
                         ? proveedor.getTipoProveedor().getNombre()
@@ -508,7 +510,7 @@ public class ReportesService {
                 if (!Objects.equals(proveedorId, costo.getIdProveedor()) || Boolean.FALSE.equals(costo.getActivo())) {
                     continue;
                 }
-                BigDecimal total = Optional.ofNullable(costo.getTotal()).orElse(BigDecimal.ZERO);
+                BigDecimal total = costoBase(costo);
                 costos = costos.add(total);
                 CuentaCorrienteProveedorResponse.Movimiento movimiento = new CuentaCorrienteProveedorResponse.Movimiento();
                 movimiento.setTipo("COSTO");
@@ -792,7 +794,7 @@ public class ReportesService {
                             return nuevo;
                         }
                 );
-                item.setTotalCostos(item.getTotalCostos().add(Optional.ofNullable(costo.getTotal()).orElse(BigDecimal.ZERO)));
+                item.setTotalCostos(item.getTotalCostos().add(costoBase(costo)));
                 obrasPorProveedor.computeIfAbsent(costo.getIdProveedor(), k -> new HashSet<>()).add(obra.getId());
             }
         }
@@ -924,6 +926,15 @@ public class ReportesService {
 
     private BigDecimal saldoPositivo(BigDecimal saldo) {
         return saldo.compareTo(BigDecimal.ZERO) < 0 ? BigDecimal.ZERO : saldo;
+    }
+
+    private BigDecimal costoBase(ObraCostoExternalDto costo) {
+        if (costo == null) return BigDecimal.ZERO;
+        if (costo.getSubtotal() != null) return costo.getSubtotal();
+        if (costo.getCantidad() != null && costo.getPrecioUnitario() != null) {
+            return costo.getCantidad().multiply(costo.getPrecioUnitario());
+        }
+        return Optional.ofNullable(costo.getTotal()).orElse(BigDecimal.ZERO);
     }
 
     private AvanceTareasResponse.AvanceObra construirAvanceParaTareas(ObraExternalDto obra,

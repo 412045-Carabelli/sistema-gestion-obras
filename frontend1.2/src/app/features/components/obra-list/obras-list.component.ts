@@ -10,6 +10,7 @@ import {IconFieldModule} from 'primeng/iconfield';
 import {InputIconModule} from 'primeng/inputicon';
 import {forkJoin} from 'rxjs';
 import {ButtonModule} from 'primeng/button';
+import {CheckboxModule} from 'primeng/checkbox';
 
 import {Cliente, EstadoObra, Obra} from '../../../core/models/models';
 import {ObrasService} from '../../../services/obras/obras.service';
@@ -38,6 +39,7 @@ interface EstadoOption {
     DatePipe,
     Select,
     ButtonModule,
+    CheckboxModule,
     EstadoFormatPipe
   ],
   templateUrl: './obras-list.component.html',
@@ -54,6 +56,7 @@ export class ObrasListComponent implements OnInit {
 
   estadoFiltro: string = 'TODOS';
   searchValue: string = '';
+  mostrarInactivos = false;
   estadosOptions: EstadoOption[] = [];
   private estadoInicialDesdeRuta: string | null = null;
 
@@ -78,7 +81,7 @@ export class ObrasListComponent implements OnInit {
 
     // Carga todo en paralelo
     forkJoin({
-      obras: this.obrasService.getObras(),
+      obras: this.obrasService.getObrasAll(),
       clientes: this.clientesService.getClientes(),
       estados: this.estadoObraService.getEstados()
     }).subscribe(({obras, clientes, estados}) => {
@@ -106,7 +109,8 @@ export class ObrasListComponent implements OnInit {
 
   // Filtrado
   applyFilter() {
-    this.obrasFiltradas = this.obras.filter(obra => {
+    this.obrasFiltradas = this.obras
+      .filter(obra => {
 
       const matchesSearch = this.searchValue
         ? obra.nombre.toLowerCase().includes(this.searchValue.toLowerCase()) ||
@@ -120,8 +124,13 @@ export class ObrasListComponent implements OnInit {
           ? true
           : (estadoValor || '').toUpperCase() === (this.estadoFiltro || '').toUpperCase();
 
-      return matchesSearch && matchesEstado;
-    });
+      const matchesActivo = this.mostrarInactivos
+        ? true
+        : Boolean(obra.activo ?? true);
+
+      return matchesSearch && matchesEstado && matchesActivo;
+    })
+      .sort((a, b) => Number(b.id ?? 0) - Number(a.id ?? 0));
   }
 
   private estadoValorObra(obra: any): string {
@@ -148,6 +157,10 @@ export class ObrasListComponent implements OnInit {
   }
 
   onEstadoChange() {
+    this.applyFilter();
+  }
+
+  onMostrarInactivosChange() {
     this.applyFilter();
   }
 

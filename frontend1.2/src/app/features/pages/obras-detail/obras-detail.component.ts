@@ -1,5 +1,5 @@
 ﻿import {AfterViewInit, Component, ElementRef, OnDestroy, OnInit, ViewChild} from '@angular/core';
-import {ActivatedRoute} from '@angular/router';
+import {ActivatedRoute, Router} from '@angular/router';
 import {CommonModule, CurrencyPipe, DatePipe, NgClass} from '@angular/common';
 import {forkJoin, Subscription} from 'rxjs';
 
@@ -15,8 +15,10 @@ import {InputNumber} from 'primeng/inputnumber';
 import {DatePicker} from 'primeng/datepicker';
 import {FileUploadModule} from 'primeng/fileupload';
 import {TableModule} from 'primeng/table';
-import {MessageService} from 'primeng/api';
+import {ConfirmationService, MessageService} from 'primeng/api';
 import {ToastModule} from 'primeng/toast';
+import {EditorModule} from 'primeng/editor';
+import {TagModule} from 'primeng/tag';
 
 import {Cliente, EstadoObra, Obra, ObraCosto, Proveedor, Tarea, CuentaCorrienteMovimiento, Factura} from '../../../core/models/models';
 import {ObraMovimientosComponent} from '../../components/obra-movimientos/obra-movimientos.component';
@@ -36,6 +38,7 @@ import {ReportesService} from '../../../services/reportes/reportes.service';
 import {CuentaCorrienteObraResponse, ReportFilter} from '../../../core/models/models';
 import {FacturasService} from '../../../services/facturas/facturas.service';
 import {ModalComponent} from '../../../shared/modal/modal.component';
+import {ConfirmDialog} from 'primeng/confirmdialog';
 
 @Component({
   selector: 'app-obra-detail',
@@ -69,8 +72,11 @@ import {ModalComponent} from '../../../shared/modal/modal.component';
     StyleClassModule,
     NgClass,
     ModalComponent,
+    EditorModule,
+    TagModule,
+    ConfirmDialog,
   ],
-  providers: [MessageService],
+  providers: [MessageService, ConfirmationService],
   templateUrl: './obras-detail.component.html',
   styleUrls: ['./obras-detail.component.css']
 })
@@ -88,14 +94,22 @@ export class ObrasDetailComponent implements OnInit, OnDestroy, AfterViewInit {
   facturasObra: Factura[] = [];
   facturasFiltradas: Factura[] = [];
   showFacturaModal = false;
+  showFacturaDetalleModal = false;
+  facturaDetalle?: Factura;
   facturaForm = {
     fecha: new Date(),
-    monto: null as number | null
+    monto: null as number | null,
+    descripcion: '',
+    estado: 'EMITIDA'
   };
   facturaFile: File | null = null;
   progresoFisico = 0;
   estadosObra: EstadoObra[] = [];
   estadoSeleccionado: string | null = null;
+  showEstadoFechaModal = false;
+  estadoPendiente: string | null = null;
+  tipoFechaEstado: 'ADJUDICADA' | 'PERDIDA' | null = null;
+  fechaEstadoSeleccionada: Date | null = null;
   beneficioNeto = 0;
   beneficioCostos = 0;
   cronogramaFueraDeRango = false;
@@ -110,6 +124,7 @@ export class ObrasDetailComponent implements OnInit, OnDestroy, AfterViewInit {
 
   constructor(
     private route: ActivatedRoute,
+    private router: Router,
     private obraService: ObrasService,
     private clientesService: ClientesService,
     private proveedoresService: ProveedoresService,
@@ -117,7 +132,8 @@ export class ObrasDetailComponent implements OnInit, OnDestroy, AfterViewInit {
     private messageService: MessageService,
     private obraStateService: ObrasStateService,
     private reportesService: ReportesService,
-    private facturasService: FacturasService
+    private facturasService: FacturasService,
+    private confirmationService: ConfirmationService
   ) {}
 
   ngOnInit(): void {
@@ -134,42 +150,62 @@ export class ObrasDetailComponent implements OnInit, OnDestroy, AfterViewInit {
     this.obraStateService.clearObra();
   }
 
+  get estadoFechaModalTitle(): string {
+    return this.tipoFechaEstado === 'PERDIDA'
+      ? 'Fecha de perdida'
+      : 'Fecha de adjudicacion';
+  }
+
+  get estadoFechaLabel(): string {
+    return this.tipoFechaEstado === 'PERDIDA'
+      ? 'Fecha de perdida'
+      : 'Fecha de adjudicacion';
+  }
+
   actualizarEstadoObra(nuevoEstado: string) {
+    if (!this.obra?.id) return;
     const estadoNormalizado = (nuevoEstado || '')
       .toString()
       .trim()
       .toUpperCase()
       .replace(/\s+/g, '_');
 
-    this.obraService.updateEstadoObra(this.obra.id!, estadoNormalizado).subscribe({
-      next: () => {
-        const encontrado = this.estadosObra.find(e => e.name === estadoNormalizado || e.label === nuevoEstado);
-        if (encontrado) {
-          this.obra.obra_estado = encontrado.name;
-        }
+    if (!estadoNormalizado || estadoNormalizado === this.obra.obra_estado) {
+      this.estadoSeleccionado = this.obra.obra_estado;
+      return;
+    }
 
-        if (estadoNormalizado === 'ADJUDICADA' || estadoNormalizado === 'EN_PROGRESO') {
-          this.obra.fecha_adjudicada = this.obra.fecha_adjudicada || new Date().toISOString();
-        }
+    const tipoFecha = this.requiereFechaEstado(estadoNormalizado);
+    if (tipoFecha) {
+      this.estadoPendiente = estadoNormalizado;
+      this.tipoFechaEstado = tipoFecha;
+      this.fechaEstadoSeleccionada = this.obtenerFechaEstadoInicial(tipoFecha);
+      this.showEstadoFechaModal = true;
+      return;
+    }
 
-        this.estadoSeleccionado = estadoNormalizado;
-        this.obraStateService.setObra(this.obra);
-        this.scheduleNotasOverflowCheck();
+    this.confirmarCambioEstado(estadoNormalizado);
+  }
 
-        this.messageService.add({
-          severity: 'success',
-          summary: 'Estado actualizado',
-          detail: 'La obra ahora esta en estado "' + (encontrado?.label ?? this.obra.obra_estado) + '".'
-        });
-      },
-      error: () => {
-        this.messageService.add({
-          severity: 'error',
-          summary: 'Estado actualizado',
-          detail: 'El estado de la obra no se pudo actualizar',
-        })
-      }
-    });
+  cancelarCambioEstado() {
+    this.showEstadoFechaModal = false;
+    this.estadoPendiente = null;
+    this.tipoFechaEstado = null;
+    this.fechaEstadoSeleccionada = null;
+    this.estadoSeleccionado = this.obra?.obra_estado ?? null;
+  }
+
+  confirmarCambioEstadoConFecha() {
+    if (!this.estadoPendiente) return;
+    if (!this.fechaEstadoSeleccionada) {
+      this.messageService.add({
+        severity: 'warn',
+        summary: 'Fecha requerida',
+        detail: 'Selecciona una fecha para confirmar el cambio de estado.'
+      });
+      return;
+    }
+    this.confirmarCambioEstado(this.estadoPendiente, this.fechaEstadoSeleccionada);
   }
 
   private cargarDetalle(idObra: number) {
@@ -228,6 +264,7 @@ export class ObrasDetailComponent implements OnInit, OnDestroy, AfterViewInit {
     this.obra.costos = costosActualizados;
     this.beneficioCostos = this.calcularBeneficioCostos(costosActualizados);
     this.beneficioNeto = this.calcularBeneficioNeto();
+    this.obra.presupuesto = this.calcularPresupuestoDesdeCostos(costosActualizados);
     this.obra.beneficio_costos = this.beneficioCostos;
     this.obra.beneficio_neto = this.beneficioNeto;
     this.obraStateService.setObra(this.obra);
@@ -289,6 +326,24 @@ export class ObrasDetailComponent implements OnInit, OnDestroy, AfterViewInit {
     }, 0);
   }
 
+  private calcularPresupuestoDesdeCostos(costos: ObraCosto[]): number {
+    const beneficioGlobalPorc = this.obra.beneficio_global ? Number(this.obra.beneficio ?? 0) : null;
+    const totalConBeneficio = (costos ?? []).reduce((acc, costo) => {
+      const subtotal = Number(
+        costo.subtotal ??
+        (Number(costo.cantidad ?? 0) * Number(costo.precio_unitario ?? 0))
+      );
+      const esAdicional = (costo.tipo_costo || '').toString().toUpperCase() === 'ADICIONAL';
+      const porc = esAdicional
+        ? Number(costo.beneficio ?? 0)
+        : (beneficioGlobalPorc !== null ? beneficioGlobalPorc : Number(costo.beneficio ?? 0));
+      return acc + subtotal * (1 + (porc / 100));
+    }, 0);
+
+    const comisionPorc = this.obra.tiene_comision ? Number(this.obra.comision ?? 0) : 0;
+    return totalConBeneficio * (1 + (comisionPorc / 100));
+  }
+
   get totalCostosBase(): number {
     return (this.costos ?? []).reduce((acc, costo) => {
       if (!this.costoTieneProveedor(costo)) return acc;
@@ -335,6 +390,22 @@ export class ObrasDetailComponent implements OnInit, OnDestroy, AfterViewInit {
     this.showFacturaModal = false;
   }
 
+  abrirDetalleFactura(factura: Factura) {
+    if (!factura) return;
+    this.facturaDetalle = factura;
+    this.showFacturaDetalleModal = true;
+  }
+
+  cerrarDetalleFactura() {
+    this.showFacturaDetalleModal = false;
+  }
+
+  editarFacturaDetalle() {
+    if (!this.facturaDetalle) return;
+    this.cerrarDetalleFactura();
+    this.editarFactura(this.facturaDetalle);
+  }
+
   guardarFacturaObra() {
     if (!this.obra?.id || !this.obra?.cliente?.id) return;
     const monto = Number(this.facturaForm.monto ?? 0);
@@ -346,12 +417,32 @@ export class ObrasDetailComponent implements OnInit, OnDestroy, AfterViewInit {
       });
       return;
     }
+    const presupuesto = Number(this.obra.presupuesto ?? NaN);
+    if (!Number.isFinite(presupuesto)) {
+      this.messageService.add({
+        severity: 'warn',
+        summary: 'Sin presupuesto',
+        detail: 'No se pudo obtener el presupuesto de la obra.'
+      });
+      return;
+    }
+    const restante = Math.max(0, presupuesto - this.totalFacturasMonto);
+    if (monto > restante + 0.01) {
+      this.messageService.add({
+        severity: 'warn',
+        summary: 'Monto invalido',
+        detail: 'El monto supera el restante disponible de la obra.'
+      });
+      return;
+    }
 
     const payload = {
       id_cliente: Number(this.obra.cliente.id),
       id_obra: Number(this.obra.id),
       monto,
-      fecha: this.formatDate(this.facturaForm.fecha)
+      fecha: this.formatDate(this.facturaForm.fecha),
+      descripcion: this.facturaForm.descripcion || '',
+      estado: this.facturaForm.estado || 'EMITIDA'
     };
 
     this.facturasService.createFactura(payload, this.facturaFile).subscribe({
@@ -382,6 +473,88 @@ export class ObrasDetailComponent implements OnInit, OnDestroy, AfterViewInit {
 
   quitarFacturaArchivo() {
     this.facturaFile = null;
+  }
+
+  descargarAdjuntoFactura(factura: Factura) {
+    if (!factura?.id || !factura?.nombre_archivo) return;
+    const nombre = factura.nombre_archivo;
+    this.facturasService.downloadFactura(factura.id).subscribe({
+      next: (blob) => {
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.style.display = 'none';
+        link.href = url;
+        link.download = nombre;
+        link.rel = 'noopener';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        setTimeout(() => window.URL.revokeObjectURL(url), 10000);
+      },
+      error: () => {
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: 'No se pudo descargar el adjunto.'
+        });
+      }
+    });
+  }
+
+  verDetalleFactura(factura: Factura) {
+    if (!factura) return;
+    this.abrirDetalleFactura(factura);
+  }
+
+  editarFactura(factura: Factura) {
+    if (!factura?.id) return;
+    this.router.navigate(['/facturas/editar', factura.id]);
+  }
+
+  eliminarFactura(factura: Factura, pedirConfirmacion = true) {
+    if (!factura?.id) return;
+    const eliminar = () => {
+      this.facturasService.deleteFactura(factura.id!).subscribe({
+        next: () => {
+          this.messageService.add({
+            severity: 'success',
+            summary: 'Factura eliminada',
+            detail: 'La factura se elimino correctamente.'
+          });
+          this.cargarFacturasObra();
+        },
+        error: () => {
+          this.messageService.add({
+            severity: 'error',
+            summary: 'Error',
+            detail: 'No se pudo eliminar la factura.'
+          });
+        }
+      });
+    };
+
+    if (!pedirConfirmacion) {
+      eliminar();
+      return;
+    }
+
+    this.confirmationService.confirm({
+      header: 'Confirmar eliminacion',
+      message: '¿Seguro que queres eliminar esta factura?',
+      icon: 'pi pi-exclamation-triangle',
+      acceptLabel: 'Eliminar',
+      rejectLabel: 'Cancelar',
+      acceptButtonStyleClass: 'p-button-danger p-button-sm',
+      rejectButtonStyleClass: 'p-button-text p-button-sm',
+      accept: () => eliminar()
+    });
+  }
+
+  eliminarFacturaDetalle() {
+    if (!this.facturaDetalle) return;
+    const factura = this.facturaDetalle;
+    this.cerrarDetalleFactura();
+    this.eliminarFactura(factura, true);
   }
 
   onTareasActualizadas(nuevasTareas: Tarea[]) {
@@ -444,6 +617,124 @@ export class ObrasDetailComponent implements OnInit, OnDestroy, AfterViewInit {
     }
     const el = this.notasBody.nativeElement;
     this.notasOverflow = el.scrollHeight > el.clientHeight + 2;
+  }
+
+  private requiereFechaEstado(estado: string): 'ADJUDICADA' | 'PERDIDA' | null {
+    if (estado === 'ADJUDICADA' || estado === 'EN_PROGRESO') return 'ADJUDICADA';
+    if (estado === 'PERDIDA') return 'PERDIDA';
+    return null;
+  }
+
+  private obtenerFechaEstadoInicial(tipo: 'ADJUDICADA' | 'PERDIDA'): Date {
+    const fechaActual =
+      tipo === 'PERDIDA'
+        ? this.parseDate(this.obra?.fecha_perdida)
+        : this.parseDate(this.obra?.fecha_adjudicada);
+    return fechaActual ?? new Date();
+  }
+
+  private confirmarCambioEstado(estadoNormalizado: string, fechaSeleccionada?: Date | null) {
+    if (!this.obra?.id) return;
+    const estadoPrevio = this.obra.obra_estado;
+    const tipoFecha = this.requiereFechaEstado(estadoNormalizado);
+
+    if (tipoFecha && !fechaSeleccionada) {
+      this.messageService.add({
+        severity: 'warn',
+        summary: 'Fecha requerida',
+        detail: 'Selecciona una fecha para confirmar el cambio de estado.'
+      });
+      return;
+    }
+
+    const idCliente = Number(this.obra.id_cliente ?? this.obra.cliente?.id ?? 0);
+    if (!idCliente) {
+      this.messageService.add({
+        severity: 'warn',
+        summary: 'Cliente requerido',
+        detail: 'No se pudo determinar el cliente de la obra.'
+      });
+      this.cancelarCambioEstado();
+      return;
+    }
+
+    const payload: any = {
+      id_cliente: idCliente,
+      obra_estado: estadoNormalizado,
+      nombre: this.obra.nombre,
+      direccion: this.obra.direccion,
+      fecha_inicio: this.toDateTimeString(this.obra.fecha_inicio),
+      fecha_presupuesto: this.toDateTimeString(this.obra.fecha_presupuesto),
+      fecha_fin: this.toDateTimeString(this.obra.fecha_fin),
+      fecha_adjudicada: this.toDateTimeString(this.obra.fecha_adjudicada),
+      fecha_perdida: this.toDateTimeString(this.obra.fecha_perdida),
+      tiene_comision: this.obra.tiene_comision ?? false,
+      presupuesto: this.obra.presupuesto,
+      beneficio_global: this.obra.beneficio_global,
+      beneficio: this.obra.beneficio,
+      comision: this.obra.comision,
+      notas: this.obra.notas,
+      memoria_descriptiva: this.obra.memoria_descriptiva
+    };
+
+    if (tipoFecha === 'ADJUDICADA') {
+      payload.fecha_adjudicada = this.toDateTimeString(fechaSeleccionada);
+    }
+    if (tipoFecha === 'PERDIDA') {
+      payload.fecha_perdida = this.toDateTimeString(fechaSeleccionada);
+    }
+
+    this.obraService.updateObra(this.obra.id!, payload).subscribe({
+      next: (updated) => {
+        const encontrado = this.estadosObra.find(
+          e => e.name === estadoNormalizado || e.label === estadoNormalizado
+        );
+        this.obra = {
+          ...this.obra,
+          ...updated,
+          obra_estado: updated?.obra_estado ?? estadoNormalizado,
+          fecha_adjudicada: updated?.fecha_adjudicada ?? payload.fecha_adjudicada ?? this.obra.fecha_adjudicada,
+          fecha_perdida: updated?.fecha_perdida ?? payload.fecha_perdida ?? this.obra.fecha_perdida
+        };
+        this.estadoSeleccionado = estadoNormalizado;
+        this.obraStateService.setObra(this.obra);
+        this.scheduleNotasOverflowCheck();
+        this.cancelarCambioEstado();
+        this.messageService.add({
+          severity: 'success',
+          summary: 'Estado actualizado',
+          detail: 'La obra ahora esta en estado "' + (encontrado?.label ?? this.obra.obra_estado) + '".'
+        });
+      },
+      error: () => {
+        this.estadoSeleccionado = estadoPrevio ?? this.obra.obra_estado;
+        this.cancelarCambioEstado();
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Estado actualizado',
+          detail: 'El estado de la obra no se pudo actualizar',
+        });
+      }
+    });
+  }
+
+  private parseDate(value?: string | Date | null): Date | null {
+    if (!value) return null;
+    if (value instanceof Date) return value;
+    const parsed = new Date(value);
+    return Number.isNaN(parsed.getTime()) ? null : parsed;
+  }
+
+  private toDateTimeString(value?: string | Date | null): string | null {
+    if (!value) return null;
+    if (typeof value === 'string') return value;
+    const year = value.getFullYear();
+    const month = String(value.getMonth() + 1).padStart(2, '0');
+    const day = String(value.getDate()).padStart(2, '0');
+    const hour = String(value.getHours()).padStart(2, '0');
+    const minute = String(value.getMinutes()).padStart(2, '0');
+    const second = String(value.getSeconds()).padStart(2, '0');
+    return `${year}-${month}-${day}T${hour}:${minute}:${second}`;
   }
 
   get totalFacturasMonto(): number {
@@ -857,9 +1148,22 @@ export class ObrasDetailComponent implements OnInit, OnDestroy, AfterViewInit {
   private resetFacturaForm() {
     this.facturaForm = {
       fecha: new Date(),
-      monto: null
+      monto: null,
+      descripcion: '',
+      estado: 'EMITIDA'
     };
     this.facturaFile = null;
+  }
+
+  private esPdfFactura(factura?: Factura | null): boolean {
+    const nombre = factura?.nombre_archivo;
+    if (!nombre) return false;
+    return /\.pdf$/i.test(nombre);
+  }
+
+  stripFacturaDescripcion(raw?: string | null): string {
+    if (!raw) return '';
+    return raw.replace(/<[^>]*>/g, '').trim();
   }
 
   private formatDate(value: any): string {

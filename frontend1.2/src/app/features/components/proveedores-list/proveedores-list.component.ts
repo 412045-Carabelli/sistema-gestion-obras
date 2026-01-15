@@ -7,10 +7,12 @@ import {InputIcon} from 'primeng/inputicon';
 import {InputText} from 'primeng/inputtext';
 import {Select} from 'primeng/select';
 import {ButtonModule} from 'primeng/button';
-import {forkJoin} from 'rxjs';
+import {CheckboxModule} from 'primeng/checkbox';
+import {catchError, forkJoin, map, of} from 'rxjs';
 import {Proveedor} from '../../../core/models/models';
 import {ProveedoresService} from '../../../services/proveedores/proveedores.service';
 import {Router} from '@angular/router';
+import {ReportesService} from '../../../services/reportes/reportes.service';
 
 interface TipoOption { label: string; name: string | 'todos'; }
 
@@ -26,6 +28,7 @@ interface TipoOption { label: string; name: string | 'todos'; }
     InputText,
     Select,
     ButtonModule,
+    CheckboxModule,
   ],
   templateUrl: './proveedores-list.component.html'
 })
@@ -34,26 +37,32 @@ export class ProveedoresListComponent implements OnInit {
   proveedoresFiltrados: Proveedor[] = [];
   tiposRecords: { label: string; name: string }[] = [];
   tipoOptions: TipoOption[] = [];
+  saldosProveedor: Record<number, number> = {};
 
   searchValue: string = '';
   tipoFiltro: number | 'todos' = 'todos';
+  mostrarInactivos = false;
 
   loading = true;
 
   @Output() proveedorClick = new EventEmitter<Proveedor>();
 
-  constructor(private service: ProveedoresService, private router: Router) {
+  constructor(
+    private service: ProveedoresService,
+    private reportesService: ReportesService,
+    private router: Router
+  ) {
   }
 
   ngOnInit() {
-    forkJoin({ proveedores: this.service.getProveedores(), tipos: this.service.getTipos() }).subscribe({
+    forkJoin({ proveedores: this.service.getProveedoresAll(), tipos: this.service.getTipos() }).subscribe({
       next: ({proveedores, tipos}) => {
         this.proveedores = proveedores;
-        this.proveedoresFiltrados = [...this.proveedores];
         this.tiposRecords = tipos;
-        this.tipoOptions = [ {label: 'Todos', name: 'TODOS'}, ...this.tiposRecords.map(r => ({label: r.label, name: r.name})) ];
+        this.tipoOptions = [ {label: 'Todos', name: 'todos'}, ...this.tiposRecords.map(r => ({label: r.label, name: r.name})) ];
+        this.applyFilter();
+        this.cargarSaldosProveedores();
         this.loading = false;
-        console.log(this.proveedores);
       },
       error: () => (this.loading = false)
     });
@@ -61,7 +70,8 @@ export class ProveedoresListComponent implements OnInit {
 
 
   applyFilter() {
-    this.proveedoresFiltrados = this.proveedores.filter(proveedor => {
+    this.proveedoresFiltrados = this.proveedores
+      .filter(proveedor => {
       const search = this.searchValue.toLowerCase();
 
       const matchesSearch = this.searchValue
@@ -77,8 +87,13 @@ export class ProveedoresListComponent implements OnInit {
           ? true
           : ((proveedor as any).tipo_proveedor_value || '') === this.tipoFiltro;
 
-      return matchesSearch && matchesTipo;
-    });
+      const matchesActivo = this.mostrarInactivos
+        ? true
+        : Boolean(proveedor.activo ?? true);
+
+      return matchesSearch && matchesTipo && matchesActivo;
+    })
+      .sort((a, b) => Number(b.id ?? 0) - Number(a.id ?? 0));
   }
 
   irAlDetalle(proveedor: any) {
@@ -90,6 +105,39 @@ export class ProveedoresListComponent implements OnInit {
     this.applyFilter();
   }
 
+  onMostrarInactivosChange() {
+    this.applyFilter();
+  }
+
+  private cargarSaldosProveedores() {
+    if (!this.proveedores.length) {
+      this.saldosProveedor = {};
+      return;
+    }
+
+    const requests = this.proveedores.map(proveedor =>
+      this.reportesService.getCuentaCorrienteProveedor({proveedorId: proveedor.id}).pipe(
+        map(response => {
+          const saldo = (response as any)?.saldoFinal ?? (response as any)?.saldo ?? 0;
+          return {id: proveedor.id, saldo};
+        }),
+        catchError(() => of({id: proveedor.id, saldo: 0}))
+      )
+    );
+
+    forkJoin(requests).subscribe(results => {
+      this.saldosProveedor = results.reduce((acc, item) => {
+        acc[item.id] = item.saldo;
+        return acc;
+      }, {} as Record<number, number>);
+    });
+  }
+
+  obtenerSaldoProveedor(id?: number): number {
+    if (!id) return 0;
+    return this.saldosProveedor[id] ?? 0;
+  }
+
   formatearTipo(tipo: string | null | undefined): string {
     if (!tipo) return '—';
 
@@ -99,4 +147,5 @@ export class ProveedoresListComponent implements OnInit {
 
 
 }
+
 

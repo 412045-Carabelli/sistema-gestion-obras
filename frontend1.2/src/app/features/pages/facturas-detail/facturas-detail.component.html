@@ -8,28 +8,20 @@
 } @else {
   <div class="space-y-6">
     <!-- Resumen financiero de la obra -->
-    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-      <div class="bg-white rounded-xl shadow-sm p-5 border-l-4 border-emerald-500 hover:shadow-md transition-shadow">
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div class="bg-white rounded-xl shadow-sm p-5 border-l-4 border-emerald-500">
         <p class="text-xs text-emerald-700 font-semibold uppercase tracking-wide mb-1">Total cobrado</p>
         <p class="text-3xl font-bold text-gray-900">{{ montoCobrado | currency:'ARS':'symbol':'1.0-0' }}</p>
       </div>
-      <div class="bg-white rounded-xl shadow-sm p-5 border-l-4 border-blue-500 hover:shadow-md transition-shadow">
+      <div class="bg-white rounded-xl shadow-sm p-5 border-l-4 border-blue-500">
         <p class="text-xs text-blue-700 font-semibold uppercase tracking-wide mb-1">Por cobrar</p>
         <p class="text-3xl font-bold text-gray-900">{{ totalPorCobrar | currency:'ARS':'symbol':'1.0-0' }}</p>
       </div>
-      <div class="bg-white rounded-xl shadow-sm p-5 border-l-4 border-amber-500 hover:shadow-md transition-shadow">
+      <div class="bg-white rounded-xl shadow-sm p-5 border-l-4 border-amber-500">
         <p class="text-xs text-amber-700 font-semibold uppercase tracking-wide mb-1">Saldo</p>
         <p class="text-3xl font-bold" [ngClass]="saldoFinal >= 0 ? 'text-gray-900' : 'text-red-600'">
           {{ saldoFinal | currency:'ARS':'symbol':'1.0-0' }}
         </p>
-      </div>
-      <div class="bg-white rounded-xl shadow-sm p-5 border-l-4 border-indigo-500 hover:shadow-md transition-shadow">
-        <p class="text-xs text-indigo-700 font-semibold uppercase tracking-wide mb-1">Estado</p>
-        <p-tag
-          [value]="estadoLabel"
-          [severity]="estadoLabel === 'Pagada' ? 'danger' : 'warning'"
-          styleClass="text-base px-3 py-1 mt-2">
-        </p-tag>
       </div>
     </div>
 
@@ -39,22 +31,12 @@
         <div class="flex justify-between items-start">
           <div>
             <h2 class="text-2xl font-bold text-gray-900 mb-1">Factura Nro #{{ factura!.id }}</h2>
-          </div>
-          <div class="flex gap-2">
-            <p-button
-              icon="pi pi-download"
-              label="Descargar"
-              (onClick)="descargarFactura()"
-              styleClass="p-button-sm">
-            </p-button>
-            <p-button
-              icon="pi pi-trash"
-              label="Eliminar"
-              severity="danger"
-              [outlined]="true"
-              (onClick)="eliminarFactura()"
-              styleClass="p-button-sm">
-            </p-button>
+            <div class="flex gap-2">
+              <p-tag
+                [value]="factura?.estado || 'EMITIDA'"
+                [severity]="(factura?.estado || 'EMITIDA') === 'COBRADA' ? 'success' : 'info'">
+              </p-tag>
+            </div>
           </div>
         </div>
       </div>
@@ -121,6 +103,15 @@
           </div>
         </div>
       </div>
+    </div>
+
+    <div class="bg-white rounded-xl shadow-sm p-6">
+      <h3 class="text-lg font-semibold text-gray-900 mb-3">Descripcion</h3>
+      @if (factura?.descripcion?.trim()) {
+        <div class="prose prose-sm max-w-none text-gray-800" [innerHTML]="factura?.descripcion"></div>
+      } @else {
+        <p class="text-sm text-gray-500">Sin descripcion registrada.</p>
+      }
     </div>
 
     <!-- Vista previa de imagen -->

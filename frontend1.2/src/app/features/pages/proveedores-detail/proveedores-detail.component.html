@@ -1,5 +1,3 @@
-﻿<p-toast></p-toast>
-
 @if (loading) {
   <div class="flex justify-center items-center min-h-[60vh]">
     <p-progressSpinner styleClass="w-16 h-16" strokeWidth="4" animationDuration=".8s"></p-progressSpinner>
@@ -11,7 +9,7 @@
       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
 
         <!-- Tarjeta Tipo -->
-        <div class="bg-white rounded-xl shadow-md p-6 border-l-4 border-purple-500 hover:shadow-lg transition-shadow">
+        <div class="bg-white rounded-xl shadow-md p-6 border-l-4 border-purple-500">
           <div class="flex items-center gap-3 mb-2">
             <div class="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
               <i class="pi pi-tag text-purple-600 text-lg"></i>
@@ -22,7 +20,7 @@
         </div>
 
         <!-- Tarjeta Contacto -->
-        <div class="bg-white rounded-xl shadow-md p-6 border-l-4 border-blue-500 hover:shadow-lg transition-shadow">
+        <div class="bg-white rounded-xl shadow-md p-6 border-l-4 border-blue-500">
           <div class="flex items-center gap-3 mb-2">
             <div class="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
               <i class="pi pi-user text-blue-600 text-lg"></i>
@@ -32,7 +30,7 @@
           <p class="text-lg font-semibold text-gray-900">{{ proveedor.contacto || 'Sin contacto' }}</p>
         </div>
         <!-- Tarjeta Gremio -->
-        <div class="bg-white rounded-xl shadow-md p-6 border-l-4 border-green-500 hover:shadow-lg transition-shadow">
+        <div class="bg-white rounded-xl shadow-md p-6 border-l-4 border-green-500">
           <div class="flex items-center gap-3 mb-2">
             <div class="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
               <i class="pi pi-sitemap text-green-600 text-lg"></i>
@@ -43,7 +41,7 @@
         </div>
 
         <!-- Tarjeta CUIT -->
-        <div class="bg-white rounded-xl shadow-md p-6 border-l-4 border-amber-500 hover:shadow-lg transition-shadow">
+        <div class="bg-white rounded-xl shadow-md p-6 border-l-4 border-amber-500">
           <div class="flex items-center gap-3 mb-2">
             <div class="w-10 h-10 bg-amber-100 rounded-lg flex items-center justify-center">
               <i class="pi pi-id-card text-amber-600 text-lg"></i>
@@ -62,12 +60,18 @@
               <div class="flex items-center gap-2">
                 <i class="pi pi-list-check"></i>
                 <span class="font-medium">Tareas</span>
+                <span class="ml-2 px-2 py-1 bg-cyan-100 text-cyan-700 text-xs font-semibold rounded-full">
+                  {{ tareas?.length || 0 }}
+                </span>
               </div>
             </p-tab>
             <p-tab value="1" pStyleClass="px-6 py-4">
               <div class="flex items-center gap-2">
                 <i class="pi pi-arrow-right-arrow-left"></i>
                 <span class="font-medium">Movimientos</span>
+                <span class="ml-2 px-2 py-1 bg-amber-100 text-amber-700 text-xs font-semibold rounded-full">
+                  {{ transacciones?.length || 0 }}
+                </span>
               </div>
             </p-tab>
             <p-tab value="2" pStyleClass="px-6 py-4">
@@ -90,23 +94,29 @@
                           Obra
                           <p-sortIcon field="id_obra"></p-sortIcon>
                         </th>
-                        <th class="bg-gray-50 px-6 py-4 text-left text-sm font-semibold text-gray-500 uppercase tracking-wider">
+                        <th pSortableColumn="numero_orden" class="bg-gray-50 px-6 py-4 text-left text-sm font-semibold text-gray-500 uppercase tracking-wider">
                           Orden
+                          <p-sortIcon field="numero_orden"></p-sortIcon>
                         </th>
-                        <th class="bg-gray-50 px-6 py-4 text-left text-sm font-semibold text-gray-500 uppercase tracking-wider">
+                        <th pSortableColumn="nombre" class="bg-gray-50 px-6 py-4 text-left text-sm font-semibold text-gray-500 uppercase tracking-wider">
                           Titulo
+                          <p-sortIcon field="nombre"></p-sortIcon>
                         </th>
-                        <th class="bg-gray-50 px-6 py-4 text-left text-sm font-semibold text-gray-500 uppercase tracking-wider">
+                        <th pSortableColumn="descripcion" class="bg-gray-50 px-6 py-4 text-left text-sm font-semibold text-gray-500 uppercase tracking-wider">
                           Descripcion
+                          <p-sortIcon field="descripcion"></p-sortIcon>
                         </th>
-                        <th class="bg-gray-50 px-6 py-4 text-left text-sm font-semibold text-gray-500 uppercase tracking-wider">
+                        <th pSortableColumn="fecha_inicio" class="bg-gray-50 px-6 py-4 text-left text-sm font-semibold text-gray-500 uppercase tracking-wider">
                           Inicio
+                          <p-sortIcon field="fecha_inicio"></p-sortIcon>
                         </th>
-                        <th class="bg-gray-50 px-6 py-4 text-right text-sm font-semibold text-gray-500 uppercase tracking-wider">
+                        <th pSortableColumn="porcentaje" class="bg-gray-50 px-6 py-4 text-right text-sm font-semibold text-gray-500 uppercase tracking-wider">
                           Avance
+                          <p-sortIcon field="porcentaje"></p-sortIcon>
                         </th>
-                        <th class="bg-gray-50 px-6 py-4 text-left text-sm font-semibold text-gray-500 uppercase tracking-wider">
+                        <th pSortableColumn="estado_tarea" class="bg-gray-50 px-6 py-4 text-left text-sm font-semibold text-gray-500 uppercase tracking-wider">
                           Estado
+                          <p-sortIcon field="estado_tarea"></p-sortIcon>
                         </th>
                       </tr>
                     </ng-template>
@@ -142,7 +152,7 @@
                     </ng-template>
                     <ng-template pTemplate="emptymessage">
                       <tr>
-                        <td colspan="8" class="text-center py-8 text-gray-500">
+                        <td colspan="7" class="text-center py-8 text-gray-500">
                           <i class="pi pi-inbox text-4xl mb-2"></i>
                           <p>No hay tareas asignadas</p>
                         </td>
@@ -160,149 +170,57 @@
 
             <!-- TAB: MOVIMIENTOS -->
             <p-tabpanel value="1">
-              @if (transacciones.length > 0) {
-                <div class="overflow-hidden rounded-lg border border-gray-200">
-                  <p-table [value]="transaccionesConSaldo" styleClass="w-full" [tableStyle]="{'min-width': '72rem'}">
-                    <ng-template pTemplate="header">
-                      <tr>
-                        <th pSortableColumn="fecha" class="bg-gray-50 px-6 py-4 text-left text-sm font-semibold text-gray-500 uppercase tracking-wider">
-                          Fecha
-                          <p-sortIcon field="fecha"></p-sortIcon>
-                        </th>
-                        <th class="bg-gray-50 px-6 py-4 text-left text-sm font-semibold text-gray-500 uppercase tracking-wider">
-                          Tipo
-                        </th>
-                        <th class="bg-gray-50 px-6 py-4 text-left text-sm font-semibold text-gray-500 uppercase tracking-wider">
-                          Obra
-                        </th>
-                        <th class="bg-gray-50 px-6 py-4 text-left text-sm font-semibold text-gray-500 uppercase tracking-wider">
-                          Referencia
-                        </th>
-                        <th class="bg-gray-50 px-6 py-4 text-right text-sm font-semibold text-gray-500 uppercase tracking-wider">
-                          Monto
-                        </th>
-                        <th class="bg-gray-50 px-6 py-4 text-left text-sm font-semibold text-gray-500 uppercase tracking-wider">
-                          Condicion
-                        </th>
-                        <th class="bg-gray-50 px-6 py-4 text-left text-sm font-semibold text-gray-500 uppercase tracking-wider">
-                          Medio
-                        </th>
-                        <th class="bg-gray-50 px-6 py-4 text-right text-sm font-semibold text-gray-500 uppercase tracking-wider">
-                          Saldo proveedor
-                        </th>
-                      </tr>
-                    </ng-template>
-                    <ng-template pTemplate="body" let-t>
-                      <tr class="hover:bg-gray-50 transition-colors cursor-pointer" (click)="abrirMovimientoModal(t)">
-                        <td class="px-6 py-5 whitespace-nowrap text-base text-gray-900">
-                          {{ t.fecha | date: 'dd/MM/yyyy HH:mm' }}
-                        </td>
-                        <td class="px-6 py-5 whitespace-nowrap text-base">
-                            <span class="px-3 py-1.5 inline-flex text-sm leading-5 font-semibold rounded-full bg-green-100 text-green-800">
-                              {{ getTipoTransaccionLabel(t) }}
-                            </span>
-                        </td>
-                          <td class="px-6 py-5 whitespace-nowrap text-base">
-                            <div class="flex items-center gap-2 cursor-pointer hover:text-indigo-700"
-                                 (click)="$event.stopPropagation(); irADetalleObraMov(t.id_obra)">
-                              <i class="pi pi-building text-blue-600"></i>
-                              <span class="text-gray-900">{{ getNombreObra(t.id_obra) }}</span>
-                            </div>
-                          </td>
-                        <td class="px-6 py-5 whitespace-nowrap text-base text-gray-700">
-                          {{ getReferenciaImputacion(t) }}
-                        </td>
-                        <td class="px-6 py-5 whitespace-nowrap text-right text-base font-semibold text-gray-900">
-                          {{ t.monto | currency:'ARS':'symbol':'1.0-2' }}
-                        </td>
-                        <td class="px-6 py-5 whitespace-nowrap text-base text-gray-700">
-                          {{ t.forma_pago }}
-                        </td>
-                        <td class="px-6 py-5 whitespace-nowrap text-base text-gray-700">
-                          {{ t.medio_pago || 'Sin especificar' }}
-                        </td>
-                        <td class="px-6 py-5 whitespace-nowrap text-right text-base font-semibold text-gray-900">
-                          {{ (t.saldoRestante ?? t.saldo_proveedor ?? saldoProveedor) | currency:'ARS':'symbol':'1.0-2' }}
-                        </td>
-                      </tr>
-                    </ng-template>
-                    <ng-template pTemplate="emptymessage">
-                      <tr>
-                        <td colspan="8" class="text-center py-8 text-gray-500">
-                          <i class="pi pi-inbox text-4xl mb-2"></i>
-                          <p>No hay movimientos registrados</p>
-                        </td>
-                      </tr>
-                    </ng-template>
-                  </p-table>
+              <div class="flex flex-wrap gap-4 mb-4">
+                <div class="bg-purple-50 border border-purple-100 rounded-lg px-4 py-3 flex-1 min-w-[220px]">
+                  <p class="text-xs text-purple-700 font-semibold uppercase">Total proveedor</p>
+                  <p class="text-xl font-bold text-purple-900">{{ totalCostos | currency:'ARS':'symbol':'1.0-2' }}</p>
                 </div>
+                <div class="bg-red-50 border border-red-100 rounded-lg px-4 py-3 flex-1 min-w-[220px]">
+                  <p class="text-xs text-red-700 font-semibold uppercase">Pagos realizados</p>
+                  <p class="text-xl font-bold text-red-900">{{ totalPagos | currency:'ARS':'symbol':'1.0-2' }}</p>
+                </div>
+                <div class="bg-amber-50 border border-amber-100 rounded-lg px-4 py-3 flex-1 min-w-[220px]">
+                  <p class="text-xs text-amber-700 font-semibold uppercase">Saldo</p>
+                  <p class="text-xl font-bold text-amber-900">{{ saldoProveedor | currency:'ARS':'symbol':'1.0-2' }}</p>
+                </div>
+              </div>
+              @if (transacciones?.length) {
+                <p-table [value]="transacciones" [paginator]="true" [rows]="8" responsiveLayout="scroll" styleClass="p-datatable-sm">
+                  <ng-template pTemplate="header">
+                    <tr>
+                      <th>Fecha</th>
+                      <th>Tipo</th>
+                      <th>Obra</th>
+                      <th>Forma</th>
+                      <th>Medio</th>
+                      <th class="text-right">Monto</th>
+                    </tr>
+                  </ng-template>
+                  <ng-template pTemplate="body" let-mov>
+                    <tr class="cursor-pointer hover:bg-gray-50 transition-colors" (click)="irADetalleObraMov(mov.id_obra)">
+                      <td>{{ mov.fecha | date:'dd/MM/yyyy' }}</td>
+                      <td>
+                        <p-tag [value]="mov.tipo_transaccion || mov.tipo_movimiento || mov.tipo"
+                               [severity]="(mov.tipo_transaccion || mov.tipo_movimiento || mov.tipo || '').toUpperCase() === 'PAGO' ? 'danger' : 'success'">
+                        </p-tag>
+                      </td>
+                      <td>{{ getNombreObra(mov.id_obra) }}</td>
+                      <td>{{ mov.forma_pago || '-' }}</td>
+                      <td>{{ mov.medio_pago || '-' }}</td>
+                      <td class="text-right font-semibold"
+                          [ngClass]="(mov.tipo_transaccion || '').toUpperCase() === 'PAGO' ? 'text-red-600' : 'text-green-600'">
+                        {{ (mov.tipo_transaccion || '').toUpperCase() === 'PAGO' ? '-' : '+' }}
+                        {{ mov.monto | currency:'ARS':'symbol-narrow':'1.0-0' }}
+                      </td>
+                    </tr>
+                  </ng-template>
+                </p-table>
               } @else {
-                <div class="text-center py-12 text-gray-500">
-                  <i class="pi pi-inbox text-5xl mb-3"></i>
-                  <p class="text-lg">No hay movimientos registrados para este proveedor</p>
+                <div class="text-center py-10 text-gray-500">
+                  <i class="pi pi-inbox text-4xl mb-2"></i>
+                  <p class="text-sm">No hay movimientos registrados para este proveedor.</p>
                 </div>
               }
-
-              <app-modal
-                [visible]="showMovimientoModal"
-                [title]="'Detalle de movimiento'"
-                [showFooter]="false"
-                [width]="'720px'"
-                (closed)="cerrarMovimientoModal()"
-              >
-                @if (movimientoSeleccionado) {
-                  <div class="p-4 space-y-4 text-base">
-                    <div class="flex justify-between gap-4">
-                      <span class="text-gray-500">Fecha</span>
-                      <span class="font-medium text-gray-900">
-                        {{ movimientoSeleccionado.fecha | date:'dd/MM/yyyy HH:mm' }}
-                      </span>
-                    </div>
-                    <div class="flex justify-between gap-4">
-                      <span class="text-gray-500">Tipo</span>
-                      <span class="font-medium text-gray-900">
-                        {{ getTipoTransaccionLabel(movimientoSeleccionado) }}
-                      </span>
-                    </div>
-                    <div class="flex justify-between gap-4">
-                      <span class="text-gray-500">Obra</span>
-                      <span class="font-medium text-gray-900">
-                        {{ getNombreObra(movimientoSeleccionado.id_obra) }}
-                      </span>
-                    </div>
-                    <div class="flex justify-between gap-4">
-                      <span class="text-gray-500">Forma</span>
-                      <span class="font-medium text-gray-900">
-                        {{ movimientoSeleccionado.forma_pago }}
-                      </span>
-                    </div>
-                    <div class="flex justify-between gap-4">
-                      <span class="text-gray-500">Medio</span>
-                      <span class="font-medium text-gray-900">
-                        {{ movimientoSeleccionado.medio_pago || 'Sin especificar' }}
-                      </span>
-                    </div>
-                    <div class="flex justify-between gap-4">
-                      <span class="text-gray-500">Monto</span>
-                      <span class="font-semibold text-gray-900">
-                        {{ movimientoSeleccionado.monto | currency:'ARS':'symbol':'1.0-2' }}
-                      </span>
-                    </div>
-                    <div class="flex justify-between gap-4">
-                      <span class="text-gray-500">Saldo proveedor</span>
-                      <span class="font-medium text-gray-900">
-                        {{ (movimientoSeleccionado.saldoRestante ?? movimientoSeleccionado.saldo_proveedor ?? saldoProveedor) | currency:'ARS':'symbol':'1.0-2' }}
-                      </span>
-                    </div>
-                    @if (movimientoSeleccionado.observacion) {
-                      <div class="pt-2 border-t border-gray-100">
-                        <p class="text-gray-500 mb-1">ObservaciÃ³n</p>
-                        <p class="text-gray-900">{{ movimientoSeleccionado.observacion }}</p>
-                      </div>
-                    }
-                  </div>
-                }
-              </app-modal>
             </p-tabpanel>
 
             <!-- TAB: DOCUMENTOS -->
@@ -314,38 +232,8 @@
             </p-tabpanel>
           </p-tabpanels>
         </p-tabs>
-      </div>
-
-      <div class="bg-white rounded-xl shadow-md p-6 mt-5">
-        <div class="flex items-center justify-between">
-          <div class="flex items-center gap-4">
-            <div class="w-12 h-12 rounded-lg flex items-center justify-center"
-                 [ngClass]="proveedor.activo ? 'bg-green-100' : 'bg-red-100'">
-              <i class="text-xl"
-                 [ngClass]="proveedor.activo ? 'pi pi-check-circle text-green-600' : 'pi pi-times-circle text-red-600'">
-              </i>
-            </div>
-            <div>
-              <p class="text-sm font-medium text-gray-500 mb-1">Estado del Proveedor</p>
-              <p class="text-sm text-gray-600">
-                {{ proveedor.activo ? 'Proveedor activo en el sistema' : 'Proveedor desactivado' }}
-              </p>
-            </div>
-          </div>
-          <p-button
-            [icon]="proveedor.activo ? 'pi pi-ban' : 'pi pi-check'"
-            [label]="proveedor.activo ? 'Desactivar' : 'Activar'"
-            [severity]="proveedor.activo ? 'danger' : 'success'"
-            [outlined]="true"
-            (onClick)="toggleActivo()"
-            [pTooltip]="proveedor.activo ? 'Desactivar proveedor' : 'Activar proveedor'"
-            tooltipPosition="left">
-          </p-button>
-        </div>
-      </div>
-    </div>
-  } @placeholder {
-    <!-- ðŸ¦´ Skeleton Mejorado -->
+      </div>    </div>  } @placeholder {
+    <!-- 🦴 Skeleton Mejorado -->
     <div class="p-8 space-y-8 max-w-full mx-auto">
       <!-- Tarjetas skeleton -->
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -378,5 +266,8 @@
     </div>
   }
 }
+
+
+
 
 
