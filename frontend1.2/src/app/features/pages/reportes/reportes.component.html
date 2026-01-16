@@ -122,8 +122,23 @@
 
   <!-- ===================== LOADING ===================== -->
   @if (loading) {
-    <div class="flex justify-center items-center py-12">
-      <p-progressSpinner strokeWidth="4" styleClass="w-16 h-16"></p-progressSpinner>
+    <div class="space-y-6 animate-pulse">
+      <div class="bg-white rounded-xl shadow-md p-5">
+        <div class="h-5 w-1/4 bg-gray-200 rounded mb-4"></div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          @for (item of [1,2]; track item) {
+            <div class="h-16 bg-gray-100 rounded-lg"></div>
+          }
+        </div>
+      </div>
+      <div class="bg-white rounded-xl shadow-md p-5">
+        <div class="h-5 w-1/3 bg-gray-200 rounded mb-4"></div>
+        <div class="space-y-3">
+          @for (row of [1,2,3]; track row) {
+            <div class="h-12 bg-gray-100 rounded-lg"></div>
+          }
+        </div>
+      </div>
     </div>
   } @else {
     @if (deudaClientesTotal > 0 || deudaProveedoresTotal > 0) {
@@ -262,8 +277,6 @@
                 <th>Tipo</th>
                 <th>Asociado</th>
                 <th class="text-right">Monto</th>
-                <th class="text-right">Cobros acum.</th>
-                <th class="text-right">Costos acum.</th>
               </tr>
             </ng-template>
             <ng-template pTemplate="body" let-item>
@@ -272,12 +285,10 @@
                 <td>{{ item.obraNombre || cuentaCorrienteObra?.obraNombre || '-' }}</td>
                 <td>{{ item.concepto || item.referencia || '-' }}</td>
                 <td>
-                  <p-tag [value]="item.tipo" [severity]="item.tipo === 'COBRO' ? 'success' : item.tipo === 'COSTO' ? 'danger' : 'info'"></p-tag>
+                  <p-tag [value]="item.tipo" [severity]="item.tipo === 'COBRO' ? 'success' : item.tipo === 'PAGO' ? 'danger' : 'info'"></p-tag>
                 </td>
                 <td>{{ item.asociadoNombre || nombreAsociado(item.asociadoTipo, item.asociadoId) }}</td>
                 <td class="text-right">{{ item.monto | currency:'ARS':'symbol-narrow':'1.0-0' }}</td>
-                <td class="text-right">{{ item.cobrosAcumulados ?? item.ingresosAcumulados ?? 0 | currency:'ARS':'symbol-narrow':'1.0-0' }}</td>
-                <td class="text-right">{{ item.costosAcumulados ?? item.egresosAcumulados ?? 0 | currency:'ARS':'symbol-narrow':'1.0-0' }}</td>
               </tr>
             </ng-template>
           </p-table>

@@ -4,15 +4,17 @@ import {providePrimeNG} from 'primeng/config';
 import Aura from '@primeng/themes/aura';
 import {routes} from './app.routes';
 import {provideAnimationsAsync} from '@angular/platform-browser/animations/async';
-import {provideHttpClient} from '@angular/common/http';
+import {HTTP_INTERCEPTORS, provideHttpClient, withInterceptorsFromDi} from '@angular/common/http';
 import {registerLocaleData} from '@angular/common';
 import localeEsAr from '@angular/common/locales/es-AR'
+import {MessageService} from 'primeng/api';
+import {LoadingServerInterceptor} from './core/loading-server.interceptor';
 
 registerLocaleData(localeEsAr);
 
 export const appConfig: ApplicationConfig = {
   providers: [
-    provideHttpClient(),
+    provideHttpClient(withInterceptorsFromDi()),
     provideZoneChangeDetection({eventCoalescing: true}),
     provideRouter(routes),
     provideAnimationsAsync(),
@@ -25,7 +27,13 @@ export const appConfig: ApplicationConfig = {
           cssLayer: false
         }
       }
-    })
+    }),
+    MessageService,
+    {
+      provide: HTTP_INTERCEPTORS,
+      useClass: LoadingServerInterceptor,
+      multi: true
+    }
 
   ]
 };
