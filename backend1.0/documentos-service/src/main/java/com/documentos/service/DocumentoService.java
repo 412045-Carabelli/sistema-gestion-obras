@@ -166,9 +166,19 @@ public class DocumentoService {
                 throw new RuntimeException("Archivo no encontrado: " + documento.getPathArchivo());
             }
 
+            MediaType contentType = MediaType.APPLICATION_OCTET_STREAM;
+            try {
+                String detected = Files.probeContentType(filePath);
+                if (detected != null && !detected.isBlank()) {
+                    contentType = MediaType.parseMediaType(detected);
+                }
+            } catch (IOException ignored) {
+                // fallback a octet-stream
+            }
+
             return ResponseEntity.ok()
-                    .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + documento.getNombreArchivo() + "\"")
-                    .contentType(MediaType.APPLICATION_OCTET_STREAM)
+                    .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"" + documento.getNombreArchivo() + "\"")
+                    .contentType(contentType)
                     .body((Resource) resource);
         }).subscribeOn(Schedulers.boundedElastic());
     }

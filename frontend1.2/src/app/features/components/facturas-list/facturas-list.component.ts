@@ -200,25 +200,6 @@ export class FacturasListComponent implements OnInit {
     this.router.navigate(['/facturas', factura.id]);
   }
 
-  descargarAdjunto(event: Event, factura: FacturaView) {
-    event.stopPropagation();
-    if (!factura.id || !factura.nombre_archivo) {
-      return;
-    }
-    const nombre = factura.nombre_archivo;
-    this.facturasService.downloadFactura(factura.id).subscribe(blob => {
-      const url = window.URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.style.display = 'none';
-      link.href = url;
-      link.download = nombre;
-      link.rel = 'noopener';
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      setTimeout(() => window.URL.revokeObjectURL(url), 10000);
-    });
-  }
 
   get totalPresupuesto(): number {
     return this.obrasScope.reduce((sum, o) => sum + this.calcularPresupuestoObra(o), 0);
@@ -351,8 +332,5 @@ export class FacturasListComponent implements OnInit {
     return html.replace(/<[^>]*>/g, '').trim();
   }
 
-  private isPdfFile(nombre?: string): boolean {
-    if (!nombre) return false;
-    return /\.pdf$/i.test(nombre);
-  }
+ 
 }

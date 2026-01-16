@@ -1,5 +1,5 @@
 import {Injectable} from '@angular/core';
-import {HttpClient} from '@angular/common/http';
+import {HttpClient, HttpResponse} from '@angular/common/http';
 import {Observable} from 'rxjs';
 import {environment} from '../../../environments/environment';
 import {Factura} from '../../core/models/models';
@@ -55,6 +55,17 @@ export class FacturasService {
 
   downloadFactura(id: number): Observable<Blob> {
     return this.http.get(`${this.apiUrl}/${id}/download`, {responseType: 'blob'});
+  }
+
+  downloadFacturaResponse(id: number): Observable<HttpResponse<Blob>> {
+    return this.http.get(`${this.apiUrl}/${id}/download`, {
+      responseType: 'blob',
+      observe: 'response'
+    });
+  }
+
+  getFacturaUrl(id: number): string {
+    return `${this.apiUrl}/${id}/download`;
   }
 
   private buildFormData(payload: FacturaPayload, file?: File): FormData {

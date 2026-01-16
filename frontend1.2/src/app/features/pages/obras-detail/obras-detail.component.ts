@@ -477,25 +477,29 @@ export class ObrasDetailComponent implements OnInit, OnDestroy, AfterViewInit {
 
   descargarAdjuntoFactura(factura: Factura) {
     if (!factura?.id || !factura?.nombre_archivo) return;
-    const nombre = factura.nombre_archivo;
+    const popup = this.abrirPopup();
+    if (!popup) {
+      this.messageService.add({
+        severity: 'warn',
+        summary: 'Bloqueo de ventana',
+        detail: 'Habilita los pop-ups para abrir el adjunto.'
+      });
+      return;
+    }
     this.facturasService.downloadFactura(factura.id).subscribe({
       next: (blob) => {
-        const url = window.URL.createObjectURL(blob);
-        const link = document.createElement('a');
-        link.style.display = 'none';
-        link.href = url;
-        link.download = nombre;
-        link.rel = 'noopener';
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
+        const baseBlob = blob instanceof Blob ? blob : new Blob([blob]);
+        const tipo = this.detectarMime(factura.nombre_archivo, baseBlob.type);
+        const fileBlob = tipo ? new Blob([baseBlob], { type: tipo }) : baseBlob;
+        const url = window.URL.createObjectURL(fileBlob);
+        popup.location.href = url;
         setTimeout(() => window.URL.revokeObjectURL(url), 10000);
       },
       error: () => {
         this.messageService.add({
           severity: 'error',
           summary: 'Error',
-          detail: 'No se pudo descargar el adjunto.'
+          detail: 'No se pudo abrir el adjunto.'
         });
       }
     });
@@ -1155,15 +1159,28 @@ export class ObrasDetailComponent implements OnInit, OnDestroy, AfterViewInit {
     this.facturaFile = null;
   }
 
-  private esPdfFactura(factura?: Factura | null): boolean {
-    const nombre = factura?.nombre_archivo;
-    if (!nombre) return false;
-    return /\.pdf$/i.test(nombre);
-  }
-
   stripFacturaDescripcion(raw?: string | null): string {
     if (!raw) return '';
     return raw.replace(/<[^>]*>/g, '').trim();
+  }
+
+  private abrirPopup(): Window | null {
+    const popup = window.open('', '_blank');
+    if (popup) {
+      popup.opener = null;
+      popup.document.write('<p>Cargando adjunto...</p>');
+    }
+    return popup;
+  }
+
+  private detectarMime(nombre?: string, baseType?: string | null): string | null {
+    if (baseType) return baseType;
+    if (!nombre) return null;
+    const lower = nombre.toLowerCase();
+    if (lower.endsWith('.pdf')) return 'application/pdf';
+    if (lower.endsWith('.jpg') || lower.endsWith('.jpeg')) return 'image/jpeg';
+    if (lower.endsWith('.png')) return 'image/png';
+    return null;
   }
 
   private formatDate(value: any): string {
