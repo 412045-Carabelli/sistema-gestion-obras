@@ -8,6 +8,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.client.MultipartBodyBuilder;
 import org.springframework.http.codec.multipart.FilePart;
+import org.springframework.http.server.reactive.ServerHttpResponse;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.reactive.function.BodyInserters;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -128,13 +129,19 @@ public class FacturaBffController {
     }
 
     @GetMapping(value = "/{id}/download", produces = MediaType.APPLICATION_OCTET_STREAM_VALUE)
-    public Mono<ResponseEntity<byte[]>> download(@PathVariable("id") Long id) {
+    public Mono<Void> download(@PathVariable("id") Long id, ServerHttpResponse response) {
         return webClientBuilder.build()
                 .get()
                 .uri(FACTURAS_URL + "/{id}/download", id)
-                .retrieve()
-                .toEntity(byte[].class)
-                .onErrorResume(ex -> Mono.just(ResponseEntity.notFound().build()));
+                .exchangeToMono(clientResponse -> {
+                    response.setStatusCode(clientResponse.statusCode());
+                    response.getHeaders().putAll(clientResponse.headers().asHttpHeaders());
+                    return response.writeWith(clientResponse.bodyToFlux(org.springframework.core.io.buffer.DataBuffer.class));
+                })
+                .onErrorResume(ex -> {
+                    response.setStatusCode(org.springframework.http.HttpStatus.NOT_FOUND);
+                    return response.setComplete();
+                });
     }
 
     private MultipartBodyBuilder buildMultipart(

@@ -66,18 +66,26 @@ export class ClientesDocumentosComponent implements OnInit {
   }
 
   descargarDocumento(doc: Documento) {
+    const popup = this.abrirPopup();
+    if (!popup) {
+      this.messageService.add({
+        severity: 'warn',
+        summary: 'Bloqueo de ventana',
+        detail: 'Habilita los pop-ups para abrir el documento.'
+      });
+      return;
+    }
     this.documentosService.downloadDocumento(doc.id_documento).subscribe({
       next: fileBlob => {
-        const blob = new Blob([fileBlob]);
+        const baseBlob = fileBlob instanceof Blob ? fileBlob : new Blob([fileBlob]);
+        const tipo = this.detectarMime(doc.nombre_archivo, baseBlob.type);
+        const blob = tipo ? new Blob([baseBlob], { type: tipo }) : baseBlob;
         const url = window.URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = doc.nombre_archivo || 'documento';
-        a.click();
-        window.URL.revokeObjectURL(url);
+        popup.location.href = url;
+        setTimeout(() => window.URL.revokeObjectURL(url), 10000);
         this.messageService.add({
           severity: 'success',
-          summary: 'Descarga iniciada',
+          summary: 'Apertura iniciada',
           detail: doc.nombre_archivo
         });
       },
@@ -85,9 +93,28 @@ export class ClientesDocumentosComponent implements OnInit {
         this.messageService.add({
           severity: 'error',
           summary: 'Error',
-          detail: 'No se pudo descargar el documento.'
+          detail: 'No se pudo abrir el documento.'
         });
       }
     });
+  }
+
+  private abrirPopup(): Window | null {
+    const popup = window.open('', '_blank');
+    if (popup) {
+      popup.opener = null;
+      popup.document.write('<p>Cargando documento...</p>');
+    }
+    return popup;
+  }
+
+  private detectarMime(nombre?: string, baseType?: string): string | null {
+    if (baseType) return baseType;
+    if (!nombre) return null;
+    const lower = nombre.toLowerCase();
+    if (lower.endsWith('.pdf')) return 'application/pdf';
+    if (lower.endsWith('.jpg') || lower.endsWith('.jpeg')) return 'image/jpeg';
+    if (lower.endsWith('.png')) return 'image/png';
+    return null;
   }
 }

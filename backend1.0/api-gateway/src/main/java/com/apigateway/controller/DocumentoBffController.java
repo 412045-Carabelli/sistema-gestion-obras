@@ -3,12 +3,12 @@ package com.apigateway.controller;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.ParameterizedTypeReference;
-import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.client.MultipartBodyBuilder;
 import org.springframework.http.codec.multipart.FilePart;
+import org.springframework.http.server.reactive.ServerHttpResponse;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.reactive.function.BodyInserters;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -110,15 +110,18 @@ public class DocumentoBffController {
     }
 
     @GetMapping("/{id}/download")
-    public Mono<ResponseEntity<byte[]>> downloadDocumento(@PathVariable("id") Long id) {
+    public Mono<Void> downloadDocumento(@PathVariable("id") Long id, ServerHttpResponse response) {
         return webClientBuilder.build()
                 .get()
                 .uri(DOCUMENTOS_URL + "/{id}/download", id)
-                .retrieve()
-                .toEntity(byte[].class)
+                .exchangeToMono(clientResponse -> {
+                    response.setStatusCode(clientResponse.statusCode());
+                    response.getHeaders().putAll(clientResponse.headers().asHttpHeaders());
+                    return response.writeWith(clientResponse.bodyToFlux(org.springframework.core.io.buffer.DataBuffer.class));
+                })
                 .onErrorResume(ex -> {
-                    ex.printStackTrace();
-                    return Mono.just(ResponseEntity.notFound().build());
+                    response.setStatusCode(org.springframework.http.HttpStatus.NOT_FOUND);
+                    return response.setComplete();
                 });
     }
 

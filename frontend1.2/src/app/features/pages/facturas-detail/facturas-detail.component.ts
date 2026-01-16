@@ -119,24 +119,57 @@ export class FacturasDetailComponent implements OnInit, OnDestroy {
 
   descargarAdjunto() {
     if (!this.factura?.id || !this.factura?.nombre_archivo) return;
-    const nombre = this.factura.nombre_archivo;
-    this.facturasService.downloadFactura(this.factura.id).subscribe(blob => {
-      const url = window.URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.style.display = 'none';
-      link.href = url;
-      link.download = nombre;
-      link.rel = 'noopener';
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      setTimeout(() => URL.revokeObjectURL(url), 10000);
-    }, () => {
+    const popup = this.abrirPopup();
+    if (!popup) {
       this.messageService.add({
-        severity: 'error',
-        summary: 'Error',
-        detail: 'No se pudo descargar el adjunto.'
+        severity: 'warn',
+        summary: 'Bloqueo de ventana',
+        detail: 'Habilita los pop-ups para abrir el adjunto.'
       });
+      return;
+    }
+    this.facturasService.downloadFactura(this.factura.id).subscribe({
+      next: (blob) => {
+        const baseBlob = blob instanceof Blob ? blob : new Blob([blob]);
+        const tipo = this.detectarMime(this.factura?.nombre_archivo, baseBlob.type);
+        const fileBlob = tipo ? new Blob([baseBlob], { type: tipo }) : baseBlob;
+        const url = window.URL.createObjectURL(fileBlob);
+        popup.location.href = url;
+        setTimeout(() => window.URL.revokeObjectURL(url), 10000);
+      },
+      error: () => {
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: 'No se pudo abrir el adjunto.'
+        });
+      }
+    });
+  }
+
+  descargarAdjuntoArchivo() {
+    if (!this.factura?.id || !this.factura?.nombre_archivo) return;
+    const nombre = this.factura.nombre_archivo;
+    this.facturasService.downloadFactura(this.factura.id).subscribe({
+      next: blob => {
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.style.display = 'none';
+        link.href = url;
+        link.download = nombre;
+        link.rel = 'noopener';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        setTimeout(() => window.URL.revokeObjectURL(url), 10000);
+      },
+      error: () => {
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: 'No se pudo descargar el adjunto.'
+        });
+      }
     });
   }
 
@@ -221,6 +254,25 @@ export class FacturasDetailComponent implements OnInit, OnDestroy {
   protected isPdfFile(nombre?: string): boolean {
     if (!nombre) return false;
     return /\.pdf$/i.test(nombre);
+  }
+
+  private abrirPopup(): Window | null {
+    const popup = window.open('', '_blank');
+    if (popup) {
+      popup.opener = null;
+      popup.document.write('<p>Cargando adjunto...</p>');
+    }
+    return popup;
+  }
+
+  private detectarMime(nombre?: string, baseType?: string | null): string | null {
+    if (baseType) return baseType;
+    if (!nombre) return null;
+    const lower = nombre.toLowerCase();
+    if (lower.endsWith('.pdf')) return 'application/pdf';
+    if (lower.endsWith('.jpg') || lower.endsWith('.jpeg')) return 'image/jpeg';
+    if (lower.endsWith('.png')) return 'image/png';
+    return null;
   }
 
   private esCobro(mov: Transaccion): boolean {

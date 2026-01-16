@@ -64,4 +64,8 @@ export class DocumentosService {
     });
   }
 
+  getDocumentoUrl(id: number): string {
+    return `${this.apiUrl}/${id}/download`;
+  }
+
 }
