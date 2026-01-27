@@ -36,6 +36,9 @@ public class ObraDTO {
     private List<ObraCostoDTO> costos;
     private String notas;
     private String memoria_descriptiva;
+    private String condiciones_presupuesto;
+    private String observaciones_presupuesto;
+    private Boolean requiere_factura;
     private Boolean activo;
     private Instant creado_en;
     private Instant ultima_actualizacion;

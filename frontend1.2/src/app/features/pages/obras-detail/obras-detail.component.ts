@@ -678,7 +678,10 @@ export class ObrasDetailComponent implements OnInit, OnDestroy, AfterViewInit {
       beneficio: this.obra.beneficio,
       comision: this.obra.comision,
       notas: this.obra.notas,
-      memoria_descriptiva: this.obra.memoria_descriptiva
+      memoria_descriptiva: this.obra.memoria_descriptiva,
+      condiciones_presupuesto: this.obra.condiciones_presupuesto,
+      observaciones_presupuesto: this.obra.observaciones_presupuesto,
+      requiere_factura: this.obra.requiere_factura
     };
 
     if (tipoFecha === 'ADJUDICADA') {

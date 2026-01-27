@@ -59,6 +59,7 @@ export class ProveedoresDetailComponent implements OnInit, OnDestroy {
 
   ngOnDestroy() {
     this.subs.unsubscribe();
+    this.proveedoresStateService.clearProveedor();
   }
 
   refrescar() {
@@ -124,6 +125,7 @@ export class ProveedoresDetailComponent implements OnInit, OnDestroy {
       .subscribe({
         next: ({proveedor, tareas, transacciones, obras}) => {
           this.proveedor = proveedor;
+          this.proveedoresStateService.setProveedor(proveedor);
           this.tareas = tareas;
           this.transacciones = transacciones;
           this.obrasMap = (obras || []).reduce((acc, obra) => {
@@ -131,10 +133,16 @@ export class ProveedoresDetailComponent implements OnInit, OnDestroy {
             return acc;
           }, {} as Record<number, Obra>);
 
-          const costos = (obras || []).flatMap(obra => obra.costos || []);
-          this.costosProveedor = costos.filter(c =>
-            this.getIdProveedorCosto(c) === Number(this.proveedor.id)
-          );
+          const costosProveedor: ObraCosto[] = [];
+          (obras || []).forEach(obra => {
+            if (!this.obraGeneraDeuda(obra)) return;
+            (obra.costos || []).forEach(costo => {
+              if (this.getIdProveedorCosto(costo) === Number(this.proveedor.id)) {
+                costosProveedor.push(costo);
+              }
+            });
+          });
+          this.costosProveedor = costosProveedor;
           this.calcularSaldoProveedor();
           this.loading = false;
         },
@@ -153,9 +161,50 @@ export class ProveedoresDetailComponent implements OnInit, OnDestroy {
     this.totalCostos = this.costosProveedor.reduce((sum, c) => sum + this.getCostoBase(c), 0);
     this.totalPagos = this.transacciones
       .filter(t => this.esPago(t))
+      .filter(t => this.movimientoPerteneceObraConDeuda(t))
       .reduce((sum, t) => sum + Number(t.monto || 0), 0);
     this.saldoProveedor = this.totalCostos - this.totalPagos;
 
+  }
+
+  private movimientoPerteneceObraConDeuda(transaccion: Transaccion): boolean {
+    const obraId = Number((transaccion as any)?.id_obra ?? (transaccion as any)?.obraId ?? 0);
+    if (!obraId) return true;
+    const obra = this.obrasMap[obraId];
+    if (!obra) return true;
+    return this.obraGeneraDeuda(obra);
+  }
+
+  private obraGeneraDeuda(obra: Obra | null | undefined): boolean {
+    if (!obra) return false;
+    const estado = this.normalizarEstadoObra(obra?.obra_estado);
+    return new Set([
+      'ADJUDICADA',
+      'ADJUDICADO',
+      'INICIADA',
+      'INICIADO',
+      'EN_PROGRESO',
+      'FINALIZADA',
+      'FINALIZADO',
+      'FACTURADA',
+      'FACTURADO'
+    ]).has(estado);
+  }
+
+  private normalizarEstadoObra(raw: any): string {
+    if (!raw) return '';
+    if (typeof raw === 'string') return this.sanitizarEstado(raw);
+    const nombre = raw?.nombre ?? raw?.name ?? raw?.label ?? raw?.estado ?? '';
+    return this.sanitizarEstado(String(nombre || ''));
+  }
+
+  private sanitizarEstado(valor: string): string {
+    return valor
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .toUpperCase()
+      .replace(/[^A-Z0-9]+/g, '_')
+      .replace(/^_+|_+$/g, '');
   }
 
   private getIdProveedorCosto(c: ObraCosto): number {

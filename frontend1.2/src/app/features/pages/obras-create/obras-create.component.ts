@@ -91,6 +91,7 @@ export class ObrasCreateComponent implements OnInit {
       // Campos de adjudicación/perdida removidos del alta
       notas: [''],
       memoria_descriptiva: [''],
+      requiere_factura: [false],
       tiene_comision: [false],
       comision: new FormControl({value: null, disabled: true}),
       presupuesto: new FormControl({value: null, disabled: true}),
@@ -269,6 +270,7 @@ export class ObrasCreateComponent implements OnInit {
       // No enviar fechas adjudicada/perdida en creación
       notas: raw.notas?.trim() || undefined,
       memoria_descriptiva: raw.memoria_descriptiva?.trim() || undefined,
+      requiere_factura: !!raw.requiere_factura,
       presupuesto: raw.presupuesto ?? 0,
       beneficio_global: raw.beneficio_global,
       beneficio: raw.beneficio ?? 0,

@@ -628,13 +628,34 @@ export class ReportesComponent implements OnInit, OnDestroy {
 
   private obraGeneraDeuda(obra: Obra | null | undefined): boolean {
     if (!obra) return false;
-    const estado = (obra.obra_estado || '').toString().toUpperCase();
-    return (
-      estado.includes('ADJUDIC') ||
-      estado.includes('EN_PROGRESO') ||
-      estado.includes('FINALIZ') ||
-      estado.includes('FACTURAD')
-    );
+    const estado = this.normalizarEstadoObra(obra?.obra_estado);
+    return new Set([
+      'ADJUDICADA',
+      'ADJUDICADO',
+      'INICIADA',
+      'INICIADO',
+      'EN_PROGRESO',
+      'FINALIZADA',
+      'FINALIZADO',
+      'FACTURADA',
+      'FACTURADO'
+    ]).has(estado);
+  }
+
+  private normalizarEstadoObra(raw: any): string {
+    if (!raw) return '';
+    if (typeof raw === 'string') return this.sanitizarEstado(raw);
+    const nombre = raw?.nombre ?? raw?.name ?? raw?.label ?? raw?.estado ?? '';
+    return this.sanitizarEstado(String(nombre || ''));
+  }
+
+  private sanitizarEstado(valor: string): string {
+    return valor
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .toUpperCase()
+      .replace(/[^A-Z0-9]+/g, '_')
+      .replace(/^_+|_+$/g, '');
   }
 
   private showToast(severity: 'success' | 'info' | 'warn' | 'error', summary: string, detail: string): void {
@@ -711,6 +732,7 @@ export class ReportesComponent implements OnInit, OnDestroy {
           proveedorNombre: m?.proveedorNombre ?? proveedorNombre
         };
       })
+      .filter(m => this.movimientoPerteneceObraConDeuda(m))
       .filter(m => ['PAGO', 'COSTO'].includes((m?.tipo || '').toString().toUpperCase()))
       .map(m => {
       const tipo = (m.tipo || '').toString().toUpperCase();
@@ -734,6 +756,13 @@ export class ReportesComponent implements OnInit, OnDestroy {
         saldoProveedor: m.saldoProveedor ?? 0
       };
     });
+  }
+
+  private movimientoPerteneceObraConDeuda(mov: any): boolean {
+    const obraId = Number(mov?.obraId ?? mov?.id_obra ?? 0);
+    if (!obraId) return true;
+    const obra = this.obras.find(o => Number(o.id) === obraId);
+    return this.obraGeneraDeuda(obra);
   }
 
   private mapMovimientosCliente(movs: any[]): any[] {

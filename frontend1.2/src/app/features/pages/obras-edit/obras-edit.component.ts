@@ -67,6 +67,8 @@ export class ObrasEditComponent implements OnInit {
   form!: FormGroup;
   loading = true;
   private obraId: number | null = null;
+  private initialSnapshot = '';
+  tieneCambios = false;
 
   constructor(
     private fb: FormBuilder,
@@ -138,6 +140,9 @@ export class ObrasEditComponent implements OnInit {
       beneficio: raw.beneficio,
       notas: raw.notas,
       memoria_descriptiva: raw.memoria_descriptiva,
+      requiere_factura: !!raw.requiere_factura,
+      condiciones_presupuesto: this.obra.condiciones_presupuesto,
+      observaciones_presupuesto: this.obra.observaciones_presupuesto,
       beneficio_global: raw.beneficio_global,
       tareas: [],
       costos: raw.costos.map((c: any) => {
@@ -161,13 +166,15 @@ export class ObrasEditComponent implements OnInit {
     this.obrasService.updateObra(this.obra.id!, payload).subscribe({
       next: () => {
         this.loading = false;
+        this.initialSnapshot = this.snapshotForm();
+        this.tieneCambios = false;
         this.messageService.add({
           severity: 'success',
           summary: 'Obra actualizada',
           detail: 'Los cambios se guardaron correctamente.',
           life: 3000,
         });
-        setTimeout(() => this.router.navigate(['/obras']), 1200);
+        setTimeout(() => this.router.navigate(['/obras', this.obra.id!]), 1200);
       },
       error: () => {
         this.loading = false;
@@ -248,12 +255,96 @@ export class ObrasEditComponent implements OnInit {
       presupuesto: [{value: this.obra.presupuesto, disabled: true}, Validators.required],
       notas: [this.obra.notas ?? ""],
       memoria_descriptiva: [this.obra.memoria_descriptiva ?? ""],
+      requiere_factura: [this.obra.requiere_factura ?? false],
       tiene_comision: [this.obra.tiene_comision ?? false],
       comision: [this.obra.comision ?? 0, [Validators.min(0), Validators.max(100)]],
       costos: this.fb.array<FormGroup>([])
     });
 
     this.cargarCostosEnFormArray(this.obra.costos ?? []);
+    this.form.get('costos')?.disable({emitEvent: false});
+    this.syncControlesFinancieros();
+    this.registrarSnapshotInicial();
+  }
+
+  private registrarSnapshotInicial() {
+    this.initialSnapshot = this.snapshotForm();
+    this.tieneCambios = false;
+    this.form.markAsPristine();
+    this.form.valueChanges.subscribe(() => this.evaluarCambios());
+  }
+
+  private evaluarCambios() {
+    const snapshot = this.snapshotForm();
+    this.tieneCambios = snapshot !== this.initialSnapshot;
+    console.log('[ObrasEdit] tieneCambios:', this.tieneCambios, 'form.invalid:', this.form.invalid, {
+      invalidControls: Object.keys(this.form.controls).filter(k => this.form.controls[k].invalid)
+    });
+  }
+
+  private snapshotForm(): string {
+    const raw = this.form.getRawValue();
+    // normalizar costos para evitar cambios por orden de propiedades
+    const costos = (raw.costos || []).map((c: any) => ({
+      id: c.id ?? null,
+      id_obra: c.id_obra ?? null,
+      item_numero: c.item_numero ?? '',
+      descripcion: c.descripcion ?? '',
+      unidad: c.unidad ?? '',
+      cantidad: c.cantidad ?? 0,
+      precio_unitario: c.precio_unitario ?? 0,
+      beneficio: c.beneficio ?? 0,
+      id_proveedor: c.id_proveedor ?? (c.proveedor?.id ?? null),
+      estado_pago: c.estado_pago ?? null,
+      activo: c.activo ?? true
+    }));
+    const snapshot = {
+      ...raw,
+      cliente: this.resolveClienteId(raw.cliente, this.obra.id_cliente),
+      obra_estado: this.resolveEstadoValue(raw.obra_estado),
+      costos
+    };
+    return JSON.stringify(snapshot);
+  }
+
+  private syncControlesFinancieros() {
+    const beneficioGlobalCtrl = this.form.get('beneficio_global');
+    const beneficioCtrl = this.form.get('beneficio');
+    const comisionCtrl = this.form.get('comision');
+    const comisionGlobalCtrl = this.form.get('tiene_comision');
+
+    if (!beneficioGlobalCtrl?.value) {
+      beneficioCtrl?.disable({emitEvent: false});
+    } else {
+      beneficioCtrl?.enable({emitEvent: false});
+    }
+    if (!comisionGlobalCtrl?.value) {
+      comisionCtrl?.disable({emitEvent: false});
+    } else {
+      comisionCtrl?.enable({emitEvent: false});
+    }
+    if (beneficioCtrl?.value == null) {
+      beneficioCtrl?.setValue(0, {emitEvent: false});
+    }
+    if (comisionCtrl?.value == null) {
+      comisionCtrl?.setValue(0, {emitEvent: false});
+    }
+
+    beneficioGlobalCtrl?.valueChanges.subscribe((isGlobal: boolean) => {
+      if (isGlobal) {
+        beneficioCtrl?.enable({emitEvent: false});
+      } else {
+        beneficioCtrl?.disable({emitEvent: false});
+      }
+    });
+
+    comisionGlobalCtrl?.valueChanges.subscribe((isGlobal: boolean) => {
+      if (isGlobal) {
+        comisionCtrl?.enable({emitEvent: false});
+      } else {
+        comisionCtrl?.disable({emitEvent: false});
+      }
+    });
   }
 
   private inicializarFormulariosRapidos() {
@@ -382,6 +473,9 @@ export class ObrasEditComponent implements OnInit {
     const costosArray = this.form.get('costos') as FormArray<FormGroup>;
     costosArray.clear();
     costos.forEach((costo) => {
+      const proveedorRef =
+        costo.proveedor ??
+        this.proveedores.find(p => Number(p.id) === Number(costo.id_proveedor));
       costosArray.push(
         this.fb.group({
           id: [costo.id],
@@ -392,8 +486,8 @@ export class ObrasEditComponent implements OnInit {
           cantidad: [costo.cantidad, [Validators.required, Validators.min(0)]],
           precio_unitario: [costo.precio_unitario, [Validators.required, Validators.min(0)]],
           beneficio: [costo.beneficio ?? 0],
-          proveedor: [costo.proveedor ?? null, Validators.required],
-          id_proveedor: [costo.id_proveedor ?? costo.proveedor?.id ?? null, Validators.required],
+          proveedor: [proveedorRef ?? null, Validators.required],
+          id_proveedor: [costo.id_proveedor ?? proveedorRef?.id ?? null, Validators.required],
           estado_pago: [costo.estado_pago ?? null],
           activo: [costo.activo ?? true],
           total: [{value: costo.total ?? (costo.cantidad * costo.precio_unitario) ?? 0, disabled: true}],

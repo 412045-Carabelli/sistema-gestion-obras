@@ -91,6 +91,9 @@ public class ObraServiceImpl implements ObraService {
         existing.setIdCliente(dto.getId_cliente());
         existing.setMemoriaDescriptiva(dto.getMemoria_descriptiva());
         existing.setNotas(dto.getNotas());
+        existing.setCondicionesPresupuesto(dto.getCondiciones_presupuesto());
+        existing.setObservacionesPresupuesto(dto.getObservaciones_presupuesto());
+        existing.setRequiereFactura(dto.getRequiere_factura());
 
         if (dto.getObra_estado() != null) {
             existing.setEstadoObra(parseEstado(dto.getObra_estado()));
@@ -156,6 +159,9 @@ public class ObraServiceImpl implements ObraService {
         entity.setComision(dto.getComision());
         entity.setNotas(dto.getNotas());
         entity.setMemoriaDescriptiva(dto.getMemoria_descriptiva());
+        entity.setCondicionesPresupuesto(dto.getCondiciones_presupuesto());
+        entity.setObservacionesPresupuesto(dto.getObservaciones_presupuesto());
+        entity.setRequiereFactura(dto.getRequiere_factura());
         entity.setActivo(dto.getActivo());
 
         if (dto.getCostos() != null) {
@@ -190,6 +196,9 @@ public class ObraServiceImpl implements ObraService {
         dto.setComision(entity.getComision());
         dto.setNotas(entity.getNotas());
         dto.setMemoria_descriptiva(entity.getMemoriaDescriptiva());
+        dto.setCondiciones_presupuesto(entity.getCondicionesPresupuesto());
+        dto.setObservaciones_presupuesto(entity.getObservacionesPresupuesto());
+        dto.setRequiere_factura(entity.getRequiereFactura());
         dto.setActivo(entity.getActivo());
         dto.setCreado_en(entity.getCreadoEn());
         dto.setUltima_actualizacion(entity.getUltimaActualizacion());
