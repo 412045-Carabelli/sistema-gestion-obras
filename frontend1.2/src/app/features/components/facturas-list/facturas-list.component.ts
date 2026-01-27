@@ -62,6 +62,9 @@ export class FacturasListComponent implements OnInit {
   clientes: Cliente[] = [];
   obras: Obra[] = [];
   cobrosPorObra: Record<number, number> = {};
+  facturadoPorObra: Record<number, number> = {};
+  presupuestoPorObra: Record<number, number> = {};
+  private obrasById = new Map<number, Obra>();
 
   searchValue: string = '';
   clienteFiltro: number | 'todos' = 'todos';
@@ -97,22 +100,26 @@ export class FacturasListComponent implements OnInit {
           this.obras.filter(o => o.id !== undefined).map(o => [Number(o.id), o.nombre])
         );
 
-        const facturadoPorObra = (facturas || []).reduce((acc, f) => {
+        this.facturadoPorObra = (facturas || []).reduce((acc, f) => {
           const key = Number(f.id_obra || 0);
           acc[key] = (acc[key] ?? 0) + Number(f.monto || 0);
           return acc;
         }, {} as Record<number, number>);
 
-        const presupuestoPorObra = this.obras.reduce((acc, o) => {
+        this.presupuestoPorObra = this.obras.reduce((acc, o) => {
           const key = Number(o.id || 0);
           acc[key] = this.calcularPresupuestoObra(o);
           return acc;
         }, {} as Record<number, number>);
 
+        this.obrasById = new Map<number, Obra>(
+          this.obras.filter(o => o.id !== undefined).map(o => [Number(o.id), o])
+        );
+
         this.facturas = (facturas || []).map(f => {
           const obraId = f.id_obra != null ? Number(f.id_obra) : null;
-          const presupuesto = obraId != null ? (presupuestoPorObra[obraId] ?? 0) : 0;
-          const facturado = obraId != null ? (facturadoPorObra[obraId] ?? 0) : 0;
+          const presupuesto = obraId != null ? (this.presupuestoPorObra[obraId] ?? 0) : 0;
+          const facturado = obraId != null ? (this.facturadoPorObra[obraId] ?? 0) : 0;
           const porCobrar = obraId != null ? Math.max(0, presupuesto - facturado) : undefined;
           return {
             ...f,
@@ -202,34 +209,40 @@ export class FacturasListComponent implements OnInit {
 
 
   get totalPresupuesto(): number {
-    return this.obrasScope.reduce((sum, o) => sum + this.calcularPresupuestoObra(o), 0);
+    return this.obrasScopeRequiereFactura.reduce((sum, o) => sum + this.calcularPresupuestoObra(o), 0);
   }
 
   get totalFacturado(): number {
-    return this.facturasScope.reduce((sum, f) => sum + Number(f.monto || 0), 0);
+    return this.facturasScopeRequiereFactura.reduce((sum, f) => sum + Number(f.monto || 0), 0);
   }
 
   get totalPorFacturar(): number {
-    return Math.max(0, this.totalPresupuesto - this.totalFacturado);
+    return this.obrasScopeRequiereFactura.reduce((sum, obra) => {
+      const obraId = Number(obra.id ?? 0);
+      const facturado = this.facturadoPorObra[obraId] ?? 0;
+      if (facturado > 0) return sum;
+      const presupuesto = this.presupuestoPorObra[obraId] ?? this.calcularPresupuestoObra(obra);
+      return sum + Number(presupuesto || 0);
+    }, 0);
   }
 
   get totalCobrado(): number {
-    if (this.obraFiltro !== 'todos') {
-      return this.cobrosPorObra[Number(this.obraFiltro)] ?? 0;
-    }
-    if (this.clienteFiltro !== 'todos') {
-      const obrasCliente = this.obras.filter(o => Number(o.cliente?.id) === Number(this.clienteFiltro));
-      return obrasCliente.reduce((sum, o) => sum + (this.cobrosPorObra[Number(o.id)] ?? 0), 0);
-    }
-    return Object.values(this.cobrosPorObra).reduce((sum, v) => sum + Number(v || 0), 0);
+    return this.obrasScopeRequiereFactura.reduce((sum, obra) => {
+      const obraId = Number(obra.id ?? 0);
+      const facturado = this.facturadoPorObra[obraId] ?? 0;
+      if (facturado <= 0) return sum;
+      return sum + (this.cobrosPorObra[obraId] ?? 0);
+    }, 0);
   }
 
   get totalPorCobrar(): number {
-    return Math.max(0, this.totalPresupuesto - this.totalCobrado);
-  }
-
-  get saldoFinal(): number {
-    return this.totalCobrado - this.totalPresupuesto;
+    return this.obrasScopeRequiereFactura.reduce((sum, obra) => {
+      const obraId = Number(obra.id ?? 0);
+      const facturado = this.facturadoPorObra[obraId] ?? 0;
+      if (facturado <= 0) return sum;
+      const cobrado = this.cobrosPorObra[obraId] ?? 0;
+      return sum + Math.max(0, facturado - cobrado);
+    }, 0);
   }
 
   private get facturasScope(): FacturaView[] {
@@ -242,6 +255,14 @@ export class FacturasListComponent implements OnInit {
     return this.facturas;
   }
 
+  private get facturasScopeRequiereFactura(): FacturaView[] {
+    return this.facturasScope.filter(f => this.obraRequiereFactura(f.id_obra));
+  }
+
+  private get obrasScopeRequiereFactura(): Obra[] {
+    return this.obrasScope.filter(o => !!o.requiere_factura);
+  }
+
   private get obrasScope(): Obra[] {
     if (this.obraFiltro !== 'todos') {
       return this.obras.filter(o => Number(o.id) === Number(this.obraFiltro));
@@ -250,6 +271,12 @@ export class FacturasListComponent implements OnInit {
       return this.obras.filter(o => Number(o.cliente?.id) === Number(this.clienteFiltro));
     }
     return this.obras;
+  }
+
+  private obraRequiereFactura(idObra?: number | null): boolean {
+    const id = Number(idObra ?? 0);
+    if (!id) return false;
+    return !!this.obrasById.get(id)?.requiere_factura;
   }
 
   private cargarCobrosPorObra() {

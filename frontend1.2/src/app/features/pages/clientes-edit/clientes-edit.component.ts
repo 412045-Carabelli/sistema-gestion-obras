@@ -72,7 +72,7 @@ export class ClientesEditComponent implements OnInit {
 
         // 🕒 Esperar 2 segundos para que se vea el toast
         setTimeout(() => {
-          this.router.navigate(['/clientes']);
+          this.router.navigate(['/clientes', this.clienteId]);
         }, 1000);
       },
       error: () => {

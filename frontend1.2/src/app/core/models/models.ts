@@ -80,6 +80,9 @@ export interface Obra {
   comision?: number;
   tiene_comision?: boolean;
   memoria_descriptiva?: string;
+  condiciones_presupuesto?: string;
+  observaciones_presupuesto?: string;
+  requiere_factura?: boolean;
   subtotal_costos?: number;
   beneficio_costos?: number;
   total_con_beneficio?: number;

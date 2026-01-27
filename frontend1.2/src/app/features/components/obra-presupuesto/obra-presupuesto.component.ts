@@ -110,6 +110,10 @@ export class ObraPresupuestoComponent implements OnInit, OnChanges, AfterViewIni
   memoriaEditando = false;
   memoriaDraft = '';
   guardandoMemoria = false;
+  condicionesEditando = false;
+  condicionesDraft = '';
+  observacionesDraft = '';
+  guardandoCondiciones = false;
 
   constructor(
     private estadoPagoService: EstadoPagoService,
@@ -252,14 +256,23 @@ export class ObraPresupuestoComponent implements OnInit, OnChanges, AfterViewIni
     costo.enEdicion = true;
   }
 
-  abrirDetalleCosto(costo: ObraCosto) {
+  abrirDetalleCosto(costo: ObraCosto, editar = false) {
     if (!costo) return;
     this.costoDetalle = costo;
     this.costoDetalleDraft = {
       ...costo,
       proveedor: costo.proveedor ?? this.proveedores.find(p => Number(p.id) === Number(costo.id_proveedor))
     };
-    this.costoDetalleEditando = false;
+    if (editar && !this.puedeEditarCosto(costo)) {
+      this.messageService.add({
+        severity: 'warn',
+        summary: 'Edicion no disponible',
+        detail: 'No podes editar este costo en el estado actual de la obra.'
+      });
+      this.costoDetalleEditando = false;
+    } else {
+      this.costoDetalleEditando = editar;
+    }
     this.showCostoDetalleModal = true;
   }
 
@@ -551,7 +564,8 @@ export class ObraPresupuestoComponent implements OnInit, OnChanges, AfterViewIni
     // El PDF de cotizacion no debe sumar comisiones al total cotizado.
     const presupuestoTotal = totalConBeneficio;
     const beneficioNeto = beneficioMonto - comisionMonto;
-    const observaciones = (this.obra.notas || '').trim() || 'Sin observaciones adicionales.';
+    const condicionesTexto = (this.obra.condiciones_presupuesto || '').trim();
+    const observacionesTexto = (this.obra.observaciones_presupuesto || '').trim();
 
     const memoriaTexto = this.normalizarMemoriaTexto(this.obra.memoria_descriptiva);
     if ((modo === 'MEMORIA' || modo === 'AMBOS') && !memoriaTexto) {
@@ -575,9 +589,9 @@ export class ObraPresupuestoComponent implements OnInit, OnChanges, AfterViewIni
       : null;
 
     const memoriaCell = typeof memoriaContenido === 'string'
-      ? pdfCell(memoriaContenido, { alignment: 'left' })
+      ? pdfCell(memoriaContenido, { alignment: 'left', fontSize: 10 })
       : memoriaContenido
-        ? { ...memoriaContenido, vAlign: 'middle' }
+        ? { ...memoriaContenido, vAlign: 'middle', fontSize: 10 }
         : null;
 
     const memoriaRow = (modo === 'MEMORIA' || modo === 'AMBOS') && memoriaCell
@@ -691,42 +705,15 @@ export class ObraPresupuestoComponent implements OnInit, OnChanges, AfterViewIni
 
         { text: 'Condiciones y observaciones', style: 'sectionHeader' },
         {
-          columns: [
-            {
-              width: '50%',
-              table: {
-                widths: ['*'],
-                body: [
-                  [{ text: 'Validez de oferta: 7 dias corridos.', fontSize: 10, margin: [6, 6, 6, 6] }],
-                  [{ text: 'Forma de pago: Al finalizar las tareas.', fontSize: 10, margin: [6, 6, 6, 6] }]
-                ]
-              },
-              layout: {
-                hLineWidth: () => 0,
-                vLineWidth: () => 0,
-                fillColor: () => '#f8fafc'
-              }
-            },
-            {
-              width: '50%',
-              table: {
-                widths: ['*'],
-                body: [[
-                  {
-                    text: observaciones,
-                    fontSize: 10,
-                    margin: [8, 8, 8, 8]
-                  }
-                ]]
-              },
-              layout: {
-                hLineWidth: () => 0,
-                vLineWidth: () => 0,
-                fillColor: () => '#eef2ff'
-              }
-            }
-          ],
-          columnGap: 12,
+          table: {
+            widths: ['*'],
+            body: this.buildCondicionesPdfRows(condicionesTexto, observacionesTexto)
+          },
+          layout: {
+            hLineWidth: () => 0,
+            vLineWidth: () => 0,
+            fillColor: () => '#f8fafc'
+          },
           margin: [0, 0, 0, 4]
         }
       ],
@@ -1117,6 +1104,44 @@ export class ObraPresupuestoComponent implements OnInit, OnChanges, AfterViewIni
     return runs;
   }
 
+  private buildCondicionesPdfRows(condicionesTexto: string, observacionesTexto: string): any[] {
+    const condicionesDefault = [
+      'Validez de oferta: 7 dias corridos.',
+      'Forma de pago: Al finalizar las tareas.'
+    ];
+    const condiciones = this.normalizarLineas(condicionesTexto);
+    const observaciones = this.normalizarLineas(observacionesTexto);
+
+    const rows: any[] = [];
+    (condiciones.length ? condiciones : condicionesDefault).forEach(texto => {
+      rows.push([{ text: texto, fontSize: 10, margin: [6, 6, 6, 6] }]);
+    });
+
+    if (observaciones.length) {
+      rows.push([{ text: 'Observaciones:', fontSize: 10, bold: true, margin: [6, 8, 6, 4] }]);
+      observaciones.forEach(texto => {
+        rows.push([{ text: texto, fontSize: 10, margin: [6, 4, 6, 6] }]);
+      });
+    }
+
+    return rows.length ? rows : [[{ text: 'Sin condiciones registradas.', fontSize: 10, margin: [6, 6, 6, 6] }]];
+  }
+
+  normalizarLineas(texto?: string | null): string[] {
+    return (texto || '')
+      .split(/\r?\n/)
+      .map(linea => linea.trim())
+      .filter(linea => linea.length > 0);
+  }
+
+  getCondicionesLineas(): string[] {
+    return this.normalizarLineas(this.obra?.condiciones_presupuesto);
+  }
+
+  getObservacionesLineas(): string[] {
+    return this.normalizarLineas(this.obra?.observaciones_presupuesto);
+  }
+
   stripDescripcion(raw?: string | null): string {
     if (!raw) return '';
     return raw.replace(/<[^>]*>/g, '').trim();
@@ -1160,7 +1185,10 @@ export class ObraPresupuestoComponent implements OnInit, OnChanges, AfterViewIni
       beneficio: this.obra.beneficio,
       comision: this.obra.comision,
       notas: this.obra.notas,
-      memoria_descriptiva: this.memoriaDraft
+      memoria_descriptiva: this.memoriaDraft,
+      condiciones_presupuesto: this.obra.condiciones_presupuesto,
+      observaciones_presupuesto: this.obra.observaciones_presupuesto,
+      requiere_factura: this.obra.requiere_factura
     };
     Object.keys(payload).forEach(
       key => payload[key] === undefined && delete payload[key]
@@ -1184,6 +1212,73 @@ export class ObraPresupuestoComponent implements OnInit, OnChanges, AfterViewIni
           severity: 'error',
           summary: 'Error',
           detail: 'No se pudo guardar la memoria descriptiva.'
+        });
+      }
+    });
+  }
+
+  iniciarEdicionCondiciones() {
+    this.condicionesDraft = this.obra?.condiciones_presupuesto ?? '';
+    this.observacionesDraft = this.obra?.observaciones_presupuesto ?? '';
+    this.condicionesEditando = true;
+  }
+
+  cancelarEdicionCondiciones() {
+    this.condicionesEditando = false;
+    this.condicionesDraft = '';
+    this.observacionesDraft = '';
+  }
+
+  guardarCondicionesPresupuesto() {
+    if (!this.obra?.id || this.guardandoCondiciones) return;
+    this.guardandoCondiciones = true;
+    const payload: any = {
+      id: this.obra.id,
+      id_cliente: this.obra.id_cliente ?? this.obra.cliente?.id,
+      obra_estado: this.obra.obra_estado,
+      nombre: this.obra.nombre,
+      direccion: this.obra.direccion,
+      fecha_inicio: this.obra.fecha_inicio,
+      fecha_presupuesto: this.obra.fecha_presupuesto,
+      fecha_fin: this.obra.fecha_fin,
+      fecha_adjudicada: this.obra.fecha_adjudicada,
+      fecha_perdida: this.obra.fecha_perdida,
+      tiene_comision: this.obra.tiene_comision ?? false,
+      presupuesto: this.obra.presupuesto,
+      beneficio_global: this.obra.beneficio_global,
+      beneficio: this.obra.beneficio,
+      comision: this.obra.comision,
+      notas: this.obra.notas,
+      memoria_descriptiva: this.obra.memoria_descriptiva,
+      condiciones_presupuesto: this.condicionesDraft,
+      observaciones_presupuesto: this.observacionesDraft,
+      requiere_factura: this.obra.requiere_factura
+    };
+    Object.keys(payload).forEach(
+      key => payload[key] === undefined && delete payload[key]
+    );
+
+    this.obrasService.updateObra(this.obra.id, payload).subscribe({
+      next: (updated) => {
+        this.obra = {
+          ...this.obra,
+          condiciones_presupuesto: updated?.condiciones_presupuesto ?? this.condicionesDraft,
+          observaciones_presupuesto: updated?.observaciones_presupuesto ?? this.observacionesDraft
+        };
+        this.condicionesEditando = false;
+        this.guardandoCondiciones = false;
+        this.messageService.add({
+          severity: 'success',
+          summary: 'Condiciones actualizadas',
+          detail: 'Se guardaron los cambios.'
+        });
+      },
+      error: () => {
+        this.guardandoCondiciones = false;
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: 'No se pudieron guardar las condiciones.'
         });
       }
     });

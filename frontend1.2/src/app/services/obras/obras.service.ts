@@ -22,6 +22,9 @@ export interface ObraPayload {
   comision?: number;
   notas?: string;
   memoria_descriptiva?: string;
+  condiciones_presupuesto?: string;
+  observaciones_presupuesto?: string;
+  requiere_factura?: boolean;
   tareas?: Tarea[];
   costos?: CostoPayload[];
 }

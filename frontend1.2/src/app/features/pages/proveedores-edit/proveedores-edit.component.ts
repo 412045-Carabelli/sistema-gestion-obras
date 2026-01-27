@@ -55,7 +55,7 @@ export class ProveedoresEditComponent implements OnInit {
           summary: 'Proveedor actualizado',
           detail: 'Los cambios se guardaron correctamente.'
         });
-        setTimeout(() => this.router.navigate(['/proveedores']), 800);
+        setTimeout(() => this.router.navigate(['/proveedores', this.proveedor.id!]), 800);
       },
       error: () => {
         this.messageService.add({

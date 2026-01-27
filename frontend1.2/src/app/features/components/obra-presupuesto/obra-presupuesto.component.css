@@ -37,3 +37,8 @@
 .memoria-view :is(strong, b) {
   font-weight: 600;
 }
+
+:host ::ng-deep .costo-detalle-editor .p-editor-content {
+  font-size: 1.05rem;
+  line-height: 1.5;
+}

@@ -59,6 +59,15 @@ public class Obra {
     @Column(name = "memoria_descriptiva", columnDefinition = "TEXT")
     private String memoriaDescriptiva;
 
+    @Column(name = "condiciones_presupuesto", columnDefinition = "TEXT")
+    private String condicionesPresupuesto;
+
+    @Column(name = "observaciones_presupuesto", columnDefinition = "TEXT")
+    private String observacionesPresupuesto;
+
+    @Column(name = "requiere_factura")
+    private Boolean requiereFactura;
+
     @Column(name = "ultima_actualizacion")
     private Instant ultimaActualizacion;
 

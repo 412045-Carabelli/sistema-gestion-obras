@@ -19,41 +19,34 @@
   </div>
 } @else {
   <div class="space-y-6">
-    <div class="grid grid-cols-1 md:grid-cols-5 gap-4">
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
       <div
         class="bg-white rounded-xl shadow-md p-5 border-l-4 border-emerald-500"
-        pTooltip="Total facturado de las obras segun el filtro actual."
+        pTooltip="Total facturado de las obras que requieren factura."
         tooltipPosition="top">
         <p class="text-xs text-emerald-700 font-semibold uppercase">Facturado</p>
         <p class="text-2xl font-bold text-gray-900">{{ totalFacturado | currency:'ARS':'symbol':'1.0-2' }}</p>
       </div>
       <div
-        class="bg-white rounded-xl shadow-md p-5 border-l-4 border-amber-500"
-        pTooltip="Presupuesto menos facturado segun el filtro actual."
-        tooltipPosition="top">
-        <p class="text-xs text-amber-700 font-semibold uppercase">Por facturar</p>
-        <p class="text-2xl font-bold text-gray-900">{{ totalPorFacturar | currency:'ARS':'symbol':'1.0-2' }}</p>
-      </div>
-      <div
         class="bg-white rounded-xl shadow-md p-5 border-l-4 border-blue-500"
-        pTooltip="Sumatoria de movimientos de COBRO segun el filtro actual."
+        pTooltip="Cobros de obras facturadas que requieren factura."
         tooltipPosition="top">
         <p class="text-xs text-blue-700 font-semibold uppercase">Cobrado</p>
         <p class="text-2xl font-bold text-gray-900">{{ totalCobrado | currency:'ARS':'symbol':'1.0-2' }}</p>
       </div>
       <div
-        class="bg-white rounded-xl shadow-md p-5 border-l-4 border-indigo-500"
-        pTooltip="Cobrado menos presupuesto, segun el filtro actual."
-        tooltipPosition="top">
-        <p class="text-xs text-indigo-700 font-semibold uppercase">Saldo</p>
-        <p class="text-2xl font-bold text-gray-900">{{ saldoFinal | currency:'ARS':'symbol':'1.0-2' }}</p>
-      </div>
-      <div
         class="bg-white rounded-xl shadow-md p-5 border-l-4 border-rose-500"
-        pTooltip="Presupuesto menos cobros segun el filtro actual."
+        pTooltip="Facturado menos cobrado en obras facturadas."
         tooltipPosition="top">
         <p class="text-xs text-rose-700 font-semibold uppercase">Por cobrar</p>
         <p class="text-2xl font-bold text-gray-900">{{ totalPorCobrar | currency:'ARS':'symbol':'1.0-2' }}</p>
+      </div>
+      <div
+        class="bg-white rounded-xl shadow-md p-5 border-l-4 border-amber-500"
+        pTooltip="Obras con requiere factura sin facturas emitidas."
+        tooltipPosition="top">
+        <p class="text-xs text-amber-700 font-semibold uppercase">Por facturar</p>
+        <p class="text-2xl font-bold text-gray-900">{{ totalPorFacturar | currency:'ARS':'symbol':'1.0-2' }}</p>
       </div>
     </div>
 
