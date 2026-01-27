@@ -554,14 +554,14 @@ export class ReportesComponent implements OnInit, OnDestroy {
       return 0;
     }
 
-    const obrasFiltradas = this.filtrarObrasPorFiltro(filtros);
+    const obrasFiltradas = this.filtrarObrasPorFiltroConDeuda(filtros);
     const totalPresupuesto = obrasFiltradas.reduce((sum, obra) => sum + this.obtenerPresupuestoObra(obra), 0);
     const cobros = Number(flujo?.totalIngresos ?? 0);
     return Math.max(0, totalPresupuesto - cobros);
   }
 
   private calcularTotalPresupuestoClientes(filtros?: ReportFilter): number {
-    const obrasFiltradas = this.filtrarObrasPorFiltro(filtros);
+    const obrasFiltradas = this.filtrarObrasPorFiltroConDeuda(filtros);
     return obrasFiltradas.reduce((sum, obra) => sum + this.obtenerPresupuestoObra(obra), 0);
   }
 
@@ -611,7 +611,30 @@ export class ReportesComponent implements OnInit, OnDestroy {
 
   private calcularDeudaProveedores(pendientes: PendientesResponse | null): number {
     const lista = pendientes?.pendientes || [];
-    return lista.reduce((sum, p) => sum + Number(p.total ?? 0), 0);
+    if (!lista.length) return 0;
+    const obrasConDeuda = new Set(
+      (this.obras || []).filter(obra => this.obraGeneraDeuda(obra)).map(obra => Number(obra.id))
+    );
+    return lista.reduce((sum, p) => {
+      if (!obrasConDeuda.has(Number(p.obraId))) return sum;
+      return sum + Number(p.total ?? 0);
+    }, 0);
+  }
+
+  private filtrarObrasPorFiltroConDeuda(filtros?: ReportFilter): Obra[] {
+    const base = this.filtrarObrasPorFiltro(filtros);
+    return base.filter(obra => this.obraGeneraDeuda(obra));
+  }
+
+  private obraGeneraDeuda(obra: Obra | null | undefined): boolean {
+    if (!obra) return false;
+    const estado = (obra.obra_estado || '').toString().toUpperCase();
+    return (
+      estado.includes('ADJUDIC') ||
+      estado.includes('EN_PROGRESO') ||
+      estado.includes('FINALIZ') ||
+      estado.includes('FACTURAD')
+    );
   }
 
   private showToast(severity: 'success' | 'info' | 'warn' | 'error', summary: string, detail: string): void {
