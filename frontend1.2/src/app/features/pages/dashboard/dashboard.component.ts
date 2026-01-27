@@ -770,16 +770,18 @@ export class DashboardComponent implements OnInit {
   }
 
   get totalPresupuestoObras(): number {
-    return (this.obras || []).reduce((acc, o) => acc + Number(o.presupuesto || 0), 0);
+    const obras = this.filtrarObrasConDeuda(this.obras || []);
+    return obras.reduce((acc, o) => acc + Number(o.presupuesto || 0), 0);
   }
 
   get totalPresupuestoFiltradoDashboard(): number {
-    const obrasFiltradas = this.obtenerObrasFiltradasDashboard();
+    const obrasFiltradas = this.filtrarObrasConDeuda(this.obtenerObrasFiltradasDashboard());
     return obrasFiltradas.reduce((acc, obra) => acc + Number(obra.presupuesto || 0), 0);
   }
 
   get totalCostosObras(): number {
-    return (this.obras || []).reduce((acc, obra) => {
+    const obras = this.filtrarObrasConDeuda(this.obras || []);
+    return obras.reduce((acc, obra) => {
       const costos = obra.costos || [];
       const totalObra = costos.reduce((sum, costo) => sum + this.obtenerSubtotalCosto(costo), 0);
       return acc + totalObra;
@@ -787,7 +789,7 @@ export class DashboardComponent implements OnInit {
   }
 
   get totalCostosFiltradosDashboard(): number {
-    const obrasFiltradas = this.obtenerObrasFiltradasDashboard();
+    const obrasFiltradas = this.filtrarObrasConDeuda(this.obtenerObrasFiltradasDashboard());
     return (obrasFiltradas || []).reduce((acc, obra) => {
       const costos = obra.costos || [];
       const totalObra = costos.reduce((sum, costo) => sum + this.obtenerSubtotalCosto(costo), 0);
@@ -879,6 +881,7 @@ export class DashboardComponent implements OnInit {
   get dashboardPorCobrar(): number {
     const obraSeleccionada = this.obtenerObraSeleccionada();
     if (obraSeleccionada?.id) {
+      if (!this.obraGeneraDeuda(obraSeleccionada)) return 0;
       const cobrado = this.dashboardCobrado;
       const presupuesto = Number(obraSeleccionada.presupuesto ?? 0);
       return Math.max(0, presupuesto - cobrado);
@@ -906,6 +909,7 @@ export class DashboardComponent implements OnInit {
   get dashboardPorPagar(): number {
     const obraSeleccionada = this.obtenerObraSeleccionada();
     if (obraSeleccionada?.id) {
+      if (!this.obraGeneraDeuda(obraSeleccionada)) return 0;
       const pagado = this.dashboardPagado;
       const totalCostos = this.totalCostosDeObra(obraSeleccionada);
       return Math.max(0, totalCostos - pagado);
@@ -913,7 +917,7 @@ export class DashboardComponent implements OnInit {
     if (this.filtrosDashboard?.cliente?.id) return 0;
     if (this.filtrosDashboard?.proveedor?.id) {
       const proveedorId = this.filtrosDashboard?.proveedor?.id ?? 0;
-      const totalProveedor = this.calcularTotalCostosProveedor(this.obtenerObrasFiltradasDashboard(), proveedorId);
+      const totalProveedor = this.calcularTotalCostosProveedor(this.filtrarObrasConDeuda(this.obtenerObrasFiltradasDashboard()), proveedorId);
       return Math.max(0, totalProveedor - this.totalPagosDashboard);
     }
     const tieneRangoFechas = !!(this.filtrosDashboard?.rangoFechas?.[0] || this.filtrosDashboard?.rangoFechas?.[1]);
@@ -959,6 +963,21 @@ export class DashboardComponent implements OnInit {
     return (obra?.costos || []).reduce((sum, costo) => {
       return sum + this.obtenerSubtotalCosto(costo);
     }, 0);
+  }
+
+  private filtrarObrasConDeuda(obras: Obra[]): Obra[] {
+    return (obras || []).filter(obra => this.obraGeneraDeuda(obra));
+  }
+
+  private obraGeneraDeuda(obra: Obra | null | undefined): boolean {
+    if (!obra) return false;
+    const estado = (obra.obra_estado || '').toString().toUpperCase();
+    return (
+      estado.includes('ADJUDIC') ||
+      estado.includes('EN_PROGRESO') ||
+      estado.includes('FINALIZ') ||
+      estado.includes('FACTURAD')
+    );
   }
 
   private calcularConteosObras(obras: { obra_estado: string }[]): typeof this.conteoObras {
@@ -1449,7 +1468,8 @@ export class DashboardComponent implements OnInit {
   }
 
   private calcularTotalCostosProveedor(obras: Obra[], proveedorId: number): number {
-    return (obras || []).reduce((acc, obra) => {
+    const filtradas = this.filtrarObrasConDeuda(obras || []);
+    return filtradas.reduce((acc, obra) => {
       const totalObra = (obra?.costos || []).reduce((sum, costo) => {
         const id = Number((costo as any).id_proveedor ?? (costo as any).proveedor?.id ?? 0);
         if (id !== Number(proveedorId)) return sum;

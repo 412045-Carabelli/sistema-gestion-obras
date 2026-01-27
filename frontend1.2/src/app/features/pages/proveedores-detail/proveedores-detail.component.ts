@@ -1,7 +1,6 @@
 ﻿import {Component, OnDestroy, OnInit} from '@angular/core';
 import {ActivatedRoute, Router, RouterLink} from '@angular/router';
-import {forkJoin, of, Subscription} from 'rxjs';
-import {switchMap} from 'rxjs/operators';
+import {forkJoin, Subscription} from 'rxjs';
 import {CommonModule} from '@angular/common';
 import {ButtonModule} from 'primeng/button';
 import {Tab, TabList, TabPanel, TabPanels, Tabs} from 'primeng/tabs';
@@ -14,7 +13,6 @@ import {TableModule} from 'primeng/table';
 import {TagModule} from 'primeng/tag';
 import {Tooltip} from 'primeng/tooltip';
 import {TransaccionesService} from '../../../services/transacciones/transacciones.service';
-import {CostosService} from '../../../services/costos/costos.service';
 import {ProveedoresStateService} from '../../../services/proveedores/proveedores-state.service';
 import {StyleClass} from 'primeng/styleclass';
 import {EstadoFormatPipe} from '../../../shared/pipes/estado-format.pipe';
@@ -51,7 +49,6 @@ export class ProveedoresDetailComponent implements OnInit, OnDestroy {
     private tareasService: TareasService,
     private obrasService: ObrasService,
     private transaccionesService: TransaccionesService,
-    private costosService: CostosService,
     private proveedoresStateService: ProveedoresStateService
   ) {}
 
@@ -121,48 +118,25 @@ export class ProveedoresDetailComponent implements OnInit, OnDestroy {
     forkJoin({
       proveedor: this.proveedoresService.getProveedorById(id),
       tareas: this.tareasService.getTareasByProveedor(id),
-      transacciones: this.transaccionesService.getByAsociado('PROVEEDOR', id)
+      transacciones: this.transaccionesService.getByAsociado('PROVEEDOR', id),
+      obras: this.obrasService.getObras()
     })
-      .pipe(
-        switchMap(({proveedor, tareas, transacciones}) => {
+      .subscribe({
+        next: ({proveedor, tareas, transacciones, obras}) => {
           this.proveedor = proveedor;
           this.tareas = tareas;
           this.transacciones = transacciones;
-          this.proveedoresStateService.setProveedor(proveedor);
+          this.obrasMap = (obras || []).reduce((acc, obra) => {
+            acc[obra.id!] = obra;
+            return acc;
+          }, {} as Record<number, Obra>);
 
-          const obraIds = Array.from(new Set([
-            ...tareas.map(t => t.id_obra),
-            ...transacciones.map(t => Number(t.id_obra)).filter(Boolean)
-          ]));
-          if (obraIds.length === 0) {
-            return of([] as ObraCosto[][]);
-          }
-          return forkJoin(obraIds.map(obraId => this.costosService.getByObra(obraId)));
-        })
-      )
-      .subscribe({
-        next: (listadosCostos) => {
-          const planos = ([] as ObraCosto[]).concat(...(listadosCostos || []));
-          this.costosProveedor = planos.filter(c =>
+          const costos = (obras || []).flatMap(obra => obra.costos || []);
+          this.costosProveedor = costos.filter(c =>
             this.getIdProveedorCosto(c) === Number(this.proveedor.id)
           );
           this.calcularSaldoProveedor();
-
-          const obraIds = Array.from(new Set(this.costosProveedor.map(c => c.id_obra)));
-          if (obraIds.length > 0) {
-            forkJoin(obraIds.map(id => this.obrasService.getObraById(id))).subscribe({
-              next: obras => {
-                this.obrasMap = obras.reduce((acc, obra) => {
-                  acc[obra.id!] = obra;
-                  return acc;
-                }, {} as Record<number, Obra>);
-                this.loading = false;
-              },
-              error: () => (this.loading = false)
-            });
-          } else {
-            this.loading = false;
-          }
+          this.loading = false;
         },
         error: () => (this.loading = false)
       });

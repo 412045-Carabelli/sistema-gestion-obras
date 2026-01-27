@@ -455,14 +455,14 @@ export class ObraPresupuestoComponent implements OnInit, OnChanges, AfterViewIni
 
   calcularGastos(): number {
     return this.costosFiltrados.reduce(
-      (acc, c) => acc + Number(c.subtotal ?? 0),
+      (acc, c) => this.costoTieneProveedor(c) ? acc + Number(c.subtotal ?? 0) : acc,
       0
     );
   }
 
   calcularSubtotal(): number {
     return this.costosFiltrados.reduce(
-      (acc, c) => acc + Number(c.subtotal ?? 0),
+      (acc, c) => this.costoTieneProveedor(c) ? acc + Number(c.subtotal ?? 0) : acc,
       0
     );
   }
@@ -471,6 +471,9 @@ export class ObraPresupuestoComponent implements OnInit, OnChanges, AfterViewIni
     return this.costosFiltrados.reduce((acc, c) => {
       const subtotal = Number(c.subtotal ?? 0);
       const total = Number(c.total ?? subtotal);
+      if (!this.costoTieneProveedor(c)) {
+        return acc + subtotal;
+      }
       return acc + (total - subtotal);
     }, 0);
   }
@@ -545,7 +548,8 @@ export class ObraPresupuestoComponent implements OnInit, OnChanges, AfterViewIni
     }, 0);
     const totalConBeneficio = subtotalBase + beneficioMonto;
     const comisionMonto = this.tieneComision ? totalConBeneficio * (this.comision / 100) : 0;
-    const presupuestoTotal = totalConBeneficio + comisionMonto;
+    // El PDF de cotizacion no debe sumar comisiones al total cotizado.
+    const presupuestoTotal = totalConBeneficio;
     const beneficioNeto = beneficioMonto - comisionMonto;
     const observaciones = (this.obra.notas || '').trim() || 'Sin observaciones adicionales.';
 
@@ -979,6 +983,11 @@ export class ObraPresupuestoComponent implements OnInit, OnChanges, AfterViewIni
 
   esAdicional(costo: ObraCosto): boolean {
     return (costo?.tipo_costo || '').toString().toUpperCase() === 'ADICIONAL';
+  }
+
+  private costoTieneProveedor(costo: Partial<ObraCosto>): boolean {
+    const id = Number((costo as any)?.id_proveedor ?? (costo as any)?.proveedor?.id ?? 0);
+    return id > 0;
   }
 
   getTipoCostoOptions() {
