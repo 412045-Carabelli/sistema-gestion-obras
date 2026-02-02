@@ -28,7 +28,7 @@ public class TipoTransaccionController {
     }
 
     @GetMapping("/{tipo}")
-    public ResponseEntity<EstadoResponse> getByTipo(@PathVariable String tipo) {
+    public ResponseEntity<EstadoResponse> getByTipo(@PathVariable("tipo") String tipo) {
         try {
             TipoTransaccionEnum encontrado = TipoTransaccionEnum.valueOf(tipo.toUpperCase());
 
