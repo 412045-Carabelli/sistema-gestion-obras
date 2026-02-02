@@ -13,6 +13,6 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 public class ProgresosController {
     private final ProgresoService svc;
-    @GetMapping("/{idObra}") public ProgresoDTO progreso(@PathVariable Long idObra){ return svc.calcularProgreso(idObra); }
+    @GetMapping("/{idObra}") public ProgresoDTO progreso(@PathVariable("idObra") Long idObra){ return svc.calcularProgreso(idObra); }
 
 }

@@ -27,14 +27,14 @@ public class TipoProveedorController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<TipoProveedor> update(@PathVariable Long id, @RequestBody TipoProveedor tipo) {
+    public ResponseEntity<TipoProveedor> update(@PathVariable("id") Long id, @RequestBody TipoProveedor tipo) {
         return service.updateTipo(id, tipo)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> delete(@PathVariable Long id) {
+    public ResponseEntity<Void> delete(@PathVariable("id") Long id) {
         if (service.deleteTipo(id)) {
             return ResponseEntity.noContent().build();
         }

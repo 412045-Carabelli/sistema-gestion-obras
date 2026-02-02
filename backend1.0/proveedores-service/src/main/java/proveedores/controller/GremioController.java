@@ -21,7 +21,7 @@ public class GremioController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Gremio> getOne(@PathVariable Long id) {
+    public ResponseEntity<Gremio> getOne(@PathVariable("id") Long id) {
         return service.findById(id)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
@@ -33,14 +33,14 @@ public class GremioController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Gremio> update(@PathVariable Long id, @RequestBody Gremio gremio) {
+    public ResponseEntity<Gremio> update(@PathVariable("id") Long id, @RequestBody Gremio gremio) {
         return service.update(id, gremio)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> delete(@PathVariable Long id) {
+    public ResponseEntity<Void> delete(@PathVariable("id") Long id) {
         return service.delete(id) ? ResponseEntity.noContent().build() : ResponseEntity.notFound().build();
     }
 }

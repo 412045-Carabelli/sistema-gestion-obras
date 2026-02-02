@@ -30,7 +30,7 @@ public class ProveedoresBffController {
     }
 
     @GetMapping("/proveedores/{id}")
-    public ResponseEntity<ProveedorDTO> getProveedor(@PathVariable Long id) {
+    public ResponseEntity<ProveedorDTO> getProveedor(@PathVariable("id") Long id) {
         return proveedorService.findById(id)
                 .map(p -> ResponseEntity.ok(toDTO(p)))
                 .orElse(ResponseEntity.notFound().build());
@@ -47,7 +47,7 @@ public class ProveedoresBffController {
     }
 
     @PutMapping("/proveedores/{id}")
-    public ResponseEntity<ProveedorDTO> updateProveedor(@PathVariable Long id, @RequestBody ProveedorDTO dto) {
+    public ResponseEntity<ProveedorDTO> updateProveedor(@PathVariable("id") Long id, @RequestBody ProveedorDTO dto) {
         try {
             Proveedor updated = proveedorService.update(id, toEntity(dto));
             return ResponseEntity.ok(toDTO(updated));
@@ -57,7 +57,7 @@ public class ProveedoresBffController {
     }
 
     @DeleteMapping("/proveedores/{id}")
-    public ResponseEntity<Void> deleteProveedor(@PathVariable Long id) {
+    public ResponseEntity<Void> deleteProveedor(@PathVariable("id") Long id) {
         proveedorService.delete(id);
         return ResponseEntity.noContent().build();
     }
