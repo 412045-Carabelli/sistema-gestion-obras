@@ -12,6 +12,7 @@ import proveedores.entity.Gremio;
 import proveedores.entity.Proveedor;
 import proveedores.entity.TipoProveedor;
 import proveedores.repository.ProveedorRepository;
+import proveedores.service.ProveedorFinanzasService;
 import proveedores.service.ProveedorService;
 
 import java.util.List;
@@ -37,6 +38,9 @@ class ProveedoresControllerTest {
     @MockBean
     private ProveedorRepository proveedorRepository;
 
+    @MockBean
+    private ProveedorFinanzasService finanzasService;
+
     @Test
     void get_all_activos_ok() throws Exception {
         Proveedor p = new Proveedor();
@@ -55,6 +59,12 @@ class ProveedoresControllerTest {
         Proveedor p = new Proveedor();
         p.setId(2L);
         when(service.findById(2L)).thenReturn(Optional.of(p));
+        when(finanzasService.calcularTotales(2L))
+                .thenReturn(new ProveedorFinanzasService.TotalesProveedor(
+                        java.math.BigDecimal.ZERO,
+                        java.math.BigDecimal.ZERO,
+                        java.math.BigDecimal.ZERO
+                ));
 
         mockMvc.perform(get("/api/proveedores/2"))
             .andExpect(status().isOk())

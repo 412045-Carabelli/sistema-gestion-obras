@@ -35,6 +35,10 @@ export interface Cliente {
   creado_en?: string;
   ultima_actualizacion?: string;
   tipo_actualizacion?: string;
+  totalCliente?: number;
+  cobrosRealizados?: number;
+  saldoCliente?: number;
+  obras?: Obra[];
 }
 
 export type TipoProveedor = RecordOption;
@@ -53,6 +57,9 @@ export interface Proveedor {
   creado_en?: string;
   ultima_actualizacion?: string;
   tipo_actualizacion?: string;
+  totalProveedor?: number;
+  pagosRealizados?: number;
+  saldoProveedor?: number;
 }
 
 export type EstadoObra = RecordOption;
@@ -95,6 +102,7 @@ export interface Obra {
   tipo_actualizacion?: string;
   tareas?: Tarea[];
   costos?: ObraCosto[];
+  saldo_pendiente?: number;
 }
 
 export interface ObraProveedor {
@@ -209,6 +217,20 @@ export interface ReportFilter {
   proveedorId?: number;
   fechaInicio?: string;
   fechaFin?: string;
+}
+
+export interface DashboardFinancieroResponse {
+  ctaCte: {
+    loCobrado: number;
+    porCobrar: number;
+    pagado: number;
+    porPagar: number;
+  };
+  flujo: {
+    ingresos: number;
+    egresos: number;
+    saldo: number;
+  };
 }
 
 export interface EstadoObrasFilter {

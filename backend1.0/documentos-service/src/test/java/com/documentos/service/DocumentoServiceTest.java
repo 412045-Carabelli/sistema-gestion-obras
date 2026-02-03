@@ -1,6 +1,6 @@
 package com.documentos.service;
 
-imporcom.documentos.dto.DocumentoDto;
+import com.documentos.dto.DocumentoDto;
 import com.documentos.entity.Documento;
 import com.documentos.enums.TipoDocumentoEnum;
 import com.documentos.repository.DocumentoRepository;

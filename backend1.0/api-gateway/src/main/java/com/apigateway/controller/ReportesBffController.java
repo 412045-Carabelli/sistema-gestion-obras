@@ -41,6 +41,11 @@ public class ReportesBffController {
         return proxyPost("/financieros/flujo-caja", filtro, new ParameterizedTypeReference<>() {});
     }
 
+    @PostMapping("/financieros/dashboard")
+    public Mono<ResponseEntity<Object>> dashboardFinanciero(@RequestBody(required = false) Object filtro) {
+        return proxyPost("/financieros/dashboard", filtro, new ParameterizedTypeReference<>() {});
+    }
+
     @PostMapping("/financieros/pendientes")
     public Mono<ResponseEntity<Object>> pendientes(@RequestBody(required = false) Object filtro) {
         return proxyPost("/financieros/pendientes", filtro, new ParameterizedTypeReference<>() {});

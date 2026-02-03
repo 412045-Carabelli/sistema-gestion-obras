@@ -1,9 +1,11 @@
 package com.clientes.service.impl;
 
 import com.clientes.client.ObrasClient;
+import com.clientes.client.TransaccionesClient;
 import com.clientes.dto.ClienteRequest;
 import com.clientes.dto.ClienteResponse;
 import com.clientes.dto.ObraClienteResponse;
+import com.clientes.dto.TransaccionExternalDto;
 import com.clientes.entity.Cliente;
 import com.clientes.entity.CondicionIva;
 import com.clientes.exception.ClienteNotFoundException;
@@ -16,11 +18,15 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
 import java.time.Instant;
+import java.text.Normalizer;
+import java.math.BigDecimal;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.HashMap;
+import java.util.Set;
 
 @Service
 @RequiredArgsConstructor
@@ -36,6 +42,7 @@ public class ClienteServiceImpl implements ClienteService {
 
     private final ClienteRepository repository;
     private final ObrasClient obrasClient;
+    private final TransaccionesClient transaccionesClient;
 
     @Override
     public ClienteResponse crear(ClienteRequest request) {
@@ -43,7 +50,7 @@ public class ClienteServiceImpl implements ClienteService {
         Cliente entity = mapearEntidad(request);
         entity.setCreadoEn(Instant.now());
         Cliente guardado = repository.save(entity);
-        return mapearRespuesta(guardado, null);
+        return mapearRespuesta(guardado, null, null, null, null);
     }
 
     @Override
@@ -52,13 +59,13 @@ public class ClienteServiceImpl implements ClienteService {
         Cliente existente = repository.findById(id).orElseThrow(() -> new ClienteNotFoundException(id));
         actualizarEntidad(existente, request);
         Cliente guardado = repository.save(existente);
-        return mapearRespuesta(guardado, null);
+        return mapearRespuesta(guardado, null, null, null, null);
     }
 
     @Override
     public ClienteResponse obtener(Long id) {
         Cliente cliente = repository.findById(id).orElseThrow(() -> new ClienteNotFoundException(id));
-        return mapearRespuesta(cliente, null);
+        return mapearRespuesta(cliente, null, null, null, null);
     }
 
     @Override
@@ -71,13 +78,45 @@ public class ClienteServiceImpl implements ClienteService {
             log.warn("No se pudieron obtener las obras para el cliente {}", id, ex);
             obras = Collections.emptyList();
         }
-        return mapearRespuesta(cliente, obras);
+        List<TransaccionExternalDto> transacciones = Collections.emptyList();
+        try {
+            transacciones = transaccionesClient.obtenerTransaccionesPorAsociado("CLIENTE", id);
+        } catch (Exception ex) {
+            log.warn("No se pudieron obtener transacciones del cliente {}", id, ex);
+        }
+
+        Map<Long, BigDecimal> cobrosPorObra = new HashMap<>();
+        for (TransaccionExternalDto tx : transacciones) {
+            if (tx == null || Boolean.FALSE.equals(tx.getActivo()) || tx.getMonto() == null) continue;
+            if (!"COBRO".equalsIgnoreCase(tx.getTipo_transaccion())) continue;
+            Long obraId = tx.getId_obra();
+            if (obraId == null) continue;
+            BigDecimal monto = BigDecimal.valueOf(tx.getMonto());
+            cobrosPorObra.merge(obraId, monto, BigDecimal::add);
+        }
+
+        BigDecimal totalCliente = BigDecimal.ZERO;
+        BigDecimal cobrosRealizados = BigDecimal.ZERO;
+        for (ObraClienteResponse obra : obras) {
+            if (obra == null || obra.getId() == null) continue;
+            BigDecimal presupuesto = obra.getPresupuesto() != null ? obra.getPresupuesto() : BigDecimal.ZERO;
+            BigDecimal cobros = cobrosPorObra.getOrDefault(obra.getId(), BigDecimal.ZERO);
+            boolean generaDeuda = obraGeneraDeuda(obra.getObra_estado());
+            if (generaDeuda) {
+                totalCliente = totalCliente.add(presupuesto);
+                cobrosRealizados = cobrosRealizados.add(cobros);
+            }
+            obra.setSaldo_pendiente(generaDeuda ? saldoPositivo(presupuesto.subtract(cobros)) : BigDecimal.ZERO);
+        }
+
+        BigDecimal saldoCliente = saldoPositivo(totalCliente.subtract(cobrosRealizados));
+        return mapearRespuesta(cliente, obras, totalCliente, cobrosRealizados, saldoCliente);
     }
 
     @Override
     public List<ClienteResponse> listar() {
         return repository.findAll().stream()
-                .map(c -> mapearRespuesta(c, null))
+                .map(c -> mapearRespuesta(c, null, null, null, null))
                 .toList();
     }
 
@@ -100,6 +139,11 @@ public class ClienteServiceImpl implements ClienteService {
             c.setActivo(false);
             repository.save(c);
         });
+    }
+
+    @Override
+    public void eliminar(Long id) {
+        repository.deleteById(id);
     }
 
     private Cliente mapearEntidad(ClienteRequest request) {
@@ -130,7 +174,13 @@ public class ClienteServiceImpl implements ClienteService {
         }
     }
 
-    private ClienteResponse mapearRespuesta(Cliente cliente, List<ObraClienteResponse> obras) {
+    private ClienteResponse mapearRespuesta(
+            Cliente cliente,
+            List<ObraClienteResponse> obras,
+            BigDecimal totalCliente,
+            BigDecimal cobrosRealizados,
+            BigDecimal saldoCliente
+    ) {
         ClienteResponse response = new ClienteResponse();
         response.setId(cliente.getId());
         response.setNombre(cliente.getNombre());
@@ -155,6 +205,15 @@ public class ClienteServiceImpl implements ClienteService {
         if (obras != null) {
             response.setObras(obras);
         }
+        if (totalCliente != null) {
+            response.setTotalCliente(totalCliente);
+        }
+        if (cobrosRealizados != null) {
+            response.setCobrosRealizados(cobrosRealizados);
+        }
+        if (saldoCliente != null) {
+            response.setSaldoCliente(saldoCliente);
+        }
 
         return response;
     }
@@ -174,4 +233,30 @@ public class ClienteServiceImpl implements ClienteService {
         String normalizado = condicion.trim().toUpperCase(Locale.ROOT);
         return CONDICIONES_IVA_VALIDAS.get(normalizado);
     }
+
+    private boolean obraGeneraDeuda(String estadoRaw) {
+        String estado = normalizarEstado(estadoRaw);
+        if (estado.isEmpty()) return true;
+        return !ESTADOS_SIN_DEUDA.contains(estado);
+    }
+
+    private String normalizarEstado(String raw) {
+        if (!StringUtils.hasText(raw)) return "";
+        String sinTildes = Normalizer.normalize(raw, Normalizer.Form.NFD)
+                .replaceAll("[\\p{InCombiningDiacriticalMarks}]", "");
+        return sinTildes.toUpperCase(Locale.ROOT)
+                .replaceAll("[^A-Z0-9]+", "_")
+                .replaceAll("^_+|_+$", "");
+    }
+
+    private BigDecimal saldoPositivo(BigDecimal saldo) {
+        if (saldo == null) return BigDecimal.ZERO;
+        return saldo.compareTo(BigDecimal.ZERO) < 0 ? BigDecimal.ZERO : saldo;
+    }
+
+    private static final Set<String> ESTADOS_SIN_DEUDA = Set.of(
+            "PRESUPUESTADA",
+            "PERDIDA",
+            "COTIZADA"
+    );
 }

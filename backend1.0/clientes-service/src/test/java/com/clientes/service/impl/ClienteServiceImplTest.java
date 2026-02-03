@@ -1,6 +1,7 @@
 package com.clientes.service.impl;
 
 import com.clientes.client.ObrasClient;
+import com.clientes.client.TransaccionesClient;
 import com.clientes.dto.ClienteRequest;
 import com.clientes.dto.ClienteResponse;
 import com.clientes.dto.ObraClienteResponse;
@@ -33,6 +34,9 @@ class ClienteServiceImplTest {
 
     @Mock
     private ObrasClient obrasClient;
+
+    @Mock
+    private TransaccionesClient transaccionesClient;
 
     @InjectMocks
     private ClienteServiceImpl service;
@@ -144,6 +148,7 @@ class ClienteServiceImplTest {
         cliente.setNombre("Cliente C");
         when(repository.findById(3L)).thenReturn(Optional.of(cliente));
         when(obrasClient.obtenerObrasPorCliente(3L)).thenReturn(List.of(new ObraClienteResponse()));
+        when(transaccionesClient.obtenerTransaccionesPorAsociado("CLIENTE", 3L)).thenReturn(List.of());
 
         ClienteResponse response = service.obtenerConObras(3L);
 
@@ -158,6 +163,7 @@ class ClienteServiceImplTest {
         cliente.setNombre("Cliente D");
         when(repository.findById(4L)).thenReturn(Optional.of(cliente));
         when(obrasClient.obtenerObrasPorCliente(4L)).thenThrow(new RuntimeException("boom"));
+        when(transaccionesClient.obtenerTransaccionesPorAsociado("CLIENTE", 4L)).thenReturn(List.of());
 
         ClienteResponse response = service.obtenerConObras(4L);
 

@@ -32,6 +32,11 @@ public class ReportesController {
         return ResponseEntity.ok(reportesService.generarFlujoCaja(filtro));
     }
 
+    @PostMapping("/financieros/dashboard")
+    public ResponseEntity<DashboardFinancieroResponse> dashboardFinanciero(@RequestBody(required = false) ReportFilterRequest filtro) {
+        return ResponseEntity.ok(reportesService.generarDashboardFinanciero(filtro));
+    }
+
     @PostMapping("/financieros/pendientes")
     public ResponseEntity<PendientesResponse> pendientes(@RequestBody(required = false) ReportFilterRequest filtro) {
         return ResponseEntity.ok(reportesService.generarPendientes(filtro));

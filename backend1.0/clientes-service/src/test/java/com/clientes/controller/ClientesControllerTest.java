@@ -1,8 +1,10 @@
 package com.clientes.controller;
 
-import com.clientes.entity.Cliente;
+import com.clientes.dto.ClienteRequest;
+import com.clientes.dto.ClienteResponse;
 import com.clientes.entity.CondicionIva;
-import com.clientes.repository.ClienteRepository;
+import com.clientes.exception.ClienteNotFoundException;
+import com.clientes.service.ClienteService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,7 +14,6 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.util.List;
-import java.util.Optional;
 
 import static org.hamcrest.Matchers.hasItem;
 import static org.mockito.ArgumentMatchers.any;
@@ -30,19 +31,22 @@ class ClientesControllerTest {
     private ObjectMapper objectMapper;
 
     @MockBean
-    private ClienteRepository repo;
+    private ClienteService service;
 
     @Test
     void crear_ok() throws Exception {
-        Cliente cliente = new Cliente();
-        cliente.setId(1L);
-        cliente.setNombre("Cliente A");
-
-        when(repo.save(any(Cliente.class))).thenReturn(cliente);
+        ClienteRequest request = new ClienteRequest();
+        request.setNombre("Cliente A");
+        request.setCondicionIVA("MONOTRIBUTO");
+        ClienteResponse response = new ClienteResponse();
+        response.setId(1L);
+        response.setNombre("Cliente A");
+        response.setCondicionIVA("MONOTRIBUTO");
+        when(service.crear(any(ClienteRequest.class))).thenReturn(response);
 
         mockMvc.perform(post("/api/clientes")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(cliente)))
+                .content(objectMapper.writeValueAsString(request)))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.id").value(1L))
             .andExpect(jsonPath("$.nombre").value("Cliente A"));
@@ -50,9 +54,9 @@ class ClientesControllerTest {
 
     @Test
     void listar_ok() throws Exception {
-        Cliente c1 = new Cliente();
+        ClienteResponse c1 = new ClienteResponse();
         c1.setId(1L);
-        when(repo.findAll()).thenReturn(List.of(c1));
+        when(service.listar()).thenReturn(List.of(c1));
 
         mockMvc.perform(get("/api/clientes"))
             .andExpect(status().isOk())
@@ -61,9 +65,9 @@ class ClientesControllerTest {
 
     @Test
     void obtener_ok() throws Exception {
-        Cliente c1 = new Cliente();
+        ClienteResponse c1 = new ClienteResponse();
         c1.setId(2L);
-        when(repo.findById(2L)).thenReturn(Optional.of(c1));
+        when(service.obtenerConObras(2L)).thenReturn(c1);
 
         mockMvc.perform(get("/api/clientes/2"))
             .andExpect(status().isOk())
@@ -72,7 +76,7 @@ class ClientesControllerTest {
 
     @Test
     void obtener_no_encontrado() throws Exception {
-        when(repo.findById(99L)).thenReturn(Optional.empty());
+        when(service.obtenerConObras(99L)).thenThrow(new ClienteNotFoundException(99L));
 
         mockMvc.perform(get("/api/clientes/99"))
             .andExpect(status().isNotFound());
@@ -80,10 +84,13 @@ class ClientesControllerTest {
 
     @Test
     void actualizar_setea_id() throws Exception {
-        Cliente body = new Cliente();
+        ClienteRequest body = new ClienteRequest();
         body.setNombre("Cliente X");
-
-        when(repo.save(any(Cliente.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        body.setCondicionIVA("MONOTRIBUTO");
+        ClienteResponse response = new ClienteResponse();
+        response.setId(5L);
+        response.setNombre("Cliente X");
+        when(service.actualizar(eq(5L), any(ClienteRequest.class))).thenReturn(response);
 
         mockMvc.perform(put("/api/clientes/5")
                 .contentType(MediaType.APPLICATION_JSON)
@@ -92,7 +99,7 @@ class ClientesControllerTest {
             .andExpect(jsonPath("$.id").value(5L))
             .andExpect(jsonPath("$.nombre").value("Cliente X"));
 
-        verify(repo).save(any(Cliente.class));
+        verify(service).actualizar(eq(5L), any(ClienteRequest.class));
     }
 
     @Test
@@ -100,7 +107,7 @@ class ClientesControllerTest {
         mockMvc.perform(delete("/api/clientes/7"))
             .andExpect(status().isOk());
 
-        verify(repo).deleteById(7L);
+        verify(service).eliminar(7L);
     }
 
     @Test

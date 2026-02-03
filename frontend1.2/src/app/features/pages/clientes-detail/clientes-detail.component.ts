@@ -151,6 +151,10 @@ export class ClientesDetailComponent implements OnInit, OnDestroy {
   }
 
   getSaldoPendienteObra(obra: Obra): number {
+    const saldoDesdeApi = (obra as any)?.saldo_pendiente ?? (obra as any)?.saldoPendiente;
+    if (saldoDesdeApi != null && !Number.isNaN(Number(saldoDesdeApi))) {
+      return Math.max(0, Number(saldoDesdeApi));
+    }
     const id = Number(obra.id);
     if (!Number.isFinite(id)) {
       return Math.max(0, Number(obra.presupuesto ?? 0));
@@ -172,8 +176,11 @@ export class ClientesDetailComponent implements OnInit, OnDestroy {
         this.cliente = cliente;
         this.clienteStateService.setCliente(this.cliente);
 
-        // Filtrar obras del cliente
-        this.obras = obras.filter(o => o.cliente?.id === idCliente);
+        // Filtrar obras del cliente (fallback si no vienen en el DTO)
+        const obrasDto = (cliente as any)?.obras as Obra[] | undefined;
+        this.obras = (obrasDto && obrasDto.length)
+          ? obrasDto
+          : obras.filter(o => o.cliente?.id === idCliente);
 
         const mapaObras = new Map<number, string>(
           this.obras
@@ -213,9 +220,10 @@ export class ClientesDetailComponent implements OnInit, OnDestroy {
     this.obrasActivas = this.obras.length;
 
     // Total presupuestado
-    this.totalPresupuestado = this.obras.reduce((sum, obra) =>
-      sum + this.calcularPresupuestoObra(obra), 0
-    );
+    const totalDesdeApi = (this.cliente as any)?.totalCliente;
+    this.totalPresupuestado = Number.isFinite(Number(totalDesdeApi))
+      ? Number(totalDesdeApi)
+      : this.obras.reduce((sum, obra) => sum + this.calcularPresupuestoObra(obra), 0);
 
     
     const cobrosPorObra = new Map<number, number>();
@@ -232,8 +240,14 @@ export class ClientesDetailComponent implements OnInit, OnDestroy {
 
       return acc + monto;
     }, 0);
-    this.totalCobrosCliente = totalCobros;
-    this.saldoPendiente = Math.max(0, this.totalPresupuestado - totalCobros);
+    const cobrosDesdeApi = (this.cliente as any)?.cobrosRealizados;
+    this.totalCobrosCliente = Number.isFinite(Number(cobrosDesdeApi))
+      ? Number(cobrosDesdeApi)
+      : totalCobros;
+    const saldoDesdeApi = (this.cliente as any)?.saldoCliente;
+    this.saldoPendiente = Number.isFinite(Number(saldoDesdeApi))
+      ? Math.max(0, Number(saldoDesdeApi))
+      : Math.max(0, this.totalPresupuestado - this.totalCobrosCliente);
 
     this.saldoPendientePorObra = new Map<number, number>();
     for (const obra of this.obras) {
@@ -244,7 +258,11 @@ export class ClientesDetailComponent implements OnInit, OnDestroy {
 
       const presupuesto = this.calcularPresupuestoObra(obra);
       const cobros = cobrosPorObra.get(id) ?? 0;
-      this.saldoPendientePorObra.set(id, Math.max(0, presupuesto - cobros));
+      const saldoObraApi = (obra as any)?.saldo_pendiente ?? (obra as any)?.saldoPendiente;
+      const saldoObra = Number.isFinite(Number(saldoObraApi))
+        ? Math.max(0, Number(saldoObraApi))
+        : Math.max(0, presupuesto - cobros);
+      this.saldoPendientePorObra.set(id, saldoObra);
     }
 
   }

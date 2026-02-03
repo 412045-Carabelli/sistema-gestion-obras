@@ -23,4 +23,7 @@ public class ClienteResponse {
     private Instant ultimaActualizacion;
     private String tipoActualizacion;
     private List<ObraClienteResponse> obras;
+    private java.math.BigDecimal totalCliente;
+    private java.math.BigDecimal cobrosRealizados;
+    private java.math.BigDecimal saldoCliente;
 }

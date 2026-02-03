@@ -21,4 +21,7 @@ public class ProveedorDTO {
     private Instant creado_en;
     private Instant ultima_actualizacion;
     private String tipo_actualizacion;
+    private java.math.BigDecimal totalProveedor;
+    private java.math.BigDecimal pagosRealizados;
+    private java.math.BigDecimal saldoProveedor;
 }

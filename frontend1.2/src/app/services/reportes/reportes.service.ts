@@ -11,6 +11,7 @@ import {
   CuentaCorrienteProveedorResponse,
   CuentaCorrienteClienteResponse,
   ComisionesResponse,
+  DashboardFinancieroResponse,
   FlujoCajaResponse,
   IngresosEgresosResponse,
   NotasObraResponse,
@@ -46,6 +47,10 @@ export class ReportesService {
 
   getFlujoCaja(filtro?: ReportFilter): Observable<FlujoCajaResponse> {
     return this.http.post<FlujoCajaResponse>(`${this.apiUrl}/financieros/flujo-caja`, filtro ?? {});
+  }
+
+  getDashboardFinanciero(filtro?: ReportFilter): Observable<DashboardFinancieroResponse> {
+    return this.http.post<DashboardFinancieroResponse>(`${this.apiUrl}/financieros/dashboard`, filtro ?? {});
   }
 
   getPendientes(filtro?: ReportFilter): Observable<PendientesResponse> {
