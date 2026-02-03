@@ -34,6 +34,67 @@ public class ReportesService {
     private final ComisionRepository comisionRepository;
     private final MovimientoReporteRepository movimientoReporteRepository;
 
+    public DashboardFinancieroResponse generarDashboardFinanciero(ReportFilterRequest filtro) {
+        ReportFilterRequest filtros = filtroSeguro(filtro);
+        List<ObraExternalDto> obrasFiltradas = filtrarObrasConDeuda(filtros);
+        Map<Long, ObraExternalDto> obrasPorId = mapearPorId(obrasFiltradas, ObraExternalDto::getId);
+
+        List<TransaccionExternalDto> transacciones = filtrarTransacciones(filtros, obrasPorId);
+        transacciones = transacciones.stream()
+                .filter(tx -> Boolean.TRUE.equals(tx.getActivo()) || tx.getActivo() == null)
+                .filter(tx -> tx.getIdObra() != null && obrasPorId.containsKey(tx.getIdObra()))
+                .collect(Collectors.toList());
+
+        BigDecimal ingresos = sumarPorTipo(transacciones, "COBRO");
+        BigDecimal egresos = sumarPorTipo(transacciones, "PAGO");
+
+        BigDecimal totalPresupuesto = obrasFiltradas.stream()
+                .map(obra -> Optional.ofNullable(obra.getPresupuesto()).orElse(BigDecimal.ZERO))
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        BigDecimal totalCostos = BigDecimal.ZERO;
+        if (filtros.getClienteId() == null) {
+            for (ObraExternalDto obra : obrasFiltradas) {
+                List<ObraCostoExternalDto> costos = obrasClient.obtenerCostos(obra.getId());
+                for (ObraCostoExternalDto costo : costos) {
+                    if (Boolean.FALSE.equals(costo.getActivo())) continue;
+                    if (filtros.getProveedorId() != null
+                            && !Objects.equals(filtros.getProveedorId(), costo.getIdProveedor())) {
+                        continue;
+                    }
+                    totalCostos = totalCostos.add(costoBase(costo));
+                }
+            }
+        }
+
+        DashboardFinancieroResponse response = new DashboardFinancieroResponse();
+        response.getFlujo().setIngresos(ingresos);
+        response.getFlujo().setEgresos(egresos);
+        response.getFlujo().setSaldo(ingresos.subtract(egresos));
+
+        if (filtros.getProveedorId() != null) {
+            response.getCtaCte().setLoCobrado(BigDecimal.ZERO);
+            response.getCtaCte().setPorCobrar(BigDecimal.ZERO);
+            response.getCtaCte().setPagado(egresos);
+            response.getCtaCte().setPorPagar(saldoPositivo(totalCostos.subtract(egresos)));
+            return response;
+        }
+
+        if (filtros.getClienteId() != null) {
+            response.getCtaCte().setPagado(BigDecimal.ZERO);
+            response.getCtaCte().setPorPagar(BigDecimal.ZERO);
+            response.getCtaCte().setLoCobrado(ingresos);
+            response.getCtaCte().setPorCobrar(saldoPositivo(totalPresupuesto.subtract(ingresos)));
+            return response;
+        }
+
+        response.getCtaCte().setLoCobrado(ingresos);
+        response.getCtaCte().setPagado(egresos);
+        response.getCtaCte().setPorCobrar(saldoPositivo(totalPresupuesto.subtract(ingresos)));
+        response.getCtaCte().setPorPagar(saldoPositivo(totalCostos.subtract(egresos)));
+        return response;
+    }
+
     public IngresosEgresosResponse generarIngresosEgresos(ReportFilterRequest filtro) {
         ReportFilterRequest filtros = filtroSeguro(filtro);
 
@@ -844,6 +905,12 @@ public class ReportesService {
                 .collect(Collectors.toList());
     }
 
+    private List<ObraExternalDto> filtrarObrasConDeuda(ReportFilterRequest filtro) {
+        return filtrarObras(filtro).stream()
+                .filter(obra -> !estadoExcluido(obra.getObraEstado()))
+                .collect(Collectors.toList());
+    }
+
     private List<ObraExternalDto> filtrarObrasPorEstado(EstadoObraFilterRequest filtro) {
         return obrasClient.obtenerObras().stream()
                 .filter(obra -> !Boolean.FALSE.equals(obra.getActivo()))
@@ -926,6 +993,14 @@ public class ReportesService {
 
     private BigDecimal saldoPositivo(BigDecimal saldo) {
         return saldo.compareTo(BigDecimal.ZERO) < 0 ? BigDecimal.ZERO : saldo;
+    }
+
+    private boolean estadoExcluido(String estado) {
+        if (estado == null) return false;
+        String normalizado = estado.trim().toUpperCase();
+        return "PRESUPUESTADA".equals(normalizado)
+                || "PERDIDA".equals(normalizado)
+                || "COTIZADA".equals(normalizado);
     }
 
     private BigDecimal costoBase(ObraCostoExternalDto costo) {

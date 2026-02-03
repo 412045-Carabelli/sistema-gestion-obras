@@ -14,4 +14,5 @@ public interface ClienteService {
     List<String> listarCondicionesIva();
     void activar(Long id);
     void desactivar(Long id);
+    void eliminar(Long id);
 }

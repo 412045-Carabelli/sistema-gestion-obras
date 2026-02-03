@@ -7,7 +7,7 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { Toast } from 'primeng/toast';
 import { ProgressSpinnerModule } from 'primeng/progressspinner';
 import { Button } from 'primeng/button';
-import {FlujoCajaResponse, MovimientoDashboard, ResumenGeneralResponse, Tarea, Obra, Cliente, Proveedor, Transaccion, ObraCosto, ReportFilter} from '../../../core/models/models';
+import {FlujoCajaResponse, MovimientoDashboard, ResumenGeneralResponse, Tarea, Obra, Cliente, Proveedor, Transaccion, ObraCosto, ReportFilter, DashboardFinancieroResponse} from '../../../core/models/models';
 import {TareasService} from '../../../services/tareas/tareas.service';
 import {ReportesService} from '../../../services/reportes/reportes.service';
 import {TransaccionesService} from '../../../services/transacciones/transacciones.service';
@@ -60,6 +60,7 @@ export class DashboardComponent implements OnInit {
   // Datos principales
   resumenGeneral!: ResumenGeneralResponse;
   flujoCaja!: FlujoCajaResponse;
+  dashboardFinanciero: DashboardFinancieroResponse | null = null;
   tareasRecientes: Tarea[] = [];
   movimientosRecientes: MovimientoDashboard[] = [];
   obrasComparativo: Array<{ id: number; nombre: string; presupuesto: number; porcentaje: number }> = [];
@@ -199,13 +200,15 @@ export class DashboardComponent implements OnInit {
     forkJoin({
       resumen: this.reportesService.getResumenGeneral(),
       flujo: this.reportesService.getFlujoCaja(filtro),
+      dashboard: this.reportesService.getDashboardFinanciero(filtro),
       obras: this.obrasService.getObras(),
       proveedores: this.proveedoresService.getProveedoresAll(),
       clientes: this.clientesService.getClientes()
     }).subscribe({
-      next: ({ resumen, flujo, obras, proveedores, clientes }) => {
+      next: ({ resumen, flujo, dashboard, obras, proveedores, clientes }) => {
         this.resumenGeneral = resumen;
         this.flujoCaja = flujo;
+        this.dashboardFinanciero = dashboard;
         this.conteoObras = this.calcularConteosObras(obras);
         this.obras = obras || [];
         this.proveedores = proveedores || [];
@@ -810,6 +813,9 @@ export class DashboardComponent implements OnInit {
   }
 
   get saldoFlujoDashboard(): number {
+    if (this.dashboardFinanciero) {
+      return Number(this.dashboardFinanciero.flujo?.saldo ?? 0);
+    }
     return this.totalCobrosDashboard - this.totalPagosDashboard;
   }
 
@@ -867,8 +873,12 @@ export class DashboardComponent implements OnInit {
   }
 
   get dashboardCobrado(): number {
+    if (this.dashboardFinanciero) {
+      return Number(this.dashboardFinanciero.ctaCte?.loCobrado ?? 0);
+    }
     const obraSeleccionada = this.obtenerObraSeleccionada();
     if (obraSeleccionada?.id) {
+      if (!this.obraGeneraDeuda(obraSeleccionada)) return 0;
       return this.calcularTotalMovimientosDesdeLista(
         this.obtenerMovimientosPorObra(obraSeleccionada.id),
         ['INGRESO', 'COBRO']
@@ -879,6 +889,9 @@ export class DashboardComponent implements OnInit {
   }
 
   get dashboardPorCobrar(): number {
+    if (this.dashboardFinanciero) {
+      return Number(this.dashboardFinanciero.ctaCte?.porCobrar ?? 0);
+    }
     const obraSeleccionada = this.obtenerObraSeleccionada();
     if (obraSeleccionada?.id) {
       if (!this.obraGeneraDeuda(obraSeleccionada)) return 0;
@@ -895,8 +908,12 @@ export class DashboardComponent implements OnInit {
   }
 
   get dashboardPagado(): number {
+    if (this.dashboardFinanciero) {
+      return Number(this.dashboardFinanciero.ctaCte?.pagado ?? 0);
+    }
     const obraSeleccionada = this.obtenerObraSeleccionada();
     if (obraSeleccionada?.id) {
+      if (!this.obraGeneraDeuda(obraSeleccionada)) return 0;
       return this.calcularTotalMovimientosDesdeLista(
         this.obtenerMovimientosPorObra(obraSeleccionada.id),
         ['EGRESO', 'PAGO']
@@ -907,6 +924,9 @@ export class DashboardComponent implements OnInit {
   }
 
   get dashboardPorPagar(): number {
+    if (this.dashboardFinanciero) {
+      return Number(this.dashboardFinanciero.ctaCte?.porPagar ?? 0);
+    }
     const obraSeleccionada = this.obtenerObraSeleccionada();
     if (obraSeleccionada?.id) {
       if (!this.obraGeneraDeuda(obraSeleccionada)) return 0;
@@ -963,6 +983,14 @@ export class DashboardComponent implements OnInit {
     return (obra?.costos || []).reduce((sum, costo) => {
       return sum + this.obtenerSubtotalCosto(costo);
     }, 0);
+  }
+
+  private movimientoPerteneceObraConDeuda(mov: MovimientoDashboard): boolean {
+    const obraId = Number(mov?.obraId ?? 0);
+    if (!obraId) return true;
+    const obra = (this.obras || []).find(o => Number(o.id) === obraId);
+    if (!obra) return true;
+    return this.obraGeneraDeuda(obra);
   }
 
   private filtrarObrasConDeuda(obras: Obra[]): Obra[] {
@@ -1082,7 +1110,7 @@ export class DashboardComponent implements OnInit {
       );
     }
 
-    return movimientos;
+    return movimientos.filter(mov => this.movimientoPerteneceObraConDeuda(mov));
   }
 
   private estaEnRangoFecha(

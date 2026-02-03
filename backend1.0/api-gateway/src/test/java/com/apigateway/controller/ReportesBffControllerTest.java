@@ -22,6 +22,7 @@ class ReportesBffControllerTest {
         stub.stub(HttpMethod.POST, baseUrl + "/financieros/ingresos-egresos", HttpStatus.OK, Map.of("total", 1));
         stub.stub(HttpMethod.GET, baseUrl + "/financieros/estado-obra/1", HttpStatus.OK, Map.of("obraId", 1));
         stub.stub(HttpMethod.POST, baseUrl + "/financieros/flujo-caja", HttpStatus.OK, Map.of("total", 2));
+        stub.stub(HttpMethod.POST, baseUrl + "/financieros/dashboard", HttpStatus.OK, Map.of("total", 99));
         stub.stub(HttpMethod.POST, baseUrl + "/financieros/pendientes", HttpStatus.OK, Map.of("total", 3));
         stub.stub(HttpMethod.GET, baseUrl + "/cuenta-corriente/obra/1", HttpStatus.OK, Map.of("obraId", 1));
         stub.stub(HttpMethod.GET, baseUrl + "/cuenta-corriente/proveedor/10", HttpStatus.OK, Map.of("proveedorId", 10));
@@ -42,6 +43,7 @@ class ReportesBffControllerTest {
         ResponseEntity<Object> ingresos = controller.ingresosEgresos(Map.of()).block();
         ResponseEntity<Object> estado = controller.estadoFinanciero(1L).block();
         ResponseEntity<Object> flujo = controller.flujoCaja(Map.of()).block();
+        ResponseEntity<Object> dashboard = controller.dashboardFinanciero(Map.of()).block();
         ResponseEntity<Object> pendientes = controller.pendientes(Map.of()).block();
         ResponseEntity<Object> ctaObra = controller.cuentaCorrienteObra(Map.of("obraId", 1)).block();
         ResponseEntity<Object> ctaProv = controller.cuentaCorrienteProveedor(Map.of("proveedorId", 10)).block();
@@ -59,6 +61,7 @@ class ReportesBffControllerTest {
         assertThat(ingresos.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(estado.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(flujo.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(dashboard.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(pendientes.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(ctaObra.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(ctaProv.getStatusCode()).isEqualTo(HttpStatus.OK);

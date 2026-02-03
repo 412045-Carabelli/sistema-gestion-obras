@@ -158,12 +158,18 @@ export class ProveedoresDetailComponent implements OnInit, OnDestroy {
   }
 
   private calcularSaldoProveedor() {
-    this.totalCostos = this.costosProveedor.reduce((sum, c) => sum + this.getCostoBase(c), 0);
-    this.totalPagos = this.transacciones
+    const totalCalculado = this.costosProveedor.reduce((sum, c) => sum + this.getCostoBase(c), 0);
+    const pagosCalculados = this.transacciones
       .filter(t => this.esPago(t))
       .filter(t => this.movimientoPerteneceObraConDeuda(t))
       .reduce((sum, t) => sum + Number(t.monto || 0), 0);
-    this.saldoProveedor = this.totalCostos - this.totalPagos;
+    const totalApi = (this.proveedor as any)?.totalProveedor;
+    const pagosApi = (this.proveedor as any)?.pagosRealizados;
+    const saldoApi = (this.proveedor as any)?.saldoProveedor;
+    this.totalCostos = Number.isFinite(Number(totalApi)) ? Number(totalApi) : totalCalculado;
+    this.totalPagos = Number.isFinite(Number(pagosApi)) ? Number(pagosApi) : pagosCalculados;
+    const saldoCalculado = this.totalCostos - this.totalPagos;
+    this.saldoProveedor = Number.isFinite(Number(saldoApi)) ? Number(saldoApi) : saldoCalculado;
 
   }
 

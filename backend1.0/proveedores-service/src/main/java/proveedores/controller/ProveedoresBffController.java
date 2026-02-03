@@ -8,6 +8,7 @@ import proveedores.entity.Gremio;
 import proveedores.entity.Proveedor;
 import proveedores.entity.TipoProveedor;
 import proveedores.service.GremioService;
+import proveedores.service.ProveedorFinanzasService;
 import proveedores.service.ProveedorService;
 
 import java.util.List;
@@ -19,6 +20,7 @@ public class ProveedoresBffController {
 
     private final ProveedorService proveedorService;
     private final GremioService gremioService;
+    private final ProveedorFinanzasService finanzasService;
 
     // --- Proveedores ---
     @GetMapping("/proveedores")
@@ -32,7 +34,17 @@ public class ProveedoresBffController {
     @GetMapping("/proveedores/{id}")
     public ResponseEntity<ProveedorDTO> getProveedor(@PathVariable("id") Long id) {
         return proveedorService.findById(id)
-                .map(p -> ResponseEntity.ok(toDTO(p)))
+                .map(p -> {
+                    ProveedorDTO dto = toDTO(p);
+                    try {
+                        ProveedorFinanzasService.TotalesProveedor totales = finanzasService.calcularTotales(id);
+                        dto.setTotalProveedor(totales.totalProveedor());
+                        dto.setPagosRealizados(totales.pagosRealizados());
+                        dto.setSaldoProveedor(totales.saldoProveedor());
+                    } catch (Exception ignored) {
+                    }
+                    return ResponseEntity.ok(dto);
+                })
                 .orElse(ResponseEntity.notFound().build());
     }
 
