@@ -53,6 +53,13 @@ export class ReportesService {
     return this.http.post<DashboardFinancieroResponse>(`${this.apiUrl}/financieros/dashboard`, filtro ?? {});
   }
 
+  getDeudasGlobales(filtro?: ReportFilter): Observable<{ deudaClientes: number; deudaProveedores: number }> {
+    return this.http.post<{ deudaClientes: number; deudaProveedores: number }>(
+      `${this.apiUrl}/financieros/deudas-globales`,
+      filtro ?? {}
+    );
+  }
+
   getPendientes(filtro?: ReportFilter): Observable<PendientesResponse> {
     return this.http.post<PendientesResponse>(`${this.apiUrl}/financieros/pendientes`, filtro ?? {});
   }
@@ -89,8 +96,20 @@ export class ReportesService {
     return this.http.post<CuentaCorrienteObraResponse>(`${this.apiUrl}/financieros/cuenta-corriente-obra`, filtro ?? {});
   }
 
+  getCuentaCorrienteObraGlobal(filtro?: ReportFilter): Observable<CuentaCorrienteObraResponse> {
+    return this.http.post<CuentaCorrienteObraResponse>(`${this.apiUrl}/financieros/cuenta-corriente-obra-global`, filtro ?? {});
+  }
+
   getCuentaCorrienteProveedor(filtro?: ReportFilter): Observable<CuentaCorrienteProveedorResponse> {
     return this.http.post<CuentaCorrienteProveedorResponse>(`${this.apiUrl}/financieros/cuenta-corriente-proveedor`, filtro ?? {});
+  }
+
+  getCuentaCorrienteProveedorGlobal(filtro?: ReportFilter): Observable<CuentaCorrienteProveedorResponse> {
+    return this.http.post<CuentaCorrienteProveedorResponse>(`${this.apiUrl}/financieros/cuenta-corriente-proveedor-global`, filtro ?? {});
+  }
+
+  getCuentaCorrienteProveedores(): Observable<CuentaCorrienteProveedorResponse[]> {
+    return this.http.post<CuentaCorrienteProveedorResponse[]>(`${this.apiUrl}/financieros/cuenta-corriente-proveedores`, {});
   }
 
   getCuentaCorrienteCliente(filtro?: ReportFilter): Observable<CuentaCorrienteClienteResponse> {

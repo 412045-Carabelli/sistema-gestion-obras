@@ -88,7 +88,7 @@ export class ObrasListComponent implements OnInit {
       this.obras = obras;
 
       this.clientes = clientes.map(c => ({...c, id: Number(c.id)}));
-      this.estados = estados as any;
+      this.estados = this.ordenarEstadosObra(estados as any);
 
       this.obrasFiltradas = [...this.obras];
 
@@ -154,6 +154,28 @@ export class ObrasListComponent implements OnInit {
       return rec?.label || rec?.name || raw;
     }
     return raw.label || raw.nombre || '';
+  }
+
+  private ordenarEstadosObra(records: { label: string; name: string }[]): { label: string; name: string }[] {
+    const ordenDeseado = [
+      'PRESUPUESTADA',
+      'COTIZADA',
+      'PERDIDA',
+      'ADJUDICADA',
+      'EN_PROGRESO',
+      'FINALIZADA',
+      'FACTURADA'
+    ];
+    const index = new Map(ordenDeseado.map((estado, i) => [estado, i]));
+    const normalizar = (value?: string | null) =>
+      (value || '').toString().trim().toUpperCase().replace(/\s+/g, '_');
+
+    return [...(records || [])].sort((a, b) => {
+      const aKey = index.get(normalizar(a?.name || a?.label)) ?? 999;
+      const bKey = index.get(normalizar(b?.name || b?.label)) ?? 999;
+      if (aKey !== bKey) return aKey - bKey;
+      return (a?.label || '').localeCompare(b?.label || '');
+    });
   }
 
   onEstadoChange() {

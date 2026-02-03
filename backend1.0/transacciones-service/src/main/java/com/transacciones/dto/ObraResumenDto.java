@@ -8,4 +8,5 @@ import lombok.Setter;
 public class ObraResumenDto {
     private Long id;
     private Double presupuesto;
+    private String obra_estado;
 }

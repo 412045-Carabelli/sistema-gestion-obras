@@ -37,6 +37,26 @@ public class ReportesController {
         return ResponseEntity.ok(reportesService.generarDashboardFinanciero(filtro));
     }
 
+    @PostMapping("/financieros/deudas-globales")
+    public ResponseEntity<DeudasGlobalesResponse> deudasGlobales(@RequestBody(required = false) ReportFilterRequest filtro) {
+        return ResponseEntity.ok(reportesService.generarDeudasGlobales(filtro));
+    }
+
+    @PostMapping("/financieros/cuenta-corriente-obra-global")
+    public ResponseEntity<CuentaCorrienteObraResponse> cuentaCorrienteObraGlobal(@RequestBody(required = false) ReportFilterRequest filtro) {
+        return ResponseEntity.ok(reportesService.generarCuentaCorrienteObraGlobal(filtro));
+    }
+
+    @PostMapping("/financieros/cuenta-corriente-proveedor-global")
+    public ResponseEntity<CuentaCorrienteProveedorResponse> cuentaCorrienteProveedorGlobal(@RequestBody(required = false) ReportFilterRequest filtro) {
+        return ResponseEntity.ok(reportesService.generarCuentaCorrienteProveedorGlobal(filtro));
+    }
+
+    @PostMapping("/financieros/cuenta-corriente-cliente")
+    public ResponseEntity<CuentaCorrienteClienteResponse> cuentaCorrienteCliente(@RequestBody(required = false) ReportFilterRequest filtro) {
+        return ResponseEntity.ok(reportesService.generarCuentaCorrienteCliente(filtro));
+    }
+
     @PostMapping("/financieros/pendientes")
     public ResponseEntity<PendientesResponse> pendientes(@RequestBody(required = false) ReportFilterRequest filtro) {
         return ResponseEntity.ok(reportesService.generarPendientes(filtro));
@@ -75,6 +95,11 @@ public class ReportesController {
     @GetMapping("/cuenta-corriente/proveedor/{proveedorId}")
     public ResponseEntity<CuentaCorrienteProveedorResponse> cuentaCorrienteProveedor(@PathVariable("proveedorId") Long proveedorId) {
         return ResponseEntity.ok(reportesService.generarCuentaCorrientePorProveedor(proveedorId));
+    }
+
+    @GetMapping("/cuenta-corriente/proveedores")
+    public ResponseEntity<List<CuentaCorrienteProveedorResponse>> cuentaCorrienteProveedores() {
+        return ResponseEntity.ok(reportesService.generarCuentaCorrienteProveedores());
     }
 
     @GetMapping("/comisiones/obra/{obraId}")

@@ -1,0 +1,47 @@
+<app-proveedor-quick-modal
+  [visible]="visible"
+  [title]="title"
+  [tiposProveedor]="tiposProveedor"
+  [gremiosProveedor]="gremiosProveedor"
+  [model]="proveedorForm"
+  (closed)="cerrarModalProveedor()"
+  (confirmed)="guardarProveedor()"
+  (tipoChange)="onTipoProveedorChange($event)"
+  (gremioChange)="onGremioChange($event)"
+></app-proveedor-quick-modal>
+
+<app-modal
+  [visible]="showTipoProveedorModal"
+  [title]="'Nuevo tipo de proveedor'"
+  (closed)="cerrarModalTipoProveedor()"
+  (confirmed)="crearTipoProveedor()"
+>
+  <div class="p-3 space-y-3">
+    <label class="block text-sm font-medium mb-1 text-gray-700">Nombre del tipo</label>
+    <input
+      pInputText
+      type="text"
+      [(ngModel)]="nuevoTipoProveedorNombre"
+      class="w-full"
+      placeholder="Ej. Carpinteria"
+    />
+  </div>
+</app-modal>
+
+<app-modal
+  [visible]="showGremioProveedorModal"
+  [title]="'Nuevo gremio'"
+  (closed)="cerrarModalGremioProveedor()"
+  (confirmed)="crearGremioProveedor()"
+>
+  <div class="p-3 space-y-3">
+    <label class="block text-sm font-medium mb-1 text-gray-700">Nombre del gremio</label>
+    <input
+      pInputText
+      type="text"
+      [(ngModel)]="nuevoGremioProveedorNombre"
+      class="w-full"
+      placeholder="Ej. Electricidad"
+    />
+  </div>
+</app-modal>

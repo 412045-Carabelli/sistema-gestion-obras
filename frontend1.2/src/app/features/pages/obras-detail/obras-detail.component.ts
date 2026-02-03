@@ -223,7 +223,7 @@ export class ObrasDetailComponent implements OnInit, OnDestroy, AfterViewInit {
         this.obra = { ...obra, id: Number(obra.id) };
         this.tareas = obra.tareas ?? [];
         this.costos = obra.costos ?? [];
-        this.estadosObra = estados;
+        this.estadosObra = this.ordenarEstadosObra(estados);
 
         this.estadoSeleccionado = obra.obra_estado;
 
@@ -265,6 +265,21 @@ export class ObrasDetailComponent implements OnInit, OnDestroy, AfterViewInit {
     this.beneficioCostos = this.calcularBeneficioCostos(costosActualizados);
     this.beneficioNeto = this.calcularBeneficioNeto();
     this.obra.presupuesto = this.calcularPresupuestoDesdeCostos(costosActualizados);
+    this.obra.beneficio_costos = this.beneficioCostos;
+    this.obra.beneficio_neto = this.beneficioNeto;
+    this.obraStateService.setObra(this.obra);
+  }
+
+  onBeneficioGlobalActualizado(payload: { beneficio_global: boolean; beneficio: number }) {
+    if (!this.obra) return;
+    this.obra = {
+      ...this.obra,
+      beneficio_global: payload.beneficio_global,
+      beneficio: payload.beneficio
+    };
+    this.beneficioCostos = this.calcularBeneficioCostos(this.costos ?? []);
+    this.beneficioNeto = this.calcularBeneficioNeto();
+    this.obra.presupuesto = this.calcularPresupuestoDesdeCostos(this.costos ?? []);
     this.obra.beneficio_costos = this.beneficioCostos;
     this.obra.beneficio_neto = this.beneficioNeto;
     this.obraStateService.setObra(this.obra);
@@ -725,6 +740,28 @@ export class ObrasDetailComponent implements OnInit, OnDestroy, AfterViewInit {
     });
   }
 
+  private ordenarEstadosObra(records: { label: string; name: string }[]): { label: string; name: string }[] {
+    const ordenDeseado = [
+      'PRESUPUESTADA',
+      'COTIZADA',
+      'PERDIDA',
+      'ADJUDICADA',
+      'EN_PROGRESO',
+      'FINALIZADA',
+      'FACTURADA'
+    ];
+    const index = new Map(ordenDeseado.map((estado, i) => [estado, i]));
+    const normalizar = (value?: string | null) =>
+      (value || '').toString().trim().toUpperCase().replace(/\s+/g, '_');
+
+    return [...(records || [])].sort((a, b) => {
+      const aKey = index.get(normalizar(a?.name || a?.label)) ?? 999;
+      const bKey = index.get(normalizar(b?.name || b?.label)) ?? 999;
+      if (aKey !== bKey) return aKey - bKey;
+      return (a?.label || '').localeCompare(b?.label || '');
+    });
+  }
+
   private parseDate(value?: string | Date | null): Date | null {
     if (!value) return null;
     if (value instanceof Date) return value;
@@ -1147,7 +1184,8 @@ export class ObrasDetailComponent implements OnInit, OnDestroy, AfterViewInit {
     return null;
   }
 
-  private costoTieneProveedor(costo: ObraCosto): boolean {
+  private costoTieneProveedor(costo?: ObraCosto | null): boolean {
+    if (!costo) return false;
     const id = Number((costo as any)?.id_proveedor ?? (costo as any)?.proveedor?.id ?? 0);
     return id > 0;
   }

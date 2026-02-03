@@ -115,19 +115,18 @@ export class ProveedoresListComponent implements OnInit {
       return;
     }
 
-    const requests = this.proveedores.map(proveedor =>
-      this.reportesService.getCuentaCorrienteProveedor({proveedorId: proveedor.id}).pipe(
-        map(response => {
-          const saldo = (response as any)?.saldoFinal ?? (response as any)?.saldo ?? 0;
-          return {id: proveedor.id, saldo};
-        }),
-        catchError(() => of({id: proveedor.id, saldo: 0}))
-      )
-    );
-
-    forkJoin(requests).subscribe(results => {
+    this.reportesService.getCuentaCorrienteProveedores().pipe(
+      map((results) => (results || []).map(item => {
+        const id = Number((item as any)?.proveedorId ?? (item as any)?.id ?? 0);
+        const saldo = (item as any)?.saldoFinal ?? (item as any)?.saldo ?? 0;
+        return {id, saldo};
+      })),
+      catchError(() => of([]))
+    ).subscribe(results => {
       this.saldosProveedor = results.reduce((acc, item) => {
-        acc[item.id] = item.saldo;
+        if (item.id) {
+          acc[item.id] = item.saldo;
+        }
         return acc;
       }, {} as Record<number, number>);
     });

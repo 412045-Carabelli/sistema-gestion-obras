@@ -186,14 +186,8 @@ export class ProveedoresDetailComponent implements OnInit, OnDestroy {
     const estado = this.normalizarEstadoObra(obra?.obra_estado);
     return new Set([
       'ADJUDICADA',
-      'ADJUDICADO',
-      'INICIADA',
-      'INICIADO',
       'EN_PROGRESO',
-      'FINALIZADA',
-      'FINALIZADO',
-      'FACTURADA',
-      'FACTURADO'
+      'FINALIZADA'
     ]).has(estado);
   }
 

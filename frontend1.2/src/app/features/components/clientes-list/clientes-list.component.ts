@@ -1,5 +1,5 @@
 import {Component, EventEmitter, Input, OnInit, Output} from '@angular/core';
-import {CommonModule} from '@angular/common';
+import {CommonModule, CurrencyPipe} from '@angular/common';
 import {Router} from '@angular/router';
 import {FormsModule} from '@angular/forms';
 import {TableModule} from 'primeng/table';
@@ -20,6 +20,7 @@ import {ClientesService} from '../../../services/clientes/clientes.service';
   standalone: true,
   imports: [
     CommonModule,
+    CurrencyPipe,
     FormsModule,
     TableModule,
     InputTextModule,

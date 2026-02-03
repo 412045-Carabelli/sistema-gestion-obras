@@ -251,106 +251,143 @@
         </div>
       </div>
     }
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-      <div class="bg-white rounded-xl shadow-md p-6">
-        <div class="flex items-center justify-between mb-5 pb-3 border-b border-gray-200">
-          <h2 class="text-lg font-semibold text-gray-900 flex items-center gap-2">
-            <i class="pi pi-chart-bar text-indigo-600"></i>
-            Comparativo de obras
-          </h2>
-          <span class="text-xs text-gray-500">Top 5 por presupuesto</span>
-        </div>
-
-        @if (obrasComparativo.length > 0) {
-          <div class="space-y-4">
-            @for (obra of obrasComparativo; track obra.id) {
-              <div class="flex items-center gap-3">
-                <div class="w-36 text-xs text-gray-600 truncate">{{ obra.nombre }}</div>
-                <div class="flex-1">
-                  <div class="h-3 bg-gray-100 rounded-full overflow-hidden">
-                    <div
-                      class="h-3 bg-gradient-to-r from-indigo-500 to-blue-500 rounded-full"
-                      [style.width.%]="obra.porcentaje"
-                    ></div>
-                  </div>
-                </div>
-                <div class="text-xs font-semibold text-gray-700 w-28 text-right">
-                  {{ obra.presupuesto | currency:'ARS':'symbol-narrow':'1.0-0' }}
-                </div>
-              </div>
-            }
-          </div>
-        } @else {
-          <div class="text-center py-8 text-gray-400">
-            <i class="pi pi-inbox text-4xl mb-2"></i>
-            <p class="text-sm">No hay obras para comparar</p>
-          </div>
-        }
+    <div class="bg-white rounded-xl shadow-md p-6">
+      <div class="flex items-center justify-between mb-5 pb-3 border-b border-gray-200">
+        <h2 class="text-lg font-semibold text-gray-900 flex items-center gap-2">
+          <i class="pi pi-briefcase text-indigo-600"></i>
+          Reporte de cuentas por cobrar y pagar
+        </h2>
+        <span class="text-xs text-gray-500">Detalle por cliente y proveedor</span>
       </div>
-      <div class="bg-white rounded-xl shadow-md p-6">
-        <div class="flex items-center justify-between mb-5 pb-3 border-b border-gray-200">
-          <h2 class="text-lg font-semibold text-gray-900 flex items-center gap-2">
-            <i class="pi pi-chart-line text-indigo-600"></i>
-            Flujo de dinero
-          </h2>
-          <span class="text-xs text-gray-500">Ingresos vs egresos</span>
+
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div class="border border-gray-200 rounded-lg overflow-hidden">
+          <div class="px-4 py-3 bg-green-50 border-b border-green-200">
+            <p class="text-sm font-semibold text-green-800">A cobrar</p>
+          </div>
+          <div class="overflow-x-auto max-h-64 overflow-y-auto">
+            <table class="w-full text-sm">
+              <thead class="bg-gray-50 text-gray-600">
+                <tr>
+                  <th class="text-left px-3 py-2">Cliente</th>
+                  <th class="text-right px-3 py-2">Total</th>
+                  <th class="text-right px-3 py-2">Cobrado</th>
+                  <th class="text-right px-3 py-2">Saldo</th>
+                </tr>
+              </thead>
+              <tbody>
+                @if (reporteDebeCobrar.length > 0) {
+                  @for (item of reporteDebeCobrar; track item.id) {
+                    <tr class="border-t border-gray-100">
+                      <td class="px-3 py-2">{{ item.nombre }}</td>
+                      <td class="px-3 py-2 text-right">{{ item.total | currency:'ARS':'symbol-narrow':'1.0-0' }}</td>
+                      <td class="px-3 py-2 text-right">{{ item.cobrado | currency:'ARS':'symbol-narrow':'1.0-0' }}</td>
+                      <td class="px-3 py-2 text-right font-semibold">{{ item.saldo | currency:'ARS':'symbol-narrow':'1.0-0' }}</td>
+                    </tr>
+                  }
+                } @else {
+                  <tr>
+                    <td class="px-3 py-4 text-center text-gray-500" colspan="4">Sin pendientes de cobro</td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
         </div>
 
-        <div class="grid grid-cols-3 gap-3 mb-5">
-          <div class="text-xs text-gray-500">
-            Ingresos
-            <div class="text-sm font-semibold text-green-600">
-              {{ totalCobrosDashboard | currency:'ARS':'symbol-narrow':'1.0-0' }}
-            </div>
+        <div class="border border-gray-200 rounded-lg overflow-hidden">
+          <div class="px-4 py-3 bg-red-50 border-b border-red-200">
+            <p class="text-sm font-semibold text-red-800">Por pagar</p>
           </div>
-          <div class="text-xs text-gray-500">
-            Egresos
-            <div class="text-sm font-semibold text-red-600">
-              {{ totalPagosDashboard | currency:'ARS':'symbol-narrow':'1.0-0' }}
-            </div>
-          </div>
-          <div class="text-xs text-gray-500">
-            Saldo
-            <div class="text-sm font-semibold" [ngClass]="saldoFlujoDashboard >= 0 ? 'text-indigo-600' : 'text-red-600'">
-              {{ saldoFlujoDashboard | currency:'ARS':'symbol-narrow':'1.0-0' }}
-            </div>
+          <div class="overflow-x-auto max-h-64 overflow-y-auto">
+            <table class="w-full text-sm">
+              <thead class="bg-gray-50 text-gray-600">
+                <tr>
+                  <th class="text-left px-3 py-2">Proveedor</th>
+                  <th class="text-right px-3 py-2">Total</th>
+                  <th class="text-right px-3 py-2">Pagado</th>
+                  <th class="text-right px-3 py-2">Saldo</th>
+                </tr>
+              </thead>
+              <tbody>
+                @if (reporteDebePagar.length > 0) {
+                  @for (item of reporteDebePagar; track item.id) {
+                    <tr class="border-t border-gray-100">
+                      <td class="px-3 py-2">{{ item.nombre }}</td>
+                      <td class="px-3 py-2 text-right">{{ item.total | currency:'ARS':'symbol-narrow':'1.0-0' }}</td>
+                      <td class="px-3 py-2 text-right">{{ item.pagado | currency:'ARS':'symbol-narrow':'1.0-0' }}</td>
+                      <td class="px-3 py-2 text-right font-semibold">{{ item.saldo | currency:'ARS':'symbol-narrow':'1.0-0' }}</td>
+                    </tr>
+                  }
+                } @else {
+                  <tr>
+                    <td class="px-3 py-4 text-center text-gray-500" colspan="4">Sin pendientes de pago</td>
+                  </tr>
+                }
+              </tbody>
+            </table>
           </div>
         </div>
 
-        @if (flujoDineroSerie.length > 0) {
-          <div class="flex items-end gap-3 h-40 overflow-x-auto">
-            @for (item of flujoDineroSerie; track item.fecha) {
-              <div class="flex flex-col items-center min-w-[44px]">
-                <div class="flex items-end gap-1 h-28">
-                  <div
-                    class="w-2 bg-green-500 rounded-t"
-                    [style.height.%]="flujoDineroMax ? (item.ingresos / flujoDineroMax) * 100 : 0"
-                  ></div>
-                  <div
-                    class="w-2 bg-red-500 rounded-t"
-                    [style.height.%]="flujoDineroMax ? (item.egresos / flujoDineroMax) * 100 : 0"
-                  ></div>
-                </div>
-                <span class="text-[10px] text-gray-500 mt-2">{{ item.fecha | date:'dd/MM' }}</span>
-              </div>
-            }
+        <div class="border border-gray-200 rounded-lg overflow-hidden">
+          <div class="px-4 py-3 bg-emerald-50 border-b border-emerald-200">
+            <p class="text-sm font-semibold text-emerald-800">Cobrado</p>
           </div>
-          <div class="flex items-center gap-4 mt-4 text-xs text-gray-500">
-            <div class="flex items-center gap-2">
-              <span class="w-3 h-3 bg-green-500 rounded-sm"></span>
-              Ingresos
-            </div>
-            <div class="flex items-center gap-2">
-              <span class="w-3 h-3 bg-red-500 rounded-sm"></span>
-              Egresos
-            </div>
+          <div class="overflow-x-auto max-h-64 overflow-y-auto">
+            <table class="w-full text-sm">
+              <thead class="bg-gray-50 text-gray-600">
+                <tr>
+                  <th class="text-left px-3 py-2">Cliente</th>
+                  <th class="text-right px-3 py-2">Cobrado</th>
+                </tr>
+              </thead>
+              <tbody>
+                @if (reporteCobre.length > 0) {
+                  @for (item of reporteCobre; track item.id) {
+                    <tr class="border-t border-gray-100">
+                      <td class="px-3 py-2">{{ item.nombre }}</td>
+                      <td class="px-3 py-2 text-right font-semibold">{{ item.cobrado | currency:'ARS':'symbol-narrow':'1.0-0' }}</td>
+                    </tr>
+                  }
+                } @else {
+                  <tr>
+                    <td class="px-3 py-4 text-center text-gray-500" colspan="2">Sin cobros registrados</td>
+                  </tr>
+                }
+              </tbody>
+            </table>
           </div>
-        } @else {
-          <div class="text-center py-8 text-gray-400">
-            <i class="pi pi-inbox text-4xl mb-2"></i>
-            <p class="text-sm">No hay movimientos para graficar</p>
+        </div>
+
+        <div class="border border-gray-200 rounded-lg overflow-hidden">
+          <div class="px-4 py-3 bg-amber-50 border-b border-amber-200">
+            <p class="text-sm font-semibold text-amber-800">Pagado</p>
           </div>
-        }
+          <div class="overflow-x-auto max-h-64 overflow-y-auto">
+            <table class="w-full text-sm">
+              <thead class="bg-gray-50 text-gray-600">
+                <tr>
+                  <th class="text-left px-3 py-2">Proveedor</th>
+                  <th class="text-right px-3 py-2">Pagado</th>
+                </tr>
+              </thead>
+              <tbody>
+                @if (reportePague.length > 0) {
+                  @for (item of reportePague; track item.id) {
+                    <tr class="border-t border-gray-100">
+                      <td class="px-3 py-2">{{ item.nombre }}</td>
+                      <td class="px-3 py-2 text-right font-semibold">{{ item.pagado | currency:'ARS':'symbol-narrow':'1.0-0' }}</td>
+                    </tr>
+                  }
+                } @else {
+                  <tr>
+                    <td class="px-3 py-4 text-center text-gray-500" colspan="2">Sin pagos registrados</td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        </div>
       </div>
     </div>
 <!-- ===================== TAREAS Y MOVIMIENTOS RECIENTES ===================== -->

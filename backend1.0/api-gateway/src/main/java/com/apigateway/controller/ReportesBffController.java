@@ -46,6 +46,26 @@ public class ReportesBffController {
         return proxyPost("/financieros/dashboard", filtro, new ParameterizedTypeReference<>() {});
     }
 
+    @PostMapping("/financieros/deudas-globales")
+    public Mono<ResponseEntity<Object>> deudasGlobales(@RequestBody(required = false) Object filtro) {
+        return proxyPost("/financieros/deudas-globales", filtro, new ParameterizedTypeReference<>() {});
+    }
+
+    @PostMapping("/financieros/cuenta-corriente-obra-global")
+    public Mono<ResponseEntity<Object>> cuentaCorrienteObraGlobal(@RequestBody(required = false) Object filtro) {
+        return proxyPost("/financieros/cuenta-corriente-obra-global", filtro, new ParameterizedTypeReference<>() {});
+    }
+
+    @PostMapping("/financieros/cuenta-corriente-proveedor-global")
+    public Mono<ResponseEntity<Object>> cuentaCorrienteProveedorGlobal(@RequestBody(required = false) Object filtro) {
+        return proxyPost("/financieros/cuenta-corriente-proveedor-global", filtro, new ParameterizedTypeReference<>() {});
+    }
+
+    @PostMapping("/financieros/cuenta-corriente-cliente")
+    public Mono<ResponseEntity<Object>> cuentaCorrienteCliente(@RequestBody(required = false) Object filtro) {
+        return proxyPost("/financieros/cuenta-corriente-cliente", filtro, new ParameterizedTypeReference<>() {});
+    }
+
     @PostMapping("/financieros/pendientes")
     public Mono<ResponseEntity<Object>> pendientes(@RequestBody(required = false) Object filtro) {
         return proxyPost("/financieros/pendientes", filtro, new ParameterizedTypeReference<>() {});
@@ -67,6 +87,11 @@ public class ReportesBffController {
             return Mono.just(ResponseEntity.badRequest().body("proveedorId es requerido"));
         }
         return proxyGet("/cuenta-corriente/proveedor/" + proveedorId, new ParameterizedTypeReference<>() {});
+    }
+
+    @PostMapping("/financieros/cuenta-corriente-proveedores")
+    public Mono<ResponseEntity<Object>> cuentaCorrienteProveedores(@RequestBody(required = false) Object filtro) {
+        return proxyGet("/cuenta-corriente/proveedores", new ParameterizedTypeReference<>() {});
     }
 
     @PostMapping("/financieros/comisiones")

@@ -198,7 +198,7 @@ export class ObrasEditComponent implements OnInit {
     }).subscribe({
       next: ({clientes, estados, proveedores, obra}) => {
         this.clientes = clientes.map(c => ({...c, id: Number(c.id)}));
-        this.estadosRecords = estados as any;
+        this.estadosRecords = this.ordenarEstadosObra(estados as any);
         this.proveedores = proveedores;
         this.obra = {...obra, costos: obra.costos ?? []} as Obra;
         this.inicializarFormulario();
@@ -493,6 +493,28 @@ export class ObrasEditComponent implements OnInit {
           total: [{value: costo.total ?? (costo.cantidad * costo.precio_unitario) ?? 0, disabled: true}],
         })
       );
+    });
+  }
+
+  private ordenarEstadosObra(records: { label: string; name: string }[]): { label: string; name: string }[] {
+    const ordenDeseado = [
+      'PRESUPUESTADA',
+      'COTIZADA',
+      'PERDIDA',
+      'ADJUDICADA',
+      'EN_PROGRESO',
+      'FINALIZADA',
+      'FACTURADA'
+    ];
+    const index = new Map(ordenDeseado.map((estado, i) => [estado, i]));
+    const normalizar = (value?: string | null) =>
+      (value || '').toString().trim().toUpperCase().replace(/\s+/g, '_');
+
+    return [...(records || [])].sort((a, b) => {
+      const aKey = index.get(normalizar(a?.name || a?.label)) ?? 999;
+      const bKey = index.get(normalizar(b?.name || b?.label)) ?? 999;
+      if (aKey !== bKey) return aKey - bKey;
+      return (a?.label || '').localeCompare(b?.label || '');
     });
   }
 }

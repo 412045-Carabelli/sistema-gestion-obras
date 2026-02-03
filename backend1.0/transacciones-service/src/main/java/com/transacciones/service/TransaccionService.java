@@ -1,5 +1,6 @@
 package com.transacciones.service;
 
+import com.transacciones.dto.ObraCostoDto;
 import com.transacciones.dto.ObraResumenDto;
 import com.transacciones.dto.TransaccionDto;
 import com.transacciones.entity.Transaccion;
@@ -182,15 +183,29 @@ public class TransaccionService {
         if (dto.getIdObra() == null) return;
 
         String tipoAsociado = dto.getTipoAsociado() == null ? "" : dto.getTipoAsociado().toUpperCase();
-        if (!"CLIENTE".equals(tipoAsociado)) return;
-        if (dto.getTipo_transaccion() != TipoTransaccionEnum.COBRO) return;
+        String formaPago = dto.getForma_pago() == null ? "" : dto.getForma_pago().toUpperCase();
+        if (!"TOTAL".equals(formaPago) && !"PARCIAL".equals(formaPago)) {
+            throw new IllegalArgumentException("Debe especificarse la condicion de pago (TOTAL o PARCIAL)");
+        }
+
+        if ("CLIENTE".equals(tipoAsociado) && dto.getTipo_transaccion() == TipoTransaccionEnum.COBRO) {
+            validarMontoCobroCliente(dto, existente, formaPago);
+            return;
+        }
+
+        if ("PROVEEDOR".equals(tipoAsociado) && dto.getTipo_transaccion() == TipoTransaccionEnum.PAGO) {
+            validarMontoPagoProveedor(dto, existente, formaPago);
+        }
+    }
+
+    private void validarMontoCobroCliente(Transaccion dto, Transaccion existente, String formaPago) {
 
         ObraResumenDto obra = obraCostoClient.obtenerObra(dto.getIdObra());
         if (obra == null || obra.getPresupuesto() == null) {
             throw new IllegalArgumentException("Presupuesto de la obra no encontrado para validar el cobro");
         }
+        validarEstadoObra(obra);
 
-        String formaPago = dto.getForma_pago() == null ? "" : dto.getForma_pago().toUpperCase();
         double monto = dto.getMonto() != null ? dto.getMonto() : 0;
         double presupuesto = obra.getPresupuesto();
         double cobrosPrevios = Optional.ofNullable(transaccionRepository.sumarCobrosPorObra(dto.getIdObra()))
@@ -204,12 +219,79 @@ public class TransaccionService {
         }
         double totalDespues = cobrosPrevios + monto;
         double diferencia = Math.abs(totalDespues - presupuesto);
+        double restante = Math.max(0d, presupuesto - cobrosPrevios);
 
+        if (monto - restante > 0.01) {
+            throw new IllegalArgumentException("El monto no puede superar el restante de la obra");
+        }
         if ("TOTAL".equals(formaPago) && diferencia >= 0.01) {
             throw new IllegalArgumentException("Para cobro total, el monto debe completar el presupuesto total de la obra");
         }
         if ("PARCIAL".equals(formaPago) && totalDespues >= presupuesto) {
             throw new IllegalArgumentException("Para cobro parcial, el monto no debe completar el presupuesto total de la obra");
+        }
+    }
+
+    private void validarMontoPagoProveedor(Transaccion dto, Transaccion existente, String formaPago) {
+        if (dto.getIdAsociado() == null) return;
+
+        ObraResumenDto obra = obraCostoClient.obtenerObra(dto.getIdObra());
+        if (obra == null) {
+            throw new IllegalArgumentException("Obra no encontrada para validar el pago");
+        }
+        validarEstadoObra(obra);
+
+        List<ObraCostoDto> costos = obraCostoClient.obtenerCostos(dto.getIdObra());
+        double totalProveedor = costos.stream()
+                .filter(c -> c != null && c.getId_proveedor() != null)
+                .filter(c -> c.getId_proveedor().equals(dto.getIdAsociado()))
+                .mapToDouble(this::getMontoBaseCosto)
+                .sum();
+
+        double pagosPrevios = transaccionRepository
+                .findByIdObraAndTipoAsociadoAndIdAsociado(dto.getIdObra(), "PROVEEDOR", dto.getIdAsociado())
+                .stream()
+                .filter(t -> t.getTipo_transaccion() == TipoTransaccionEnum.PAGO)
+                .mapToDouble(t -> Optional.ofNullable(t.getMonto()).orElse(0d))
+                .sum();
+
+        if (existente != null
+                && existente.getIdObra() != null
+                && existente.getIdObra().equals(dto.getIdObra())
+                && existente.getTipo_transaccion() == TipoTransaccionEnum.PAGO
+                && "PROVEEDOR".equalsIgnoreCase(existente.getTipoAsociado())
+                && existente.getIdAsociado() != null
+                && existente.getIdAsociado().equals(dto.getIdAsociado())) {
+            pagosPrevios -= Optional.ofNullable(existente.getMonto()).orElse(0d);
+        }
+
+        double restante = Math.max(0d, totalProveedor - pagosPrevios);
+        double monto = dto.getMonto() != null ? dto.getMonto() : 0d;
+        double diferencia = Math.abs(monto - restante);
+
+        if (monto - restante > 0.01) {
+            throw new IllegalArgumentException("El monto no puede superar el saldo del proveedor");
+        }
+        if ("TOTAL".equals(formaPago) && diferencia >= 0.01) {
+            throw new IllegalArgumentException("Para pago total, el monto debe completar el saldo del proveedor");
+        }
+        if ("PARCIAL".equals(formaPago) && monto >= restante) {
+            throw new IllegalArgumentException("Para pago parcial, el monto debe ser menor al saldo del proveedor");
+        }
+    }
+
+    private double getMontoBaseCosto(ObraCostoDto costo) {
+        if (costo == null) return 0d;
+        if (costo.getSubtotal() != null) return costo.getSubtotal();
+        double cantidad = costo.getCantidad() != null ? costo.getCantidad() : 0d;
+        double precio = costo.getPrecio_unitario() != null ? costo.getPrecio_unitario() : 0d;
+        return cantidad * precio;
+    }
+
+    private void validarEstadoObra(ObraResumenDto obra) {
+        String estado = obra.getObra_estado() == null ? "" : obra.getObra_estado().trim().toUpperCase().replaceAll("\\s+", "_");
+        if (!"ADJUDICADA".equals(estado) && !"EN_PROGRESO".equals(estado) && !"FINALIZADA".equals(estado)) {
+            throw new IllegalArgumentException("La obra debe estar Adjudicada, En progreso o Finalizada para registrar movimientos");
         }
     }
 }

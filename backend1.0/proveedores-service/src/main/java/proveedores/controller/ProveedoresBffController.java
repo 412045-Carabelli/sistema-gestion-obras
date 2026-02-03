@@ -11,6 +11,7 @@ import proveedores.service.GremioService;
 import proveedores.service.ProveedorFinanzasService;
 import proveedores.service.ProveedorService;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 @RestController
@@ -26,7 +27,7 @@ public class ProveedoresBffController {
     @GetMapping("/proveedores")
     public ResponseEntity<List<ProveedorDTO>> getProveedores() {
         List<ProveedorDTO> dtos = proveedorService.findAllActivos().stream()
-                .map(this::toDTO)
+                .map(this::toDTOConTotales)
                 .toList();
         return ResponseEntity.ok(dtos);
     }
@@ -122,6 +123,21 @@ public class ProveedoresBffController {
         if (entity.getGremio() != null) {
             dto.setGremio_id(entity.getGremio().getId());
             dto.setGremio_nombre(entity.getGremio().getNombre());
+        }
+        return dto;
+    }
+
+    private ProveedorDTO toDTOConTotales(Proveedor entity) {
+        ProveedorDTO dto = toDTO(entity);
+        try {
+            ProveedorFinanzasService.TotalesProveedor totales = finanzasService.calcularTotales(entity.getId());
+            dto.setTotalProveedor(totales.totalProveedor());
+            dto.setPagosRealizados(totales.pagosRealizados());
+            dto.setSaldoProveedor(totales.saldoProveedor());
+        } catch (Exception ex) {
+            dto.setTotalProveedor(BigDecimal.ZERO);
+            dto.setPagosRealizados(BigDecimal.ZERO);
+            dto.setSaldoProveedor(BigDecimal.ZERO);
         }
         return dto;
     }

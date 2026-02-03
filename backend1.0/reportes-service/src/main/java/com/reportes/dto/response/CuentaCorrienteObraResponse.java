@@ -23,6 +23,8 @@ public class CuentaCorrienteObraResponse {
         private String tipo;
         private BigDecimal monto = BigDecimal.ZERO;
         private String referencia;
+        private Long obraId;
+        private String obraNombre;
         private String asociadoTipo;
         private Long asociadoId;
         private BigDecimal cobrosAcumulados = BigDecimal.ZERO;
