@@ -77,6 +77,10 @@ public class ObraServiceImpl implements ObraService {
         Obra existing = obraRepo.findById(id)
                 .orElseThrow(() -> new RuntimeException("Obra no encontrada: " + id));
 
+        if (estadoRestringeBeneficio(existing.getEstadoObra()) && cambioBeneficioGlobal(dto, existing)) {
+            throw new IllegalArgumentException("No se puede modificar el beneficio global en obras adjudicadas, en progreso o finalizadas.");
+        }
+
         existing.setNombre(dto.getNombre());
         existing.setDireccion(dto.getDireccion());
         existing.setFechaInicio(dto.getFecha_inicio());
@@ -322,6 +326,31 @@ public class ObraServiceImpl implements ObraService {
         }
 
         throw new RuntimeException("Valor de estado de obra no soportado: " + estado);
+    }
+
+    private boolean estadoRestringeBeneficio(EstadoObraEnum estado) {
+        return estado == EstadoObraEnum.ADJUDICADA
+                || estado == EstadoObraEnum.EN_PROGRESO
+                || estado == EstadoObraEnum.FINALIZADA;
+    }
+
+    private boolean cambioBeneficioGlobal(ObraDTO dto, Obra existing) {
+        if (dto == null || existing == null) return false;
+
+        Boolean nuevoBeneficioGlobal = dto.getBeneficio_global();
+        boolean cambiaFlag = nuevoBeneficioGlobal != null
+                && !nuevoBeneficioGlobal.equals(Boolean.TRUE.equals(existing.getBeneficioGlobal()));
+
+        boolean cambiaBeneficio = false;
+        if (dto.getBeneficio() != null) {
+            if (existing.getBeneficio() == null) {
+                cambiaBeneficio = true;
+            } else {
+                cambiaBeneficio = dto.getBeneficio().compareTo(existing.getBeneficio()) != 0;
+            }
+        }
+
+        return cambiaFlag || cambiaBeneficio;
     }
     private TotalesObra calcularTotalesObra(Obra obra) {
         if (obra == null || obra.getId() == null) {

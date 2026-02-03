@@ -299,6 +299,7 @@
                 [tieneComision]="obra.tiene_comision ?? false"
                 [comision]="obra.comision ?? 0"
                 (costosActualizados)="onCostosActualizados($event)"
+                (beneficioGlobalActualizado)="onBeneficioGlobalActualizado($event)"
                 (movimientoCreado)="refrescarMovimientos()">
               </app-obra-presupuesto>
             </p-tabpanel>
@@ -310,6 +311,7 @@
                 [proveedores]="proveedores"
                 [obraId]="obra.id!"
                 [obraNombre]="obra.nombre"
+                [obraEstado]="obra.obra_estado"
                 [presupuestoTotal]="obra.presupuesto ?? 0"
                 (costosActualizados)="onCostosActualizados($event)"
               >

@@ -435,16 +435,11 @@
   </form>
 </app-modal>
 
-<app-proveedor-quick-modal
+<app-proveedor-quick-create
   [visible]="showProveedorModal"
-  [tiposProveedor]="tiposProveedor"
-  [gremiosProveedor]="gremiosProveedor"
-  [model]="proveedorForm"
   (closed)="cerrarModalProveedor()"
-  (confirmed)="guardarProveedor()"
-  (tipoChange)="onTipoProveedorChange($event)"
-  (gremioChange)="onGremioChange($event)"
-></app-proveedor-quick-modal>
+  (created)="onProveedorCreado($event)"
+></app-proveedor-quick-create>
 
 
 

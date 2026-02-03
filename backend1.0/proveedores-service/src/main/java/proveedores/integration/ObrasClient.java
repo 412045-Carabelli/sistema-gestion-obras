@@ -74,8 +74,8 @@ public class ObrasClient {
 
     public boolean obraGeneraDeuda(String estadoRaw) {
         String estado = normalizarEstado(estadoRaw);
-        if (estado.isEmpty()) return true;
-        return !ESTADOS_SIN_DEUDA.contains(estado);
+        if (estado.isEmpty()) return false;
+        return ESTADOS_CON_DEUDA.contains(estado);
     }
 
     public BigDecimal costoBase(ObraCostoResponse costo) {
@@ -111,9 +111,9 @@ public class ObrasClient {
             Boolean activo
     ) { }
 
-    private static final java.util.Set<String> ESTADOS_SIN_DEUDA = java.util.Set.of(
-            "PRESUPUESTADA",
-            "PERDIDA",
-            "COTIZADA"
+    private static final java.util.Set<String> ESTADOS_CON_DEUDA = java.util.Set.of(
+            "ADJUDICADA",
+            "EN_PROGRESO",
+            "FINALIZADA"
     );
 }

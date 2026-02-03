@@ -85,38 +85,33 @@ public class ClienteServiceImpl implements ClienteService {
             log.warn("No se pudieron obtener transacciones del cliente {}", id, ex);
         }
 
-        Map<Long, BigDecimal> cobrosPorObra = new HashMap<>();
-        for (TransaccionExternalDto tx : transacciones) {
-            if (tx == null || Boolean.FALSE.equals(tx.getActivo()) || tx.getMonto() == null) continue;
-            if (!"COBRO".equalsIgnoreCase(tx.getTipo_transaccion())) continue;
-            Long obraId = tx.getId_obra();
-            if (obraId == null) continue;
-            BigDecimal monto = BigDecimal.valueOf(tx.getMonto());
-            cobrosPorObra.merge(obraId, monto, BigDecimal::add);
-        }
-
-        BigDecimal totalCliente = BigDecimal.ZERO;
-        BigDecimal cobrosRealizados = BigDecimal.ZERO;
-        for (ObraClienteResponse obra : obras) {
-            if (obra == null || obra.getId() == null) continue;
-            BigDecimal presupuesto = obra.getPresupuesto() != null ? obra.getPresupuesto() : BigDecimal.ZERO;
-            BigDecimal cobros = cobrosPorObra.getOrDefault(obra.getId(), BigDecimal.ZERO);
-            boolean generaDeuda = obraGeneraDeuda(obra.getObra_estado());
-            if (generaDeuda) {
-                totalCliente = totalCliente.add(presupuesto);
-                cobrosRealizados = cobrosRealizados.add(cobros);
-            }
-            obra.setSaldo_pendiente(generaDeuda ? saldoPositivo(presupuesto.subtract(cobros)) : BigDecimal.ZERO);
-        }
-
-        BigDecimal saldoCliente = saldoPositivo(totalCliente.subtract(cobrosRealizados));
-        return mapearRespuesta(cliente, obras, totalCliente, cobrosRealizados, saldoCliente);
+        TotalesCliente totales = calcularTotalesCliente(obras, transacciones, true);
+        return mapearRespuesta(cliente, obras, totales.totalCliente, totales.cobrosRealizados, totales.saldoCliente);
     }
 
     @Override
     public List<ClienteResponse> listar() {
         return repository.findAll().stream()
-                .map(c -> mapearRespuesta(c, null, null, null, null))
+                .map(cliente -> {
+                    List<ObraClienteResponse> obras;
+                    try {
+                        obras = obrasClient.obtenerObrasPorCliente(cliente.getId());
+                    } catch (Exception ex) {
+                        log.warn("No se pudieron obtener las obras para el cliente {}", cliente.getId(), ex);
+                        obras = Collections.emptyList();
+                    }
+
+                    List<TransaccionExternalDto> transacciones;
+                    try {
+                        transacciones = transaccionesClient.obtenerTransaccionesPorAsociado("CLIENTE", cliente.getId());
+                    } catch (Exception ex) {
+                        log.warn("No se pudieron obtener transacciones del cliente {}", cliente.getId(), ex);
+                        transacciones = Collections.emptyList();
+                    }
+
+                    TotalesCliente totales = calcularTotalesCliente(obras, transacciones, false);
+                    return mapearRespuesta(cliente, null, totales.totalCliente, totales.cobrosRealizados, totales.saldoCliente);
+                })
                 .toList();
     }
 
@@ -236,8 +231,8 @@ public class ClienteServiceImpl implements ClienteService {
 
     private boolean obraGeneraDeuda(String estadoRaw) {
         String estado = normalizarEstado(estadoRaw);
-        if (estado.isEmpty()) return true;
-        return !ESTADOS_SIN_DEUDA.contains(estado);
+        if (estado.isEmpty()) return false;
+        return ESTADOS_CON_DEUDA.contains(estado);
     }
 
     private String normalizarEstado(String raw) {
@@ -254,9 +249,53 @@ public class ClienteServiceImpl implements ClienteService {
         return saldo.compareTo(BigDecimal.ZERO) < 0 ? BigDecimal.ZERO : saldo;
     }
 
-    private static final Set<String> ESTADOS_SIN_DEUDA = Set.of(
-            "PRESUPUESTADA",
-            "PERDIDA",
-            "COTIZADA"
+    private TotalesCliente calcularTotalesCliente(
+            List<ObraClienteResponse> obras,
+            List<TransaccionExternalDto> transacciones,
+            boolean actualizarSaldoObra
+    ) {
+        if (obras == null) obras = Collections.emptyList();
+        if (transacciones == null) transacciones = Collections.emptyList();
+
+        Map<Long, BigDecimal> cobrosPorObra = new HashMap<>();
+        for (TransaccionExternalDto tx : transacciones) {
+            if (tx == null || Boolean.FALSE.equals(tx.getActivo()) || tx.getMonto() == null) continue;
+            if (!"COBRO".equalsIgnoreCase(tx.getTipo_transaccion())) continue;
+            Long obraId = tx.getId_obra();
+            if (obraId == null) continue;
+            BigDecimal monto = BigDecimal.valueOf(tx.getMonto());
+            cobrosPorObra.merge(obraId, monto, BigDecimal::add);
+        }
+
+        BigDecimal totalCliente = BigDecimal.ZERO;
+        BigDecimal cobrosRealizados = BigDecimal.ZERO;
+        for (ObraClienteResponse obra : obras) {
+            if (obra == null || obra.getId() == null) continue;
+            BigDecimal presupuesto = obra.getPresupuesto() != null ? obra.getPresupuesto() : BigDecimal.ZERO;
+            BigDecimal cobros = cobrosPorObra.getOrDefault(obra.getId(), BigDecimal.ZERO);
+            boolean generaDeuda = obraGeneraDeuda(obra.getObra_estado());
+            if (generaDeuda) {
+                totalCliente = totalCliente.add(presupuesto);
+                cobrosRealizados = cobrosRealizados.add(cobros);
+            }
+            if (actualizarSaldoObra) {
+                obra.setSaldo_pendiente(generaDeuda ? saldoPositivo(presupuesto.subtract(cobros)) : BigDecimal.ZERO);
+            }
+        }
+
+        BigDecimal saldoCliente = saldoPositivo(totalCliente.subtract(cobrosRealizados));
+        return new TotalesCliente(totalCliente, cobrosRealizados, saldoCliente);
+    }
+
+    private record TotalesCliente(
+            BigDecimal totalCliente,
+            BigDecimal cobrosRealizados,
+            BigDecimal saldoCliente
+    ) { }
+
+    private static final Set<String> ESTADOS_CON_DEUDA = Set.of(
+            "ADJUDICADA",
+            "EN_PROGRESO",
+            "FINALIZADA"
     );
 }

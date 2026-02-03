@@ -11,7 +11,20 @@
       </p>
     </div>
 
-    <div class="flex gap-5 items-center">
+    <div class="flex flex-wrap gap-3 items-center">
+      <div class="text-xs text-gray-500">
+        Beneficio global:
+        <span class="font-semibold text-gray-700">
+          {{ usarBeneficioGlobal ? (beneficioGlobal + '%') : 'No activo' }}
+        </span>
+      </div>
+      <p-button
+        (onClick)="abrirBeneficioGlobalModal()"
+        icon="pi pi-percentage"
+        label="Beneficio global"
+        styleClass="p-button-md p-button-outlined"
+        [disabled]="!permiteBeneficioGlobal()"
+      ></p-button>
       <p-button
         (onClick)="exportMenu.toggle($event)"
         icon="pi pi-file-pdf"
@@ -22,9 +35,9 @@
     </div>
   </div>
   <!-- Memoria descriptiva y formulario rapido -->
-  <div class="grid grid-cols-1 xl:grid-cols-2 gap-5">
+  <div class="grid grid-cols-1 xl:grid-cols-5 gap-5">
     <!-- Formulario rapido para agregar costos -->
-    <div class="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden">
+    <div class="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden xl:col-span-2">
       <div class="flex items-center justify-between px-4 py-3 border-b border-gray-100">
         <div class="flex items-center gap-3">
           <div class="w-10 h-10 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center">
@@ -191,7 +204,7 @@
     </div>
 
     <!-- Memoria descriptiva -->
-    <div class="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden">
+    <div class="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden xl:col-span-3">
       <div class="flex items-center justify-between px-4 py-3 border-b border-gray-100">
         <div class="flex items-center gap-3">
           <div class="w-10 h-10 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center">
@@ -277,6 +290,7 @@
           <th class="text-left px-3 py-2 font-semibold">Beneficio (%)</th>
           <th class="text-left px-3 py-2 font-semibold">Subtotal</th>
           <th class="text-left px-3 py-2 font-semibold">Total</th>
+          <th class="text-center px-2 py-2 font-semibold w-10"></th>
         </tr>
       </ng-template>
 
@@ -284,13 +298,12 @@
       <ng-template let-c let-rowIndex="rowIndex" pTemplate="body">
         <tr
           [ngClass]="{
-            'bg-yellow-200 hover:bg-yellow-300': esAdicional(c),
             'bg-white': !esAdicional(c) && rowIndex % 2 === 0,
             'bg-gray-50': !esAdicional(c) && rowIndex % 2 !== 0,
             'hover:bg-emerald-50': !esAdicional(c)
           }"
-          class="cursor-pointer transition-colors"
-          (click)="!c.enEdicion && abrirDetalleCosto(c)"
+          [ngStyle]="esAdicional(c) ? {'background-color': '#FCD34D'} : null"
+          class="transition-colors"
         >
           <td class="px-3 py-2">
             @if (c.enEdicion) {
@@ -388,7 +401,7 @@
           </td>
 
           <td class="px-3 py-2 text-right">
-            @if (c.tipo_costo === 'ADICIONAL') {
+            @if (esAdicional(c)) {
               @if (c.enEdicion) {
                 <div class="flex items-center justify-end gap-2 text-xs text-gray-700">
                   <span>Individual (</span>
@@ -435,6 +448,15 @@
               <span>{{ c.total | currency:'ARS' }}</span>
             </div>
           </td>
+          <td class="px-2 py-2 text-center w-10">
+            <p-button
+              icon="pi pi-trash"
+              severity="danger"
+              styleClass="p-button-sm p-button-text"
+              [disabled]="!puedeEditarCosto(c)"
+              (onClick)="confirmarEliminarCosto(c)"
+            ></p-button>
+          </td>
 
         </tr>
       </ng-template>
@@ -442,36 +464,44 @@
       <!-- Footer -->
       <ng-template pTemplate="footer">
         <tr class="bg-gray-100 font-semibold">
-          <td class="text-right px-3 py-2" colspan="7">Presupuestado:</td>
+          <td class="text-right px-3 py-2" colspan="6">Presupuestado:</td>
+          <td class="px-3 py-2"></td>
           <td class="px-3 py-2">
             <div class="flex justify-start">{{ calcularTotalConBeneficio() | currency:'ARS' }}</div>
           </td>
+          <td class="px-3 py-2"></td>
         </tr>
 
         <tr class="bg-gray-50 text-sm">
-          <td class="text-right px-3 py-2 text-gray-600" colspan="7">Costos (Material y mano de obra):</td>
+          <td class="text-right px-3 py-2 text-gray-600" colspan="6">Costos (Material y mano de obra):</td>
+          <td class="px-3 py-2"></td>
           <td class="px-3 py-2 text-gray-700 font-medium">
             <div class="flex justify-start">{{ calcularSubtotal() | currency:'ARS' }}</div>
           </td>
+          <td class="px-3 py-2"></td>
         </tr>
 
         <tr class="bg-gray-50 text-sm">
-          <td class="text-right px-3 py-2 text-gray-600" colspan="7">
+          <td class="text-right px-3 py-2 text-gray-600" colspan="6">
             Comisiones
             @if (tieneComision) {
               <span> ({{ comision }}%)</span>
             }
           </td>
+          <td class="px-3 py-2"></td>
           <td class="px-3 py-2 text-indigo-600 font-medium">
             <div class="flex justify-start">{{ calcularComisionMonto() | currency:'ARS' }}</div>
           </td>
+          <td class="px-3 py-2"></td>
         </tr>
 
         <tr class="bg-gray-200 font-bold">
-          <td class="text-right px-3 py-2" colspan="7">Beneficio neto:</td>
+          <td class="text-right px-3 py-2" colspan="6">Beneficio neto:</td>
+          <td class="px-3 py-2"></td>
           <td class="px-3 py-2 text-green-700">
             <div class="flex justify-start">{{ calcularBeneficioNeto() | currency:'ARS' }}</div>
           </td>
+          <td class="px-3 py-2"></td>
         </tr>
       </ng-template>
     </p-table>
@@ -698,6 +728,71 @@
       }
     </div>
   </app-modal>
+
+  <app-modal
+    [visible]="showBeneficioGlobalModal"
+    [title]="'Beneficio global'"
+    [showFooter]="false"
+    (closed)="cerrarBeneficioGlobalModal()"
+  >
+    <div class="p-3 space-y-4">
+      <div class="flex items-center gap-4 flex-wrap">
+        <div class="inline-flex flex-col gap-2 px-3 py-2">
+          <span class="text-sm font-medium text-gray-700 opacity-0 select-none">Porcentaje</span>
+          <div class="flex items-center gap-3">
+            <p-checkbox
+              binary="true"
+              [(ngModel)]="beneficioGlobalActivoDraft"
+              inputId="beneficioGlobalDetalle"
+            ></p-checkbox>
+            <label for="beneficioGlobalDetalle" class="text-sm text-gray-700">
+              Aplicar beneficio global
+            </label>
+          </div>
+        </div>
+
+        <div class="flex flex-col gap-2">
+          <label class="text-sm font-medium text-gray-700">Porcentaje</label>
+          <div class="flex items-center gap-2">
+            <p-inputNumber
+              [(ngModel)]="beneficioGlobalDraft"
+              [disabled]="!beneficioGlobalActivoDraft"
+              mode="decimal"
+              locale="es-AR"
+              [minFractionDigits]="2"
+              [maxFractionDigits]="2"
+              inputStyleClass="w-28 text-center"
+              [min]="0"
+            ></p-inputNumber>
+            <span class="text-sm text-gray-600 font-semibold">%</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="flex justify-end gap-2">
+        <p-button
+          label="Cancelar"
+          icon="pi pi-times"
+          styleClass="p-button-text p-button-sm"
+          (onClick)="cerrarBeneficioGlobalModal()"
+          [disabled]="guardandoBeneficioGlobal"
+        ></p-button>
+        <p-button
+          label="Guardar"
+          icon="pi pi-check"
+          styleClass="p-button-primary p-button-sm"
+          (onClick)="guardarBeneficioGlobal()"
+          [loading]="guardandoBeneficioGlobal"
+        ></p-button>
+      </div>
+    </div>
+  </app-modal>
+
+  <app-proveedor-quick-create
+    [visible]="showProveedorModal"
+    (closed)="cerrarModalProveedor()"
+    (created)="onProveedorCreado($event)"
+  ></app-proveedor-quick-create>
 
 </div>
 

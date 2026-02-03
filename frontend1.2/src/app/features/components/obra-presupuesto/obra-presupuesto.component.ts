@@ -35,6 +35,7 @@ import { AutoCompleteModule } from 'primeng/autocomplete';
 import { MenuModule } from 'primeng/menu';
 import { MenuItem } from 'primeng/api';
 import { EditorModule } from 'primeng/editor';
+import {ProveedorQuickCreateComponent} from '../proveedor-quick-create/proveedor-quick-create.component';
 
 // PDFMAKE
 import pdfMake from 'pdfmake/build/pdfmake';
@@ -64,7 +65,8 @@ pdfMake.vfs = pdfFonts.vfs;
     ModalComponent,
     MenuModule,
     EditorModule,
-    ConfirmDialog
+    ConfirmDialog,
+    ProveedorQuickCreateComponent
   ],
   providers: [MessageService, ConfirmationService],
   templateUrl: './obra-presupuesto.component.html',
@@ -87,12 +89,17 @@ export class ObraPresupuestoComponent implements OnInit, OnChanges, AfterViewIni
 
   @Output() costosActualizados = new EventEmitter<ObraCosto[]>();
   @Output() movimientoCreado = new EventEmitter<void>();
+  @Output() beneficioGlobalActualizado = new EventEmitter<{ beneficio_global: boolean; beneficio: number }>();
 
   costosFiltrados: ObraCosto[] = [];
   estadosPagoRecords: { label: string; name: string }[] = [];
   loading = true;
   nuevoCosto: Partial<ObraCosto> = this.getNuevoCostoBase();
   nuevoCostoProveedor?: Proveedor | null;
+  showProveedorModal = false;
+  private readonly NUEVO_PROVEEDOR_ID = 0;
+  private readonly nuevoProveedorOption: Proveedor = { id: this.NUEVO_PROVEEDOR_ID, nombre: 'Crear proveedor...' } as Proveedor;
+  private proveedorTarget: ObraCosto | 'nuevo' | null = null;
   filteredProveedores: Proveedor[] = [];
   exportOptions: MenuItem[] = [];
   tipoCostoOptions = [
@@ -114,6 +121,10 @@ export class ObraPresupuestoComponent implements OnInit, OnChanges, AfterViewIni
   condicionesDraft = '';
   observacionesDraft = '';
   guardandoCondiciones = false;
+  showBeneficioGlobalModal = false;
+  beneficioGlobalDraft = 0;
+  beneficioGlobalActivoDraft = false;
+  guardandoBeneficioGlobal = false;
 
   constructor(
     private estadoPagoService: EstadoPagoService,
@@ -124,7 +135,7 @@ export class ObraPresupuestoComponent implements OnInit, OnChanges, AfterViewIni
   ) {}
 
   ngOnInit() {
-    this.filteredProveedores = this.proveedores || [];
+    this.filteredProveedores = this.appendNuevoProveedorOption(this.proveedores || []);
     this.nuevoCostoProveedor = undefined;
     if (this.costos?.length > 0) {
       this.inicializarCostos();
@@ -165,12 +176,123 @@ export class ObraPresupuestoComponent implements OnInit, OnChanges, AfterViewIni
       }
     }
     if (changes['proveedores']) {
-      this.filteredProveedores = this.proveedores || [];
+      this.filteredProveedores = this.appendNuevoProveedorOption(this.proveedores || []);
     }
   }
 
   actualizarEstadoPago(c: ObraCosto, nuevoEstadoName: string) {
     this.actualizarEstadoPagoDirecto(c, nuevoEstadoName);
+  }
+
+  abrirModalProveedor() {
+    this.showProveedorModal = true;
+  }
+
+  cerrarModalProveedor() {
+    this.showProveedorModal = false;
+    this.proveedorTarget = null;
+  }
+
+  onProveedorCreado(proveedor: Proveedor) {
+    if (!proveedor) return;
+    this.proveedores = [...this.proveedores, proveedor];
+    this.filteredProveedores = this.appendNuevoProveedorOption(this.proveedores);
+    if (this.proveedorTarget === 'nuevo') {
+      this.nuevoCostoProveedor = proveedor;
+      this.nuevoCosto.id_proveedor = proveedor.id;
+      this.nuevoCosto.proveedor = proveedor;
+    } else if (this.proveedorTarget) {
+      this.proveedorTarget.proveedor = proveedor;
+      this.proveedorTarget.id_proveedor = proveedor.id;
+    }
+    this.proveedorTarget = null;
+    this.showProveedorModal = false;
+  }
+
+  abrirBeneficioGlobalModal() {
+    if (!this.permiteBeneficioGlobal()) {
+      this.messageService.add({
+        severity: 'warn',
+        summary: 'Beneficio global bloqueado',
+        detail: 'Solo se puede modificar cuando la obra no está adjudicada, en progreso o finalizada.'
+      });
+      return;
+    }
+    this.beneficioGlobalActivoDraft = !!this.usarBeneficioGlobal;
+    this.beneficioGlobalDraft = Number(this.beneficioGlobal ?? 0);
+    this.showBeneficioGlobalModal = true;
+  }
+
+  cerrarBeneficioGlobalModal() {
+    if (this.guardandoBeneficioGlobal) return;
+    this.showBeneficioGlobalModal = false;
+  }
+
+  guardarBeneficioGlobal() {
+    if (!this.obra?.id || this.guardandoBeneficioGlobal) return;
+    this.guardandoBeneficioGlobal = true;
+    const payload: any = {
+      id: this.obra.id,
+      id_cliente: this.obra.id_cliente ?? this.obra.cliente?.id,
+      obra_estado: this.obra.obra_estado,
+      nombre: this.obra.nombre,
+      direccion: this.obra.direccion,
+      fecha_inicio: this.obra.fecha_inicio,
+      fecha_presupuesto: this.obra.fecha_presupuesto,
+      fecha_fin: this.obra.fecha_fin,
+      fecha_adjudicada: this.obra.fecha_adjudicada,
+      fecha_perdida: this.obra.fecha_perdida,
+      tiene_comision: this.obra.tiene_comision ?? false,
+      presupuesto: this.obra.presupuesto,
+      beneficio_global: this.beneficioGlobalActivoDraft,
+      beneficio: Number(this.beneficioGlobalDraft ?? 0),
+      comision: this.obra.comision,
+      notas: this.obra.notas,
+      memoria_descriptiva: this.obra.memoria_descriptiva,
+      condiciones_presupuesto: this.obra.condiciones_presupuesto,
+      observaciones_presupuesto: this.obra.observaciones_presupuesto,
+      requiere_factura: this.obra.requiere_factura
+    };
+    Object.keys(payload).forEach(
+      key => payload[key] === undefined && delete payload[key]
+    );
+
+    this.obrasService.updateObra(this.obra.id, payload).subscribe({
+      next: (updated) => {
+        this.obra = {
+          ...this.obra,
+          beneficio_global: updated?.beneficio_global ?? payload.beneficio_global,
+          beneficio: updated?.beneficio ?? payload.beneficio
+        };
+        this.usarBeneficioGlobal = !!this.obra.beneficio_global;
+        this.beneficioGlobal = Number(this.obra.beneficio ?? 0);
+        this.showBeneficioGlobalModal = false;
+        this.guardandoBeneficioGlobal = false;
+        this.costosFiltrados = this.costosFiltrados.map(c => ({ ...c }));
+        this.costosFiltrados.forEach(c => this.recalcularEnEdicion(c));
+        if (this.usarBeneficioGlobal && this.nuevoCosto.tipo_costo !== 'ADICIONAL') {
+          this.nuevoCosto.beneficio = this.beneficioGlobal;
+        }
+        this.beneficioGlobalActualizado.emit({
+          beneficio_global: this.usarBeneficioGlobal,
+          beneficio: this.beneficioGlobal
+        });
+        this.costosActualizados.emit([...this.costosFiltrados]);
+        this.messageService.add({
+          severity: 'success',
+          summary: 'Beneficio global actualizado',
+          detail: 'Se guardaron los cambios.'
+        });
+      },
+      error: () => {
+        this.guardandoBeneficioGlobal = false;
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: 'No se pudo actualizar el beneficio global.'
+        });
+      }
+    });
   }
 
   agregarCosto() {
@@ -454,6 +576,20 @@ export class ObraPresupuestoComponent implements OnInit, OnChanges, AfterViewIni
     });
   }
 
+  confirmarEliminarCosto(costo: ObraCosto) {
+    if (!costo?.id) return;
+    this.confirmationService.confirm({
+      header: 'Confirmar eliminacion',
+      message: '¿Seguro que queres eliminar este costo?',
+      icon: 'pi pi-exclamation-triangle',
+      acceptLabel: 'Eliminar',
+      rejectLabel: 'Cancelar',
+      acceptButtonStyleClass: 'p-button-danger p-button-sm',
+      rejectButtonStyleClass: 'p-button-text p-button-sm',
+      accept: () => this.eliminarCosto(costo)
+    });
+  }
+
   calcularTotal(): number {
     return this.calcularTotalConBeneficio();
   }
@@ -613,7 +749,7 @@ export class ObraPresupuestoComponent implements OnInit, OnChanges, AfterViewIni
 
       return [
         pdfCell(this.getItemNumeroDisplay(c, index), { alignment: 'center' }),
-        pdfCell(c.descripcion || '-', { alignment: 'left' }),
+        pdfCell(this.normalizarDescripcionCosto(c.descripcion) || '-', { alignment: 'left' }),
         pdfCell(c.unidad || '-', { alignment: 'center' }),
         pdfCell(String(c.cantidad ?? 0), { alignment: 'center' }),
         pdfCell(formatCurrency(subtotalConBeneficio), { alignment: 'right' })
@@ -826,7 +962,7 @@ export class ObraPresupuestoComponent implements OnInit, OnChanges, AfterViewIni
     return {
       item_numero: itemNumeroRaw || undefined,
       id_proveedor: idProveedorVal != null ? Number(idProveedorVal) : undefined,
-      descripcion: costo.descripcion ?? '',
+      descripcion: this.normalizarDescripcionCosto(costo.descripcion),
       unidad: costo.unidad ?? '',
       cantidad,
       precio_unitario: precio,
@@ -854,15 +990,22 @@ export class ObraPresupuestoComponent implements OnInit, OnChanges, AfterViewIni
 
   filtrarProveedores(event: any) {
     const query = (event?.query || '').toLowerCase();
-    this.filteredProveedores = (this.proveedores || []).filter(p => {
+    const filtrados = (this.proveedores || []).filter(p => {
       const nombre = (p.nombre || '').toLowerCase();
       const cuit = (p.cuit || '').toString().toLowerCase();
       return nombre.includes(query) || cuit.includes(query);
     });
+    this.filteredProveedores = this.appendNuevoProveedorOption(filtrados);
   }
 
   seleccionarProveedorNuevo(value: any) {
     const seleccionado = typeof value === 'object' ? value : undefined;
+    if (Number(seleccionado?.id ?? -1) === this.NUEVO_PROVEEDOR_ID) {
+      this.proveedorTarget = 'nuevo';
+      this.abrirModalProveedor();
+      this.limpiarProveedorNuevo();
+      return;
+    }
     this.nuevoCostoProveedor = seleccionado ?? null;
     this.nuevoCosto.id_proveedor = seleccionado?.id ?? undefined;
     this.nuevoCosto.proveedor = seleccionado;
@@ -872,11 +1015,23 @@ export class ObraPresupuestoComponent implements OnInit, OnChanges, AfterViewIni
     this.nuevoCostoProveedor = null;
     this.nuevoCosto.id_proveedor = undefined;
     this.nuevoCosto.proveedor = undefined;
-    this.filteredProveedores = this.proveedores || [];
+    this.filteredProveedores = this.appendNuevoProveedorOption(this.proveedores || []);
+  }
+
+  private appendNuevoProveedorOption(list: Proveedor[]): Proveedor[] {
+    const safe = list || [];
+    return [...safe.filter(p => Number(p.id) !== this.NUEVO_PROVEEDOR_ID), this.nuevoProveedorOption];
   }
 
   seleccionarProveedorFila(costo: ObraCosto, value: any) {
     const seleccionado = typeof value === 'object' ? value : undefined;
+    if (Number(seleccionado?.id ?? -1) === this.NUEVO_PROVEEDOR_ID) {
+      costo.proveedor = undefined;
+      costo.id_proveedor = undefined;
+      this.proveedorTarget = costo;
+      this.abrirModalProveedor();
+      return;
+    }
     costo.proveedor = seleccionado ?? null;
     costo.id_proveedor = seleccionado?.id ?? undefined;
   }
@@ -968,8 +1123,15 @@ export class ObraPresupuestoComponent implements OnInit, OnChanges, AfterViewIni
     return fallback;
   }
 
-  esAdicional(costo: ObraCosto): boolean {
-    return (costo?.tipo_costo || '').toString().toUpperCase() === 'ADICIONAL';
+  esAdicional(costo?: ObraCosto | null): boolean {
+    if (!costo) return false;
+    const raw =
+      (costo as any)?.tipo_costo ??
+      (costo as any)?.tipoCosto ??
+      (costo as any)?.tipo?.nombre ??
+      (costo as any)?.tipo?.name ??
+      '';
+    return raw.toString().toUpperCase() === 'ADICIONAL';
   }
 
   private costoTieneProveedor(costo: Partial<ObraCosto>): boolean {
@@ -982,7 +1144,8 @@ export class ObraPresupuestoComponent implements OnInit, OnChanges, AfterViewIni
     return this.tipoCostoOptions.filter(o => o.value === 'ADICIONAL');
   }
 
-  puedeEditarCosto(costo: ObraCosto): boolean {
+  puedeEditarCosto(costo?: ObraCosto | null): boolean {
+    if (!costo) return false;
     return !this.estaSelladaCotizacion() || this.esAdicional(costo);
   }
 
@@ -1003,6 +1166,11 @@ export class ObraPresupuestoComponent implements OnInit, OnChanges, AfterViewIni
   estaSelladaCotizacion(): boolean {
     const estado = this.normalizarEstadoObra(this.obra?.obra_estado);
     return estado === 'EN_PROGRESO';
+  }
+
+  permiteBeneficioGlobal(): boolean {
+    const estado = this.normalizarEstadoObra(this.obra?.obra_estado);
+    return !['ADJUDICADA', 'EN_PROGRESO', 'FINALIZADA'].includes(estado);
   }
 
   private normalizarEstadoObra(raw: any): string {
@@ -1028,6 +1196,14 @@ export class ObraPresupuestoComponent implements OnInit, OnChanges, AfterViewIni
     div.innerHTML = raw;
     const texto = (div.innerText || '').replace(/\s+\n/g, '\n').replace(/\n\s+/g, '\n').trim();
     return texto || null;
+  }
+
+  private normalizarDescripcionCosto(raw?: string | null): string {
+    if (!raw) return '';
+    const div = document.createElement('div');
+    div.innerHTML = raw;
+    const texto = (div.textContent || div.innerText || '').replace(/\s+\n/g, '\n').replace(/\n\s+/g, '\n').trim();
+    return texto || '';
   }
 
   private convertirMemoriaPdfMake(raw?: string | null): any | null {

@@ -999,13 +999,13 @@ export class DashboardComponent implements OnInit {
 
   private obraGeneraDeuda(obra: Obra | null | undefined): boolean {
     if (!obra) return false;
-    const estado = (obra.obra_estado || '').toString().toUpperCase();
-    return (
-      estado.includes('ADJUDIC') ||
-      estado.includes('EN_PROGRESO') ||
-      estado.includes('FINALIZ') ||
-      estado.includes('FACTURAD')
-    );
+    const estado = (obra.obra_estado || '').toString()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .toUpperCase()
+      .replace(/[^A-Z0-9]+/g, '_')
+      .replace(/^_+|_+$/g, '');
+    return new Set(['ADJUDICADA', 'EN_PROGRESO', 'FINALIZADA']).has(estado);
   }
 
   private calcularConteosObras(obras: { obra_estado: string }[]): typeof this.conteoObras {
@@ -1111,6 +1111,130 @@ export class DashboardComponent implements OnInit {
     }
 
     return movimientos.filter(mov => this.movimientoPerteneceObraConDeuda(mov));
+  }
+
+  get reporteDebePagar(): Array<{ id: number; nombre: string; total: number; pagado: number; saldo: number }> {
+    const obras = this.filtrarObrasConDeuda(this.obtenerObrasFiltradasDashboard());
+    const costosPorProveedor = new Map<number, number>();
+    for (const obra of obras) {
+      for (const costo of obra.costos || []) {
+        if ((costo as any)?.activo === false) continue;
+        const id = Number((costo as any)?.id_proveedor ?? (costo as any)?.proveedor?.id ?? 0);
+        if (!id) continue;
+        const subtotal = this.obtenerSubtotalCosto(costo);
+        costosPorProveedor.set(id, (costosPorProveedor.get(id) ?? 0) + subtotal);
+      }
+    }
+
+    const pagosPorProveedor = new Map<number, number>();
+    for (const mov of this.obtenerMovimientosFiltradosDashboard()) {
+      const tipo = this.normalizarTipoMovimiento(mov);
+      if (tipo !== 'PAGO') continue;
+      const asociadoTipo = (mov.asociadoTipo || '').toString().toUpperCase();
+      if (asociadoTipo !== 'PROVEEDOR') continue;
+      const id = Number(mov.asociadoId ?? 0);
+      if (!id) continue;
+      pagosPorProveedor.set(id, (pagosPorProveedor.get(id) ?? 0) + Number(mov.monto ?? 0));
+    }
+
+    const ids = new Set<number>([...costosPorProveedor.keys(), ...pagosPorProveedor.keys()]);
+    const items = Array.from(ids).map(id => {
+      const total = costosPorProveedor.get(id) ?? 0;
+      const pagado = pagosPorProveedor.get(id) ?? 0;
+      const saldo = Math.max(0, total - pagado);
+      const proveedor = this.proveedores.find(p => Number(p.id) === id);
+      return { id, nombre: proveedor?.nombre ?? `Proveedor #${id}`, total, pagado, saldo };
+    });
+
+    return items.filter(i => i.saldo > 0).sort((a, b) => b.saldo - a.saldo);
+  }
+
+  get reporteDebeCobrar(): Array<{ id: number; nombre: string; total: number; cobrado: number; saldo: number }> {
+    const obras = this.filtrarObrasConDeuda(this.obtenerObrasFiltradasDashboard());
+    const totalPorCliente = new Map<number, number>();
+    const obraCliente = new Map<number, number>();
+    for (const obra of obras) {
+      const clienteId = Number(obra?.cliente?.id ?? obra?.id_cliente ?? 0);
+      if (clienteId) {
+        obraCliente.set(Number(obra.id), clienteId);
+        totalPorCliente.set(clienteId, (totalPorCliente.get(clienteId) ?? 0) + Number(obra.presupuesto ?? 0));
+      }
+    }
+
+    const cobrosPorCliente = new Map<number, number>();
+    for (const mov of this.obtenerMovimientosFiltradosDashboard()) {
+      const tipo = this.normalizarTipoMovimiento(mov);
+      if (tipo !== 'COBRO') continue;
+      let clienteId = 0;
+      const asociadoTipo = (mov.asociadoTipo || '').toString().toUpperCase();
+      if (asociadoTipo === 'CLIENTE') {
+        clienteId = Number(mov.asociadoId ?? 0);
+      } else if (mov.obraId) {
+        clienteId = obraCliente.get(Number(mov.obraId)) ?? 0;
+      }
+      if (!clienteId) continue;
+      cobrosPorCliente.set(clienteId, (cobrosPorCliente.get(clienteId) ?? 0) + Number(mov.monto ?? 0));
+    }
+
+    const ids = new Set<number>([...totalPorCliente.keys(), ...cobrosPorCliente.keys()]);
+    const items = Array.from(ids).map(id => {
+      const total = totalPorCliente.get(id) ?? 0;
+      const cobrado = cobrosPorCliente.get(id) ?? 0;
+      const saldo = Math.max(0, total - cobrado);
+      const cliente = this.clientes.find(c => Number(c.id) === id);
+      return { id, nombre: cliente?.nombre ?? `Cliente #${id}`, total, cobrado, saldo };
+    });
+
+    return items.filter(i => i.saldo > 0).sort((a, b) => b.saldo - a.saldo);
+  }
+
+  get reportePague(): Array<{ id: number; nombre: string; pagado: number }> {
+    const pagosPorProveedor = new Map<number, number>();
+    for (const mov of this.obtenerMovimientosFiltradosDashboard()) {
+      const tipo = this.normalizarTipoMovimiento(mov);
+      if (tipo !== 'PAGO') continue;
+      const asociadoTipo = (mov.asociadoTipo || '').toString().toUpperCase();
+      if (asociadoTipo !== 'PROVEEDOR') continue;
+      const id = Number(mov.asociadoId ?? 0);
+      if (!id) continue;
+      pagosPorProveedor.set(id, (pagosPorProveedor.get(id) ?? 0) + Number(mov.monto ?? 0));
+    }
+    return Array.from(pagosPorProveedor.entries())
+      .map(([id, pagado]) => {
+        const proveedor = this.proveedores.find(p => Number(p.id) === id);
+        return { id, nombre: proveedor?.nombre ?? `Proveedor #${id}`, pagado };
+      })
+      .filter(i => i.pagado > 0)
+      .sort((a, b) => b.pagado - a.pagado);
+  }
+
+  get reporteCobre(): Array<{ id: number; nombre: string; cobrado: number }> {
+    const cobrosPorCliente = new Map<number, number>();
+    for (const mov of this.obtenerMovimientosFiltradosDashboard()) {
+      const tipo = this.normalizarTipoMovimiento(mov);
+      if (tipo !== 'COBRO') continue;
+      const asociadoTipo = (mov.asociadoTipo || '').toString().toUpperCase();
+      if (asociadoTipo !== 'CLIENTE') continue;
+      const id = Number(mov.asociadoId ?? 0);
+      if (!id) continue;
+      cobrosPorCliente.set(id, (cobrosPorCliente.get(id) ?? 0) + Number(mov.monto ?? 0));
+    }
+    return Array.from(cobrosPorCliente.entries())
+      .map(([id, cobrado]) => {
+        const cliente = this.clientes.find(c => Number(c.id) === id);
+        return { id, nombre: cliente?.nombre ?? `Cliente #${id}`, cobrado };
+      })
+      .filter(i => i.cobrado > 0)
+      .sort((a, b) => b.cobrado - a.cobrado);
+  }
+
+  private normalizarTipoMovimiento(mov: MovimientoDashboard): 'COBRO' | 'PAGO' | 'COSTO' | '' {
+    const raw = (mov.tipo_movimiento || mov.tipo || '').toString().toUpperCase();
+    if (raw === 'INGRESO') return 'COBRO';
+    if (raw === 'EGRESO') return 'PAGO';
+    if (raw === 'PAGADO') return 'PAGO';
+    if (raw === 'COBRO' || raw === 'PAGO' || raw === 'COSTO') return raw as any;
+    return '';
   }
 
   private estaEnRangoFecha(

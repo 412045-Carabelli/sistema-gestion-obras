@@ -141,112 +141,177 @@
       </div>
     </div>
   } @else {
-    @if (deudaClientesTotal > 0 || deudaProveedoresTotal > 0) {
-      <div class="bg-white rounded-xl shadow-md p-6">
-        <h2 class="text-lg font-semibold text-gray-900 mb-5 flex items-center gap-2 pb-3 border-b border-gray-200">
-          <i class="pi pi-receipt text-indigo-600"></i>
-          Deudas globales
-        </h2>
+    <div class="bg-white rounded-xl shadow-md p-6">
+      <h2 class="text-lg font-semibold text-gray-900 mb-5 flex items-center gap-2 pb-3 border-b border-gray-200">
+        <i class="pi pi-receipt text-indigo-600"></i>
+        Deudas globales
+      </h2>
 
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
-            <p class="text-sm text-gray-600">Me deben</p>
-            <p class="text-2xl font-bold text-blue-700">{{ deudaClientesTotal | currency:'ARS':'symbol-narrow':'1.0-0' }}</p>
-          </div>
-          <div class="bg-amber-50 border border-amber-200 rounded-lg p-4">
-            <p class="text-sm text-gray-600">Debo</p>
-            <p class="text-2xl font-bold text-amber-700">{{ deudaProveedoresTotal | currency:'ARS':'symbol-narrow':'1.0-0' }}</p>
-          </div>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+          <p class="text-sm text-gray-600">Me deben</p>
+          <p class="text-2xl font-bold text-blue-700">{{ (deudaClientesTotal ?? 0) | currency:'ARS':'symbol-narrow':'1.0-0' }}</p>
+        </div>
+        <div class="bg-amber-50 border border-amber-200 rounded-lg p-4">
+          <p class="text-sm text-gray-600">Debo</p>
+          <p class="text-2xl font-bold text-amber-700">{{ (deudaProveedoresTotal ?? 0) | currency:'ARS':'symbol-narrow':'1.0-0' }}</p>
         </div>
       </div>
-    }
+    </div>
 
     <!-- ===================== FLUJO DE CAJA ===================== -->
-    @if (flujoCaja?.movimientos?.length) {
-      <div class="bg-white rounded-xl shadow-md p-6">
-        <h2 class="text-lg font-semibold text-gray-900 mb-5 flex items-center gap-2 pb-3 border-b border-gray-200">
-          <i class="pi pi-wallet text-indigo-600"></i>
-          Flujo de caja
-        </h2>
+    <div class="bg-white rounded-xl shadow-md p-6">
+      <h2 class="text-lg font-semibold text-gray-900 mb-5 flex items-center gap-2 pb-3 border-b border-gray-200">
+        <i class="pi pi-wallet text-indigo-600"></i>
+        Flujo de caja
+      </h2>
 
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-          <div class="bg-green-50 rounded-lg p-4 border border-green-200">
-            <div class="flex items-center gap-2 mb-2">
-              <i class="pi pi-arrow-up text-green-600"></i>
-              <span class="text-sm font-medium text-gray-600">Ingresos</span>
-            </div>
-            <div class="text-2xl font-bold text-green-600">
-              {{ flujoCaja?.totalIngresos | currency:'ARS':'symbol-narrow':'1.0-0' }}
-            </div>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+        <div class="bg-green-50 rounded-lg p-4 border border-green-200">
+          <div class="flex items-center gap-2 mb-2">
+            <i class="pi pi-arrow-up text-green-600"></i>
+            <span class="text-sm font-medium text-gray-600">Ingresos</span>
           </div>
-
-          <div class="bg-red-50 rounded-lg p-4 border border-red-200">
-            <div class="flex items-center gap-2 mb-2">
-              <i class="pi pi-arrow-down text-red-600"></i>
-              <span class="text-sm font-medium text-gray-600">Egresos</span>
-            </div>
-            <div class="text-2xl font-bold text-red-600">
-              {{ flujoCaja?.totalEgresos | currency:'ARS':'symbol-narrow':'1.0-0' }}
-            </div>
-          </div>
-
-          <div class="bg-indigo-50 rounded-lg p-4 border border-indigo-200">
-            <div class="flex items-center gap-2 mb-2">
-              <i class="pi pi-wallet text-indigo-600"></i>
-              <span class="text-sm font-medium text-gray-600">Saldo final</span>
-            </div>
-            <div class="text-2xl font-bold" [ngClass]="(flujoCaja?.saldoFinal ?? 0) >= 0 ? 'text-indigo-600' : 'text-red-600'">
-              {{ flujoCaja?.saldoFinal | currency:'ARS':'symbol-narrow':'1.0-0' }}
-            </div>
+          <div class="text-2xl font-bold text-green-600">
+            {{ (flujoCaja?.totalIngresos ?? 0) | currency:'ARS':'symbol-narrow':'1.0-0' }}
           </div>
         </div>
 
-        @if (flujoCaja?.movimientos?.length) {
-          <div class="overflow-x-auto">
-            <p-table
-              [value]="flujoCaja?.movimientos || []"
-              [paginator]="true"
-              [rows]="5"
-              responsiveLayout="scroll"
-              styleClass="p-datatable-sm">
-              <ng-template pTemplate="header">
-                <tr>
-                  <th>Fecha</th>
-                  <th>Tipo</th>
-                  <th>Obra</th>
-                  <th>Detalle</th>
-                  <th>Forma de pago</th>
-                  <th>Cliente/Proveedor</th>
-                  <th class="text-right">Monto</th>
-                </tr>
-              </ng-template>
-              <ng-template pTemplate="body" let-movimiento>
-                <tr class="cursor-pointer hover:bg-gray-50 transition-colors" (click)="irAObra(movimiento.obraId)">
-                  <td>{{ movimiento.fecha | date:'dd/MM/yyyy' }}</td>
-                  <td>
-                    <p-tag
-                      [value]="movimiento.tipo"
-                      [severity]="movimiento.tipo === 'COBRO' ? 'success' : 'danger'"
-                    ></p-tag>
-                  </td>
-                  <td><strong>{{ movimiento.obraNombre }}</strong></td>
-                  <td>{{ movimiento.detalle || '-' }}</td>
-                  <td>{{ movimiento.formaPago }}</td>
-                  <td>{{ nombreAsociado(movimiento.asociadoTipo, movimiento.asociadoId) }}</td>
-                  <td class="text-right font-semibold" [ngClass]="movimiento.tipo === 'COBRO' ? 'text-green-600' : 'text-red-600'">
-                    {{ movimiento.tipo === 'COBRO' ? '+' : '-' }} {{ movimiento.monto | currency:'ARS':'symbol-narrow':'1.0-0' }}
-                  </td>
-                </tr>
-              </ng-template>
-            </p-table>
+        <div class="bg-red-50 rounded-lg p-4 border border-red-200">
+          <div class="flex items-center gap-2 mb-2">
+            <i class="pi pi-arrow-down text-red-600"></i>
+            <span class="text-sm font-medium text-gray-600">Egresos</span>
           </div>
-        }
+          <div class="text-2xl font-bold text-red-600">
+            {{ (flujoCaja?.totalEgresos ?? 0) | currency:'ARS':'symbol-narrow':'1.0-0' }}
+          </div>
+        </div>
+
+        <div class="bg-indigo-50 rounded-lg p-4 border border-indigo-200">
+          <div class="flex items-center gap-2 mb-2">
+            <i class="pi pi-wallet text-indigo-600"></i>
+            <span class="text-sm font-medium text-gray-600">Saldo final</span>
+          </div>
+          <div class="text-2xl font-bold" [ngClass]="(flujoCaja?.saldoFinal ?? 0) >= 0 ? 'text-indigo-600' : 'text-red-600'">
+            {{ (flujoCaja?.saldoFinal ?? 0) | currency:'ARS':'symbol-narrow':'1.0-0' }}
+          </div>
+        </div>
       </div>
-    }
+
+      <div class="overflow-x-auto">
+        <p-table
+          [value]="flujoCaja?.movimientos || []"
+          [paginator]="true"
+          [rows]="5"
+          responsiveLayout="scroll"
+          styleClass="p-datatable-sm">
+          <ng-template pTemplate="header">
+            <tr>
+              <th>Fecha</th>
+              <th>Tipo</th>
+              <th>Obra</th>
+              <th>Detalle</th>
+              <th>Forma de pago</th>
+              <th>Cliente/Proveedor</th>
+              <th class="text-right">Monto</th>
+            </tr>
+          </ng-template>
+          <ng-template pTemplate="body" let-movimiento>
+            <tr class="cursor-pointer hover:bg-gray-50 transition-colors" (click)="irAObra(movimiento.obraId)">
+              <td>{{ movimiento.fecha | date:'dd/MM/yyyy' }}</td>
+              <td>
+                <p-tag
+                  [value]="movimiento.tipo"
+                  [severity]="movimiento.tipo === 'COBRO' ? 'success' : 'danger'"
+                ></p-tag>
+              </td>
+              <td><strong>{{ movimiento.obraNombre }}</strong></td>
+              <td>{{ movimiento.detalle || '-' }}</td>
+              <td>{{ movimiento.formaPago }}</td>
+              <td>{{ nombreAsociado(movimiento.asociadoTipo, movimiento.asociadoId) }}</td>
+              <td class="text-right font-semibold" [ngClass]="movimiento.tipo === 'COBRO' ? 'text-green-600' : 'text-red-600'">
+                {{ movimiento.tipo === 'COBRO' ? '+' : '-' }} {{ movimiento.monto | currency:'ARS':'symbol-narrow':'1.0-0' }}
+              </td>
+            </tr>
+          </ng-template>
+          <ng-template pTemplate="emptymessage">
+            <tr>
+              <td colspan="7" class="text-center text-gray-500 py-4">Sin movimientos registrados.</td>
+            </tr>
+          </ng-template>
+        </p-table>
+      </div>
+    </div>
+
+    <!-- ===================== FLUJO DE DINERO ===================== -->
+    <div class="bg-white rounded-xl shadow-md p-6">
+      <div class="flex items-center justify-between mb-5 pb-3 border-b border-gray-200">
+        <h2 class="text-lg font-semibold text-gray-900 flex items-center gap-2">
+          <i class="pi pi-chart-line text-indigo-600"></i>
+          Flujo de dinero
+        </h2>
+        <span class="text-xs text-gray-500">Ingresos vs egresos</span>
+      </div>
+
+      <div class="grid grid-cols-3 gap-3 mb-5">
+        <div class="text-xs text-gray-500">
+          Ingresos
+          <div class="text-sm font-semibold text-green-600">
+            {{ (flujoCaja?.totalIngresos ?? 0) | currency:'ARS':'symbol-narrow':'1.0-0' }}
+          </div>
+        </div>
+        <div class="text-xs text-gray-500">
+          Egresos
+          <div class="text-sm font-semibold text-red-600">
+            {{ (flujoCaja?.totalEgresos ?? 0) | currency:'ARS':'symbol-narrow':'1.0-0' }}
+          </div>
+        </div>
+        <div class="text-xs text-gray-500">
+          Beneficio neto
+          <div class="text-sm font-semibold" [ngClass]="((flujoCaja?.totalIngresos ?? 0) - (flujoCaja?.totalEgresos ?? 0)) >= 0 ? 'text-indigo-600' : 'text-red-600'">
+            {{ ((flujoCaja?.totalIngresos ?? 0) - (flujoCaja?.totalEgresos ?? 0)) | currency:'ARS':'symbol-narrow':'1.0-0' }}
+          </div>
+        </div>
+      </div>
+
+      @if (flujoDineroSerie.length > 0) {
+        <div class="flex items-end gap-3 h-40 overflow-x-auto">
+          @for (item of flujoDineroSerie; track item.fecha) {
+            <div class="flex flex-col items-center min-w-[44px]">
+              <div class="flex items-end gap-1 h-28">
+                <div
+                  class="w-2 bg-green-500 rounded-t"
+                  [style.height.%]="flujoDineroMax ? (item.ingresos / flujoDineroMax) * 100 : 0"
+                ></div>
+                <div
+                  class="w-2 bg-red-500 rounded-t"
+                  [style.height.%]="flujoDineroMax ? (item.egresos / flujoDineroMax) * 100 : 0"
+                ></div>
+              </div>
+              <span class="text-[10px] text-gray-500 mt-2">{{ item.fecha | date:'dd/MM' }}</span>
+            </div>
+          }
+        </div>
+        <div class="flex items-center gap-4 mt-4 text-xs text-gray-500">
+          <div class="flex items-center gap-2">
+            <span class="w-3 h-3 bg-green-500 rounded-sm"></span>
+            Ingresos
+          </div>
+          <div class="flex items-center gap-2">
+            <span class="w-3 h-3 bg-red-500 rounded-sm"></span>
+            Egresos
+          </div>
+        </div>
+      } @else {
+        <div class="text-center py-8 text-gray-400">
+          <i class="pi pi-inbox text-4xl mb-2"></i>
+          <p class="text-sm">No hay movimientos para graficar</p>
+        </div>
+      }
+    </div>
 
     <!-- ===================== CUENTA CORRIENTE POR OBRA ===================== -->
-    @if (cuentaCorrienteObra?.movimientos?.length) {
-      <div class="bg-white rounded-xl shadow-md p-6">
+    <div class="bg-white rounded-xl shadow-md p-6">
         <h2 class="text-lg font-semibold text-gray-900 mb-5 flex items-center gap-2 pb-3 border-b border-gray-200">
           <i class="pi pi-briefcase text-indigo-600"></i>
           Cuenta corriente por obra
@@ -255,50 +320,51 @@
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4 text-sm">
           <div class="bg-green-50 border border-green-200 rounded-lg p-3">
             <p class="text-gray-600">Total ingresos</p>
-            <p class="text-2xl font-bold text-green-600">{{ cuentaCorrienteObra?.totalIngresos | currency:'ARS':'symbol-narrow':'1.0-0' }}</p>
+            <p class="text-2xl font-bold text-green-600">{{ (cuentaCorrienteObra?.totalIngresos ?? 0) | currency:'ARS':'symbol-narrow':'1.0-0' }}</p>
           </div>
           <div class="bg-red-50 border border-red-200 rounded-lg p-3">
             <p class="text-gray-600">Total egresos</p>
-            <p class="text-2xl font-bold text-red-600">{{ cuentaCorrienteObra?.totalEgresos | currency:'ARS':'symbol-narrow':'1.0-0' }}</p>
+            <p class="text-2xl font-bold text-red-600">{{ (cuentaCorrienteObra?.totalEgresos ?? 0) | currency:'ARS':'symbol-narrow':'1.0-0' }}</p>
           </div>
           <div class="bg-indigo-50 border border-indigo-200 rounded-lg p-3">
             <p class="text-gray-600">Saldo final</p>
-            <p class="text-2xl font-bold text-indigo-700">{{ saldoSinNegativo(cuentaCorrienteObra?.saldoFinal) | currency:'ARS':'symbol-narrow':'1.0-0' }}</p>
+            <p class="text-2xl font-bold text-indigo-700">{{ saldoSinNegativo(cuentaCorrienteObra?.saldoFinal ?? 0) | currency:'ARS':'symbol-narrow':'1.0-0' }}</p>
           </div>
         </div>
 
-        @if (cuentaCorrienteObra?.movimientos?.length) {
-          <p-table [value]="cuentaCorrienteObra?.movimientos || []" [paginator]="true" [rows]="5" responsiveLayout="scroll" styleClass="p-datatable-sm">
-            <ng-template pTemplate="header">
-              <tr>
-                <th>Fecha</th>
-                <th>Obra</th>
-                <th>Concepto</th>
-                <th>Tipo</th>
-                <th>Asociado</th>
-                <th class="text-right">Monto</th>
-              </tr>
-            </ng-template>
-            <ng-template pTemplate="body" let-item>
-              <tr class="cursor-pointer hover:bg-gray-50 transition-colors" (click)="irAObra(item.obraId ?? cuentaCorrienteObra?.obraId)">
-                <td>{{ item.fecha | date:'dd/MM/yyyy' }}</td>
-                <td>{{ item.obraNombre || cuentaCorrienteObra?.obraNombre || '-' }}</td>
-                <td>{{ item.concepto || item.referencia || '-' }}</td>
-                <td>
-                  <p-tag [value]="item.tipo" [severity]="item.tipo === 'COBRO' ? 'success' : item.tipo === 'PAGO' ? 'danger' : 'info'"></p-tag>
-                </td>
-                <td>{{ item.asociadoNombre || nombreAsociado(item.asociadoTipo, item.asociadoId) }}</td>
-                <td class="text-right">{{ item.monto | currency:'ARS':'symbol-narrow':'1.0-0' }}</td>
-              </tr>
-            </ng-template>
-          </p-table>
-        }
+        <p-table [value]="cuentaCorrienteObra?.movimientos || []" [paginator]="true" [rows]="5" responsiveLayout="scroll" styleClass="p-datatable-sm">
+          <ng-template pTemplate="header">
+            <tr>
+              <th>Fecha</th>
+              <th>Obra</th>
+              <th>Concepto</th>
+              <th>Tipo</th>
+              <th>Asociado</th>
+              <th class="text-right">Monto</th>
+            </tr>
+          </ng-template>
+          <ng-template pTemplate="body" let-item>
+            <tr class="cursor-pointer hover:bg-gray-50 transition-colors" (click)="irAObra(item.obraId ?? cuentaCorrienteObra?.obraId)">
+              <td>{{ item.fecha | date:'dd/MM/yyyy' }}</td>
+              <td>{{ item.obraNombre || cuentaCorrienteObra?.obraNombre || '-' }}</td>
+              <td>{{ item.concepto || item.referencia || '-' }}</td>
+              <td>
+                <p-tag [value]="item.tipo" [severity]="item.tipo === 'COBRO' ? 'success' : item.tipo === 'PAGO' ? 'danger' : 'info'"></p-tag>
+              </td>
+              <td>{{ item.asociadoNombre || nombreAsociado(item.asociadoTipo, item.asociadoId) }}</td>
+              <td class="text-right">{{ item.monto | currency:'ARS':'symbol-narrow':'1.0-0' }}</td>
+            </tr>
+          </ng-template>
+          <ng-template pTemplate="emptymessage">
+            <tr>
+              <td colspan="6" class="text-center text-gray-500 py-4">Sin movimientos registrados.</td>
+            </tr>
+          </ng-template>
+        </p-table>
       </div>
-    }
 
     <!-- ===================== CUENTA CORRIENTE POR CLIENTE ===================== -->
-    @if (cuentaCorrienteCliente?.movimientos?.length) {
-      <div class="bg-white rounded-xl shadow-md p-6">
+    <div class="bg-white rounded-xl shadow-md p-6">
         <h2 class="text-lg font-semibold text-gray-900 mb-5 flex items-center gap-2 pb-3 border-b border-gray-200">
           <i class="pi pi-user text-indigo-600"></i>
           Cuenta corriente por cliente
@@ -307,50 +373,51 @@
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4 text-sm">
           <div class="bg-green-50 border border-green-200 rounded-lg p-3">
             <p class="text-gray-600">Pagó</p>
-            <p class="text-2xl font-bold text-green-600">{{ cuentaCorrienteCliente?.totalCobros | currency:'ARS':'symbol-narrow':'1.0-0' }}</p>
+            <p class="text-2xl font-bold text-green-600">{{ (cuentaCorrienteCliente?.totalCobros ?? 0) | currency:'ARS':'symbol-narrow':'1.0-0' }}</p>
           </div>
           <div class="bg-red-50 border border-red-200 rounded-lg p-3">
             <p class="text-gray-600">Debe</p>
-            <p class="text-2xl font-bold text-red-600">{{ cuentaCorrienteCliente?.totalCostos | currency:'ARS':'symbol-narrow':'1.0-0' }}</p>
+            <p class="text-2xl font-bold text-red-600">{{ (cuentaCorrienteCliente?.totalCostos ?? 0) | currency:'ARS':'symbol-narrow':'1.0-0' }}</p>
           </div>
           <div class="bg-indigo-50 border border-indigo-200 rounded-lg p-3">
             <p class="text-gray-600">Saldo</p>
-            <p class="text-2xl font-bold text-indigo-700">{{ saldoSinNegativo(cuentaCorrienteCliente?.saldoFinal) | currency:'ARS':'symbol-narrow':'1.0-0' }}</p>
+            <p class="text-2xl font-bold text-indigo-700">{{ saldoSinNegativo(cuentaCorrienteCliente?.saldoFinal ?? 0) | currency:'ARS':'symbol-narrow':'1.0-0' }}</p>
           </div>
         </div>
 
-        @if (cuentaCorrienteCliente?.movimientos?.length) {
-          <p-table [value]="cuentaCorrienteCliente?.movimientos || []" [paginator]="true" [rows]="5" responsiveLayout="scroll" styleClass="p-datatable-sm">
-            <ng-template pTemplate="header">
-              <tr>
-                <th>Fecha</th>
-                <th>Obra</th>
-                <th>Concepto</th>
-                <th>Tipo</th>
-                <th>Asociado</th>
-                <th class="text-right">Monto</th>
-              </tr>
-            </ng-template>
-            <ng-template pTemplate="body" let-item>
-              <tr class="cursor-pointer hover:bg-gray-50 transition-colors" (click)="irAObra(item.obraId)">
-                <td>{{ item.fecha | date:'dd/MM/yyyy' }}</td>
-                <td>{{ item.obraNombre || '-' }}</td>
-                <td>{{ item.concepto || item.referencia || '-' }}</td>
-                <td>
-                  <p-tag [value]="item.tipo" [severity]="item.tipo === 'COBRO' ? 'success' : item.tipo === 'COSTO' ? 'danger' : 'info'"></p-tag>
-                </td>
-                <td>{{ item.asociadoNombre || nombreAsociado(item.asociadoTipo, item.asociadoId) }}</td>
-                <td class="text-right">{{ item.monto | currency:'ARS':'symbol-narrow':'1.0-0' }}</td>
-              </tr>
-            </ng-template>
-          </p-table>
-        }
+        <p-table [value]="cuentaCorrienteCliente?.movimientos || []" [paginator]="true" [rows]="5" responsiveLayout="scroll" styleClass="p-datatable-sm">
+          <ng-template pTemplate="header">
+            <tr>
+              <th>Fecha</th>
+              <th>Obra</th>
+              <th>Concepto</th>
+              <th>Tipo</th>
+              <th>Asociado</th>
+              <th class="text-right">Monto</th>
+            </tr>
+          </ng-template>
+          <ng-template pTemplate="body" let-item>
+            <tr class="cursor-pointer hover:bg-gray-50 transition-colors" (click)="irAObra(item.obraId)">
+              <td>{{ item.fecha | date:'dd/MM/yyyy' }}</td>
+              <td>{{ item.obraNombre || '-' }}</td>
+              <td>{{ item.concepto || item.referencia || '-' }}</td>
+              <td>
+                <p-tag [value]="item.tipo" [severity]="item.tipo === 'COBRO' ? 'success' : item.tipo === 'COSTO' ? 'danger' : 'info'"></p-tag>
+              </td>
+              <td>{{ item.asociadoNombre || nombreAsociado(item.asociadoTipo, item.asociadoId) }}</td>
+              <td class="text-right">{{ item.monto | currency:'ARS':'symbol-narrow':'1.0-0' }}</td>
+            </tr>
+          </ng-template>
+          <ng-template pTemplate="emptymessage">
+            <tr>
+              <td colspan="6" class="text-center text-gray-500 py-4">Sin movimientos registrados.</td>
+            </tr>
+          </ng-template>
+        </p-table>
       </div>
-    }
 
     <!-- ===================== CUENTA CORRIENTE POR PROVEEDOR ===================== -->
-    @if (cuentaCorrienteProveedor?.movimientos?.length) {
-      <div class="bg-white rounded-xl shadow-md p-6">
+    <div class="bg-white rounded-xl shadow-md p-6">
         <h2 class="text-lg font-semibold text-gray-900 mb-5 flex items-center gap-2 pb-3 border-b border-gray-200">
           <i class="pi pi-truck text-indigo-600"></i>
           Cuenta corriente por proveedor
@@ -359,56 +426,57 @@
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4 text-sm">
           <div class="bg-amber-50 border border-amber-200 rounded-lg p-3">
             <p class="text-gray-600">Costos</p>
-            <p class="text-2xl font-bold text-amber-700">{{ cuentaCorrienteProveedor?.totalCostos | currency:'ARS':'symbol-narrow':'1.0-0' }}</p>
+            <p class="text-2xl font-bold text-amber-700">{{ (cuentaCorrienteProveedor?.totalCostos ?? 0) | currency:'ARS':'symbol-narrow':'1.0-0' }}</p>
           </div>
           <div class="bg-green-50 border border-green-200 rounded-lg p-3">
             <p class="text-gray-600">Pagos</p>
-            <p class="text-2xl font-bold text-green-700">{{ cuentaCorrienteProveedor?.totalPagos | currency:'ARS':'symbol-narrow':'1.0-0' }}</p>
+            <p class="text-2xl font-bold text-green-700">{{ (cuentaCorrienteProveedor?.totalPagos ?? 0) | currency:'ARS':'symbol-narrow':'1.0-0' }}</p>
           </div>
           <div class="bg-indigo-50 border border-indigo-200 rounded-lg p-3">
             <p class="text-gray-600">Saldo proveedor</p>
-            <p class="text-2xl font-bold text-indigo-700">{{ saldoSinNegativo(cuentaCorrienteProveedor?.saldoFinal) | currency:'ARS':'symbol-narrow':'1.0-0' }}</p>
+            <p class="text-2xl font-bold text-indigo-700">{{ saldoSinNegativo(cuentaCorrienteProveedor?.saldoFinal ?? 0) | currency:'ARS':'symbol-narrow':'1.0-0' }}</p>
           </div>
         </div>
 
-        @if (cuentaCorrienteProveedor?.movimientos?.length) {
-          <p-table [value]="cuentaCorrienteProveedor?.movimientos || []" [paginator]="true" [rows]="5" responsiveLayout="scroll" styleClass="p-datatable-sm">
-            <ng-template pTemplate="header">
-              <tr>
-                <th>Fecha</th>
-                <th>Obra</th>
-                <th>Concepto</th>
-                <th>Tipo</th>
-                <th>Asociado</th>
-                <th class="text-right">Monto</th>
-                <th class="text-right">Costos acum.</th>
-                <th class="text-right">Pagos acum.</th>
-                <th class="text-right">Saldo proveedor</th>
-              </tr>
-            </ng-template>
-            <ng-template pTemplate="body" let-item>
-              <tr class="cursor-pointer hover:bg-gray-50 transition-colors" (click)="irAObra(item.obraId)">
-                <td>{{ item.fecha | date:'dd/MM/yyyy' }}</td>
-                <td>{{ item.obraNombre || (item.obraId ? ('Obra #' + item.obraId) : '-') }}</td>
-                <td>{{ item.concepto || '-' }}</td>
-                <td>
-                  <p-tag [value]="item.tipo" severity="danger"></p-tag>
-                </td>
-                <td>{{ item.asociadoNombre || nombreAsociado(item.asociadoTipo, item.asociadoId) }}</td>
-                <td class="text-right text-red-600 font-semibold">{{ item.monto | currency:'ARS':'symbol-narrow':'1.0-0' }}</td>
-                <td class="text-right">{{ item.costosAcumulados || 0 | currency:'ARS':'symbol-narrow':'1.0-0' }}</td>
-                <td class="text-right">{{ item.pagosAcumulados || 0 | currency:'ARS':'symbol-narrow':'1.0-0' }}</td>
-                <td class="text-right">{{ saldoSinNegativo(item.saldoProveedor) | currency:'ARS':'symbol-narrow':'1.0-0' }}</td>
-              </tr>
-            </ng-template>
-          </p-table>
-        }
+        <p-table [value]="cuentaCorrienteProveedor?.movimientos || []" [paginator]="true" [rows]="5" responsiveLayout="scroll" styleClass="p-datatable-sm">
+          <ng-template pTemplate="header">
+            <tr>
+              <th>Fecha</th>
+              <th>Obra</th>
+              <th>Concepto</th>
+              <th>Tipo</th>
+              <th>Asociado</th>
+              <th class="text-right">Monto</th>
+              <th class="text-right">Costos acum.</th>
+              <th class="text-right">Pagos acum.</th>
+              <th class="text-right">Saldo proveedor</th>
+            </tr>
+          </ng-template>
+          <ng-template pTemplate="body" let-item>
+            <tr class="cursor-pointer hover:bg-gray-50 transition-colors" (click)="irAObra(item.obraId)">
+              <td>{{ item.fecha | date:'dd/MM/yyyy' }}</td>
+              <td>{{ item.obraNombre || (item.obraId ? ('Obra #' + item.obraId) : '-') }}</td>
+              <td>{{ item.concepto || '-' }}</td>
+              <td>
+                <p-tag [value]="item.tipo" severity="danger"></p-tag>
+              </td>
+              <td>{{ item.asociadoNombre || nombreAsociado(item.asociadoTipo, item.asociadoId) }}</td>
+              <td class="text-right text-red-600 font-semibold">{{ item.monto | currency:'ARS':'symbol-narrow':'1.0-0' }}</td>
+              <td class="text-right">{{ item.costosAcumulados || 0 | currency:'ARS':'symbol-narrow':'1.0-0' }}</td>
+              <td class="text-right">{{ item.pagosAcumulados || 0 | currency:'ARS':'symbol-narrow':'1.0-0' }}</td>
+              <td class="text-right">{{ saldoSinNegativo(item.saldoProveedor) | currency:'ARS':'symbol-narrow':'1.0-0' }}</td>
+            </tr>
+          </ng-template>
+          <ng-template pTemplate="emptymessage">
+            <tr>
+              <td colspan="9" class="text-center text-gray-500 py-4">Sin movimientos registrados.</td>
+            </tr>
+          </ng-template>
+        </p-table>
       </div>
-    }
 
     <!-- ===================== COMISIONES ===================== -->
-    @if (comisiones?.detalle?.length) {
-      <div class="bg-white rounded-xl shadow-md p-6">
+    <div class="bg-white rounded-xl shadow-md p-6">
         <h2 class="text-lg font-semibold text-gray-900 mb-5 flex items-center gap-2 pb-3 border-b border-gray-200">
           <i class="pi pi-percentage text-indigo-600"></i>
           Comisiones
@@ -416,31 +484,33 @@
 
         <div class="flex items-center gap-3 mb-4 text-sm">
           <span class="text-gray-600">Total comisiones:</span>
-          <span class="text-xl font-bold text-indigo-700">{{ comisiones?.totalComision | currency:'ARS':'symbol-narrow':'1.0-0' }}</span>
+          <span class="text-xl font-bold text-indigo-700">{{ (comisiones?.totalComision ?? 0) | currency:'ARS':'symbol-narrow':'1.2-2' }}</span>
           <span class="text-gray-500">| Saldo:</span>
-          <span class="font-semibold text-slate-800">{{ comisiones?.saldo | currency:'ARS':'symbol-narrow':'1.0-0' }}</span>
+          <span class="font-semibold text-slate-800">{{ (comisiones?.saldo ?? 0) | currency:'ARS':'symbol-narrow':'1.2-2' }}</span>
         </div>
 
-        @if (comisiones?.detalle?.length) {
-          <p-table [value]="comisiones?.detalle || []" [paginator]="true" [rows]="5" responsiveLayout="scroll" styleClass="p-datatable-sm">
-            <ng-template pTemplate="header">
-              <tr>
-                <th>Obra</th>
-                <th class="text-right">Monto</th>
-                <th class="text-right">Saldo</th>
-              </tr>
-            </ng-template>
-            <ng-template pTemplate="body" let-item>
-              <tr class="cursor-pointer hover:bg-gray-50 transition-colors" (click)="irAObra(item.obraId)">
-                <td>{{ item.obraNombre || 'General' }}</td>
-                <td class="text-right">{{ item.monto | currency:'ARS':'symbol-narrow':'1.0-0' }}</td>
-                <td class="text-right text-slate-800">{{ item.saldo | currency:'ARS':'symbol-narrow':'1.0-0' }}</td>
-              </tr>
-            </ng-template>
-          </p-table>
-        }
+        <p-table [value]="comisiones?.detalle || []" [paginator]="true" [rows]="5" responsiveLayout="scroll" styleClass="p-datatable-sm">
+          <ng-template pTemplate="header">
+            <tr>
+              <th>Obra</th>
+              <th class="text-right">Monto</th>
+              <th class="text-right">Saldo</th>
+            </tr>
+          </ng-template>
+          <ng-template pTemplate="body" let-item>
+            <tr class="cursor-pointer hover:bg-gray-50 transition-colors" (click)="irAObra(item.obraId)">
+              <td>{{ item.obraNombre || 'General' }}</td>
+              <td class="text-right">{{ item.monto | currency:'ARS':'symbol-narrow':'1.2-2' }}</td>
+              <td class="text-right text-slate-800">{{ item.saldo | currency:'ARS':'symbol-narrow':'1.2-2' }}</td>
+            </tr>
+          </ng-template>
+          <ng-template pTemplate="emptymessage">
+            <tr>
+              <td colspan="3" class="text-center text-gray-500 py-4">Sin movimientos registrados.</td>
+            </tr>
+          </ng-template>
+        </p-table>
       </div>
-    }
 
   }
 </div>

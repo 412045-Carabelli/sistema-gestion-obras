@@ -41,6 +41,7 @@ export class ObraMovimientosComponent implements OnInit {
   @Input() clientes!: Cliente[];
   @Input() proveedores!: Proveedor[];
   @Input() obraNombre = '';
+  @Input() obraEstado?: string | null;
   @Input() presupuestoTotal?: number;
   @Output() costosActualizados = new EventEmitter<ObraCosto[]>();
 
@@ -227,6 +228,14 @@ export class ObraMovimientosComponent implements OnInit {
   }
 
   openModal(movimiento?: Transaccion) {
+    if (!movimiento && !this.estadoPermiteMovimientos()) {
+      this.messageService.add({
+        severity: 'warn',
+        summary: 'Estado invalido',
+        detail: 'La obra debe estar Adjudicada, En progreso o Finalizada para crear movimientos.'
+      });
+      return;
+    }
     this.modoEdicion = !!movimiento;
     this.selectedCliente = null;
     this.selectedProveedor = null;
@@ -316,7 +325,10 @@ export class ObraMovimientosComponent implements OnInit {
   }
 
   onMontoChange(value: any) {
-    return;
+    const monto = Number(value ?? this.nuevoMovimiento.monto ?? 0);
+    if (!Number.isFinite(monto) || monto < 0) return;
+    this.nuevoMovimiento.monto = monto;
+    this.ajustarFormaPagoSegunMonto(monto);
   }
 
   getTiposTransaccionDisponibles() {
@@ -346,6 +358,14 @@ export class ObraMovimientosComponent implements OnInit {
   }
 
   guardarMovimiento() {
+    if (!this.modoEdicion && !this.estadoPermiteMovimientos()) {
+      this.messageService.add({
+        severity: 'warn',
+        summary: 'Estado invalido',
+        detail: 'La obra debe estar Adjudicada, En progreso o Finalizada para crear movimientos.'
+      });
+      return;
+    }
     // Determinar asociado segun seleccion
     const asociadoId = this.tipoEntidad === 'PROVEEDOR' ? this.selectedProveedor?.id : this.selectedCliente?.id;
     if (!asociadoId) {
@@ -357,7 +377,7 @@ export class ObraMovimientosComponent implements OnInit {
       return;
     }
 
-    if (this.tipoEntidad === 'CLIENTE' && !this.validarMontoContraPresupuesto()) {
+    if (!this.validarMontoContraPresupuesto()) {
       return;
     }
 
@@ -509,47 +529,144 @@ export class ObraMovimientosComponent implements OnInit {
   }
 
   private validarMontoContraPresupuesto(): boolean {
-    if (this.presupuestoTotal == null) {
-      this.messageService.add({
-        severity: 'warn',
-        summary: 'Sin presupuesto',
-        detail: 'No se pudo obtener el presupuesto total de la obra.'
-      });
-      return false;
-    }
-
     const formaPago = (this.nuevoMovimiento.forma_pago || '').toString().toUpperCase();
     const monto = Number(this.nuevoMovimiento.monto ?? 0);
-    const presupuesto = Number(this.presupuestoTotal ?? 0);
-    const currentId = this.modoEdicion ? Number(this.nuevoMovimiento.id) : null;
-    const cobrado = (this.transacciones || [])
-      .filter(t => (t.tipo_asociado || '').toUpperCase() === 'CLIENTE')
-      .filter(t => Number(t.id_asociado) === Number(this.selectedCliente?.id))
-      .filter(t => this.tipoValue(t) === 'COBRO')
-      .filter(t => currentId == null || Number(t.id) !== currentId)
-      .reduce((acc, t) => acc + Number(t.monto ?? 0), 0);
-    const restante = Math.max(0, presupuesto - cobrado);
-    const diferencia = Math.abs(monto - restante);
-
-    if (formaPago === 'TOTAL' && diferencia >= 0.01) {
+    if (formaPago !== 'TOTAL' && formaPago !== 'PARCIAL') {
       this.messageService.add({
         severity: 'warn',
-        summary: 'Monto invalido',
-        detail: 'Para cobro total, el monto debe ser igual al restante de la obra.'
+        summary: 'Condicion requerida',
+        detail: 'Selecciona si el movimiento es TOTAL o PARCIAL.'
       });
       return false;
     }
 
-    if (formaPago === 'PARCIAL' && monto >= restante) {
-      this.messageService.add({
-        severity: 'warn',
-        summary: 'Monto invalido',
-        detail: 'Para cobro parcial, el monto debe ser menor al restante de la obra.'
-      });
-      return false;
+    if (this.tipoEntidad === 'CLIENTE') {
+      if (this.presupuestoTotal == null) {
+        this.messageService.add({
+          severity: 'warn',
+          summary: 'Sin presupuesto',
+          detail: 'No se pudo obtener el presupuesto total de la obra.'
+        });
+        return false;
+      }
+      const presupuesto = Number(this.presupuestoTotal ?? 0);
+      const currentId = this.modoEdicion ? Number(this.nuevoMovimiento.id) : null;
+      const cobrado = (this.transacciones || [])
+        .filter(t => (t.tipo_asociado || '').toUpperCase() === 'CLIENTE')
+        .filter(t => Number(t.id_asociado) === Number(this.selectedCliente?.id))
+        .filter(t => this.tipoValue(t) === 'COBRO')
+        .filter(t => currentId == null || Number(t.id) !== currentId)
+        .reduce((acc, t) => acc + Number(t.monto ?? 0), 0);
+      const restante = Math.max(0, presupuesto - cobrado);
+      const diferencia = Math.abs(monto - restante);
+
+      if (monto - restante > 0.01) {
+        this.messageService.add({
+          severity: 'warn',
+          summary: 'Monto invalido',
+          detail: 'El monto no puede superar el restante de la obra.'
+        });
+        return false;
+      }
+
+      if (formaPago === 'TOTAL' && diferencia >= 0.01) {
+        this.messageService.add({
+          severity: 'warn',
+          summary: 'Monto invalido',
+          detail: 'Para cobro total, el monto debe ser igual al restante de la obra.'
+        });
+        return false;
+      }
+
+      if (formaPago === 'PARCIAL' && monto >= restante) {
+        this.messageService.add({
+          severity: 'warn',
+          summary: 'Monto invalido',
+          detail: 'Para cobro parcial, el monto debe ser menor al restante de la obra.'
+        });
+        return false;
+      }
+
+      return true;
+    }
+
+    if (this.tipoEntidad === 'PROVEEDOR') {
+      if (!this.selectedProveedor?.id) {
+        this.messageService.add({
+          severity: 'warn',
+          summary: 'Proveedor requerido',
+          detail: 'Selecciona un proveedor.'
+        });
+        return false;
+      }
+      const total = this.totalProveedorSeleccionado ?? 0;
+      const pagado = this.pagadoProveedorSeleccionado ?? 0;
+      const restante = Math.max(0, total - pagado);
+      const diferencia = Math.abs(monto - restante);
+
+      if (monto - restante > 0.01) {
+        this.messageService.add({
+          severity: 'warn',
+          summary: 'Monto invalido',
+          detail: 'El monto no puede superar el saldo del proveedor.'
+        });
+        return false;
+      }
+
+      if (formaPago === 'TOTAL' && diferencia >= 0.01) {
+        this.messageService.add({
+          severity: 'warn',
+          summary: 'Monto invalido',
+          detail: 'Para pago total, el monto debe ser igual al saldo del proveedor.'
+        });
+        return false;
+      }
+
+      if (formaPago === 'PARCIAL' && monto >= restante) {
+        this.messageService.add({
+          severity: 'warn',
+          summary: 'Monto invalido',
+          detail: 'Para pago parcial, el monto debe ser menor al saldo del proveedor.'
+        });
+        return false;
+      }
+
+      return true;
     }
 
     return true;
+  }
+
+  private ajustarFormaPagoSegunMonto(monto: number) {
+    const EPS = 0.01;
+    if (this.tipoEntidad === 'CLIENTE') {
+      if (this.presupuestoTotal == null) return;
+      const currentId = this.modoEdicion ? Number(this.nuevoMovimiento.id) : null;
+      const cobrado = (this.transacciones || [])
+        .filter(t => (t.tipo_asociado || '').toUpperCase() === 'CLIENTE')
+        .filter(t => Number(t.id_asociado) === Number(this.selectedCliente?.id))
+        .filter(t => this.tipoValue(t) === 'COBRO')
+        .filter(t => currentId == null || Number(t.id) !== currentId)
+        .reduce((acc, t) => acc + Number(t.monto ?? 0), 0);
+      const restante = Math.max(0, Number(this.presupuestoTotal ?? 0) - cobrado);
+      if (Math.abs(monto - restante) < EPS) {
+        this.nuevoMovimiento.forma_pago = 'TOTAL';
+      } else if (monto < restante) {
+        this.nuevoMovimiento.forma_pago = 'PARCIAL';
+      }
+      return;
+    }
+
+    if (this.tipoEntidad === 'PROVEEDOR') {
+      const total = this.totalProveedorSeleccionado ?? 0;
+      const pagado = this.pagadoProveedorSeleccionado ?? 0;
+      const restante = Math.max(0, total - pagado);
+      if (Math.abs(monto - restante) < EPS) {
+        this.nuevoMovimiento.forma_pago = 'TOTAL';
+      } else if (monto < restante) {
+        this.nuevoMovimiento.forma_pago = 'PARCIAL';
+      }
+    }
   }
 
   private asegurarTipoTransaccionSegunAsociado() {
@@ -582,9 +699,15 @@ export class ObraMovimientosComponent implements OnInit {
     return (this.proveedores || []).filter(p => ids.has(Number(p.id)));
   }
 
-  private costoTieneProveedor(costo: ObraCosto): boolean {
+  private costoTieneProveedor(costo?: ObraCosto | null): boolean {
+    if (!costo) return false;
     const id = Number((costo as any)?.id_proveedor ?? (costo as any)?.proveedor?.id ?? 0);
     return id > 0;
+  }
+
+  private estadoPermiteMovimientos(): boolean {
+    const raw = (this.obraEstado || '').toString().trim().toUpperCase().replace(/\s+/g, '_');
+    return raw === 'ADJUDICADA' || raw === 'EN_PROGRESO' || raw === 'FINALIZADA';
   }
 }
 

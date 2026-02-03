@@ -67,7 +67,7 @@
             <th class="px-3 py-2 text-left">DNI/CUIT</th>
             <th class="px-3 py-2 text-left">Telefono</th>
             <th class="px-3 py-2 text-left">Email</th>
-            <th class="px-3 py-2 text-left">Condicion IVA</th>
+            <th class="px-3 py-2 text-right">Saldo</th>
           </tr>
         </ng-template>
 
@@ -79,7 +79,7 @@
             <td class="px-3 py-2">{{ c.cuit || '-' }}</td>
             <td class="px-3 py-2">{{ c.telefono || '-' }}</td>
             <td class="px-3 py-2">{{ c.email || '-' }}</td>
-            <td class="px-3 py-2">{{ getCondicionIvaLabel(c.condicionIva ?? c.condicion_iva) }}</td>
+            <td class="px-3 py-2 text-right">{{ (c.saldoCliente ?? 0) | currency:'ARS':'symbol-narrow':'1.0-2' }}</td>
           </tr>
         </ng-template>
 

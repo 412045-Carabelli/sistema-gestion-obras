@@ -16,6 +16,8 @@ public interface TransaccionRepository extends JpaRepository<Transaccion, Long> 
 
     List<Transaccion> findByTipoAsociadoAndIdAsociado(String tipoAsociado, Long idAsociado);
 
+    List<Transaccion> findByIdObraAndTipoAsociadoAndIdAsociado(Long idObra, String tipoAsociado, Long idAsociado);
+
 
     @Query("SELECT COALESCE(SUM(t.monto), 0) FROM Transaccion t WHERE t.idObra = :idObra AND t.tipo_transaccion = com.transacciones.enums.TipoTransaccionEnum.COBRO AND UPPER(t.tipoAsociado) = 'CLIENTE'")
     Double sumarCobrosPorObra(@Param("idObra") Long idObra);
