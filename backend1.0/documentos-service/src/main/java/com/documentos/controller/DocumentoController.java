@@ -24,18 +24,20 @@ public class DocumentoController {
             produces = MediaType.APPLICATION_JSON_VALUE)
     public Mono<ResponseEntity<DocumentoDto>> create(
             @RequestPart(value = "id_obra", required = false) String idObra,
-            @RequestPart("tipo_documento") String tipoDocumento,  // Changed to String
+            @RequestPart(value = "tipo_documento", required = false) String tipoDocumento,
             @RequestPart(value = "id_asociado", required = false) String idAsociado,
             @RequestPart(value = "tipo_asociado", required = false) String tipoAsociado,
             @RequestPart(value = "observacion", required = false) String observacion,
             @RequestPart("file") FilePart filePart
     ) {
         // Convert String to Enum
-        TipoDocumentoEnum tipoEnum;
-        try {
-            tipoEnum = TipoDocumentoEnum.valueOf(tipoDocumento.toUpperCase());
-        } catch (IllegalArgumentException e) {
-            return Mono.just(ResponseEntity.badRequest().build());
+        TipoDocumentoEnum tipoEnum = TipoDocumentoEnum.OTRO;
+        if (tipoDocumento != null && !tipoDocumento.isBlank()) {
+            try {
+                tipoEnum = TipoDocumentoEnum.valueOf(tipoDocumento.toUpperCase());
+            } catch (IllegalArgumentException e) {
+                return Mono.just(ResponseEntity.badRequest().build());
+            }
         }
 
         return documentoService.createWithFileReactive(
@@ -79,8 +81,8 @@ public class DocumentoController {
         return documentoService.delete(id);
     }
 
-    @GetMapping("/{id}/download")
-    public Mono<ResponseEntity<Resource>> download(@PathVariable("id") Long id) {
+    @GetMapping("/{id}/view")
+    public Mono<ResponseEntity<Resource>> view(@PathVariable("id") Long id) {
         return documentoService.downloadFile(id);
     }
 }

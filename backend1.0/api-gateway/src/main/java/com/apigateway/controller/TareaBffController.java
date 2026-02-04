@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -23,10 +24,21 @@ public class TareaBffController {
 
     // ✅ Tareas por obra
     @GetMapping("/{idObra}")
-    public Mono<ResponseEntity<List<Map<String, Object>>>> getTareasPorObra(@PathVariable("idObra") Long idObra) {
+    public Mono<ResponseEntity<List<Map<String, Object>>>> getTareasPorObra(
+            @PathVariable("idObra") Long idObra,
+            @RequestParam(name = "soloActivas", defaultValue = "false") boolean soloActivas,
+            @RequestParam(name = "ordenAntiguas", defaultValue = "false") boolean ordenAntiguas
+    ) {
+        String url = TAREAS_URL + "/" + idObra;
+        List<String> params = new ArrayList<>();
+        if (soloActivas) params.add("soloActivas=true");
+        if (ordenAntiguas) params.add("ordenAntiguas=true");
+        if (!params.isEmpty()) {
+            url = url + "?" + String.join("&", params);
+        }
         return webClientBuilder.build()
                 .get()
-                .uri(TAREAS_URL + "/{idObra}", idObra)
+                .uri(url)
                 .retrieve()
                 .bodyToFlux(new ParameterizedTypeReference<Map<String, Object>>() {})
                 .collectList()

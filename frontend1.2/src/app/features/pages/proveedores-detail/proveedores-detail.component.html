@@ -82,6 +82,15 @@
           <p-tablist pStyleClass="border-b border-gray-200 px-6">
             <p-tab value="0" pStyleClass="px-6 py-4">
               <div class="flex items-center gap-2">
+                <i class="pi pi-briefcase"></i>
+                <span class="font-medium">Obras</span>
+                <span class="ml-2 px-2 py-1 bg-emerald-100 text-emerald-700 text-xs font-semibold rounded-full">
+                  {{ getObrasSaldoProveedor().length || 0 }}
+                </span>
+              </div>
+            </p-tab>
+            <p-tab value="1" pStyleClass="px-6 py-4">
+              <div class="flex items-center gap-2">
                 <i class="pi pi-list-check"></i>
                 <span class="font-medium">Tareas</span>
                 <span class="ml-2 px-2 py-1 bg-cyan-100 text-cyan-700 text-xs font-semibold rounded-full">
@@ -89,7 +98,7 @@
                 </span>
               </div>
             </p-tab>
-            <p-tab value="1" pStyleClass="px-6 py-4">
+            <p-tab value="2" pStyleClass="px-6 py-4">
               <div class="flex items-center gap-2">
                 <i class="pi pi-arrow-right-arrow-left"></i>
                 <span class="font-medium">Movimientos</span>
@@ -98,7 +107,7 @@
                 </span>
               </div>
             </p-tab>
-            <p-tab value="2" pStyleClass="px-6 py-4">
+            <p-tab value="3" pStyleClass="px-6 py-4">
               <div class="flex items-center gap-2">
                 <i class="pi pi-file"></i>
                 <span class="font-medium">Documentos</span>
@@ -107,8 +116,53 @@
           </p-tablist>
 
           <p-tabpanels pStyleClass="p-6">
-            <!-- TAB: TAREAS -->
+            <!-- TAB: OBRAS -->
             <p-tabpanel value="0">
+              @if (getObrasSaldoProveedor().length > 0) {
+                <div class="overflow-hidden rounded-lg border border-gray-200">
+                  <p-table [value]="getObrasSaldoProveedor()" [paginator]="true" [rows]="8" responsiveLayout="scroll" styleClass="p-datatable-sm">
+                    <ng-template pTemplate="header">
+                      <tr>
+                        <th>Obra</th>
+                        <th>Estado</th>
+                        <th class="text-right">Total</th>
+                        <th class="text-right">Pagado</th>
+                        <th class="text-right">Saldo</th>
+                      </tr>
+                    </ng-template>
+                    <ng-template pTemplate="body" let-item>
+                      <tr class="cursor-pointer hover:bg-gray-50 transition-colors" (click)="irADetalleObra(item.id)">
+                        <td class="font-medium text-gray-900">{{ item.nombre }}</td>
+                        <td>
+                          <span class="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">
+                            {{ item.estado | estadoFormat }}
+                          </span>
+                        </td>
+                        <td class="text-right font-semibold">{{ item.total | currency:'ARS':'symbol':'1.0-2' }}</td>
+                        <td class="text-right text-red-700 font-semibold">{{ item.pagado | currency:'ARS':'symbol':'1.0-2' }}</td>
+                        <td class="text-right text-emerald-700 font-semibold">{{ item.saldo | currency:'ARS':'symbol':'1.0-2' }}</td>
+                      </tr>
+                    </ng-template>
+                    <ng-template pTemplate="emptymessage">
+                      <tr>
+                        <td colspan="5" class="text-center py-8 text-gray-500">
+                          <i class="pi pi-inbox text-4xl mb-2"></i>
+                          <p>No hay obras con saldo para este proveedor</p>
+                        </td>
+                      </tr>
+                    </ng-template>
+                  </p-table>
+                </div>
+              } @else {
+                <div class="text-center py-12 text-gray-500">
+                  <i class="pi pi-inbox text-5xl mb-3"></i>
+                  <p class="text-lg">No hay obras adjudicadas o en progreso</p>
+                </div>
+              }
+            </p-tabpanel>
+
+            <!-- TAB: TAREAS -->
+            <p-tabpanel value="1">
               @if (tareas.length > 0) {
                 <div class="overflow-hidden rounded-lg border border-gray-200">
                   <p-table [value]="tareas" styleClass="w-full" [tableStyle]="{'min-width': '96rem'}">
@@ -193,7 +247,7 @@
             </p-tabpanel>
 
             <!-- TAB: MOVIMIENTOS -->
-            <p-tabpanel value="1">
+            <p-tabpanel value="2">
               <div class="flex flex-wrap gap-4 mb-4">
                 <div class="bg-purple-50 border border-purple-100 rounded-lg px-4 py-3 flex-1 min-w-[220px]">
                   <p class="text-xs text-purple-700 font-semibold uppercase">Total proveedor</p>
@@ -248,7 +302,7 @@
             </p-tabpanel>
 
             <!-- TAB: DOCUMENTOS -->
-            <p-tabpanel value="2">
+            <p-tabpanel value="3">
               <app-clientes-documentos
                 [asociadoId]="proveedor.id!"
                 [tipoAsociado]="'PROVEEDOR'">

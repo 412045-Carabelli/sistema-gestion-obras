@@ -45,6 +45,13 @@ services:
       - documentos_uploads:/app/uploads
     environment:
       - SPRING_PROFILES_ACTIVE=prod
+      - MINIO_ENABLED=true
+      - MINIO_URL=http://minio:9000
+      - MINIO_ACCESS_KEY=minioadmin
+      - MINIO_SECRET_KEY=minioadmin
+      - MINIO_BUCKET=documentos
+    depends_on:
+      - minio
     restart: unless-stopped
 
   transacciones-service:
@@ -99,6 +106,20 @@ services:
       - api-gateway
     restart: unless-stopped
 
+  minio:
+    image: minio/minio:RELEASE.2024-12-18T00-45-43Z
+    container_name: minio
+    command: server /data --console-address ":9001"
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    volumes:
+      - minio_data:/data
+    environment:
+      - MINIO_ROOT_USER=minioadmin
+      - MINIO_ROOT_PASSWORD=minioadmin
+    restart: unless-stopped
+
 volumes:
   obras_data:
   clientes_data:
@@ -107,3 +128,4 @@ volumes:
   documentos_uploads:
   transacciones_data:
   reportes_data:
+  minio_data:

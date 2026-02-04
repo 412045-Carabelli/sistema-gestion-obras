@@ -23,11 +23,7 @@
   >
     <ng-template pTemplate="header">
       <tr>
-        <th pSortableColumn="tipo_documento.nombre">
-          Tipo
-          <p-sortIcon field="tipo_documento.nombre"></p-sortIcon>
-        </th>
-        <th>Observación</th>
+        <th>Descripción</th>
         <th pSortableColumn="fecha">
           Fecha
           <p-sortIcon field="fecha"></p-sortIcon>
@@ -45,7 +41,6 @@
         class="cursor-pointer hover:bg-gray-50 transition-colors"
         (click)="descargarDocumento(d)"
       >
-        <td>{{ d.tipo_documento ?? '—' }}</td>
         <td>{{ d.observacion || '—' }}</td>
         <td>{{ d.fecha | date: 'dd/MM/yyyy' }}</td>
         <td>
@@ -139,27 +134,11 @@
 
     <div class="space-y-4">
       <div>
-        <label class="block text-sm font-medium mb-1 text-gray-700">Tipo</label>
-        <p-select
-          [(ngModel)]="selectedTipo"
-          [options]="tiposDocumento"
-          optionLabel="label"
-          optionValue="value"
-          appendTo="body"
-          placeholder="Seleccionar tipo de documento"
-          styleClass="w-full"
-        ></p-select>
-      </div>
-
-      <div>
-        <label class="block text-sm font-medium mb-1 text-gray-700">Observación</label>
-        <input
+        <label class="block text-sm font-medium mb-1 text-gray-700">Descripción</label>
+        <p-editor
           [(ngModel)]="observacion"
-          class="w-full"
-          pInputText
-          placeholder="Ej. Factura inicial"
-          type="text"
-        />
+          styleClass="w-full documento-editor"
+        ></p-editor>
       </div>
 
       <div>
@@ -172,7 +151,7 @@
           [auto]="false"
           [multiple]="true"
           (onSelect)="onFileSelected($event)"
-          accept=".pdf,.jpg,.jpeg,.png"
+          accept=".pdf,.jpg,.jpeg,.png,.doc,.docx,.xls,.xlsx"
           class="flex flex-start"
         ></p-fileUpload>
         @if (selectedFiles.length) {
@@ -208,6 +187,19 @@
     </ng-template>
   </p-dialog>
 </div>
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

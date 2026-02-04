@@ -36,6 +36,7 @@ import { MenuModule } from 'primeng/menu';
 import { MenuItem } from 'primeng/api';
 import { EditorModule } from 'primeng/editor';
 import {ProveedorQuickCreateComponent} from '../proveedor-quick-create/proveedor-quick-create.component';
+import { DocumentosService } from '../../../services/documentos/documentos.service';
 
 // PDFMAKE
 import pdfMake from 'pdfmake/build/pdfmake';
@@ -120,6 +121,8 @@ export class ObraPresupuestoComponent implements OnInit, OnChanges, AfterViewIni
   condicionesEditando = false;
   condicionesDraft = '';
   observacionesDraft = '';
+  private readonly condicionesDefaultTexto =
+    'Validez de oferta: 7 dias corridos.\nForma de pago: Al finalizar las tareas.';
   guardandoCondiciones = false;
   showBeneficioGlobalModal = false;
   beneficioGlobalDraft = 0;
@@ -131,7 +134,8 @@ export class ObraPresupuestoComponent implements OnInit, OnChanges, AfterViewIni
     private costosService: CostosService,
     private messageService: MessageService,
     private obrasService: ObrasService,
-    private confirmationService: ConfirmationService
+    private confirmationService: ConfirmationService,
+    private documentosService: DocumentosService
   ) {}
 
   ngOnInit() {
@@ -378,7 +382,7 @@ export class ObraPresupuestoComponent implements OnInit, OnChanges, AfterViewIni
     costo.enEdicion = true;
   }
 
-  abrirDetalleCosto(costo: ObraCosto, editar = false) {
+  abrirDetalleCosto(costo: ObraCosto, editar = true) {
     if (!costo) return;
     this.costoDetalle = costo;
     this.costoDetalleDraft = {
@@ -456,6 +460,7 @@ export class ObraPresupuestoComponent implements OnInit, OnChanges, AfterViewIni
           summary: 'Costo actualizado',
           detail: 'Los cambios se guardaron correctamente.'
         });
+        this.cerrarDetalleCosto();
       },
       error: () => {
         this.messageService.add({
@@ -858,7 +863,48 @@ export class ObraPresupuestoComponent implements OnInit, OnChanges, AfterViewIni
       }
     };
 
-    pdfMake.createPdf(docDefinition).download(`Presupuesto_${licitacion}.pdf`);
+    if (!this.obra?.id) {
+      this.messageService.add({
+        severity: 'warn',
+        summary: 'Obra no disponible',
+        detail: 'No se puede guardar el PDF sin una obra válida.'
+      });
+      return;
+    }
+
+    const filename = `Presupuesto_${licitacion}.pdf`;
+    const modoLabel =
+      modo === 'DETALLADO' ? 'Itemizado' : modo === 'MEMORIA' ? 'Global' : 'Mixto';
+    const observacion = `Presupuesto ${modoLabel}`;
+
+    pdfMake.createPdf(docDefinition).getBlob(blob => {
+      const file = new File([blob], filename, { type: 'application/pdf' });
+      this.documentosService.uploadDocumentoFlexible(
+        this.obra.id!,
+        'OTRO',
+        observacion,
+        file
+      ).subscribe({
+        next: (doc) => {
+          const url = this.documentosService.getDocumentoUrl(doc.id_documento!);
+          const opened = window.open(url, '_blank');
+          if (!opened) {
+            this.messageService.add({
+              severity: 'warn',
+              summary: 'Ventana bloqueada',
+              detail: 'Habilita los popups para abrir el PDF.'
+            });
+          }
+        },
+        error: () => {
+          this.messageService.add({
+            severity: 'error',
+            summary: 'Error al guardar',
+            detail: 'No se pudo guardar el PDF en documentos.'
+          });
+        }
+      });
+    });
   }
 
   //----------------------------------------------------------
@@ -1191,19 +1237,70 @@ export class ObraPresupuestoComponent implements OnInit, OnChanges, AfterViewIni
   }
 
   private normalizarMemoriaTexto(raw?: string | null): string | null {
-    if (!raw) return null;
-    const div = document.createElement('div');
-    div.innerHTML = raw;
-    const texto = (div.innerText || '').replace(/\s+\n/g, '\n').replace(/\n\s+/g, '\n').trim();
+    const texto = this.htmlToPlainWithBullets(raw);
     return texto || null;
   }
 
   private normalizarDescripcionCosto(raw?: string | null): string {
+    return this.htmlToPlainWithBullets(raw);
+  }
+
+  private htmlToPlainWithBullets(raw?: string | null): string {
     if (!raw) return '';
-    const div = document.createElement('div');
-    div.innerHTML = raw;
-    const texto = (div.textContent || div.innerText || '').replace(/\s+\n/g, '\n').replace(/\n\s+/g, '\n').trim();
-    return texto || '';
+    if (!raw.includes('<')) {
+      return raw.toString().replace(/\s+\n/g, '\n').replace(/\n\s+/g, '\n').trim();
+    }
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(raw, 'text/html');
+    const lines: string[] = [];
+
+    const pushLine = (text: string) => {
+      const cleaned = text.replace(/\s+\n/g, '\n').replace(/\n\s+/g, '\n').replace(/[ \t]+/g, ' ').trim();
+      if (cleaned) lines.push(cleaned);
+    };
+
+    const inlineText = (node: ChildNode): string => {
+      if (node.nodeType === Node.TEXT_NODE) {
+        return node.textContent || '';
+      }
+      if (node.nodeType !== Node.ELEMENT_NODE) return '';
+      const element = node as HTMLElement;
+      const tag = element.tagName.toLowerCase();
+      if (tag === 'br') return '\n';
+      return Array.from(element.childNodes).map(child => inlineText(child)).join('');
+    };
+
+    const walk = (node: ChildNode) => {
+      if (node.nodeType === Node.TEXT_NODE) {
+        pushLine(node.textContent || '');
+        return;
+      }
+      if (node.nodeType !== Node.ELEMENT_NODE) return;
+      const element = node as HTMLElement;
+      const tag = element.tagName.toLowerCase();
+
+      if (tag === 'ul' || tag === 'ol') {
+        const items = Array.from(element.children).filter(el => el.tagName.toLowerCase() === 'li');
+        items.forEach((li, idx) => {
+          const text = inlineText(li).replace(/\s+\n/g, '\n').replace(/\n\s+/g, '\n').trim();
+          if (!text) return;
+          const prefix = tag === 'ol' ? `${idx + 1}. ` : '• ';
+          lines.push(`${prefix}${text}`);
+        });
+        return;
+      }
+
+      if (tag === 'p' || tag === 'div') {
+        const text = inlineText(element);
+        pushLine(text);
+        return;
+      }
+
+      Array.from(element.childNodes).forEach(child => walk(child));
+    };
+
+    Array.from(doc.body.childNodes).forEach(node => walk(node));
+    return lines.join('\n').trim();
   }
 
   private convertirMemoriaPdfMake(raw?: string | null): any | null {
@@ -1394,7 +1491,8 @@ export class ObraPresupuestoComponent implements OnInit, OnChanges, AfterViewIni
   }
 
   iniciarEdicionCondiciones() {
-    this.condicionesDraft = this.obra?.condiciones_presupuesto ?? '';
+    const actuales = (this.obra?.condiciones_presupuesto ?? '').trim();
+    this.condicionesDraft = actuales || this.condicionesDefaultTexto;
     this.observacionesDraft = this.obra?.observaciones_presupuesto ?? '';
     this.condicionesEditando = true;
   }
