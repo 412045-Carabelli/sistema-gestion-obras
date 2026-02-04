@@ -15,6 +15,7 @@ import {ConfirmDialogModule} from 'primeng/confirmdialog';
 import {Tooltip} from 'primeng/tooltip';
 import {Select} from 'primeng/select';
 import {AutoCompleteModule} from 'primeng/autocomplete';
+import {EditorModule} from 'primeng/editor';
 import {forkJoin} from 'rxjs';
 
 @Component({
@@ -34,7 +35,8 @@ import {forkJoin} from 'rxjs';
     ConfirmDialogModule,
     Tooltip,
     Select,
-    AutoCompleteModule
+    AutoCompleteModule,
+    EditorModule
   ],
   providers: [MessageService, ConfirmationService],
   templateUrl: './obra-documentos.component.html',
@@ -47,10 +49,8 @@ export class ObraDocumentosComponent implements OnInit {
   @ViewChild('documentFileUpload') documentFileUpload?: FileUpload;
 
   documentos: Documento[] = [];
-  tiposDocumento: { label: string; value: string }[] = [];
   loading = true;
   modalVisible = false;
-  selectedTipo: string = 'FACTURA';
   observacion = '';
   selectedFiles: File[] = [];
   tipoEntidad: 'PROVEEDOR' | 'CLIENTE' = 'CLIENTE';
@@ -67,23 +67,7 @@ export class ObraDocumentosComponent implements OnInit {
 
   ngOnInit(): void {
     this.loading = true;
-
-    forkJoin({
-      tipos: this.documentosService.getTiposDocumento()
-    }).subscribe({
-      next: ({ tipos }) => {
-        // El selector usa optionLabel="label" y optionValue="value": normalizamos aquí
-        this.tiposDocumento = (tipos as any)?.map((t: any) => ({
-          label: t.label ?? t.nombre ?? t.name ?? t.value,
-          value: t.value ?? t.name ?? t.id ?? t.label
-        })) ?? [];
-        this.cargarDocumentosObra();
-      },
-      error: () => {
-        this.tiposDocumento = [];
-        this.cargarDocumentosObra();
-      }
-    });
+    this.cargarDocumentosObra();
   }
 
   filtrarProveedores(event: any) {
@@ -175,11 +159,11 @@ export class ObraDocumentosComponent implements OnInit {
   }
 
   guardarDocumento() {
-    if (!this.selectedFiles.length || !this.selectedTipo) {
+    if (!this.selectedFiles.length) {
       this.messageService.add({
         severity: 'warn',
         summary: 'Datos incompletos',
-        detail: 'Seleccioná un tipo y un archivo.'
+        detail: 'Seleccioná al menos un archivo.'
       });
       return;
     }
@@ -213,7 +197,7 @@ export class ObraDocumentosComponent implements OnInit {
 
     console.log('🚀 Subir documento', {
       obraId: this.obraId,
-      selectedTipo: this.selectedTipo,
+      selectedTipo: 'OTRO',
       idAsociado,
       tipoAsociado,
       archivos: this.selectedFiles.map(f => f.name)
@@ -222,7 +206,7 @@ export class ObraDocumentosComponent implements OnInit {
     const cargas = this.selectedFiles.map(file =>
       this.documentosService.uploadDocumentoFlexible(
         this.obraId,
-        this.selectedTipo,
+        "OTRO",
         this.observacion ?? '',
         file,
         idAsociado,
@@ -336,4 +320,8 @@ export class ObraDocumentosComponent implements OnInit {
     return null;
   }
 }
+
+
+
+
 

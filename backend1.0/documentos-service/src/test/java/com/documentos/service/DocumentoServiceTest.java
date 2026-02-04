@@ -31,7 +31,7 @@ class DocumentoServiceTest {
     @Test
     void createWithFileReactive_guardaDocumento() {
         DocumentoRepository repo = Mockito.mock(DocumentoRepository.class);
-        DocumentoService service = new DocumentoService(tempDir.toString(), repo);
+        DocumentoService service = new DocumentoService(tempDir.toString(), repo, null, false, "documentos");
 
         FilePart filePart = Mockito.mock(FilePart.class);
         when(filePart.filename()).thenReturn("archivo.pdf");
@@ -67,7 +67,7 @@ class DocumentoServiceTest {
     @Test
     void finders_y_delete() {
         DocumentoRepository repo = Mockito.mock(DocumentoRepository.class);
-        DocumentoService service = new DocumentoService(tempDir.toString(), repo);
+        DocumentoService service = new DocumentoService(tempDir.toString(), repo, null, false, "documentos");
 
         Documento doc = new Documento();
         doc.setIdDocumento(1L);
@@ -90,7 +90,7 @@ class DocumentoServiceTest {
     @Test
     void findById_notFound() {
         DocumentoRepository repo = Mockito.mock(DocumentoRepository.class);
-        DocumentoService service = new DocumentoService(tempDir.toString(), repo);
+        DocumentoService service = new DocumentoService(tempDir.toString(), repo, null, false, "documentos");
         when(repo.findById(99L)).thenReturn(Optional.empty());
 
         StepVerifier.create(service.findById(99L))
@@ -101,7 +101,7 @@ class DocumentoServiceTest {
     @Test
     void downloadFile_ok_y_archivoNoEncontrado() throws Exception {
         DocumentoRepository repo = Mockito.mock(DocumentoRepository.class);
-        DocumentoService service = new DocumentoService(tempDir.toString(), repo);
+        DocumentoService service = new DocumentoService(tempDir.toString(), repo, null, false, "documentos");
 
         Path rel = Path.of("obras/1/archivo.txt");
         Path abs = tempDir.resolve(rel);
@@ -138,7 +138,7 @@ class DocumentoServiceTest {
     @Test
     void createWithFileReactive_conAsociado() {
         DocumentoRepository repo = Mockito.mock(DocumentoRepository.class);
-        DocumentoService service = new DocumentoService(tempDir.toString(), repo);
+        DocumentoService service = new DocumentoService(tempDir.toString(), repo, null, false, "documentos");
 
         FilePart filePart = Mockito.mock(FilePart.class);
         when(filePart.filename()).thenReturn("doc.pdf");

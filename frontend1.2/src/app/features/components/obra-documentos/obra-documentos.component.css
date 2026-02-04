@@ -6,3 +6,8 @@
   text-overflow: ellipsis;
   vertical-align: middle;
 }
+
+:host ::ng-deep .documento-editor .p-editor-container,
+:host ::ng-deep .documento-editor .p-editor-content {
+  min-height: 180px;
+}

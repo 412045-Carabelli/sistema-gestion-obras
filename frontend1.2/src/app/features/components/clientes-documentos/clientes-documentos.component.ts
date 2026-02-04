@@ -4,11 +4,12 @@ import {TableModule} from 'primeng/table';
 import {ButtonModule} from 'primeng/button';
 import {ToastModule} from 'primeng/toast';
 import {Tooltip} from 'primeng/tooltip';
-import {MessageService} from 'primeng/api';
+import {ConfirmationService, MessageService} from 'primeng/api';
 import {DocumentosService} from '../../../services/documentos/documentos.service';
 import {Documento} from '../../../core/models/models';
 import {ProgressSpinner} from 'primeng/progressspinner';
 import {EstadoFormatPipe} from '../../../shared/pipes/estado-format.pipe';
+import {ConfirmDialogModule} from 'primeng/confirmdialog';
 
 @Component({
   selector: 'app-clientes-documentos',
@@ -21,9 +22,10 @@ import {EstadoFormatPipe} from '../../../shared/pipes/estado-format.pipe';
     Tooltip,
     DatePipe,
     ProgressSpinner,
-    EstadoFormatPipe
+    EstadoFormatPipe,
+    ConfirmDialogModule
   ],
-  providers: [MessageService],
+  providers: [MessageService, ConfirmationService],
   templateUrl: './clientes-documentos.component.html',
   styleUrls: ['./clientes-documentos.component.css']
 })
@@ -37,7 +39,8 @@ export class ClientesDocumentosComponent implements OnInit {
 
   constructor(
     private documentosService: DocumentosService,
-    private messageService: MessageService
+    private messageService: MessageService,
+    private confirmationService: ConfirmationService
   ) {}
 
   ngOnInit(): void {
@@ -94,6 +97,37 @@ export class ClientesDocumentosComponent implements OnInit {
           severity: 'error',
           summary: 'Error',
           detail: 'No se pudo abrir el documento.'
+        });
+      }
+    });
+  }
+
+  eliminarDocumento(doc: Documento) {
+    this.confirmationService.confirm({
+      header: 'Confirmar eliminacion',
+      message: `¿Seguro que queres eliminar el documento ${doc.nombre_archivo}?`,
+      icon: 'pi pi-exclamation-triangle',
+      acceptLabel: 'Eliminar',
+      rejectLabel: 'Cancelar',
+      acceptButtonStyleClass: 'p-button-danger p-button-sm',
+      rejectButtonStyleClass: 'p-button-text p-button-sm',
+      accept: () => {
+        this.documentosService.deleteDocumento(doc.id_documento).subscribe({
+          next: () => {
+            this.documentos = this.documentos.filter(d => d.id_documento !== doc.id_documento);
+            this.messageService.add({
+              severity: 'success',
+              summary: 'Eliminado',
+              detail: 'Documento eliminado correctamente'
+            });
+          },
+          error: () => {
+            this.messageService.add({
+              severity: 'error',
+              summary: 'Error',
+              detail: 'No se pudo eliminar el documento.'
+            });
+          }
         });
       }
     });

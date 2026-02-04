@@ -712,17 +712,10 @@
 
         <div class="flex justify-end gap-2">
           @if (costoDetalleEditando) {
-            <p-button label="Cancelar" icon="pi pi-times" (onClick)="cancelarEdicionDetalleCosto()"></p-button>
+            <p-button label="Cancelar" icon="pi pi-times" (onClick)="cerrarDetalleCosto()"></p-button>
             <p-button label="Guardar" icon="pi pi-check" (onClick)="guardarDetalleCosto()"></p-button>
           } @else {
-            <p-button label="Cerrar" icon="pi pi-times" (onClick)="cerrarDetalleCosto()"></p-button>
-            <p-button
-              label="Eliminar"
-              icon="pi pi-trash"
-              severity="danger"
-              [disabled]="!puedeEditarCosto(costoDetalle)"
-              (onClick)="eliminarDetalleCosto()">
-            </p-button>
+            <p-button label="Cancelar" icon="pi pi-times" (onClick)="cerrarDetalleCosto()"></p-button>
           }
         </div>
       }

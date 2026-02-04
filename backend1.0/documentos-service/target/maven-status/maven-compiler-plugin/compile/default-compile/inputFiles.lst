@@ -1,12 +1,13 @@
+C:\Users\Usuario\Desktop\my-work\sistema-gestion-obras\backend1.0\documentos-service\src\main\java\com\documentos\config\MinioConfig.java
+C:\Users\Usuario\Desktop\my-work\sistema-gestion-obras\backend1.0\documentos-service\src\main\java\com\documentos\dto\DocumentoDto.java
+C:\Users\Usuario\Desktop\my-work\sistema-gestion-obras\backend1.0\documentos-service\src\main\java\com\documentos\dto\EstadoResponse.java
+C:\Users\Usuario\Desktop\my-work\sistema-gestion-obras\backend1.0\documentos-service\src\main\java\com\documentos\entity\TipoDocumento.java
+C:\Users\Usuario\Desktop\my-work\sistema-gestion-obras\backend1.0\documentos-service\src\main\java\com\documentos\DocumentosServiceApplication.java
 C:\Users\Usuario\Desktop\my-work\sistema-gestion-obras\backend1.0\documentos-service\src\main\java\com\documentos\enums\TipoDocumentoEnum.java
 C:\Users\Usuario\Desktop\my-work\sistema-gestion-obras\backend1.0\documentos-service\src\main\java\com\documentos\controller\DocumentoController.java
 C:\Users\Usuario\Desktop\my-work\sistema-gestion-obras\backend1.0\documentos-service\src\main\java\com\documentos\entity\Documento.java
 C:\Users\Usuario\Desktop\my-work\sistema-gestion-obras\backend1.0\documentos-service\src\main\java\com\documentos\controller\TipoDocumentoController.java
-C:\Users\Usuario\Desktop\my-work\sistema-gestion-obras\backend1.0\documentos-service\src\main\java\com\documentos\dto\DocumentoDto.java
-C:\Users\Usuario\Desktop\my-work\sistema-gestion-obras\backend1.0\documentos-service\src\main\java\com\documentos\dto\EstadoResponse.java
 C:\Users\Usuario\Desktop\my-work\sistema-gestion-obras\backend1.0\documentos-service\src\main\java\com\documentos\repository\TipoDocumentoRepository.java
-C:\Users\Usuario\Desktop\my-work\sistema-gestion-obras\backend1.0\documentos-service\src\main\java\com\documentos\entity\TipoDocumento.java
-C:\Users\Usuario\Desktop\my-work\sistema-gestion-obras\backend1.0\documentos-service\src\main\java\com\documentos\DocumentosServiceApplication.java
 C:\Users\Usuario\Desktop\my-work\sistema-gestion-obras\backend1.0\documentos-service\src\main\java\com\documentos\repository\DocumentoRepository.java
 C:\Users\Usuario\Desktop\my-work\sistema-gestion-obras\backend1.0\documentos-service\src\main\java\com\documentos\service\DocumentoService.java
 C:\Users\Usuario\Desktop\my-work\sistema-gestion-obras\backend1.0\documentos-service\src\main\java\com\documentos\mapper\DocumentosMapper.java

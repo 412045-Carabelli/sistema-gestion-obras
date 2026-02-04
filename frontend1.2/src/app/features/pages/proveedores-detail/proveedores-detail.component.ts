@@ -1,4 +1,4 @@
-﻿import {Component, OnDestroy, OnInit} from '@angular/core';
+import {Component, OnDestroy, OnInit} from '@angular/core';
 import {ActivatedRoute, Router, RouterLink} from '@angular/router';
 import {forkJoin, Subscription} from 'rxjs';
 import {CommonModule} from '@angular/common';
@@ -34,6 +34,7 @@ export class ProveedoresDetailComponent implements OnInit, OnDestroy {
   proveedor!: Proveedor;
   tareas: Tarea[] = [];
   obrasMap: Record<number, Obra> = {};
+  obras: Obra[] = [];
   transacciones: Transaccion[] = [];
   costosProveedor: ObraCosto[] = [];
   totalCostos = 0;
@@ -72,13 +73,20 @@ export class ProveedoresDetailComponent implements OnInit, OnDestroy {
     return this.obrasMap[idObra]?.nombre ?? `Obra #${idObra}`;
   }
 
+  getEstadoObraDisplay(obra: Obra | null | undefined): string {
+    const raw = obra?.obra_estado;
+    if (!raw) return '-';
+    if (typeof raw === 'string') return raw;
+    return (raw as any)?.nombre ?? (raw as any)?.name ?? (raw as any)?.label ?? '-';
+  }
+
   irADetalleObra(idObra: number) {
     this.router.navigate(['/obras', idObra]);
   }
 
   irADetalleObraMov(idObra: number) {
-    // Navega a la obra y abre la pestaÃ±a de movimientos si existe (tab index 2).
-    this.router.navigate(['/obras', idObra], { queryParams: { tab: 2 } });
+    // Navega a la obra y abre la pestaña de movimientos si existe (tab index 2).
+    this.router.navigate(['/obras', idObra]);
   }
 
 
@@ -128,6 +136,7 @@ export class ProveedoresDetailComponent implements OnInit, OnDestroy {
           this.proveedoresStateService.setProveedor(proveedor);
           this.tareas = tareas;
           this.transacciones = transacciones;
+          this.obras = obras || [];
           this.obrasMap = (obras || []).reduce((acc, obra) => {
             acc[obra.id!] = obra;
             return acc;
@@ -151,7 +160,7 @@ export class ProveedoresDetailComponent implements OnInit, OnDestroy {
   }
 
   formatearTipo(tipo: string | null | undefined): string {
-    if (!tipo) return 'â€”';
+    if (!tipo) return '—';
 
     const limpio = tipo.replace(/_/g, ' ').toLowerCase();
     return limpio.charAt(0).toUpperCase() + limpio.slice(1);
@@ -191,6 +200,12 @@ export class ProveedoresDetailComponent implements OnInit, OnDestroy {
     ]).has(estado);
   }
 
+  private obraGeneraDeudaProveedor(obra: Obra | null | undefined): boolean {
+    if (!obra) return false;
+    const estado = this.normalizarEstadoObra(obra?.obra_estado);
+    return new Set(['ADJUDICADA', 'EN_PROGRESO']).has(estado);
+  }
+
   private normalizarEstadoObra(raw: any): string {
     if (!raw) return '';
     if (typeof raw === 'string') return this.sanitizarEstado(raw);
@@ -215,4 +230,27 @@ export class ProveedoresDetailComponent implements OnInit, OnDestroy {
     const subtotal = costo.subtotal ?? (Number(costo.cantidad ?? 0) * Number(costo.precio_unitario ?? 0));
     return Number(subtotal ?? 0);
   }
+
+  getObrasSaldoProveedor(): Array<{ id: number; nombre: string; estado: string; total: number; pagado: number; saldo: number }> {
+    const obrasFiltradas = (this.obras || []).filter(o => this.obraGeneraDeudaProveedor(o));
+    return obrasFiltradas.map(obra => {
+      const costos = (obra.costos || []).filter(c => this.getIdProveedorCosto(c) === Number(this.proveedor.id));
+      const total = costos.reduce((sum, c) => sum + this.getCostoBase(c), 0);
+      const pagos = (this.transacciones || [])
+        .filter(t => this.esPago(t))
+        .filter(t => Number((t as any)?.id_obra ?? (t as any)?.obraId ?? 0) === Number(obra.id))
+        .reduce((sum, t) => sum + Number(t.monto || 0), 0);
+      const saldo = Math.max(0, total - pagos);
+      return {
+        id: Number(obra.id),
+        nombre: obra.nombre || `Obra #${obra.id}`,
+        estado: this.getEstadoObraDisplay(obra),
+        total,
+        pagado: pagos,
+        saldo
+      };
+    }).filter(item => item.total > 0 || item.pagado > 0).sort((a, b) => b.saldo - a.saldo);
+  }
 }
+
+

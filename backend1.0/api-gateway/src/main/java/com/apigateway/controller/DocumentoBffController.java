@@ -34,7 +34,7 @@ public class DocumentoBffController {
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public Mono<ResponseEntity<Map<String, Object>>> create(
             @RequestPart("id_obra") String idObra,
-            @RequestPart("tipo_documento") String tipoDocumento,
+            @RequestPart(value = "tipo_documento", required = false) String tipoDocumento,
             @RequestPart(value = "observacion", required = false) String observacion,
             @RequestPart(value = "id_asociado", required = false) String idAsociado,
             @RequestPart(value = "tipo_asociado", required = false) String tipoAsociado,
@@ -42,7 +42,9 @@ public class DocumentoBffController {
     ) {
         MultipartBodyBuilder builder = new MultipartBodyBuilder();
         builder.part("id_obra", idObra);
-        builder.part("tipo_documento", tipoDocumento);
+        if (tipoDocumento != null && !tipoDocumento.isEmpty()) {
+            builder.part("tipo_documento", tipoDocumento);
+        }
         if (observacion != null && !observacion.isEmpty()) {
             builder.part("observacion", observacion);
         }
@@ -109,11 +111,11 @@ public class DocumentoBffController {
                 });
     }
 
-    @GetMapping("/{id}/download")
-    public Mono<Void> downloadDocumento(@PathVariable("id") Long id, ServerHttpResponse response) {
+    @GetMapping("/{id}/view")
+    public Mono<Void> viewDocumento(@PathVariable("id") Long id, ServerHttpResponse response) {
         return webClientBuilder.build()
                 .get()
-                .uri(DOCUMENTOS_URL + "/{id}/download", id)
+                .uri(DOCUMENTOS_URL + "/{id}/view", id)
                 .exchangeToMono(clientResponse -> {
                     response.setStatusCode(clientResponse.statusCode());
                     response.getHeaders().putAll(clientResponse.headers().asHttpHeaders());
