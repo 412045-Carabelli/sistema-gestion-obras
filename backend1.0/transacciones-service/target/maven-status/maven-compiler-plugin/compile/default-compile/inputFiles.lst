@@ -12,6 +12,7 @@ C:\Users\Usuario\Desktop\my-work\sistema-gestion-obras\backend1.0\transacciones-
 C:\Users\Usuario\Desktop\my-work\sistema-gestion-obras\backend1.0\transacciones-service\src\main\java\com\transacciones\dto\TransaccionDto.java
 C:\Users\Usuario\Desktop\my-work\sistema-gestion-obras\backend1.0\transacciones-service\src\main\java\com\transacciones\entity\Factura.java
 C:\Users\Usuario\Desktop\my-work\sistema-gestion-obras\backend1.0\transacciones-service\src\main\java\com\transacciones\dto\FacturaDto.java
+C:\Users\Usuario\Desktop\my-work\sistema-gestion-obras\backend1.0\transacciones-service\src\main\java\com\transacciones\dto\ObraCostoDto.java
 C:\Users\Usuario\Desktop\my-work\sistema-gestion-obras\backend1.0\transacciones-service\src\main\java\com\transacciones\service\FacturaService.java
 C:\Users\Usuario\Desktop\my-work\sistema-gestion-obras\backend1.0\transacciones-service\src\main\java\com\transacciones\config\RestTemplateConfig.java
 C:\Users\Usuario\Desktop\my-work\sistema-gestion-obras\backend1.0\transacciones-service\src\main\java\com\transacciones\dto\EstadoResponse.java

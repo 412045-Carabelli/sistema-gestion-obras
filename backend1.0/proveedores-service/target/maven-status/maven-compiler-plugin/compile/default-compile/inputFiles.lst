@@ -1,10 +1,12 @@
 C:\Users\Usuario\Desktop\my-work\sistema-gestion-obras\backend1.0\proveedores-service\src\main\java\proveedores\entity\Gremio.java
 C:\Users\Usuario\Desktop\my-work\sistema-gestion-obras\backend1.0\proveedores-service\src\main\java\proveedores\controller\TipoProveedorController.java
 C:\Users\Usuario\Desktop\my-work\sistema-gestion-obras\backend1.0\proveedores-service\src\main\java\proveedores\dto\MovimientoDTO.java
+C:\Users\Usuario\Desktop\my-work\sistema-gestion-obras\backend1.0\proveedores-service\src\main\java\proveedores\integration\TransaccionesClient.java
 C:\Users\Usuario\Desktop\my-work\sistema-gestion-obras\backend1.0\proveedores-service\src\main\java\proveedores\controller\GremioController.java
 C:\Users\Usuario\Desktop\my-work\sistema-gestion-obras\backend1.0\proveedores-service\src\main\java\proveedores\dto\MovimientoRequest.java
 C:\Users\Usuario\Desktop\my-work\sistema-gestion-obras\backend1.0\proveedores-service\src\main\java\proveedores\entity\TipoProveedor.java
 C:\Users\Usuario\Desktop\my-work\sistema-gestion-obras\backend1.0\proveedores-service\src\main\java\proveedores\entity\Proveedor.java
+C:\Users\Usuario\Desktop\my-work\sistema-gestion-obras\backend1.0\proveedores-service\src\main\java\proveedores\service\ProveedorFinanzasService.java
 C:\Users\Usuario\Desktop\my-work\sistema-gestion-obras\backend1.0\proveedores-service\src\main\java\proveedores\dto\ProveedorDTO.java
 C:\Users\Usuario\Desktop\my-work\sistema-gestion-obras\backend1.0\proveedores-service\src\main\java\proveedores\entity\Movimiento.java
 C:\Users\Usuario\Desktop\my-work\sistema-gestion-obras\backend1.0\proveedores-service\src\main\java\proveedores\service\GremioService.java

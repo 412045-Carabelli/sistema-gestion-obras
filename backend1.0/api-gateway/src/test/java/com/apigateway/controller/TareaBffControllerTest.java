@@ -29,7 +29,7 @@ class TareaBffControllerTest {
         TareaBffController controller = new TareaBffController(WebClient.builder().exchangeFunction(stub));
         ReflectionTestUtils.setField(controller, "TAREAS_URL", baseUrl);
 
-        ResponseEntity<List<Map<String, Object>>> porObra = controller.getTareasPorObra(1L).block();
+        ResponseEntity<List<Map<String, Object>>> porObra = controller.getTareasPorObra(1L, false, false).block();
         ResponseEntity<List<Map<String, Object>>> porProveedor = controller.getTareasPorProveedor(10L).block();
         ResponseEntity<Map<String, Object>> crear = controller.crearTarea(1L, Map.of("x", 1)).block();
         ResponseEntity<Map<String, Object>> actualizar = controller.actualizarTarea(1L, Map.of("x", 2)).block();

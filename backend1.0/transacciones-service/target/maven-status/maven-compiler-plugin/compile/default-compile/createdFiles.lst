@@ -1,5 +1,6 @@
 com\transacciones\TransaccionesServiceApplication.class
 com\transacciones\entity\Transaccion$TransaccionBuilder.class
+com\transacciones\dto\ObraCostoDto.class
 com\transacciones\dto\TransaccionDto$TransaccionDtoBuilder.class
 com\transacciones\service\TipoTransaccionService.class
 com\transacciones\dto\FacturaDto.class
