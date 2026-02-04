@@ -21,3 +21,4 @@ Notas
 
 - El frontend apunta al API Gateway en `http://localhost:8080` (ver `frontend1.2/src/environments`).
 - Cuando publiques `sgo-frontend` en GHCR, cambia el servicio `frontend` en `docker-compose.ghcr.yml` a usar la imagen: `${REGISTRY}/${GHCR_OWNER}/sgo-frontend:${TAG}`.
+- Documentos: el almacenamiento ahora soporta MinIO. En `docker-compose.yml` y `backend1.0/docker-compose.backend.yml` ya estÃ¡ incluido el servicio `minio` con el bucket `documentos`.

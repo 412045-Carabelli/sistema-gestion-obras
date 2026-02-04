@@ -67,6 +67,13 @@ services:
       SPRING_SQL_INIT_MODE: never
       SPRING_SQL_INIT_DATA_LOCATIONS: classpath:data-prod.sql
       SPRING_JPA_DEFER_DATASOURCE_INITIALIZATION: "true"
+      MINIO_ENABLED: "true"
+      MINIO_URL: http://minio:9000
+      MINIO_ACCESS_KEY: minioadmin
+      MINIO_SECRET_KEY: minioadmin
+      MINIO_BUCKET: documentos
+    depends_on:
+      - minio
     restart: unless-stopped
     networks:
       - sgo_backend
@@ -121,6 +128,22 @@ services:
       - "8080:8080"
     environment:
       SPRING_PROFILES_ACTIVE: prod
+    restart: unless-stopped
+    networks:
+      - sgo_backend
+
+  minio:
+    image: minio/minio:RELEASE.2024-12-18T00-45-43Z
+    container_name: minio
+    command: server /data --console-address ":9001"
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    volumes:
+      - ./documentos-service/minio-data:/data
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin
     restart: unless-stopped
     networks:
       - sgo_backend

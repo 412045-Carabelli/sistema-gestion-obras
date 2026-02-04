@@ -1,2 +1,28 @@
-# Local Netlify folder
-.netlify
+# ───── Binarios ─────
+*.exe
+*.bin
+*.msi
+
+# ───── MinIO ─────
+minio-data/
+.minio.sys/
+
+# ───── Bases de datos ─────
+*.db
+data/
+
+# ───── Uploads ─────
+uploads/
+uploads-dev/
+
+# ───── Build ─────
+target/
+dist/
+node_modules/
+
+# ───── Logs ─────
+*.log
+
+# ───── OS ─────
+.DS_Store
+Thumbs.db

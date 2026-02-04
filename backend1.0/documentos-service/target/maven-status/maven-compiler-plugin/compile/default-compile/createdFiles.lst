@@ -1,3 +1,4 @@
+com\documentos\config\MinioConfig.class
 com\documentos\mapper\DocumentosMapper.class
 com\documentos\dto\EstadoResponse.class
 com\documentos\repository\DocumentoRepository.class

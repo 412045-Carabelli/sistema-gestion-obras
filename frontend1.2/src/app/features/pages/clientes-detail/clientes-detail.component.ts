@@ -59,6 +59,8 @@ export class ClientesDetailComponent implements OnInit, OnDestroy {
   saldoPendiente = 0;
   totalCobrosCliente = 0;
   private saldoPendientePorObra = new Map<number, number>();
+  private cobrosPorObra = new Map<number, number>();
+  private readonly obrasConDeudaCliente = new Set(['ADJUDICADA', 'EN_PROGRESO']);
 
   private subs = new Subscription();
 
@@ -114,10 +116,15 @@ export class ClientesDetailComponent implements OnInit, OnDestroy {
     this.router.navigate(['/obras', obra.id]);
   }
 
+  irAObraPorId(id: number) {
+    if (!Number.isFinite(id) || id <= 0) return;
+    this.router.navigate(['/obras', id]);
+  }
+
   irAObraDesdeMovimiento(mov: Transaccion) {
     const obraId = Number(mov?.id_obra ?? (mov as any)?.idObra ?? 0);
     if (!Number.isFinite(obraId) || obraId <= 0) return;
-    this.router.navigate(['/obras', obraId], { queryParams: { tab: 2 } });
+    this.router.navigate(['/obras', obraId]);
   }
 
   getActivoSeverity(activo: boolean): string {
@@ -151,6 +158,7 @@ export class ClientesDetailComponent implements OnInit, OnDestroy {
   }
 
   getSaldoPendienteObra(obra: Obra): number {
+    if (!this.obraGeneraDeudaCliente(obra)) return 0;
     const saldoDesdeApi = (obra as any)?.saldo_pendiente ?? (obra as any)?.saldoPendiente;
     if (saldoDesdeApi != null && !Number.isNaN(Number(saldoDesdeApi))) {
       return Math.max(0, Number(saldoDesdeApi));
@@ -250,9 +258,15 @@ export class ClientesDetailComponent implements OnInit, OnDestroy {
       : Math.max(0, this.totalPresupuestado - this.totalCobrosCliente);
 
     this.saldoPendientePorObra = new Map<number, number>();
+    this.cobrosPorObra = cobrosPorObra;
     for (const obra of this.obras) {
       const id = Number(obra.id);
       if (!Number.isFinite(id)) {
+        continue;
+      }
+
+      if (!this.obraGeneraDeudaCliente(obra)) {
+        this.saldoPendientePorObra.set(id, 0);
         continue;
       }
 
@@ -265,6 +279,53 @@ export class ClientesDetailComponent implements OnInit, OnDestroy {
       this.saldoPendientePorObra.set(id, saldoObra);
     }
 
+  }
+
+  private obraGeneraDeudaCliente(obra: Obra | null | undefined): boolean {
+    if (!obra) return false;
+    const estado = this.normalizarEstadoObra(obra?.obra_estado);
+    return this.obrasConDeudaCliente.has(estado);
+  }
+
+  getObrasConDeudaCliente(): Obra[] {
+    return (this.obras || []).filter(obra => this.obraGeneraDeudaCliente(obra));
+  }
+
+  getObrasSaldoCliente(): Array<{ id: number; nombre: string; estado: string; total: number; cobrado: number; saldo: number }> {
+    const obrasFiltradas = this.getObrasConDeudaCliente();
+    return obrasFiltradas.map(obra => {
+      const id = Number(obra.id);
+      const total = this.calcularPresupuestoObra(obra);
+      const cobrado = this.cobrosPorObra.get(id) ?? 0;
+      const saldo = this.getSaldoPendienteObra(obra);
+      const estado = (typeof obra.obra_estado === 'string'
+        ? obra.obra_estado
+        : (obra.obra_estado as any)?.nombre) || 'Sin estado';
+      return {
+        id,
+        nombre: obra.nombre || `Obra #${id}`,
+        estado: estado?.toString?.() ?? 'Sin estado',
+        total,
+        cobrado,
+        saldo
+      };
+    }).filter(item => item.total > 0 || item.cobrado > 0).sort((a, b) => b.saldo - a.saldo);
+  }
+
+  private normalizarEstadoObra(raw: any): string {
+    if (!raw) return '';
+    if (typeof raw === 'string') return this.sanitizarEstado(raw);
+    const nombre = raw?.nombre ?? raw?.name ?? raw?.label ?? raw?.estado ?? '';
+    return this.sanitizarEstado(String(nombre || ''));
+  }
+
+  private sanitizarEstado(valor: string): string {
+    return valor
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .toUpperCase()
+      .replace(/[^A-Z0-9]+/g, '_')
+      .replace(/^_+|_+$/g, '');
   }
 
   private calcularPresupuestoObra(obra: Obra): number {

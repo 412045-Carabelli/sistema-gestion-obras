@@ -59,13 +59,13 @@ export class DocumentosService {
   }
 
   downloadDocumento(id: number) {
-    return this.http.get(`${this.apiUrl}/${id}/download`, {
+    return this.http.get(`${this.apiUrl}/${id}/view`, {
       responseType: 'blob',
     });
   }
 
   getDocumentoUrl(id: number): string {
-    return `${this.apiUrl}/${id}/download`;
+    return `${this.apiUrl}/${id}/view`;
   }
 
 }
