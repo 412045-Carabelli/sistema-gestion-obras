@@ -59,7 +59,7 @@ class DocumentoControllerTest {
         ResponseEntity<DocumentoDto> byId = controller.getDocumentoById(1L).block();
         ResponseEntity<DocumentoDto> notFound = controller.getDocumentoById(2L).block();
         controller.deleteDocumento(1L).block();
-        ResponseEntity<?> download = controller.download(1L).block();
+        ResponseEntity<?> download = controller.view(1L).block();
 
         assertThat(porAsociado).hasSize(1);
         assertThat(porObra).hasSize(1);

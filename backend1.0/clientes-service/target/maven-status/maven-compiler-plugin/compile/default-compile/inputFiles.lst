@@ -4,8 +4,10 @@ C:\Users\Usuario\Desktop\my-work\sistema-gestion-obras\backend1.0\clientes-servi
 C:\Users\Usuario\Desktop\my-work\sistema-gestion-obras\backend1.0\clientes-service\src\main\java\com\clientes\exception\ClienteNotFoundException.java
 C:\Users\Usuario\Desktop\my-work\sistema-gestion-obras\backend1.0\clientes-service\src\main\java\com\clientes\service\impl\ClienteServiceImpl.java
 C:\Users\Usuario\Desktop\my-work\sistema-gestion-obras\backend1.0\clientes-service\src\main\java\com\clientes\config\RestClientConfig.java
+C:\Users\Usuario\Desktop\my-work\sistema-gestion-obras\backend1.0\clientes-service\src\main\java\com\clientes\dto\TransaccionExternalDto.java
 C:\Users\Usuario\Desktop\my-work\sistema-gestion-obras\backend1.0\clientes-service\src\main\java\com\clientes\handler\RestExceptionHandler.java
 C:\Users\Usuario\Desktop\my-work\sistema-gestion-obras\backend1.0\clientes-service\src\main\java\com\clientes\repository\ClienteRepository.java
+C:\Users\Usuario\Desktop\my-work\sistema-gestion-obras\backend1.0\clientes-service\src\main\java\com\clientes\client\TransaccionesClient.java
 C:\Users\Usuario\Desktop\my-work\sistema-gestion-obras\backend1.0\clientes-service\src\main\java\com\clientes\dto\ClienteResponse.java
 C:\Users\Usuario\Desktop\my-work\sistema-gestion-obras\backend1.0\clientes-service\src\main\java\com\clientes\dto\ObraClienteResponse.java
 C:\Users\Usuario\Desktop\my-work\sistema-gestion-obras\backend1.0\clientes-service\src\main\java\com\clientes\service\ClienteService.java

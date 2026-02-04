@@ -1,12 +1,16 @@
+com\clientes\client\TransaccionesClient.class
 com\clientes\controller\ClientesController$1.class
 com\clientes\dto\ObraClienteResponse.class
 com\clientes\entity\CondicionIva.class
 com\clientes\ClientesServiceApplication.class
 com\clientes\client\ObrasClient$1.class
 com\clientes\controller\ClientesController.class
+com\clientes\client\TransaccionesClient$1.class
 com\clientes\client\ObrasClient.class
 com\clientes\exception\InvalidClienteException.class
 com\clientes\repository\ClienteRepository.class
+com\clientes\dto\TransaccionExternalDto.class
+com\clientes\service\impl\ClienteServiceImpl$TotalesCliente.class
 com\clientes\dto\ClienteRequest.class
 com\clientes\service\impl\ClienteServiceImpl.class
 com\clientes\service\ClienteService.class

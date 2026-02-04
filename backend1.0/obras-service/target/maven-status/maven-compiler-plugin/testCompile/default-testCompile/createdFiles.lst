@@ -1,2 +1,13 @@
+com\obras\service\impl\ObraProveedorServiceImplTest.class
+com\obras\controller\EstadosPagosControllerTest.class
 com\obras\service\impl\ObraCostoServiceImplTest.class
 com\obras\service\impl\ObraServiceImplTest.class
+com\obras\service\impl\ProgresoServiceImplTest.class
+com\obras\service\impl\TareaServiceImplTest.class
+com\obras\controller\EstadosObrasControllerTest.class
+com\obras\controller\ObrasProveedoresControllerTest.class
+com\obras\controller\ObrasCostosControllerTest.class
+com\obras\controller\ObrasControllerTest.class
+com\obras\controller\TareasControllerTest.class
+com\obras\controller\EstadosTareasControllerTest.class
+com\obras\controller\ProgresosControllerTest.class

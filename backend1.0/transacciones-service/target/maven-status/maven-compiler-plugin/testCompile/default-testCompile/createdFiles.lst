@@ -1,0 +1,7 @@
+com\transacciones\service\FacturaServiceTest.class
+com\transacciones\service\ObraCostoClientTest.class
+com\transacciones\controller\FacturaControllerTest.class
+com\transacciones\controller\TipoTransaccionControllerTest.class
+com\transacciones\controller\TransaccionControllerTest.class
+com\transacciones\service\TipoTransaccionServiceTest.class
+com\transacciones\service\TransaccionServiceTest.class

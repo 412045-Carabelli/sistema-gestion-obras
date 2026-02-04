@@ -2,6 +2,7 @@ com\reportes\client\ObrasClient$2.class
 com\reportes\dto\response\RankingClientesResponse.class
 com\reportes\dto\external\TransaccionExternalDto.class
 com\reportes\dto\response\CuentaCorrienteProveedorResponse.class
+com\reportes\dto\response\DashboardFinancieroResponse$CtaCte.class
 com\reportes\dto\response\NotasObraResponse.class
 com\reportes\client\ProveedoresClient$1.class
 com\reportes\dto\response\ResumenGeneralResponse.class
@@ -15,10 +16,13 @@ com\reportes\dto\response\RankingProveedoresResponse.class
 com\reportes\entity\MovimientoReporte.class
 com\reportes\dto\external\ClienteExternalDto.class
 com\reportes\controller\ReportesController.class
+com\reportes\dto\response\CuentaCorrienteClienteResponse.class
+com\reportes\dto\response\DeudasGlobalesResponse.class
 com\reportes\dto\response\CostosPorCategoriaResponse.class
 com\reportes\client\ClientesClient$1.class
 com\reportes\dto\response\RankingClientesResponse$ItemRankingCliente.class
 com\reportes\ReportesServiceApplication.class
+com\reportes\dto\response\DashboardFinancieroResponse.class
 com\reportes\dto\external\ObraEstadoExternalDto.class
 com\reportes\dto\response\FlujoCajaResponse$Movimiento.class
 com\reportes\repository\MovimientoReporteRepository.class
@@ -37,6 +41,7 @@ com\reportes\dto\response\ComisionesResponse$Detalle.class
 com\reportes\dto\response\ComisionesFrontResponse$ComisionItem.class
 com\reportes\client\ObrasClient$4.class
 com\reportes\dto\response\CostosPorCategoriaResponse$CategoriaCosto.class
+com\reportes\dto\response\CuentaCorrienteClienteResponse$Movimiento.class
 com\reportes\dto\external\EstadoTareaExternalDto.class
 com\reportes\dto\external\ProveedorExternalDto.class
 com\reportes\dto\external\TipoProveedorExternalDto.class
@@ -50,6 +55,7 @@ com\reportes\dto\response\PendientesResponse.class
 com\reportes\entity\Comision.class
 com\reportes\dto\response\CuentaCorrienteProveedorResponse$Movimiento.class
 com\reportes\dto\response\CuentaCorrienteObraResponse$Movimiento.class
+com\reportes\dto\response\DashboardFinancieroResponse$Flujo.class
 com\reportes\client\ObrasClient$3.class
 com\reportes\dto\response\RankingProveedoresResponse$ItemRankingProveedor.class
 com\reportes\client\ProveedoresClient.class

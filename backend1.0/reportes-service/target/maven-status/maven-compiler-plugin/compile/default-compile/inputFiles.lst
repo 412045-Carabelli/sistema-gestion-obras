@@ -1,5 +1,6 @@
 C:\Users\Usuario\Desktop\my-work\sistema-gestion-obras\backend1.0\reportes-service\src\main\java\com\reportes\client\ClientesClient.java
 C:\Users\Usuario\Desktop\my-work\sistema-gestion-obras\backend1.0\reportes-service\src\main\java\com\reportes\dto\external\ObraEstadoExternalDto.java
+C:\Users\Usuario\Desktop\my-work\sistema-gestion-obras\backend1.0\reportes-service\src\main\java\com\reportes\dto\response\DeudasGlobalesResponse.java
 C:\Users\Usuario\Desktop\my-work\sistema-gestion-obras\backend1.0\reportes-service\src\main\java\com\reportes\dto\response\EstadoFinancieroObraResponse.java
 C:\Users\Usuario\Desktop\my-work\sistema-gestion-obras\backend1.0\reportes-service\src\main\java\com\reportes\dto\response\PendientesResponse.java
 C:\Users\Usuario\Desktop\my-work\sistema-gestion-obras\backend1.0\reportes-service\src\main\java\com\reportes\dto\response\CuentaCorrienteObraResponse.java
@@ -15,6 +16,7 @@ C:\Users\Usuario\Desktop\my-work\sistema-gestion-obras\backend1.0\reportes-servi
 C:\Users\Usuario\Desktop\my-work\sistema-gestion-obras\backend1.0\reportes-service\src\main\java\com\reportes\dto\external\TareaExternalDto.java
 C:\Users\Usuario\Desktop\my-work\sistema-gestion-obras\backend1.0\reportes-service\src\main\java\com\reportes\dto\response\IngresosEgresosResponse.java
 C:\Users\Usuario\Desktop\my-work\sistema-gestion-obras\backend1.0\reportes-service\src\main\java\com\reportes\dto\external\EstadoPagoExternalDto.java
+C:\Users\Usuario\Desktop\my-work\sistema-gestion-obras\backend1.0\reportes-service\src\main\java\com\reportes\dto\response\DashboardFinancieroResponse.java
 C:\Users\Usuario\Desktop\my-work\sistema-gestion-obras\backend1.0\reportes-service\src\main\java\com\reportes\controller\ReportesController.java
 C:\Users\Usuario\Desktop\my-work\sistema-gestion-obras\backend1.0\reportes-service\src\main\java\com\reportes\dto\external\EstadoTareaExternalDto.java
 C:\Users\Usuario\Desktop\my-work\sistema-gestion-obras\backend1.0\reportes-service\src\main\java\com\reportes\dto\external\ObraExternalDto.java
@@ -38,4 +40,5 @@ C:\Users\Usuario\Desktop\my-work\sistema-gestion-obras\backend1.0\reportes-servi
 C:\Users\Usuario\Desktop\my-work\sistema-gestion-obras\backend1.0\reportes-service\src\main\java\com\reportes\repository\ComisionRepository.java
 C:\Users\Usuario\Desktop\my-work\sistema-gestion-obras\backend1.0\reportes-service\src\main\java\com\reportes\dto\external\TipoProveedorExternalDto.java
 C:\Users\Usuario\Desktop\my-work\sistema-gestion-obras\backend1.0\reportes-service\src\main\java\com\reportes\dto\response\ComisionesFrontResponse.java
+C:\Users\Usuario\Desktop\my-work\sistema-gestion-obras\backend1.0\reportes-service\src\main\java\com\reportes\dto\response\CuentaCorrienteClienteResponse.java
 C:\Users\Usuario\Desktop\my-work\sistema-gestion-obras\backend1.0\reportes-service\src\main\java\com\reportes\dto\external\TipoTransaccionExternalDto.java

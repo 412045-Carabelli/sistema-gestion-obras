@@ -31,7 +31,7 @@ class DocumentoBffControllerTest {
         stub.stub(HttpMethod.POST, baseUrl, HttpStatus.OK, Map.of("id", 1));
         stub.stub(HttpMethod.GET, baseUrl + "/obra/1", HttpStatus.OK, List.of(Map.of("id", 1)));
         stub.stub(HttpMethod.DELETE, baseUrl + "/1", HttpStatus.OK, null);
-        stub.stub(HttpMethod.GET, baseUrl + "/1/download", HttpStatus.OK, "data");
+        stub.stub(HttpMethod.GET, baseUrl + "/1/view", HttpStatus.OK, "data");
         stub.stub(HttpMethod.GET, baseUrl + "/asociado/OBRA/1", HttpStatus.OK, List.of(Map.of("id", 2)));
 
         DocumentoBffController controller = new DocumentoBffController(WebClient.builder().exchangeFunction(stub));
@@ -57,13 +57,13 @@ class DocumentoBffControllerTest {
         assertThat(asociadoResp.getBody()).hasSize(1);
 
         MockServerHttpResponse response = new MockServerHttpResponse();
-        controller.downloadDocumento(1L, response).block();
+        controller.viewDocumento(1L, response).block();
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
 
         MockServerHttpResponse responseError = new MockServerHttpResponse();
         DocumentoBffController controllerError = new DocumentoBffController(WebClient.builder().exchangeFunction(new StubExchangeFunction()));
         ReflectionTestUtils.setField(controllerError, "DOCUMENTOS_URL", baseUrl);
-        controllerError.downloadDocumento(99L, responseError).block();
+        controllerError.viewDocumento(99L, responseError).block();
         assertThat(responseError.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
     }
 }
