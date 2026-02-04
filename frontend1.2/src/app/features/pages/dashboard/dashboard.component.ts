@@ -222,7 +222,7 @@ export class DashboardComponent implements OnInit {
         // Cargar tareas de las ultimas 3 obras segun filtros
         const obrasRecientes = this.obtenerObrasFiltradasDashboard().slice(0, 3);
         const tareasPromises = obrasRecientes.map(obra =>
-          this.tareasService.getTareasByObra(obra.id!)
+          this.tareasService.getTareasByObra(obra.id!, true, true)
         );
 
         if (tareasPromises.length > 0) {
@@ -230,13 +230,28 @@ export class DashboardComponent implements OnInit {
             next: (tareasPorObra) => {
               // Aplanar y ordenar por más recientes
               const mapaObras = new Map(obrasRecientes.map(o => [o.id, o.nombre]));
+              const ordenEstado = (t: Tarea) => {
+                const estado = (t.estado_tarea || '').toString().toUpperCase();
+                if (estado === 'PENDIENTE') return 0;
+                if (estado === 'EN_PROGRESO') return 1;
+                if (estado === 'COMPLETADA') return 2;
+                return 99;
+              };
+              const fechaTarea = (t: Tarea) => new Date(
+                (t as any).fecha_inicio ?? (t as any).creado_en ?? (t as any).ultima_actualizacion ?? 0
+              ).getTime();
+
               this.tareasRecientes = ([] as (Tarea & { obraNombre?: string })[])
                 .concat(...tareasPorObra)
                 .map(t => ({
                   ...t,
                   obraNombre: mapaObras.get(t.id_obra) || 'Obra sin nombre'
                 }))
-                .sort((a, b) => (b.id || 0) - (a.id || 0));
+                .sort((a, b) => {
+                  const estadoDiff = ordenEstado(a) - ordenEstado(b);
+                  if (estadoDiff !== 0) return estadoDiff;
+                  return fechaTarea(a) - fechaTarea(b);
+                });
             }
           });
         }

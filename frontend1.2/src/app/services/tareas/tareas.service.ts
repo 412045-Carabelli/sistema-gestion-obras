@@ -28,8 +28,14 @@ export class TareasService {
   }
 
   // ✅ Obtener tareas de una obra
-  getTareasByObra(idObra: number): Observable<Tarea[]> {
-    return this.http.get<Tarea[]>(`${this.apiUrl}/${idObra}`).pipe(
+  getTareasByObra(idObra: number, soloActivas = false, ordenAntiguas = false): Observable<Tarea[]> {
+    const params: string[] = [];
+    if (soloActivas) params.push('soloActivas=true');
+    if (ordenAntiguas) params.push('ordenAntiguas=true');
+    const url = params.length
+      ? `${this.apiUrl}/${idObra}?${params.join('&')}`
+      : `${this.apiUrl}/${idObra}`;
+    return this.http.get<Tarea[]>(url).pipe(
       tap(tareas => this.emitirActualizacion(tareas))
     );
   }
