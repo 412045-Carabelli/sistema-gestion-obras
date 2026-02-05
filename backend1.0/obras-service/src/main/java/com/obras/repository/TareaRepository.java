@@ -3,6 +3,7 @@ package com.obras.repository;
 import com.obras.entity.Tarea;
 import com.obras.enums.EstadoTareaEnum;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -33,5 +34,13 @@ public interface TareaRepository extends JpaRepository<Tarea, Long> {
 
     @Query("select coalesce(max(t.numeroOrden),0) from Tarea t where t.idObra = :idObra and t.activo = true")
     Long maxNumeroOrdenByObra(@Param("idObra") Long idObra);
+
+    @Modifying
+    @Query("update Tarea t set t.activo = false, t.bajaObra = true where t.idObra = :idObra and t.activo = true")
+    int desactivarPorObra(@Param("idObra") Long idObra);
+
+    @Modifying
+    @Query("update Tarea t set t.activo = true, t.bajaObra = false where t.idObra = :idObra and t.activo = false and t.bajaObra = true")
+    int activarPorObra(@Param("idObra") Long idObra);
 
 }

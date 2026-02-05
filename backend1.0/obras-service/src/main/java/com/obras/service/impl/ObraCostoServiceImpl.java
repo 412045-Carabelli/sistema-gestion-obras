@@ -32,6 +32,7 @@ public class ObraCostoServiceImpl implements ObraCostoService {
             throw new IllegalArgumentException("Debes indicar el tipo de costo (ORIGINAL o ADICIONAL).");
         }
         ObraCosto entity = fromDto(dto);
+        entity.setBajaObra(Boolean.FALSE);
         validarProveedorRequerido(entity, null);
         validarOperacionOriginalEnProgreso(entity, "crear");
         calcularTotales(entity);
@@ -79,6 +80,7 @@ public class ObraCostoServiceImpl implements ObraCostoService {
         costoRepo.findByIdAndActivoTrue(id).ifPresent(costo -> {
             validarOperacionOriginalEnProgreso(costo, "eliminar");
             costo.setActivo(false);
+            costo.setBajaObra(Boolean.FALSE);
             costoRepo.save(costo);
             actualizarPresupuestoObra(costo.getObra().getId());
         });
@@ -171,6 +173,7 @@ public class ObraCostoServiceImpl implements ObraCostoService {
         entity.setEstadoPago(dto.getEstado_pago() != null ? dto.getEstado_pago() : EstadoPagoEnum.PENDIENTE);
         entity.setObra(obraRepo.findById(dto.getId_obra())
                 .orElseThrow(() -> new RuntimeException("Obra no encontrada para costo")));
+        entity.setBajaObra(Boolean.FALSE);
 
         return entity;
     }

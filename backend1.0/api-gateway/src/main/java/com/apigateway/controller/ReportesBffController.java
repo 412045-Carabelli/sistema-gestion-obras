@@ -101,6 +101,7 @@ public class ReportesBffController {
         return proxyGet(path, new ParameterizedTypeReference<>() {});
     }
 
+
     // ---------- OPERATIVOS ----------
 
     @PostMapping("/operativos/estado-obras")

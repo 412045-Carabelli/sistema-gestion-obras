@@ -8,6 +8,7 @@ import com.obras.entity.Obra;
 import com.obras.entity.ObraCosto;
 import com.obras.repository.ObraCostoRepository;
 import com.obras.repository.ObraRepository;
+import com.obras.repository.TareaRepository;
 import com.obras.service.ObraService;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
@@ -31,6 +32,7 @@ public class ObraServiceImpl implements ObraService {
 
     private final ObraRepository obraRepo;
     private final ObraCostoRepository costoRepo;
+    private final TareaRepository tareaRepo;
 
     /* ============================================================
                              CREAR
@@ -129,7 +131,15 @@ public class ObraServiceImpl implements ObraService {
     public void activar(Long idObra) {
         obraRepo.findById(idObra).ifPresent(obra -> {
             boolean activoActual = Boolean.TRUE.equals(obra.getActivo());
-            obra.setActivo(!activoActual);
+            if (activoActual) {
+                obra.setActivo(false);
+                costoRepo.desactivarPorObra(idObra);
+                tareaRepo.desactivarPorObra(idObra);
+            } else {
+                obra.setActivo(true);
+                costoRepo.activarPorObra(idObra);
+                tareaRepo.activarPorObra(idObra);
+            }
             obraRepo.save(obra);
         });
     }

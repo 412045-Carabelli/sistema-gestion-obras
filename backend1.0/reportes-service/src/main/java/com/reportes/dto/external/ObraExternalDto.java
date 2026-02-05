@@ -33,6 +33,16 @@ public class ObraExternalDto {
     private Boolean tieneComision;
     private BigDecimal beneficio;
     private BigDecimal comision;
+    @JsonProperty("subtotal_costos")
+    private BigDecimal subtotalCostos;
+    @JsonProperty("beneficio_costos")
+    private BigDecimal beneficioCostos;
+    @JsonProperty("total_con_beneficio")
+    private BigDecimal totalConBeneficio;
+    @JsonProperty("comision_monto")
+    private BigDecimal comisionMonto;
+    @JsonProperty("beneficio_neto")
+    private BigDecimal beneficioNeto;
     private Boolean activo;
     @JsonProperty("creado_en")
     private Instant creadoEn;

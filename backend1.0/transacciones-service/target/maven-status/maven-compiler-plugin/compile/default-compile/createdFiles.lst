@@ -1,9 +1,11 @@
 com\transacciones\TransaccionesServiceApplication.class
 com\transacciones\entity\Transaccion$TransaccionBuilder.class
+com\transacciones\config\GlobalExceptionHandler.class
 com\transacciones\dto\ObraCostoDto.class
 com\transacciones\dto\TransaccionDto$TransaccionDtoBuilder.class
 com\transacciones\service\TipoTransaccionService.class
 com\transacciones\dto\FacturaDto.class
+com\transacciones\dto\ComisionPagoRequest.class
 com\transacciones\dto\TransaccionDto.class
 com\transacciones\repository\FacturaRepository.class
 com\transacciones\config\DatabasePatchConfig.class

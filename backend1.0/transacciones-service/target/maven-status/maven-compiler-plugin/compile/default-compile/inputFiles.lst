@@ -1,4 +1,5 @@
 C:\Users\Usuario\Desktop\my-work\sistema-gestion-obras\backend1.0\transacciones-service\src\main\java\com\transacciones\TransaccionesServiceApplication.java
+C:\Users\Usuario\Desktop\my-work\sistema-gestion-obras\backend1.0\transacciones-service\src\main\java\com\transacciones\config\GlobalExceptionHandler.java
 C:\Users\Usuario\Desktop\my-work\sistema-gestion-obras\backend1.0\transacciones-service\src\main\java\com\transacciones\service\ObraCostoClient.java
 C:\Users\Usuario\Desktop\my-work\sistema-gestion-obras\backend1.0\transacciones-service\src\main\java\com\transacciones\repository\TipoTransaccionRepository.java
 C:\Users\Usuario\Desktop\my-work\sistema-gestion-obras\backend1.0\transacciones-service\src\main\java\com\transacciones\controller\TipoTransaccionController.java
@@ -18,5 +19,6 @@ C:\Users\Usuario\Desktop\my-work\sistema-gestion-obras\backend1.0\transacciones-
 C:\Users\Usuario\Desktop\my-work\sistema-gestion-obras\backend1.0\transacciones-service\src\main\java\com\transacciones\dto\EstadoResponse.java
 C:\Users\Usuario\Desktop\my-work\sistema-gestion-obras\backend1.0\transacciones-service\src\main\java\com\transacciones\service\TipoTransaccionService.java
 C:\Users\Usuario\Desktop\my-work\sistema-gestion-obras\backend1.0\transacciones-service\src\main\java\com\transacciones\entity\TipoTransaccion.java
+C:\Users\Usuario\Desktop\my-work\sistema-gestion-obras\backend1.0\transacciones-service\src\main\java\com\transacciones\dto\ComisionPagoRequest.java
 C:\Users\Usuario\Desktop\my-work\sistema-gestion-obras\backend1.0\transacciones-service\src\main\java\com\transacciones\enums\TipoTransaccionEnum.java
 C:\Users\Usuario\Desktop\my-work\sistema-gestion-obras\backend1.0\transacciones-service\src\main\java\com\transacciones\repository\TransaccionRepository.java

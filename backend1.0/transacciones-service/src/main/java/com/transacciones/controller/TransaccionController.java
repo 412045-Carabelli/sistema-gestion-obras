@@ -1,5 +1,6 @@
 package com.transacciones.controller;
 
+import com.transacciones.dto.ComisionPagoRequest;
 import com.transacciones.dto.TransaccionDto;
 import com.transacciones.entity.Transaccion;
 import com.transacciones.enums.TipoTransaccionEnum;
@@ -8,6 +9,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -46,9 +48,25 @@ public class TransaccionController {
         return ResponseEntity.ok(lista);
     }
 
+    @PostMapping("/obra/{obraId}/comisiones/pago")
+    public ResponseEntity<TransaccionDto> pagarComision(
+            @PathVariable("obraId") Long obraId,
+            @RequestBody(required = false) ComisionPagoRequest request
+    ) {
+        Double monto = request != null ? request.getMonto() : null;
+        LocalDate fecha = request != null ? request.getFecha() : null;
+        return ResponseEntity.ok(transaccionService.registrarPagoComision(obraId, monto, fecha));
+    }
+
     @PatchMapping("/obra/{obraId}/inactivar")
     public ResponseEntity<Void> softDeleteByObra(@PathVariable("obraId") Long obraId) {
         transaccionService.desactivarPorObra(obraId);
+        return ResponseEntity.noContent().build();
+    }
+
+    @PatchMapping("/obra/{obraId}/activar")
+    public ResponseEntity<Void> activarPorObra(@PathVariable("obraId") Long obraId) {
+        transaccionService.activarPorObra(obraId);
         return ResponseEntity.noContent().build();
     }
 

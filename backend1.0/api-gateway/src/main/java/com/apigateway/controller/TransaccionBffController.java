@@ -1,6 +1,8 @@
 package com.apigateway.controller;
 
 import lombok.RequiredArgsConstructor;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.core.type.TypeReference;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.ResponseEntity;
@@ -10,7 +12,6 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.math.BigDecimal;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -29,6 +30,7 @@ public class TransaccionBffController {
     private String OBRAS_URL;
 
     private final WebClient.Builder webClientBuilder;
+    private final ObjectMapper objectMapper;
 
     // ✅ GET /bff/transacciones
     @GetMapping
@@ -67,6 +69,30 @@ public class TransaccionBffController {
                 .bodyToFlux(new ParameterizedTypeReference<Map<String, Object>>() {});
 
         return transaccionesFlux.collectList().map(ResponseEntity::ok);
+    }
+
+    @PostMapping("/obra/{obraId}/comisiones/pago")
+    public Mono<ResponseEntity<Object>> pagarComision(
+            @PathVariable("obraId") Long obraId,
+            @RequestBody(required = false) Map<String, Object> body) {
+        WebClient client = webClientBuilder.build();
+        return client.post()
+                .uri(TRANSACCIONES_URL + "/obra/{obraId}/comisiones/pago", obraId)
+                .bodyValue(body != null ? body : Map.of())
+                .exchangeToMono(response -> response.bodyToMono(String.class)
+                        .defaultIfEmpty("")
+                        .map(payload -> {
+                            if (payload != null && !payload.isBlank()) {
+                                try {
+                                    Map<String, Object> parsed = objectMapper.readValue(
+                                            payload, new TypeReference<Map<String, Object>>() {});
+                                    return ResponseEntity.status(response.statusCode()).body(parsed);
+                                } catch (Exception ignored) {
+                                    return ResponseEntity.status(response.statusCode()).body(payload);
+                                }
+                            }
+                            return ResponseEntity.status(response.statusCode()).build();
+                        }));
     }
 
     // ✅ POST /bff/transacciones

@@ -46,6 +46,8 @@ public class Tarea {
     private Instant creadoEn = Instant.now();
 
     private Boolean activo = Boolean.TRUE;
+    @Column(name = "baja_obra")
+    private Boolean bajaObra = Boolean.FALSE;
 
     @Column(name = "ultima_actualizacion")
     private Instant ultimaActualizacion;
