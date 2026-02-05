@@ -78,6 +78,7 @@ class ReportesServiceTest {
         obra1.setPresupuesto(new BigDecimal("1000"));
         obra1.setComision(new BigDecimal("10"));
         obra1.setTieneComision(true);
+        obra1.setComisionMonto(new BigDecimal("100.00"));
         obra1.setActivo(true);
         obra1.setFechaInicio(LocalDateTime.of(2024, 1, 10, 0, 0));
         obra1.setNotas("Nota A");
@@ -90,6 +91,7 @@ class ReportesServiceTest {
         obra2.setPresupuesto(new BigDecimal("500"));
         obra2.setComision(new BigDecimal("5"));
         obra2.setTieneComision(true);
+        obra2.setComisionMonto(new BigDecimal("25.00"));
         obra2.setActivo(true);
         obra2.setFechaInicio(LocalDateTime.of(2024, 2, 1, 0, 0));
 
@@ -360,6 +362,9 @@ class ReportesServiceTest {
 
         when(obrasClient.obtenerObra(1L)).thenReturn(Optional.of(obra1));
         when(comisionRepository.findByIdObra(1L)).thenReturn(List.of(comision));
+        when(transaccionesClient.obtenerTransacciones()).thenReturn(List.of(
+                transaccion(10L, 1L, "PAGO", 50d, true, LocalDate.of(2024, 1, 18), "COMISION", 0L)
+        ));
         when(movimientoReporteRepository.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
 
         ComisionesResponse response = reportesService.generarComisionesPorObra(1L);
@@ -373,6 +378,7 @@ class ReportesServiceTest {
     void generarComisionesPorObra_fallbackDesdeObra() {
         when(obrasClient.obtenerObra(1L)).thenReturn(Optional.of(obra1));
         when(comisionRepository.findByIdObra(1L)).thenReturn(Collections.emptyList());
+        when(transaccionesClient.obtenerTransacciones()).thenReturn(Collections.emptyList());
 
         ComisionesResponse response = reportesService.generarComisionesPorObra(1L);
 
@@ -389,12 +395,15 @@ class ReportesServiceTest {
 
         when(comisionRepository.findAll()).thenReturn(List.of(comision));
         when(obrasClient.obtenerObras()).thenReturn(List.of(obra1, obra2));
+        when(transaccionesClient.obtenerTransacciones()).thenReturn(List.of(
+                transaccion(11L, 1L, "PAGO", 25d, true, LocalDate.of(2024, 1, 19), "COMISION", 0L)
+        ));
         when(movimientoReporteRepository.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
 
         ComisionesResponse response = reportesService.generarComisionesGeneral();
 
         assertThat(response.getTotalComision()).isEqualByComparingTo("75.00");
-        assertThat(response.getSaldo()).isEqualByComparingTo("75.00");
+        assertThat(response.getSaldo()).isEqualByComparingTo("50.00");
     }
 
     @Test
@@ -406,6 +415,7 @@ class ReportesServiceTest {
 
         when(obrasClient.obtenerObras()).thenReturn(List.of(obra1, obra2));
         when(comisionRepository.findAll()).thenReturn(List.of(comision));
+        when(transaccionesClient.obtenerTransacciones()).thenReturn(Collections.emptyList());
 
         ComisionesFrontResponse response = reportesService.generarComisiones(new ReportFilterRequest());
 

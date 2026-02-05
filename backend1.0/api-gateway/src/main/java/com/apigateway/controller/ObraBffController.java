@@ -33,6 +33,9 @@ public class ObraBffController {
     @Value("${services.proveedores.url}")
     private String PROVEEDORES_URL;
 
+    @Value("${services.transacciones.url}")
+    private String TRANSACCIONES_URL;
+
     private final WebClient.Builder webClientBuilder;
 
     // ================================
@@ -113,15 +116,37 @@ public class ObraBffController {
     ) {
         WebClient client = webClientBuilder.build();
 
-        return client.patch()
-                .uri(OBRAS_URL + "/{id}/activo", id)
+        Mono<Map<String, Object>> obraMono = client.get()
+                .uri(OBRAS_URL + "/{id}", id)
                 .retrieve()
-                .toBodilessEntity()
-                .map(response -> ResponseEntity.noContent().build())
-                .onErrorResume(ex -> {
-                    ex.printStackTrace();
-                    return Mono.just(ResponseEntity.internalServerError().build());
-                });
+                .bodyToMono(new ParameterizedTypeReference<Map<String, Object>>() {})
+                .onErrorResume(ex -> Mono.just(Map.of()));
+
+        return obraMono.flatMap(obra -> {
+            boolean conoceActivo = obra.containsKey("activo");
+            boolean activoActual = !conoceActivo || Boolean.TRUE.equals(obra.get("activo"));
+            return client.patch()
+                    .uri(OBRAS_URL + "/{id}/activo", id)
+                    .retrieve()
+                    .toBodilessEntity()
+                    .flatMap(response -> {
+                        if (!activoActual) {
+                            return client.patch()
+                                    .uri(TRANSACCIONES_URL + "/obra/{obraId}/activar", id)
+                                    .retrieve()
+                                    .toBodilessEntity()
+                                    .map(r -> ResponseEntity.noContent().build());
+                        }
+                        return client.patch()
+                                .uri(TRANSACCIONES_URL + "/obra/{obraId}/inactivar", id)
+                                .retrieve()
+                                .toBodilessEntity()
+                                .map(r -> ResponseEntity.noContent().build());
+                    });
+        }).onErrorResume(ex -> {
+            ex.printStackTrace();
+            return Mono.just(ResponseEntity.internalServerError().build());
+        });
     }
 
 

@@ -50,6 +50,8 @@ public class Transaccion {
 
     @Column(name = "activo")
     private Boolean activo = true;
+    @Column(name = "baja_obra")
+    private Boolean bajaObra = Boolean.FALSE;
 
     @Column(name = "ultima_actualizacion")
     private Instant ultimaActualizacion;

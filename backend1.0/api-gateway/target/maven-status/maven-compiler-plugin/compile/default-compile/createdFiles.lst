@@ -73,6 +73,7 @@ com\apigateway\controller\ObraBffController$8.class
 com\apigateway\controller\DocumentoBffController.class
 com\apigateway\controller\TareaBffController$2.class
 com\apigateway\ApiGatewayApplication.class
+com\apigateway\controller\ObraBffController$11.class
 com\apigateway\controller\TransaccionBffController$5.class
 com\apigateway\controller\CostoBffController$3.class
 com\apigateway\controller\ObraBffController$5.class
@@ -89,6 +90,7 @@ com\apigateway\controller\ProveedorBffController$1.class
 com\apigateway\controller\CostoBffController$2.class
 com\apigateway\controller\ClienteBffController$5.class
 com\apigateway\controller\TipoTransaccionBffController$1.class
+com\apigateway\controller\TransaccionBffController$7.class
 com\apigateway\controller\ObraBffController$10.class
 com\apigateway\controller\CondicionIvaBffController.class
 com\apigateway\controller\ReportesBffController$11.class

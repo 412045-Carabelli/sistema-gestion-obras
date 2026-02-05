@@ -1,6 +1,7 @@
 package com.apigateway.controller;
 
 import com.apigateway.testutil.StubExchangeFunction;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
@@ -28,7 +29,10 @@ class TransaccionBffControllerTest {
         stub.stub(HttpMethod.DELETE, baseUrl + "/1", HttpStatus.NO_CONTENT, null);
         stub.stub(HttpMethod.GET, baseUrl + "/asociado/PROVEEDOR/10", HttpStatus.OK, List.of(Map.of("id", 4)));
 
-        TransaccionBffController controller = new TransaccionBffController(WebClient.builder().exchangeFunction(stub));
+        TransaccionBffController controller = new TransaccionBffController(
+                WebClient.builder().exchangeFunction(stub),
+                new ObjectMapper()
+        );
         ReflectionTestUtils.setField(controller, "TRANSACCIONES_URL", baseUrl);
         ReflectionTestUtils.setField(controller, "TIPO_TRANSACCIONES_URL", baseUrl + "/tipo-transaccion");
         ReflectionTestUtils.setField(controller, "OBRAS_URL", "http://obras");

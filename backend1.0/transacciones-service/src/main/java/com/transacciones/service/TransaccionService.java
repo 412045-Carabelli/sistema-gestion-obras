@@ -12,6 +12,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -50,6 +51,7 @@ public class TransaccionService {
                 .medio_pago(dto.getMedio_pago())
                 .facturaCobrada(dto.getFacturaCobrada())
                 .activo(dto.getActivo() != null ? dto.getActivo() : true)
+                .bajaObra(Boolean.FALSE)
                 .build();
 
         Transaccion guardado = transaccionRepository.save(entity);
@@ -82,6 +84,9 @@ public class TransaccionService {
         entity.setMedio_pago(dto.getMedio_pago());
         entity.setFacturaCobrada(dto.getFacturaCobrada());
         entity.setActivo(dto.getActivo());
+        if (dto.getActivo() != null && !dto.getActivo()) {
+            entity.setBajaObra(Boolean.FALSE);
+        }
 
         Transaccion guardado = transaccionRepository.save(entity);
         return toDto(guardado);
@@ -99,9 +104,14 @@ public class TransaccionService {
         transaccionRepository.softDeleteByObraId(obraId);
     }
 
+    @Transactional
+    public void activarPorObra(Long obraId) {
+        transaccionRepository.activarPorObraId(obraId);
+    }
+
     @Transactional(readOnly = true)
     public List<TransaccionDto> listarPorObra(Long obraId) {
-        return transaccionRepository.findByIdObra(obraId)
+        return transaccionRepository.findByIdObraAndActivoTrue(obraId)
                 .stream()
                 .map(this::toDto)
                 .collect(Collectors.toList());
@@ -109,10 +119,54 @@ public class TransaccionService {
 
     @Transactional(readOnly = true)
     public List<TransaccionDto> findByTipoAsociado(String tipo, Long idAsociado) {
-        return transaccionRepository.findByTipoAsociadoAndIdAsociado(tipo, idAsociado)
+        return transaccionRepository.findByTipoAsociadoAndIdAsociadoAndActivoTrue(tipo, idAsociado)
                 .stream()
                 .map(this::toDto)
                 .collect(Collectors.toList());
+    }
+
+    public TransaccionDto registrarPagoComision(Long obraId, Double monto, LocalDate fecha) {
+        if (obraId == null) {
+            throw new IllegalArgumentException("obraId es requerido");
+        }
+
+        ObraResumenDto obra = obraCostoClient.obtenerObra(obraId);
+        if (obra == null) {
+            throw new IllegalArgumentException("Obra no encontrada");
+        }
+        validarEstadoObra(obra);
+        if (!Boolean.TRUE.equals(obra.getTiene_comision())) {
+            throw new IllegalArgumentException("La obra no tiene comisión configurada");
+        }
+
+        double montoFinal = monto != null ? monto : (obra.getComision_monto() != null ? obra.getComision_monto() : 0d);
+        if (montoFinal <= 0) {
+            throw new IllegalArgumentException("Monto de comisión inválido");
+        }
+
+        boolean yaPagada = transaccionRepository
+                .findByIdObraAndTipoAsociadoAndIdAsociado(obraId, "COMISION", 0L)
+                .stream()
+                .anyMatch(t -> t.getTipo_transaccion() == TipoTransaccionEnum.PAGO && Boolean.TRUE.equals(t.getActivo()));
+        if (yaPagada) {
+            throw new IllegalStateException("La comisión ya fue pagada");
+        }
+
+        Transaccion entity = Transaccion.builder()
+                .idObra(obraId)
+                .idAsociado(0L)
+                .tipoAsociado("COMISION")
+                .tipo_transaccion(TipoTransaccionEnum.PAGO)
+                .fecha(fecha != null ? fecha : LocalDate.now())
+                .monto(montoFinal)
+                .forma_pago("TOTAL")
+                .medio_pago(null)
+                .facturaCobrada(null)
+                .activo(true)
+                .build();
+
+        Transaccion guardado = transaccionRepository.save(entity);
+        return toDto(guardado);
     }
 
     private TransaccionDto toDto(Transaccion transaccion) {
@@ -166,6 +220,9 @@ public class TransaccionService {
     private void validarTipoAsociado(Transaccion dto) {
         if (dto == null) return;
         String tipoAsociado = dto.getTipoAsociado() == null ? "" : dto.getTipoAsociado().toUpperCase();
+        if ("COMISION".equals(tipoAsociado)) {
+            throw new IllegalArgumentException("Las comisiones deben registrarse desde el endpoint dedicado");
+        }
         if ("CLIENTE".equals(tipoAsociado) && dto.getTipo_transaccion() != TipoTransaccionEnum.COBRO) {
             throw new IllegalArgumentException("Para clientes solo se permite COBRO");
         }

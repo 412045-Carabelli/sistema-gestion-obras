@@ -52,6 +52,8 @@ public class ObraCosto {
     @Column(nullable=false, precision=14, scale=2) private BigDecimal total;    // set en servicio
 
     private Boolean activo = Boolean.TRUE;
+    @Column(name = "baja_obra")
+    private Boolean bajaObra = Boolean.FALSE;
 
     @Column(name = "ultima_actualizacion")
     private Instant ultimaActualizacion;

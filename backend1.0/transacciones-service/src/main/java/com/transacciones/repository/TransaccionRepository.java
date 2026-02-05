@@ -13,8 +13,10 @@ import java.util.List;
 @Repository
 public interface TransaccionRepository extends JpaRepository<Transaccion, Long> {
     List<Transaccion> findByIdObra(Long obraId);
+    List<Transaccion> findByIdObraAndActivoTrue(Long obraId);
 
     List<Transaccion> findByTipoAsociadoAndIdAsociado(String tipoAsociado, Long idAsociado);
+    List<Transaccion> findByTipoAsociadoAndIdAsociadoAndActivoTrue(String tipoAsociado, Long idAsociado);
 
     List<Transaccion> findByIdObraAndTipoAsociadoAndIdAsociado(Long idObra, String tipoAsociado, Long idAsociado);
 
@@ -24,6 +26,11 @@ public interface TransaccionRepository extends JpaRepository<Transaccion, Long> 
 
     @Transactional
     @Modifying
-    @Query("UPDATE Transaccion t SET t.activo = false WHERE t.idObra = :obraId")
-    void softDeleteByObraId(Long obraId);
+    @Query("UPDATE Transaccion t SET t.activo = false, t.bajaObra = true WHERE t.idObra = :obraId and t.activo = true")
+    void softDeleteByObraId(@Param("obraId") Long obraId);
+
+    @Transactional
+    @Modifying
+    @Query("UPDATE Transaccion t SET t.activo = true, t.bajaObra = false WHERE t.idObra = :obraId and t.activo = false and t.bajaObra = true")
+    void activarPorObraId(@Param("obraId") Long obraId);
 }

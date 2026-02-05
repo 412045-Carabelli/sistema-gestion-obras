@@ -509,7 +509,7 @@ public class ReportesService {
         List<ObraExternalDto> obras = obrasClient.obtenerObras();
         List<ClienteExternalDto> clientes = clientesClient.obtenerClientes();
         List<ProveedorExternalDto> proveedores = proveedoresClient.obtenerProveedores();
-        List<TransaccionExternalDto> transacciones = transaccionesClient.obtenerTransacciones();
+        List<TransaccionExternalDto> transacciones = obtenerTransaccionesActivas();
 
         ResumenGeneralResponse response = new ResumenGeneralResponse();
         response.setTotalObras(obras.size());
@@ -638,7 +638,7 @@ public class ReportesService {
             }
         }
 
-        BigDecimal pagos = transaccionesClient.obtenerTransacciones().stream()
+        BigDecimal pagos = obtenerTransaccionesActivas().stream()
                 .filter(tx -> Objects.equals(tx.getIdAsociado(), proveedorId))
                 .filter(tx -> "PROVEEDOR".equalsIgnoreCase(Optional.ofNullable(tx.getTipoAsociado()).orElse("")))
                 .filter(tx -> "PAGO".equalsIgnoreCase(Optional.ofNullable(tx.getTipoTransaccion()).orElse("")))
@@ -933,18 +933,22 @@ public class ReportesService {
 
         BigDecimal totalPagos = BigDecimal.ZERO;
         BigDecimal totalComisiones = BigDecimal.ZERO;
+        BigDecimal pagosComision = obtenerPagosComisionPorObra(obraId);
+        BigDecimal pagosRestantes = pagosComision;
 
         for (Comision comision : comisiones) {
             ComisionesResponse.Detalle detalle = new ComisionesResponse.Detalle();
             detalle.setObraId(obraId);
             detalle.setObraNombre(obra != null ? obra.getNombre() : null);
             detalle.setMonto(Optional.ofNullable(comision.getMonto()).orElse(BigDecimal.ZERO));
-            detalle.setPagos(Boolean.TRUE.equals(comision.getPagado()) ? detalle.getMonto() : BigDecimal.ZERO);
+            BigDecimal pagosDetalle = pagosRestantes.min(detalle.getMonto());
+            detalle.setPagos(pagosDetalle);
             detalle.setSaldo(saldoPositivo(detalle.getMonto().subtract(detalle.getPagos())));
             response.getDetalle().add(detalle);
 
             totalComisiones = totalComisiones.add(detalle.getMonto());
-            totalPagos = totalPagos.add(detalle.getPagos());
+            totalPagos = totalPagos.add(pagosDetalle);
+            pagosRestantes = pagosRestantes.subtract(pagosDetalle);
             guardarMovimiento("COMISION_OBRA", detalle.getMonto(), "Obra " + obraId);
         }
 
@@ -958,10 +962,12 @@ public class ReportesService {
                 detalle.setObraId(obraId);
                 detalle.setObraNombre(obra.getNombre());
                 detalle.setMonto(monto);
-                detalle.setPagos(BigDecimal.ZERO);
-                detalle.setSaldo(monto);
+                BigDecimal pagosDetalle = pagosComision.min(monto);
+                detalle.setPagos(pagosDetalle);
+                detalle.setSaldo(saldoPositivo(monto.subtract(pagosDetalle)));
                 response.getDetalle().add(detalle);
                 totalComisiones = totalComisiones.add(monto);
+                totalPagos = totalPagos.add(pagosDetalle);
             }
         }
 
@@ -975,29 +981,47 @@ public class ReportesService {
         ComisionesResponse response = new ComisionesResponse();
         List<Comision> comisiones = comisionRepository.findAll();
         Map<Long, ObraExternalDto> obrasPorId = mapearPorId(obrasClient.obtenerObras(), ObraExternalDto::getId);
+        Set<Long> obrasValidas = obrasPorId.values().stream()
+                .filter(obra -> estadoGeneraDeuda(obra.getObraEstado()))
+                .map(ObraExternalDto::getId)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toSet());
 
         BigDecimal total = BigDecimal.ZERO;
         BigDecimal pagos = BigDecimal.ZERO;
         Set<Long> obrasConComisionRegistrada = new HashSet<>();
+        Map<Long, BigDecimal> pagosPorObra = obtenerPagosComisionPorObra();
+        Map<Long, BigDecimal> pagosRestantes = new HashMap<>(pagosPorObra);
 
         for (Comision comision : comisiones) {
+            if (!obrasValidas.contains(comision.getIdObra())) {
+                continue;
+            }
             obrasConComisionRegistrada.add(comision.getIdObra());
             ComisionesResponse.Detalle detalle = new ComisionesResponse.Detalle();
             detalle.setObraId(comision.getIdObra());
             ObraExternalDto obra = obrasPorId.get(comision.getIdObra());
             detalle.setObraNombre(obra != null ? obra.getNombre() : null);
             detalle.setMonto(Optional.ofNullable(comision.getMonto()).orElse(BigDecimal.ZERO));
-            detalle.setPagos(Boolean.TRUE.equals(comision.getPagado()) ? detalle.getMonto() : BigDecimal.ZERO);
+            BigDecimal pagosDetalle = pagosRestantes
+                    .getOrDefault(comision.getIdObra(), BigDecimal.ZERO)
+                    .min(detalle.getMonto());
+            detalle.setPagos(pagosDetalle);
             detalle.setSaldo(saldoPositivo(detalle.getMonto().subtract(detalle.getPagos())));
             response.getDetalle().add(detalle);
             total = total.add(detalle.getMonto());
-            pagos = pagos.add(detalle.getPagos());
+            pagos = pagos.add(pagosDetalle);
+            pagosRestantes.put(comision.getIdObra(), pagosRestantes.getOrDefault(comision.getIdObra(), BigDecimal.ZERO)
+                    .subtract(pagosDetalle));
             guardarMovimiento("COMISION_GENERAL", detalle.getMonto(), detalle.getObraNombre());
         }
 
         // Incluir comisiones configuradas en las obras que no tengan registros en la tabla local
         for (ObraExternalDto obra : obrasPorId.values()) {
             if (!Boolean.TRUE.equals(obra.getTieneComision())) {
+                continue;
+            }
+            if (!obrasValidas.contains(obra.getId())) {
                 continue;
             }
             if (obrasConComisionRegistrada.contains(obra.getId())) {
@@ -1011,10 +1035,12 @@ public class ReportesService {
             detalle.setObraId(obra.getId());
             detalle.setObraNombre(obra.getNombre());
             detalle.setMonto(monto);
-            detalle.setPagos(BigDecimal.ZERO);
-            detalle.setSaldo(monto);
+            BigDecimal pagosDetalle = pagosPorObra.getOrDefault(obra.getId(), BigDecimal.ZERO).min(monto);
+            detalle.setPagos(pagosDetalle);
+            detalle.setSaldo(saldoPositivo(monto.subtract(pagosDetalle)));
             response.getDetalle().add(detalle);
             total = total.add(monto);
+            pagos = pagos.add(pagosDetalle);
         }
 
         response.setTotalComision(total);
@@ -1025,7 +1051,9 @@ public class ReportesService {
 
     public ComisionesFrontResponse generarComisiones(ReportFilterRequest filtro) {
         ReportFilterRequest filtros = filtroSeguro(filtro);
-        List<ObraExternalDto> obrasFiltradas = filtrarObras(filtros);
+        List<ObraExternalDto> obrasFiltradas = filtrarObras(filtros).stream()
+                .filter(obra -> estadoGeneraDeuda(obra.getObraEstado()))
+                .collect(Collectors.toList());
         Map<Long, ObraExternalDto> obrasPorId = mapearPorId(obrasFiltradas, ObraExternalDto::getId);
 
         Set<Long> obraIds = new HashSet<>(obrasPorId.keySet());
@@ -1074,6 +1102,7 @@ public class ReportesService {
         response.setTotal(total);
         return response;
     }
+
 
     public RankingClientesResponse generarRankingClientes(ReportFilterRequest filtro) {
         ReportFilterRequest filtros = filtroSeguro(filtro);
@@ -1225,7 +1254,7 @@ public class ReportesService {
 
     private List<TransaccionExternalDto> filtrarTransacciones(ReportFilterRequest filtro,
                                                              Map<Long, ObraExternalDto> obrasPorId) {
-        return transaccionesClient.obtenerTransacciones().stream()
+        return obtenerTransaccionesActivas().stream()
                 .filter(tx -> filtro.getObraId() == null || Objects.equals(tx.getIdObra(), filtro.getObraId()))
                 // Si filtro por proveedor, solo excluyo pagos a otros proveedores; dejo pasar los del cliente u otros asociados
                 .filter(tx -> {
@@ -1246,7 +1275,7 @@ public class ReportesService {
     }
 
     private List<TransaccionExternalDto> filtrarTransaccionesPorObra(Long obraId) {
-        return transaccionesClient.obtenerTransacciones().stream()
+        return obtenerTransaccionesActivas().stream()
                 .filter(tx -> Objects.equals(tx.getIdObra(), obraId))
                 .collect(Collectors.toList());
     }
@@ -1271,13 +1300,64 @@ public class ReportesService {
 
     private BigDecimal calcularMontoComision(ObraExternalDto obra) {
         BigDecimal porcentaje = Optional.ofNullable(obra.getComision()).orElse(BigDecimal.ZERO);
+        if (porcentaje.compareTo(BigDecimal.ZERO) <= 0) {
+            return BigDecimal.ZERO;
+        }
+
+        BigDecimal comisionMonto = Optional.ofNullable(obra.getComisionMonto()).orElse(BigDecimal.ZERO);
+        if (comisionMonto.compareTo(BigDecimal.ZERO) > 0) {
+            return comisionMonto;
+        }
+
+        BigDecimal base = Optional.ofNullable(obra.getTotalConBeneficio()).orElse(BigDecimal.ZERO);
+        if (base.compareTo(BigDecimal.ZERO) > 0) {
+            return base
+                    .multiply(porcentaje)
+                    .divide(BigDecimal.valueOf(100), 2, RoundingMode.HALF_UP);
+        }
+
         BigDecimal presupuesto = Optional.ofNullable(obra.getPresupuesto()).orElse(BigDecimal.ZERO);
-        if (porcentaje.compareTo(BigDecimal.ZERO) <= 0 || presupuesto.compareTo(BigDecimal.ZERO) <= 0) {
+        if (presupuesto.compareTo(BigDecimal.ZERO) <= 0) {
             return BigDecimal.ZERO;
         }
         return presupuesto
                 .multiply(porcentaje)
-                .divide(BigDecimal.valueOf(100), 2, RoundingMode.HALF_UP);
+                .divide(porcentaje.add(BigDecimal.valueOf(100)), 2, RoundingMode.HALF_UP);
+    }
+
+    private BigDecimal obtenerPagosComisionPorObra(Long obraId) {
+        if (obraId == null) return BigDecimal.ZERO;
+        return obtenerTransaccionesActivas().stream()
+                .filter(tx -> Objects.equals(tx.getIdObra(), obraId))
+                .filter(tx -> "COMISION".equalsIgnoreCase(Optional.ofNullable(tx.getTipoAsociado()).orElse("")))
+                .filter(tx -> Objects.equals(Optional.ofNullable(tx.getIdAsociado()).orElse(0L), 0L))
+                .filter(tx -> "PAGO".equalsIgnoreCase(Optional.ofNullable(tx.getTipoTransaccion()).orElse("")))
+                .filter(tx -> tx.getActivo() == null || Boolean.TRUE.equals(tx.getActivo()))
+                .map(tx -> BigDecimal.valueOf(Optional.ofNullable(tx.getMonto()).orElse(0d)))
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+    }
+
+    private Map<Long, BigDecimal> obtenerPagosComisionPorObra() {
+        Map<Long, BigDecimal> pagos = new HashMap<>();
+        for (TransaccionExternalDto tx : obtenerTransaccionesActivas()) {
+            if (tx == null) continue;
+            if (!"PAGO".equalsIgnoreCase(Optional.ofNullable(tx.getTipoTransaccion()).orElse(""))) continue;
+            if (!"COMISION".equalsIgnoreCase(Optional.ofNullable(tx.getTipoAsociado()).orElse(""))) continue;
+            Long obraId = tx.getIdObra();
+            if (obraId == null) continue;
+            Long idAsociado = Optional.ofNullable(tx.getIdAsociado()).orElse(0L);
+            if (!Objects.equals(idAsociado, 0L)) continue;
+            BigDecimal monto = BigDecimal.valueOf(Optional.ofNullable(tx.getMonto()).orElse(0d));
+            pagos.put(obraId, pagos.getOrDefault(obraId, BigDecimal.ZERO).add(monto));
+        }
+        return pagos;
+    }
+
+    private List<TransaccionExternalDto> obtenerTransaccionesActivas() {
+        return transaccionesClient.obtenerTransacciones().stream()
+                .filter(tx -> tx == null || tx.getActivo() == null || Boolean.TRUE.equals(tx.getActivo()))
+                .filter(Objects::nonNull)
+                .collect(Collectors.toList());
     }
 
     private void guardarMovimiento(String tipo, BigDecimal monto, String referencia) {

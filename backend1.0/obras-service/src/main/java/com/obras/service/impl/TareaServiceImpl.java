@@ -30,6 +30,7 @@ public class TareaServiceImpl implements TareaService {
         validarNumeroOrden(dto.getNumero_orden(), dto.getId_obra(), null);
         Tarea t = toEntity(dto);
         t.setActivo(true);
+        t.setBajaObra(Boolean.FALSE);
         t.setCreadoEn(Instant.now());
         t = tareaRepo.save(t);
         return toDto(t);
@@ -70,6 +71,7 @@ public class TareaServiceImpl implements TareaService {
     public void borrar(Long id) {
         tareaRepo.findByIdAndActivoTrue(id).ifPresent(t -> {
             t.setActivo(false);
+            t.setBajaObra(Boolean.FALSE);
             tareaRepo.save(t);
         });
     }
@@ -127,6 +129,7 @@ public class TareaServiceImpl implements TareaService {
         entity.setFechaInicio(dto.getFecha_inicio());
         entity.setFechaFin(dto.getFecha_fin());
         entity.setActivo(dto.getActivo() != null ? dto.getActivo() : Boolean.TRUE);
+        entity.setBajaObra(Boolean.FALSE);
 
         if (dto.getEstado_tarea() != null) {
             entity.setEstadoTarea(dto.getEstado_tarea());
