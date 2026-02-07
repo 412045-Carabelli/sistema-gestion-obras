@@ -14,7 +14,7 @@ import {Tooltip} from 'primeng/tooltip';
 import {InputNumber} from 'primeng/inputnumber';
 
 import {EstadoFormatPipe} from '../../../shared/pipes/estado-format.pipe';
-import {Proveedor, Tarea} from '../../../core/models/models';
+import {ObraCosto, Proveedor, Tarea} from '../../../core/models/models';
 import {ModalComponent} from '../../../shared/modal/modal.component';
 import {TareaPayload, TareasService} from '../../../services/tareas/tareas.service';
 
@@ -44,6 +44,7 @@ export class ObraTareasComponent {
   @Input() obraId!: number;
   @Input() proveedores: Proveedor[] = [];
   @Input() tareas: Tarea[] = [];
+  @Input() costos: ObraCosto[] = [];
   @Input() obraNombre = '';
   @Output() tareasActualizadas = new EventEmitter<Tarea[]>();
 
@@ -112,7 +113,7 @@ export class ObraTareasComponent {
       return;
     }
 
-    if (!this.validarTopePorcentaje(nuevoPorcentaje, this.editandoTarea?.id)) {
+    if (!this.validarTopePorcentaje(nuevoPorcentaje, this.editandoTarea?.id, Number(this.nuevaTarea.id_proveedor))) {
       return;
     }
 
@@ -317,9 +318,74 @@ export class ObraTareasComponent {
     return 'pi pi-refresh';
   }
 
-  private totalPorcentajeSin(id?: number): number {
+  get resumenProveedores(): Array<{
+    proveedorId: number;
+    proveedorNombre: string;
+    costoTotal: number;
+    avancePorcentaje: number;
+    pagoHabilitado: number;
+  }> {
+    const proveedoresIds = new Set<number>();
+    (this.costos || []).forEach(c => {
+      const id = Number((c as any)?.id_proveedor ?? (c as any)?.proveedor?.id ?? 0);
+      if (id) proveedoresIds.add(id);
+    });
+    (this.tareas || []).forEach(t => {
+      const id = Number(t.id_proveedor ?? (t.proveedor as any)?.id ?? 0);
+      if (id) proveedoresIds.add(id);
+    });
+
+    const rows = Array.from(proveedoresIds).map(id => {
+      const proveedor = this.proveedores.find(p => Number(p.id) === id);
+      const costoTotal = this.getCostoTotalProveedor(id);
+      const avancePorcentaje = this.getAvanceProveedor(id);
+      const pagoHabilitado = costoTotal * (avancePorcentaje / 100);
+      return {
+        proveedorId: id,
+        proveedorNombre: proveedor?.nombre ?? `Proveedor #${id}`,
+        costoTotal,
+        avancePorcentaje,
+        pagoHabilitado
+      };
+    });
+
+    return rows.sort((a, b) => a.proveedorNombre.localeCompare(b.proveedorNombre));
+  }
+
+  get avanceGlobalObra(): number {
+    const totalCostos = this.resumenProveedores.reduce((acc, r) => acc + r.costoTotal, 0);
+    if (totalCostos <= 0) return 0;
+    const totalHabilitado = this.resumenProveedores.reduce((acc, r) => acc + r.pagoHabilitado, 0);
+    return (totalHabilitado / totalCostos) * 100;
+  }
+
+  private getCostoTotalProveedor(proveedorId: number): number {
+    return (this.costos || []).reduce((acc, c) => {
+      const id = Number((c as any)?.id_proveedor ?? (c as any)?.proveedor?.id ?? 0);
+      if (id !== Number(proveedorId)) return acc;
+      const subtotal = Number((c as any)?.subtotal ?? (c as any)?.total ?? 0);
+      return acc + (Number.isFinite(subtotal) ? subtotal : 0);
+    }, 0);
+  }
+
+  private getAvanceProveedor(proveedorId: number): number {
+    const tareasProveedor = (this.tareas || []).filter(t =>
+      Number(t.id_proveedor ?? (t.proveedor as any)?.id ?? 0) === Number(proveedorId)
+    );
+    const avance = tareasProveedor
+      .filter(t => (t.estado_tarea || '').toString().toUpperCase() === 'COMPLETADA')
+      .reduce((acc, t) => acc + Number(t.porcentaje ?? 0), 0);
+    return Math.min(100, Math.max(0, avance));
+  }
+
+  private totalPorcentajeSin(id?: number, proveedorId?: number): number {
     return this.tareas
       .filter(t => t.id !== id)
+      .filter(t => {
+        if (!proveedorId) return true;
+        const idProv = Number(t.id_proveedor ?? (t.proveedor as any)?.id ?? 0);
+        return idProv === Number(proveedorId);
+      })
       .reduce((acc, t) => acc + Number(t.porcentaje ?? 0), 0);
   }
 
@@ -331,13 +397,13 @@ export class ObraTareasComponent {
     return orden[(idx + 1) % orden.length];
   }
 
-  private validarTopePorcentaje(nuevo: number, idActual?: number): boolean {
-    const total = this.totalPorcentajeSin(idActual) + nuevo;
+  private validarTopePorcentaje(nuevo: number, idActual?: number, proveedorId?: number): boolean {
+    const total = this.totalPorcentajeSin(idActual, proveedorId) + nuevo;
     if (total > 100 + 1e-6) {
       this.messageService.add({
         severity: 'warn',
         summary: 'Límite de porcentaje',
-        detail: 'La suma de porcentajes no puede superar 100%'
+        detail: 'La suma de porcentajes del proveedor no puede superar 100%'
       });
       return false;
     }

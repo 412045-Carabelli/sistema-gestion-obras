@@ -44,6 +44,7 @@ export class ObraMovimientosComponent implements OnInit {
   @Input() obraEstado?: string | null;
   @Input() presupuestoTotal?: number;
   @Output() costosActualizados = new EventEmitter<ObraCosto[]>();
+  @Output() movimientosActualizados = new EventEmitter<void>();
 
   transacciones: Transaccion[] = [];
   tiposTransaccion: { label: string; name: string }[] = [];
@@ -96,10 +97,14 @@ export class ObraMovimientosComponent implements OnInit {
   }
 
   protected proveedorOCliente(id: number, tipoAsociado: string) {
-    if(tipoAsociado === 'CLIENTE'){
+    const tipo = (tipoAsociado || '').toUpperCase();
+    if (tipo === 'COMISION') {
+      return 'Comisión';
+    }
+    if(tipo === 'CLIENTE'){
       return this.clientes.find(c => c.id === id)?.nombre
     }
-    if(tipoAsociado === 'PROVEEDOR'){
+    if(tipo === 'PROVEEDOR'){
       return this.proveedores.find(c => c.id === id)?.nombre
     }
     return "No se encontró un cliente/proveedor asociado"
@@ -218,6 +223,7 @@ export class ObraMovimientosComponent implements OnInit {
   cargarDatos() {
     this.transaccionesService.getByObra(this.obraId).subscribe(transacciones => {
       this.transacciones = transacciones.map(t => this.normalizarTransaccion(t));
+      this.movimientosActualizados.emit();
     });
 
     this.transaccionesService.getTipos().subscribe(tipos => {
@@ -225,6 +231,10 @@ export class ObraMovimientosComponent implements OnInit {
     });
 
     this.refrescarCostosObra();
+  }
+
+  recargarMovimientos() {
+    this.cargarDatos();
   }
 
   openModal(movimiento?: Transaccion) {
@@ -399,23 +409,24 @@ export class ObraMovimientosComponent implements OnInit {
       : this.transaccionesService.create(mov);
 
     action.subscribe({
-      next: (resp) => {
-        const movGuardado = this.normalizarTransaccion(resp);
-        if (this.modoEdicion) {
-          this.transacciones = this.transacciones.map(t =>
-            t.id === movGuardado.id ? movGuardado : t
-          );
-        } else {
-          this.transacciones = [movGuardado, ...this.transacciones];
-        }
+        next: (resp) => {
+          const movGuardado = this.normalizarTransaccion(resp);
+          if (this.modoEdicion) {
+            this.transacciones = this.transacciones.map(t =>
+              t.id === movGuardado.id ? movGuardado : t
+            );
+          } else {
+            this.transacciones = [movGuardado, ...this.transacciones];
+          }
 
-        this.refrescarCostosObra();
+          this.refrescarCostosObra();
+          this.movimientosActualizados.emit();
 
-        this.showAddMovementModal = false;
-        this.messageService.add({
-          severity: 'success',
-          summary: 'Movimiento creado con éxito',
-          detail: this.modoEdicion ? 'Movimiento actualizado' : 'Movimiento creado'
+          this.showAddMovementModal = false;
+          this.messageService.add({
+            severity: 'success',
+            summary: 'Movimiento creado con éxito',
+            detail: this.modoEdicion ? 'Movimiento actualizado' : 'Movimiento creado'
         });
       },
       error: () => {
@@ -437,16 +448,17 @@ export class ObraMovimientosComponent implements OnInit {
       rejectLabel: 'Cancelar',
       acceptButtonStyleClass: 'p-button-danger p-button-sm',
       rejectButtonStyleClass: 'p-button-text p-button-sm',
-      accept: () => {
-        this.transaccionesService.delete(t.id!).subscribe({
-          next: () => {
-            this.cargarDatos();
-            if (this.movimientoDetalle?.id === t.id) {
-              this.cerrarDetalleMovimiento();
-            }
-            this.messageService.add({
-              severity: 'success',
-              summary: 'Eliminado',
+        accept: () => {
+          this.transaccionesService.delete(t.id!).subscribe({
+            next: () => {
+              this.cargarDatos();
+              if (this.movimientoDetalle?.id === t.id) {
+                this.cerrarDetalleMovimiento();
+              }
+              this.movimientosActualizados.emit();
+              this.messageService.add({
+                severity: 'success',
+                summary: 'Eliminado',
               detail: 'El movimiento fue eliminado correctamente.'
             });
           },
@@ -506,8 +518,12 @@ export class ObraMovimientosComponent implements OnInit {
   }
 
   private normalizarTransaccion(t: Transaccion): Transaccion {
+    const tipoAsociado = (t?.tipo_asociado || '').toString().toUpperCase();
+    const esComision = tipoAsociado === 'COMISION';
     return {
       ...t,
+      forma_pago: t.forma_pago || (esComision ? 'TOTAL' : t.forma_pago),
+      medio_pago: t.medio_pago || (esComision ? 'Comisión' : t.medio_pago),
       etiqueta: this.tipoValue(t) === 'COBRO' ? 'FC' : 'RBOS'
     };
   }

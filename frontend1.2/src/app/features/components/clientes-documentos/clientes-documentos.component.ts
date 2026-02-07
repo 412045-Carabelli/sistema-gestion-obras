@@ -36,6 +36,7 @@ export class ClientesDocumentosComponent implements OnInit {
 
   documentos: Documento[] = [];
   loading = true;
+  descargandoIds = new Set<number>();
 
   constructor(
     private documentosService: DocumentosService,
@@ -69,6 +70,11 @@ export class ClientesDocumentosComponent implements OnInit {
   }
 
   descargarDocumento(doc: Documento) {
+    const docId = Number(doc?.id_documento ?? 0);
+    if (!docId) return;
+    if (this.descargandoIds.has(docId)) return;
+    this.descargandoIds.add(docId);
+
     const popup = this.abrirPopup();
     if (!popup) {
       this.messageService.add({
@@ -76,30 +82,11 @@ export class ClientesDocumentosComponent implements OnInit {
         summary: 'Bloqueo de ventana',
         detail: 'Habilita los pop-ups para abrir el documento.'
       });
+      this.descargandoIds.delete(docId);
       return;
     }
-    this.documentosService.downloadDocumento(doc.id_documento).subscribe({
-      next: fileBlob => {
-        const baseBlob = fileBlob instanceof Blob ? fileBlob : new Blob([fileBlob]);
-        const tipo = this.detectarMime(doc.nombre_archivo, baseBlob.type);
-        const blob = tipo ? new Blob([baseBlob], { type: tipo }) : baseBlob;
-        const url = window.URL.createObjectURL(blob);
-        popup.location.href = url;
-        setTimeout(() => window.URL.revokeObjectURL(url), 10000);
-        this.messageService.add({
-          severity: 'success',
-          summary: 'Apertura iniciada',
-          detail: doc.nombre_archivo
-        });
-      },
-      error: () => {
-        this.messageService.add({
-          severity: 'error',
-          summary: 'Error',
-          detail: 'No se pudo abrir el documento.'
-        });
-      }
-    });
+    popup.location.href = this.documentosService.getDocumentoUrl(docId);
+    setTimeout(() => this.descargandoIds.delete(docId), 3000);
   }
 
   eliminarDocumento(doc: Documento) {

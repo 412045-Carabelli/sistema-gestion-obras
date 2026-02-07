@@ -30,6 +30,7 @@
         icon="pi pi-file-pdf"
         label="Exportar PDF"
         styleClass="p-button-md p-button-primary"
+        [disabled]="exportandoPdf"
       ></p-button>
       <p-menu #exportMenu [popup]="true" [model]="exportOptions"></p-menu>
     </div>
@@ -492,8 +493,19 @@
           <td class="px-3 py-2 text-indigo-600 font-medium">
             <div class="flex justify-start">{{ calcularComisionMonto() | currency:'ARS' }}</div>
           </td>
-          <td class="px-3 py-2"></td>
-        </tr>
+          <td class="px-3 py-2">
+              <div class="flex justify-end">
+                <p-button
+                  [label]="comisionPagada ? 'Pagada' : 'Pagar'"
+                  icon="pi pi-check"
+                  styleClass="p-button-sm"
+                  [loading]="pagandoComision"
+                  [disabled]="pagandoComision || !tieneComision || comisionPagada"
+                  (onClick)="pagarComisionObra()">
+                </p-button>
+              </div>
+            </td>
+          </tr>
 
         <tr class="bg-gray-200 font-bold">
           <td class="text-right px-3 py-2" colspan="6">Beneficio neto:</td>

@@ -17,6 +17,7 @@ import {Select} from 'primeng/select';
 import {AutoCompleteModule} from 'primeng/autocomplete';
 import {EditorModule} from 'primeng/editor';
 import {forkJoin} from 'rxjs';
+import {finalize} from 'rxjs/operators';
 
 @Component({
   selector: 'app-obra-documentos',
@@ -51,6 +52,7 @@ export class ObraDocumentosComponent implements OnInit {
   documentos: Documento[] = [];
   loading = true;
   modalVisible = false;
+  guardandoDocumento = false;
   observacion = '';
   selectedFiles: File[] = [];
   tipoEntidad: 'PROVEEDOR' | 'CLIENTE' = 'CLIENTE';
@@ -58,6 +60,7 @@ export class ObraDocumentosComponent implements OnInit {
   selectedCliente: Cliente | null = null;
   filteredProveedores: Proveedor[] = [];
   filteredClientes: Cliente[] = [];
+  descargandoIds = new Set<number>();
 
   constructor(
     private documentosService: DocumentosService,
@@ -159,6 +162,7 @@ export class ObraDocumentosComponent implements OnInit {
   }
 
   guardarDocumento() {
+    if (this.guardandoDocumento) return;
     if (!this.selectedFiles.length) {
       this.messageService.add({
         severity: 'warn',
@@ -213,9 +217,14 @@ export class ObraDocumentosComponent implements OnInit {
         tipoAsociado
       ));
 
-    forkJoin(cargas).subscribe({
+    this.guardandoDocumento = true;
+    forkJoin(cargas).pipe(
+      finalize(() => {
+        this.guardandoDocumento = false;
+      })
+    ).subscribe({
       next: nuevos => {
-        this.documentos = [...this.documentos, ...nuevos];
+        this.documentos = this.mergeDocumentos(this.documentos, nuevos);
         this.modalVisible = false;
         this.selectedFiles = [];
         this.documentFileUpload?.clear();
@@ -268,6 +277,11 @@ export class ObraDocumentosComponent implements OnInit {
   }
 
   descargarDocumento(doc: Documento) {
+    const docId = Number(doc?.id_documento ?? 0);
+    if (!docId) return;
+    if (this.descargandoIds.has(docId)) return;
+    this.descargandoIds.add(docId);
+
     const popup = this.abrirPopup();
     if (!popup) {
       this.messageService.add({
@@ -275,30 +289,11 @@ export class ObraDocumentosComponent implements OnInit {
         summary: 'Bloqueo de ventana',
         detail: 'Habilita los pop-ups para abrir el documento.'
       });
+      this.descargandoIds.delete(docId);
       return;
     }
-    this.documentosService.downloadDocumento(doc.id_documento).subscribe({
-      next: fileBlob => {
-        const baseBlob = fileBlob instanceof Blob ? fileBlob : new Blob([fileBlob]);
-        const tipo = this.detectarMime(doc.nombre_archivo, baseBlob.type);
-        const blob = tipo ? new Blob([baseBlob], { type: tipo }) : baseBlob;
-        const url = window.URL.createObjectURL(blob);
-        popup.location.href = url;
-        setTimeout(() => window.URL.revokeObjectURL(url), 10000);
-        this.messageService.add({
-          severity: 'success',
-          summary: 'Apertura iniciada',
-          detail: doc.nombre_archivo
-        });
-      },
-      error: () => {
-        this.messageService.add({
-          severity: 'error',
-          summary: 'Error',
-          detail: 'No se pudo abrir el documento.'
-        });
-      }
-    });
+    popup.location.href = this.documentosService.getDocumentoUrl(docId);
+    setTimeout(() => this.descargandoIds.delete(docId), 3000);
   }
 
   private abrirPopup(): Window | null {
@@ -318,6 +313,19 @@ export class ObraDocumentosComponent implements OnInit {
     if (lower.endsWith('.jpg') || lower.endsWith('.jpeg')) return 'image/jpeg';
     if (lower.endsWith('.png')) return 'image/png';
     return null;
+  }
+
+  private mergeDocumentos(base: Documento[], nuevos: Documento[]): Documento[] {
+    const map = new Map<number, Documento>();
+    (base || []).forEach(d => {
+      const id = Number(d?.id_documento ?? 0);
+      if (id) map.set(id, d);
+    });
+    (nuevos || []).forEach(d => {
+      const id = Number(d?.id_documento ?? 0);
+      if (id) map.set(id, d);
+    });
+    return Array.from(map.values());
   }
 }
 
