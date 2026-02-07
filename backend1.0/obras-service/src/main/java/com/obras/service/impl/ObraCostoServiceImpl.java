@@ -90,15 +90,16 @@ public class ObraCostoServiceImpl implements ObraCostoService {
     @Transactional(readOnly = true)
     @Override
     public List<ObraCostoDTO> listarPorObra(Long idObra) {
-        List<ObraCosto> lst = costoRepo.findByObra_IdAndActivoTrue(idObra);
+        boolean obraActiva = obraRepo.findById(idObra)
+                .map(o -> Boolean.TRUE.equals(o.getActivo()))
+                .orElse(true);
+        List<ObraCosto> lst = obraActiva
+                ? costoRepo.findByObra_IdAndActivoTrue(idObra)
+                : costoRepo.findByObra_Id(idObra).stream()
+                .filter(c -> Boolean.TRUE.equals(c.getActivo()) || Boolean.TRUE.equals(c.getBajaObra()))
+                .collect(Collectors.toList());
         return lst
             .stream()
-            .filter(c -> {
-                if (!TipoCostoEnum.ADICIONAL.equals(c.getTipoCosto())) {
-                    return true;
-                }
-                return c.getIdProveedor() != null && c.getIdProveedor() > 0;
-            })
             .sorted((a, b) -> {
                 boolean aAdd = TipoCostoEnum.ADICIONAL.equals(a.getTipoCosto());
                 boolean bAdd = TipoCostoEnum.ADICIONAL.equals(b.getTipoCosto());

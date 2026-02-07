@@ -73,6 +73,10 @@ export class ObraDocumentosComponent implements OnInit {
     this.cargarDocumentosObra();
   }
 
+  refrescarDocumentos() {
+    this.cargarDatos();
+  }
+
   filtrarProveedores(event: any) {
     const query = event.query.toLowerCase();
     this.filteredProveedores = this.proveedores.filter(p =>

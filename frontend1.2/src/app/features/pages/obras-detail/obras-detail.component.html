@@ -301,7 +301,8 @@
                 [comision]="obra.comision ?? 0"
                 (costosActualizados)="onCostosActualizados($event)"
                 (beneficioGlobalActualizado)="onBeneficioGlobalActualizado($event)"
-                (movimientoCreado)="refrescarMovimientos()">
+                (movimientoCreado)="refrescarMovimientos()"
+                (documentoCreado)="onDocumentoCreado()">
               </app-obra-presupuesto>
             </p-tabpanel>
 

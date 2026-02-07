@@ -92,6 +92,7 @@ export class ObraPresupuestoComponent implements OnInit, OnChanges, AfterViewIni
   @Output() costosActualizados = new EventEmitter<ObraCosto[]>();
   @Output() movimientoCreado = new EventEmitter<void>();
   @Output() beneficioGlobalActualizado = new EventEmitter<{ beneficio_global: boolean; beneficio: number }>();
+  @Output() documentoCreado = new EventEmitter<void>();
 
   costosFiltrados: ObraCosto[] = [];
   estadosPagoRecords: { label: string; name: string }[] = [];
@@ -993,6 +994,7 @@ export class ObraPresupuestoComponent implements OnInit, OnChanges, AfterViewIni
       ).subscribe({
         next: (doc) => {
           const url = this.documentosService.getDocumentoUrl(doc.id_documento!);
+          this.documentoCreado.emit();
           const opened = window.open(url, '_blank');
           if (!opened) {
             this.messageService.add({
