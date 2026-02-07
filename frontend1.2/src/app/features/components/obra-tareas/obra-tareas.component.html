@@ -8,6 +8,37 @@
     <p-button (onClick)="abrirModal()" icon="pi pi-plus" label="Nueva Tarea"></p-button>
   </div>
 
+  @if (resumenProveedores.length > 0) {
+    <div class="bg-white border border-gray-200 rounded-lg p-4">
+      <div class="flex flex-wrap items-center justify-between gap-3 mb-3">
+        <div class="text-sm font-semibold text-gray-800">Avance y pagos habilitados</div>
+      </div>
+
+      <div class="overflow-x-auto">
+        <table class="w-full text-sm">
+          <thead class="bg-gray-50 text-gray-600">
+            <tr>
+              <th class="text-left px-3 py-2">Proveedor</th>
+              <th class="text-right px-3 py-2">Costo total</th>
+              <th class="text-right px-3 py-2">Avance</th>
+              <th class="text-right px-3 py-2">Pago habilitado</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (row of resumenProveedores; track row.proveedorId) {
+              <tr class="border-t border-gray-100">
+                <td class="px-3 py-2">{{ row.proveedorNombre }}</td>
+                <td class="px-3 py-2 text-right">{{ row.costoTotal | currency:'ARS':'symbol-narrow':'1.0-0' }}</td>
+                <td class="px-3 py-2 text-right">{{ row.avancePorcentaje | number:'1.0-1' }}%</td>
+                <td class="px-3 py-2 text-right font-semibold">{{ row.pagoHabilitado | currency:'ARS':'symbol-narrow':'1.0-0' }}</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </div>
+  }
+
   <!-- Tabla de tareas -->
   <p-table
     [value]="tareas"

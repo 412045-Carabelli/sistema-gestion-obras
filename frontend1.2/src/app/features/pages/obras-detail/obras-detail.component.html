@@ -207,11 +207,11 @@
           </div>
         </div>
 
-        <!-- Progreso Físico -->
+        <!-- Progreso de la obra -->
         <div class="bg-gradient-to-br from-blue-500 to-blue-700 rounded-xl shadow-md p-6 text-white">
           <h3 class="text-lg font-semibold mb-4 flex items-center gap-2">
             <i class="pi pi-chart-line"></i>
-            Progreso Físico
+            Progreso de la obra
           </h3>
           <div class="relative">
             <p-progressBar
@@ -285,6 +285,7 @@
                 [obraNombre]="obra.nombre"
                 [proveedores]="proveedores"
                 [tareas]="tareas"
+                [costos]="costos"
                 (tareasActualizadas)="onTareasActualizadas($event)">
               </app-obra-tareas>
             </p-tabpanel>
@@ -314,6 +315,7 @@
                 [obraEstado]="obra.obra_estado"
                 [presupuestoTotal]="obra.presupuesto ?? 0"
                 (costosActualizados)="onCostosActualizados($event)"
+                (movimientosActualizados)="onMovimientosActualizados()"
               >
               </app-obra-movimientos>
             </p-tabpanel>

@@ -23,8 +23,7 @@ import {
   CuentaCorrienteObraResponse,
   CuentaCorrienteProveedorResponse,
   CuentaCorrienteClienteResponse,
-  ComisionesResponse,
-  ObraCosto
+  ComisionesResponse
 } from '../../../core/models/models';
 import {ReportesService} from '../../../services/reportes/reportes.service';
 import {ObrasService} from '../../../services/obras/obras.service';
@@ -635,35 +634,7 @@ export class ReportesComponent implements OnInit, OnDestroy {
 
   private obtenerPresupuestoObra(obra: Obra): number {
     if (!obra) return 0;
-    const costos = obra.costos ?? [];
-    if (!costos.length) {
-      return Number(obra.presupuesto ?? 0);
-    }
-
-    const beneficioGlobal = obra.beneficio_global ? Number(obra.beneficio ?? 0) : null;
-    const subtotalCostos = costos.reduce((acc, c: ObraCosto) => {
-      const base = Number(
-        c.subtotal ??
-        (Number(c.cantidad ?? 0) * Number(c.precio_unitario ?? 0))
-      );
-      return acc + base;
-    }, 0);
-
-    const beneficioCostos = costos.reduce((acc, c: ObraCosto) => {
-      const esAdicional = (c.tipo_costo || '').toString().toUpperCase() === 'ADICIONAL';
-      const porc = esAdicional
-        ? Number(c.beneficio ?? 0)
-        : (beneficioGlobal !== null ? beneficioGlobal : Number(c.beneficio ?? 0));
-      const base = Number(
-        c.subtotal ??
-        (Number(c.cantidad ?? 0) * Number(c.precio_unitario ?? 0))
-      );
-      return acc + (base * (porc / 100));
-    }, 0);
-
-    const totalConBeneficio = subtotalCostos + beneficioCostos;
-    const comisionPorc = obra.tiene_comision ? Number(obra.comision ?? 0) : 0;
-    return totalConBeneficio * (1 + (comisionPorc / 100));
+    return Number(obra.presupuesto ?? 0);
   }
 
   private calcularDeudaProveedores(pendientes: PendientesResponse | null): number {

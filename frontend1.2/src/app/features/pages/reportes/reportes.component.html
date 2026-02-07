@@ -190,7 +190,7 @@
         <div class="bg-indigo-50 rounded-lg p-4 border border-indigo-200">
           <div class="flex items-center gap-2 mb-2">
             <i class="pi pi-wallet text-indigo-600"></i>
-            <span class="text-sm font-medium text-gray-600">Saldo final</span>
+            <span class="text-sm font-medium text-gray-600">Beneficio Neto</span>
           </div>
           <div class="text-2xl font-bold" [ngClass]="(flujoCaja?.saldoFinal ?? 0) >= 0 ? 'text-indigo-600' : 'text-red-600'">
             {{ (flujoCaja?.saldoFinal ?? 0) | currency:'ARS':'symbol-narrow':'1.0-0' }}
@@ -327,7 +327,7 @@
             <p class="text-2xl font-bold text-red-600">{{ (cuentaCorrienteObra?.totalEgresos ?? 0) | currency:'ARS':'symbol-narrow':'1.0-0' }}</p>
           </div>
           <div class="bg-indigo-50 border border-indigo-200 rounded-lg p-3">
-            <p class="text-gray-600">Saldo final</p>
+            <p class="text-gray-600">Beneficio Neto</p>
             <p class="text-2xl font-bold text-indigo-700">{{ saldoSinNegativo(cuentaCorrienteObra?.saldoFinal ?? 0) | currency:'ARS':'symbol-narrow':'1.0-0' }}</p>
           </div>
         </div>
@@ -433,7 +433,7 @@
             <p class="text-2xl font-bold text-green-700">{{ (cuentaCorrienteProveedor?.totalPagos ?? 0) | currency:'ARS':'symbol-narrow':'1.0-0' }}</p>
           </div>
           <div class="bg-indigo-50 border border-indigo-200 rounded-lg p-3">
-            <p class="text-gray-600">Saldo proveedor</p>
+            <p class="text-gray-600">Saldo</p>
             <p class="text-2xl font-bold text-indigo-700">{{ saldoSinNegativo(cuentaCorrienteProveedor?.saldoFinal ?? 0) | currency:'ARS':'symbol-narrow':'1.0-0' }}</p>
           </div>
         </div>
@@ -494,6 +494,7 @@
             <tr>
               <th>Obra</th>
               <th class="text-right">Monto</th>
+              <th class="text-right">Pagado</th>
               <th class="text-right">Saldo</th>
             </tr>
           </ng-template>
@@ -501,6 +502,7 @@
             <tr class="cursor-pointer hover:bg-gray-50 transition-colors" (click)="irAObra(item.obraId)">
               <td>{{ item.obraNombre || 'General' }}</td>
               <td class="text-right">{{ item.monto | currency:'ARS':'symbol-narrow':'1.2-2' }}</td>
+              <td class="text-right">{{ item.pagos | currency:'ARS':'symbol-narrow':'1.2-2' }}</td>
               <td class="text-right text-slate-800">{{ item.saldo | currency:'ARS':'symbol-narrow':'1.2-2' }}</td>
             </tr>
           </ng-template>

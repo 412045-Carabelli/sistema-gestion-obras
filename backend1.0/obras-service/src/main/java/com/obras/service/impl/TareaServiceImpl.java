@@ -26,7 +26,7 @@ public class TareaServiceImpl implements TareaService {
         if (dto.getNumero_orden() == null) {
             dto.setNumero_orden(siguienteNumeroOrden(dto.getId_obra()));
         }
-        validarPorcentaje(dto.getPorcentaje(), dto.getId_obra(), null);
+        validarPorcentaje(dto.getPorcentaje(), dto.getId_obra(), dto.getId_proveedor(), null);
         validarNumeroOrden(dto.getNumero_orden(), dto.getId_obra(), null);
         Tarea t = toEntity(dto);
         t.setActivo(true);
@@ -45,7 +45,7 @@ public class TareaServiceImpl implements TareaService {
         if (dto.getNumero_orden() == null) {
             dto.setNumero_orden(existente.getNumeroOrden());
         }
-        validarPorcentaje(dto.getPorcentaje(), existente.getIdObra(), id);
+        validarPorcentaje(dto.getPorcentaje(), existente.getIdObra(), dto.getId_proveedor(), id);
         validarNumeroOrden(dto.getNumero_orden(), existente.getIdObra(), id);
 
         Tarea entity = toEntity(dto);
@@ -139,15 +139,18 @@ public class TareaServiceImpl implements TareaService {
         return entity;
     }
 
-    private void validarPorcentaje(Double porcentaje, Long idObra, Long excluirId) {
+    private void validarPorcentaje(Double porcentaje, Long idObra, Long idProveedor, Long excluirId) {
         double valor = porcentaje != null ? porcentaje : 0d;
         if (valor < 0 || valor > 100) {
             throw new IllegalArgumentException("El porcentaje debe estar entre 0 y 100");
         }
-        Double sumaActual = tareaRepo.sumPorcentajeByObraExcluyendo(idObra, excluirId);
+        if (idProveedor == null || idObra == null) {
+            return;
+        }
+        Double sumaActual = tareaRepo.sumPorcentajeByObraProveedorExcluyendo(idObra, idProveedor, excluirId);
         double actual = sumaActual != null ? sumaActual : 0d;
         if (actual + valor > 100 + 1e-6) {
-            throw new IllegalArgumentException("La suma de porcentajes de tareas no puede superar 100%");
+            throw new IllegalArgumentException("La suma de porcentajes de tareas del proveedor no puede superar 100%");
         }
     }
 

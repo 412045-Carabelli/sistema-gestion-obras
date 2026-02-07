@@ -37,6 +37,7 @@ import { MenuItem } from 'primeng/api';
 import { EditorModule } from 'primeng/editor';
 import {ProveedorQuickCreateComponent} from '../proveedor-quick-create/proveedor-quick-create.component';
 import { DocumentosService } from '../../../services/documentos/documentos.service';
+import { TransaccionesService } from '../../../services/transacciones/transacciones.service';
 
 // PDFMAKE
 import pdfMake from 'pdfmake/build/pdfmake';
@@ -128,6 +129,7 @@ export class ObraPresupuestoComponent implements OnInit, OnChanges, AfterViewIni
   beneficioGlobalDraft = 0;
   beneficioGlobalActivoDraft = false;
   guardandoBeneficioGlobal = false;
+  exportandoPdf = false;
 
   constructor(
     private estadoPagoService: EstadoPagoService,
@@ -135,8 +137,12 @@ export class ObraPresupuestoComponent implements OnInit, OnChanges, AfterViewIni
     private messageService: MessageService,
     private obrasService: ObrasService,
     private confirmationService: ConfirmationService,
-    private documentosService: DocumentosService
+    private documentosService: DocumentosService,
+    private transaccionesService: TransaccionesService
   ) {}
+
+  pagandoComision = false;
+  comisionPagada = false;
 
   ngOnInit() {
     this.filteredProveedores = this.appendNuevoProveedorOption(this.proveedores || []);
@@ -146,6 +152,7 @@ export class ObraPresupuestoComponent implements OnInit, OnChanges, AfterViewIni
     }
     this.cargarEstadosDePago();
     this.ajustarTipoCostoNuevoSegunEstado();
+    this.recargarEstadoComision();
     this.exportOptions = [
       {
         label: 'Itemizado',
@@ -171,6 +178,7 @@ export class ObraPresupuestoComponent implements OnInit, OnChanges, AfterViewIni
     if (changes['obra']) {
       this.ajustarTipoCostoNuevoSegunEstado();
       this.scheduleMemoriaOverflowCheck();
+      this.recargarEstadoComision();
     }
     if (changes['beneficioGlobal'] || changes['tieneComision']) {
       this.costosFiltrados = this.costosFiltrados.map(c => ({ ...c }));
@@ -615,41 +623,122 @@ export class ObraPresupuestoComponent implements OnInit, OnChanges, AfterViewIni
   }
 
   calcularSubtotal(): number {
-    return this.costosFiltrados.reduce(
-      (acc, c) => this.costoTieneProveedor(c) ? acc + Number(c.subtotal ?? 0) : acc,
-      0
-    );
+    return Number(this.obra?.subtotal_costos ?? 0);
   }
 
   calcularBeneficioTotal(): number {
-    return this.costosFiltrados.reduce((acc, c) => {
-      const subtotal = Number(c.subtotal ?? 0);
-      const total = Number(c.total ?? subtotal);
-      if (!this.costoTieneProveedor(c)) {
-        return acc + subtotal;
-      }
-      return acc + (total - subtotal);
-    }, 0);
+    return Number(this.obra?.beneficio_costos ?? 0);
   }
 
   calcularTotalConBeneficio(): number {
-    return this.costosFiltrados.reduce(
-      (acc, c) => acc + Number(c.total ?? 0),
-      0
-    );
+    return Number(this.obra?.total_con_beneficio ?? 0);
   }
 
   calcularComisionMonto(): number {
     if (!this.tieneComision) return 0;
-    return this.calcularTotalConBeneficio() * (this.comision / 100);
+    return Number(this.obra?.comision_monto ?? 0);
   }
 
   calcularBeneficioNeto(): number {
-    return this.calcularBeneficioTotal() - this.calcularComisionMonto();
+    return Number(this.obra?.beneficio_neto ?? 0);
   }
 
   calcularPresupuestoTotal(): number {
-    return this.calcularTotalConBeneficio() + this.calcularComisionMonto();
+    return Number(this.obra?.presupuesto ?? 0);
+  }
+
+  pagarComisionObra() {
+    if (!this.obra?.id || this.pagandoComision) return;
+    if (!this.tieneComision) {
+      this.messageService.add({
+        severity: 'info',
+        summary: 'Sin comisión',
+        detail: 'Esta obra no tiene comisión configurada.'
+      });
+      return;
+    }
+
+    if (this.comisionPagada) {
+      this.messageService.add({
+        severity: 'info',
+        summary: 'Comisión ya pagada',
+        detail: 'La comisión ya fue registrada como pagada.'
+      });
+      return;
+    }
+
+    const monto = Number(this.obra?.comision_monto ?? 0);
+    if (!Number.isFinite(monto) || monto <= 0) {
+      this.messageService.add({
+        severity: 'warn',
+        summary: 'Comisión inválida',
+        detail: 'No hay monto de comisión para registrar.'
+      });
+      return;
+    }
+
+    this.confirmationService.confirm({
+      message: `¿Registrar el pago de comisión por ${monto.toLocaleString('es-AR', {style: 'currency', currency: 'ARS'})}?`,
+      header: 'Confirmar pago',
+      icon: 'pi pi-check-circle',
+      acceptLabel: 'Pagar',
+      rejectLabel: 'Cancelar',
+      accept: () => {
+        this.pagandoComision = true;
+        this.transaccionesService.pagarComision(this.obra.id!).subscribe({
+          next: () => {
+            this.pagandoComision = false;
+            this.comisionPagada = true;
+            this.movimientoCreado.emit();
+            this.messageService.add({
+              severity: 'success',
+              summary: 'Comisión pagada',
+              detail: 'El pago se registró correctamente.'
+            });
+          },
+          error: (err) => {
+            this.pagandoComision = false;
+            this.messageService.add({
+              severity: 'error',
+              summary: 'Error',
+              detail: this.extractErrorMessage(err, 'No se pudo registrar el pago de la comisión.')
+            });
+          }
+        });
+      }
+    });
+  }
+
+  private extractErrorMessage(error: any, fallback: string): string {
+    if (!error) return fallback;
+    const body = error?.error;
+    if (typeof body === 'string' && body.trim()) return body;
+    if (body?.message) return String(body.message);
+    if (body?.error) return String(body.error);
+    if (body?.detail) return String(body.detail);
+    if (error?.message) return String(error.message);
+    if (error?.statusText) return String(error.statusText);
+    return fallback;
+  }
+
+  recargarEstadoComision() {
+    if (!this.obra?.id) {
+      this.comisionPagada = false;
+      return;
+    }
+    this.transaccionesService.getByObra(this.obra.id).subscribe({
+      next: (lista) => {
+        this.comisionPagada = (lista || []).some(t =>
+          (t.tipo_asociado || '').toString().toUpperCase() === 'COMISION' &&
+          Number(t.id_asociado ?? 0) === 0 &&
+          (t.tipo_transaccion || '').toString().toUpperCase() === 'PAGO' &&
+          (t.activo == null || t.activo === true)
+        );
+      },
+      error: () => {
+        this.comisionPagada = false;
+      }
+    });
   }
 
   calcularTotalPorEstado(value: string): number {
@@ -677,6 +766,15 @@ export class ObraPresupuestoComponent implements OnInit, OnChanges, AfterViewIni
   // ------------------- EXPORTAR PDF --------------------------
   // ----------------------------------------------------------
   async exportarPDF(modo: 'DETALLADO' | 'MEMORIA' | 'AMBOS' = 'DETALLADO') {
+    if (this.exportandoPdf) {
+      this.messageService.add({
+        severity: 'warn',
+        summary: 'PDF en proceso',
+        detail: 'Espera a que termine la generacion actual.'
+      });
+      return;
+    }
+    this.exportandoPdf = true;
     this.ensurePdfMakeReady();
 
     const obra = this.obra;
@@ -877,7 +975,15 @@ export class ObraPresupuestoComponent implements OnInit, OnChanges, AfterViewIni
       modo === 'DETALLADO' ? 'Itemizado' : modo === 'MEMORIA' ? 'Global' : 'Mixto';
     const observacion = `Presupuesto ${modoLabel}`;
 
-    pdfMake.createPdf(docDefinition).getBlob(blob => {
+    try {
+      const blob = await new Promise<Blob>((resolve, reject) => {
+        try {
+          pdfMake.createPdf(docDefinition).getBlob(resolve);
+        } catch (error) {
+          reject(error);
+        }
+      });
+
       const file = new File([blob], filename, { type: 'application/pdf' });
       this.documentosService.uploadDocumentoFlexible(
         this.obra.id!,
@@ -895,8 +1001,10 @@ export class ObraPresupuestoComponent implements OnInit, OnChanges, AfterViewIni
               detail: 'Habilita los popups para abrir el PDF.'
             });
           }
+          this.exportandoPdf = false;
         },
         error: () => {
+          this.exportandoPdf = false;
           this.messageService.add({
             severity: 'error',
             summary: 'Error al guardar',
@@ -904,7 +1012,14 @@ export class ObraPresupuestoComponent implements OnInit, OnChanges, AfterViewIni
           });
         }
       });
-    });
+    } catch (error) {
+      this.exportandoPdf = false;
+      this.messageService.add({
+        severity: 'error',
+        summary: 'Error al generar',
+        detail: 'No se pudo generar el PDF.'
+      });
+    }
   }
 
   //----------------------------------------------------------

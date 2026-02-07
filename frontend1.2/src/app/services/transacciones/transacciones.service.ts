@@ -33,6 +33,10 @@ export class TransaccionesService {
     return this.http.put<Transaccion>(`${this.apiUrl}/${id}`, transaccion);
   }
 
+  pagarComision(obraId: number, payload?: { monto?: number; fecha?: string }): Observable<Transaccion> {
+    return this.http.post<Transaccion>(`${this.apiUrl}/obra/${obraId}/comisiones/pago`, payload ?? {});
+  }
+
   delete(id: number): Observable<void> {
     return this.http.delete<void>(`${this.apiUrl}/${id}`);
   }

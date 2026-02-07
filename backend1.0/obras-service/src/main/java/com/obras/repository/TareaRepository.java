@@ -32,6 +32,9 @@ public interface TareaRepository extends JpaRepository<Tarea, Long> {
     @Query("select coalesce(sum(t.porcentaje),0) from Tarea t where t.idObra = :idObra and t.activo = true and (:excluirId is null or t.id <> :excluirId)")
     Double sumPorcentajeByObraExcluyendo(@Param("idObra") Long idObra, @Param("excluirId") Long excluirId);
 
+    @Query("select coalesce(sum(t.porcentaje),0) from Tarea t where t.idObra = :idObra and t.idProveedor = :idProveedor and t.activo = true and (:excluirId is null or t.id <> :excluirId)")
+    Double sumPorcentajeByObraProveedorExcluyendo(@Param("idObra") Long idObra, @Param("idProveedor") Long idProveedor, @Param("excluirId") Long excluirId);
+
     @Query("select coalesce(max(t.numeroOrden),0) from Tarea t where t.idObra = :idObra and t.activo = true")
     Long maxNumeroOrdenByObra(@Param("idObra") Long idObra);
 

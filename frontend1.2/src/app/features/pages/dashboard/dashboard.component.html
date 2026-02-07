@@ -58,7 +58,6 @@
     </div>
   } @else {
 
-    <!-- ===================== ATAJOS Râ”œÃ³Ã”Ã©Â¼â”¬â•£â”œÃ©â”¬Â¿â”œÃ©â”¬Â½PIDOS ===================== -->
     <div class="bg-white rounded-xl shadow-md p-6">
       <h2 class="text-lg font-semibold text-gray-900 mb-5 flex items-center gap-2 pb-3 border-b border-gray-200">
         <i class="pi pi-bolt text-indigo-600"></i>
@@ -260,133 +259,50 @@
         <span class="text-xs text-gray-500">Detalle por cliente y proveedor</span>
       </div>
 
-      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div class="border border-gray-200 rounded-lg overflow-hidden">
-          <div class="px-4 py-3 bg-green-50 border-b border-green-200">
-            <p class="text-sm font-semibold text-green-800">A cobrar</p>
-          </div>
-          <div class="overflow-x-auto max-h-64 overflow-y-auto">
-            <table class="w-full text-sm">
-              <thead class="bg-gray-50 text-gray-600">
-                <tr>
-                  <th class="text-left px-3 py-2">Cliente</th>
-                  <th class="text-right px-3 py-2">Total</th>
-                  <th class="text-right px-3 py-2">Cobrado</th>
-                  <th class="text-right px-3 py-2">Saldo</th>
-                </tr>
-              </thead>
-              <tbody>
-                @if (reporteDebeCobrar.length > 0) {
-                  @for (item of reporteDebeCobrar; track item.id) {
-                    <tr class="border-t border-gray-100">
-                      <td class="px-3 py-2">{{ item.nombre }}</td>
-                      <td class="px-3 py-2 text-right">{{ item.total | currency:'ARS':'symbol-narrow':'1.0-0' }}</td>
-                      <td class="px-3 py-2 text-right">{{ item.cobrado | currency:'ARS':'symbol-narrow':'1.0-0' }}</td>
-                      <td class="px-3 py-2 text-right font-semibold">{{ item.saldo | currency:'ARS':'symbol-narrow':'1.0-0' }}</td>
-                    </tr>
-                  }
-                } @else {
-                  <tr>
-                    <td class="px-3 py-4 text-center text-gray-500" colspan="4">Sin pendientes de cobro</td>
+      <div class="border border-gray-200 rounded-lg overflow-hidden">
+        <div class="overflow-x-auto max-h-[520px] overflow-y-auto">
+          <table class="w-full text-sm">
+            <thead class="bg-gray-50 text-gray-600">
+              <tr>
+                <th class="text-left px-3 py-2 bg-green-50 text-green-800" colspan="5">A cobrar</th>
+                <th class="text-left px-3 py-2 bg-red-50 text-red-800" colspan="4">Por pagar</th>
+              </tr>
+              <tr>
+                <th class="text-left px-3 py-2">Cliente</th>
+                <th class="text-left px-3 py-2">Obra</th>
+                <th class="text-right px-3 py-2">Total</th>
+                <th class="text-right px-3 py-2">Cobrado</th>
+                <th class="text-right px-3 py-2">Saldo</th>
+                <th class="text-left px-3 py-2">Proveedor</th>
+                <th class="text-right px-3 py-2">Total</th>
+                <th class="text-right px-3 py-2">Pagado</th>
+                <th class="text-right px-3 py-2">Saldo</th>
+              </tr>
+            </thead>
+            <tbody>
+              @if (reporteCuentasUnificado.length > 0) {
+                @for (row of reporteCuentasUnificado; track row.key) {
+                  <tr class="border-t border-gray-100" [class.border-b-2]="row.isLastInObra" [class.border-gray-200]="row.isLastInObra">
+                    @if (row.showLeft) {
+                      <td class="px-3 py-2 align-top" [attr.rowspan]="row.rowSpan">{{ row.clienteNombre }}</td>
+                      <td class="px-3 py-2 align-top" [attr.rowspan]="row.rowSpan">{{ row.obraNombre }}</td>
+                      <td class="px-3 py-2 text-right align-top" [attr.rowspan]="row.rowSpan">{{ row.totalCobrar | currency:'ARS':'symbol-narrow':'1.0-0' }}</td>
+                      <td class="px-3 py-2 text-right align-top" [attr.rowspan]="row.rowSpan">{{ row.cobrado | currency:'ARS':'symbol-narrow':'1.0-0' }}</td>
+                      <td class="px-3 py-2 text-right font-semibold align-top" [attr.rowspan]="row.rowSpan">{{ row.saldoCobrar | currency:'ARS':'symbol-narrow':'1.0-0' }}</td>
+                    }
+                    <td class="px-3 py-2">{{ row.proveedorNombre }}</td>
+                    <td class="px-3 py-2 text-right">{{ row.totalPagar | currency:'ARS':'symbol-narrow':'1.0-0' }}</td>
+                    <td class="px-3 py-2 text-right">{{ row.pagado | currency:'ARS':'symbol-narrow':'1.0-0' }}</td>
+                    <td class="px-3 py-2 text-right font-semibold">{{ row.saldoPagar | currency:'ARS':'symbol-narrow':'1.0-0' }}</td>
                   </tr>
                 }
-              </tbody>
-            </table>
-          </div>
-        </div>
-
-        <div class="border border-gray-200 rounded-lg overflow-hidden">
-          <div class="px-4 py-3 bg-red-50 border-b border-red-200">
-            <p class="text-sm font-semibold text-red-800">Por pagar</p>
-          </div>
-          <div class="overflow-x-auto max-h-64 overflow-y-auto">
-            <table class="w-full text-sm">
-              <thead class="bg-gray-50 text-gray-600">
+              } @else {
                 <tr>
-                  <th class="text-left px-3 py-2">Proveedor</th>
-                  <th class="text-right px-3 py-2">Total</th>
-                  <th class="text-right px-3 py-2">Pagado</th>
-                  <th class="text-right px-3 py-2">Saldo</th>
+                  <td class="px-3 py-4 text-center text-gray-500" colspan="9">Sin pendientes de cobro o pago</td>
                 </tr>
-              </thead>
-              <tbody>
-                @if (reporteDebePagar.length > 0) {
-                  @for (item of reporteDebePagar; track item.id) {
-                    <tr class="border-t border-gray-100">
-                      <td class="px-3 py-2">{{ item.nombre }}</td>
-                      <td class="px-3 py-2 text-right">{{ item.total | currency:'ARS':'symbol-narrow':'1.0-0' }}</td>
-                      <td class="px-3 py-2 text-right">{{ item.pagado | currency:'ARS':'symbol-narrow':'1.0-0' }}</td>
-                      <td class="px-3 py-2 text-right font-semibold">{{ item.saldo | currency:'ARS':'symbol-narrow':'1.0-0' }}</td>
-                    </tr>
-                  }
-                } @else {
-                  <tr>
-                    <td class="px-3 py-4 text-center text-gray-500" colspan="4">Sin pendientes de pago</td>
-                  </tr>
-                }
-              </tbody>
-            </table>
-          </div>
-        </div>
-
-        <div class="border border-gray-200 rounded-lg overflow-hidden">
-          <div class="px-4 py-3 bg-emerald-50 border-b border-emerald-200">
-            <p class="text-sm font-semibold text-emerald-800">Cobrado</p>
-          </div>
-          <div class="overflow-x-auto max-h-64 overflow-y-auto">
-            <table class="w-full text-sm">
-              <thead class="bg-gray-50 text-gray-600">
-                <tr>
-                  <th class="text-left px-3 py-2">Cliente</th>
-                  <th class="text-right px-3 py-2">Cobrado</th>
-                </tr>
-              </thead>
-              <tbody>
-                @if (reporteCobre.length > 0) {
-                  @for (item of reporteCobre; track item.id) {
-                    <tr class="border-t border-gray-100">
-                      <td class="px-3 py-2">{{ item.nombre }}</td>
-                      <td class="px-3 py-2 text-right font-semibold">{{ item.cobrado | currency:'ARS':'symbol-narrow':'1.0-0' }}</td>
-                    </tr>
-                  }
-                } @else {
-                  <tr>
-                    <td class="px-3 py-4 text-center text-gray-500" colspan="2">Sin cobros registrados</td>
-                  </tr>
-                }
-              </tbody>
-            </table>
-          </div>
-        </div>
-
-        <div class="border border-gray-200 rounded-lg overflow-hidden">
-          <div class="px-4 py-3 bg-amber-50 border-b border-amber-200">
-            <p class="text-sm font-semibold text-amber-800">Pagado</p>
-          </div>
-          <div class="overflow-x-auto max-h-64 overflow-y-auto">
-            <table class="w-full text-sm">
-              <thead class="bg-gray-50 text-gray-600">
-                <tr>
-                  <th class="text-left px-3 py-2">Proveedor</th>
-                  <th class="text-right px-3 py-2">Pagado</th>
-                </tr>
-              </thead>
-              <tbody>
-                @if (reportePague.length > 0) {
-                  @for (item of reportePague; track item.id) {
-                    <tr class="border-t border-gray-100">
-                      <td class="px-3 py-2">{{ item.nombre }}</td>
-                      <td class="px-3 py-2 text-right font-semibold">{{ item.pagado | currency:'ARS':'symbol-narrow':'1.0-0' }}</td>
-                    </tr>
-                  }
-                } @else {
-                  <tr>
-                    <td class="px-3 py-4 text-center text-gray-500" colspan="2">Sin pagos registrados</td>
-                  </tr>
-                }
-              </tbody>
-            </table>
-          </div>
+              }
+            </tbody>
+          </table>
         </div>
       </div>
     </div>

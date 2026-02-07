@@ -93,6 +93,12 @@ public class ObraCostoServiceImpl implements ObraCostoService {
         List<ObraCosto> lst = costoRepo.findByObra_IdAndActivoTrue(idObra);
         return lst
             .stream()
+            .filter(c -> {
+                if (!TipoCostoEnum.ADICIONAL.equals(c.getTipoCosto())) {
+                    return true;
+                }
+                return c.getIdProveedor() != null && c.getIdProveedor() > 0;
+            })
             .sorted((a, b) -> {
                 boolean aAdd = TipoCostoEnum.ADICIONAL.equals(a.getTipoCosto());
                 boolean bAdd = TipoCostoEnum.ADICIONAL.equals(b.getTipoCosto());

@@ -1203,6 +1203,154 @@ export class DashboardComponent implements OnInit {
     return items.filter(i => i.saldo > 0).sort((a, b) => b.saldo - a.saldo);
   }
 
+  get reporteCuentasUnificado(): Array<{
+    key: string;
+    obraId: number;
+    clienteNombre: string;
+    obraNombre: string;
+    totalCobrar: number;
+    cobrado: number;
+    saldoCobrar: number;
+    proveedorId: number | null;
+    proveedorNombre: string;
+    totalPagar: number;
+    pagado: number;
+    saldoPagar: number;
+    rowSpan: number;
+    showLeft: boolean;
+    isLastInObra: boolean;
+  }> {
+    const obras = this.filtrarObrasConDeuda(this.obtenerObrasFiltradasDashboard());
+    const movimientos = this.obtenerMovimientosFiltradosDashboard();
+
+    const cobrosPorObra = new Map<number, number>();
+    const pagosPorObraProveedor = new Map<string, number>();
+
+    for (const mov of movimientos) {
+      const obraId = Number(mov.obraId ?? 0);
+      if (!obraId) continue;
+      const tipo = this.normalizarTipoMovimiento(mov);
+      if (tipo === 'COBRO') {
+        cobrosPorObra.set(obraId, (cobrosPorObra.get(obraId) ?? 0) + Number(mov.monto ?? 0));
+      }
+      if (tipo === 'PAGO') {
+        const asociadoTipo = (mov.asociadoTipo || '').toString().toUpperCase();
+        if (asociadoTipo !== 'PROVEEDOR') continue;
+        const proveedorId = Number(mov.asociadoId ?? 0);
+        if (!proveedorId) continue;
+        const key = `${obraId}:${proveedorId}`;
+        pagosPorObraProveedor.set(key, (pagosPorObraProveedor.get(key) ?? 0) + Number(mov.monto ?? 0));
+      }
+    }
+
+    const rows: Array<{
+      key: string;
+      obraId: number;
+      clienteNombre: string;
+      obraNombre: string;
+      totalCobrar: number;
+      cobrado: number;
+      saldoCobrar: number;
+      proveedorId: number | null;
+      proveedorNombre: string;
+      totalPagar: number;
+      pagado: number;
+      saldoPagar: number;
+      rowSpan: number;
+      showLeft: boolean;
+      isLastInObra: boolean;
+    }> = [];
+
+    for (const obra of obras) {
+      const obraId = Number(obra?.id ?? 0);
+      if (!obraId) continue;
+
+      const clienteNombre = obra?.cliente?.nombre || `Cliente #${obra?.cliente?.id ?? obra?.id_cliente ?? ''}` || 'Cliente sin nombre';
+      const obraNombre = obra?.nombre || `Obra #${obraId}`;
+      const totalCobrar = Number(obra?.presupuesto ?? 0);
+      const cobrado = cobrosPorObra.get(obraId) ?? 0;
+      const saldoCobrar = Math.max(0, totalCobrar - cobrado);
+
+      const costosPorProveedor = new Map<number, number>();
+      for (const costo of obra?.costos || []) {
+        if ((costo as any)?.activo === false) continue;
+        const proveedorId = Number((costo as any)?.id_proveedor ?? (costo as any)?.proveedor?.id ?? 0);
+        if (!proveedorId) continue;
+        const subtotal = this.obtenerSubtotalCosto(costo);
+        costosPorProveedor.set(proveedorId, (costosPorProveedor.get(proveedorId) ?? 0) + subtotal);
+      }
+
+      const proveedoresIds = new Set<number>([...costosPorProveedor.keys()]);
+      for (const key of pagosPorObraProveedor.keys()) {
+        const [obraKey, proveedorKey] = key.split(':').map(Number);
+        if (obraKey === obraId) {
+          proveedoresIds.add(proveedorKey);
+        }
+      }
+
+      const proveedoresList = Array.from(proveedoresIds).sort((a, b) => {
+        const nombreA = this.proveedores.find(p => Number(p.id) === a)?.nombre ?? '';
+        const nombreB = this.proveedores.find(p => Number(p.id) === b)?.nombre ?? '';
+        return nombreA.localeCompare(nombreB);
+      });
+
+      const rowSpan = Math.max(1, proveedoresList.length);
+      const filasObra: typeof rows = [];
+
+      if (proveedoresList.length === 0) {
+        filasObra.push({
+          key: `${obraId}:0:0`,
+          obraId,
+          clienteNombre,
+          obraNombre,
+          totalCobrar,
+          cobrado,
+          saldoCobrar,
+          proveedorId: null,
+          proveedorNombre: 'Sin proveedores',
+          totalPagar: 0,
+          pagado: 0,
+          saldoPagar: 0,
+          rowSpan,
+          showLeft: true,
+          isLastInObra: true
+        });
+      } else {
+        proveedoresList.forEach((proveedorId, index) => {
+          const totalPagar = costosPorProveedor.get(proveedorId) ?? 0;
+          const pagado = pagosPorObraProveedor.get(`${obraId}:${proveedorId}`) ?? 0;
+          const saldoPagar = Math.max(0, totalPagar - pagado);
+          const proveedorNombre = this.proveedores.find(p => Number(p.id) === proveedorId)?.nombre ?? `Proveedor #${proveedorId}`;
+
+          filasObra.push({
+            key: `${obraId}:${proveedorId}:${index}`,
+            obraId,
+            clienteNombre,
+            obraNombre,
+            totalCobrar,
+            cobrado,
+            saldoCobrar,
+            proveedorId,
+            proveedorNombre,
+            totalPagar,
+            pagado,
+            saldoPagar,
+            rowSpan,
+            showLeft: index === 0,
+            isLastInObra: index === proveedoresList.length - 1
+          });
+        });
+      }
+
+      const tieneSaldo = saldoCobrar > 0 || filasObra.some(f => f.saldoPagar > 0);
+      if (tieneSaldo) {
+        rows.push(...filasObra);
+      }
+    }
+
+    return rows;
+  }
+
   get reportePague(): Array<{ id: number; nombre: string; pagado: number }> {
     const pagosPorProveedor = new Map<number, number>();
     for (const mov of this.obtenerMovimientosFiltradosDashboard()) {
@@ -1709,6 +1857,9 @@ export class DashboardComponent implements OnInit {
 
   getAsociadoNombre(mov: MovimientoDashboard): string {
     const tipo = (mov.asociadoTipo || '').toString().toUpperCase();
+    if (tipo === 'COMISION') {
+      return 'Comisión';
+    }
     if (tipo === 'CLIENTE') {
       const cliente = this.clientes.find(c => Number(c.id) === Number(mov.asociadoId));
       if (cliente?.nombre) return cliente.nombre;

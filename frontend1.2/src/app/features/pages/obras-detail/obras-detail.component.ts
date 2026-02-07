@@ -83,6 +83,7 @@ import {ConfirmDialog} from 'primeng/confirmdialog';
 export class ObrasDetailComponent implements OnInit, OnDestroy, AfterViewInit {
 
   @ViewChild('movimientosRef') movimientosRef?: ObraMovimientosComponent;
+  @ViewChild(ObraPresupuestoComponent) presupuestoRef?: ObraPresupuestoComponent;
   @ViewChild('notasBody') notasBody?: ElementRef<HTMLDivElement>;
 
   obra!: Obra;
@@ -262,11 +263,8 @@ export class ObrasDetailComponent implements OnInit, OnDestroy, AfterViewInit {
   onCostosActualizados(costosActualizados: ObraCosto[]) {
     this.costos = costosActualizados;
     this.obra.costos = costosActualizados;
-    this.beneficioCostos = this.calcularBeneficioCostos(costosActualizados);
-    this.beneficioNeto = this.calcularBeneficioNeto();
-    this.obra.presupuesto = this.calcularPresupuestoDesdeCostos(costosActualizados);
-    this.obra.beneficio_costos = this.beneficioCostos;
-    this.obra.beneficio_neto = this.beneficioNeto;
+    this.progresoFisico = this.getProgresoFisico();
+    this.refrescarObraDesdeBackend();
     this.obraStateService.setObra(this.obra);
   }
 
@@ -277,23 +275,58 @@ export class ObrasDetailComponent implements OnInit, OnDestroy, AfterViewInit {
       beneficio_global: payload.beneficio_global,
       beneficio: payload.beneficio
     };
-    this.beneficioCostos = this.calcularBeneficioCostos(this.costos ?? []);
-    this.beneficioNeto = this.calcularBeneficioNeto();
-    this.obra.presupuesto = this.calcularPresupuestoDesdeCostos(this.costos ?? []);
-    this.obra.beneficio_costos = this.beneficioCostos;
-    this.obra.beneficio_neto = this.beneficioNeto;
+    this.refrescarObraDesdeBackend();
     this.obraStateService.setObra(this.obra);
+  }
+
+  private refrescarObraDesdeBackend() {
+    if (!this.obra?.id) return;
+    this.obraService.getObraById(this.obra.id).subscribe({
+      next: (obra) => {
+        this.obra = obra;
+        this.costos = obra.costos ?? this.costos;
+        this.tareas = obra.tareas ?? this.tareas;
+        this.progresoFisico = this.getProgresoFisico();
+        this.beneficioCostos = Number(obra.beneficio_costos ?? 0);
+        this.beneficioNeto = Number(obra.beneficio_neto ?? 0);
+        this.obraStateService.setObra(this.obra);
+      }
+    });
   }
 
   refrescarMovimientos() {
     this.movimientosRef?.cargarDatos();
   }
 
+  onMovimientosActualizados() {
+    this.presupuestoRef?.recargarEstadoComision();
+  }
+
   getProgresoFisico(): number {
-    if (!this.tareas.length) return 0;
-    const completadas = this.tareas.filter(t => (t.estado_tarea || '').toUpperCase() === 'COMPLETADA');
-    const total = completadas.reduce((acc, t) => acc + Number(t.porcentaje ?? 0), 0);
-    return Math.min(Math.round(total), 100);
+    const costos = this.costos ?? this.obra?.costos ?? [];
+    if (!costos.length) return 0;
+
+    const costosPorProveedor = new Map<number, number>();
+    for (const costo of costos) {
+      const id = Number((costo as any)?.id_proveedor ?? (costo as any)?.proveedor?.id ?? 0);
+      if (!id) continue;
+      const subtotal = Number(costo.subtotal ?? costo.total ?? 0);
+      costosPorProveedor.set(id, (costosPorProveedor.get(id) ?? 0) + (Number.isFinite(subtotal) ? subtotal : 0));
+    }
+
+    const totalCostos = Array.from(costosPorProveedor.values()).reduce((acc, v) => acc + v, 0);
+    if (totalCostos <= 0) return 0;
+
+    const pagosHabilitados = Array.from(costosPorProveedor.entries()).reduce((acc, [provId, totalProv]) => {
+      const avanceProv = (this.tareas ?? [])
+        .filter(t => Number(t.id_proveedor ?? (t as any)?.proveedor?.id ?? 0) === Number(provId))
+        .filter(t => (t.estado_tarea || '').toString().toUpperCase() === 'COMPLETADA')
+        .reduce((sum, t) => sum + Number(t.porcentaje ?? 0), 0);
+      const avanceClamped = Math.min(100, Math.max(0, avanceProv));
+      return acc + totalProv * (avanceClamped / 100);
+    }, 0);
+
+    return Math.min(Math.round((pagosHabilitados / totalCostos) * 100), 100);
   }
 
   private calcularBeneficioNeto(): number {
@@ -597,13 +630,28 @@ export class ObrasDetailComponent implements OnInit, OnDestroy, AfterViewInit {
   toggleActivo() {
     this.obraService.activarObra(this.obra.id!).subscribe({
       next: () => {
-        this.obra.activo = !this.obra.activo;
-        this.obraStateService.setObra(this.obra);
-        this.scheduleNotasOverflowCheck();
-        this.messageService.add({
-          severity: 'success',
-          summary: this.obra.activo ? 'Obra activada' : 'Obra desactivada',
-          detail: `La obra fue ${this.obra.activo ? 'activada' : 'desactivada'} correctamente.`
+        this.obraService.getObraById(this.obra.id!).subscribe({
+          next: (obra) => {
+            this.obra = obra;
+            this.costos = obra.costos ?? this.costos;
+            this.tareas = obra.tareas ?? this.tareas;
+            this.beneficioCostos = Number(obra.beneficio_costos ?? 0);
+            this.beneficioNeto = Number(obra.beneficio_neto ?? 0);
+            this.obraStateService.setObra(this.obra);
+            this.scheduleNotasOverflowCheck();
+            this.messageService.add({
+              severity: 'success',
+              summary: this.obra.activo ? 'Obra activada' : 'Obra desactivada',
+              detail: `La obra fue ${this.obra.activo ? 'activada' : 'desactivada'} correctamente.`
+            });
+          },
+          error: () => {
+            this.messageService.add({
+              severity: 'warn',
+              summary: 'Actualización parcial',
+              detail: 'Se cambió el estado, pero no se pudo refrescar la obra.'
+            });
+          }
         });
       },
       error: () => {
@@ -1231,6 +1279,7 @@ export class ObrasDetailComponent implements OnInit, OnDestroy, AfterViewInit {
     }
     return String(value);
   }
+
 }
 
 
