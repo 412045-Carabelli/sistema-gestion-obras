@@ -11,6 +11,7 @@ import java.util.Optional;
 
 public interface ObraCostoRepository extends JpaRepository<ObraCosto, Long> {
     List<ObraCosto> findByObra_IdAndActivoTrue(Long obraId);
+    List<ObraCosto> findByObra_Id(Long obraId);
     Optional<ObraCosto> findByIdAndActivoTrue(Long id);
 
     @Modifying

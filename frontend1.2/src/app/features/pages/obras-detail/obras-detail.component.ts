@@ -84,6 +84,7 @@ export class ObrasDetailComponent implements OnInit, OnDestroy, AfterViewInit {
 
   @ViewChild('movimientosRef') movimientosRef?: ObraMovimientosComponent;
   @ViewChild(ObraPresupuestoComponent) presupuestoRef?: ObraPresupuestoComponent;
+  @ViewChild(ObraDocumentosComponent) documentosRef?: ObraDocumentosComponent;
   @ViewChild('notasBody') notasBody?: ElementRef<HTMLDivElement>;
 
   obra!: Obra;
@@ -245,6 +246,8 @@ export class ObrasDetailComponent implements OnInit, OnDestroy, AfterViewInit {
         this.cargarFacturasObra();
         this.loading = false;
         this.obraStateService.setObra(this.obra);
+        this.refrescarMovimientos();
+        this.refrescarDocumentos();
         this.scheduleNotasOverflowCheck();
       },
 
@@ -296,6 +299,15 @@ export class ObrasDetailComponent implements OnInit, OnDestroy, AfterViewInit {
 
   refrescarMovimientos() {
     this.movimientosRef?.cargarDatos();
+  }
+
+  refrescarDocumentos() {
+    this.documentosRef?.refrescarDocumentos();
+  }
+
+  onDocumentoCreado() {
+    this.refrescarDocumentos();
+    this.refrescarMovimientos();
   }
 
   onMovimientosActualizados() {

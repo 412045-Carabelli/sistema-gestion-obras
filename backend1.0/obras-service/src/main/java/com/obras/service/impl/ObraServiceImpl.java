@@ -227,7 +227,12 @@ public class ObraServiceImpl implements ObraService {
         dto.setPresupuesto(totales.presupuestoFinal());
 
         if (entity.getId() != null) {
-            List<ObraCosto> costosActivos = costoRepo.findByObra_IdAndActivoTrue(entity.getId());
+            boolean obraActiva = Boolean.TRUE.equals(entity.getActivo());
+            List<ObraCosto> costosActivos = obraActiva
+                    ? costoRepo.findByObra_IdAndActivoTrue(entity.getId())
+                    : costoRepo.findByObra_Id(entity.getId()).stream()
+                    .filter(c -> Boolean.TRUE.equals(c.getActivo()) || Boolean.TRUE.equals(c.getBajaObra()))
+                    .collect(Collectors.toList());
             if (costosActivos != null && !costosActivos.isEmpty()) {
                 dto.setCostos(
                     costosActivos.stream()
@@ -374,7 +379,11 @@ public class ObraServiceImpl implements ObraService {
             );
         }
 
-        List<ObraCosto> costos = costoRepo.findByObra_IdAndActivoTrue(obra.getId());
+        List<ObraCosto> costos = Boolean.TRUE.equals(obra.getActivo())
+                ? costoRepo.findByObra_IdAndActivoTrue(obra.getId())
+                : costoRepo.findByObra_Id(obra.getId()).stream()
+                .filter(c -> Boolean.TRUE.equals(c.getActivo()) || Boolean.TRUE.equals(c.getBajaObra()))
+                .collect(Collectors.toList());
         if (costos == null || costos.isEmpty()) {
             return new TotalesObra(
                 BigDecimal.ZERO,
