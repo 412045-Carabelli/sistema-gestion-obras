@@ -13,9 +13,18 @@ services:
       - "8081:8081"
     volumes:
       - obras_data:/app/data
+      - ./data:/app/legacy:ro
     environment:
       - SPRING_PROFILES_ACTIVE=prod
+      - SPRING_DATASOURCE_URL=jdbc:sqlserver://sqlserver:1433;databaseName=sgo;encrypt=true;trustServerCertificate=true
+      - SPRING_DATASOURCE_USERNAME=sa
+      - SPRING_DATASOURCE_PASSWORD=${MSSQL_SA_PASSWORD:-YourStrong!Passw0rd}
+      - APP_MIGRATION_ENABLED=${APP_MIGRATION_ENABLED:-true}
+      - APP_MIGRATION_SQLITE_URL=jdbc:sqlite:/app/legacy/obras.db
     restart: unless-stopped
+    depends_on:
+      sqlserver-init:
+        condition: service_completed_successfully
     networks:
       - sgo_backend
 
@@ -29,9 +38,18 @@ services:
       - "8082:8082"
     volumes:
       - clientes_data:/app/data
+      - ./data:/app/legacy:ro
     environment:
       - SPRING_PROFILES_ACTIVE=prod
+      - SPRING_DATASOURCE_URL=jdbc:sqlserver://sqlserver:1433;databaseName=sgo;encrypt=true;trustServerCertificate=true
+      - SPRING_DATASOURCE_USERNAME=sa
+      - SPRING_DATASOURCE_PASSWORD=${MSSQL_SA_PASSWORD:-YourStrong!Passw0rd}
+      - APP_MIGRATION_ENABLED=${APP_MIGRATION_ENABLED:-true}
+      - APP_MIGRATION_SQLITE_URL=jdbc:sqlite:/app/legacy/clientes.db
     restart: unless-stopped
+    depends_on:
+      sqlserver-init:
+        condition: service_completed_successfully
     networks:
       - sgo_backend
 
@@ -45,9 +63,18 @@ services:
       - "8083:8083"
     volumes:
       - proveedores_data:/app/data
+      - ./data:/app/legacy:ro
     environment:
       - SPRING_PROFILES_ACTIVE=prod
+      - SPRING_DATASOURCE_URL=jdbc:sqlserver://sqlserver:1433;databaseName=sgo;encrypt=true;trustServerCertificate=true
+      - SPRING_DATASOURCE_USERNAME=sa
+      - SPRING_DATASOURCE_PASSWORD=${MSSQL_SA_PASSWORD:-YourStrong!Passw0rd}
+      - APP_MIGRATION_ENABLED=${APP_MIGRATION_ENABLED:-true}
+      - APP_MIGRATION_SQLITE_URL=jdbc:sqlite:/app/legacy/proveedores.db
     restart: unless-stopped
+    depends_on:
+      sqlserver-init:
+        condition: service_completed_successfully
     networks:
       - sgo_backend
 
@@ -62,6 +89,7 @@ services:
     volumes:
       - documentos_data:/app/data
       - documentos_uploads:/app/uploads
+      - ./data:/app/legacy:ro
     environment:
       - SPRING_PROFILES_ACTIVE=prod
       - MINIO_ENABLED=true
@@ -69,8 +97,16 @@ services:
       - MINIO_ACCESS_KEY=minioadmin
       - MINIO_SECRET_KEY=minioadmin
       - MINIO_BUCKET=documentos
+      - SPRING_DATASOURCE_URL=jdbc:sqlserver://sqlserver:1433;databaseName=sgo;encrypt=true;trustServerCertificate=true
+      - SPRING_DATASOURCE_USERNAME=sa
+      - SPRING_DATASOURCE_PASSWORD=${MSSQL_SA_PASSWORD:-YourStrong!Passw0rd}
+      - APP_MIGRATION_ENABLED=${APP_MIGRATION_ENABLED:-true}
+      - APP_MIGRATION_SQLITE_URL=jdbc:sqlite:/app/legacy/documentos-dev.db
     depends_on:
-      - minio
+      minio:
+        condition: service_started
+      sqlserver-init:
+        condition: service_completed_successfully
     restart: unless-stopped
     networks:
       - sgo_backend
@@ -85,9 +121,18 @@ services:
       - "8086:8086"
     volumes:
       - transacciones_data:/app/data
+      - ./data:/app/legacy:ro
     environment:
       - SPRING_PROFILES_ACTIVE=prod
+      - SPRING_DATASOURCE_URL=jdbc:sqlserver://sqlserver:1433;databaseName=sgo;encrypt=true;trustServerCertificate=true
+      - SPRING_DATASOURCE_USERNAME=sa
+      - SPRING_DATASOURCE_PASSWORD=${MSSQL_SA_PASSWORD:-YourStrong!Passw0rd}
+      - APP_MIGRATION_ENABLED=${APP_MIGRATION_ENABLED:-true}
+      - APP_MIGRATION_SQLITE_URL=jdbc:sqlite:/app/legacy/transacciones.db
     restart: unless-stopped
+    depends_on:
+      sqlserver-init:
+        condition: service_completed_successfully
     networks:
       - sgo_backend
 
@@ -144,9 +189,49 @@ services:
       - "8084:8084"
     volumes:
       - reportes_data:/app/data
+      - ./data:/app/legacy:ro
     environment:
       - SPRING_PROFILES_ACTIVE=prod
+      - SPRING_DATASOURCE_URL=jdbc:sqlserver://sqlserver:1433;databaseName=sgo;encrypt=true;trustServerCertificate=true
+      - SPRING_DATASOURCE_USERNAME=sa
+      - SPRING_DATASOURCE_PASSWORD=${MSSQL_SA_PASSWORD:-YourStrong!Passw0rd}
+      - APP_MIGRATION_ENABLED=${APP_MIGRATION_ENABLED:-true}
+      - APP_MIGRATION_SQLITE_URL=jdbc:sqlite:/app/legacy/reportes.db
     restart: unless-stopped
+    depends_on:
+      sqlserver-init:
+        condition: service_completed_successfully
+    networks:
+      - sgo_backend
+
+  # -----------------------
+  # SQL Server: shared database for all services.
+  # -----------------------
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: sqlserver
+    ports:
+      - "1433:1433"
+    environment:
+      - ACCEPT_EULA=Y
+      - MSSQL_SA_PASSWORD=${MSSQL_SA_PASSWORD:-YourStrong!Passw0rd}
+    volumes:
+      - mssql_data:/var/opt/mssql
+    restart: unless-stopped
+    networks:
+      - sgo_backend
+
+  sqlserver-init:
+    image: mcr.microsoft.com/mssql-tools:latest
+    container_name: sqlserver_init
+    environment:
+      - MSSQL_SA_PASSWORD=${MSSQL_SA_PASSWORD:-YourStrong!Passw0rd}
+    volumes:
+      - ./db/init:/init:ro
+    depends_on:
+      - sqlserver
+    entrypoint: /bin/bash -c "sleep 20 && /opt/mssql-tools/bin/sqlcmd -S sqlserver -U sa -P $${MSSQL_SA_PASSWORD} -i /init/create-databases.sql"
+    restart: "no"
     networks:
       - sgo_backend
 
@@ -185,3 +270,4 @@ volumes:
   transacciones_data:
   reportes_data:
   minio_data:
+  mssql_data:

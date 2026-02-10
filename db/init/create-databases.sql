@@ -1,0 +1,2 @@
+IF DB_ID('sgo') IS NULL CREATE DATABASE sgo;
+GO
