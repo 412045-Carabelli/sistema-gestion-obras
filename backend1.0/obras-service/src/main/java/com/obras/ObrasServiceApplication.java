@@ -14,7 +14,7 @@ import org.springframework.core.env.Environment;
 
 @SpringBootApplication
 public class ObrasServiceApplication {
-
+    
     private static final Logger log = LoggerFactory.getLogger(ObrasServiceApplication.class);
 
     public static void main(String[] args) {

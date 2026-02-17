@@ -49,7 +49,7 @@ public class ReportesService {
         BigDecimal egresos = sumarPorTipo(transacciones, "PAGO");
 
         BigDecimal totalPresupuesto = obrasFiltradas.stream()
-                .map(obra -> Optional.ofNullable(obra.getPresupuesto()).orElse(BigDecimal.ZERO))
+                .map(this::presupuestoEfectivo)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
 
         BigDecimal totalCostos = BigDecimal.ZERO;
@@ -58,6 +58,7 @@ public class ReportesService {
                 List<ObraCostoExternalDto> costos = obrasClient.obtenerCostos(obra.getId());
                 for (ObraCostoExternalDto costo : costos) {
                     if (Boolean.FALSE.equals(costo.getActivo())) continue;
+                    if (!costoTieneProveedor(costo)) continue;
                     if (filtros.getProveedorId() != null
                             && !Objects.equals(filtros.getProveedorId(), costo.getIdProveedor())) {
                         continue;
@@ -65,6 +66,12 @@ public class ReportesService {
                     totalCostos = totalCostos.add(costoBase(costo));
                 }
             }
+        }
+        if (filtros.getProveedorId() == null) {
+            BigDecimal totalComisiones = obrasFiltradas.stream()
+                    .map(this::calcularMontoComision)
+                    .reduce(BigDecimal.ZERO, BigDecimal::add);
+            totalCostos = totalCostos.add(totalComisiones);
         }
 
         DashboardFinancieroResponse response = new DashboardFinancieroResponse();
@@ -110,7 +117,7 @@ public class ReportesService {
         BigDecimal egresos = sumarPorTipo(transacciones, "PAGO");
 
         BigDecimal totalPresupuesto = obrasFiltradas.stream()
-                .map(obra -> Optional.ofNullable(obra.getPresupuesto()).orElse(BigDecimal.ZERO))
+                .map(this::presupuestoEfectivo)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
 
         BigDecimal totalCostos = BigDecimal.ZERO;
@@ -119,6 +126,7 @@ public class ReportesService {
                 List<ObraCostoExternalDto> costos = obrasClient.obtenerCostos(obra.getId());
                 for (ObraCostoExternalDto costo : costos) {
                     if (Boolean.FALSE.equals(costo.getActivo())) continue;
+                    if (!costoTieneProveedor(costo)) continue;
                     if (filtros.getProveedorId() != null
                             && !Objects.equals(filtros.getProveedorId(), costo.getIdProveedor())) {
                         continue;
@@ -126,6 +134,12 @@ public class ReportesService {
                     totalCostos = totalCostos.add(costoBase(costo));
                 }
             }
+        }
+        if (filtros.getProveedorId() == null) {
+            BigDecimal totalComisiones = obrasFiltradas.stream()
+                    .map(this::calcularMontoComision)
+                    .reduce(BigDecimal.ZERO, BigDecimal::add);
+            totalCostos = totalCostos.add(totalComisiones);
         }
 
         DeudasGlobalesResponse response = new DeudasGlobalesResponse();
@@ -251,7 +265,7 @@ public class ReportesService {
         ClienteExternalDto cliente = clientes.get(obra.getIdCliente());
         response.setClienteNombre(cliente != null ? cliente.getNombre() : null);
         response.setEstadoObra(obra.getObraEstado());
-        response.setPresupuesto(Optional.ofNullable(obra.getPresupuesto()).orElse(BigDecimal.ZERO));
+        response.setPresupuesto(presupuestoEfectivo(obra));
         response.setCostos(totalCostos);
         response.setCobros(cobros);
         response.setPagos(pagos);
@@ -874,7 +888,7 @@ public class ReportesService {
         Map<Long, ObraExternalDto> obrasPorId = mapearPorId(obrasConDeuda, ObraExternalDto::getId);
 
         BigDecimal totalCostos = obrasConDeuda.stream()
-                .map(obra -> Optional.ofNullable(obra.getPresupuesto()).orElse(BigDecimal.ZERO))
+                .map(this::presupuestoEfectivo)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
 
         List<TransaccionExternalDto> transacciones = filtrarTransacciones(filtros, obrasPorId);
@@ -1325,6 +1339,19 @@ public class ReportesService {
                 .divide(porcentaje.add(BigDecimal.valueOf(100)), 2, RoundingMode.HALF_UP);
     }
 
+    private BigDecimal presupuestoEfectivo(ObraExternalDto obra) {
+        if (obra == null) return BigDecimal.ZERO;
+        BigDecimal presupuesto = Optional.ofNullable(obra.getPresupuesto()).orElse(BigDecimal.ZERO);
+        BigDecimal totalConBeneficio = Optional.ofNullable(obra.getTotalConBeneficio()).orElse(BigDecimal.ZERO);
+        BigDecimal comisionMonto = calcularMontoComision(obra);
+
+        if (totalConBeneficio.compareTo(BigDecimal.ZERO) > 0) {
+            BigDecimal calculado = totalConBeneficio.add(comisionMonto);
+            return calculado.max(presupuesto);
+        }
+        return presupuesto;
+    }
+
     private BigDecimal obtenerPagosComisionPorObra(Long obraId) {
         if (obraId == null) return BigDecimal.ZERO;
         return obtenerTransaccionesActivas().stream()
@@ -1371,6 +1398,12 @@ public class ReportesService {
 
     private BigDecimal saldoPositivo(BigDecimal saldo) {
         return saldo.compareTo(BigDecimal.ZERO) < 0 ? BigDecimal.ZERO : saldo;
+    }
+
+    private boolean costoTieneProveedor(ObraCostoExternalDto costo) {
+        if (costo == null) return false;
+        Long idProveedor = costo.getIdProveedor();
+        return idProveedor != null && idProveedor > 0;
     }
 
     private boolean estadoGeneraDeuda(String estado) {
