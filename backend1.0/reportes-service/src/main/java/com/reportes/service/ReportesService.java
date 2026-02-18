@@ -547,6 +547,11 @@ public class ReportesService {
                 .map(c -> Optional.ofNullable(c.getTotal()).orElse(BigDecimal.ZERO))
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
 
+        BigDecimal comisionPendiente = calcularComisionPendiente(obra);
+        if (comisionPendiente.compareTo(BigDecimal.ZERO) > 0) {
+            totalCostos = totalCostos.add(comisionPendiente);
+        }
+
         BigDecimal pagosRecibidos = transacciones.stream()
                 .filter(tx -> "COBRO".equalsIgnoreCase(Optional.ofNullable(tx.getTipoTransaccion()).orElse("")))
                 .map(tx -> BigDecimal.valueOf(Optional.ofNullable(tx.getMonto()).orElse(0d)))
@@ -571,6 +576,15 @@ public class ReportesService {
             mov.setMonto(Optional.ofNullable(costo.getTotal()).orElse(BigDecimal.ZERO));
             mov.setReferencia(costo.getDescripcion());
             mov.setFecha(obra.getFechaInicio() != null ? obra.getFechaInicio().toLocalDate() : null);
+            movimientos.add(mov);
+        }
+
+        if (comisionPendiente.compareTo(BigDecimal.ZERO) > 0) {
+            CuentaCorrienteObraResponse.Movimiento mov = new CuentaCorrienteObraResponse.Movimiento();
+            mov.setTipo("COSTO");
+            mov.setMonto(comisionPendiente);
+            mov.setReferencia("Comision pendiente");
+            mov.setFecha(obra.getFechaInicio() != null ? obra.getFechaInicio().toLocalDate() : LocalDate.now());
             movimientos.add(mov);
         }
 
@@ -820,6 +834,21 @@ public class ReportesService {
                 .flatMap(p -> p.getMovimientos().stream())
                 .collect(Collectors.toList());
 
+        // Incluir comisiones pendientes como costo general (no asociadas a proveedor)
+        List<ObraExternalDto> obrasConDeuda = filtrarObrasConDeuda(filtros);
+        for (ObraExternalDto obra : obrasConDeuda) {
+            BigDecimal comisionPendiente = calcularComisionPendiente(obra);
+            if (comisionPendiente.compareTo(BigDecimal.ZERO) <= 0) continue;
+            CuentaCorrienteProveedorResponse.Movimiento mov = new CuentaCorrienteProveedorResponse.Movimiento();
+            mov.setTipo("COSTO");
+            mov.setMonto(comisionPendiente);
+            mov.setObraId(obra.getId());
+            mov.setObraNombre(obra.getNombre());
+            mov.setConcepto("Comision pendiente");
+            mov.setFecha(obra.getFechaInicio() != null ? obra.getFechaInicio().toLocalDate() : LocalDate.now());
+            movimientos.add(mov);
+        }
+
         movimientos.sort(Comparator.comparing(
                 m -> Optional.ofNullable(m.getFecha()).orElse(LocalDate.MAX)
         ));
@@ -846,6 +875,21 @@ public class ReportesService {
         List<FlujoCajaResponse.Movimiento> movimientos = flujo.getMovimientos() != null
                 ? flujo.getMovimientos()
                 : new ArrayList<>();
+
+        // Incluir comisiones pendientes como costo en el global
+        List<ObraExternalDto> obrasConDeuda = filtrarObrasConDeuda(filtros);
+        for (ObraExternalDto obra : obrasConDeuda) {
+            BigDecimal comisionPendiente = calcularComisionPendiente(obra);
+            if (comisionPendiente.compareTo(BigDecimal.ZERO) <= 0) continue;
+            FlujoCajaResponse.Movimiento mov = new FlujoCajaResponse.Movimiento();
+            mov.setTipo("COSTO");
+            mov.setMonto(comisionPendiente);
+            mov.setDetalle("Comision pendiente");
+            mov.setObraId(obra.getId());
+            mov.setObraNombre(obra.getNombre());
+            mov.setFecha(obra.getFechaInicio() != null ? obra.getFechaInicio().toLocalDate() : LocalDate.now());
+            movimientos.add(mov);
+        }
 
         BigDecimal totalIngresos = movimientos.stream()
                 .filter(m -> "COBRO".equalsIgnoreCase(m.getTipo()))
@@ -891,6 +935,15 @@ public class ReportesService {
                 .map(this::presupuestoEfectivo)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
 
+        Map<Long, BigDecimal> comisionesPendientes = new HashMap<>();
+        for (ObraExternalDto obra : obrasConDeuda) {
+            BigDecimal pendiente = calcularComisionPendiente(obra);
+            if (pendiente.compareTo(BigDecimal.ZERO) > 0) {
+                comisionesPendientes.put(obra.getId(), pendiente);
+                totalCostos = totalCostos.add(pendiente);
+            }
+        }
+
         List<TransaccionExternalDto> transacciones = filtrarTransacciones(filtros, obrasPorId);
         List<TransaccionExternalDto> cobros = transacciones.stream()
                 .filter(tx -> "COBRO".equalsIgnoreCase(Optional.ofNullable(tx.getTipoTransaccion()).orElse("")))
@@ -916,6 +969,7 @@ public class ReportesService {
 
         List<CuentaCorrienteClienteResponse.Movimiento> movimientos = new ArrayList<>();
         BigDecimal cobrosAcum = BigDecimal.ZERO;
+        BigDecimal costosAcum = BigDecimal.ZERO;
         for (TransaccionExternalDto tx : cobros) {
             CuentaCorrienteClienteResponse.Movimiento mov = new CuentaCorrienteClienteResponse.Movimiento();
             mov.setFecha(tx.getFecha());
@@ -929,8 +983,24 @@ public class ReportesService {
             mov.setAsociadoId(tx.getIdAsociado());
             cobrosAcum = cobrosAcum.add(mov.getMonto());
             mov.setCobrosAcumulados(cobrosAcum);
-            mov.setCostosAcumulados(BigDecimal.ZERO);
-            mov.setSaldoCliente(saldoPositivo(cobrosAcum));
+            mov.setCostosAcumulados(costosAcum);
+            mov.setSaldoCliente(saldoPositivo(cobrosAcum.subtract(costosAcum)));
+            movimientos.add(mov);
+        }
+
+        for (Map.Entry<Long, BigDecimal> entry : comisionesPendientes.entrySet()) {
+            CuentaCorrienteClienteResponse.Movimiento mov = new CuentaCorrienteClienteResponse.Movimiento();
+            mov.setTipo("COSTO");
+            mov.setMonto(entry.getValue());
+            mov.setReferencia("Comision pendiente");
+            mov.setObraId(entry.getKey());
+            ObraExternalDto obra = obrasPorId.get(entry.getKey());
+            mov.setObraNombre(obra != null ? obra.getNombre() : null);
+            mov.setFecha(obra != null && obra.getFechaInicio() != null ? obra.getFechaInicio().toLocalDate() : LocalDate.now());
+            costosAcum = costosAcum.add(mov.getMonto());
+            mov.setCobrosAcumulados(cobrosAcum);
+            mov.setCostosAcumulados(costosAcum);
+            mov.setSaldoCliente(saldoPositivo(cobrosAcum.subtract(costosAcum)));
             movimientos.add(mov);
         }
 
@@ -1336,20 +1406,31 @@ public class ReportesService {
         }
         return presupuesto
                 .multiply(porcentaje)
-                .divide(porcentaje.add(BigDecimal.valueOf(100)), 2, RoundingMode.HALF_UP);
+                .divide(BigDecimal.valueOf(100), 2, RoundingMode.HALF_UP);
     }
 
     private BigDecimal presupuestoEfectivo(ObraExternalDto obra) {
         if (obra == null) return BigDecimal.ZERO;
         BigDecimal presupuesto = Optional.ofNullable(obra.getPresupuesto()).orElse(BigDecimal.ZERO);
         BigDecimal totalConBeneficio = Optional.ofNullable(obra.getTotalConBeneficio()).orElse(BigDecimal.ZERO);
-        BigDecimal comisionMonto = calcularMontoComision(obra);
 
         if (totalConBeneficio.compareTo(BigDecimal.ZERO) > 0) {
-            BigDecimal calculado = totalConBeneficio.add(comisionMonto);
-            return calculado.max(presupuesto);
+            return totalConBeneficio.max(presupuesto);
         }
         return presupuesto;
+    }
+
+    private BigDecimal calcularComisionPendiente(ObraExternalDto obra) {
+        if (obra == null || !Boolean.TRUE.equals(obra.getTieneComision())) {
+            return BigDecimal.ZERO;
+        }
+        BigDecimal monto = calcularMontoComision(obra);
+        if (monto.compareTo(BigDecimal.ZERO) <= 0) {
+            return BigDecimal.ZERO;
+        }
+        BigDecimal pagos = obtenerPagosComisionPorObra(obra.getId());
+        BigDecimal pendiente = monto.subtract(pagos);
+        return pendiente.compareTo(BigDecimal.ZERO) > 0 ? pendiente : BigDecimal.ZERO;
     }
 
     private BigDecimal obtenerPagosComisionPorObra(Long obraId) {

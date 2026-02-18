@@ -168,7 +168,7 @@ class ObraServiceImplTest {
         assertEquals(new BigDecimal("607.50"), dto.getTotal_con_beneficio());
         assertEquals(new BigDecimal("30.38"), dto.getComision_monto());
         assertEquals(new BigDecimal("27.13"), dto.getBeneficio_neto());
-        assertEquals(new BigDecimal("637.88"), dto.getPresupuesto());
+        assertEquals(new BigDecimal("607.50"), dto.getPresupuesto());
 
         assertNotNull(dto.getCostos());
         assertEquals(3, dto.getCostos().size());

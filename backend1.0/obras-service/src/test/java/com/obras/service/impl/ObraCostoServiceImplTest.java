@@ -391,7 +391,7 @@ class ObraCostoServiceImplTest {
 
         ArgumentCaptor<Obra> captor = ArgumentCaptor.forClass(Obra.class);
         verify(obraRepo).save(captor.capture());
-        assertEquals(new BigDecimal("409.50"), captor.getValue().getPresupuesto());
+        assertEquals(new BigDecimal("390.00"), captor.getValue().getPresupuesto());
     }
 
     @Test

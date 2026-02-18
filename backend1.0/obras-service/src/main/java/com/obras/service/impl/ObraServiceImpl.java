@@ -425,8 +425,9 @@ public class ObraServiceImpl implements ObraService {
             );
         }
 
+        // La comisión no se suma al presupuesto: se descuenta del beneficio bruto.
         BigDecimal beneficioNeto = beneficioCostos.subtract(comisionMonto);
-        BigDecimal presupuestoFinal = totalConBeneficio.add(comisionMonto);
+        BigDecimal presupuestoFinal = totalConBeneficio;
 
         return new TotalesObra(
                 subtotalCostos.setScale(2, RoundingMode.HALF_UP),
