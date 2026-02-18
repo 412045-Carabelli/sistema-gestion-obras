@@ -464,20 +464,29 @@
 
       <!-- Footer -->
       <ng-template pTemplate="footer">
-        <tr class="bg-gray-100 font-semibold">
-          <td class="text-right px-3 py-2" colspan="6">Presupuestado:</td>
-          <td class="px-3 py-2"></td>
-          <td class="px-3 py-2">
-            <div class="flex justify-start">{{ calcularTotalConBeneficio() | currency:'ARS' }}</div>
-          </td>
-          <td class="px-3 py-2"></td>
-        </tr>
-
         <tr class="bg-gray-50 text-sm">
           <td class="text-right px-3 py-2 text-gray-600" colspan="6">Costos (Material y mano de obra):</td>
           <td class="px-3 py-2"></td>
           <td class="px-3 py-2 text-gray-700 font-medium">
             <div class="flex justify-start">{{ calcularSubtotal() | currency:'ARS' }}</div>
+          </td>
+          <td class="px-3 py-2"></td>
+        </tr>
+
+        <tr class="bg-gray-50 text-sm">
+          <td class="text-right px-3 py-2 text-gray-600" colspan="6">Beneficios:</td>
+          <td class="px-3 py-2"></td>
+          <td class="px-3 py-2 text-gray-700 font-medium">
+            <div class="flex justify-start">{{ calcularBeneficioTotal() | currency:'ARS' }}</div>
+          </td>
+          <td class="px-3 py-2"></td>
+        </tr>
+
+        <tr class="bg-gray-50 text-sm">
+          <td class="text-right px-3 py-2 text-gray-600" colspan="6">Subtotal con beneficios:</td>
+          <td class="px-3 py-2"></td>
+          <td class="px-3 py-2 text-gray-700 font-medium">
+            <div class="flex justify-start">{{ calcularTotalConBeneficio() | currency:'ARS' }}</div>
           </td>
           <td class="px-3 py-2"></td>
         </tr>
@@ -504,14 +513,23 @@
                   (onClick)="pagarComisionObra()">
                 </p-button>
               </div>
-            </td>
-          </tr>
+          </td>
+        </tr>
 
         <tr class="bg-gray-200 font-bold">
           <td class="text-right px-3 py-2" colspan="6">Beneficio neto:</td>
           <td class="px-3 py-2"></td>
           <td class="px-3 py-2 text-green-700">
             <div class="flex justify-start">{{ calcularBeneficioNeto() | currency:'ARS' }}</div>
+          </td>
+          <td class="px-3 py-2"></td>
+        </tr>
+
+        <tr class="bg-gray-100 font-semibold">
+          <td class="text-right px-3 py-2" colspan="6">Presupuestado:</td>
+          <td class="px-3 py-2"></td>
+          <td class="px-3 py-2">
+            <div class="flex justify-start">{{ calcularPresupuestoTotal() | currency:'ARS' }}</div>
           </td>
           <td class="px-3 py-2"></td>
         </tr>

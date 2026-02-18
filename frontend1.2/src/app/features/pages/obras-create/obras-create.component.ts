@@ -227,11 +227,8 @@ export class ObrasCreateComponent implements OnInit {
       return acc + t;
     }, 0);
 
-    const tieneComision = this.form.get('tiene_comision')?.value;
-    const comisionValor = Number(this.form.get('comision')?.value) || 0;
-    const totalConComision = tieneComision ? totalBase * (1 + comisionValor / 100) : totalBase;
-
-    this.form.get('presupuesto')?.setValue(totalConComision);
+    // La comisión no se suma al presupuesto: se descuenta del beneficio bruto.
+    this.form.get('presupuesto')?.setValue(totalBase);
   }
 
   onSubmit() {

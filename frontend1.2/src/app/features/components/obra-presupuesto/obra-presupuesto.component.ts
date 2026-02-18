@@ -862,13 +862,12 @@ export class ObraPresupuestoComponent implements OnInit, OnChanges, AfterViewIni
     const filasTabla = modo === 'MEMORIA'
       ? (memoriaRow ? [memoriaRow] : [])
       : (modo === 'AMBOS' && memoriaRow ? [memoriaRow, ...filasCostos] : filasCostos);
-    const subtotalMostrar = modo === 'MEMORIA' ? presupuestoTotal : totalConBeneficio;
 
     const docDefinition: any = {
       pageMargins: [20, 40, 20, 60],
       content: [
         logoDataUrl
-          ? { image: logoDataUrl, width: 555, height: 140, alignment: 'center', margin: [0, 0, 0, 14] }
+          ? { image: logoDataUrl, width: 555, alignment: 'center', margin: [0, 0, 0, 14] }
           : { text: '', margin: [0, 0, 0, 14] },
 
         {
@@ -876,23 +875,23 @@ export class ObraPresupuestoComponent implements OnInit, OnChanges, AfterViewIni
             widths: [140, '*'],
             body: [
               [
-                pdfCell('Cliente', { bold: true, alignment: 'center' }),
+                pdfCell('Cliente', { bold: true, alignment: 'left' }),
                 pdfCell(cliente?.nombre ?? '---', { alignment: 'left' })
               ],
               [
-                pdfCell('Obra', { bold: true, alignment: 'center' }),
+                pdfCell('Obra', { bold: true, alignment: 'left' }),
                 pdfCell(obra?.nombre ?? '---', { alignment: 'left' })
               ],
               [
-                pdfCell('Direccion', { bold: true, alignment: 'center' }),
+                pdfCell('Direccion', { bold: true, alignment: 'left' }),
                 pdfCell(obra?.direccion ?? '-', { alignment: 'left' })
               ],
               [
-                pdfCell('Licitacion/Obra', { bold: true, alignment: 'center' }),
+                pdfCell('Licitacion/Obra', { bold: true, alignment: 'left' }),
                 pdfCell(String(obra?.id ?? licitacion), { alignment: 'left' })
               ],
               [
-                pdfCell('Fecha', { bold: true, alignment: 'center' }),
+                pdfCell('Fecha', { bold: true, alignment: 'left' }),
                 pdfCell(fechaHoy, { alignment: 'left' })
               ]
             ]
@@ -901,7 +900,7 @@ export class ObraPresupuestoComponent implements OnInit, OnChanges, AfterViewIni
             hLineWidth: () => 0,
             vLineWidth: () => 0
           },
-          margin: [-10, 0, 0, 18]
+          margin: [0, 0, 0, 18]
         },
 
         { text: 'Detalle de costos', style: 'sectionHeader' },
@@ -933,7 +932,7 @@ export class ObraPresupuestoComponent implements OnInit, OnChanges, AfterViewIni
           table: {
             widths: ['*', 180],
             body: [
-              [pdfCell('Subtotal', { alignment: 'left' }), pdfCell(formatCurrency(presupuestoTotal), { alignment: 'right' })]
+              [pdfCell('Subtotal', { alignment: 'left' }), pdfCell(formatCurrency(totalConBeneficio), { alignment: 'right' })]
             ]
           },
           layout: {

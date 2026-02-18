@@ -400,8 +400,8 @@ export class ObrasDetailComponent implements OnInit, OnDestroy, AfterViewInit {
       return acc + subtotal * (1 + (porc / 100));
     }, 0);
 
-    const comisionPorc = this.obra.tiene_comision ? Number(this.obra.comision ?? 0) : 0;
-    return totalConBeneficio * (1 + (comisionPorc / 100));
+    // La comisión no se suma al presupuesto: se descuenta del beneficio bruto.
+    return totalConBeneficio;
   }
 
   get totalCostosBase(): number {
@@ -897,7 +897,7 @@ export class ObrasDetailComponent implements OnInit, OnDestroy, AfterViewInit {
     const totalCostos = subtotalCostos + beneficioCostos;
     const comisionPorc = this.obra.tiene_comision ? Number(this.obra.comision ?? 0) : 0;
     const comisionMonto = totalCostos * (comisionPorc / 100);
-    const totalCostosConComision = totalCostos + comisionMonto;
+    const beneficioNeto = beneficioCostos - comisionMonto;
 
     const tareasPendientes = (this.tareas ?? []).filter(t => {
       const estado = (t.estado_tarea || '').toUpperCase();
@@ -972,17 +972,18 @@ export class ObrasDetailComponent implements OnInit, OnDestroy, AfterViewInit {
 
         {text: 'Datos de la obra', style: 'sectionHeader'},
         {
+          alignment: 'left',
           columns: [
             [
-              {text: `Nombre: ${this.obra.nombre}`, margin: [0, 0, 0, 4]},
-              {text: `Direccion: ${this.obra.direccion ?? '-'}`, margin: [0, 0, 0, 4]},
-              {text: `Estado: ${this.formatearEstado(this.obra.obra_estado)}`, margin: [0, 0, 0, 4]},
-              {text: `Inicio: ${this.obra.fecha_inicio ? new Date(this.obra.fecha_inicio).toLocaleDateString('es-AR') : '-'}`, margin: [0, 0, 0, 4]},
-              {text: `Fin: ${this.obra.fecha_fin ? new Date(this.obra.fecha_fin).toLocaleDateString('es-AR') : '-'}`, margin: [0, 0, 0, 4]}
+              {text: `Nombre: ${this.obra.nombre}`, alignment: 'left', margin: [0, 0, 0, 4]},
+              {text: `Direccion: ${this.obra.direccion ?? '-'}`, alignment: 'left', margin: [0, 0, 0, 4]},
+              {text: `Estado: ${this.formatearEstado(this.obra.obra_estado)}`, alignment: 'left', margin: [0, 0, 0, 4]},
+              {text: `Inicio: ${this.obra.fecha_inicio ? new Date(this.obra.fecha_inicio).toLocaleDateString('es-AR') : '-'}`, alignment: 'left', margin: [0, 0, 0, 4]},
+              {text: `Fin: ${this.obra.fecha_fin ? new Date(this.obra.fecha_fin).toLocaleDateString('es-AR') : '-'}`, alignment: 'left', margin: [0, 0, 0, 4]}
             ],
             [
-              {text: `Presupuesto: ${(this.obra.presupuesto ?? 0).toLocaleString('es-AR', {style: 'currency', currency: 'ARS'})}`, margin: [0, 0, 0, 6]},
-              {text: `Comision: ${this.obra.comision ?? 0}% (${((this.obra.presupuesto || 0) * ((this.obra.comision ?? 0) / 100)).toLocaleString('es-AR', {style: 'currency', currency: 'ARS'})})`, margin: [0, 0, 0, 6]}
+              {text: `Presupuesto: ${formatCurrency(totalCostos)}`, alignment: 'left', margin: [0, 0, 0, 6]},
+              {text: `Comision: ${comisionPorc}% (${formatCurrency(comisionMonto)})`, alignment: 'left', margin: [0, 0, 0, 6]}
             ]
           ]
         },
@@ -1022,10 +1023,11 @@ export class ObrasDetailComponent implements OnInit, OnDestroy, AfterViewInit {
             widths: ['*', 170],
             body: [
               ['Subtotal sin beneficio', formatCurrency(subtotalCostos)],
-              ['Beneficio neto', formatCurrency(beneficioCostos)],
+              ['Beneficio bruto', formatCurrency(beneficioCostos)],
               ['Subtotal con beneficio', formatCurrency(totalCostos)],
               ['Comision', formatCurrency(comisionMonto)],
-              ['Total costos', formatCurrency(totalCostosConComision)]
+              ['Beneficio neto', formatCurrency(beneficioNeto)],
+              ['Presupuesto', formatCurrency(totalCostos)]
             ]
           },
           layout: 'noBorders'
