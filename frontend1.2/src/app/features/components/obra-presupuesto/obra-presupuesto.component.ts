@@ -820,7 +820,7 @@ export class ObraPresupuestoComponent implements OnInit, OnChanges, AfterViewIni
     const pdfCell = (text: any, extra: any = {}) => ({
       text,
       fontSize: 9,
-      vAlign: 'middle',
+      valign: 'middle',
       ...extra
     });
 
@@ -829,18 +829,18 @@ export class ObraPresupuestoComponent implements OnInit, OnChanges, AfterViewIni
       : null;
 
     const memoriaCell = typeof memoriaContenido === 'string'
-      ? pdfCell(memoriaContenido, { alignment: 'left', fontSize: 10 })
+      ? pdfCell(memoriaContenido, { alignment: 'left', fontSize: 10, valign: 'top' })
       : memoriaContenido
-        ? { ...memoriaContenido, vAlign: 'middle', fontSize: 10 }
+        ? { ...memoriaContenido, valign: 'top', fontSize: 10 }
         : null;
 
     const memoriaRow = (modo === 'MEMORIA' || modo === 'AMBOS') && memoriaCell
       ? [
-        pdfCell('1.1', { alignment: 'center' }),
+        pdfCell('1.1', { alignment: 'center', valign: 'middle' }),
         memoriaCell,
-        pdfCell('gl', { alignment: 'center' }),
-        pdfCell('1', { alignment: 'center' }),
-        pdfCell(formatCurrency(presupuestoTotal), { alignment: 'right' })
+        pdfCell('gl', { alignment: 'center', valign: 'middle' }),
+        pdfCell('1', { alignment: 'center', valign: 'middle' }),
+        pdfCell(formatCurrency(presupuestoTotal), { alignment: 'center', valign: 'middle' })
       ]
       : null;
 
@@ -852,11 +852,11 @@ export class ObraPresupuestoComponent implements OnInit, OnChanges, AfterViewIni
       const subtotalConBeneficio = subtotalBase * (1 + beneficioAplicado / 100);
 
       return [
-        pdfCell(this.getItemNumeroDisplay(c, index), { alignment: 'center' }),
-        pdfCell(this.normalizarDescripcionCosto(c.descripcion) || '-', { alignment: 'left' }),
-        pdfCell(c.unidad || '-', { alignment: 'center' }),
-        pdfCell(String(c.cantidad ?? 0), { alignment: 'center' }),
-        pdfCell(formatCurrency(subtotalConBeneficio), { alignment: 'right' })
+        pdfCell(this.getItemNumeroDisplay(c, index), { alignment: 'center', valign: 'middle' }),
+        pdfCell(this.normalizarDescripcionCosto(c.descripcion) || '-', { alignment: 'left', valign: 'top' }),
+        pdfCell(c.unidad || '-', { alignment: 'center', valign: 'middle' }),
+        pdfCell(String(c.cantidad ?? 0), { alignment: 'center', valign: 'middle' }),
+        pdfCell(formatCurrency(subtotalConBeneficio), { alignment: 'center', valign: 'middle' })
       ];
     });
     const filasTabla = modo === 'MEMORIA'
@@ -910,11 +910,11 @@ export class ObraPresupuestoComponent implements OnInit, OnChanges, AfterViewIni
             headerRows: 1,
             body: [
               [
-                pdfCell('ITEM', { bold: true, fontSize: 10, alignment: 'center', fillColor: '#f3f4f6' }),
+                pdfCell('ITEM', { bold: true, fontSize: 10, alignment: 'center', valign: 'middle', fillColor: '#f3f4f6' }),
                 pdfCell('DESCRIPCION', { bold: true, fontSize: 10, alignment: 'center', fillColor: '#f3f4f6' }),
-                pdfCell('UN', { bold: true, fontSize: 10, alignment: 'center', fillColor: '#f3f4f6' }),
-                pdfCell('CANT', { bold: true, fontSize: 10, alignment: 'center', fillColor: '#f3f4f6' }),
-                pdfCell('Subtotal', { bold: true, fontSize: 10, alignment: 'center', fillColor: '#f3f4f6' })
+                pdfCell('UN', { bold: true, fontSize: 10, alignment: 'center', valign: 'middle', fillColor: '#f3f4f6' }),
+                pdfCell('CANT', { bold: true, fontSize: 10, alignment: 'center', valign: 'middle', fillColor: '#f3f4f6' }),
+                pdfCell('Subtotal', { bold: true, fontSize: 10, alignment: 'center', valign: 'middle', fillColor: '#f3f4f6' })
               ],
               ...filasTabla
             ]
@@ -922,7 +922,9 @@ export class ObraPresupuestoComponent implements OnInit, OnChanges, AfterViewIni
           layout: {
             fillColor: (rowIndex: number) => rowIndex === 0 ? '#f3f4f6' : null,
             hLineColor: () => '#e5e7eb',
-            vLineColor: () => '#e5e7eb'
+            vLineColor: () => '#e5e7eb',
+            paddingTop: () => 0,
+            paddingBottom: () => 0
           },
           margin: [0, 0, 0, 12]
         },
@@ -1608,9 +1610,25 @@ export class ObraPresupuestoComponent implements OnInit, OnChanges, AfterViewIni
 
   iniciarEdicionCondiciones() {
     const actuales = (this.obra?.condiciones_presupuesto ?? '').trim();
+    const observacionesActuales = (this.obra?.observaciones_presupuesto ?? '').trim();
+    const sinTexto = !actuales && !observacionesActuales;
     this.condicionesDraft = actuales || this.condicionesDefaultTexto;
     this.observacionesDraft = this.obra?.observaciones_presupuesto ?? '';
     this.condicionesEditando = true;
+
+    if (sinTexto) {
+      this.obrasService.getUltimasCondiciones().subscribe({
+        next: (ultima) => {
+          if (!this.condicionesEditando) return;
+          const ultCond = (ultima?.condiciones_presupuesto ?? '').trim();
+          const ultObs = (ultima?.observaciones_presupuesto ?? '').trim();
+          if (!ultCond && !ultObs) return;
+          if (this.condicionesDraft !== this.condicionesDefaultTexto || this.observacionesDraft.trim().length > 0) return;
+          this.condicionesDraft = ultCond || this.condicionesDefaultTexto;
+          this.observacionesDraft = ultObs;
+        }
+      });
+    }
   }
 
   cancelarEdicionCondiciones() {

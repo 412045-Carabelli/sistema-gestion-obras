@@ -7,6 +7,7 @@ public enum EstadoObraEnum {
     PERDIDA,
     EN_PROGRESO,
     FINALIZADA,
-    FACTURADA
+    FACTURADA,
+    COBRADA
 }
 

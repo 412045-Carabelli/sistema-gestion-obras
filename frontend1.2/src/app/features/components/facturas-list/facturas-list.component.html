@@ -117,7 +117,7 @@
 
     <div class="bg-white rounded-xl shadow-md overflow-hidden">
       <p-table
-        [value]="facturasFiltradas"
+        [value]="obrasFacturacionFiltradas"
         [paginator]="true"
         [rows]="8"
         responsiveLayout="scroll"
@@ -126,44 +126,64 @@
           <tr>
             <th class="bg-gray-50 px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Cliente</th>
             <th class="bg-gray-50 px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Obra</th>
-            <th class="bg-gray-50 px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Descripcion</th>
             <th class="bg-gray-50 px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Estado</th>
-            <th class="bg-gray-50 px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Fecha</th>
-            <th class="bg-gray-50 px-4 py-3 text-right text-xs font-semibold text-gray-500 uppercase">Monto</th>
-            <th class="bg-gray-50 px-4 py-3 text-right text-xs font-semibold text-gray-500 uppercase">Por cobrar</th>
+            <th class="bg-gray-50 px-4 py-3 text-right text-xs font-semibold text-gray-500 uppercase">Presupuesto</th>
+            <th class="bg-gray-50 px-4 py-3 text-right text-xs font-semibold text-gray-500 uppercase">Facturado</th>
+            <th class="bg-gray-50 px-4 py-3 text-right text-xs font-semibold text-gray-500 uppercase">Por facturar</th>
           </tr>
         </ng-template>
-        <ng-template pTemplate="body" let-f>
-          <tr class="hover:bg-gray-50 transition-colors cursor-pointer" (click)="onRowClick(f)">
-            <td class="px-4 py-3 text-sm text-gray-700">{{ f.clienteNombre }}</td>
-            <td class="px-4 py-3 text-sm text-gray-700">{{ f.obraNombre }}</td>
-            <td class="px-4 py-3 text-sm text-gray-700">
-              {{ f.descripcionTexto || '—' }}
-            </td>
-            <td class="px-4 py-3 text-sm text-gray-700">
-              <p-tag
-                [value]="f.estado || 'EMITIDA'"
-                [severity]="(f.estado || 'EMITIDA') === 'COBRADA' ? 'success' : 'info'">
-              </p-tag>
-            </td>
-            <td class="px-4 py-3 text-sm text-gray-700">{{ f.fecha | date:'dd/MM/yyyy' }}</td>
+        <ng-template pTemplate="body" let-o>
+          <tr class="bg-gray-50 cursor-pointer" (click)="toggleObraRow(o.id)">
+            <td class="px-4 py-3 text-sm text-gray-700">{{ o.clienteNombre }}</td>
+            <td class="px-4 py-3 text-sm text-gray-700">{{ o.nombre }}</td>
+            <td class="px-4 py-3 text-sm text-gray-700">{{ o.estado }}</td>
             <td class="px-4 py-3 text-sm text-gray-900 text-right">
-              {{ f.monto | currency:'ARS':'symbol':'1.0-2' }}
+              {{ o.presupuesto | currency:'ARS':'symbol':'1.0-2' }}
             </td>
             <td class="px-4 py-3 text-sm text-gray-900 text-right">
-              @if (f.porCobrarObra != null) {
-                {{ f.porCobrarObra | currency:'ARS':'symbol':'1.0-2' }}
-              } @else {
-                —
-              }
+              {{ o.facturado | currency:'ARS':'symbol':'1.0-2' }}
+            </td>
+            <td class="px-4 py-3 text-sm text-gray-900 text-right">
+              {{ o.porFacturar | currency:'ARS':'symbol':'1.0-2' }}
             </td>
           </tr>
+          @if (isObraExpanded(o.id)) {
+            @if (o.facturas?.length) {
+              @for (f of o.facturas; track f.id) {
+                <tr class="hover:bg-gray-50 transition-colors cursor-pointer" (click)="onRowClick(f)">
+                  <td class="px-4 py-3 text-sm text-gray-500"></td>
+                  <td class="px-4 py-3 text-sm text-gray-700">
+                    Factura #{{ f.id }}
+                  </td>
+                  <td class="px-4 py-3 text-sm text-gray-700">
+                    <p-tag
+                      [value]="f.estado || 'EMITIDA'"
+                      [severity]="(f.estado || 'EMITIDA') === 'COBRADA' ? 'success' : 'info'">
+                    </p-tag>
+                  </td>
+                  <td class="px-4 py-3 text-sm text-gray-700">{{ f.fecha | date:'dd/MM/yyyy' }}</td>
+                  <td class="px-4 py-3 text-sm text-gray-900 text-right">
+                    {{ f.monto | currency:'ARS':'symbol':'1.0-2' }}
+                  </td>
+                  <td class="px-4 py-3 text-sm text-gray-900 text-right">
+                    {{ f.porCobrarObra | currency:'ARS':'symbol':'1.0-2' }}
+                  </td>
+                </tr>
+              }
+            } @else {
+              <tr>
+                <td colspan="6" class="px-4 py-3 text-sm text-gray-500 italic">
+                  Sin facturas registradas para esta obra.
+                </td>
+              </tr>
+            }
+          }
         </ng-template>
         <ng-template pTemplate="emptymessage">
           <tr>
-            <td colspan="7" class="text-center py-10 text-gray-500">
+            <td colspan="6" class="text-center py-10 text-gray-500">
               <i class="pi pi-inbox text-4xl mb-2"></i>
-              <p>No hay facturas registradas</p>
+              <p>No hay obras pendientes de facturacion.</p>
             </td>
           </tr>
         </ng-template>

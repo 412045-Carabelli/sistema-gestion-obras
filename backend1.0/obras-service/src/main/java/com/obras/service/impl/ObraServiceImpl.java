@@ -14,6 +14,7 @@ import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -67,6 +68,27 @@ public class ObraServiceImpl implements ObraService {
         Page<Obra> page = obraRepo.findAll(p);
         List<ObraDTO> dtos = page.stream().map(this::toDto).toList();
         return new PageImpl<>(dtos, p, page.getTotalElements());
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Page<ObraDTO> listarPorCliente(Long idCliente, Pageable p) {
+        if (idCliente == null) {
+            return listar(p);
+        }
+        Page<Obra> page = obraRepo.findByIdCliente(idCliente, p);
+        List<ObraDTO> dtos = page.stream().map(this::toDto).toList();
+        return new PageImpl<>(dtos, p, page.getTotalElements());
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Optional<ObraDTO> obtenerUltimaCondicion() {
+        List<Obra> obras = obraRepo.findUltimaConCondiciones(PageRequest.of(0, 1));
+        if (obras == null || obras.isEmpty()) {
+            return Optional.empty();
+        }
+        return Optional.ofNullable(toDto(obras.get(0)));
     }
 
     /* ============================================================

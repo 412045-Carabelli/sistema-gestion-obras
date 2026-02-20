@@ -960,6 +960,10 @@ export class DashboardComponent implements OnInit {
     return Math.max(0, base - this.totalPagosDashboard);
   }
 
+  get dashboardResultado(): number {
+    return this.dashboardCobrado - this.dashboardPagado;
+  }
+
   private obtenerMovimientosPorObra(obraId: number): MovimientoDashboard[] {
     let movimientos = this.flujoCaja?.movimientos || [];
     const rangoFechas = this.filtrosDashboard?.rangoFechas;
