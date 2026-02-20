@@ -195,6 +195,27 @@ public class ObraBffController {
     }
 
     // ================================
+    // GET - Ultimas condiciones/observaciones
+    // ================================
+    @GetMapping("/condiciones/ultima")
+    public Mono<ResponseEntity<Object>> getUltimasCondiciones() {
+        WebClient client = webClientBuilder.build();
+
+        return client.get()
+                .uri(OBRAS_URL + "/condiciones/ultima")
+                .exchangeToMono(response -> {
+                    if (response.statusCode().is2xxSuccessful()) {
+                        if (response.statusCode().value() == 204) {
+                            return Mono.just(ResponseEntity.<Object>noContent().build());
+                        }
+                        return response.bodyToMono(new ParameterizedTypeReference<Map<String, Object>>() {})
+                                .map(body -> ResponseEntity.<Object>ok(body));
+                    }
+                    return Mono.just(ResponseEntity.<Object>status(response.statusCode()).build());
+                })
+                .onErrorResume(ex -> Mono.just(ResponseEntity.<Object>noContent().build()));
+    }
+    // ================================
     // 📄 GET - Obtener Obra completa
     // ================================
     @GetMapping("/{id}")
@@ -291,3 +312,4 @@ public class ObraBffController {
         });
     }
 }
+

@@ -177,7 +177,8 @@ export class ObrasListComponent implements OnInit {
       'ADJUDICADA',
       'EN_PROGRESO',
       'FINALIZADA',
-      'FACTURADA'
+      'FACTURADA',
+      'COBRADA'
     ];
     const index = new Map(ordenDeseado.map((estado, i) => [estado, i]));
     const normalizar = (value?: string | null) =>

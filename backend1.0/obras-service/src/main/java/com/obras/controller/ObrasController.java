@@ -21,10 +21,19 @@ public class ObrasController {
     // OBRAS
     @PostMapping
     public ResponseEntity<ObraDTO> crear(@Valid @RequestBody ObraDTO dto){ return ResponseEntity.ok(svc.crear(dto)); }
+    @GetMapping("/condiciones/ultima")
+    public ResponseEntity<ObraDTO> getUltimaCondicion() {
+        return svc.obtenerUltimaCondicion()
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.noContent().build());
+    }
     @GetMapping("/{id}") public ResponseEntity<ObraDTO> get(@PathVariable("id") Long id){ return svc.obtener(id).map(ResponseEntity::ok).orElse(ResponseEntity.notFound().build()); }
     @GetMapping
-    public List<ObraDTO> listar(@PageableDefault(size = 20) Pageable p) {
-        return svc.listar(p).getContent();
+    public List<ObraDTO> listar(
+            @PageableDefault(size = 20) Pageable p,
+            @RequestParam(name = "id_cliente", required = false) Long idCliente
+    ) {
+        return (idCliente != null ? svc.listarPorCliente(idCliente, p) : svc.listar(p)).getContent();
     }
     @PutMapping("/{id}") public ObraDTO update(@PathVariable("id") Long id, @RequestBody ObraDTO dto){ return svc.actualizar(id,dto); }
     @PatchMapping("/{id}/estado/{estado}")

@@ -1499,7 +1499,9 @@ public class ReportesService {
     private static final Set<String> ESTADOS_CON_DEUDA = Set.of(
             "ADJUDICADA",
             "EN_PROGRESO",
-            "FINALIZADA"
+            "FINALIZADA",
+            "FACTURADA",
+            "COBRADA"
     );
 
     private BigDecimal costoBase(ObraCostoExternalDto costo) {

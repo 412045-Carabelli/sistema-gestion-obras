@@ -133,7 +133,7 @@ services:
       - sgo_backend
 
   minio:
-    image: minio/minio:RELEASE.2024-12-18T00-45-43Z
+    image: minio/minio:latest
     container_name: minio
     command: server /data --console-address ":9001"
     ports:
@@ -152,3 +152,4 @@ networks:
   sgo_backend:
     name: sgo_backend
     driver: bridge
+

@@ -214,6 +214,56 @@ export class FacturasDetailComponent implements OnInit, OnDestroy {
     return this.cobrosObra;
   }
 
+  toggleEstadoFactura() {
+    if (!this.factura?.id) return;
+    const estadoActual = (this.factura.estado || 'EMITIDA').toString().toUpperCase();
+    const nuevoEstado = estadoActual === 'COBRADA' ? 'EMITIDA' : 'COBRADA';
+    const payload = {
+      id_cliente: Number(this.factura.id_cliente),
+      id_obra: this.factura.id_obra != null ? Number(this.factura.id_obra) : null,
+      monto: Number(this.factura.monto || 0),
+      monto_restante: nuevoEstado === 'COBRADA' ? 0 : this.montoPorCobrarFactura,
+      fecha: this.factura.fecha ? this.formatearFecha(this.factura.fecha) : this.formatearFecha(new Date()),
+      descripcion: this.factura.descripcion || '',
+      estado: nuevoEstado,
+      impacta_cta_cte: !!this.factura.impacta_cta_cte
+    };
+
+    this.facturasService.updateFactura(Number(this.factura.id), payload).subscribe({
+      next: (updated) => {
+        this.factura = {
+          ...this.factura,
+          ...updated
+        };
+        if (this.factura.id_obra) {
+          this.facturasService.getFacturasByObra(this.factura.id_obra).subscribe({
+            next: facturas => {
+              this.facturasObra = facturas || [];
+            }
+          });
+        }
+        if (this.factura.id_obra) {
+          this.transaccionesService.getByObra(this.factura.id_obra).subscribe({
+            next: movimientos => {
+              this.cobrosObra = (movimientos || [])
+                .filter(m => this.esCobro(m))
+                .reduce((sum, m) => sum + Number(m.monto || 0), 0);
+            }
+          });
+        }
+      }
+    });
+  }
+
+  get montoPorCobrarFactura(): number {
+    if (!this.factura) return 0;
+    const estado = (this.factura.estado || 'EMITIDA').toString().toUpperCase();
+    if (estado === 'COBRADA') return 0;
+    const restante = Number((this.factura as any).monto_restante ?? NaN);
+    if (Number.isFinite(restante) && restante > 0) return restante;
+    return Number(this.factura.monto ?? 0);
+  }
+
   get estadoLabel(): string {
     return this.totalPorCobrar <= 0 ? 'Pagada' : 'Pendiente';
   }
@@ -227,11 +277,16 @@ export class FacturasDetailComponent implements OnInit, OnDestroy {
   }
 
   get totalPorCobrar(): number {
+    return Math.max(0, this.montoPorCobrarFactura);
+  }
+
+  get saldoNoFacturado(): number {
     return Math.max(0, this.totalPresupuesto - this.totalFacturado);
   }
 
   get saldoFinal(): number {
-    return this.totalFacturado - this.totalPresupuesto;
+    const saldoPresupuesto = Math.max(0, this.totalPresupuesto - this.totalFacturado);
+    return this.totalPorCobrar + saldoPresupuesto;
   }
 
   private cargarPreview() {
@@ -273,6 +328,12 @@ export class FacturasDetailComponent implements OnInit, OnDestroy {
     if (lower.endsWith('.jpg') || lower.endsWith('.jpeg')) return 'image/jpeg';
     if (lower.endsWith('.png')) return 'image/png';
     return null;
+  }
+
+  private formatearFecha(value: string | Date): string {
+    if (!value) return '';
+    const date = value instanceof Date ? value : new Date(value);
+    return date.toISOString().split('T')[0];
   }
 
   private esCobro(mov: Transaccion): boolean {
