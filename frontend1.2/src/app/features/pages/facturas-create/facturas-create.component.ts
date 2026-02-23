@@ -8,6 +8,7 @@ import {Select} from 'primeng/select';
 import {DatePicker} from 'primeng/datepicker';
 import {FileUploadModule} from 'primeng/fileupload';
 import {MessageService} from 'primeng/api';
+import {HttpErrorResponse} from '@angular/common/http';
 import {InputNumber} from 'primeng/inputnumber';
 import {EditorModule} from 'primeng/editor';
 import {CheckboxModule} from 'primeng/checkbox';
@@ -40,10 +41,13 @@ import {FacturasService} from '../../../services/facturas/facturas.service';
 export class FacturasCreateComponent implements OnInit {
   form!: FormGroup;
   clientes: Cliente[] = [];
+  clientesFacturables: Cliente[] = [];
   obras: Obra[] = [];
+  obrasFacturables: Obra[] = [];
   obrasFiltradas: Obra[] = [];
   selectedFile: File | null = null;
   restanteObra: number | null = null;
+  montoSugerido: number | null = null;
   estadoOptions = [
     {label: 'Emitida', value: 'EMITIDA'},
     {label: 'Cobrada', value: 'COBRADA'}
@@ -73,24 +77,27 @@ export class FacturasCreateComponent implements OnInit {
     this.clientesService.getClientes().subscribe({
       next: clientes => {
         this.clientes = clientes.map(c => ({...c, id: Number(c.id)}));
+        this.actualizarClientesFacturables();
       }
     });
 
     this.obrasService.getObras().subscribe({
       next: obras => {
         this.obras = obras;
-        this.obrasFiltradas = [...this.obras];
+        this.obrasFacturables = this.obras.filter(o => this.esObraFacturable(o));
+        this.obrasFiltradas = [...this.obrasFacturables];
+        this.actualizarClientesFacturables();
       }
     });
 
     this.form.get('id_cliente')?.valueChanges.subscribe((clienteId) => {
       if (!clienteId) {
-        this.obrasFiltradas = [...this.obras];
+        this.obrasFiltradas = [...this.obrasFacturables];
         this.form.get('id_obra')?.setValue(null);
         this.restanteObra = null;
         return;
       }
-      this.obrasFiltradas = this.obras.filter(o => Number(o.cliente?.id) === Number(clienteId));
+      this.obrasFiltradas = this.obrasFacturables.filter(o => Number(o.cliente?.id) === Number(clienteId));
       this.form.get('id_obra')?.setValue(null);
       this.restanteObra = null;
     });
@@ -98,9 +105,15 @@ export class FacturasCreateComponent implements OnInit {
     this.form.get('id_obra')?.valueChanges.subscribe((obraId) => {
       if (!obraId) {
         this.restanteObra = null;
+        this.montoSugerido = null;
         return;
       }
       this.actualizarRestanteObra(Number(obraId));
+    });
+
+    this.form.get('monto')?.valueChanges.subscribe((value) => {
+      if (value == null) return;
+      this.montoSugerido = Number(value);
     });
   }
 
@@ -137,10 +150,13 @@ export class FacturasCreateComponent implements OnInit {
       });
       return;
     }
+    const estado = (raw.estado || '').toString().toUpperCase();
+    const montoRestante = estado === 'COBRADA' ? 0 : monto;
     const payload = {
       id_cliente: Number(raw.id_cliente),
       id_obra: raw.id_obra != null ? Number(raw.id_obra) : null,
       monto,
+      monto_restante: montoRestante,
       fecha: this.formatDate(raw.fecha),
       descripcion: raw.descripcion || '',
       estado: raw.estado,
@@ -156,11 +172,11 @@ export class FacturasCreateComponent implements OnInit {
         });
         this.router.navigate(['/facturas', factura.id]);
       },
-      error: () => {
+      error: (err) => {
         this.messageService.add({
           severity: 'error',
           summary: 'Error',
-          detail: 'No se pudo crear la factura.'
+          detail: this.obtenerMensajeError(err, 'No se pudo crear la factura.')
         });
       }
     });
@@ -185,10 +201,70 @@ export class FacturasCreateComponent implements OnInit {
       next: facturas => {
         const facturado = (facturas || []).reduce((sum, f) => sum + Number(f.monto || 0), 0);
         this.restanteObra = Math.max(0, presupuesto - facturado);
+        this.montoSugerido = this.restanteObra;
       },
       error: () => {
         this.restanteObra = null;
+        this.montoSugerido = null;
       }
     });
+  }
+
+  private obtenerMensajeError(err: unknown, fallback: string): string {
+    if (err instanceof HttpErrorResponse) {
+      const body: any = err.error;
+      if (typeof body === 'string') return body;
+      if (body?.message) return body.message;
+      if (body?.error) return body.error;
+    }
+    return fallback;
+  }
+
+  aplicarMontoTotal() {
+    if (this.restanteObra == null) return;
+    this.form.get('monto')?.setValue(this.restanteObra);
+  }
+
+  aplicarMontoParcial() {
+    if (this.montoSugerido != null) {
+      this.form.get('monto')?.setValue(this.montoSugerido);
+    } else {
+      this.form.get('monto')?.setValue(null);
+    }
+  }
+
+  private actualizarClientesFacturables() {
+    if (!this.clientes.length || !this.obrasFacturables.length) {
+      this.clientesFacturables = [];
+      return;
+    }
+    const clientesConObras = new Set(
+      this.obrasFacturables
+        .map(o => Number(o.cliente?.id ?? 0))
+        .filter(id => id > 0)
+    );
+    this.clientesFacturables = this.clientes.filter(c => clientesConObras.has(Number(c.id)));
+  }
+
+  private esObraFacturable(obra: Obra): boolean {
+    if (!obra || !obra.requiere_factura) return false;
+    const estado = this.normalizarEstado(obra.obra_estado);
+    return ['ADJUDICADA', 'EN_PROGRESO', 'FINALIZADA', 'FACTURADA', 'COBRADA'].includes(estado);
+  }
+
+  private normalizarEstado(raw: any): string {
+    if (!raw) return '';
+    if (typeof raw === 'string') return this.sanitizarEstado(raw);
+    const nombre = raw?.nombre ?? raw?.name ?? raw?.label ?? raw?.estado ?? '';
+    return this.sanitizarEstado(String(nombre || ''));
+  }
+
+  private sanitizarEstado(valor: string): string {
+    return valor
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .toUpperCase()
+      .replace(/[^A-Z0-9]+/g, '_')
+      .replace(/^_+|_+$/g, '');
   }
 }

@@ -75,6 +75,11 @@ public class FacturaService {
         Boolean impactaCtaCte = dto.getImpacta_cta_cte() != null ? dto.getImpacta_cta_cte() : false;
         String relativePath = null;
         String nombreArchivo = null;
+        String estado = normalizarEstado(dto.getEstado());
+        Double montoRestante = dto.getMonto_restante() != null ? dto.getMonto_restante() : dto.getMonto();
+        if ("COBRADA".equals(estado)) {
+            montoRestante = 0d;
+        }
 
         if (file != null && !file.isEmpty()) {
             relativePath = guardarArchivo(dto.getId_cliente(), file);
@@ -85,10 +90,10 @@ public class FacturaService {
                 .idCliente(dto.getId_cliente())
                 .idObra(dto.getId_obra())
                 .monto(dto.getMonto())
-                .montoRestante(dto.getMonto_restante() != null ? dto.getMonto_restante() : 0d)
+                .montoRestante(montoRestante != null ? montoRestante : 0d)
                 .fecha(dto.getFecha() != null ? dto.getFecha() : LocalDate.now())
                 .descripcion(dto.getDescripcion())
-                .estado(normalizarEstado(dto.getEstado()))
+                .estado(estado)
                 .nombreArchivo(nombreArchivo)
                 .pathArchivo(relativePath)
                 .activo(dto.getActivo() != null ? dto.getActivo() : true)
@@ -100,7 +105,11 @@ public class FacturaService {
             entity.setIdTransaccion(movimiento.getId());
         }
 
-        return toDto(facturaRepository.save(entity));
+        Factura saved = facturaRepository.save(entity);
+        if (impactaCtaCte) {
+            actualizarEstadoObraSegunFacturacion(saved);
+        }
+        return toDto(saved);
     }
 
     @Transactional
@@ -125,6 +134,11 @@ public class FacturaService {
         if (dto.getEstado() != null) {
             entity.setEstado(normalizarEstado(dto.getEstado()));
         }
+        if ("COBRADA".equals(entity.getEstado())) {
+            entity.setMontoRestante(0d);
+        } else if (entity.getMontoRestante() == null) {
+            entity.setMontoRestante(entity.getMonto());
+        }
         entity.setActivo(dto.getActivo() != null ? dto.getActivo() : entity.getActivo());
         entity.setImpactaCtaCte(impactaCtaCte);
 
@@ -143,7 +157,11 @@ public class FacturaService {
             entity.setIdTransaccion(null);
         }
 
-        return toDto(facturaRepository.save(entity));
+        Factura saved = facturaRepository.save(entity);
+        if (impactaCtaCte) {
+            actualizarEstadoObraSegunFacturacion(saved);
+        }
+        return toDto(saved);
     }
 
     @Transactional
@@ -273,7 +291,8 @@ public class FacturaService {
         movimiento.setMonto(monto);
         movimiento.setForma_pago(formaPago);
         movimiento.setMedio_pago("Factura");
-        movimiento.setFacturaCobrada(false);
+        boolean estaCobrada = "COBRADA".equalsIgnoreCase(factura.getEstado());
+        movimiento.setFacturaCobrada(estaCobrada);
         movimiento.setActivo(true);
 
         return transaccionRepository.save(movimiento);
@@ -330,5 +349,26 @@ public class FacturaService {
             throw new RuntimeException("Estado de factura invalido.");
         }
         return normalizado;
+    }
+
+    private void actualizarEstadoObraSegunFacturacion(Factura factura) {
+        if (factura == null || factura.getIdObra() == null) return;
+        ObraResumenDto obra = obraCostoClient.obtenerObra(factura.getIdObra());
+        if (obra == null || obra.getPresupuesto() == null) return;
+
+        double presupuesto = obra.getPresupuesto();
+        double facturado = facturaRepository.findByIdObra(factura.getIdObra()).stream()
+                .mapToDouble(f -> f.getMonto() != null ? f.getMonto() : 0d)
+                .sum();
+
+        if (facturado + 0.01 < presupuesto) return;
+
+        String estadoFactura = factura.getEstado() != null ? factura.getEstado().toUpperCase() : "EMITIDA";
+        String nuevoEstado = "COBRADA".equals(estadoFactura) ? "COBRADA" : "FACTURADA";
+        try {
+            obraCostoClient.actualizarEstadoObra(factura.getIdObra(), nuevoEstado);
+        } catch (Exception ignored) {
+            // no interrumpir si falla el cambio de estado de obra
+        }
     }
 }
