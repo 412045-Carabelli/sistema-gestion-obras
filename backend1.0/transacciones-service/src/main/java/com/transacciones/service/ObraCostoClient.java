@@ -32,4 +32,10 @@ public class ObraCostoClient {
         if (response == null) return List.of();
         return Arrays.asList(response);
     }
+
+    public void actualizarEstadoObra(Long idObra, String estado) {
+        if (idObra == null || estado == null || estado.isBlank()) return;
+        String url = String.format("%s/%s/estado/%s", obrasServiceUrl, idObra, estado);
+        restTemplate.patchForObject(url, null, Void.class);
+    }
 }

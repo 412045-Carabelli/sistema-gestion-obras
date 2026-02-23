@@ -6,6 +6,7 @@ com\apigateway\controller\ReportesBffController$2.class
 com\apigateway\controller\ReportesBffController$16.class
 com\apigateway\controller\EstadoPagoBffController$1.class
 com\apigateway\controller\TipoDocumentoBffController$2.class
+com\apigateway\controller\ObraBffController$12.class
 com\apigateway\controller\CostoBffController$4.class
 com\apigateway\controller\TransaccionBffController$4.class
 com\apigateway\controller\ObraBffController.class

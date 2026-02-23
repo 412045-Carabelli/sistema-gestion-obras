@@ -960,6 +960,10 @@ export class DashboardComponent implements OnInit {
     return Math.max(0, base - this.totalPagosDashboard);
   }
 
+  get dashboardResultado(): number {
+    return this.dashboardCobrado - this.dashboardPagado;
+  }
+
   private obtenerMovimientosPorObra(obraId: number): MovimientoDashboard[] {
     let movimientos = this.flujoCaja?.movimientos || [];
     const rangoFechas = this.filtrosDashboard?.rangoFechas;
@@ -1225,6 +1229,7 @@ export class DashboardComponent implements OnInit {
 
     const cobrosPorObra = new Map<number, number>();
     const pagosPorObraProveedor = new Map<string, number>();
+    const pagosComisionPorObra = new Map<number, number>();
 
     for (const mov of movimientos) {
       const obraId = Number(mov.obraId ?? 0);
@@ -1235,6 +1240,10 @@ export class DashboardComponent implements OnInit {
       }
       if (tipo === 'PAGO') {
         const asociadoTipo = (mov.asociadoTipo || '').toString().toUpperCase();
+        if (asociadoTipo === 'COMISION') {
+          pagosComisionPorObra.set(obraId, (pagosComisionPorObra.get(obraId) ?? 0) + Number(mov.monto ?? 0));
+          continue;
+        }
         if (asociadoTipo !== 'PROVEEDOR') continue;
         const proveedorId = Number(mov.asociadoId ?? 0);
         if (!proveedorId) continue;
@@ -1267,7 +1276,7 @@ export class DashboardComponent implements OnInit {
 
       const clienteNombre = obra?.cliente?.nombre || `Cliente #${obra?.cliente?.id ?? obra?.id_cliente ?? ''}` || 'Cliente sin nombre';
       const obraNombre = obra?.nombre || `Obra #${obraId}`;
-      const totalCobrar = Number(obra?.presupuesto ?? 0);
+      const totalCobrar = Number(obra?.total_con_beneficio ?? obra?.presupuesto ?? 0);
       const cobrado = cobrosPorObra.get(obraId) ?? 0;
       const saldoCobrar = Math.max(0, totalCobrar - cobrado);
 
@@ -1294,7 +1303,11 @@ export class DashboardComponent implements OnInit {
         return nombreA.localeCompare(nombreB);
       });
 
-      const rowSpan = Math.max(1, proveedoresList.length);
+      const comisionTotal = Number(obra?.comision_monto ?? 0);
+      const comisionPagada = pagosComisionPorObra.get(obraId) ?? 0;
+      const comisionPendiente = Math.max(0, comisionTotal - comisionPagada);
+      const extraRows = comisionPendiente > 0 ? 1 : 0;
+      const rowSpan = Math.max(1, proveedoresList.length + extraRows);
       const filasObra: typeof rows = [];
 
       if (proveedoresList.length === 0) {
@@ -1337,8 +1350,28 @@ export class DashboardComponent implements OnInit {
             saldoPagar,
             rowSpan,
             showLeft: index === 0,
-            isLastInObra: index === proveedoresList.length - 1
+            isLastInObra: index === proveedoresList.length - 1 && comisionPendiente <= 0
           });
+        });
+      }
+
+      if (comisionPendiente > 0) {
+        filasObra.push({
+          key: `${obraId}:COMISION`,
+          obraId,
+          clienteNombre,
+          obraNombre,
+          totalCobrar,
+          cobrado,
+          saldoCobrar,
+          proveedorId: null,
+          proveedorNombre: 'Comision',
+          totalPagar: comisionTotal,
+          pagado: comisionPagada,
+          saldoPagar: comisionPendiente,
+          rowSpan,
+          showLeft: proveedoresList.length === 0,
+          isLastInObra: true
         });
       }
 

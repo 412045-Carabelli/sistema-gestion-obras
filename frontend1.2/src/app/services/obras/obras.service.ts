@@ -65,6 +65,10 @@ export class ObrasService {
     return this.http.get<Obra>(`${this.apiUrl}/${id}`);
   }
 
+  getUltimasCondiciones(): Observable<Obra> {
+    return this.http.get<Obra>(`${this.apiUrl}/condiciones/ultima`);
+  }
+
   createObra(obra: ObraPayload): Observable<Obra> {
     return this.http.post<Obra>(this.apiUrl, obra);
   }

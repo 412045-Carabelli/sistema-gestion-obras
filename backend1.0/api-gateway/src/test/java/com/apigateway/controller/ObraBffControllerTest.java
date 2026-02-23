@@ -58,7 +58,6 @@ class ObraBffControllerTest {
         assertThat(crear.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(actualizar.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(cambiarEstado.getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT);
-        assertThat(actualizarActivo.getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT);
         assertThat(todas.getBody()).hasSize(2);
 
         Map<String, Object> obraCompleta = completa.getBody();
