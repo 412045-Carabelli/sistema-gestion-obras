@@ -11,6 +11,12 @@ services:
       - obras_data:/app/data
     environment:
       - SPRING_PROFILES_ACTIVE=prod
+      - SPRING_DATASOURCE_URL=jdbc:sqlserver://sqlserver:1433;databaseName=obras;encrypt=true;trustServerCertificate=true
+      - SPRING_DATASOURCE_USERNAME=sa
+      - SPRING_DATASOURCE_PASSWORD=${MSSQL_SA_PASSWORD:-YourStrong!Passw0rd}
+      - APP_MIGRATION_ENABLED=false
+    depends_on:
+      - sqlserver-init
     restart: unless-stopped
 
   clientes-service:
@@ -22,6 +28,12 @@ services:
       - clientes_data:/app/data
     environment:
       - SPRING_PROFILES_ACTIVE=prod
+      - SPRING_DATASOURCE_URL=jdbc:sqlserver://sqlserver:1433;databaseName=clientes;encrypt=true;trustServerCertificate=true
+      - SPRING_DATASOURCE_USERNAME=sa
+      - SPRING_DATASOURCE_PASSWORD=${MSSQL_SA_PASSWORD:-YourStrong!Passw0rd}
+      - APP_MIGRATION_ENABLED=false
+    depends_on:
+      - sqlserver-init
     restart: unless-stopped
 
   proveedores-service:
@@ -33,6 +45,12 @@ services:
       - proveedores_data:/app/data
     environment:
       - SPRING_PROFILES_ACTIVE=prod
+      - SPRING_DATASOURCE_URL=jdbc:sqlserver://sqlserver:1433;databaseName=proveedores;encrypt=true;trustServerCertificate=true
+      - SPRING_DATASOURCE_USERNAME=sa
+      - SPRING_DATASOURCE_PASSWORD=${MSSQL_SA_PASSWORD:-YourStrong!Passw0rd}
+      - APP_MIGRATION_ENABLED=false
+    depends_on:
+      - sqlserver-init
     restart: unless-stopped
 
   documentos-service:
@@ -50,8 +68,13 @@ services:
       - MINIO_ACCESS_KEY=minioadmin
       - MINIO_SECRET_KEY=minioadmin
       - MINIO_BUCKET=documentos
+      - SPRING_DATASOURCE_URL=jdbc:sqlserver://sqlserver:1433;databaseName=documentos;encrypt=true;trustServerCertificate=true
+      - SPRING_DATASOURCE_USERNAME=sa
+      - SPRING_DATASOURCE_PASSWORD=${MSSQL_SA_PASSWORD:-YourStrong!Passw0rd}
+      - APP_MIGRATION_ENABLED=false
     depends_on:
       - minio
+      - sqlserver-init
     restart: unless-stopped
 
   transacciones-service:
@@ -63,6 +86,12 @@ services:
       - transacciones_data:/app/data
     environment:
       - SPRING_PROFILES_ACTIVE=prod
+      - SPRING_DATASOURCE_URL=jdbc:sqlserver://sqlserver:1433;databaseName=transacciones;encrypt=true;trustServerCertificate=true
+      - SPRING_DATASOURCE_USERNAME=sa
+      - SPRING_DATASOURCE_PASSWORD=${MSSQL_SA_PASSWORD:-YourStrong!Passw0rd}
+      - APP_MIGRATION_ENABLED=false
+    depends_on:
+      - sqlserver-init
     restart: unless-stopped
 
   reportes-service:
@@ -74,6 +103,12 @@ services:
       - reportes_data:/app/data
     environment:
       - SPRING_PROFILES_ACTIVE=prod
+      - SPRING_DATASOURCE_URL=jdbc:sqlserver://sqlserver:1433;databaseName=reportes;encrypt=true;trustServerCertificate=true
+      - SPRING_DATASOURCE_USERNAME=sa
+      - SPRING_DATASOURCE_PASSWORD=${MSSQL_SA_PASSWORD:-YourStrong!Passw0rd}
+      - APP_MIGRATION_ENABLED=false
+    depends_on:
+      - sqlserver-init
     restart: unless-stopped
 
   api-gateway:
@@ -120,6 +155,30 @@ services:
       - MINIO_ROOT_PASSWORD=minioadmin
     restart: unless-stopped
 
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: sqlserver
+    ports:
+      - "1433:1433"
+    environment:
+      - ACCEPT_EULA=Y
+      - MSSQL_SA_PASSWORD=${MSSQL_SA_PASSWORD:-YourStrong!Passw0rd}
+    volumes:
+      - mssql_data:/var/opt/mssql
+    restart: unless-stopped
+
+  sqlserver-init:
+    image: mcr.microsoft.com/mssql-tools:latest
+    container_name: sqlserver_init
+    environment:
+      - MSSQL_SA_PASSWORD=${MSSQL_SA_PASSWORD:-YourStrong!Passw0rd}
+    volumes:
+      - ../db/init:/init:ro
+    depends_on:
+      - sqlserver
+    entrypoint: /bin/bash -c "sleep 20 && /opt/mssql-tools/bin/sqlcmd -S sqlserver -U sa -P $${MSSQL_SA_PASSWORD} -i /init/create-databases.sql"
+    restart: "no"
+
 volumes:
   obras_data:
   clientes_data:
@@ -129,3 +188,4 @@ volumes:
   transacciones_data:
   reportes_data:
   minio_data:
+  mssql_data:

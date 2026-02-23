@@ -9,6 +9,7 @@ C:\Users\Usuario\Desktop\my-work\sistema-gestion-obras\backend1.0\clientes-servi
 C:\Users\Usuario\Desktop\my-work\sistema-gestion-obras\backend1.0\clientes-service\src\main\java\com\clientes\repository\ClienteRepository.java
 C:\Users\Usuario\Desktop\my-work\sistema-gestion-obras\backend1.0\clientes-service\src\main\java\com\clientes\client\TransaccionesClient.java
 C:\Users\Usuario\Desktop\my-work\sistema-gestion-obras\backend1.0\clientes-service\src\main\java\com\clientes\dto\ClienteResponse.java
+C:\Users\Usuario\Desktop\my-work\sistema-gestion-obras\backend1.0\clientes-service\src\main\java\com\clientes\SqliteToSqlServerMigrator.java
 C:\Users\Usuario\Desktop\my-work\sistema-gestion-obras\backend1.0\clientes-service\src\main\java\com\clientes\dto\ObraClienteResponse.java
 C:\Users\Usuario\Desktop\my-work\sistema-gestion-obras\backend1.0\clientes-service\src\main\java\com\clientes\service\ClienteService.java
 C:\Users\Usuario\Desktop\my-work\sistema-gestion-obras\backend1.0\clientes-service\src\main\java\com\clientes\exception\InvalidClienteException.java
