@@ -24,6 +24,7 @@ com\obras\controller\ProgresosController.class
 com\obras\repository\ObraProveedorRepository.class
 com\obras\entity\ObraProveedor$ObraProveedorBuilder.class
 com\obras\dto\ProgresoDTO.class
+com\obras\SqliteToSqlServerMigrator.class
 com\obras\service\impl\ObraProveedorServiceImpl.class
 com\obras\service\impl\TareaServiceImpl.class
 com\obras\service\impl\ObraCostoServiceImpl.class

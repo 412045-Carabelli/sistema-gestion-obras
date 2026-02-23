@@ -3,6 +3,7 @@ import {CommonModule} from '@angular/common';
 import {RouterOutlet} from '@angular/router';
 import {HeaderComponent} from './shared/header/header.component';
 import {SidebarComponent} from './shared/sidebar/sidebar.component';
+import {ToastModule} from 'primeng/toast';
 
 @Component({
   selector: 'app-root',
@@ -12,6 +13,7 @@ import {SidebarComponent} from './shared/sidebar/sidebar.component';
     RouterOutlet,
     HeaderComponent,
     SidebarComponent,
+    ToastModule,
   ],
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.css']

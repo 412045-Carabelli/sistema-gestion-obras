@@ -16,6 +16,7 @@ com\transacciones\entity\Factura$FacturaBuilder.class
 com\transacciones\entity\Transaccion.class
 com\transacciones\controller\TipoTransaccionController.class
 com\transacciones\dto\EstadoResponse.class
+com\transacciones\SqliteToSqlServerMigrator.class
 com\transacciones\dto\FacturaDto$FacturaDtoBuilder.class
 com\transacciones\service\ObraCostoClient.class
 com\transacciones\config\RestTemplateConfig.class

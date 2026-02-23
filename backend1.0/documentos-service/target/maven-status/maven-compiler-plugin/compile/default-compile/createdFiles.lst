@@ -1,6 +1,7 @@
 com\documentos\config\MinioConfig.class
 com\documentos\mapper\DocumentosMapper.class
 com\documentos\dto\EstadoResponse.class
+com\documentos\SqliteToSqlServerMigrator.class
 com\documentos\repository\DocumentoRepository.class
 com\documentos\entity\TipoDocumento.class
 com\documentos\service\DocumentoService.class

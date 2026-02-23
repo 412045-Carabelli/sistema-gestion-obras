@@ -25,6 +25,7 @@ proveedores\entity\Movimiento.class
 proveedores\repository\TipoProveedorRepository.class
 proveedores\integration\ObrasClient$ObraResponse.class
 proveedores\integration\ObrasClient$2.class
+proveedores\SqliteToSqlServerMigrator.class
 proveedores\controller\ProveedoresBffController.class
 proveedores\dto\NombreRequest.class
 proveedores\entity\TipoProveedor.class

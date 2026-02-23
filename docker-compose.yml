@@ -17,6 +17,7 @@ services:
     environment:
       - SPRING_PROFILES_ACTIVE=prod
       - SPRING_DATASOURCE_URL=jdbc:sqlserver://sqlserver:1433;databaseName=obras;encrypt=true;trustServerCertificate=true
+      - SPRING_DATASOURCE_DRIVER_CLASS_NAME=com.microsoft.sqlserver.jdbc.SQLServerDriver
       - SPRING_DATASOURCE_USERNAME=sa
       - SPRING_DATASOURCE_PASSWORD=${MSSQL_SA_PASSWORD:-YourStrong!Passw0rd}
       - APP_MIGRATION_ENABLED=${APP_MIGRATION_ENABLED:-true}
@@ -42,6 +43,7 @@ services:
     environment:
       - SPRING_PROFILES_ACTIVE=prod
       - SPRING_DATASOURCE_URL=jdbc:sqlserver://sqlserver:1433;databaseName=clientes;encrypt=true;trustServerCertificate=true
+      - SPRING_DATASOURCE_DRIVER_CLASS_NAME=com.microsoft.sqlserver.jdbc.SQLServerDriver
       - SPRING_DATASOURCE_USERNAME=sa
       - SPRING_DATASOURCE_PASSWORD=${MSSQL_SA_PASSWORD:-YourStrong!Passw0rd}
       - APP_MIGRATION_ENABLED=${APP_MIGRATION_ENABLED:-true}
@@ -67,6 +69,7 @@ services:
     environment:
       - SPRING_PROFILES_ACTIVE=prod
       - SPRING_DATASOURCE_URL=jdbc:sqlserver://sqlserver:1433;databaseName=proveedores;encrypt=true;trustServerCertificate=true
+      - SPRING_DATASOURCE_DRIVER_CLASS_NAME=com.microsoft.sqlserver.jdbc.SQLServerDriver
       - SPRING_DATASOURCE_USERNAME=sa
       - SPRING_DATASOURCE_PASSWORD=${MSSQL_SA_PASSWORD:-YourStrong!Passw0rd}
       - APP_MIGRATION_ENABLED=${APP_MIGRATION_ENABLED:-true}
@@ -98,6 +101,7 @@ services:
       - MINIO_SECRET_KEY=minioadmin
       - MINIO_BUCKET=documentos
       - SPRING_DATASOURCE_URL=jdbc:sqlserver://sqlserver:1433;databaseName=documentos;encrypt=true;trustServerCertificate=true
+      - SPRING_DATASOURCE_DRIVER_CLASS_NAME=com.microsoft.sqlserver.jdbc.SQLServerDriver
       - SPRING_DATASOURCE_USERNAME=sa
       - SPRING_DATASOURCE_PASSWORD=${MSSQL_SA_PASSWORD:-YourStrong!Passw0rd}
       - APP_MIGRATION_ENABLED=${APP_MIGRATION_ENABLED:-true}
@@ -125,6 +129,7 @@ services:
     environment:
       - SPRING_PROFILES_ACTIVE=prod
       - SPRING_DATASOURCE_URL=jdbc:sqlserver://sqlserver:1433;databaseName=transacciones;encrypt=true;trustServerCertificate=true
+      - SPRING_DATASOURCE_DRIVER_CLASS_NAME=com.microsoft.sqlserver.jdbc.SQLServerDriver
       - SPRING_DATASOURCE_USERNAME=sa
       - SPRING_DATASOURCE_PASSWORD=${MSSQL_SA_PASSWORD:-YourStrong!Passw0rd}
       - APP_MIGRATION_ENABLED=${APP_MIGRATION_ENABLED:-true}
@@ -193,6 +198,7 @@ services:
     environment:
       - SPRING_PROFILES_ACTIVE=prod
       - SPRING_DATASOURCE_URL=jdbc:sqlserver://sqlserver:1433;databaseName=reportes;encrypt=true;trustServerCertificate=true
+      - SPRING_DATASOURCE_DRIVER_CLASS_NAME=com.microsoft.sqlserver.jdbc.SQLServerDriver
       - SPRING_DATASOURCE_USERNAME=sa
       - SPRING_DATASOURCE_PASSWORD=${MSSQL_SA_PASSWORD:-YourStrong!Passw0rd}
       - APP_MIGRATION_ENABLED=${APP_MIGRATION_ENABLED:-true}

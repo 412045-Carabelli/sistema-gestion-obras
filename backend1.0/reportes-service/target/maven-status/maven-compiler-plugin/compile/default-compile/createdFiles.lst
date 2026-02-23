@@ -53,6 +53,7 @@ com\reportes\dto\response\IngresosEgresosResponse.class
 com\reportes\dto\response\ComisionesFrontResponse.class
 com\reportes\dto\response\PendientesResponse.class
 com\reportes\entity\Comision.class
+com\reportes\SqliteToSqlServerMigrator.class
 com\reportes\dto\response\CuentaCorrienteProveedorResponse$Movimiento.class
 com\reportes\dto\response\CuentaCorrienteObraResponse$Movimiento.class
 com\reportes\dto\response\DashboardFinancieroResponse$Flujo.class
