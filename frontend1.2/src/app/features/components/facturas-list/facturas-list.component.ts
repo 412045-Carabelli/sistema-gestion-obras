@@ -24,6 +24,7 @@ interface FacturaView extends Factura {
   clienteNombre?: string;
   obraNombre?: string;
   porCobrarObra?: number;
+  porFacturarObra?: number;
   descripcionTexto?: string;
 }
 
@@ -59,6 +60,26 @@ export class FacturasListComponent implements OnInit {
 
   facturas: FacturaView[] = [];
   facturasFiltradas: FacturaView[] = [];
+  obrasFacturacion: Array<{
+    id: number;
+    nombre: string;
+    clienteNombre: string;
+    estado: string;
+    presupuesto: number;
+    facturado: number;
+    porFacturar: number;
+    facturas: FacturaView[];
+  }> = [];
+  obrasFacturacionFiltradas: Array<{
+    id: number;
+    nombre: string;
+    clienteNombre: string;
+    estado: string;
+    presupuesto: number;
+    facturado: number;
+    porFacturar: number;
+    facturas: FacturaView[];
+  }> = [];
   clientes: Cliente[] = [];
   obras: Obra[] = [];
   cobrosPorObra: Record<number, number> = {};
@@ -73,6 +94,7 @@ export class FacturasListComponent implements OnInit {
   clientesOptions: SelectOption<number | 'todos'>[] = [];
   obrasOptions: SelectOption<number | 'todos'>[] = [];
   datosCargados = false;
+  private expandedObras = new Set<number>();
 
   constructor(
     private router: Router,
@@ -120,7 +142,10 @@ export class FacturasListComponent implements OnInit {
           const obraId = f.id_obra != null ? Number(f.id_obra) : null;
           const presupuesto = obraId != null ? (this.presupuestoPorObra[obraId] ?? 0) : 0;
           const facturado = obraId != null ? (this.facturadoPorObra[obraId] ?? 0) : 0;
-          const porCobrar = obraId != null ? Math.max(0, presupuesto - facturado) : undefined;
+          const porFacturar = obraId != null && this.obraEsFacturable(obraId)
+            ? Math.max(0, presupuesto - facturado)
+            : undefined;
+          const porCobrar = this.obtenerPorCobrarFactura(f);
           return {
             ...f,
             clienteNombre: clientesIndex.get(Number(f.id_cliente)) || 'Sin cliente',
@@ -128,6 +153,7 @@ export class FacturasListComponent implements OnInit {
               ? (obrasIndex.get(obraId) || `Obra #${obraId}`)
               : 'Sin obra',
             porCobrarObra: porCobrar,
+            porFacturarObra: porFacturar,
             descripcionTexto: this.stripHtml(f.descripcion)
           };
         });
@@ -139,6 +165,7 @@ export class FacturasListComponent implements OnInit {
         this.updateObrasOptions();
 
         this.applyFilter();
+        this.construirListadoObras();
         this.cargarCobrosPorObra();
       },
       error: () => {
@@ -174,6 +201,26 @@ export class FacturasListComponent implements OnInit {
       return matchesSearch && matchesCliente && matchesObra && matchesActivo;
     })
       .sort((a, b) => Number(b.id ?? 0) - Number(a.id ?? 0));
+
+    this.obrasFacturacionFiltradas = this.obrasFacturacion
+      .filter(obra => {
+        const search = this.searchValue.trim().toLowerCase();
+        const matchesSearch = search
+          ? (obra.clienteNombre || '').toLowerCase().includes(search) ||
+            (obra.nombre || '').toLowerCase().includes(search) ||
+            String(obra.id || '').includes(search)
+          : true;
+        const matchesCliente =
+          this.clienteFiltro === 'todos'
+            ? true
+            : Number(this.obrasById.get(obra.id)?.cliente?.id) === Number(this.clienteFiltro);
+        const matchesObra =
+          this.obraFiltro === 'todos'
+            ? true
+            : Number(obra.id) === Number(this.obraFiltro);
+        return matchesSearch && matchesCliente && matchesObra;
+      })
+      .sort((a, b) => Number(b.id ?? 0) - Number(a.id ?? 0));
   }
 
   onClienteChange() {
@@ -207,6 +254,20 @@ export class FacturasListComponent implements OnInit {
     this.router.navigate(['/facturas', factura.id]);
   }
 
+  toggleObraRow(obraId: number) {
+    const id = Number(obraId);
+    if (!id) return;
+    if (this.expandedObras.has(id)) {
+      this.expandedObras.delete(id);
+    } else {
+      this.expandedObras.add(id);
+    }
+  }
+
+  isObraExpanded(obraId: number): boolean {
+    return this.expandedObras.has(Number(obraId));
+  }
+
 
   get totalPresupuesto(): number {
     return this.obrasScopeRequiereFactura.reduce((sum, o) => sum + this.calcularPresupuestoObra(o), 0);
@@ -220,9 +281,8 @@ export class FacturasListComponent implements OnInit {
     return this.obrasScopeRequiereFactura.reduce((sum, obra) => {
       const obraId = Number(obra.id ?? 0);
       const facturado = this.facturadoPorObra[obraId] ?? 0;
-      if (facturado > 0) return sum;
       const presupuesto = this.presupuestoPorObra[obraId] ?? this.calcularPresupuestoObra(obra);
-      return sum + Number(presupuesto || 0);
+      return sum + Math.max(0, Number(presupuesto || 0) - facturado);
     }, 0);
   }
 
@@ -236,12 +296,8 @@ export class FacturasListComponent implements OnInit {
   }
 
   get totalPorCobrar(): number {
-    return this.obrasScopeRequiereFactura.reduce((sum, obra) => {
-      const obraId = Number(obra.id ?? 0);
-      const facturado = this.facturadoPorObra[obraId] ?? 0;
-      if (facturado <= 0) return sum;
-      const cobrado = this.cobrosPorObra[obraId] ?? 0;
-      return sum + Math.max(0, facturado - cobrado);
+    return this.facturasScopeRequiereFactura.reduce((sum, factura) => {
+      return sum + this.obtenerPorCobrarFactura(factura);
     }, 0);
   }
 
@@ -256,11 +312,11 @@ export class FacturasListComponent implements OnInit {
   }
 
   private get facturasScopeRequiereFactura(): FacturaView[] {
-    return this.facturasScope.filter(f => this.obraRequiereFactura(f.id_obra));
+    return this.facturasScope.filter(f => this.obraRequiereFactura(f.id_obra) && this.obraEsFacturable(f.id_obra));
   }
 
   private get obrasScopeRequiereFactura(): Obra[] {
-    return this.obrasScope.filter(o => !!o.requiere_factura);
+    return this.obrasScope.filter(o => !!o.requiere_factura && this.obraEsFacturable(o.id));
   }
 
   private get obrasScope(): Obra[] {
@@ -277,6 +333,15 @@ export class FacturasListComponent implements OnInit {
     const id = Number(idObra ?? 0);
     if (!id) return false;
     return !!this.obrasById.get(id)?.requiere_factura;
+  }
+
+  private obraEsFacturable(idObra?: number | null): boolean {
+    const id = Number(idObra ?? 0);
+    if (!id) return false;
+    const obra = this.obrasById.get(id);
+    if (!obra) return false;
+    const estado = this.normalizarEstado(obra.obra_estado);
+    return ['ADJUDICADA', 'EN_PROGRESO', 'FINALIZADA', 'FACTURADA', 'COBRADA'].includes(estado);
   }
 
   private cargarCobrosPorObra() {
@@ -305,12 +370,61 @@ export class FacturasListComponent implements OnInit {
             .reduce((sum, m) => sum + Number(m.monto || 0), 0);
         });
         this.cobrosPorObra = cobros;
+        this.facturas = this.facturas.map(f => ({
+          ...f,
+          porCobrarObra: this.obtenerPorCobrarFactura(f)
+        }));
+        this.construirListadoObras();
+        this.applyFilter();
         this.datosCargados = true;
       },
       error: () => {
         this.datosCargados = true;
       }
     });
+  }
+
+  toggleEstadoFactura(factura: FacturaView, event?: Event) {
+    event?.stopPropagation();
+    if (!factura?.id) return;
+    const estadoActual = (factura.estado || 'EMITIDA').toString().toUpperCase();
+    const nuevoEstado = estadoActual === 'COBRADA' ? 'EMITIDA' : 'COBRADA';
+    const payload = {
+      id_cliente: Number(factura.id_cliente),
+      id_obra: factura.id_obra != null ? Number(factura.id_obra) : null,
+      monto: Number(factura.monto || 0),
+      monto_restante: nuevoEstado === 'COBRADA' ? 0 : this.obtenerPorCobrarFactura(factura),
+      fecha: this.formatDate(factura.fecha),
+      descripcion: factura.descripcion || '',
+      estado: nuevoEstado,
+      impacta_cta_cte: !!factura.impacta_cta_cte
+    };
+
+    this.facturasService.updateFactura(Number(factura.id), payload).subscribe({
+      next: (updated) => {
+        this.facturas = this.facturas.map(f => {
+          if (Number(f.id) !== Number(factura.id)) return f;
+          const porCobrar = this.obtenerPorCobrarFactura({
+            ...f,
+            ...updated
+          });
+          return {
+            ...f,
+            ...updated,
+            porCobrarObra: porCobrar
+          };
+        });
+        this.applyFilter();
+      }
+    });
+  }
+
+  private obtenerPorCobrarFactura(factura: Factura): number {
+    const estado = (factura.estado || 'EMITIDA').toString().toUpperCase();
+    if (estado === 'COBRADA') return 0;
+    const restante = Number((factura as any).monto_restante ?? NaN);
+    if (Number.isFinite(restante) && restante > 0) return restante;
+    return Number(factura.monto ?? 0);
   }
 
   private esCobro(mov: Transaccion): boolean {
@@ -354,6 +468,61 @@ export class FacturasListComponent implements OnInit {
     return totalConBeneficio * (1 + (comisionPorc / 100));
   }
 
+  private construirListadoObras() {
+    const facturasPorObra = new Map<number, FacturaView[]>();
+    this.facturas.forEach(f => {
+      const obraId = Number(f.id_obra ?? 0);
+      if (!obraId) return;
+      if (!facturasPorObra.has(obraId)) facturasPorObra.set(obraId, []);
+      facturasPorObra.get(obraId)!.push(f);
+    });
+
+    const obrasFacturables = this.obras
+      .filter(o => o.id != null)
+      .filter(o => this.obraRequiereFactura(o.id))
+      .filter(o => this.obraEsFacturable(o.id));
+
+    this.obrasFacturacion = obrasFacturables.map(o => {
+      const obraId = Number(o.id);
+      const presupuesto = this.presupuestoPorObra[obraId] ?? this.calcularPresupuestoObra(o);
+      const facturado = this.facturadoPorObra[obraId] ?? 0;
+      const porFacturar = Math.max(0, presupuesto - facturado);
+      return {
+        id: obraId,
+        nombre: o.nombre || `Obra #${obraId}`,
+        clienteNombre: o.cliente?.nombre || 'Sin cliente',
+        estado: this.normalizarEstado(o.obra_estado),
+        presupuesto,
+        facturado,
+        porFacturar,
+        facturas: (facturasPorObra.get(obraId) || []).sort((a, b) => Number(b.id ?? 0) - Number(a.id ?? 0))
+      };
+    });
+  }
+
+  private normalizarEstado(raw: any): string {
+    if (!raw) return '';
+    if (typeof raw === 'string') return this.sanitizarEstado(raw);
+    const nombre = raw?.nombre ?? raw?.name ?? raw?.label ?? raw?.estado ?? '';
+    return this.sanitizarEstado(String(nombre || ''));
+  }
+
+  private sanitizarEstado(valor: string): string {
+    return valor
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .toUpperCase()
+      .replace(/[^A-Z0-9]+/g, '_')
+      .replace(/^_+|_+$/g, '');
+  }
+
+  private formatDate(value: any): string {
+    if (!value) return '';
+    if (value instanceof Date) {
+      return value.toISOString().split('T')[0];
+    }
+    return String(value).split('T')[0];
+  }
   private stripHtml(html?: string): string {
     if (!html) return '';
     return html.replace(/<[^>]*>/g, '').trim();

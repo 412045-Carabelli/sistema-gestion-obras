@@ -11,7 +11,9 @@ public interface ObraService {
     ObraDTO crear(ObraDTO dto);
     Optional<ObraDTO> obtener(Long id);
     Page<ObraDTO> listar(Pageable p);
+    Page<ObraDTO> listarPorCliente(Long idCliente, Pageable p);
     ObraDTO actualizar(Long id, ObraDTO dto);
+    Optional<ObraDTO> obtenerUltimaCondicion();
     void cambiarEstado(Long idObra, com.obras.enums.EstadoObraEnum estado);
     void activar(Long idObra);
 }

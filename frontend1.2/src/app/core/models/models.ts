@@ -294,6 +294,8 @@ export interface CuentaCorrienteMovimiento {
   referencia?: string;
   tipo: string;
   monto: number;
+  proveedorId?: number;
+  proveedorNombre?: string;
   asociadoTipo?: string;
   asociadoId?: number;
   cobrosAcumulados?: number;

@@ -8,6 +8,7 @@ export interface FacturaPayload {
   id_cliente: number;
   id_obra?: number | null;
   monto: number;
+  monto_restante?: number;
   fecha: string;
   descripcion?: string;
   estado?: string;
@@ -75,7 +76,9 @@ export class FacturasService {
       formData.append('id_obra', String(payload.id_obra));
     }
     formData.append('monto', String(payload.monto));
-    formData.append('monto_restante', '0');
+    if (payload.monto_restante != null) {
+      formData.append('monto_restante', String(payload.monto_restante));
+    }
     formData.append('fecha', payload.fecha);
     if (payload.descripcion != null) {
       formData.append('descripcion', payload.descripcion);
