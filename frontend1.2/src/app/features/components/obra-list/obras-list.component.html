@@ -1,5 +1,5 @@
 @defer (when datosCargados) {
-  <div class="flex flex-col gap-4">
+  <div class="flex flex-col gap-4 h-full min-h-0">
     <!-- Filtros -->
     <div class="bg-white p-4 rounded-lg border border-gray-200">
       <div class="grid grid-cols-1 md:grid-cols-12 gap-4">
@@ -48,70 +48,20 @@
     </div>
 
     <!-- Tabla -->
-    <div class="bg-white rounded-lg border border-gray-200 overflow-hidden">
-      <p-table
-        [rowHover]="true"
+    <div class="bg-white rounded-lg border border-gray-200 overflow-hidden flex-1 min-h-0">
+      <app-generic-table
         [value]="obrasFiltradas"
-        [paginator]="true"
+        [columns]="columns"
+        [customTemplates]="customTemplates"
         [rows]="8"
-        responsiveLayout="scroll"
-        styleClass="p-datatable-sm">
-
-        <ng-template pTemplate="header">
-          <tr>
-            <th class="text-left font-semibold">Obra</th>
-            <th class="text-left font-semibold">Cliente</th>
-            <th class="text-left font-semibold">Estado</th>
-            <th class="text-left font-semibold">Fecha inicio</th>
-            <th class="text-right font-semibold">Presupuesto</th>
-          </tr>
-        </ng-template>
-
-        <ng-template let-obra pTemplate="body">
-          <tr (click)="onRowClick(obra)" class="cursor-pointer hover:bg-gray-50 transition-colors">
-            <td>
-              <div class="flex flex-col gap-1">
-                <span class="font-semibold text-gray-900 text-sm">{{ obra.nombre }}</span>
-                <span class="text-xs text-gray-500">{{ obra.direccion }}</span>
-              </div>
-            </td>
-            <td class="text-gray-700">{{ obra.cliente.nombre }}</td>
-            <td>
-              <p-tag [severity]="getEstadoSeverity(obra.id_estado_obra)"
-                     [value]="estadoLabelObra(obra) | estadoFormat"
-                     styleClass="text-xs"></p-tag>
-            </td>
-            <td>
-              @if (obra.fecha_inicio) {
-                <div class="flex flex-col gap-1 text-xs text-gray-600">
-                  <span>Desde: {{ obra.fecha_inicio | date:'dd/MM/yy' }}</span>
-                  @if (obra.fecha_fin) {
-                    <span>Hasta: {{ obra.fecha_fin | date:'dd/MM/yy' }}</span>
-                  }
-                </div>
-              } @else {
-                <span class="text-gray-400 text-sm">-</span>
-              }
-            </td>
-            <td class="text-right font-medium text-gray-900">
-              {{ obra.presupuesto | currency:'ARS':'symbol-narrow':'1.0-0' }}
-            </td>
-          </tr>
-        </ng-template>
-
-        <ng-template pTemplate="emptymessage">
-          <tr>
-            <td class="text-center py-10" colspan="5">
-              <div class="flex flex-col items-center justify-center gap-2 text-gray-500">
-                <i class="pi pi-inbox text-3xl"></i>
-                <p class="text-base font-medium">No hay registros para mostrar</p>
-                <p class="text-sm">Ajusta los filtros o crea un nuevo registro.</p>
-              </div>
-            </td>
-          </tr>
-        </ng-template>
-      </p-table>
+        [rowsPerPageOptions]="[8, 16, 32]"
+        [rowClick]="onRowClick.bind(this)"
+        [rowClass]="obraRowClass"
+        emptyTitle="No hay registros para mostrar"
+        emptySubtitle="Ajusta los filtros o crea un nuevo registro.">
+      </app-generic-table>
     </div>
+
   </div>
 } @placeholder {
   <div class="flex flex-col gap-4 animate-pulse">
@@ -133,3 +83,35 @@
     </div>
   </div>
 }
+
+<ng-template #obraCell let-obra>
+  <div class="flex flex-col gap-1">
+    <span class="font-semibold text-gray-900 text-sm">{{ obra.nombre }}</span>
+    <span class="text-xs text-gray-500">{{ obra.direccion }}</span>
+  </div>
+</ng-template>
+
+<ng-template #estadoCell let-obra>
+  <p-tag
+    [severity]="getEstadoSeverity(obra.id_estado_obra)"
+    [value]="estadoLabelObra(obra) | estadoFormat"
+    styleClass="text-xs">
+  </p-tag>
+</ng-template>
+
+<ng-template #fechaCell let-obra>
+  @if (obra.fecha_inicio) {
+    <div class="flex flex-col gap-1 text-xs text-gray-600">
+      <span>Desde: {{ obra.fecha_inicio | date:'dd/MM/yy' }}</span>
+      @if (obra.fecha_fin) {
+        <span>Hasta: {{ obra.fecha_fin | date:'dd/MM/yy' }}</span>
+      }
+    </div>
+  } @else {
+    <span class="text-gray-400 text-sm">-</span>
+  }
+</ng-template>
+
+<ng-template #presupuestoCell let-obra>
+  {{ obra.presupuesto | currency:'ARS':'symbol-narrow':'1.0-0' }}
+</ng-template>

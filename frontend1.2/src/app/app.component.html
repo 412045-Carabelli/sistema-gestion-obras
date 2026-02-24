@@ -2,7 +2,7 @@
 <div class="flex flex-col h-screen bg-gray-50">
 
   <!-- 🧭 Header -->
-  <app-header (toggleMenu)="toggleSidebar()"></app-header>
+  <app-header [sidebarOpen]="sidebarVisible" (toggleMenu)="toggleSidebar()"></app-header>
 
   <!-- 🧭 Container principal -->
   <div class="flex flex-1 overflow-hidden">

@@ -1,7 +1,6 @@
-import {Component, EventEmitter, OnInit, Output} from '@angular/core';
+import {Component, EventEmitter, OnInit, Output, TemplateRef, ViewChild} from '@angular/core';
 import {CommonModule} from '@angular/common';
 import {FormsModule} from '@angular/forms';
-import {TableModule} from 'primeng/table';
 import {IconField} from 'primeng/iconfield';
 import {InputIcon} from 'primeng/inputicon';
 import {InputText} from 'primeng/inputtext';
@@ -13,6 +12,7 @@ import {Proveedor} from '../../../core/models/models';
 import {ProveedoresService} from '../../../services/proveedores/proveedores.service';
 import {Router} from '@angular/router';
 import {ReportesService} from '../../../services/reportes/reportes.service';
+import {GenericTableComponent, GenericColumn} from '../../../shared/generic-table/generic-table.component';
 
 interface TipoOption { label: string; name: string | 'todos'; }
 
@@ -22,17 +22,20 @@ interface TipoOption { label: string; name: string | 'todos'; }
   imports: [
     CommonModule,
     FormsModule,
-    TableModule,
     IconField,
     InputIcon,
     InputText,
     Select,
     ButtonModule,
     CheckboxModule,
+    GenericTableComponent
   ],
   templateUrl: './proveedores-list.component.html'
 })
 export class ProveedoresListComponent implements OnInit {
+  @ViewChild('telefonoCell', {static: true}) telefonoCell!: TemplateRef<any>;
+  @ViewChild('saldoCell', {static: true}) saldoCell!: TemplateRef<any>;
+
   proveedores: Proveedor[] = [];
   proveedoresFiltrados: Proveedor[] = [];
   tiposRecords: { label: string; name: string }[] = [];
@@ -44,6 +47,8 @@ export class ProveedoresListComponent implements OnInit {
   mostrarInactivos = false;
 
   loading = true;
+  columns: GenericColumn<Proveedor>[] = [];
+  customTemplates: Record<string, TemplateRef<any>> = {};
 
   @Output() proveedorClick = new EventEmitter<Proveedor>();
 
@@ -55,6 +60,19 @@ export class ProveedoresListComponent implements OnInit {
   }
 
   ngOnInit() {
+    this.columns = [
+      {key: 'nombre', header: 'Nombre', field: 'nombre'},
+      {key: 'tipo', header: 'Tipo', value: (row) => this.formatearTipo((row as any).tipo_proveedor)},
+      {key: 'contacto', header: 'Contacto', field: 'contacto'},
+      {key: 'telefono', header: 'Telefono', type: 'custom'},
+      {key: 'email', header: 'Email', field: 'email'},
+      {key: 'saldo', header: 'Saldo', type: 'custom', align: 'right'}
+    ];
+    this.customTemplates = {
+      telefono: this.telefonoCell,
+      saldo: this.saldoCell
+    };
+
     forkJoin({ proveedores: this.service.getProveedoresAll(), tipos: this.service.getTipos() }).subscribe({
       next: ({proveedores, tipos}) => {
         this.proveedores = proveedores;
@@ -99,6 +117,10 @@ export class ProveedoresListComponent implements OnInit {
   irAlDetalle(proveedor: any) {
     this.proveedorClick.emit(proveedor);
     this.router.navigate(['/proveedores', proveedor.id]);
+  }
+
+  proveedorRowClass(): string {
+    return 'hover:bg-gray-200 transition';
   }
 
   onTipoChange() {

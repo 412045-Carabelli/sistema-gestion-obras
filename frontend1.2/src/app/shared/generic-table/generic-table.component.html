@@ -1,0 +1,78 @@
+<p-table
+  [value]="value"
+  [rowHover]="rowHover"
+  [paginator]="paginator"
+  [rows]="rows"
+  [rowsPerPageOptions]="rowsPerPageOptions"
+  responsiveLayout="scroll"
+  [styleClass]="tableClass">
+
+  <ng-template pTemplate="header">
+    <tr>
+      @for (col of columns; track col.key) {
+        <th
+          class="text-left font-semibold"
+          [class.text-right]="col.align === 'right'"
+          [class.text-center]="col.align === 'center'"
+          [style.width]="col.width || null">
+          {{ col.header }}
+        </th>
+      }
+    </tr>
+  </ng-template>
+
+  <ng-template pTemplate="body" let-row>
+    @if (bodyTemplate) {
+      <ng-container *ngTemplateOutlet="bodyTemplate; context: {$implicit: row}"></ng-container>
+    } @else {
+      <tr
+        [class.cursor-pointer]="!!rowClick"
+        [ngClass]="rowClass ? rowClass(row) : null"
+        (click)="handleRowClick(row)">
+        @for (col of columns; track col.key) {
+          <td
+            [class.text-right]="col.align === 'right'"
+            [class.text-center]="col.align === 'center'">
+            @switch (col.type) {
+              @case ('tag') {
+                <p-tag
+                  [value]="col.tagValue ? col.tagValue(row) : formatValue(col, row)"
+                  [severity]="col.tagSeverity ? col.tagSeverity(row) : undefined">
+                </p-tag>
+              }
+              @case ('custom') {
+                <ng-container
+                  *ngTemplateOutlet="customTemplates[col.key]; context: {$implicit: row, value: resolveValue(col, row)}">
+                </ng-container>
+              }
+              @case ('actions') {
+                <div class="flex items-center gap-1 justify-end">
+                  @for (action of rowActions; track action.icon) {
+                    @if (shouldShowAction(action, row)) {
+                      <p-button
+                        [icon]="action.icon"
+                        [text]="action.text ?? true"
+                        [severity]="action.severity ?? 'secondary'"
+                        [disabled]="getActionDisabled(action, row)"
+                        (onClick)="onActionClick($event, action, row)">
+                      </p-button>
+                    }
+                  }
+                </div>
+              }
+              @default {
+                <span
+                  [class.truncate]="col.truncate"
+                  [title]="col.truncate ? formatValue(col, row) : null">
+                  {{ formatValue(col, row) }}
+                </span>
+              }
+            }
+          </td>
+        }
+      </tr>
+    }
+  </ng-template>
+
+  <ng-template pTemplate="emptymessage"></ng-template>
+</p-table>

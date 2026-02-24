@@ -1,6 +1,7 @@
 <p-toast position="bottom-right"></p-toast>
 <p-confirmDialog></p-confirmDialog>
 
+<div class="flex flex-col h-full min-h-0">
 <div class="flex justify-between items-center">
   @switch (true) {
     @case (currentRoute === '/facturas') {
@@ -131,6 +132,7 @@
   }
 </div>
 
-<div class="p-5 bg-gray-50">
+<div class="p-5 bg-gray-50 flex-1 min-h-0">
   <router-outlet></router-outlet>
+</div>
 </div>

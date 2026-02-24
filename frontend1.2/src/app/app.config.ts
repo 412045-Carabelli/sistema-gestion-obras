@@ -10,6 +10,7 @@ import localeEsAr from '@angular/common/locales/es-AR'
 import {MessageService} from 'primeng/api';
 import {LoadingServerInterceptor} from './core/loading-server.interceptor';
 import {ResponseAlertInterceptor} from './core/response-alert.interceptor';
+import {UserNameInterceptor} from './core/user-name.interceptor';
 
 registerLocaleData(localeEsAr);
 
@@ -38,6 +39,11 @@ export const appConfig: ApplicationConfig = {
     {
       provide: HTTP_INTERCEPTORS,
       useClass: ResponseAlertInterceptor,
+      multi: true
+    },
+    {
+      provide: HTTP_INTERCEPTORS,
+      useClass: UserNameInterceptor,
       multi: true
     }
 

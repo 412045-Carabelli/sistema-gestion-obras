@@ -1,5 +1,5 @@
 @defer (when datosCargados) {
-  <div class="flex flex-col gap-4">
+  <div class="flex flex-col gap-4 h-full min-h-0">
     <!-- Barra de filtros -->
     <div class="bg-white p-4 rounded-lg border border-gray-200">
       <div class="grid grid-cols-1 md:grid-cols-12 gap-4">
@@ -49,52 +49,18 @@
     </div>
 
     <!-- Tabla -->
-    <div class="bg-white rounded-lg border border-gray-200 overflow-hidden">
-      <p-table
-        [rowHover]="true"
-        [tableStyle]="{ 'min-width': '100%' }"
+    <div class="bg-white rounded-lg border border-gray-200 overflow-hidden flex-1 min-h-0">
+      <app-generic-table
         [value]="clientesFiltrados"
-        [paginator]="true"
+        [columns]="columns"
+        [customTemplates]="customTemplates"
         [rows]="8"
-        responsiveLayout="scroll"
-        class="w-full"
-        styleClass="p-datatable-sm">
-        <ng-template pTemplate="header">
-          <tr>
-            <th class="px-3 py-2 text-left">Nombre</th>
-            <th class="px-3 py-2 text-left">Contacto</th>
-            <th class="px-3 py-2 text-left">Direccion</th>
-            <th class="px-3 py-2 text-left">DNI/CUIT</th>
-            <th class="px-3 py-2 text-left">Telefono</th>
-            <th class="px-3 py-2 text-left">Email</th>
-            <th class="px-3 py-2 text-right">Saldo</th>
-          </tr>
-        </ng-template>
-
-        <ng-template let-c pTemplate="body">
-          <tr (click)="onRowClick(c)" class="hover:bg-gray-100 cursor-pointer">
-            <td class="px-3 py-2">{{ c.nombre }}</td>
-            <td class="px-3 py-2">{{ c.contacto || '-' }}</td>
-            <td class="px-3 py-2">{{ c.direccion || '-' }}</td>
-            <td class="px-3 py-2">{{ c.cuit || '-' }}</td>
-            <td class="px-3 py-2">{{ c.telefono || '-' }}</td>
-            <td class="px-3 py-2">{{ c.email || '-' }}</td>
-            <td class="px-3 py-2 text-right">{{ (c.saldoCliente ?? 0) | currency:'ARS':'symbol-narrow':'1.0-2' }}</td>
-          </tr>
-        </ng-template>
-
-        <ng-template pTemplate="emptymessage">
-          <tr>
-            <td class="text-center py-10" colspan="9">
-              <div class="flex flex-col items-center justify-center gap-2 text-gray-500">
-                <i class="pi pi-inbox text-3xl"></i>
-                <p class="text-base font-medium">No hay registros para mostrar</p>
-                <p class="text-sm">Ajusta los filtros o crea un nuevo registro.</p>
-              </div>
-            </td>
-          </tr>
-        </ng-template>
-      </p-table>
+        [rowsPerPageOptions]="[8, 16, 32]"
+        [rowClick]="onRowClick.bind(this)"
+        [rowClass]="clienteRowClass"
+        emptyTitle="No hay registros para mostrar"
+        emptySubtitle="Ajusta los filtros o crea un nuevo registro.">
+      </app-generic-table>
     </div>
   </div>
 } @placeholder {
@@ -116,3 +82,7 @@
     </div>
   </div>
 }
+
+<ng-template #saldoCell let-c>
+  {{ (c.saldoCliente ?? 0) | currency:'ARS':'symbol-narrow':'1.0-2' }}
+</ng-template>

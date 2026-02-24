@@ -1,3 +1,76 @@
 @import "tailwindcss";
 @import "primeicons/primeicons.css";
 @import "quill/dist/quill.snow.css";
+
+/* Normalización global de tablas PrimeNG */
+.p-datatable {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.p-datatable .p-datatable-wrapper {
+  flex: 1 1 auto;
+  height: 100%;
+}
+
+.p-datatable .p-datatable-table-container {
+  height: 100%;
+  overflow: hidden;
+}
+
+.p-datatable.table-auto {
+  height: auto;
+}
+
+.p-datatable.table-auto .p-datatable-wrapper {
+  height: auto;
+}
+
+.p-datatable.table-auto .p-datatable-table-container {
+  height: auto;
+  overflow: auto;
+}
+
+.p-datatable .p-datatable-thead > tr > th {
+  background-color: #f9fafb;
+  color: #374151;
+  font-weight: 600;
+  padding: 1rem;
+  border-bottom: 2px solid #e5e7eb;
+}
+
+.p-datatable .p-datatable-tbody > tr > td {
+  padding: 1rem;
+  border-bottom: 1px solid #f3f4f6;
+}
+
+.p-datatable .p-datatable-tbody > tr:hover {
+  background-color: #f9fafb;
+}
+
+.p-tag {
+  font-size: 0.75rem;
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.375rem;
+  font-weight: 500;
+}
+
+.p-paginator {
+  padding: 1rem;
+  background-color: #ffffff;
+  border-top: 1px solid #e5e7eb;
+}
+
+.p-paginator .p-paginator-current {
+  color: #6b7280;
+  font-size: 0.875rem;
+}
+
+@media (max-width: 768px) {
+  .p-datatable .p-datatable-thead > tr > th,
+  .p-datatable .p-datatable-tbody > tr > td {
+    padding: 0.75rem 0.5rem;
+    font-size: 0.875rem;
+  }
+}

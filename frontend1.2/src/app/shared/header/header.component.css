@@ -1,10 +1,32 @@
 /* Personalizaciones opcionales */
 :host ::ng-deep .p-button.p-button-text {
-  color: #374151;
+  color: #ffffff;
+  cursor: pointer;
 }
 
-:host ::ng-deep .p-button.p-button-text:hover {
-  background-color: #f3f4f6;
+:host ::ng-deep .header-login-btn.p-button.p-button-text {
+  background-color: #16a34a;
+}
+
+:host ::ng-deep .header-login-btn.p-button.p-button-text:hover {
+  background-color: #15803d;
+}
+
+:host ::ng-deep .header-logout-btn.p-button.p-button-text {
+  background-color: #dc2626;
+}
+
+:host ::ng-deep .header-logout-btn.p-button.p-button-text:hover {
+  background-color: #b91c1c;
+}
+
+:host ::ng-deep .header-menu-btn.p-button.p-button-text {
+  background-color: transparent;
+  color: #000000;
+}
+
+:host ::ng-deep .header-menu-btn.p-button.p-button-text:hover {
+  background-color: transparent;
 }
 
 /* Ocultar texto del logo en móviles */

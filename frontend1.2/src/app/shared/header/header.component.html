@@ -7,8 +7,8 @@
         (onClick)="onToggleMenu()"
         [rounded]="true"
         [text]="true"
-        icon="pi pi-bars"
-        styleClass="text-gray-700">
+        [icon]="sidebarOpen ? 'pi pi-times' : 'pi pi-bars'"
+        styleClass="header-menu-btn">
       </p-button>
 
       <div class="flex items-center gap-3">
@@ -23,7 +23,32 @@
     <!-- Welcome Message -->
     <div class="hidden md:flex items-center gap-2 text-gray-700">
       <span>Bienvenido,</span>
-      <strong class="text-gray-900">{{ userName }}</strong>
+      <input
+        type="text"
+        pInputText
+        class="h-9 w-56 text-sm"
+        placeholder="Nombre de usuario"
+        [(ngModel)]="userNameInput"
+        [disabled]="isLoggedIn" />
+
+      <p-button
+        *ngIf="!isLoggedIn"
+        icon="pi pi-sign-in"
+        [rounded]="true"
+        [text]="true"
+        styleClass="header-login-btn"
+        [disabled]="!userNameInput.trim()"
+        (onClick)="onLogin()">
+      </p-button>
+
+      <p-button
+        *ngIf="isLoggedIn"
+        icon="pi pi-sign-out"
+        [rounded]="true"
+        [text]="true"
+        styleClass="header-logout-btn"
+        (onClick)="onLogout()">
+      </p-button>
     </div>
 
   </div>

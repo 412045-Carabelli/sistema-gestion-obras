@@ -30,7 +30,8 @@ export class SidebarComponent {
     {label: 'Proveedores', icon: 'pi-truck', path: '/proveedores'},
     {label: 'Facturas', icon: 'pi-receipt', path: '/facturas'},
     {label: 'Reportes', icon: 'pi-chart-bar', path: '/reportes'},
+    {label: 'Auditoría', icon: 'pi-shield', path: '/auditoria'},
   ];
 
-  version: string = 'v1.11.0';
+  version: string = 'v1.14.0';
 }

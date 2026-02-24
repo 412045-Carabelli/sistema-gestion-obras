@@ -72,12 +72,16 @@ public class TransaccionController {
 
     @PostMapping
     public ResponseEntity<TransaccionDto> create(@RequestBody TransaccionDto dto) {
-        return ResponseEntity.ok(transaccionService.crear(toEntity(dto)));
+        Transaccion entity = toEntity(dto);
+        entity.setId(null);
+        return ResponseEntity.ok(transaccionService.crear(entity));
     }
 
     @PutMapping("/{id}")
     public ResponseEntity<TransaccionDto> update(@PathVariable("id") Long id, @RequestBody TransaccionDto dto) {
-        return ResponseEntity.ok(transaccionService.actualizar(id, toEntity(dto)));
+        Transaccion entity = toEntity(dto);
+        entity.setId(id);
+        return ResponseEntity.ok(transaccionService.actualizar(id, entity));
     }
 
 

@@ -19,21 +19,8 @@ export class ResponseAlertInterceptor implements HttpInterceptor {
     const isApiRequest = req.url.startsWith(environment.apiGateway);
 
     return next.handle(req).pipe(
-      tap((event) => {
-        if (!isApiRequest || !(event instanceof HttpResponse)) {
-          return;
-        }
-        const isWriteMethod = ['POST', 'PUT', 'PATCH', 'DELETE'].includes(req.method);
-        if (!isWriteMethod) return;
-
-        const message = this.extractMessage(event.body);
-        if (!message) return;
-
-        this.messageService.add({
-          severity: 'success',
-          summary: 'OK',
-          detail: message
-        });
+      tap(() => {
+        // Success toasts are handled by components to avoid duplication.
       }),
       catchError((error: HttpErrorResponse) => {
         if (isApiRequest && error.status >= 400 && error.status < 600 && error.status !== 404) {

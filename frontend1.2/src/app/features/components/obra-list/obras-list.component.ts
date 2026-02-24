@@ -1,8 +1,7 @@
-import {Component, EventEmitter, OnInit, Output} from '@angular/core';
+import {Component, EventEmitter, OnInit, Output, TemplateRef, ViewChild} from '@angular/core';
 import {CommonModule, DatePipe} from '@angular/common';
 import {ActivatedRoute, Router} from '@angular/router';
 import {FormsModule} from '@angular/forms';
-import {TableModule} from 'primeng/table';
 import {InputTextModule} from 'primeng/inputtext';
 import {DropdownModule} from 'primeng/dropdown';
 import {TagModule} from 'primeng/tag';
@@ -18,6 +17,7 @@ import {ClientesService} from '../../../services/clientes/clientes.service';
 import {EstadoObraService} from '../../../services/estado-obra/estado-obra.service';
 import {Select} from 'primeng/select';
 import {EstadoFormatPipe} from '../../../shared/pipes/estado-format.pipe';
+import {GenericTableComponent, GenericColumn} from '../../../shared/generic-table/generic-table.component';
 
 interface EstadoOption {
   label: string;
@@ -30,7 +30,6 @@ interface EstadoOption {
   imports: [
     CommonModule,
     FormsModule,
-    TableModule,
     InputTextModule,
     DropdownModule,
     TagModule,
@@ -40,13 +39,19 @@ interface EstadoOption {
     Select,
     ButtonModule,
     CheckboxModule,
-    EstadoFormatPipe
+    EstadoFormatPipe,
+    GenericTableComponent
   ],
   templateUrl: './obras-list.component.html',
   styleUrls: ['./obras-list.component.css']
 })
 export class ObrasListComponent implements OnInit {
   @Output() obraClick = new EventEmitter<Obra>();
+
+  @ViewChild('obraCell', {static: true}) obraCell!: TemplateRef<any>;
+  @ViewChild('estadoCell', {static: true}) estadoCell!: TemplateRef<any>;
+  @ViewChild('fechaCell', {static: true}) fechaCell!: TemplateRef<any>;
+  @ViewChild('presupuestoCell', {static: true}) presupuestoCell!: TemplateRef<any>;
 
   obras: Obra[] = [];
   obrasFiltradas: Obra[] = [];
@@ -60,6 +65,9 @@ export class ObrasListComponent implements OnInit {
   estadosOptions: EstadoOption[] = [];
   private estadoInicialDesdeRuta: string | null = null;
 
+  columns: GenericColumn<Obra>[] = [];
+  customTemplates: Record<string, TemplateRef<any>> = {};
+
   constructor(
     private router: Router,
     private route: ActivatedRoute,
@@ -70,6 +78,20 @@ export class ObrasListComponent implements OnInit {
   }
 
   ngOnInit() {
+    this.columns = [
+      {key: 'obra', header: 'Obra', type: 'custom'},
+      {key: 'cliente', header: 'Cliente', field: 'cliente.nombre'},
+      {key: 'estado', header: 'Estado', type: 'custom'},
+      {key: 'fecha', header: 'Fecha inicio', type: 'custom'},
+      {key: 'presupuesto', header: 'Presupuesto', type: 'custom', align: 'right'}
+    ];
+    this.customTemplates = {
+      obra: this.obraCell,
+      estado: this.estadoCell,
+      fecha: this.fechaCell,
+      presupuesto: this.presupuestoCell
+    };
+
     // Leer filtro de estado desde query params
     this.route.queryParams.subscribe(params => {
       this.estadoInicialDesdeRuta = params['estado'] ?? null;
@@ -203,6 +225,10 @@ export class ObrasListComponent implements OnInit {
   onRowClick(obra: Obra) {
     this.obraClick.emit(obra);
     this.router.navigate(['/obras', obra.id]);
+  }
+
+  obraRowClass(): string {
+    return 'hover:bg-gray-50 transition-colors';
   }
 
   // Helpers

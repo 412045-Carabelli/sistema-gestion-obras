@@ -20,6 +20,8 @@ import {FacturasListComponent} from './features/components/facturas-list/factura
 import {FacturasCreateComponent} from './features/pages/facturas-create/facturas-create.component';
 import {FacturasDetailComponent} from './features/pages/facturas-detail/facturas-detail.component';
 import {FacturasEditComponent} from './features/pages/facturas-edit/facturas-edit.component';
+import {AuditoriaComponent} from './features/pages/auditoria/auditoria.component';
+import {AuditoriaLayoutComponent} from './features/auditoria-layout/auditoria-layout.component';
 
 export const routes: Routes = [
   {
@@ -78,5 +80,12 @@ export const routes: Routes = [
     ],
   },
   {path: 'reportes', component: ReportesComponent},
+  {
+    path: 'auditoria',
+    component: AuditoriaLayoutComponent,
+    children: [
+      {path: '', component: AuditoriaComponent}
+    ]
+  },
   {path: '**', redirectTo: 'dashboard'},
 ];

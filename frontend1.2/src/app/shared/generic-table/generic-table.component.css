@@ -1,0 +1,104 @@
+.truncate {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  display: block;
+  max-width: 260px;
+}
+
+:host {
+  display: block;
+  height: 100%;
+}
+
+:host ::ng-deep .p-datatable {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+:host ::ng-deep .p-datatable .p-datatable-wrapper {
+  flex: 1 1 auto;
+  height: 100%;
+}
+
+:host ::ng-deep .p-datatable .p-datatable-table-container {
+  height: 100%;
+  overflow: hidden;
+}
+
+.empty-cell {
+  padding: 0;
+  height: 100%;
+}
+
+.empty-content {
+  min-height: var(--empty-min-height, calc(100vh - 320px));
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  gap: 6px;
+  color: #6b7280;
+}
+
+.empty-content i {
+  font-size: 1.875rem;
+}
+
+:host ::ng-deep .p-datatable .p-datatable-tbody {
+  height: 100%;
+}
+
+:host ::ng-deep .p-datatable .p-datatable-tbody > tr {
+  height: 100%;
+}
+
+:host ::ng-deep .p-datatable .p-datatable-tbody > tr > td.empty-cell {
+  height: 100%;
+}
+
+:host ::ng-deep .p-datatable .p-datatable-thead > tr > th {
+  background-color: #f9fafb;
+  color: #374151;
+  font-weight: 600;
+  padding: 1rem;
+  border-bottom: 2px solid #e5e7eb;
+}
+
+:host ::ng-deep .p-datatable .p-datatable-tbody > tr > td {
+  padding: 1rem;
+  border-bottom: 1px solid #f3f4f6;
+}
+
+:host ::ng-deep .p-datatable .p-datatable-tbody > tr:hover {
+  background-color: #f9fafb;
+}
+
+:host ::ng-deep .p-tag {
+  font-size: 0.75rem;
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.375rem;
+  font-weight: 500;
+}
+
+:host ::ng-deep .p-paginator {
+  padding: 1rem;
+  background-color: #ffffff;
+  border-top: 1px solid #e5e7eb;
+}
+
+:host ::ng-deep .p-paginator .p-paginator-current {
+  color: #6b7280;
+  font-size: 0.875rem;
+}
+
+@media (max-width: 768px) {
+  :host ::ng-deep .p-datatable .p-datatable-thead > tr > th,
+  :host ::ng-deep .p-datatable .p-datatable-tbody > tr > td {
+    padding: 0.75rem 0.5rem;
+    font-size: 0.875rem;
+  }
+}

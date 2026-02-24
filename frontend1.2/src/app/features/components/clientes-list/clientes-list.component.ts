@@ -1,8 +1,7 @@
-import {Component, EventEmitter, Input, OnInit, Output} from '@angular/core';
+import {Component, EventEmitter, Input, OnInit, Output, TemplateRef, ViewChild} from '@angular/core';
 import {CommonModule, CurrencyPipe} from '@angular/common';
 import {Router} from '@angular/router';
 import {FormsModule} from '@angular/forms';
-import {TableModule} from 'primeng/table';
 import {InputTextModule} from 'primeng/inputtext';
 import {TagModule} from 'primeng/tag';
 import {IconFieldModule} from 'primeng/iconfield';
@@ -14,6 +13,7 @@ import {forkJoin} from 'rxjs';
 
 import {Cliente, CondicionIva, CONDICION_IVA_LABELS} from '../../../core/models/models';
 import {ClientesService} from '../../../services/clientes/clientes.service';
+import {GenericTableComponent, GenericColumn} from '../../../shared/generic-table/generic-table.component';
 
 @Component({
   selector: 'app-clientes-list',
@@ -22,14 +22,14 @@ import {ClientesService} from '../../../services/clientes/clientes.service';
     CommonModule,
     CurrencyPipe,
     FormsModule,
-    TableModule,
     InputTextModule,
     TagModule,
     IconFieldModule,
     InputIconModule,
     ButtonModule,
     CheckboxModule,
-    Select
+    Select,
+    GenericTableComponent
   ],
   templateUrl: './clientes-list.component.html',
   styleUrls: ['./clientes-list.component.css']
@@ -38,6 +38,8 @@ export class ClientesListComponent implements OnInit {
   @Input() clientes: Cliente[] = [];
   @Output() clienteClick = new EventEmitter<Cliente>();
 
+  @ViewChild('saldoCell', {static: true}) saldoCell!: TemplateRef<any>;
+
   clientesFiltrados: Cliente[] = [];
   datosCargados = false;
   ivaOptions: { label: string; name: string }[] = [];
@@ -45,6 +47,8 @@ export class ClientesListComponent implements OnInit {
   searchValue: string = '';
   condicionIvaFiltro: string | 'todos' = 'todos';
   mostrarInactivos = false;
+  columns: GenericColumn<Cliente>[] = [];
+  customTemplates: Record<string, TemplateRef<any>> = {};
 
   constructor(
     private router: Router,
@@ -53,6 +57,19 @@ export class ClientesListComponent implements OnInit {
   }
 
   ngOnInit() {
+    this.columns = [
+      {key: 'nombre', header: 'Nombre', field: 'nombre'},
+      {key: 'contacto', header: 'Contacto', field: 'contacto'},
+      {key: 'direccion', header: 'Direccion', field: 'direccion'},
+      {key: 'cuit', header: 'DNI/CUIT', field: 'cuit'},
+      {key: 'telefono', header: 'Telefono', field: 'telefono'},
+      {key: 'email', header: 'Email', field: 'email'},
+      {key: 'saldo', header: 'Saldo', type: 'custom', align: 'right'}
+    ];
+    this.customTemplates = {
+      saldo: this.saldoCell
+    };
+
     forkJoin({
       clientes: this.clientesService.getClientes(),
       condicionesIva: this.clientesService.getCondicionesIva()
@@ -117,6 +134,10 @@ export class ClientesListComponent implements OnInit {
   onRowClick(cliente: Cliente) {
     this.clienteClick.emit(cliente);
     this.router.navigate(['/clientes', cliente.id]);
+  }
+
+  clienteRowClass(): string {
+    return 'hover:bg-gray-100 transition-colors';
   }
 
   getActivoSeverity(activo: boolean): string {

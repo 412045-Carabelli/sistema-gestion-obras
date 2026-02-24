@@ -1,8 +1,7 @@
-import {Component, EventEmitter, OnInit, Output} from '@angular/core';
+import {Component, EventEmitter, OnInit, Output, TemplateRef, ViewChild} from '@angular/core';
 import {CommonModule, CurrencyPipe, DatePipe} from '@angular/common';
 import {FormsModule} from '@angular/forms';
 import {Router} from '@angular/router';
-import {TableModule} from 'primeng/table';
 import {InputTextModule} from 'primeng/inputtext';
 import {ButtonModule} from 'primeng/button';
 import {Select} from 'primeng/select';
@@ -19,6 +18,8 @@ import {FacturasService} from '../../../services/facturas/facturas.service';
 import {ClientesService} from '../../../services/clientes/clientes.service';
 import {ObrasService} from '../../../services/obras/obras.service';
 import {TransaccionesService} from '../../../services/transacciones/transacciones.service';
+import {GenericTableComponent, GenericColumn} from '../../../shared/generic-table/generic-table.component';
+import {EstadoFormatPipe} from '../../../shared/pipes/estado-format.pipe';
 
 interface FacturaView extends Factura {
   clienteNombre?: string;
@@ -39,7 +40,6 @@ interface SelectOption<T> {
   imports: [
     CommonModule,
     FormsModule,
-    TableModule,
     InputTextModule,
     ButtonModule,
     IconFieldModule,
@@ -50,13 +50,17 @@ interface SelectOption<T> {
     TagModule,
     CurrencyPipe,
     DatePipe,
-    CheckboxModule
+    CheckboxModule,
+    GenericTableComponent,
+    EstadoFormatPipe
   ],
   templateUrl: './facturas-list.component.html',
   styleUrls: ['./facturas-list.component.css']
 })
 export class FacturasListComponent implements OnInit {
   @Output() facturaClick = new EventEmitter<Factura>();
+
+  @ViewChild('facturasBody', {static: true}) facturasBody!: TemplateRef<any>;
 
   facturas: FacturaView[] = [];
   facturasFiltradas: FacturaView[] = [];
@@ -96,6 +100,8 @@ export class FacturasListComponent implements OnInit {
   datosCargados = false;
   private expandedObras = new Set<number>();
 
+  columns: GenericColumn<any>[] = [];
+
   constructor(
     private router: Router,
     private facturasService: FacturasService,
@@ -106,6 +112,15 @@ export class FacturasListComponent implements OnInit {
   }
 
   ngOnInit() {
+    this.columns = [
+      {key: 'cliente', header: 'Cliente'},
+      {key: 'obra', header: 'Obra'},
+      {key: 'estado', header: 'Estado'},
+      {key: 'presupuesto', header: 'Presupuesto', align: 'right'},
+      {key: 'facturado', header: 'Facturado', align: 'right'},
+      {key: 'porFacturar', header: 'Por facturar', align: 'right'}
+    ];
+
     forkJoin({
       facturas: this.facturasService.getFacturas(),
       clientes: this.clientesService.getClientes(),
