@@ -10,6 +10,7 @@ import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import java.net.URI;
 import java.util.List;
 import java.util.Map;
 
@@ -154,11 +155,28 @@ public class ObraBffController {
     // 📜 GET - Listar Obras (resumido)
     // ================================
     @GetMapping
-    public Mono<ResponseEntity<List<Map<String, Object>>>> getTodasLasObras() {
+    public Mono<ResponseEntity<List<Map<String, Object>>>> getTodasLasObras(
+            @RequestParam Map<String, String> queryParams
+    ) {
         WebClient client = webClientBuilder.build();
 
         Flux<Map<String, Object>> obrasFlux = client.get()
-                .uri(OBRAS_URL)
+                .uri(uriBuilder -> {
+                    URI base = URI.create(OBRAS_URL);
+                    var builder = uriBuilder
+                            .scheme(base.getScheme())
+                            .host(base.getHost());
+                    if (base.getPort() != -1) {
+                        builder.port(base.getPort());
+                    }
+                    if (base.getPath() != null && !base.getPath().isEmpty()) {
+                        builder.path(base.getPath());
+                    }
+                    if (queryParams != null && !queryParams.isEmpty()) {
+                        queryParams.forEach(builder::queryParam);
+                    }
+                    return builder.build();
+                })
                 .retrieve()
                 .bodyToFlux(new ParameterizedTypeReference<Map<String, Object>>() {});
 
@@ -175,9 +193,9 @@ public class ObraBffController {
                     .uri(CLIENTES_URL + "/{id}", idCliente)
                     .retrieve()
                     .bodyToMono(new ParameterizedTypeReference<Map<String, Object>>() {})
-                    .onErrorResume(ex -> Mono.empty())
+                    .onErrorResume(ex -> Mono.just(Map.of()))
                     .map(cliente -> {
-                        obra.put("cliente", cliente);
+                        obra.put("cliente", cliente.isEmpty() ? null : cliente);
                         obra.remove("id_cliente");
                         return obra;
                     });
