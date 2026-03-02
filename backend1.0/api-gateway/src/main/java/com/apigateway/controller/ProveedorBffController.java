@@ -9,6 +9,7 @@ import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import java.net.URI;
 import java.util.List;
 import java.util.Map;
 
@@ -26,11 +27,28 @@ public class ProveedorBffController {
     // 🔸 GET /bff/proveedores
     // ===============================
     @GetMapping
-    public Mono<ResponseEntity<List<Map<String, Object>>>> getAllProveedores() {
+    public Mono<ResponseEntity<List<Map<String, Object>>>> getAllProveedores(
+            @RequestParam Map<String, String> queryParams
+    ) {
         WebClient client = webClientBuilder.build();
 
         Flux<Map<String, Object>> proveedoresFlux = client.get()
-                .uri(PROVEEDORES_URL)
+                .uri(uriBuilder -> {
+                    URI base = URI.create(PROVEEDORES_URL);
+                    var builder = uriBuilder
+                            .scheme(base.getScheme())
+                            .host(base.getHost());
+                    if (base.getPort() != -1) {
+                        builder.port(base.getPort());
+                    }
+                    if (base.getPath() != null && !base.getPath().isEmpty()) {
+                        builder.path(base.getPath());
+                    }
+                    if (queryParams != null && !queryParams.isEmpty()) {
+                        queryParams.forEach(builder::queryParam);
+                    }
+                    return builder.build();
+                })
                 .retrieve()
                 .bodyToFlux(new ParameterizedTypeReference<Map<String, Object>>() {});
 

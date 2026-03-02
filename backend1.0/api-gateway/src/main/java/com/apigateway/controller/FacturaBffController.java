@@ -14,6 +14,7 @@ import org.springframework.web.reactive.function.BodyInserters;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 
+import java.net.URI;
 import java.util.List;
 import java.util.Map;
 
@@ -29,10 +30,27 @@ public class FacturaBffController {
     private final WebClient.Builder webClientBuilder;
 
     @GetMapping
-    public Mono<ResponseEntity<List<Map<String, Object>>>> getAll() {
+    public Mono<ResponseEntity<List<Map<String, Object>>>> getAll(
+            @RequestParam Map<String, String> queryParams
+    ) {
         return webClientBuilder.build()
                 .get()
-                .uri(FACTURAS_URL)
+                .uri(uriBuilder -> {
+                    URI base = URI.create(FACTURAS_URL);
+                    var builder = uriBuilder
+                            .scheme(base.getScheme())
+                            .host(base.getHost());
+                    if (base.getPort() != -1) {
+                        builder.port(base.getPort());
+                    }
+                    if (base.getPath() != null && !base.getPath().isEmpty()) {
+                        builder.path(base.getPath());
+                    }
+                    if (queryParams != null && !queryParams.isEmpty()) {
+                        queryParams.forEach(builder::queryParam);
+                    }
+                    return builder.build();
+                })
                 .retrieve()
                 .bodyToFlux(new ParameterizedTypeReference<Map<String, Object>>() {})
                 .collectList()
