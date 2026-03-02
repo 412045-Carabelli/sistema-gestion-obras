@@ -29,7 +29,7 @@ class ProveedorBffControllerTest {
         ProveedorBffController controller = new ProveedorBffController(WebClient.builder().exchangeFunction(stub));
         ReflectionTestUtils.setField(controller, "PROVEEDORES_URL", baseUrl);
 
-        ResponseEntity<List<Map<String, Object>>> listResp = controller.getAllProveedores().block();
+        ResponseEntity<List<Map<String, Object>>> listResp = controller.getAllProveedores(Map.of()).block();
         ResponseEntity<List<Map<String, Object>>> listAllResp = controller.getAllProveedoresSinFiltro().block();
         ResponseEntity<Map<String, Object>> getResp = controller.getProveedorById(1L).block();
         ResponseEntity<Map<String, Object>> createResp = controller.crearProveedor(Map.of("x", 1)).block();
