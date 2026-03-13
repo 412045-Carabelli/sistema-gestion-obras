@@ -13,6 +13,7 @@ com\apigateway\controller\ObraBffController.class
 com\apigateway\controller\TareaBffController$1.class
 com\apigateway\controller\EstadoPagoBffController.class
 com\apigateway\controller\TransaccionBffController$1.class
+com\apigateway\controller\AuditoriaBffController.class
 com\apigateway\controller\GremioBffController$2.class
 com\apigateway\controller\ObraBffController$4.class
 com\apigateway\controller\ClienteBffController.class
@@ -74,6 +75,7 @@ com\apigateway\controller\ObraBffController$8.class
 com\apigateway\controller\DocumentoBffController.class
 com\apigateway\controller\TareaBffController$2.class
 com\apigateway\ApiGatewayApplication.class
+com\apigateway\controller\AuditoriaBffController$1.class
 com\apigateway\controller\ObraBffController$11.class
 com\apigateway\controller\TransaccionBffController$5.class
 com\apigateway\controller\CostoBffController$3.class
@@ -93,6 +95,7 @@ com\apigateway\controller\ClienteBffController$5.class
 com\apigateway\controller\TipoTransaccionBffController$1.class
 com\apigateway\controller\TransaccionBffController$7.class
 com\apigateway\controller\ObraBffController$10.class
+com\apigateway\controller\AuditoriaBffController$2.class
 com\apigateway\controller\CondicionIvaBffController.class
 com\apigateway\controller\ReportesBffController$11.class
 com\apigateway\handler\RestExceptionHandler.class

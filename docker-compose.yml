@@ -16,10 +16,10 @@ services:
       - ./data:/app/legacy:ro
     environment:
       - SPRING_PROFILES_ACTIVE=prod
-      - SPRING_DATASOURCE_URL=jdbc:sqlserver://sqlserver:1433;databaseName=obras;encrypt=true;trustServerCertificate=true
+      - SPRING_DATASOURCE_URL=jdbc:sqlserver://sqlserver:1433;databaseName=sgo_prod;encrypt=true;trustServerCertificate=true
       - SPRING_DATASOURCE_DRIVER_CLASS_NAME=com.microsoft.sqlserver.jdbc.SQLServerDriver
-      - SPRING_DATASOURCE_USERNAME=sa
-      - SPRING_DATASOURCE_PASSWORD=${MSSQL_SA_PASSWORD:-YourStrong!Passw0rd}
+      - SPRING_DATASOURCE_USERNAME=${OBRAS_DB_USER:-obras_app}
+      - SPRING_DATASOURCE_PASSWORD=${OBRAS_DB_PASSWORD:-ObrasApp_2026!}
       - APP_MIGRATION_ENABLED=${APP_MIGRATION_ENABLED:-true}
       - APP_MIGRATION_SQLITE_URL=jdbc:sqlite:/app/legacy/obras.db
     restart: unless-stopped
@@ -42,10 +42,10 @@ services:
       - ./data:/app/legacy:ro
     environment:
       - SPRING_PROFILES_ACTIVE=prod
-      - SPRING_DATASOURCE_URL=jdbc:sqlserver://sqlserver:1433;databaseName=clientes;encrypt=true;trustServerCertificate=true
+      - SPRING_DATASOURCE_URL=jdbc:sqlserver://sqlserver:1433;databaseName=sgo_prod;encrypt=true;trustServerCertificate=true
       - SPRING_DATASOURCE_DRIVER_CLASS_NAME=com.microsoft.sqlserver.jdbc.SQLServerDriver
-      - SPRING_DATASOURCE_USERNAME=sa
-      - SPRING_DATASOURCE_PASSWORD=${MSSQL_SA_PASSWORD:-YourStrong!Passw0rd}
+      - SPRING_DATASOURCE_USERNAME=${CLIENTES_DB_USER:-clientes_app}
+      - SPRING_DATASOURCE_PASSWORD=${CLIENTES_DB_PASSWORD:-ClientesApp_2026!}
       - APP_MIGRATION_ENABLED=${APP_MIGRATION_ENABLED:-true}
       - APP_MIGRATION_SQLITE_URL=jdbc:sqlite:/app/legacy/clientes.db
     restart: unless-stopped
@@ -68,10 +68,10 @@ services:
       - ./data:/app/legacy:ro
     environment:
       - SPRING_PROFILES_ACTIVE=prod
-      - SPRING_DATASOURCE_URL=jdbc:sqlserver://sqlserver:1433;databaseName=proveedores;encrypt=true;trustServerCertificate=true
+      - SPRING_DATASOURCE_URL=jdbc:sqlserver://sqlserver:1433;databaseName=sgo_prod;encrypt=true;trustServerCertificate=true
       - SPRING_DATASOURCE_DRIVER_CLASS_NAME=com.microsoft.sqlserver.jdbc.SQLServerDriver
-      - SPRING_DATASOURCE_USERNAME=sa
-      - SPRING_DATASOURCE_PASSWORD=${MSSQL_SA_PASSWORD:-YourStrong!Passw0rd}
+      - SPRING_DATASOURCE_USERNAME=${PROVEEDORES_DB_USER:-proveedores_app}
+      - SPRING_DATASOURCE_PASSWORD=${PROVEEDORES_DB_PASSWORD:-ProveedoresApp_2026!}
       - APP_MIGRATION_ENABLED=${APP_MIGRATION_ENABLED:-true}
       - APP_MIGRATION_SQLITE_URL=jdbc:sqlite:/app/legacy/proveedores.db
     restart: unless-stopped
@@ -100,10 +100,10 @@ services:
       - MINIO_ACCESS_KEY=minioadmin
       - MINIO_SECRET_KEY=minioadmin
       - MINIO_BUCKET=documentos
-      - SPRING_DATASOURCE_URL=jdbc:sqlserver://sqlserver:1433;databaseName=documentos;encrypt=true;trustServerCertificate=true
+      - SPRING_DATASOURCE_URL=jdbc:sqlserver://sqlserver:1433;databaseName=sgo_prod;encrypt=true;trustServerCertificate=true
       - SPRING_DATASOURCE_DRIVER_CLASS_NAME=com.microsoft.sqlserver.jdbc.SQLServerDriver
-      - SPRING_DATASOURCE_USERNAME=sa
-      - SPRING_DATASOURCE_PASSWORD=${MSSQL_SA_PASSWORD:-YourStrong!Passw0rd}
+      - SPRING_DATASOURCE_USERNAME=${DOCUMENTOS_DB_USER:-documentos_app}
+      - SPRING_DATASOURCE_PASSWORD=${DOCUMENTOS_DB_PASSWORD:-DocumentosApp_2026!}
       - APP_MIGRATION_ENABLED=${APP_MIGRATION_ENABLED:-true}
       - APP_MIGRATION_SQLITE_URL=jdbc:sqlite:/app/legacy/documentos-dev.db
     depends_on:
@@ -128,10 +128,10 @@ services:
       - ./data:/app/legacy:ro
     environment:
       - SPRING_PROFILES_ACTIVE=prod
-      - SPRING_DATASOURCE_URL=jdbc:sqlserver://sqlserver:1433;databaseName=transacciones;encrypt=true;trustServerCertificate=true
+      - SPRING_DATASOURCE_URL=jdbc:sqlserver://sqlserver:1433;databaseName=sgo_prod;encrypt=true;trustServerCertificate=true
       - SPRING_DATASOURCE_DRIVER_CLASS_NAME=com.microsoft.sqlserver.jdbc.SQLServerDriver
-      - SPRING_DATASOURCE_USERNAME=sa
-      - SPRING_DATASOURCE_PASSWORD=${MSSQL_SA_PASSWORD:-YourStrong!Passw0rd}
+      - SPRING_DATASOURCE_USERNAME=${TRANSACCIONES_DB_USER:-transacciones_app}
+      - SPRING_DATASOURCE_PASSWORD=${TRANSACCIONES_DB_PASSWORD:-TransaccionesApp_2026!}
       - APP_MIGRATION_ENABLED=${APP_MIGRATION_ENABLED:-true}
       - APP_MIGRATION_SQLITE_URL=jdbc:sqlite:/app/legacy/transacciones.db
     restart: unless-stopped
@@ -197,10 +197,10 @@ services:
       - ./data:/app/legacy:ro
     environment:
       - SPRING_PROFILES_ACTIVE=prod
-      - SPRING_DATASOURCE_URL=jdbc:sqlserver://sqlserver:1433;databaseName=reportes;encrypt=true;trustServerCertificate=true
+      - SPRING_DATASOURCE_URL=jdbc:sqlserver://sqlserver:1433;databaseName=sgo_prod;encrypt=true;trustServerCertificate=true
       - SPRING_DATASOURCE_DRIVER_CLASS_NAME=com.microsoft.sqlserver.jdbc.SQLServerDriver
-      - SPRING_DATASOURCE_USERNAME=sa
-      - SPRING_DATASOURCE_PASSWORD=${MSSQL_SA_PASSWORD:-YourStrong!Passw0rd}
+      - SPRING_DATASOURCE_USERNAME=${REPORTES_DB_USER:-reportes_app}
+      - SPRING_DATASOURCE_PASSWORD=${REPORTES_DB_PASSWORD:-ReportesApp_2026!}
       - APP_MIGRATION_ENABLED=${APP_MIGRATION_ENABLED:-true}
       - APP_MIGRATION_SQLITE_URL=jdbc:sqlite:/app/legacy/reportes.db
     restart: unless-stopped

@@ -7,7 +7,10 @@ com\obras\entity\EstadoPago.class
 com\obras\entity\Tarea.class
 com\obras\enums\EstadoPagoEnum.class
 com\obras\enums\EstadoTareaEnum.class
+com\obras\audit\AuditLogFilter.class
 com\obras\entity\Obra.class
+com\obras\audit\AuditLogController.class
+com\obras\audit\AuditLogRepository.class
 com\obras\entity\ObraProveedor.class
 com\obras\entity\ObraCosto$ObraCostoBuilder.class
 com\obras\entity\EstadoObra.class
@@ -22,8 +25,10 @@ com\obras\controller\EstadosObrasController.class
 com\obras\service\impl\ObraServiceImpl.class
 com\obras\controller\ProgresosController.class
 com\obras\repository\ObraProveedorRepository.class
+com\obras\audit\AuditLogService.class
 com\obras\entity\ObraProveedor$ObraProveedorBuilder.class
 com\obras\dto\ProgresoDTO.class
+com\obras\audit\AuditLog.class
 com\obras\SqliteToSqlServerMigrator.class
 com\obras\service\impl\ObraProveedorServiceImpl.class
 com\obras\service\impl\TareaServiceImpl.class
@@ -32,6 +37,7 @@ com\obras\dto\ObraDTO.class
 com\obras\service\ObraService.class
 com\obras\dto\EstadoResponse.class
 com\obras\repository\ObraRepository.class
+com\obras\audit\AuditLog$AuditLogBuilder.class
 com\obras\enums\EstadoObraEnum.class
 com\obras\repository\TareaRepository.class
 com\obras\service\TareaService.class

@@ -150,6 +150,4 @@ services:
 
 networks:
   sgo_backend:
-    name: sgo_backend
-    driver: bridge
-
+    name: sgo_backendpo
