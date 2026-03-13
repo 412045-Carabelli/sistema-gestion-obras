@@ -19,7 +19,7 @@ import java.util.List;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/bff/facturas")
+@RequestMapping("/bff/v1/facturas")
 @RequiredArgsConstructor
 @CrossOrigin(origins = "http://localhost:4200")
 public class FacturaBffController {
@@ -200,3 +200,4 @@ public class FacturaBffController {
         return builder;
     }
 }
+

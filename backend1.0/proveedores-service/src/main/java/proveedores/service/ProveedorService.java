@@ -60,6 +60,13 @@ public class ProveedorService {
         return repository.findByActivoTrue();
     }
 
+    public List<Proveedor> findAllByIds(List<Long> ids) {
+        if (ids == null || ids.isEmpty()) {
+            return List.of();
+        }
+        return repository.findAllById(ids);
+    }
+
     public Optional<Gremio> findGremioById(Long id) {
         return gremioRepo.findByIdAndActivoTrue(id);
     }

@@ -42,7 +42,7 @@ class TransaccionControllerTest {
         TransaccionDto dto = TransaccionDto.builder().id(1L).build();
         when(transaccionService.listar()).thenReturn(List.of(dto));
 
-        mockMvc.perform(get("/api/transacciones"))
+        mockMvc.perform(get("/api/v1/transacciones"))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$[0].id").value(1L));
     }
@@ -52,7 +52,7 @@ class TransaccionControllerTest {
         TransaccionDto dto = TransaccionDto.builder().id(2L).build();
         when(transaccionService.findByTipoAsociado("CLIENTE", 10L)).thenReturn(List.of(dto));
 
-        mockMvc.perform(get("/api/transacciones/asociado/cliente/10"))
+        mockMvc.perform(get("/api/v1/transacciones/asociado/cliente/10"))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$[0].id").value(2L));
     }
@@ -62,7 +62,7 @@ class TransaccionControllerTest {
         TransaccionDto dto = TransaccionDto.builder().id(3L).build();
         when(transaccionService.obtener(3L)).thenReturn(dto);
 
-        mockMvc.perform(get("/api/transacciones/3"))
+        mockMvc.perform(get("/api/v1/transacciones/3"))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.id").value(3L));
     }
@@ -72,14 +72,14 @@ class TransaccionControllerTest {
         TransaccionDto dto = TransaccionDto.builder().id(4L).build();
         when(transaccionService.listarPorObra(20L)).thenReturn(List.of(dto));
 
-        mockMvc.perform(get("/api/transacciones/obra/20"))
+        mockMvc.perform(get("/api/v1/transacciones/obra/20"))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$[0].id").value(4L));
     }
 
     @Test
     void inactivar_por_obra_ok() throws Exception {
-        mockMvc.perform(patch("/api/transacciones/obra/30/inactivar"))
+        mockMvc.perform(patch("/api/v1/transacciones/obra/30/inactivar"))
             .andExpect(status().isNoContent());
         verify(transaccionService).desactivarPorObra(30L);
     }
@@ -98,7 +98,7 @@ class TransaccionControllerTest {
                 .build();
         when(transaccionService.crear(any())).thenReturn(dto);
 
-        mockMvc.perform(post("/api/transacciones")
+        mockMvc.perform(post("/api/v1/transacciones")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(dto)))
             .andExpect(status().isOk())
@@ -110,7 +110,7 @@ class TransaccionControllerTest {
         TransaccionDto dto = TransaccionDto.builder().id(6L).build();
         when(transaccionService.actualizar(eq(6L), any())).thenReturn(dto);
 
-        mockMvc.perform(put("/api/transacciones/6")
+        mockMvc.perform(put("/api/v1/transacciones/6")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(dto)))
             .andExpect(status().isOk())
@@ -119,8 +119,9 @@ class TransaccionControllerTest {
 
     @Test
     void eliminar_ok() throws Exception {
-        mockMvc.perform(delete("/api/transacciones/7"))
+        mockMvc.perform(delete("/api/v1/transacciones/7"))
             .andExpect(status().isNoContent());
         verify(transaccionService).eliminar(7L);
     }
 }
+

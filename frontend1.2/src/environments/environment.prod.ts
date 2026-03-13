@@ -1,24 +1,25 @@
-// src/environments/environment.prod.ts
+﻿// src/environments/environment.prod.ts
 export const environment = {
   production: true,
   apiGateway: 'http://localhost:8080',
   endpoints: {
-    obras: '/bff/obras',
-    estado_pago: '/bff/estado-pago',
-    clientes: '/bff/clientes',
-    proveedores: '/bff/proveedores',
-    tipo_documentos: '/bff/tipo-documentos',
-    tipo_proveedores: '/bff/tipo-proveedor',
-    tareas: '/bff/tareas',
-    costos: '/bff/costos',
-    documentos: '/bff/documentos',
-    facturas: '/bff/facturas',
-    transacciones: '/bff/transacciones',
-    tipo_transaccion: '/bff/tipo-transaccion',
-    reportes: '/bff/reportes',
-    auditoria: '/bff/auditoria',
-    estados_obras: '/bff/estados-obras',
-    condicion_iva: '/bff/condicion-iva',
-    gremios: '/bff/gremios'
+    obras: '/bff/v1/obras',
+    estado_pago: '/bff/v1/estado-pago',
+    clientes: '/bff/v1/clientes',
+    proveedores: '/bff/v1/proveedores',
+    tipo_documentos: '/bff/v1/tipo-documentos',
+    tipo_proveedores: '/bff/v1/tipo-proveedor',
+    tareas: '/bff/v1/tareas',
+    costos: '/bff/v1/costos',
+    documentos: '/bff/v1/documentos',
+    facturas: '/bff/v1/facturas',
+    transacciones: '/bff/v1/transacciones',
+    tipo_transaccion: '/bff/v1/tipo-transaccion',
+    reportes: '/bff/v1/reportes',
+    auditoria: '/bff/v1/auditoria',
+    estados_obras: '/bff/v1/estados-obras',
+    condicion_iva: '/bff/v1/condicion-iva',
+    gremios: '/bff/v1/gremios'
   }
 };
+

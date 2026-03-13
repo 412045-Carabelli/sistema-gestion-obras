@@ -44,9 +44,10 @@ class ProgresosControllerTest {
         ProgresoDTO dto = new ProgresoDTO(1L, 10, 7, new BigDecimal("70.00"));
         when(svc.calcularProgreso(1L)).thenReturn(dto);
 
-        mockMvc.perform(get("/api/obras/progreso/1"))
+        mockMvc.perform(get("/api/v1/obras/progreso/1"))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.id_obra").value(1L))
             .andExpect(jsonPath("$.porcentaje").value(70.00));
     }
 }
+

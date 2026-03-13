@@ -9,7 +9,7 @@ import proveedores.service.GremioService;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/gremios")
+@RequestMapping("/api/v1/gremios")
 @RequiredArgsConstructor
 public class GremioController {
 
@@ -44,3 +44,4 @@ public class GremioController {
         return service.delete(id) ? ResponseEntity.noContent().build() : ResponseEntity.notFound().build();
     }
 }
+

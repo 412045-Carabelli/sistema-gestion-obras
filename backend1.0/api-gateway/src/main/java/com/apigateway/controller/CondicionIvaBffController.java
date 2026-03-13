@@ -15,7 +15,7 @@ import java.util.List;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/bff/condicion-iva")
+@RequestMapping("/bff/v1/condicion-iva")
 @RequiredArgsConstructor
 public class CondicionIvaBffController {
 
@@ -36,3 +36,4 @@ public class CondicionIvaBffController {
         return condicionesFlux.collectList().map(ResponseEntity::ok);
     }
 }
+

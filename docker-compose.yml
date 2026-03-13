@@ -16,7 +16,7 @@ services:
       - ./data:/app/legacy:ro
     environment:
       - SPRING_PROFILES_ACTIVE=prod
-      - SPRING_DATASOURCE_URL=jdbc:sqlserver://sqlserver:1433;databaseName=obras;encrypt=true;trustServerCertificate=true
+      - SPRING_DATASOURCE_URL=jdbc:sqlserver://sqlserver:1433;databaseName=sgo_dev;encrypt=true;trustServerCertificate=true
       - SPRING_DATASOURCE_DRIVER_CLASS_NAME=com.microsoft.sqlserver.jdbc.SQLServerDriver
       - SPRING_DATASOURCE_USERNAME=sa
       - SPRING_DATASOURCE_PASSWORD=${MSSQL_SA_PASSWORD:-YourStrong!Passw0rd}
@@ -42,7 +42,7 @@ services:
       - ./data:/app/legacy:ro
     environment:
       - SPRING_PROFILES_ACTIVE=prod
-      - SPRING_DATASOURCE_URL=jdbc:sqlserver://sqlserver:1433;databaseName=clientes;encrypt=true;trustServerCertificate=true
+      - SPRING_DATASOURCE_URL=jdbc:sqlserver://sqlserver:1433;databaseName=sgo_dev;encrypt=true;trustServerCertificate=true
       - SPRING_DATASOURCE_DRIVER_CLASS_NAME=com.microsoft.sqlserver.jdbc.SQLServerDriver
       - SPRING_DATASOURCE_USERNAME=sa
       - SPRING_DATASOURCE_PASSWORD=${MSSQL_SA_PASSWORD:-YourStrong!Passw0rd}
@@ -68,7 +68,7 @@ services:
       - ./data:/app/legacy:ro
     environment:
       - SPRING_PROFILES_ACTIVE=prod
-      - SPRING_DATASOURCE_URL=jdbc:sqlserver://sqlserver:1433;databaseName=proveedores;encrypt=true;trustServerCertificate=true
+      - SPRING_DATASOURCE_URL=jdbc:sqlserver://sqlserver:1433;databaseName=sgo_dev;encrypt=true;trustServerCertificate=true
       - SPRING_DATASOURCE_DRIVER_CLASS_NAME=com.microsoft.sqlserver.jdbc.SQLServerDriver
       - SPRING_DATASOURCE_USERNAME=sa
       - SPRING_DATASOURCE_PASSWORD=${MSSQL_SA_PASSWORD:-YourStrong!Passw0rd}
@@ -100,7 +100,7 @@ services:
       - MINIO_ACCESS_KEY=minioadmin
       - MINIO_SECRET_KEY=minioadmin
       - MINIO_BUCKET=documentos
-      - SPRING_DATASOURCE_URL=jdbc:sqlserver://sqlserver:1433;databaseName=documentos;encrypt=true;trustServerCertificate=true
+      - SPRING_DATASOURCE_URL=jdbc:sqlserver://sqlserver:1433;databaseName=sgo_dev;encrypt=true;trustServerCertificate=true
       - SPRING_DATASOURCE_DRIVER_CLASS_NAME=com.microsoft.sqlserver.jdbc.SQLServerDriver
       - SPRING_DATASOURCE_USERNAME=sa
       - SPRING_DATASOURCE_PASSWORD=${MSSQL_SA_PASSWORD:-YourStrong!Passw0rd}
@@ -128,7 +128,7 @@ services:
       - ./data:/app/legacy:ro
     environment:
       - SPRING_PROFILES_ACTIVE=prod
-      - SPRING_DATASOURCE_URL=jdbc:sqlserver://sqlserver:1433;databaseName=transacciones;encrypt=true;trustServerCertificate=true
+      - SPRING_DATASOURCE_URL=jdbc:sqlserver://sqlserver:1433;databaseName=sgo_dev;encrypt=true;trustServerCertificate=true
       - SPRING_DATASOURCE_DRIVER_CLASS_NAME=com.microsoft.sqlserver.jdbc.SQLServerDriver
       - SPRING_DATASOURCE_USERNAME=sa
       - SPRING_DATASOURCE_PASSWORD=${MSSQL_SA_PASSWORD:-YourStrong!Passw0rd}
@@ -154,11 +154,11 @@ services:
     environment:
       # Use service DNS names provided by Docker; localhost is not reachable between containers.
       - SPRING_PROFILES_ACTIVE=prod
-      - SERVICES_OBRAS_URL=http://obras-service:8081/api/obras
-      - SERVICES_CLIENTES_URL=http://clientes-service:8082/api/clientes
-      - SERVICES_PROVEEDORES_URL=http://proveedores-service:8083/api/proveedores
-      - SERVICES_DOCUMENTOS_URL=http://documentos-service:8087/api/documentos
-      - SERVICES_TRANSACCIONES_URL=http://transacciones-service:8086/api/transacciones
+      - SERVICES_OBRAS_URL=http://obras-service:8081/api/v1/obras
+      - SERVICES_CLIENTES_URL=http://clientes-service:8082/api/v1/clientes
+      - SERVICES_PROVEEDORES_URL=http://proveedores-service:8083/api/v1/proveedores
+      - SERVICES_DOCUMENTOS_URL=http://documentos-service:8087/api/v1/documentos
+      - SERVICES_TRANSACCIONES_URL=http://transacciones-service:8086/api/v1/transacciones
     depends_on:
       - obras-service
       - clientes-service
@@ -197,7 +197,7 @@ services:
       - ./data:/app/legacy:ro
     environment:
       - SPRING_PROFILES_ACTIVE=prod
-      - SPRING_DATASOURCE_URL=jdbc:sqlserver://sqlserver:1433;databaseName=reportes;encrypt=true;trustServerCertificate=true
+      - SPRING_DATASOURCE_URL=jdbc:sqlserver://sqlserver:1433;databaseName=sgo_dev;encrypt=true;trustServerCertificate=true
       - SPRING_DATASOURCE_DRIVER_CLASS_NAME=com.microsoft.sqlserver.jdbc.SQLServerDriver
       - SPRING_DATASOURCE_USERNAME=sa
       - SPRING_DATASOURCE_PASSWORD=${MSSQL_SA_PASSWORD:-YourStrong!Passw0rd}
@@ -207,6 +207,36 @@ services:
     depends_on:
       sqlserver-init:
         condition: service_completed_successfully
+    networks:
+      - sgo_backend
+
+  # -----------------------
+  # Observability: Prometheus + Grafana.
+  # -----------------------
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: prometheus
+    volumes:
+      - ./tools/observability/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ./tools/observability/prometheus-alerts.yml:/etc/prometheus/prometheus-alerts.yml:ro
+    ports:
+      - "9090:9090"
+    networks:
+      - sgo_backend
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana
+    ports:
+      - "3001:3000"
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    volumes:
+      - ./tools/observability/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./tools/observability/grafana/dashboards:/var/lib/grafana/dashboards:ro
+    depends_on:
+      - prometheus
     networks:
       - sgo_backend
 

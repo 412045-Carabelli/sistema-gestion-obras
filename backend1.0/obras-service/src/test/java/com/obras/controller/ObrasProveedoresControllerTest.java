@@ -44,14 +44,14 @@ class ObrasProveedoresControllerTest {
         ObraProveedor op = new ObraProveedor(1L, 2L);
         when(svc.proveedoresDeObra(1L)).thenReturn(List.of(op));
 
-        mockMvc.perform(get("/api/obras/obra-proveedor/1"))
+        mockMvc.perform(get("/api/v1/obras/obra-proveedor/1"))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$[0].idProveedor").value(2L));
     }
 
     @Test
     void vincular_ok() throws Exception {
-        mockMvc.perform(post("/api/obras/obra-proveedor/2/link/3"))
+        mockMvc.perform(post("/api/v1/obras/obra-proveedor/2/link/3"))
             .andExpect(status().isOk());
 
         verify(svc).vincularProveedor(2L, 3L);
@@ -59,9 +59,10 @@ class ObrasProveedoresControllerTest {
 
     @Test
     void desvincular_ok() throws Exception {
-        mockMvc.perform(delete("/api/obras/obra-proveedor/4/unlink/5"))
+        mockMvc.perform(delete("/api/v1/obras/obra-proveedor/4/unlink/5"))
             .andExpect(status().isOk());
 
         verify(svc).desvincularProveedor(4L, 5L);
     }
 }
+

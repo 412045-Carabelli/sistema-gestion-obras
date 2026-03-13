@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/reportes")
+@RequestMapping("/api/v1/reportes")
 @RequiredArgsConstructor
 public class ReportesController {
 
@@ -132,3 +132,4 @@ public class ReportesController {
         return ResponseEntity.ok(reportesService.generarNotasPorObra(obraId));
     }
 }
+

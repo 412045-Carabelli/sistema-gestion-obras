@@ -12,6 +12,10 @@ services:
       - ./obras-service/data:/app/data
     environment:
       SPRING_PROFILES_ACTIVE: prod
+      SPRING_DATASOURCE_URL: jdbc:sqlserver://sqlserver:1433;databaseName=sgo_dev;encrypt=true;trustServerCertificate=true
+      SPRING_DATASOURCE_DRIVER_CLASS_NAME: com.microsoft.sqlserver.jdbc.SQLServerDriver
+      SPRING_DATASOURCE_USERNAME: sa
+      SPRING_DATASOURCE_PASSWORD: ${MSSQL_SA_PASSWORD:-YourStrong!Passw0rd}
       SPRING_SQL_INIT_MODE: never
       SPRING_SQL_INIT_DATA_LOCATIONS: classpath:data-prod.sql
       SPRING_JPA_DEFER_DATASOURCE_INITIALIZATION: "true"
@@ -30,6 +34,10 @@ services:
       - ./clientes-service/data:/app/data
     environment:
       SPRING_PROFILES_ACTIVE: prod
+      SPRING_DATASOURCE_URL: jdbc:sqlserver://sqlserver:1433;databaseName=sgo_dev;encrypt=true;trustServerCertificate=true
+      SPRING_DATASOURCE_DRIVER_CLASS_NAME: com.microsoft.sqlserver.jdbc.SQLServerDriver
+      SPRING_DATASOURCE_USERNAME: sa
+      SPRING_DATASOURCE_PASSWORD: ${MSSQL_SA_PASSWORD:-YourStrong!Passw0rd}
     restart: unless-stopped
     networks:
       - sgo_backend
@@ -45,6 +53,10 @@ services:
       - ./proveedores-service/data:/app/data
     environment:
       SPRING_PROFILES_ACTIVE: prod
+      SPRING_DATASOURCE_URL: jdbc:sqlserver://sqlserver:1433;databaseName=sgo_dev;encrypt=true;trustServerCertificate=true
+      SPRING_DATASOURCE_DRIVER_CLASS_NAME: com.microsoft.sqlserver.jdbc.SQLServerDriver
+      SPRING_DATASOURCE_USERNAME: sa
+      SPRING_DATASOURCE_PASSWORD: ${MSSQL_SA_PASSWORD:-YourStrong!Passw0rd}
       SPRING_SQL_INIT_MODE: never
       SPRING_SQL_INIT_DATA_LOCATIONS: classpath:data-prod.sql
       SPRING_JPA_DEFER_DATASOURCE_INITIALIZATION: "true"
@@ -64,6 +76,10 @@ services:
       - ./documentos-service/uploads:/app/uploads
     environment:
       SPRING_PROFILES_ACTIVE: prod
+      SPRING_DATASOURCE_URL: jdbc:sqlserver://sqlserver:1433;databaseName=sgo_dev;encrypt=true;trustServerCertificate=true
+      SPRING_DATASOURCE_DRIVER_CLASS_NAME: com.microsoft.sqlserver.jdbc.SQLServerDriver
+      SPRING_DATASOURCE_USERNAME: sa
+      SPRING_DATASOURCE_PASSWORD: ${MSSQL_SA_PASSWORD:-YourStrong!Passw0rd}
       SPRING_SQL_INIT_MODE: never
       SPRING_SQL_INIT_DATA_LOCATIONS: classpath:data-prod.sql
       SPRING_JPA_DEFER_DATASOURCE_INITIALIZATION: "true"
@@ -89,6 +105,10 @@ services:
       - ./transacciones-service/data:/app/data
     environment:
       SPRING_PROFILES_ACTIVE: prod
+      SPRING_DATASOURCE_URL: jdbc:sqlserver://sqlserver:1433;databaseName=sgo_dev;encrypt=true;trustServerCertificate=true
+      SPRING_DATASOURCE_DRIVER_CLASS_NAME: com.microsoft.sqlserver.jdbc.SQLServerDriver
+      SPRING_DATASOURCE_USERNAME: sa
+      SPRING_DATASOURCE_PASSWORD: ${MSSQL_SA_PASSWORD:-YourStrong!Passw0rd}
       SPRING_SQL_INIT_MODE: never
       SPRING_SQL_INIT_DATA_LOCATIONS: classpath:data-prod.sql
       SPRING_JPA_DEFER_DATASOURCE_INITIALIZATION: "true"
@@ -106,9 +126,11 @@ services:
     volumes:
       - ./reportes-service/data:/app/data
     environment:
-      SPRING_PROFILES_ACTIVE: default
-      SPRING_DATASOURCE_URL: jdbc:sqlite:data/reportes.db
-      SPRING_DATASOURCE_DRIVER_CLASS_NAME: org.sqlite.JDBC
+      SPRING_PROFILES_ACTIVE: prod
+      SPRING_DATASOURCE_URL: jdbc:sqlserver://sqlserver:1433;databaseName=sgo_dev;encrypt=true;trustServerCertificate=true
+      SPRING_DATASOURCE_DRIVER_CLASS_NAME: com.microsoft.sqlserver.jdbc.SQLServerDriver
+      SPRING_DATASOURCE_USERNAME: sa
+      SPRING_DATASOURCE_PASSWORD: ${MSSQL_SA_PASSWORD:-YourStrong!Passw0rd}
     restart: unless-stopped
     networks:
       - sgo_backend

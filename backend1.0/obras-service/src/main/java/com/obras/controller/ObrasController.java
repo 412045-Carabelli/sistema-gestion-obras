@@ -12,7 +12,7 @@ import com.obras.service.ObraService;
 import java.util.*;
 
 @RestController
-@RequestMapping("/api/obras")
+@RequestMapping("/api/v1/obras")
 @RequiredArgsConstructor
 public class ObrasController {
 
@@ -43,4 +43,5 @@ public class ObrasController {
     @PatchMapping("/{id}/activo") public void activar(@PathVariable("id") Long id){ svc.activar(id); }
 
 }
+
 

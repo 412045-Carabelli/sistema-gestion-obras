@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.*;
 
 @RestController
-@RequestMapping("/api/clientes")
+@RequestMapping("/api/v1/clientes")
 @RequiredArgsConstructor
 public class ClientesController {
     private final ClienteService service;
@@ -21,6 +21,10 @@ public class ClientesController {
     public ResponseEntity<ClienteResponse> save(@RequestBody @Valid ClienteRequest c){ return ResponseEntity.ok(service.crear(c)); }
     @GetMapping
     public List<ClienteResponse> all(){ return service.listar(); }
+    @GetMapping("/batch")
+    public List<ClienteResponse> batch(@RequestParam(name = "ids", required = false) List<Long> ids){
+        return service.listarPorIds(ids);
+    }
     @GetMapping("/{id}") public ResponseEntity<ClienteResponse> one(@PathVariable("id") Long id){ return ResponseEntity.ok(service.obtenerConObras(id)); }
     @PutMapping("/{id}") public ResponseEntity<ClienteResponse> upd(@PathVariable("id") Long id,@RequestBody @Valid ClienteRequest c){ return ResponseEntity.ok(service.actualizar(id, c)); }
     @DeleteMapping("/{id}") public void del(@PathVariable("id") Long id){ service.eliminar(id); }
@@ -41,4 +45,5 @@ public class ClientesController {
         };
     }
 }
+
 

@@ -45,7 +45,7 @@ class FacturaControllerTest {
         FacturaDto dto = FacturaDto.builder().id(1L).build();
         when(facturaService.listar()).thenReturn(List.of(dto));
 
-        mockMvc.perform(get("/api/facturas"))
+        mockMvc.perform(get("/api/v1/facturas"))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$[0].id").value(1L));
     }
@@ -55,7 +55,7 @@ class FacturaControllerTest {
         FacturaDto dto = FacturaDto.builder().id(2L).build();
         when(facturaService.obtener(2L)).thenReturn(dto);
 
-        mockMvc.perform(get("/api/facturas/2"))
+        mockMvc.perform(get("/api/v1/facturas/2"))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.id").value(2L));
     }
@@ -65,7 +65,7 @@ class FacturaControllerTest {
         FacturaDto dto = FacturaDto.builder().id(3L).build();
         when(facturaService.listarPorCliente(10L)).thenReturn(List.of(dto));
 
-        mockMvc.perform(get("/api/facturas/cliente/10"))
+        mockMvc.perform(get("/api/v1/facturas/cliente/10"))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$[0].id").value(3L));
     }
@@ -75,7 +75,7 @@ class FacturaControllerTest {
         FacturaDto dto = FacturaDto.builder().id(4L).build();
         when(facturaService.listarPorObra(20L)).thenReturn(List.of(dto));
 
-        mockMvc.perform(get("/api/facturas/obra/20"))
+        mockMvc.perform(get("/api/v1/facturas/obra/20"))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$[0].id").value(4L));
     }
@@ -87,7 +87,7 @@ class FacturaControllerTest {
 
         MockMultipartFile file = new MockMultipartFile("file", "factura.pdf", "application/pdf", "data".getBytes());
 
-        mockMvc.perform(multipart("/api/facturas")
+        mockMvc.perform(multipart("/api/v1/facturas")
                 .file(file)
                 .param("id_cliente", "1")
                 .param("id_obra", "2")
@@ -108,7 +108,7 @@ class FacturaControllerTest {
 
         MockMultipartFile file = new MockMultipartFile("file", "factura.pdf", "application/pdf", "data".getBytes());
 
-        mockMvc.perform(multipart("/api/facturas/6")
+        mockMvc.perform(multipart("/api/v1/facturas/6")
                 .file(file)
                 .param("id_cliente", "1")
                 .param("id_obra", "2")
@@ -128,7 +128,7 @@ class FacturaControllerTest {
 
     @Test
     void eliminar_ok() throws Exception {
-        mockMvc.perform(delete("/api/facturas/7"))
+        mockMvc.perform(delete("/api/v1/facturas/7"))
             .andExpect(status().isNoContent());
         verify(facturaService).eliminar(7L);
     }
@@ -141,7 +141,8 @@ class FacturaControllerTest {
                 .body(resource);
         when(facturaService.descargarArchivo(8L)).thenReturn(response);
 
-        mockMvc.perform(get("/api/facturas/8/download"))
+        mockMvc.perform(get("/api/v1/facturas/8/download"))
             .andExpect(status().isOk());
     }
 }
+

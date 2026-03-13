@@ -35,7 +35,7 @@ class EstadosObrasControllerTest {
 
     @Test
     void estados_ok() throws Exception {
-        mockMvc.perform(get("/api/obras/estados"))
+        mockMvc.perform(get("/api/v1/obras/estados"))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.length()").value(EstadoObraEnum.values().length))
             .andExpect(jsonPath("$[0].name").exists())
@@ -44,8 +44,9 @@ class EstadosObrasControllerTest {
 
     @Test
     void estado_formato_label() throws Exception {
-        mockMvc.perform(get("/api/obras/estados"))
+        mockMvc.perform(get("/api/v1/obras/estados"))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$[?(@.name=='EN_PROGRESO')].label", hasItem("En Progreso")));
     }
 }
+

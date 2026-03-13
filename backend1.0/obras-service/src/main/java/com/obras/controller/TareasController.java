@@ -15,7 +15,7 @@ import java.util.List;
 import java.util.Set;
 
 @RestController
-@RequestMapping("/api/obras/tareas")
+@RequestMapping("/api/v1/obras/tareas")
 @RequiredArgsConstructor
 public class TareasController {
 
@@ -104,3 +104,4 @@ public class TareasController {
         return ordenadas;
     }
 }
+

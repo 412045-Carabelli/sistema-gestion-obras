@@ -1,6 +1,6 @@
 package com.apigateway.handler;
 
-import com.apigateway.dto.ErrorApi;
+import com.meliquina.common.dto.ErrorApi;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpHeaders;

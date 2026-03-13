@@ -1,4 +1,5 @@
 com\transacciones\TransaccionesServiceApplication.class
+com\transacciones\audit\AuditLogService.class
 com\transacciones\entity\Transaccion$TransaccionBuilder.class
 com\transacciones\config\GlobalExceptionHandler.class
 com\transacciones\dto\ObraCostoDto.class
@@ -8,13 +9,18 @@ com\transacciones\dto\FacturaDto.class
 com\transacciones\dto\ComisionPagoRequest.class
 com\transacciones\dto\TransaccionDto.class
 com\transacciones\repository\FacturaRepository.class
+com\transacciones\config\TransaccionIdentityResetter.class
+com\transacciones\audit\AuditLogFilter.class
+com\transacciones\audit\AuditLogRepository.class
 com\transacciones\config\DatabasePatchConfig.class
+com\transacciones\audit\AuditLogController.class
 com\transacciones\service\TransaccionService.class
 com\transacciones\entity\TipoTransaccion.class
 com\transacciones\service\FacturaService.class
 com\transacciones\entity\Factura$FacturaBuilder.class
 com\transacciones\entity\Transaccion.class
 com\transacciones\controller\TipoTransaccionController.class
+com\transacciones\audit\AuditLog$AuditLogBuilder.class
 com\transacciones\dto\EstadoResponse.class
 com\transacciones\SqliteToSqlServerMigrator.class
 com\transacciones\dto\FacturaDto$FacturaDtoBuilder.class
@@ -23,6 +29,7 @@ com\transacciones\config\RestTemplateConfig.class
 com\transacciones\entity\TipoTransaccion$TipoTransaccionBuilder.class
 com\transacciones\repository\TipoTransaccionRepository.class
 com\transacciones\dto\ObraResumenDto.class
+com\transacciones\audit\AuditLog.class
 com\transacciones\entity\Factura.class
 com\transacciones\controller\FacturaController.class
 com\transacciones\controller\TransaccionController.class

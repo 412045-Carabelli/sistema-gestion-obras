@@ -28,7 +28,7 @@ public class ObrasClient {
     private String obrasServiceUrl;
 
     public Optional<String> obtenerNombreObra(Long obraId) {
-        String url = String.format("%s/api/obras/%d", obrasServiceUrl, obraId);
+        String url = String.format("%s/api/v1/obras/%d", obrasServiceUrl, obraId);
         try {
             ResponseEntity<ObraResponse> response = restTemplate.getForEntity(url, ObraResponse.class);
             if (response.getStatusCode().is2xxSuccessful() && response.getBody() != null) {
@@ -41,7 +41,7 @@ public class ObrasClient {
     }
 
     public List<ObraResumenResponse> obtenerObras() {
-        String url = String.format("%s/api/obras", obrasServiceUrl);
+        String url = String.format("%s/api/v1/obras", obrasServiceUrl);
         try {
             ResponseEntity<List<ObraResumenResponse>> response = restTemplate.exchange(
                     url,
@@ -57,7 +57,7 @@ public class ObrasClient {
     }
 
     public List<ObraCostoResponse> obtenerCostos(Long obraId) {
-        String url = String.format("%s/api/obras/costos/%d", obrasServiceUrl, obraId);
+        String url = String.format("%s/api/v1/obras/costos/%d", obrasServiceUrl, obraId);
         try {
             ResponseEntity<List<ObraCostoResponse>> response = restTemplate.exchange(
                     url,
@@ -117,3 +117,4 @@ public class ObrasClient {
             "FINALIZADA"
     );
 }
+

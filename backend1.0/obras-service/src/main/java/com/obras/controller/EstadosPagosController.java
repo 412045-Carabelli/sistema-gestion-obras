@@ -14,7 +14,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @RestController
-@RequestMapping("/api/obras")
+@RequestMapping("/api/v1/obras")
 @RequiredArgsConstructor
 public class EstadosPagosController {
 
@@ -34,4 +34,5 @@ public class EstadosPagosController {
     }
 
 }
+
 

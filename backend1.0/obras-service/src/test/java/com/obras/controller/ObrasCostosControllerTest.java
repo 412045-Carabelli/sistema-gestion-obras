@@ -54,7 +54,7 @@ class ObrasCostosControllerTest {
         dto.setId(1L);
         when(svc.listarPorObra(10L)).thenReturn(List.of(dto));
 
-        mockMvc.perform(get("/api/obras/costos/10"))
+        mockMvc.perform(get("/api/v1/obras/costos/10"))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$[0].id").value(1L));
     }
@@ -68,7 +68,7 @@ class ObrasCostosControllerTest {
 
         when(svc.crear(any())).thenAnswer(invocation -> invocation.getArgument(0));
 
-        mockMvc.perform(post("/api/obras/costos/20")
+        mockMvc.perform(post("/api/v1/obras/costos/20")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(dto)))
             .andExpect(status().isOk())
@@ -84,7 +84,7 @@ class ObrasCostosControllerTest {
 
         when(svc.actualizarEstadoPago(3L, EstadoPagoEnum.PAGADO)).thenReturn(dto);
 
-        mockMvc.perform(put("/api/obras/costos/3/estado/PAGADO"))
+        mockMvc.perform(put("/api/v1/obras/costos/3/estado/PAGADO"))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.estado_pago").value("PAGADO"));
     }
@@ -96,7 +96,7 @@ class ObrasCostosControllerTest {
 
         when(svc.actualizar(eq(5L), any())).thenReturn(dto);
 
-        mockMvc.perform(put("/api/obras/costos/5")
+        mockMvc.perform(put("/api/v1/obras/costos/5")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(dto)))
             .andExpect(status().isOk())
@@ -105,9 +105,10 @@ class ObrasCostosControllerTest {
 
     @Test
     void eliminar_ok() throws Exception {
-        mockMvc.perform(delete("/api/obras/costos/7"))
+        mockMvc.perform(delete("/api/v1/obras/costos/7"))
             .andExpect(status().isOk());
 
         verify(svc).eliminar(7L);
     }
 }
+

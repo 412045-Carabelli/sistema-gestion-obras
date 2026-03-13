@@ -14,7 +14,7 @@ import java.util.Map;
 import java.util.Optional;
 
 @RestController
-@RequestMapping("/bff/reportes")
+@RequestMapping("/bff/v1/reportes")
 @RequiredArgsConstructor
 @CrossOrigin(origins = "*")
 public class ReportesBffController {
@@ -148,7 +148,7 @@ public class ReportesBffController {
         return proxyGet("/obras/" + obraId + "/notas", new ParameterizedTypeReference<>() {});
     }
 
-    // ---------- MÉTODOS UTILITARIOS ----------
+    // ---------- MÃ‰TODOS UTILITARIOS ----------
 
     private <T> Mono<ResponseEntity<T>> proxyGet(String path, ParameterizedTypeReference<T> type) {
         return webClientBuilder.build()
@@ -189,3 +189,4 @@ public class ReportesBffController {
                 .orElse(null);
     }
 }
+

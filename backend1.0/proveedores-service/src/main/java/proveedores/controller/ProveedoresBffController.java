@@ -15,7 +15,7 @@ import java.math.BigDecimal;
 import java.util.List;
 
 @RestController
-@RequestMapping("/bff")
+@RequestMapping("/bff/v1")
 @RequiredArgsConstructor
 public class ProveedoresBffController {
 

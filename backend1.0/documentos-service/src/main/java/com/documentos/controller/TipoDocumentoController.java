@@ -13,7 +13,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @RestController
-@RequestMapping("/api/documentos/tipo-documentos")
+@RequestMapping("/api/v1/documentos/tipo-documentos")
 @RequiredArgsConstructor
 @CrossOrigin(origins = "http://localhost:4200")
 public class TipoDocumentoController {
@@ -56,3 +56,4 @@ public class TipoDocumentoController {
     }
 
 }
+

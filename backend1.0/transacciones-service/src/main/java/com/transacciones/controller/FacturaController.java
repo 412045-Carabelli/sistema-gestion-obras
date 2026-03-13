@@ -13,7 +13,7 @@ import java.time.LocalDate;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/facturas")
+@RequestMapping("/api/v1/facturas")
 @RequiredArgsConstructor
 @CrossOrigin
 public class FacturaController {
@@ -112,3 +112,4 @@ public class FacturaController {
         return LocalDate.parse(fecha);
     }
 }
+

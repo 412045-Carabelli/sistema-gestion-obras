@@ -14,7 +14,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @RestController
-@RequestMapping("/api/transacciones")
+@RequestMapping("/api/v1/transacciones")
 @RequiredArgsConstructor
 @CrossOrigin
 public class TransaccionController {
@@ -116,3 +116,4 @@ public class TransaccionController {
         return dto != null ? dto : TipoTransaccionEnum.PAGO;
     }
 }
+

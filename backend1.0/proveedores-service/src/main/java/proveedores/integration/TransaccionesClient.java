@@ -20,7 +20,7 @@ public class TransaccionesClient {
 
     private final RestTemplate restTemplate;
 
-    @Value("${transacciones.service.url:http://transacciones-service:8086/api/transacciones}")
+    @Value("${transacciones.service.url:http://transacciones-service:8086/api/v1/transacciones}")
     private String transaccionesBaseUrl;
 
     private static final ParameterizedTypeReference<List<TransaccionResponse>> TRANSACCION_TYPE =
@@ -45,3 +45,4 @@ public class TransaccionesClient {
     public record TransaccionResponse(Long id_obra, String tipo_transaccion, Double monto, Boolean activo) {
     }
 }
+

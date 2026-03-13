@@ -42,7 +42,7 @@ class TipoProveedorControllerTest {
         t.setNombre("Albanil");
         when(service.findAllTipoActivos()).thenReturn(List.of(t));
 
-        mockMvc.perform(get("/api/proveedores/tipo-proveedor"))
+        mockMvc.perform(get("/api/v1/proveedores/tipo-proveedor"))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$[0].id").value(1L))
             .andExpect(jsonPath("$[0].nombre").value("Albanil"));
@@ -55,7 +55,7 @@ class TipoProveedorControllerTest {
         t.setNombre("Electricista");
         when(service.saveTipo(any(TipoProveedor.class))).thenReturn(t);
 
-        mockMvc.perform(post("/api/proveedores/tipo-proveedor")
+        mockMvc.perform(post("/api/v1/proveedores/tipo-proveedor")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(t)))
             .andExpect(status().isOk())
@@ -69,7 +69,7 @@ class TipoProveedorControllerTest {
         t.setNombre("Plomero");
         when(service.updateTipo(eq(3L), any(TipoProveedor.class))).thenReturn(Optional.of(t));
 
-        mockMvc.perform(put("/api/proveedores/tipo-proveedor/3")
+        mockMvc.perform(put("/api/v1/proveedores/tipo-proveedor/3")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(t)))
             .andExpect(status().isOk())
@@ -80,7 +80,7 @@ class TipoProveedorControllerTest {
     void update_not_found() throws Exception {
         when(service.updateTipo(eq(9L), any(TipoProveedor.class))).thenReturn(Optional.empty());
 
-        mockMvc.perform(put("/api/proveedores/tipo-proveedor/9")
+        mockMvc.perform(put("/api/v1/proveedores/tipo-proveedor/9")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(new TipoProveedor())))
             .andExpect(status().isNotFound());
@@ -90,7 +90,7 @@ class TipoProveedorControllerTest {
     void delete_ok() throws Exception {
         when(service.deleteTipo(4L)).thenReturn(true);
 
-        mockMvc.perform(delete("/api/proveedores/tipo-proveedor/4"))
+        mockMvc.perform(delete("/api/v1/proveedores/tipo-proveedor/4"))
             .andExpect(status().isNoContent());
     }
 
@@ -98,7 +98,8 @@ class TipoProveedorControllerTest {
     void delete_not_found() throws Exception {
         when(service.deleteTipo(10L)).thenReturn(false);
 
-        mockMvc.perform(delete("/api/proveedores/tipo-proveedor/10"))
+        mockMvc.perform(delete("/api/v1/proveedores/tipo-proveedor/10"))
             .andExpect(status().isNotFound());
     }
 }
+

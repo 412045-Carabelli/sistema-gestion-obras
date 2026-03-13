@@ -23,7 +23,7 @@ class TipoTransaccionControllerTest {
 
     @Test
     void listar_ok() throws Exception {
-        mockMvc.perform(get("/api/transacciones/tipo-transaccion"))
+        mockMvc.perform(get("/api/v1/transacciones/tipo-transaccion"))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.length()").value(TipoTransaccionEnum.values().length))
             .andExpect(jsonPath("$[0].name").exists())
@@ -32,7 +32,7 @@ class TipoTransaccionControllerTest {
 
     @Test
     void obtener_tipo_ok() throws Exception {
-        mockMvc.perform(get("/api/transacciones/tipo-transaccion/COBRO"))
+        mockMvc.perform(get("/api/v1/transacciones/tipo-transaccion/COBRO"))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.name").value("COBRO"))
             .andExpect(jsonPath("$.label").value("Cobro"));
@@ -40,7 +40,8 @@ class TipoTransaccionControllerTest {
 
     @Test
     void obtener_tipo_no_encontrado() throws Exception {
-        mockMvc.perform(get("/api/transacciones/tipo-transaccion/INVALIDO"))
+        mockMvc.perform(get("/api/v1/transacciones/tipo-transaccion/INVALIDO"))
             .andExpect(status().isNotFound());
     }
 }
+

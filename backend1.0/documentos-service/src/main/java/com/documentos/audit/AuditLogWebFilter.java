@@ -102,7 +102,7 @@ public class AuditLogWebFilter implements WebFilter {
 
     private String resolveTableName(String uri) {
         String path = uri;
-        if (path.startsWith("/api/")) {
+        if (path.startsWith("/api/v1/")) {
             path = path.substring(5);
         } else if (path.startsWith("/")) {
             path = path.substring(1);
@@ -145,3 +145,4 @@ public class AuditLogWebFilter implements WebFilter {
                 || HttpMethod.DELETE.equals(method);
     }
 }
+

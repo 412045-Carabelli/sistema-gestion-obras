@@ -17,8 +17,8 @@ class GremioBffControllerTest {
 
     @Test
     void gremioEndpoints_ok_y_error() {
-        String baseProveedores = "http://proveedores/api/proveedores";
-        String baseGremios = "http://proveedores/api/gremios";
+        String baseProveedores = "http://proveedores/api/v1/proveedores";
+        String baseGremios = "http://proveedores/api/v1/gremios";
         StubExchangeFunction stub = new StubExchangeFunction();
         stub.stub(HttpMethod.GET, baseGremios, HttpStatus.OK, List.of(Map.of("id", 1)));
         stub.stub(HttpMethod.GET, baseGremios + "/1", HttpStatus.OK, Map.of("id", 1));
@@ -46,3 +46,4 @@ class GremioBffControllerTest {
         assertThat(notFound.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
     }
 }
+

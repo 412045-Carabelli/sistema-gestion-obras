@@ -53,7 +53,7 @@ class ProveedoresBffControllerTest {
         p.setNombre("Prov A");
         when(proveedorService.findAllActivos()).thenReturn(List.of(p));
 
-        mockMvc.perform(get("/bff/proveedores"))
+        mockMvc.perform(get("/bff/v1/proveedores"))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$[0].id").value(1L))
             .andExpect(jsonPath("$[0].nombre").value("Prov A"));
@@ -63,7 +63,7 @@ class ProveedoresBffControllerTest {
     void get_proveedor_not_found() throws Exception {
         when(proveedorService.findById(99L)).thenReturn(Optional.empty());
 
-        mockMvc.perform(get("/bff/proveedores/99"))
+        mockMvc.perform(get("/bff/v1/proveedores/99"))
             .andExpect(status().isNotFound());
     }
 
@@ -80,7 +80,7 @@ class ProveedoresBffControllerTest {
                         java.math.BigDecimal.ZERO
                 ));
 
-        mockMvc.perform(get("/bff/proveedores/2"))
+        mockMvc.perform(get("/bff/v1/proveedores/2"))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.id").value(2L))
             .andExpect(jsonPath("$.nombre").value("Prov B"));
@@ -105,7 +105,7 @@ class ProveedoresBffControllerTest {
         saved.setNombre("Prov C");
         when(proveedorService.save(any(Proveedor.class))).thenReturn(saved);
 
-        mockMvc.perform(post("/bff/proveedores")
+        mockMvc.perform(post("/bff/v1/proveedores")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(dto)))
             .andExpect(status().isOk())
@@ -119,7 +119,7 @@ class ProveedoresBffControllerTest {
         dto.setNombre("Prov X");
         when(proveedorService.save(any(Proveedor.class))).thenThrow(new RuntimeException("error"));
 
-        mockMvc.perform(post("/bff/proveedores")
+        mockMvc.perform(post("/bff/v1/proveedores")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(dto)))
             .andExpect(status().isBadRequest());
@@ -134,7 +134,7 @@ class ProveedoresBffControllerTest {
         updated.setNombre("Prov D");
         when(proveedorService.update(eq(4L), any(Proveedor.class))).thenReturn(updated);
 
-        mockMvc.perform(put("/bff/proveedores/4")
+        mockMvc.perform(put("/bff/v1/proveedores/4")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(dto)))
             .andExpect(status().isOk())
@@ -148,7 +148,7 @@ class ProveedoresBffControllerTest {
         dto.setNombre("Prov Y");
         when(proveedorService.update(eq(10L), any(Proveedor.class))).thenThrow(new RuntimeException("no"));
 
-        mockMvc.perform(put("/bff/proveedores/10")
+        mockMvc.perform(put("/bff/v1/proveedores/10")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(dto)))
             .andExpect(status().isNotFound());
@@ -156,7 +156,7 @@ class ProveedoresBffControllerTest {
 
     @Test
     void delete_proveedor_ok() throws Exception {
-        mockMvc.perform(delete("/bff/proveedores/7"))
+        mockMvc.perform(delete("/bff/v1/proveedores/7"))
             .andExpect(status().isNoContent());
     }
 
@@ -167,7 +167,7 @@ class ProveedoresBffControllerTest {
         t.setNombre("Albanil");
         when(proveedorService.findAllTipoActivos()).thenReturn(List.of(t));
 
-        mockMvc.perform(get("/bff/tipo-proveedor"))
+        mockMvc.perform(get("/bff/v1/tipo-proveedor"))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$[0].id").value(2L));
     }
@@ -179,7 +179,7 @@ class ProveedoresBffControllerTest {
         t.setNombre("Pintor");
         when(proveedorService.saveTipo(any(TipoProveedor.class))).thenReturn(t);
 
-        mockMvc.perform(post("/bff/tipo-proveedor")
+        mockMvc.perform(post("/bff/v1/tipo-proveedor")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(t)))
             .andExpect(status().isOk())
@@ -193,7 +193,7 @@ class ProveedoresBffControllerTest {
         g.setNombre("Gremio A");
         when(gremioService.findAllActivos()).thenReturn(List.of(g));
 
-        mockMvc.perform(get("/bff/gremios"))
+        mockMvc.perform(get("/bff/v1/gremios"))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$[0].id").value(4L));
     }
@@ -205,10 +205,11 @@ class ProveedoresBffControllerTest {
         g.setNombre("Gremio B");
         when(gremioService.save(any(Gremio.class))).thenReturn(g);
 
-        mockMvc.perform(post("/bff/gremios")
+        mockMvc.perform(post("/bff/v1/gremios")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(g)))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.id").value(5L));
     }
 }
+

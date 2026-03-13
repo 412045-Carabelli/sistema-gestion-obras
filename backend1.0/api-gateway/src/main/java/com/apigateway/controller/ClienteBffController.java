@@ -15,7 +15,7 @@ import java.util.List;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/bff/clientes")
+@RequestMapping("/bff/v1/clientes")
 @RequiredArgsConstructor
 public class ClienteBffController {
 
@@ -25,7 +25,7 @@ public class ClienteBffController {
     private final WebClient.Builder webClientBuilder;
 
     // ================================
-    // 📥 GET - Listar todos los clientes
+    // ðŸ“¥ GET - Listar todos los clientes
     // ================================
     @GetMapping
     public Mono<ResponseEntity<List<Map<String, Object>>>> getAllClientes(
@@ -57,7 +57,7 @@ public class ClienteBffController {
     }
 
     // ================================
-    // 📥 GET - Obtener cliente por ID
+    // ðŸ“¥ GET - Obtener cliente por ID
     // ================================
     @GetMapping("/{id}")
     public Mono<ResponseEntity<Map<String, Object>>> getClienteById(@PathVariable("id") Long id) {
@@ -72,7 +72,7 @@ public class ClienteBffController {
     }
 
     // ================================
-    // ➕ POST - Crear cliente
+    // âž• POST - Crear cliente
     // ================================
     @PostMapping
     public Mono<ResponseEntity<Map<String, Object>>> createCliente(@RequestBody Map<String, Object> clienteData) {
@@ -89,7 +89,7 @@ public class ClienteBffController {
     }
 
     // ================================
-    // ✏️ PUT - Actualizar cliente
+    // âœï¸ PUT - Actualizar cliente
     // ================================
     @PutMapping("/{id}")
     public Mono<ResponseEntity<Map<String, Object>>> updateCliente(
@@ -109,7 +109,7 @@ public class ClienteBffController {
     }
 
     // ================================
-    // 🗑️ DELETE - Eliminar cliente
+    // ðŸ—‘ï¸ DELETE - Eliminar cliente
     // ================================
     @DeleteMapping("/{id}")
     public Mono<ResponseEntity<Object>> deleteCliente(@PathVariable("id") Long id) {
@@ -138,3 +138,4 @@ public class ClienteBffController {
         return condicionesFlux.collectList().map(ResponseEntity::ok);
     }
 }
+

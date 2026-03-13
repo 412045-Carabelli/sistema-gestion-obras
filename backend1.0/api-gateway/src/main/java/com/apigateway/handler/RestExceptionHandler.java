@@ -1,6 +1,6 @@
 package com.apigateway.handler;
 
-import com.apigateway.dto.ErrorApi;
+import com.meliquina.common.dto.ErrorApi;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;

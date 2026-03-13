@@ -30,7 +30,7 @@ public class ProveedoresClient {
     public List<ProveedorExternalDto> obtenerProveedores() {
         try {
             ResponseEntity<List<ProveedorExternalDto>> response = restTemplate.exchange(
-                    baseUrl + "/api/proveedores/all",
+                    baseUrl + "/api/v1/proveedores/all",
                     HttpMethod.GET,
                     null,
                     PROVEEDORES_TYPE
@@ -42,3 +42,4 @@ public class ProveedoresClient {
         }
     }
 }
+

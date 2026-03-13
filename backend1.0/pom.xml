@@ -13,6 +13,7 @@
 
     <!-- 📦 Módulos -->
     <modules>
+        <module>common</module>
         <module>api-gateway</module>
         <module>clientes-service</module>
         <module>proveedores-service</module>

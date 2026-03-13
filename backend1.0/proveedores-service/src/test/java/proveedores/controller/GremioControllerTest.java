@@ -42,7 +42,7 @@ class GremioControllerTest {
         g.setNombre("Gremio A");
         when(service.findAllActivos()).thenReturn(List.of(g));
 
-        mockMvc.perform(get("/api/gremios"))
+        mockMvc.perform(get("/api/v1/gremios"))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$[0].id").value(1L))
             .andExpect(jsonPath("$[0].nombre").value("Gremio A"));
@@ -54,7 +54,7 @@ class GremioControllerTest {
         g.setId(2L);
         when(service.findById(2L)).thenReturn(Optional.of(g));
 
-        mockMvc.perform(get("/api/gremios/2"))
+        mockMvc.perform(get("/api/v1/gremios/2"))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.id").value(2L));
     }
@@ -63,7 +63,7 @@ class GremioControllerTest {
     void get_one_not_found() throws Exception {
         when(service.findById(99L)).thenReturn(Optional.empty());
 
-        mockMvc.perform(get("/api/gremios/99"))
+        mockMvc.perform(get("/api/v1/gremios/99"))
             .andExpect(status().isNotFound());
     }
 
@@ -74,7 +74,7 @@ class GremioControllerTest {
         g.setNombre("Gremio B");
         when(service.save(any(Gremio.class))).thenReturn(g);
 
-        mockMvc.perform(post("/api/gremios")
+        mockMvc.perform(post("/api/v1/gremios")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(g)))
             .andExpect(status().isOk())
@@ -88,7 +88,7 @@ class GremioControllerTest {
         g.setNombre("Gremio C");
         when(service.update(eq(4L), any(Gremio.class))).thenReturn(Optional.of(g));
 
-        mockMvc.perform(put("/api/gremios/4")
+        mockMvc.perform(put("/api/v1/gremios/4")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(g)))
             .andExpect(status().isOk())
@@ -99,7 +99,7 @@ class GremioControllerTest {
     void update_not_found() throws Exception {
         when(service.update(eq(10L), any(Gremio.class))).thenReturn(Optional.empty());
 
-        mockMvc.perform(put("/api/gremios/10")
+        mockMvc.perform(put("/api/v1/gremios/10")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(new Gremio())))
             .andExpect(status().isNotFound());
@@ -109,7 +109,7 @@ class GremioControllerTest {
     void delete_ok() throws Exception {
         when(service.delete(5L)).thenReturn(true);
 
-        mockMvc.perform(delete("/api/gremios/5"))
+        mockMvc.perform(delete("/api/v1/gremios/5"))
             .andExpect(status().isNoContent());
     }
 
@@ -117,7 +117,8 @@ class GremioControllerTest {
     void delete_not_found() throws Exception {
         when(service.delete(11L)).thenReturn(false);
 
-        mockMvc.perform(delete("/api/gremios/11"))
+        mockMvc.perform(delete("/api/v1/gremios/11"))
             .andExpect(status().isNotFound());
     }
 }
+

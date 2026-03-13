@@ -14,7 +14,7 @@ import java.util.List;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/bff/proveedores")
+@RequestMapping("/bff/v1/proveedores")
 @RequiredArgsConstructor
 public class ProveedorBffController {
 
@@ -24,7 +24,7 @@ public class ProveedorBffController {
     private final WebClient.Builder webClientBuilder;
 
     // ===============================
-    // 🔸 GET /bff/proveedores
+    // ðŸ”¸ GET /bff/v1/proveedores
     // ===============================
     @GetMapping
     public Mono<ResponseEntity<List<Map<String, Object>>>> getAllProveedores(
@@ -56,7 +56,7 @@ public class ProveedorBffController {
     }
 
     // ===============================
-    // 📥 GET /bff/proveedores/all
+    // ðŸ“¥ GET /bff/v1/proveedores/all
     // ===============================
     @GetMapping("/all")
     public Mono<ResponseEntity<List<Map<String, Object>>>> getAllProveedoresSinFiltro() {
@@ -71,7 +71,7 @@ public class ProveedorBffController {
     }
 
     // ===============================
-    // 🔸 GET /bff/proveedores/{id}
+    // ðŸ”¸ GET /bff/v1/proveedores/{id}
     // ===============================
     @GetMapping("/{id}")
     public Mono<ResponseEntity<Map<String, Object>>> getProveedorById(@PathVariable("id") Long id) {
@@ -86,7 +86,7 @@ public class ProveedorBffController {
     }
 
     // ===============================
-    // 🆕 POST /bff/proveedores
+    // ðŸ†• POST /bff/v1/proveedores
     // ===============================
     @PostMapping
     public Mono<ResponseEntity<Map<String, Object>>> crearProveedor(
@@ -106,7 +106,7 @@ public class ProveedorBffController {
     }
 
     // ===============================
-    // 🆕 PUT /bff/proveedores/{id}
+    // ðŸ†• PUT /bff/v1/proveedores/{id}
     // ===============================
     @PutMapping("/{id}")
     public Mono<ResponseEntity<Map<String, Object>>> actualizarProveedor(
@@ -127,7 +127,7 @@ public class ProveedorBffController {
     }
 
     // ===============================
-    // 🆕 DELETE /bff/proveedores/{id}
+    // ðŸ†• DELETE /bff/v1/proveedores/{id}
     // ===============================
     @DeleteMapping("/{id}")
     public Mono<ResponseEntity<Void>> eliminarProveedor(@PathVariable("id") Long id) {
@@ -143,3 +143,4 @@ public class ProveedorBffController {
                 });
     }
 }
+

@@ -1,0 +1,36 @@
+﻿global:\n  scrape_interval: 10s\n  evaluation_interval: 10s\n\nrule_files:\n  - /etc/prometheus/prometheus-alerts.yml\n\nscrape_configs:
+  - job_name: api-gateway
+    metrics_path: /actuator/prometheus
+    static_configs:
+      - targets: ["api-gateway:8080"]
+
+  - job_name: clientes-service
+    metrics_path: /actuator/prometheus
+    static_configs:
+      - targets: ["clientes-service:8082"]
+
+  - job_name: proveedores-service
+    metrics_path: /actuator/prometheus
+    static_configs:
+      - targets: ["proveedores-service:8083"]
+
+  - job_name: obras-service
+    metrics_path: /actuator/prometheus
+    static_configs:
+      - targets: ["obras-service:8081"]
+
+  - job_name: documentos-service
+    metrics_path: /actuator/prometheus
+    static_configs:
+      - targets: ["documentos-service:8087"]
+
+  - job_name: transacciones-service
+    metrics_path: /actuator/prometheus
+    static_configs:
+      - targets: ["transacciones-service:8086"]
+
+  - job_name: reportes-service
+    metrics_path: /actuator/prometheus
+    static_configs:
+      - targets: ["reportes-service:8084"]
+

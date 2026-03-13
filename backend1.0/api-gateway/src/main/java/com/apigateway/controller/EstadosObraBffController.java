@@ -13,7 +13,7 @@ import java.util.List;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/bff/estados-obras")
+@RequestMapping("/bff/v1/estados-obras")
 @RequiredArgsConstructor
 public class EstadosObraBffController {
 
@@ -43,4 +43,5 @@ public class EstadosObraBffController {
                 });
     }
 }
+
 

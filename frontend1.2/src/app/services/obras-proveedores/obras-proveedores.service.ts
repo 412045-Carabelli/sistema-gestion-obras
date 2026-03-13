@@ -1,4 +1,4 @@
-import {Injectable} from '@angular/core';
+﻿import {Injectable} from '@angular/core';
 import {ObraProveedor} from '../../core/models/models';
 import {HttpClient} from '@angular/common/http';
 
@@ -7,7 +7,7 @@ import {HttpClient} from '@angular/common/http';
 })
 export class ObrasProveedoresService {
 
-  private apiUrl = 'http://localhost:8080/bff/obras/costos';
+  private apiUrl = 'http://localhost:8080/bff/v1/obras/costos';
 
   constructor(private http: HttpClient) {
   }
@@ -16,3 +16,4 @@ export class ObrasProveedoresService {
     return this.http.get<ObraProveedor[]>(`${this.apiUrl}/${idObra}`);
   }
 }
+

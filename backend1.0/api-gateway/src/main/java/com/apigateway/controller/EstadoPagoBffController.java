@@ -14,7 +14,7 @@ import java.util.List;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/bff/estado-pago")
+@RequestMapping("/bff/v1/estado-pago")
 @RequiredArgsConstructor
 public class EstadoPagoBffController {
 
@@ -36,3 +36,4 @@ public class EstadoPagoBffController {
                 .map(ResponseEntity::ok);
     }
 }
+

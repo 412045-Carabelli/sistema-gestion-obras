@@ -13,7 +13,7 @@ import java.util.List;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/bff/tareas")
+@RequestMapping("/bff/v1/tareas")
 @RequiredArgsConstructor
 public class TareaBffController {
 
@@ -22,7 +22,7 @@ public class TareaBffController {
 
     private final WebClient.Builder webClientBuilder;
 
-    // ✅ Tareas por obra
+    // âœ… Tareas por obra
     @GetMapping("/{idObra}")
     public Mono<ResponseEntity<List<Map<String, Object>>>> getTareasPorObra(
             @PathVariable("idObra") Long idObra,
@@ -45,7 +45,7 @@ public class TareaBffController {
                 .map(ResponseEntity::ok);
     }
 
-    // 🆕 ✅ Tareas por proveedor
+    // ðŸ†• âœ… Tareas por proveedor
     @GetMapping("/proveedor/{idProveedor}")
     public Mono<ResponseEntity<List<Map<String, Object>>>> getTareasPorProveedor(@PathVariable("idProveedor") Long idProveedor) {
         return webClientBuilder.build()
@@ -57,7 +57,7 @@ public class TareaBffController {
                 .map(ResponseEntity::ok);
     }
 
-    // ✅ POST Crear tarea
+    // âœ… POST Crear tarea
     @PostMapping("/{idObra}")
     public Mono<ResponseEntity<Map<String, Object>>> crearTarea(
             @PathVariable("idObra") Long idObra,
@@ -72,7 +72,7 @@ public class TareaBffController {
                 .map(ResponseEntity::ok);
     }
 
-    // ✅ PUT actualizar
+    // âœ… PUT actualizar
     @PutMapping("/{id}")
     public Mono<ResponseEntity<Map<String, Object>>> actualizarTarea(
             @PathVariable("id") Long id,
@@ -87,7 +87,7 @@ public class TareaBffController {
                 .map(ResponseEntity::ok);
     }
 
-    // ✅ PUT completar
+    // âœ… PUT completar
     @PutMapping("/{id}/completar")
     public Mono<ResponseEntity<Map<String, Object>>> completarTarea(@PathVariable("id") Long id) {
         return webClientBuilder.build()
@@ -98,7 +98,7 @@ public class TareaBffController {
                 .map(ResponseEntity::ok);
     }
 
-    // ✅ DELETE borrar
+    // âœ… DELETE borrar
     @DeleteMapping("/{id}")
     public Mono<ResponseEntity<Void>> borrarTarea(@PathVariable("id") Long id) {
         return webClientBuilder.build()
@@ -109,3 +109,4 @@ public class TareaBffController {
                 .map(ResponseEntity::ok);
     }
 }
+

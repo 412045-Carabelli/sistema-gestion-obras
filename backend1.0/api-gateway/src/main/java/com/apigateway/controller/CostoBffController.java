@@ -12,7 +12,7 @@ import java.util.List;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/bff/costos")
+@RequestMapping("/bff/v1/costos")
 @RequiredArgsConstructor
 public class CostoBffController {
 
@@ -21,7 +21,7 @@ public class CostoBffController {
 
     private final WebClient.Builder webClientBuilder;
 
-    // 🔸 GET /bff/costos/{idObra}
+    // ðŸ”¸ GET /bff/v1/costos/{idObra}
     @GetMapping("/{idObra}")
     public Mono<ResponseEntity<List<Map<String, Object>>>> getCostosPorObra(@PathVariable("idObra") Long idObra) {
         WebClient client = webClientBuilder.build();
@@ -90,3 +90,4 @@ public class CostoBffController {
                 .onErrorResume(ex -> Mono.just(ResponseEntity.status(500).build()));
     }
 }
+

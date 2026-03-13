@@ -16,7 +16,7 @@ import java.util.List;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/bff/transacciones")
+@RequestMapping("/bff/v1/transacciones")
 @RequiredArgsConstructor
 public class TransaccionBffController {
 
@@ -32,7 +32,7 @@ public class TransaccionBffController {
     private final WebClient.Builder webClientBuilder;
     private final ObjectMapper objectMapper;
 
-    // ✅ GET /bff/transacciones
+    // âœ… GET /bff/v1/transacciones
     @GetMapping
     public Mono<ResponseEntity<List<Map<String, Object>>>> getAllTransacciones() {
         WebClient client = webClientBuilder.build();
@@ -45,7 +45,7 @@ public class TransaccionBffController {
         return transaccionesFlux.collectList().map(ResponseEntity::ok);
     }
 
-    // ✅ GET /bff/transacciones/{id}
+    // âœ… GET /bff/v1/transacciones/{id}
     @GetMapping("/{id}")
     public Mono<ResponseEntity<Map<String, Object>>> getTransaccionById(@PathVariable("id") Long id) {
         WebClient client = webClientBuilder.build();
@@ -58,7 +58,7 @@ public class TransaccionBffController {
                 .onErrorResume(ex -> Mono.just(ResponseEntity.notFound().build()));
     }
 
-    // ✅ GET /bff/transacciones/obra/{obraId}
+    // âœ… GET /bff/v1/transacciones/obra/{obraId}
     @GetMapping("/obra/{obraId}")
     public Mono<ResponseEntity<List<Map<String, Object>>>> getTransaccionesByObra(@PathVariable("obraId") Long obraId) {
         WebClient client = webClientBuilder.build();
@@ -95,7 +95,7 @@ public class TransaccionBffController {
                         }));
     }
 
-    // ✅ POST /bff/transacciones
+    // âœ… POST /bff/v1/transacciones
     @PostMapping
     public Mono<ResponseEntity<Map<String, Object>>> createTransaccion(@RequestBody Map<String, Object> body) {
         WebClient client = webClientBuilder.build();
@@ -108,7 +108,7 @@ public class TransaccionBffController {
                 .map(ResponseEntity::ok);
     }
 
-    // ✅ PUT /bff/transacciones/{id}
+    // âœ… PUT /bff/v1/transacciones/{id}
     @PutMapping("/{id}")
     public Mono<ResponseEntity<Map<String, Object>>> updateTransaccion(@PathVariable("id") Long id,
                                                                        @RequestBody Map<String, Object> body) {
@@ -122,7 +122,7 @@ public class TransaccionBffController {
                 .map(ResponseEntity::ok);
     }
 
-    // ✅ DELETE /bff/transacciones/{id}
+    // âœ… DELETE /bff/v1/transacciones/{id}
     @DeleteMapping("/{id}")
     public Mono<ResponseEntity<Void>> deleteTransaccion(@PathVariable("id") Long id) {
         WebClient client = webClientBuilder.build();
@@ -164,3 +164,4 @@ public class TransaccionBffController {
         }
     }
 }
+

@@ -48,7 +48,7 @@ class ProveedoresControllerTest {
         p.setNombre("Prov A");
         when(service.findAllActivos()).thenReturn(List.of(p));
 
-        mockMvc.perform(get("/api/proveedores"))
+        mockMvc.perform(get("/api/v1/proveedores"))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$[0].id").value(1L))
             .andExpect(jsonPath("$[0].nombre").value("Prov A"));
@@ -66,7 +66,7 @@ class ProveedoresControllerTest {
                         java.math.BigDecimal.ZERO
                 ));
 
-        mockMvc.perform(get("/api/proveedores/2"))
+        mockMvc.perform(get("/api/v1/proveedores/2"))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.id").value(2L));
     }
@@ -75,7 +75,7 @@ class ProveedoresControllerTest {
     void get_by_id_not_found() throws Exception {
         when(service.findById(99L)).thenReturn(Optional.empty());
 
-        mockMvc.perform(get("/api/proveedores/99"))
+        mockMvc.perform(get("/api/v1/proveedores/99"))
             .andExpect(status().isNotFound());
     }
 
@@ -85,7 +85,7 @@ class ProveedoresControllerTest {
         p.setId(3L);
         when(service.findAll()).thenReturn(List.of(p));
 
-        mockMvc.perform(get("/api/proveedores/all"))
+        mockMvc.perform(get("/api/v1/proveedores/all"))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$[0].id").value(3L));
     }
@@ -109,7 +109,7 @@ class ProveedoresControllerTest {
         saved.setNombre("Prov X");
         when(service.save(any(Proveedor.class))).thenReturn(saved);
 
-        mockMvc.perform(post("/api/proveedores")
+        mockMvc.perform(post("/api/v1/proveedores")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(dto)))
             .andExpect(status().isOk())
@@ -123,7 +123,7 @@ class ProveedoresControllerTest {
         dto.setNombre("Prov X");
         when(service.save(any(Proveedor.class))).thenThrow(new RuntimeException("error"));
 
-        mockMvc.perform(post("/api/proveedores")
+        mockMvc.perform(post("/api/v1/proveedores")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(dto)))
             .andExpect(status().isBadRequest());
@@ -136,7 +136,7 @@ class ProveedoresControllerTest {
         dto.setTipo_proveedor_id(99L);
         when(service.findTipoById(99L)).thenReturn(Optional.empty());
 
-        mockMvc.perform(post("/api/proveedores")
+        mockMvc.perform(post("/api/v1/proveedores")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(dto)))
             .andExpect(status().isBadRequest());
@@ -153,7 +153,7 @@ class ProveedoresControllerTest {
         updated.setNombre("Prov Y");
         when(service.update(eq(6L), any(Proveedor.class))).thenReturn(updated);
 
-        mockMvc.perform(put("/api/proveedores/6")
+        mockMvc.perform(put("/api/v1/proveedores/6")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(dto)))
             .andExpect(status().isOk())
@@ -166,7 +166,7 @@ class ProveedoresControllerTest {
         ProveedorDTO dto = new ProveedorDTO();
         when(service.update(eq(7L), any(Proveedor.class))).thenThrow(new RuntimeException("no encontrado"));
 
-        mockMvc.perform(put("/api/proveedores/7")
+        mockMvc.perform(put("/api/v1/proveedores/7")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(dto)))
             .andExpect(status().isNotFound());
@@ -179,7 +179,7 @@ class ProveedoresControllerTest {
         dto.setGremio_id(88L);
         when(service.findGremioById(88L)).thenReturn(Optional.empty());
 
-        mockMvc.perform(put("/api/proveedores/8")
+        mockMvc.perform(put("/api/v1/proveedores/8")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(dto)))
             .andExpect(status().isNotFound());
@@ -189,9 +189,10 @@ class ProveedoresControllerTest {
 
     @Test
     void delete_ok() throws Exception {
-        mockMvc.perform(delete("/api/proveedores/8"))
+        mockMvc.perform(delete("/api/v1/proveedores/8"))
             .andExpect(status().isNoContent());
 
         verify(service).delete(8L);
     }
 }
+

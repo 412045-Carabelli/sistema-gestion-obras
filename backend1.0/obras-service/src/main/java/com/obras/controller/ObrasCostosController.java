@@ -8,7 +8,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/obras/costos")
+@RequestMapping("/api/v1/obras/costos")
 @RequiredArgsConstructor
 public class ObrasCostosController {
 
@@ -33,3 +33,4 @@ public class ObrasCostosController {
     @DeleteMapping("/{id}") public void delCosto(@PathVariable("id") Long id){ svc.eliminar(id); }
 
 }
+

@@ -7,15 +7,19 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.reactive.function.client.WebClient;
+import org.springframework.web.util.UriComponentsBuilder;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.net.URI;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 @RestController
-@RequestMapping("/bff/obras")
+@RequestMapping("/bff/v1/obras")
 @RequiredArgsConstructor
 public class ObraBffController {
 
@@ -40,7 +44,7 @@ public class ObraBffController {
     private final WebClient.Builder webClientBuilder;
 
     // ================================
-    // 📥 POST - Crear Obra
+    // ðŸ“¥ POST - Crear Obra
     // ================================
     @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
     public Mono<ResponseEntity<Map<String, Object>>> crearObra(@RequestBody Map<String, Object> obraDto) {
@@ -64,7 +68,7 @@ public class ObraBffController {
     }
 
     // ================================
-    // ✏️ PUT - Actualizar Obra
+    // âœï¸ PUT - Actualizar Obra
     // ================================
     @PutMapping(value = "/{id}", consumes = MediaType.APPLICATION_JSON_VALUE)
     public Mono<ResponseEntity<Map<String, Object>>> actualizarObra(
@@ -91,7 +95,7 @@ public class ObraBffController {
     }
 
     // ================================
-// 🌀 PATCH - Cambiar estado de la Obra
+// ðŸŒ€ PATCH - Cambiar estado de la Obra
 // ================================
     @PatchMapping("/{id}/estado/{estado}")
     public Mono<ResponseEntity<Object>> cambiarEstadoObra(
@@ -152,7 +156,7 @@ public class ObraBffController {
 
 
     // ================================
-    // 📜 GET - Listar Obras (resumido)
+    // ðŸ“œ GET - Listar Obras (resumido)
     // ================================
     @GetMapping
     public Mono<ResponseEntity<List<Map<String, Object>>>> getTodasLasObras(
@@ -180,29 +184,33 @@ public class ObraBffController {
                 .retrieve()
                 .bodyToFlux(new ParameterizedTypeReference<Map<String, Object>>() {});
 
-        Flux<Map<String, Object>> obrasEnriquecidas = obrasFlux.flatMap(obra -> {
-            Object idClienteObj = obra.get("id_cliente");
-            if (idClienteObj == null) {
-                obra.put("cliente", null);
-                obra.remove("id_cliente");
-                return Mono.just(obra);
-            }
+        return obrasFlux.collectList()
+                .flatMap(obras -> {
+                    if (obras.isEmpty()) {
+                        return Mono.just(ResponseEntity.ok(List.<Map<String, Object>>of()));
+                    }
+                    List<Long> ids = obras.stream()
+                            .map(obra -> obra.get("id_cliente"))
+                            .filter(id -> id instanceof Number)
+                            .map(id -> ((Number) id).longValue())
+                            .distinct()
+                            .toList();
 
-            Long idCliente = ((Number) idClienteObj).longValue();
-            return client.get()
-                    .uri(CLIENTES_URL + "/{id}", idCliente)
-                    .retrieve()
-                    .bodyToMono(new ParameterizedTypeReference<Map<String, Object>>() {})
-                    .onErrorResume(ex -> Mono.just(Map.of()))
-                    .map(cliente -> {
-                        obra.put("cliente", cliente.isEmpty() ? null : cliente);
-                        obra.remove("id_cliente");
-                        return obra;
-                    });
-        });
-
-        return obrasEnriquecidas.collectList()
-                .map(ResponseEntity::ok)
+                    return fetchClientesByIds(client, ids)
+                            .map(clientesMap -> {
+                                obras.forEach(obra -> {
+                                    Object idClienteObj = obra.get("id_cliente");
+                                    if (idClienteObj instanceof Number num) {
+                                        Map<String, Object> cliente = clientesMap.get(num.longValue());
+                                        obra.put("cliente", (cliente == null || cliente.isEmpty()) ? null : cliente);
+                                    } else {
+                                        obra.put("cliente", null);
+                                    }
+                                    obra.remove("id_cliente");
+                                });
+                                return ResponseEntity.ok(obras);
+                            });
+                })
                 .onErrorResume(ex -> {
                     Map<String, Object> err = Map.of(
                             "error", "No se pudieron obtener las obras",
@@ -234,7 +242,7 @@ public class ObraBffController {
                 .onErrorResume(ex -> Mono.just(ResponseEntity.<Object>noContent().build()));
     }
     // ================================
-    // 📄 GET - Obtener Obra completa
+    // ðŸ“„ GET - Obtener Obra completa
     // ================================
     @GetMapping("/{id}")
     public Mono<ResponseEntity<Map<String, Object>>> getObraCompleta(@PathVariable("id") Long id) {
@@ -246,88 +254,143 @@ public class ObraBffController {
                 .bodyToMono(new ParameterizedTypeReference<Map<String, Object>>() {})
                 .onErrorResume(ex -> Mono.empty());
 
-        Mono<Map<String, Object>> clienteMono = obraMono.flatMap(obra -> {
+        return obraMono.flatMap(obra -> {
             Object idClienteObj = obra.get("id_cliente");
-            if (idClienteObj == null) return Mono.empty();
+            List<Long> clienteIds = (idClienteObj instanceof Number num)
+                    ? List.of(num.longValue())
+                    : List.of();
 
-            Long idCliente = ((Number) idClienteObj).longValue();
-            return client.get()
-                    .uri(CLIENTES_URL + "/{id}", idCliente)
+            Mono<Map<Long, Map<String, Object>>> clientesMapMono = fetchClientesByIds(client, clienteIds);
+
+            Mono<List<Map<String, Object>>> costosMono = client.get()
+                    .uri(COSTOS_URL + "/{id}", id)
                     .retrieve()
-                    .bodyToMono(new ParameterizedTypeReference<Map<String, Object>>() {})
-                    .onErrorResume(ex -> Mono.empty());
-        });
+                    .bodyToFlux(new ParameterizedTypeReference<Map<String, Object>>() {})
+                    .collectList()
+                    .onErrorResume(ex -> Mono.just(List.of()))
+                    .cache();
 
-        Mono<List<Map<String, Object>>> costosMono = client.get()
-                .uri(COSTOS_URL + "/{id}", id)
+            Mono<List<Map<String, Object>>> tareasMono = client.get()
+                    .uri(TAREAS_URL + "/{id}", id)
+                    .retrieve()
+                    .bodyToFlux(new ParameterizedTypeReference<Map<String, Object>>() {})
+                    .collectList()
+                    .onErrorResume(ex -> Mono.just(List.of()))
+                    .cache();
+
+            Mono<Map<Long, Map<String, Object>>> proveedoresMapMono = Mono.zip(costosMono, tareasMono)
+                    .flatMap(tuple -> {
+                        List<Map<String, Object>> costos = tuple.getT1();
+                        List<Map<String, Object>> tareas = tuple.getT2();
+                        Set<Long> ids = new HashSet<>();
+                        costos.forEach(c -> {
+                            Object idProv = c.get("id_proveedor");
+                            if (idProv instanceof Number num) {
+                                ids.add(num.longValue());
+                            }
+                        });
+                        tareas.forEach(t -> {
+                            Object idProv = t.get("id_proveedor");
+                            if (idProv instanceof Number num) {
+                                ids.add(num.longValue());
+                            }
+                        });
+                        return fetchProveedoresByIds(client, ids.stream().toList());
+                    });
+
+            return Mono.zip(costosMono, tareasMono, clientesMapMono, proveedoresMapMono)
+                    .map(tuple -> {
+                        List<Map<String, Object>> costos = tuple.getT1();
+                        List<Map<String, Object>> tareas = tuple.getT2();
+                        Map<Long, Map<String, Object>> clientesMap = tuple.getT3();
+                        Map<Long, Map<String, Object>> proveedoresMap = tuple.getT4();
+
+                        costos.forEach(costo -> {
+                            Object idProv = costo.get("id_proveedor");
+                            if (idProv instanceof Number num) {
+                                Map<String, Object> proveedor = proveedoresMap.get(num.longValue());
+                                costo.put("proveedor", proveedor == null || proveedor.isEmpty() ? null : proveedor);
+                            } else {
+                                costo.put("proveedor", null);
+                            }
+                            costo.remove("id_proveedor");
+                        });
+
+                        tareas.forEach(tarea -> {
+                            Object idProv = tarea.get("id_proveedor");
+                            if (idProv instanceof Number num) {
+                                Map<String, Object> proveedor = proveedoresMap.get(num.longValue());
+                                tarea.put("proveedor", proveedor == null || proveedor.isEmpty() ? null : proveedor);
+                            } else {
+                                tarea.put("proveedor", null);
+                            }
+                            tarea.remove("id_proveedor");
+                        });
+
+                        Map<String, Object> cliente = null;
+                        if (idClienteObj instanceof Number num) {
+                            cliente = clientesMap.get(num.longValue());
+                        }
+
+                        obra.put("cliente", (cliente == null || cliente.isEmpty()) ? null : cliente);
+                        obra.put("costos", costos);
+                        obra.put("tareas", tareas);
+                        obra.remove("id_cliente");
+
+                        return ResponseEntity.ok(obra);
+                    });
+        }).switchIfEmpty(Mono.just(ResponseEntity.notFound().build()))
+                .onErrorResume(ex -> {
+                    Map<String, Object> err = Map.of(
+                            "error", "No se pudo obtener la obra completa",
+                            "detalle", ex.getMessage()
+                    );
+                    return Mono.just(ResponseEntity.internalServerError().body(err));
+                });
+    }
+
+    private Mono<Map<Long, Map<String, Object>>> fetchClientesByIds(WebClient client, List<Long> ids) {
+        if (ids == null || ids.isEmpty()) {
+            return Mono.just(Map.of());
+        }
+        String url = UriComponentsBuilder.fromHttpUrl(CLIENTES_URL + "/batch")
+                .queryParam("ids", String.join(",", ids.stream().map(String::valueOf).toList()))
+                .toUriString();
+        return client.get()
+                .uri(url)
                 .retrieve()
-                .bodyToFlux(new ParameterizedTypeReference<Map<String, Object>>() {})
-                .flatMap(costo -> {
-                    Object idProvObj = costo.get("id_proveedor");
-                    if (idProvObj == null) return Mono.just(costo);
+                .bodyToMono(new ParameterizedTypeReference<List<Map<String, Object>>>() {})
+                .map(this::mapById)
+                .onErrorResume(ex -> Mono.just(Map.of()));
+    }
 
-                    Long idProveedor = ((Number) idProvObj).longValue();
-                    return client.get()
-                            .uri(PROVEEDORES_URL + "/{id}", idProveedor)
-                            .retrieve()
-                            .bodyToMono(new ParameterizedTypeReference<Map<String, Object>>() {})
-                            .onErrorResume(ex -> Mono.just(Map.of()))
-                            .map(proveedor -> {
-                                costo.put("proveedor", proveedor);
-                                costo.remove("id_proveedor");
-                                return costo;
-                            });
-                })
-                .collectList()
-                .onErrorResume(ex -> Mono.just(List.of()));
-
-        Mono<List<Map<String, Object>>> tareasMono = client.get()
-                .uri(TAREAS_URL + "/{id}", id)
+    private Mono<Map<Long, Map<String, Object>>> fetchProveedoresByIds(WebClient client, List<Long> ids) {
+        if (ids == null || ids.isEmpty()) {
+            return Mono.just(Map.of());
+        }
+        String url = UriComponentsBuilder.fromHttpUrl(PROVEEDORES_URL + "/batch")
+                .queryParam("ids", String.join(",", ids.stream().map(String::valueOf).toList()))
+                .toUriString();
+        return client.get()
+                .uri(url)
                 .retrieve()
-                .bodyToFlux(new ParameterizedTypeReference<Map<String, Object>>() {})
-                .flatMap(tarea -> {
-                    Object idProvObj = tarea.get("id_proveedor");
-                    if (idProvObj == null) return Mono.just(tarea);
+                .bodyToMono(new ParameterizedTypeReference<List<Map<String, Object>>>() {})
+                .map(this::mapById)
+                .onErrorResume(ex -> Mono.just(Map.of()));
+    }
 
-                    Long idProveedor = ((Number) idProvObj).longValue();
-                    return client.get()
-                            .uri(PROVEEDORES_URL + "/{id}", idProveedor)
-                            .retrieve()
-                            .bodyToMono(new ParameterizedTypeReference<Map<String, Object>>() {})
-                            .onErrorResume(ex -> Mono.just(Map.of()))
-                            .map(proveedor -> {
-                                tarea.put("proveedor", proveedor);
-                                tarea.remove("id_proveedor");
-                                return tarea;
-                            });
-                })
-                .collectList()
-                .onErrorResume(ex -> Mono.just(List.of()));
-
-        return Mono.zip(
-                obraMono,
-                clienteMono.switchIfEmpty(Mono.just(Map.of())),
-                costosMono,
-                tareasMono
-        ).map(tuple -> {
-            Map<String, Object> obra = tuple.getT1();
-            Map<String, Object> cliente = tuple.getT2();
-            List<Map<String, Object>> costos = tuple.getT3();
-            List<Map<String, Object>> tareas = tuple.getT4();
-
-            obra.put("cliente", cliente.isEmpty() ? null : cliente);
-            obra.put("costos", costos);
-            obra.put("tareas", tareas);
-            obra.remove("id_cliente");
-
-            return ResponseEntity.ok(obra);
-        }).onErrorResume(ex -> {
-            Map<String, Object> err = Map.of(
-                    "error", "No se pudo obtener la obra completa",
-                    "detalle", ex.getMessage()
-            );
-            return Mono.just(ResponseEntity.internalServerError().body(err));
-        });
+    private Map<Long, Map<String, Object>> mapById(List<Map<String, Object>> rows) {
+        Map<Long, Map<String, Object>> result = new HashMap<>();
+        if (rows == null) {
+            return result;
+        }
+        for (Map<String, Object> row : rows) {
+            Object idObj = row.get("id");
+            if (idObj instanceof Number num) {
+                result.put(num.longValue(), row);
+            }
+        }
+        return result;
     }
 }
 

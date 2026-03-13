@@ -44,7 +44,7 @@ class ClientesControllerTest {
         response.setCondicionIVA("MONOTRIBUTO");
         when(service.crear(any(ClienteRequest.class))).thenReturn(response);
 
-        mockMvc.perform(post("/api/clientes")
+        mockMvc.perform(post("/api/v1/clientes")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))
             .andExpect(status().isOk())
@@ -58,7 +58,7 @@ class ClientesControllerTest {
         c1.setId(1L);
         when(service.listar()).thenReturn(List.of(c1));
 
-        mockMvc.perform(get("/api/clientes"))
+        mockMvc.perform(get("/api/v1/clientes"))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$[0].id").value(1L));
     }
@@ -69,7 +69,7 @@ class ClientesControllerTest {
         c1.setId(2L);
         when(service.obtenerConObras(2L)).thenReturn(c1);
 
-        mockMvc.perform(get("/api/clientes/2"))
+        mockMvc.perform(get("/api/v1/clientes/2"))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.id").value(2L));
     }
@@ -78,7 +78,7 @@ class ClientesControllerTest {
     void obtener_no_encontrado() throws Exception {
         when(service.obtenerConObras(99L)).thenThrow(new ClienteNotFoundException(99L));
 
-        mockMvc.perform(get("/api/clientes/99"))
+        mockMvc.perform(get("/api/v1/clientes/99"))
             .andExpect(status().isNotFound());
     }
 
@@ -92,7 +92,7 @@ class ClientesControllerTest {
         response.setNombre("Cliente X");
         when(service.actualizar(eq(5L), any(ClienteRequest.class))).thenReturn(response);
 
-        mockMvc.perform(put("/api/clientes/5")
+        mockMvc.perform(put("/api/v1/clientes/5")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(body)))
             .andExpect(status().isOk())
@@ -104,7 +104,7 @@ class ClientesControllerTest {
 
     @Test
     void eliminar_ok() throws Exception {
-        mockMvc.perform(delete("/api/clientes/7"))
+        mockMvc.perform(delete("/api/v1/clientes/7"))
             .andExpect(status().isOk());
 
         verify(service).eliminar(7L);
@@ -112,9 +112,10 @@ class ClientesControllerTest {
 
     @Test
     void condiciones_iva_ok() throws Exception {
-        mockMvc.perform(get("/api/clientes/condicion-iva"))
+        mockMvc.perform(get("/api/v1/clientes/condicion-iva"))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.length()").value(CondicionIva.values().length))
             .andExpect(jsonPath("$[?(@.name=='CONSUMIDOR_FINAL')].label", hasItem("Consumidor Final")));
     }
 }
+

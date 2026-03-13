@@ -18,7 +18,7 @@ import java.util.List;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/bff/documentos")
+@RequestMapping("/bff/v1/documentos")
 @RequiredArgsConstructor
 @CrossOrigin(origins = "http://localhost:4200")
 public class DocumentoBffController {
@@ -29,7 +29,7 @@ public class DocumentoBffController {
     private final WebClient.Builder webClientBuilder;
 
     // ================================
-    // 📤 Crear documento (POST)
+    // ðŸ“¤ Crear documento (POST)
     // ================================
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public Mono<ResponseEntity<Map<String, Object>>> create(
@@ -78,7 +78,7 @@ public class DocumentoBffController {
     }
 
     // ================================
-    // 📥 Obtener documentos por obra (GET)
+    // ðŸ“¥ Obtener documentos por obra (GET)
     // ================================
     @GetMapping("/obra/{idObra}")
     public Mono<ResponseEntity<List<Map<String, Object>>>> getDocumentosPorObra(
@@ -96,7 +96,7 @@ public class DocumentoBffController {
     }
 
     // ================================
-    // 🗑️ Eliminar documento (DELETE)
+    // ðŸ—‘ï¸ Eliminar documento (DELETE)
     // ================================
     @DeleteMapping("/{id}")
     public Mono<ResponseEntity<Void>> deleteDocumento(@PathVariable("id") Long id) {
@@ -144,3 +144,4 @@ public class DocumentoBffController {
                 });
     }
 }
+

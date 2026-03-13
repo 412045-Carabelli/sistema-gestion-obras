@@ -14,7 +14,7 @@ import java.util.List;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/bff/gremios")
+@RequestMapping("/bff/v1/gremios")
 @RequiredArgsConstructor
 public class GremioBffController {
 
@@ -27,7 +27,7 @@ public class GremioBffController {
     public Mono<ResponseEntity<List<Map<String, Object>>>> getAll() {
         WebClient client = webClientBuilder.build();
         Flux<Map<String, Object>> flux = client.get()
-                .uri(PROVEEDORES_URL.replace("/api/proveedores", "/api/gremios"))
+                .uri(PROVEEDORES_URL.replace("/api/v1/proveedores", "/api/v1/gremios"))
                 .retrieve()
                 .bodyToFlux(new ParameterizedTypeReference<Map<String, Object>>() {});
         return flux.collectList().map(ResponseEntity::ok);
@@ -37,7 +37,7 @@ public class GremioBffController {
     public Mono<ResponseEntity<Map<String, Object>>> getOne(@PathVariable("id") Long id) {
         WebClient client = webClientBuilder.build();
         return client.get()
-                .uri(PROVEEDORES_URL.replace("/api/proveedores", "/api/gremios") + "/{id}", id)
+                .uri(PROVEEDORES_URL.replace("/api/v1/proveedores", "/api/v1/gremios") + "/{id}", id)
                 .retrieve()
                 .bodyToMono(new ParameterizedTypeReference<Map<String, Object>>() {})
                 .map(ResponseEntity::ok)
@@ -48,7 +48,7 @@ public class GremioBffController {
     public Mono<ResponseEntity<Map<String, Object>>> create(@RequestBody Map<String, Object> payload) {
         WebClient client = webClientBuilder.build();
         return client.post()
-                .uri(PROVEEDORES_URL.replace("/api/proveedores", "/api/gremios"))
+                .uri(PROVEEDORES_URL.replace("/api/v1/proveedores", "/api/v1/gremios"))
                 .contentType(MediaType.APPLICATION_JSON)
                 .bodyValue(payload)
                 .retrieve()
@@ -61,7 +61,7 @@ public class GremioBffController {
     public Mono<ResponseEntity<Map<String, Object>>> update(@PathVariable("id") Long id, @RequestBody Map<String, Object> payload) {
         WebClient client = webClientBuilder.build();
         return client.put()
-                .uri(PROVEEDORES_URL.replace("/api/proveedores", "/api/gremios") + "/{id}", id)
+                .uri(PROVEEDORES_URL.replace("/api/v1/proveedores", "/api/v1/gremios") + "/{id}", id)
                 .contentType(MediaType.APPLICATION_JSON)
                 .bodyValue(payload)
                 .retrieve()
@@ -74,10 +74,12 @@ public class GremioBffController {
     public Mono<ResponseEntity<Void>> delete(@PathVariable("id") Long id) {
         WebClient client = webClientBuilder.build();
         return client.delete()
-                .uri(PROVEEDORES_URL.replace("/api/proveedores", "/api/gremios") + "/{id}", id)
+                .uri(PROVEEDORES_URL.replace("/api/v1/proveedores", "/api/v1/gremios") + "/{id}", id)
                 .retrieve()
                 .toBodilessEntity()
                 .map(r -> ResponseEntity.noContent().<Void>build())
                 .onErrorResume(ex -> Mono.just(ResponseEntity.notFound().build()));
     }
 }
+
+

@@ -14,8 +14,10 @@ C:\Users\Usuario\Desktop\my-work\sistema-gestion-obras\backend1.0\obras-service\
 C:\Users\Usuario\Desktop\my-work\sistema-gestion-obras\backend1.0\obras-service\src\main\java\com\obras\service\impl\ProgresoServiceImpl.java
 C:\Users\Usuario\Desktop\my-work\sistema-gestion-obras\backend1.0\obras-service\src\main\java\com\obras\controller\EstadosPagosController.java
 C:\Users\Usuario\Desktop\my-work\sistema-gestion-obras\backend1.0\obras-service\src\main\java\com\obras\controller\ObrasController.java
+C:\Users\Usuario\Desktop\my-work\sistema-gestion-obras\backend1.0\obras-service\src\main\java\com\obras\audit\AuditLog.java
 C:\Users\Usuario\Desktop\my-work\sistema-gestion-obras\backend1.0\obras-service\src\main\java\com\obras\repository\ObraCostoRepository.java
 C:\Users\Usuario\Desktop\my-work\sistema-gestion-obras\backend1.0\obras-service\src\main\java\com\obras\enums\EstadoTareaEnum.java
+C:\Users\Usuario\Desktop\my-work\sistema-gestion-obras\backend1.0\obras-service\src\main\java\com\obras\audit\AuditLogRepository.java
 C:\Users\Usuario\Desktop\my-work\sistema-gestion-obras\backend1.0\obras-service\src\main\java\com\obras\repository\ObraProveedorRepository.java
 C:\Users\Usuario\Desktop\my-work\sistema-gestion-obras\backend1.0\obras-service\src\main\java\com\obras\controller\ObrasCostosController.java
 C:\Users\Usuario\Desktop\my-work\sistema-gestion-obras\backend1.0\obras-service\src\main\java\com\obras\service\ObraProveedorService.java
@@ -30,11 +32,13 @@ C:\Users\Usuario\Desktop\my-work\sistema-gestion-obras\backend1.0\obras-service\
 C:\Users\Usuario\Desktop\my-work\sistema-gestion-obras\backend1.0\obras-service\src\main\java\com\obras\entity\EstadoObra.java
 C:\Users\Usuario\Desktop\my-work\sistema-gestion-obras\backend1.0\obras-service\src\main\java\com\obras\dto\ObraDTO.java
 C:\Users\Usuario\Desktop\my-work\sistema-gestion-obras\backend1.0\obras-service\src\main\java\com\obras\enums\TipoCostoEnum.java
+C:\Users\Usuario\Desktop\my-work\sistema-gestion-obras\backend1.0\obras-service\src\main\java\com\obras\audit\AuditLogFilter.java
 C:\Users\Usuario\Desktop\my-work\sistema-gestion-obras\backend1.0\obras-service\src\main\java\com\obras\controller\EstadosTareasController.java
-C:\Users\Usuario\Desktop\my-work\sistema-gestion-obras\backend1.0\obras-service\src\main\java\com\obras\dto\ErrorApi.java
 C:\Users\Usuario\Desktop\my-work\sistema-gestion-obras\backend1.0\obras-service\src\main\java\com\obras\repository\TareaRepository.java
+C:\Users\Usuario\Desktop\my-work\sistema-gestion-obras\backend1.0\obras-service\src\main\java\com\obras\audit\AuditLogController.java
 C:\Users\Usuario\Desktop\my-work\sistema-gestion-obras\backend1.0\obras-service\src\main\java\com\obras\controller\ObrasProveedoresController.java
 C:\Users\Usuario\Desktop\my-work\sistema-gestion-obras\backend1.0\obras-service\src\main\java\com\obras\entity\EstadoPago.java
+C:\Users\Usuario\Desktop\my-work\sistema-gestion-obras\backend1.0\obras-service\src\main\java\com\obras\audit\AuditLogService.java
 C:\Users\Usuario\Desktop\my-work\sistema-gestion-obras\backend1.0\obras-service\src\main\java\com\obras\controller\EstadosObrasController.java
 C:\Users\Usuario\Desktop\my-work\sistema-gestion-obras\backend1.0\obras-service\src\main\java\com\obras\dto\EstadoResponse.java
 C:\Users\Usuario\Desktop\my-work\sistema-gestion-obras\backend1.0\obras-service\src\main\java\com\obras\service\impl\ObraServiceImpl.java

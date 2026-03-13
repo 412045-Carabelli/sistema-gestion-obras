@@ -14,7 +14,7 @@ import java.math.BigDecimal;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/proveedores")
+@RequestMapping("/api/v1/proveedores")
 @RequiredArgsConstructor
 public class ProveedoresController {
 
@@ -112,6 +112,15 @@ public class ProveedoresController {
         return ResponseEntity.ok(result);
     }
 
+    @GetMapping("/batch")
+    public ResponseEntity<List<ProveedorDTO>> getByIds(@RequestParam(name = "ids", required = false) List<Long> ids) {
+        List<ProveedorDTO> result = service.findAllByIds(ids)
+                .stream()
+                .map(this::toDTO)
+                .toList();
+        return ResponseEntity.ok(result);
+    }
+
     @GetMapping("/{id}")
     public ResponseEntity<ProveedorDTO> getById(@PathVariable("id") Long id) {
         return service.findById(id)
@@ -161,3 +170,4 @@ public class ProveedoresController {
         return ResponseEntity.noContent().build();
     }
 }
+

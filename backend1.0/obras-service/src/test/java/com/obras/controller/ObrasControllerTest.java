@@ -59,7 +59,7 @@ class ObrasControllerTest {
 
         when(svc.crear(any())).thenReturn(dto);
 
-        mockMvc.perform(post("/api/obras")
+        mockMvc.perform(post("/api/v1/obras")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(dto)))
             .andExpect(status().isOk())
@@ -75,7 +75,7 @@ class ObrasControllerTest {
 
         when(svc.obtener(2L)).thenReturn(Optional.of(dto));
 
-        mockMvc.perform(get("/api/obras/2"))
+        mockMvc.perform(get("/api/v1/obras/2"))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.id").value(2L));
     }
@@ -84,7 +84,7 @@ class ObrasControllerTest {
     void get_no_encontrado() throws Exception {
         when(svc.obtener(99L)).thenReturn(Optional.empty());
 
-        mockMvc.perform(get("/api/obras/99"))
+        mockMvc.perform(get("/api/v1/obras/99"))
             .andExpect(status().isNotFound());
     }
 
@@ -94,7 +94,7 @@ class ObrasControllerTest {
         dto.setId(3L);
         when(svc.listar(any(Pageable.class))).thenReturn(new PageImpl<>(List.of(dto)));
 
-        mockMvc.perform(get("/api/obras"))
+        mockMvc.perform(get("/api/v1/obras"))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$[0].id").value(3L));
     }
@@ -107,7 +107,7 @@ class ObrasControllerTest {
 
         when(svc.actualizar(eq(4L), any())).thenReturn(dto);
 
-        mockMvc.perform(put("/api/obras/4")
+        mockMvc.perform(put("/api/v1/obras/4")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(dto)))
             .andExpect(status().isOk())
@@ -116,7 +116,7 @@ class ObrasControllerTest {
 
     @Test
     void cambiar_estado_ok() throws Exception {
-        mockMvc.perform(patch("/api/obras/5/estado/EN_PROGRESO"))
+        mockMvc.perform(patch("/api/v1/obras/5/estado/EN_PROGRESO"))
             .andExpect(status().isOk());
 
         verify(svc).cambiarEstado(5L, EstadoObraEnum.EN_PROGRESO);
@@ -124,9 +124,10 @@ class ObrasControllerTest {
 
     @Test
     void activar_ok() throws Exception {
-        mockMvc.perform(patch("/api/obras/6/activo"))
+        mockMvc.perform(patch("/api/v1/obras/6/activo"))
             .andExpect(status().isOk());
 
         verify(svc).activar(6L);
     }
 }
+

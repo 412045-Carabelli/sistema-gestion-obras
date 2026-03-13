@@ -37,7 +37,7 @@ public class ObrasClient {
     public List<ObraExternalDto> obtenerObras() {
         try {
             ResponseEntity<List<ObraExternalDto>> response = restTemplate.exchange(
-                    baseUrl + "/api/obras",
+                    baseUrl + "/api/v1/obras",
                     HttpMethod.GET,
                     null,
                     OBRAS_TYPE
@@ -52,7 +52,7 @@ public class ObrasClient {
     public Optional<ObraExternalDto> obtenerObra(Long obraId) {
         try {
             ResponseEntity<ObraExternalDto> response = restTemplate.getForEntity(
-                    baseUrl + "/api/obras/" + obraId,
+                    baseUrl + "/api/v1/obras/" + obraId,
                     ObraExternalDto.class
             );
             return Optional.ofNullable(response.getBody());
@@ -65,7 +65,7 @@ public class ObrasClient {
     public List<ObraCostoExternalDto> obtenerCostos(Long obraId) {
         try {
             ResponseEntity<List<ObraCostoExternalDto>> response = restTemplate.exchange(
-                    baseUrl + "/api/obras/costos/" + obraId,
+                    baseUrl + "/api/v1/obras/costos/" + obraId,
                     HttpMethod.GET,
                     null,
                     COSTOS_TYPE
@@ -80,7 +80,7 @@ public class ObrasClient {
     public List<TareaExternalDto> obtenerTareasDeObra(Long obraId) {
         try {
             ResponseEntity<List<TareaExternalDto>> response = restTemplate.exchange(
-                    baseUrl + "/api/obras/tareas/" + obraId,
+                    baseUrl + "/api/v1/obras/tareas/" + obraId,
                     HttpMethod.GET,
                     null,
                     TAREAS_TYPE
@@ -95,7 +95,7 @@ public class ObrasClient {
     public List<TareaExternalDto> obtenerTareasPorProveedor(Long proveedorId) {
         try {
             ResponseEntity<List<TareaExternalDto>> response = restTemplate.exchange(
-                    baseUrl + "/api/obras/tareas/proveedor/" + proveedorId,
+                    baseUrl + "/api/v1/obras/tareas/proveedor/" + proveedorId,
                     HttpMethod.GET,
                     null,
                     TAREAS_TYPE
@@ -110,7 +110,7 @@ public class ObrasClient {
     public Optional<ProgresoExternalDto> obtenerProgreso(Long obraId) {
         try {
             ResponseEntity<ProgresoExternalDto> response = restTemplate.getForEntity(
-                    baseUrl + "/api/obras/progreso/" + obraId,
+                    baseUrl + "/api/v1/obras/progreso/" + obraId,
                     ProgresoExternalDto.class
             );
             return Optional.ofNullable(response.getBody());
@@ -123,7 +123,7 @@ public class ObrasClient {
     public List<EstadoPagoExternalDto> obtenerEstadosPago() {
         try {
             ResponseEntity<List<EstadoPagoExternalDto>> response = restTemplate.exchange(
-                    baseUrl + "/api/obras/estado-pago",
+                    baseUrl + "/api/v1/obras/estado-pago",
                     HttpMethod.GET,
                     null,
                     ESTADOS_PAGO_TYPE
@@ -135,3 +135,4 @@ public class ObrasClient {
         }
     }
 }
+

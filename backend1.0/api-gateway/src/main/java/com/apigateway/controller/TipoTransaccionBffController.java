@@ -13,7 +13,7 @@ import java.util.List;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/bff/tipo-transaccion")
+@RequestMapping("/bff/v1/tipo-transaccion")
 @RequiredArgsConstructor
 public class TipoTransaccionBffController {
 
@@ -45,3 +45,4 @@ public class TipoTransaccionBffController {
     }
 
 }
+

@@ -13,7 +13,7 @@ import java.util.List;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/bff/tipo-documentos")
+@RequestMapping("/bff/v1/tipo-documentos")
 @RequiredArgsConstructor
 @CrossOrigin(origins = "http://localhost:4200")
 public class TipoDocumentoBffController {
@@ -23,7 +23,7 @@ public class TipoDocumentoBffController {
 
     private final WebClient.Builder webClientBuilder;
 
-    // ✅ GET /bff/tipo_documentos
+    // âœ… GET /bff/v1/tipo_documentos
     @GetMapping
     public Mono<ResponseEntity<List<Map<String, Object>>>> getAll() {
         WebClient client = webClientBuilder.build();
@@ -34,7 +34,7 @@ public class TipoDocumentoBffController {
         return flux.collectList().map(ResponseEntity::ok);
     }
 
-    // ✅ GET /bff/tipo_documentos/{id}
+    // âœ… GET /bff/v1/tipo_documentos/{id}
     @GetMapping("/{tipo}")
     public Mono<ResponseEntity<Map<String, Object>>> getByTipo(@PathVariable("tipo") String tipo) {
         WebClient client = webClientBuilder.build();
@@ -46,7 +46,7 @@ public class TipoDocumentoBffController {
                 .onErrorResume(e -> Mono.just(ResponseEntity.notFound().build()));
     }
 
-    // ✅ POST /bff/tipo_documentos
+    // âœ… POST /bff/v1/tipo_documentos
     @PostMapping
     public Mono<ResponseEntity<Map<String, Object>>> create(@RequestBody Map<String, Object> body) {
         WebClient client = webClientBuilder.build();
@@ -58,7 +58,7 @@ public class TipoDocumentoBffController {
                 .map(ResponseEntity::ok);
     }
 
-    // ✅ PUT /bff/tipo_documentos/{id}
+    // âœ… PUT /bff/v1/tipo_documentos/{id}
     @PutMapping("/{id}")
     public Mono<ResponseEntity<Map<String, Object>>> update(@PathVariable("id") Long id, @RequestBody Map<String, Object> body) {
         WebClient client = webClientBuilder.build();
@@ -70,7 +70,7 @@ public class TipoDocumentoBffController {
                 .map(ResponseEntity::ok);
     }
 
-    // ✅ DELETE /bff/tipo_documentos/{id}
+    // âœ… DELETE /bff/v1/tipo_documentos/{id}
     @DeleteMapping("/{id}")
     public Mono<ResponseEntity<Void>> delete(@PathVariable("id") Long id) {
         WebClient client = webClientBuilder.build();
@@ -81,3 +81,4 @@ public class TipoDocumentoBffController {
                 .then(Mono.just(ResponseEntity.noContent().build()));
     }
 }
+

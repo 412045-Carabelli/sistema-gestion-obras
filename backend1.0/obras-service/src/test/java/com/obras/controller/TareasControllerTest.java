@@ -52,7 +52,7 @@ class TareasControllerTest {
         dto.setId(1L);
         when(svc.tareasDeObra(10L)).thenReturn(List.of(dto));
 
-        mockMvc.perform(get("/api/obras/tareas/10"))
+        mockMvc.perform(get("/api/v1/obras/tareas/10"))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$[0].id").value(1L));
     }
@@ -64,7 +64,7 @@ class TareasControllerTest {
 
         when(svc.crear(any())).thenAnswer(invocation -> invocation.getArgument(0));
 
-        mockMvc.perform(post("/api/obras/tareas/20")
+        mockMvc.perform(post("/api/v1/obras/tareas/20")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(dto)))
             .andExpect(status().isOk())
@@ -78,7 +78,7 @@ class TareasControllerTest {
 
         when(svc.actualizar(eq(2L), any())).thenReturn(dto);
 
-        mockMvc.perform(put("/api/obras/tareas/2")
+        mockMvc.perform(put("/api/v1/obras/tareas/2")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(dto)))
             .andExpect(status().isOk())
@@ -92,14 +92,14 @@ class TareasControllerTest {
 
         when(svc.completarTarea(3L)).thenReturn(dto);
 
-        mockMvc.perform(put("/api/obras/tareas/3/completar"))
+        mockMvc.perform(put("/api/v1/obras/tareas/3/completar"))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.estado_tarea").value("COMPLETADA"));
     }
 
     @Test
     void eliminar_tarea_ok() throws Exception {
-        mockMvc.perform(delete("/api/obras/tareas/4"))
+        mockMvc.perform(delete("/api/v1/obras/tareas/4"))
             .andExpect(status().isOk());
 
         verify(svc).borrar(4L);
@@ -111,8 +111,9 @@ class TareasControllerTest {
         dto.setId(5L);
         when(svc.tareasDeProveedor(99L)).thenReturn(List.of(dto));
 
-        mockMvc.perform(get("/api/obras/tareas/proveedor/99"))
+        mockMvc.perform(get("/api/v1/obras/tareas/proveedor/99"))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$[0].id").value(5L));
     }
 }
+

@@ -20,7 +20,7 @@ import java.util.List;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/bff/auditoria")
+@RequestMapping("/bff/v1/auditoria")
 @RequiredArgsConstructor
 public class AuditoriaBffController {
 
@@ -147,3 +147,4 @@ public class AuditoriaBffController {
         }
     }
 }
+

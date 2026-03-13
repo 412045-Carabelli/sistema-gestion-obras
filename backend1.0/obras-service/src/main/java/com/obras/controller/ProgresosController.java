@@ -9,10 +9,11 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/api/obras/progreso")
+@RequestMapping("/api/v1/obras/progreso")
 @RequiredArgsConstructor
 public class ProgresosController {
     private final ProgresoService svc;
     @GetMapping("/{idObra}") public ProgresoDTO progreso(@PathVariable("idObra") Long idObra){ return svc.calcularProgreso(idObra); }
 
 }
+

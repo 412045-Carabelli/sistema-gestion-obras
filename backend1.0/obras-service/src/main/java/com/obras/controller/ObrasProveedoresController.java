@@ -8,7 +8,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/obras/obra-proveedor")
+@RequestMapping("/api/v1/obras/obra-proveedor")
 @RequiredArgsConstructor
 public class ObrasProveedoresController {
 
@@ -19,4 +19,5 @@ public class ObrasProveedoresController {
     @DeleteMapping("/{idObra}/unlink/{idProveedor}") public void desvincular(@PathVariable("idObra") Long idObra, @PathVariable("idProveedor") Long idProveedor){ svc.desvincularProveedor(idObra,idProveedor); }
 
 }
+
 

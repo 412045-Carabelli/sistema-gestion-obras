@@ -14,7 +14,7 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 @RestController
-@RequestMapping("/api/documentos")
+@RequestMapping("/api/v1/documentos")
 @RequiredArgsConstructor
 public class DocumentoController {
 
@@ -49,7 +49,7 @@ public class DocumentoController {
                 });
     }
 
-    // 🔍 Nuevo endpoint: obtener documentos por tipo e ID asociado (cliente/proveedor)
+    // ðŸ” Nuevo endpoint: obtener documentos por tipo e ID asociado (cliente/proveedor)
     @GetMapping("/asociado/{tipo}/{id}")
     public Flux<DocumentoDto> getDocumentosPorAsociado(
             @PathVariable("tipo") String tipo,
@@ -86,3 +86,4 @@ public class DocumentoController {
         return documentoService.downloadFile(id);
     }
 }
+

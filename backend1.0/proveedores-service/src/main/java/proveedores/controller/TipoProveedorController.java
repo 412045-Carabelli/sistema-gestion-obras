@@ -9,7 +9,7 @@ import proveedores.service.ProveedorService;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/proveedores/tipo-proveedor")
+@RequestMapping("/api/v1/proveedores/tipo-proveedor")
 @RequiredArgsConstructor
 public class TipoProveedorController {
 
@@ -41,3 +41,4 @@ public class TipoProveedorController {
         return ResponseEntity.notFound().build();
     }
 }
+

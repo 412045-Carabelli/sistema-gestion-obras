@@ -13,7 +13,7 @@ import java.util.List;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/bff/tipo-proveedor")
+@RequestMapping("/bff/v1/tipo-proveedor")
 @RequiredArgsConstructor
 public class TipoProveedorBffController {
 
@@ -23,7 +23,7 @@ public class TipoProveedorBffController {
     private final WebClient.Builder webClientBuilder;
 
     // ===========================
-    // 📥 GET - Obtener todos los tipos de proveedor
+    // ðŸ“¥ GET - Obtener todos los tipos de proveedor
     // ===========================
     @GetMapping
     public Mono<ResponseEntity<List<Map<String, Object>>>> getProveedores() {
@@ -53,3 +53,4 @@ public class TipoProveedorBffController {
                 .onErrorResume(ex -> Mono.just(ResponseEntity.badRequest().build()));
     }
 }
+

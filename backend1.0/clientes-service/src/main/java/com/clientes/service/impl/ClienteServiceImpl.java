@@ -116,6 +116,16 @@ public class ClienteServiceImpl implements ClienteService {
     }
 
     @Override
+    public List<ClienteResponse> listarPorIds(List<Long> ids) {
+        if (ids == null || ids.isEmpty()) {
+            return List.of();
+        }
+        return repository.findAllById(ids).stream()
+                .map(cliente -> mapearRespuesta(cliente, null, null, null, null))
+                .toList();
+    }
+
+    @Override
     public List<String> listarCondicionesIva() {
         return CONDICIONES_IVA_VALIDAS.keySet().stream().toList();
     }

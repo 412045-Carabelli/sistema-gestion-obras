@@ -15,7 +15,7 @@ import java.time.ZoneId;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/auditoria")
+@RequestMapping("/api/v1/auditoria")
 @RequiredArgsConstructor
 public class AuditLogController {
 
@@ -68,3 +68,4 @@ public class AuditLogController {
         return null;
     }
 }
+

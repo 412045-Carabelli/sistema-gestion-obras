@@ -21,7 +21,7 @@ public class ObrasClient {
 
     private final RestTemplate restTemplate;
 
-    @Value("${services.obras.url:http://obras-service:8081/api/obras}")
+    @Value("${services.obras.url:http://obras-service:8081/api/v1/obras}")
     private String obrasBaseUrl;
 
     public List<ObraClienteResponse> obtenerObrasPorCliente(Long clienteId) {
@@ -41,3 +41,4 @@ public class ObrasClient {
         }
     }
 }
+

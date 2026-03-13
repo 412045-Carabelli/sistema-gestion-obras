@@ -85,7 +85,7 @@ public class AuditLogFilter extends OncePerRequestFilter {
 
     private String resolveTableName(String uri) {
         String path = uri;
-        if (path.startsWith("/api/")) {
+        if (path.startsWith("/api/v1/")) {
             path = path.substring(5);
         } else if (path.startsWith("/")) {
             path = path.substring(1);
@@ -125,3 +125,4 @@ public class AuditLogFilter extends OncePerRequestFilter {
         return value.trim();
     }
 }
+

@@ -21,7 +21,7 @@ public class TransaccionesClient {
 
     private final RestTemplate restTemplate;
 
-    @Value("${services.transacciones.url:http://transacciones-service:8086/api/transacciones}")
+    @Value("${services.transacciones.url:http://transacciones-service:8086/api/v1/transacciones}")
     private String transaccionesBaseUrl;
 
     private static final ParameterizedTypeReference<List<TransaccionExternalDto>> TRANSACCION_TYPE =
@@ -43,3 +43,4 @@ public class TransaccionesClient {
         }
     }
 }
+

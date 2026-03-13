@@ -30,7 +30,7 @@ public class ClientesClient {
     public List<ClienteExternalDto> obtenerClientes() {
         try {
             ResponseEntity<List<ClienteExternalDto>> response = restTemplate.exchange(
-                    baseUrl + "/api/clientes",
+                    baseUrl + "/api/v1/clientes",
                     HttpMethod.GET,
                     null,
                     CLIENTES_TYPE
@@ -42,3 +42,4 @@ public class ClientesClient {
         }
     }
 }
+
