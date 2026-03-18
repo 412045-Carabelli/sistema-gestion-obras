@@ -4,6 +4,7 @@ import {RouterOutlet} from '@angular/router';
 import {HeaderComponent} from './shared/header/header.component';
 import {SidebarComponent} from './shared/sidebar/sidebar.component';
 import {ToastModule} from 'primeng/toast';
+import {GlobalLoadingService} from './core/global-loading.service';
 
 @Component({
   selector: 'app-root',
@@ -20,6 +21,11 @@ import {ToastModule} from 'primeng/toast';
 })
 export class AppComponent implements OnInit{
   sidebarVisible: boolean = true;
+  globalLoadingState$;
+
+  constructor(private globalLoadingService: GlobalLoadingService) {
+    this.globalLoadingState$ = this.globalLoadingService.state$;
+  }
 
   toggleSidebar() {
     this.sidebarVisible = !this.sidebarVisible;

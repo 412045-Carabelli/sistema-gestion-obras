@@ -16,6 +16,7 @@ export const environment = {
     transacciones: '/bff/v1/transacciones',
     tipo_transaccion: '/bff/v1/tipo-transaccion',
     reportes: '/bff/v1/reportes',
+    backups: '/bff/v1/backups',
     auditoria: '/bff/v1/auditoria',
     estados_obras: '/bff/v1/estados-obras',
     condicion_iva: '/bff/v1/condicion-iva',

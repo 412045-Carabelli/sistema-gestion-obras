@@ -33,6 +33,11 @@ BEGIN
     CREATE LOGIN reportes_app WITH PASSWORD = 'ReportesApp_2026!';
 END
 GO
+IF NOT EXISTS (SELECT 1 FROM sys.server_principals WHERE name = 'backups_app')
+BEGIN
+    CREATE LOGIN backups_app WITH PASSWORD = 'BackupsApp_2026!';
+END
+GO
 
 USE sgo_dev;
 GO
@@ -47,6 +52,8 @@ GO
 IF NOT EXISTS (SELECT 1 FROM sys.schemas WHERE name = 'transacciones') EXEC('CREATE SCHEMA transacciones');
 GO
 IF NOT EXISTS (SELECT 1 FROM sys.schemas WHERE name = 'reportes') EXEC('CREATE SCHEMA reportes');
+GO
+IF NOT EXISTS (SELECT 1 FROM sys.schemas WHERE name = 'backups') EXEC('CREATE SCHEMA backups');
 GO
 
 IF NOT EXISTS (SELECT 1 FROM sys.database_principals WHERE name = 'obras_app')
@@ -83,6 +90,12 @@ IF NOT EXISTS (SELECT 1 FROM sys.database_principals WHERE name = 'reportes_app'
 BEGIN
     CREATE USER reportes_app FOR LOGIN reportes_app WITH DEFAULT_SCHEMA = reportes;
     ALTER ROLE db_owner ADD MEMBER reportes_app;
+END
+GO
+IF NOT EXISTS (SELECT 1 FROM sys.database_principals WHERE name = 'backups_app')
+BEGIN
+    CREATE USER backups_app FOR LOGIN backups_app WITH DEFAULT_SCHEMA = backups;
+    ALTER ROLE db_owner ADD MEMBER backups_app;
 END
 GO
 
@@ -100,6 +113,8 @@ IF NOT EXISTS (SELECT 1 FROM sys.schemas WHERE name = 'transacciones') EXEC('CRE
 GO
 IF NOT EXISTS (SELECT 1 FROM sys.schemas WHERE name = 'reportes') EXEC('CREATE SCHEMA reportes');
 GO
+IF NOT EXISTS (SELECT 1 FROM sys.schemas WHERE name = 'backups') EXEC('CREATE SCHEMA backups');
+GO
 
 IF NOT EXISTS (SELECT 1 FROM sys.database_principals WHERE name = 'obras_app')
 BEGIN
@@ -135,5 +150,11 @@ IF NOT EXISTS (SELECT 1 FROM sys.database_principals WHERE name = 'reportes_app'
 BEGIN
     CREATE USER reportes_app FOR LOGIN reportes_app WITH DEFAULT_SCHEMA = reportes;
     ALTER ROLE db_owner ADD MEMBER reportes_app;
+END
+GO
+IF NOT EXISTS (SELECT 1 FROM sys.database_principals WHERE name = 'backups_app')
+BEGIN
+    CREATE USER backups_app FOR LOGIN backups_app WITH DEFAULT_SCHEMA = backups;
+    ALTER ROLE db_owner ADD MEMBER backups_app;
 END
 GO
