@@ -7,7 +7,7 @@ import {Tab, TabList, TabPanel, TabPanels, Tabs} from 'primeng/tabs';
 import {ProveedoresService} from '../../../services/proveedores/proveedores.service';
 import {TareasService} from '../../../services/tareas/tareas.service';
 import {ObrasService} from '../../../services/obras/obras.service';
-import {Obra, ObraCosto, Proveedor, Tarea, Transaccion} from '../../../core/models/models';
+import {Obra, Proveedor, Tarea, Transaccion} from '../../../core/models/models';
 import {ProgressSpinnerModule} from 'primeng/progressspinner';
 import {TableModule} from 'primeng/table';
 import {TagModule} from 'primeng/tag';
@@ -17,6 +17,7 @@ import {ProveedoresStateService} from '../../../services/proveedores/proveedores
 import {StyleClass} from 'primeng/styleclass';
 import {EstadoFormatPipe} from '../../../shared/pipes/estado-format.pipe';
 import {ClientesDocumentosComponent} from '../../components/clientes-documentos/clientes-documentos.component';
+import {ReportesService} from '../../../services/reportes/reportes.service';
 
 @Component({
   selector: 'app-proveedores-detail',
@@ -36,7 +37,7 @@ export class ProveedoresDetailComponent implements OnInit, OnDestroy {
   obrasMap: Record<number, Obra> = {};
   obras: Obra[] = [];
   transacciones: Transaccion[] = [];
-  costosProveedor: ObraCosto[] = [];
+  obrasSaldoProveedor: Array<{ id: number; nombre: string; estado: string; total: number; pagado: number; saldo: number }> = [];
   totalCostos = 0;
   totalPagos = 0;
   saldoProveedor = 0;
@@ -50,7 +51,8 @@ export class ProveedoresDetailComponent implements OnInit, OnDestroy {
     private tareasService: TareasService,
     private obrasService: ObrasService,
     private transaccionesService: TransaccionesService,
-    private proveedoresStateService: ProveedoresStateService
+    private proveedoresStateService: ProveedoresStateService,
+    private reportesService: ReportesService
   ) {}
 
   ngOnInit(): void {
@@ -86,29 +88,8 @@ export class ProveedoresDetailComponent implements OnInit, OnDestroy {
 
   irADetalleObraMov(idObra: number) {
     // Navega a la obra y abre la pestaña de movimientos si existe (tab index 2).
-    this.router.navigate(['/obras', idObra]);
+    this.router.navigate(['/obras', idObra], {queryParams: {tab: 2}});
   }
-
-
-  getTipoTransaccionLabel(transaccion: Transaccion): string {
-    const tipo = (transaccion as any)?.tipo_transaccion;
-    if (tipo && typeof tipo === 'object' && 'nombre' in tipo) {
-      return (tipo as { nombre?: string }).nombre || '-';
-    }
-
-    return (tipo as string) || '-';
-  }
-
-  private esPago(transaccion: Transaccion): boolean {
-    const raw: any = (transaccion as any)?.tipo_transaccion ?? (transaccion as any)?.tipo_movimiento;
-    if (typeof raw === 'string') return raw.toUpperCase() === 'PAGO';
-    if (raw && typeof raw === 'object' && 'nombre' in raw) {
-      return ((raw as { nombre?: string }).nombre || '').toUpperCase() === 'PAGO';
-    }
-    if (raw && typeof raw.id === 'number') return raw.id === 2;
-    return false;
-  }
-
   toggleActivo() {
     const actualizado = {...this.proveedor, activo: !this.proveedor.activo};
     this.proveedoresService.updateProveedor(this.proveedor.id!, actualizado).subscribe({
@@ -128,31 +109,24 @@ export class ProveedoresDetailComponent implements OnInit, OnDestroy {
       proveedor: this.proveedoresService.getProveedorById(id),
       tareas: this.tareasService.getTareasByProveedor(id),
       transacciones: this.transaccionesService.getByAsociado('PROVEEDOR', id),
-      obras: this.obrasService.getObras()
+      obras: this.obrasService.getObras(),
+      cuentaCorriente: this.reportesService.getCuentaCorrienteProveedor({proveedorId: id})
     })
       .subscribe({
-        next: ({proveedor, tareas, transacciones, obras}) => {
+        next: ({proveedor, tareas, transacciones, obras, cuentaCorriente}) => {
           this.proveedor = proveedor;
           this.proveedoresStateService.setProveedor(proveedor);
           this.tareas = tareas;
-          this.transacciones = transacciones;
+          this.transacciones = this.normalizarMovimientosProveedor(cuentaCorriente?.movimientos || transacciones || []);
           this.obras = obras || [];
           this.obrasMap = (obras || []).reduce((acc, obra) => {
             acc[obra.id!] = obra;
             return acc;
           }, {} as Record<number, Obra>);
-
-          const costosProveedor: ObraCosto[] = [];
-          (obras || []).forEach(obra => {
-            if (!this.obraGeneraDeuda(obra)) return;
-            (obra.costos || []).forEach(costo => {
-              if (this.getIdProveedorCosto(costo) === Number(this.proveedor.id)) {
-                costosProveedor.push(costo);
-              }
-            });
-          });
-          this.costosProveedor = costosProveedor;
-          this.calcularSaldoProveedor();
+          this.totalCostos = Number((cuentaCorriente as any)?.totalCostos ?? (cuentaCorriente as any)?.costos ?? 0);
+          this.totalPagos = Number((cuentaCorriente as any)?.totalPagos ?? (cuentaCorriente as any)?.pagos ?? 0);
+          this.saldoProveedor = Number((cuentaCorriente as any)?.saldoFinal ?? (cuentaCorriente as any)?.saldo ?? 0);
+          this.obrasSaldoProveedor = this.construirObrasSaldoProveedor();
           this.loading = false;
         },
         error: () => (this.loading = false)
@@ -164,22 +138,6 @@ export class ProveedoresDetailComponent implements OnInit, OnDestroy {
 
     const limpio = tipo.replace(/_/g, ' ').toLowerCase();
     return limpio.charAt(0).toUpperCase() + limpio.slice(1);
-  }
-
-  private calcularSaldoProveedor() {
-    const totalCalculado = this.costosProveedor.reduce((sum, c) => sum + this.getCostoBase(c), 0);
-    const pagosCalculados = this.transacciones
-      .filter(t => this.esPago(t))
-      .filter(t => this.movimientoPerteneceObraConDeuda(t))
-      .reduce((sum, t) => sum + Number(t.monto || 0), 0);
-    const totalApi = (this.proveedor as any)?.totalProveedor;
-    const pagosApi = (this.proveedor as any)?.pagosRealizados;
-    const saldoApi = (this.proveedor as any)?.saldoProveedor;
-    this.totalCostos = Number.isFinite(Number(totalApi)) ? Number(totalApi) : totalCalculado;
-    this.totalPagos = Number.isFinite(Number(pagosApi)) ? Number(pagosApi) : pagosCalculados;
-    const saldoCalculado = this.totalCostos - this.totalPagos;
-    this.saldoProveedor = Number.isFinite(Number(saldoApi)) ? Number(saldoApi) : saldoCalculado;
-
   }
 
   private movimientoPerteneceObraConDeuda(transaccion: Transaccion): boolean {
@@ -194,16 +152,13 @@ export class ProveedoresDetailComponent implements OnInit, OnDestroy {
     if (!obra) return false;
     const estado = this.normalizarEstadoObra(obra?.obra_estado);
     return new Set([
-      'ADJUDICADA',
       'EN_PROGRESO',
       'FINALIZADA'
     ]).has(estado);
   }
 
   private obraGeneraDeudaProveedor(obra: Obra | null | undefined): boolean {
-    if (!obra) return false;
-    const estado = this.normalizarEstadoObra(obra?.obra_estado);
-    return new Set(['ADJUDICADA', 'EN_PROGRESO']).has(estado);
+    return this.obraGeneraDeuda(obra);
   }
 
   private normalizarEstadoObra(raw: any): string {
@@ -222,34 +177,63 @@ export class ProveedoresDetailComponent implements OnInit, OnDestroy {
       .replace(/^_+|_+$/g, '');
   }
 
-  private getIdProveedorCosto(c: ObraCosto): number {
-    return Number((c as any)?.id_proveedor ?? (c as any)?.proveedor?.id ?? 0);
+  get totalObrasProveedor(): number {
+    return this.obrasSaldoProveedor.reduce((sum, item) => sum + Number(item.total || 0), 0);
   }
 
-  private getCostoBase(costo: ObraCosto): number {
-    const subtotal = costo.subtotal ?? (Number(costo.cantidad ?? 0) * Number(costo.precio_unitario ?? 0));
-    return Number(subtotal ?? 0);
+  get totalPagadoObrasProveedor(): number {
+    return this.obrasSaldoProveedor.reduce((sum, item) => sum + Number(item.pagado || 0), 0);
   }
 
-  getObrasSaldoProveedor(): Array<{ id: number; nombre: string; estado: string; total: number; pagado: number; saldo: number }> {
-    const obrasFiltradas = (this.obras || []).filter(o => this.obraGeneraDeudaProveedor(o));
-    return obrasFiltradas.map(obra => {
-      const costos = (obra.costos || []).filter(c => this.getIdProveedorCosto(c) === Number(this.proveedor.id));
-      const total = costos.reduce((sum, c) => sum + this.getCostoBase(c), 0);
-      const pagos = (this.transacciones || [])
-        .filter(t => this.esPago(t))
-        .filter(t => Number((t as any)?.id_obra ?? (t as any)?.obraId ?? 0) === Number(obra.id))
-        .reduce((sum, t) => sum + Number(t.monto || 0), 0);
-      const saldo = Math.max(0, total - pagos);
-      return {
-        id: Number(obra.id),
-        nombre: obra.nombre || `Obra #${obra.id}`,
-        estado: this.getEstadoObraDisplay(obra),
-        total,
-        pagado: pagos,
-        saldo
-      };
-    }).filter(item => item.total > 0 || item.pagado > 0).sort((a, b) => b.saldo - a.saldo);
+  get totalSaldoObrasProveedor(): number {
+    return this.obrasSaldoProveedor.reduce((sum, item) => sum + Number(item.saldo || 0), 0);
+  }
+
+  private construirObrasSaldoProveedor(): Array<{ id: number; nombre: string; estado: string; total: number; pagado: number; saldo: number }> {
+    const agrupado = new Map<number, { id: number; nombre: string; estado: string; total: number; pagado: number; saldo: number }>();
+
+    (this.transacciones || [])
+      .filter(m => this.movimientoPerteneceObraConDeuda(m))
+      .forEach(mov => {
+        const obraId = Number((mov as any)?.id_obra ?? (mov as any)?.obraId ?? 0);
+        if (!obraId) return;
+        const obra = this.obrasMap[obraId];
+        if (!this.obraGeneraDeudaProveedor(obra)) return;
+        const actual = agrupado.get(obraId) || {
+          id: obraId,
+          nombre: obra?.nombre || `Obra #${obraId}`,
+          estado: this.getEstadoObraDisplay(obra),
+          total: 0,
+          pagado: 0,
+          saldo: 0
+        };
+        const tipo = String((mov as any)?.tipo_transaccion ?? (mov as any)?.tipo ?? '').toUpperCase();
+        const monto = Number((mov as any)?.monto ?? 0);
+        if (tipo === 'COSTO') actual.total += monto;
+        if (tipo === 'PAGO') actual.pagado += monto;
+        actual.saldo = Math.max(0, actual.total - actual.pagado);
+        agrupado.set(obraId, actual);
+      });
+
+    return Array.from(agrupado.values())
+      .filter(item => item.total > 0 || item.pagado > 0)
+      .sort((a, b) => b.saldo - a.saldo);
+  }
+
+  private normalizarMovimientosProveedor(movimientos: any[]): Transaccion[] {
+    return (movimientos || [])
+      .map(mov => ({
+        ...mov,
+        id_obra: (mov as any)?.obraId ?? (mov as any)?.id_obra,
+        tipo_transaccion: (mov as any)?.tipo ?? (mov as any)?.tipo_transaccion,
+        medio_pago: (mov as any)?.concepto ?? (mov as any)?.medio_pago,
+        forma_pago: (mov as any)?.forma_pago ?? ((mov as any)?.tipo === 'COSTO' ? 'PENDIENTE' : (mov as any)?.forma_pago)
+      } as Transaccion))
+      .sort((a, b) => {
+        const fa = new Date(String(a.fecha || '')).getTime() || 0;
+        const fb = new Date(String(b.fecha || '')).getTime() || 0;
+        return fb - fa;
+      });
   }
 }
 

@@ -157,7 +157,7 @@
               <label class="text-xs font-medium text-gray-600 min-h-[16px]">Beneficio (%)</label>
               <input
                 [(ngModel)]="nuevoCosto.beneficio"
-                [disabled]="usarBeneficioGlobal && nuevoCosto.tipo_costo !== 'ADICIONAL'"
+                [disabled]="usarBeneficioGlobal && nuevoCosto.tipo_costo === 'ORIGINAL'"
                 class="w-full text-right"
                 min="0"
                 pInputText
@@ -198,7 +198,7 @@
             label="Agregar costo"
             icon="pi pi-plus"
             styleClass="p-button-sm p-button-primary h-10"
-            [disabled]="estaSelladaCotizacion() && nuevoCosto.tipo_costo !== 'ADICIONAL'">
+            [disabled]="estaSelladaCotizacion() && nuevoCosto.tipo_costo === 'ORIGINAL'">
           </p-button>
         </div>
       </div>

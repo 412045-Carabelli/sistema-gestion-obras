@@ -15,6 +15,7 @@ public class CuentaCorrienteClienteResponse {
     private BigDecimal totalCostos = BigDecimal.ZERO;
     private BigDecimal saldoFinal = BigDecimal.ZERO;
     private List<Movimiento> movimientos = new ArrayList<>();
+    private List<ResumenCliente> resumenClientes = new ArrayList<>();
 
     @Data
     public static class Movimiento {
@@ -30,5 +31,14 @@ public class CuentaCorrienteClienteResponse {
         private BigDecimal cobrosAcumulados = BigDecimal.ZERO;
         private BigDecimal costosAcumulados = BigDecimal.ZERO;
         private BigDecimal saldoCliente = BigDecimal.ZERO;
+    }
+
+    @Data
+    public static class ResumenCliente {
+        private Long clienteId;
+        private String clienteNombre;
+        private BigDecimal presupuestado = BigDecimal.ZERO;
+        private BigDecimal cobros = BigDecimal.ZERO;
+        private BigDecimal saldo = BigDecimal.ZERO;
     }
 }

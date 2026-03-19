@@ -118,6 +118,7 @@ export class ObrasDetailComponent implements OnInit, OnDestroy, AfterViewInit {
   memoriaExpandida = false;
   notasExpandida = false;
   notasOverflow = false;
+  activeTab = '0';
 
   loading = true;
   private subs = new Subscription();
@@ -140,6 +141,10 @@ export class ObrasDetailComponent implements OnInit, OnDestroy, AfterViewInit {
 
   ngOnInit(): void {
     const id = Number(this.route.snapshot.paramMap.get('id'));
+    this.subs.add(this.route.queryParamMap.subscribe(params => {
+      const tab = params.get('tab');
+      this.activeTab = tab ?? '0';
+    }));
     if (id) this.cargarDetalle(id);
   }
 
@@ -376,7 +381,7 @@ export class ObrasDetailComponent implements OnInit, OnDestroy, AfterViewInit {
       }
 
       const esAdicional =
-        (costo?.tipo_costo || '').toString().toUpperCase() === 'ADICIONAL';
+        (costo?.tipo_costo || '').toString().toUpperCase() !== 'ORIGINAL';
 
       const porc = esAdicional
         ? Number(costo.beneficio ?? 0)
@@ -393,7 +398,7 @@ export class ObrasDetailComponent implements OnInit, OnDestroy, AfterViewInit {
         costo.subtotal ??
         (Number(costo.cantidad ?? 0) * Number(costo.precio_unitario ?? 0))
       );
-      const esAdicional = (costo.tipo_costo || '').toString().toUpperCase() === 'ADICIONAL';
+      const esAdicional = (costo.tipo_costo || '').toString().toUpperCase() !== 'ORIGINAL';
       const porc = esAdicional
         ? Number(costo.beneficio ?? 0)
         : (beneficioGlobalPorc !== null ? beneficioGlobalPorc : Number(costo.beneficio ?? 0));
@@ -500,6 +505,7 @@ export class ObrasDetailComponent implements OnInit, OnDestroy, AfterViewInit {
       id_cliente: Number(this.obra.cliente.id),
       id_obra: Number(this.obra.id),
       monto,
+      monto_restante: (this.facturaForm.estado || 'EMITIDA') === 'COBRADA' ? 0 : monto,
       fecha: this.formatDate(this.facturaForm.fecha),
       descripcion: this.facturaForm.descripcion || '',
       estado: this.facturaForm.estado || 'EMITIDA'
@@ -808,6 +814,7 @@ export class ObrasDetailComponent implements OnInit, OnDestroy, AfterViewInit {
       'ADJUDICADA',
       'EN_PROGRESO',
       'FINALIZADA',
+      'FACTURADA_PARCIAL',
       'FACTURADA',
       'COBRADA'
     ];
@@ -860,7 +867,7 @@ export class ObrasDetailComponent implements OnInit, OnDestroy, AfterViewInit {
     const filasCostos = (this.costos ?? []).map(c => {
       const subtotalBase = Number(c.subtotal ?? (Number(c.cantidad ?? 0) * Number(c.precio_unitario ?? 0)));
       const tieneProveedor = this.costoTieneProveedor(c);
-      const esAdicional = (c.tipo_costo || '').toString().toUpperCase() === 'ADICIONAL';
+      const esAdicional = (c.tipo_costo || '').toString().toUpperCase() !== 'ORIGINAL';
       const beneficioAplicado = esAdicional
         ? Number(c.beneficio ?? 0)
         : (this.obra.beneficio_global ? Number(this.obra.beneficio ?? 0) : Number(c.beneficio ?? 0));
@@ -885,7 +892,7 @@ export class ObrasDetailComponent implements OnInit, OnDestroy, AfterViewInit {
       0
     );
     const beneficioCostos = (this.costos ?? []).reduce((acc, c) => {
-      const esAdicional = (c.tipo_costo || '').toString().toUpperCase() === 'ADICIONAL';
+      const esAdicional = (c.tipo_costo || '').toString().toUpperCase() !== 'ORIGINAL';
       const beneficio = esAdicional
         ? Number(c.beneficio ?? 0)
         : (this.obra.beneficio_global ? Number(this.obra.beneficio ?? 0) : Number(c.beneficio ?? 0));
@@ -1178,6 +1185,13 @@ export class ObrasDetailComponent implements OnInit, OnDestroy, AfterViewInit {
     return estado.replace(/_/g, ' ').toLowerCase().replace(/\b\w/g, c => c.toUpperCase());
   }
 
+  getEstadoFacturacionDetalle(): { label: string; severity: string } {
+    if (this.obra?.requiere_factura) {
+      return {label: 'Para facturar', severity: 'success'};
+    }
+    return {label: 'Facturacion opcional', severity: 'contrast'};
+  }
+
   private nombreProveedorTarea(t: Tarea): string {
     if (t.proveedor?.nombre) return t.proveedor.nombre;
     if (t.id_proveedor) {
@@ -1293,6 +1307,20 @@ export class ObrasDetailComponent implements OnInit, OnDestroy, AfterViewInit {
       return value.toISOString().split('T')[0];
     }
     return String(value);
+  }
+
+  tieneFechaCronograma(value?: string | Date | null): boolean {
+    return !!value;
+  }
+
+  get tieneAlgunaFechaCronograma(): boolean {
+    return !!(
+      this.obra?.fecha_inicio ||
+      this.obra?.fecha_fin ||
+      this.obra?.fecha_presupuesto ||
+      this.obra?.fecha_adjudicada ||
+      this.obra?.fecha_perdida
+    );
   }
 
 }

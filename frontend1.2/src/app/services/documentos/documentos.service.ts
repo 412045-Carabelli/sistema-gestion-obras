@@ -27,7 +27,7 @@ export class DocumentosService {
     idObra: number | null,
     tipoDocumento: string,
     observacion: string,
-    file: File,
+    file?: File | null,
     idAsociado?: number | null,
     tipoAsociado?: string | null
   ) {
@@ -43,14 +43,17 @@ export class DocumentosService {
     if (tipoAsociado !== null && tipoAsociado !== undefined) {
       formData.append('tipo_asociado', tipoAsociado);
     }
-    formData.append('file', file);
+    if (file) {
+      formData.append('file', file);
+    }
     console.log('📤 Payload documento:', Array.from(formData.entries()));
 
     return this.http.post<Documento>(`${this.apiUrl}`, formData);
   }
 
-  getDocumentosPorAsociado(tipo: string, id: number) {
-    return this.http.get<Documento[]>(`${this.apiUrl}/asociado/${tipo}/${id}`);
+  getDocumentosPorAsociado(tipo: string, id: number, obraId?: number | null) {
+    const suffix = obraId != null ? `?obraId=${obraId}` : '';
+    return this.http.get<Documento[]>(`${this.apiUrl}/asociado/${tipo}/${id}${suffix}`);
   }
 
   // 🗑️ Eliminar documento

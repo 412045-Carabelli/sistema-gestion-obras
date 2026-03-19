@@ -106,9 +106,7 @@ public class FacturaService {
         }
 
         Factura saved = facturaRepository.save(entity);
-        if (impactaCtaCte) {
-            actualizarEstadoObraSegunFacturacion(saved);
-        }
+        actualizarEstadoObraSegunFacturacion(saved.getIdObra());
         return toDto(saved);
     }
 
@@ -158,9 +156,7 @@ public class FacturaService {
         }
 
         Factura saved = facturaRepository.save(entity);
-        if (impactaCtaCte) {
-            actualizarEstadoObraSegunFacturacion(saved);
-        }
+        actualizarEstadoObraSegunFacturacion(saved.getIdObra());
         return toDto(saved);
     }
 
@@ -172,7 +168,9 @@ public class FacturaService {
         if (entity.getIdTransaccion() != null) {
             transaccionRepository.deleteById(entity.getIdTransaccion());
         }
+        Long idObra = entity.getIdObra();
         facturaRepository.deleteById(id);
+        actualizarEstadoObraSegunFacturacion(idObra);
     }
 
     public ResponseEntity<Resource> descargarArchivo(Long id) {
@@ -351,22 +349,31 @@ public class FacturaService {
         return normalizado;
     }
 
-    private void actualizarEstadoObraSegunFacturacion(Factura factura) {
-        if (factura == null || factura.getIdObra() == null) return;
-        ObraResumenDto obra = obraCostoClient.obtenerObra(factura.getIdObra());
+    private void actualizarEstadoObraSegunFacturacion(Long idObra) {
+        if (idObra == null) return;
+        ObraResumenDto obra = obraCostoClient.obtenerObra(idObra);
         if (obra == null || obra.getPresupuesto() == null) return;
 
         double presupuesto = obra.getPresupuesto();
-        double facturado = facturaRepository.findByIdObra(factura.getIdObra()).stream()
+        List<Factura> facturas = facturaRepository.findByIdObra(idObra);
+        double facturado = facturas.stream()
                 .mapToDouble(f -> f.getMonto() != null ? f.getMonto() : 0d)
                 .sum();
+        if (facturado <= 0.01d) return;
 
-        if (facturado + 0.01 < presupuesto) return;
-
-        String estadoFactura = factura.getEstado() != null ? factura.getEstado().toUpperCase() : "EMITIDA";
-        String nuevoEstado = "COBRADA".equals(estadoFactura) ? "COBRADA" : "FACTURADA";
+        boolean totalFacturado = facturado + 0.01 >= presupuesto;
+        boolean todasCobradas = !facturas.isEmpty() && facturas.stream()
+                .allMatch(f -> "COBRADA".equalsIgnoreCase(f.getEstado()));
+        String nuevoEstado;
+        if (!totalFacturado) {
+            nuevoEstado = "FACTURADA_PARCIAL";
+        } else if (todasCobradas) {
+            nuevoEstado = "COBRADA";
+        } else {
+            nuevoEstado = "FACTURADA";
+        }
         try {
-            obraCostoClient.actualizarEstadoObra(factura.getIdObra(), nuevoEstado);
+            obraCostoClient.actualizarEstadoObra(idObra, nuevoEstado);
         } catch (Exception ignored) {
             // no interrumpir si falla el cambio de estado de obra
         }

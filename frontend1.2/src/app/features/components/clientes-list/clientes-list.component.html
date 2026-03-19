@@ -56,18 +56,20 @@
         [value]="clientesFiltrados"
         [paginator]="true"
         [rows]="8"
+        [sortField]="'nombre'"
+        [sortOrder]="1"
         responsiveLayout="scroll"
         class="w-full"
         styleClass="p-datatable-sm">
         <ng-template pTemplate="header">
           <tr>
-            <th class="px-3 py-2 text-left">Nombre</th>
-            <th class="px-3 py-2 text-left">Contacto</th>
-            <th class="px-3 py-2 text-left">Direccion</th>
-            <th class="px-3 py-2 text-left">DNI/CUIT</th>
-            <th class="px-3 py-2 text-left">Telefono</th>
-            <th class="px-3 py-2 text-left">Email</th>
-            <th class="px-3 py-2 text-right">Saldo</th>
+            <th pSortableColumn="nombre" class="px-3 py-2 text-left">Nombre <p-sortIcon field="nombre"></p-sortIcon></th>
+            <th pSortableColumn="contacto" class="px-3 py-2 text-left">Contacto <p-sortIcon field="contacto"></p-sortIcon></th>
+            <th pSortableColumn="telefono" class="px-3 py-2 text-left">Telefono <p-sortIcon field="telefono"></p-sortIcon></th>
+            <th pSortableColumn="email" class="px-3 py-2 text-left">Email <p-sortIcon field="email"></p-sortIcon></th>
+            <th pSortableColumn="direccion" class="px-3 py-2 text-left">Direccion <p-sortIcon field="direccion"></p-sortIcon></th>
+            <th pSortableColumn="cuit" class="px-3 py-2 text-left">DNI/CUIT <p-sortIcon field="cuit"></p-sortIcon></th>
+            <th pSortableColumn="saldoCliente" class="px-3 py-2 text-right">Saldo <p-sortIcon field="saldoCliente"></p-sortIcon></th>
           </tr>
         </ng-template>
 
@@ -75,10 +77,10 @@
           <tr (click)="onRowClick(c)" class="hover:bg-gray-100 cursor-pointer">
             <td class="px-3 py-2">{{ c.nombre }}</td>
             <td class="px-3 py-2">{{ c.contacto || '-' }}</td>
-            <td class="px-3 py-2">{{ c.direccion || '-' }}</td>
-            <td class="px-3 py-2">{{ c.cuit || '-' }}</td>
             <td class="px-3 py-2">{{ c.telefono || '-' }}</td>
             <td class="px-3 py-2">{{ c.email || '-' }}</td>
+            <td class="px-3 py-2">{{ c.direccion || '-' }}</td>
+            <td class="px-3 py-2">{{ c.cuit || '-' }}</td>
             <td class="px-3 py-2 text-right">{{ (c.saldoCliente ?? 0) | currency:'ARS':'symbol-narrow':'1.0-2' }}</td>
           </tr>
         </ng-template>

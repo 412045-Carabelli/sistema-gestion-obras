@@ -121,16 +121,16 @@
             </div>
             <span class="text-sm font-medium text-gray-500">Estado</span>
           </div>
-          <p-select
-            [options]="estadosObra"
-            [(ngModel)]="estadoSeleccionado"
-            (onChange)="actualizarEstadoObra($event.value)"
-            appendTo="body"
-            optionLabel="label"
-            optionValue="name"
-            styleClass="w-full text-sm">
-          </p-select>
-        </div>
+            <p-select
+              [options]="estadosObra"
+              [(ngModel)]="estadoSeleccionado"
+              (onChange)="actualizarEstadoObra($event.value)"
+              appendTo="body"
+              optionLabel="label"
+              optionValue="name"
+              styleClass="w-full text-sm">
+            </p-select>
+          </div>
 
       </div>
 
@@ -148,62 +148,76 @@
             }
           </h3>
           <div class="grid grid-cols-1 md:grid-cols-5 gap-4">
-            <div class="flex items-center gap-3 p-4 bg-gray-50 rounded-lg">
-              <div class="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0">
-                <i class="pi pi-calendar-plus text-blue-600"></i>
+            @if (tieneAlgunaFechaCronograma) {
+              @if (tieneFechaCronograma(obra.fecha_inicio)) {
+                <div class="flex items-center gap-3 p-4 bg-gray-50 rounded-lg">
+                  <div class="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0">
+                    <i class="pi pi-calendar-plus text-blue-600"></i>
+                  </div>
+                  <div>
+                    <p class="text-xs text-gray-500 mb-1">Fecha de inicio</p>
+                    <p class="font-semibold text-gray-900">{{ obra.fecha_inicio | date:'dd/MM/yyyy' }}</p>
+                  </div>
+                </div>
+              }
+              @if (tieneFechaCronograma(obra.fecha_fin)) {
+                <div class="flex items-center gap-3 p-4 bg-gray-50 rounded-lg">
+                  <div class="w-10 h-10 bg-red-100 rounded-full flex items-center justify-center flex-shrink-0">
+                    <i class="pi pi-calendar-times text-red-600"></i>
+                  </div>
+                  <div>
+                    <p class="text-xs text-gray-500 mb-1">Fecha de fin</p>
+                    <p class="font-semibold text-gray-900">{{ obra.fecha_fin | date:'dd/MM/yyyy' }}</p>
+                    @if (cronogramaFueraDeRango) {
+                      <p class="text-xs text-red-600 font-semibold">La fecha fin es anterior al inicio.</p>
+                    }
+                  </div>
+                </div>
+              }
+              @if (tieneFechaCronograma(obra.fecha_presupuesto)) {
+                <div class="flex items-center gap-3 p-4 bg-gray-50 rounded-lg">
+                  <div class="w-10 h-10 bg-amber-100 rounded-full flex items-center justify-center flex-shrink-0">
+                    <i class="pi pi-clock text-amber-600"></i>
+                  </div>
+                  <div>
+                    <p class="text-xs text-gray-500 mb-1">Fecha presupuestado</p>
+                    <p class="font-semibold text-gray-900">{{ obra.fecha_presupuesto | date:'dd/MM/yyyy' }}</p>
+                  </div>
+                </div>
+              }
+              @if (tieneFechaCronograma(obra.fecha_adjudicada)) {
+                <div class="flex items-center gap-3 p-4 bg-gray-50 rounded-lg">
+                  <div class="w-10 h-10 bg-emerald-100 rounded-full flex items-center justify-center flex-shrink-0">
+                    <i class="pi pi-verified text-emerald-600"></i>
+                  </div>
+                  <div>
+                    <p class="text-xs text-gray-500 mb-1">Fecha adjudicada</p>
+                    <p class="font-semibold text-gray-900">{{ obra.fecha_adjudicada | date:'dd/MM/yyyy' }}</p>
+                  </div>
+                </div>
+              }
+              @if (tieneFechaCronograma(obra.fecha_perdida)) {
+                <div class="flex items-center gap-3 p-4 bg-gray-50 rounded-lg">
+                  <div class="w-10 h-10 bg-red-100 rounded-full flex items-center justify-center flex-shrink-0">
+                    <i class="pi pi-times text-red-600"></i>
+                  </div>
+                  <div>
+                    <p class="text-xs text-gray-500 mb-1">Fecha perdida</p>
+                    <p class="font-semibold text-gray-900">{{ obra.fecha_perdida | date:'dd/MM/yyyy' }}</p>
+                  </div>
+                </div>
+              }
+            } @else {
+              <div class="flex items-center gap-3 p-4 bg-gray-50 rounded-lg md:col-span-5">
+                <div class="w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center flex-shrink-0">
+                  <i class="pi pi-calendar text-gray-500"></i>
+                </div>
+                <div>
+                <p class="text-xs text-gray-500 mb-1">Cronograma</p>
+                <p class="font-semibold text-gray-900">Sin definir</p>
+                </div>
               </div>
-              <div>
-                <p class="text-xs text-gray-500 mb-1">Fecha de inicio</p>
-                <p class="font-semibold text-gray-900">{{ obra.fecha_inicio | date:'dd/MM/yyyy' }}</p>
-              </div>
-            </div>
-            <div class="flex items-center gap-3 p-4 bg-gray-50 rounded-lg">
-              <div class="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center flex-shrink-0">
-                <i class="pi pi-calendar-times text-red-600"></i>
-              </div>
-              <div>
-                <p class="text-xs text-gray-500 mb-1">Fecha de fin</p>
-                <p class="font-semibold text-gray-900">
-                  {{ obra.fecha_fin ? (obra.fecha_fin | date:'dd/MM/yyyy') : 'Sin definir' }}
-                </p>
-                @if (cronogramaFueraDeRango) {
-                  <p class="text-xs text-red-600 font-semibold">La fecha fin es anterior al inicio.</p>
-                }
-              </div>
-            </div>
-            <div class="flex items-center gap-3 p-4 bg-gray-50 rounded-lg">
-              <div class="w-12 h-12 bg-amber-100 rounded-full flex items-center justify-center flex-shrink-0">
-                <i class="pi pi-clock text-amber-600"></i>
-              </div>
-              <div>
-                <p class="text-xs text-gray-500 mb-1">Fecha presupuestado</p>
-                <p class="font-semibold text-gray-900">
-                  {{ obra.fecha_presupuesto ? (obra.fecha_presupuesto | date:'dd/MM/yyyy') : 'Sin definir' }}
-                </p>
-              </div>
-            </div>
-            <div class="flex items-center gap-3 p-4 bg-gray-50 rounded-lg">
-              <div class="w-12 h-12 bg-emerald-100 rounded-full flex items-center justify-center flex-shrink-0">
-                <i class="pi pi-verified text-emerald-600"></i>
-              </div>
-              <div>
-                <p class="text-xs text-gray-500 mb-1">Fecha adjudicada</p>
-                <p class="font-semibold text-gray-900">
-                  {{ obra.fecha_adjudicada ? (obra.fecha_adjudicada | date:'dd/MM/yyyy') : 'Sin adjudicar' }}
-                </p>
-              </div>
-            </div>
-            <div class="flex items-center gap-3 p-4 bg-gray-50 rounded-lg">
-              <div class="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center flex-shrink-0">
-                <i class="pi pi-times text-red-600"></i>
-              </div>
-              <div>
-                <p class="text-xs text-gray-500 mb-1">Fecha perdida</p>
-                <p class="font-semibold text-gray-900">
-                  {{ obra.fecha_perdida ? (obra.fecha_perdida | date:'dd/MM/yyyy') : 'Sin perdida' }}
-                </p>
-              </div>
-            </div>
+            }
           </div>
         </div>
 
@@ -229,7 +243,7 @@
 
       <!-- ===================== TABS MEJORADOS ===================== -->
       <div class="bg-white rounded-xl shadow-md overflow-hidden">
-        <p-tabs value="0">
+        <p-tabs [value]="activeTab">
           <p-tablist pStyleClass="border-b border-gray-200 px-6">
             <p-tab value="0" pStyleClass="px-6 py-4">
               <div class="flex items-center gap-3">

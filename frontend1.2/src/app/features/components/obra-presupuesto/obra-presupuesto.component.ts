@@ -107,7 +107,8 @@ export class ObraPresupuestoComponent implements OnInit, OnChanges, AfterViewIni
   exportOptions: MenuItem[] = [];
   tipoCostoOptions = [
     { label: 'Original', value: 'ORIGINAL' },
-    { label: 'Adicional', value: 'ADICIONAL' }
+    { label: 'Adicional', value: 'ADICIONAL' },
+    { label: 'Ajuste', value: 'AJUSTE' }
   ];
   private pdfMakeReady = false;
   showCostoDetalleModal = false;
@@ -184,7 +185,7 @@ export class ObraPresupuestoComponent implements OnInit, OnChanges, AfterViewIni
     if (changes['beneficioGlobal'] || changes['tieneComision']) {
       this.costosFiltrados = this.costosFiltrados.map(c => ({ ...c }));
       this.costosFiltrados.forEach(c => this.recalcularEnEdicion(c));
-      if (this.usarBeneficioGlobal && this.nuevoCosto.tipo_costo !== 'ADICIONAL') {
+    if (this.usarBeneficioGlobal && this.nuevoCosto.tipo_costo === 'ORIGINAL') {
         this.nuevoCosto.beneficio = this.beneficioGlobal;
       }
     }
@@ -283,7 +284,7 @@ export class ObraPresupuestoComponent implements OnInit, OnChanges, AfterViewIni
         this.guardandoBeneficioGlobal = false;
         this.costosFiltrados = this.costosFiltrados.map(c => ({ ...c }));
         this.costosFiltrados.forEach(c => this.recalcularEnEdicion(c));
-        if (this.usarBeneficioGlobal && this.nuevoCosto.tipo_costo !== 'ADICIONAL') {
+        if (this.usarBeneficioGlobal && this.nuevoCosto.tipo_costo === 'ORIGINAL') {
           this.nuevoCosto.beneficio = this.beneficioGlobal;
         }
         this.beneficioGlobalActualizado.emit({
@@ -309,7 +310,7 @@ export class ObraPresupuestoComponent implements OnInit, OnChanges, AfterViewIni
   }
 
   agregarCosto() {
-    if (this.estaSelladaCotizacion() && this.nuevoCosto.tipo_costo !== 'ADICIONAL') {
+    if (this.estaSelladaCotizacion() && this.nuevoCosto.tipo_costo === 'ORIGINAL') {
       this.messageService.add({
         severity: 'warn',
         summary: 'Cotizacion sellada',
@@ -317,7 +318,7 @@ export class ObraPresupuestoComponent implements OnInit, OnChanges, AfterViewIni
       });
       return;
     }
-    const esAdicional = this.nuevoCosto.tipo_costo === 'ADICIONAL';
+    const esAdicional = this.nuevoCosto.tipo_costo !== 'ORIGINAL';
     const subtotalNuevo = this.calcularMontosPayload(this.nuevoCosto).subtotal;
     if (!esAdicional && (!this.nuevoCosto.descripcion || !this.nuevoCosto.id_proveedor)) {
       this.messageService.add({
@@ -502,11 +503,11 @@ export class ObraPresupuestoComponent implements OnInit, OnChanges, AfterViewIni
     const { subtotal, total } = this.calcularMontosPayload(costo);
     costo.subtotal = subtotal;
     costo.total = total;
-    costo.tipo_costo = (costo.tipo_costo as 'ORIGINAL' | 'ADICIONAL') || 'ORIGINAL';
+    costo.tipo_costo = (costo.tipo_costo as 'ORIGINAL' | 'ADICIONAL' | 'AJUSTE') || 'ORIGINAL';
   }
 
-  onTipoCostoNuevoChange(tipo: 'ORIGINAL' | 'ADICIONAL') {
-    if (tipo === 'ADICIONAL' && this.usarBeneficioGlobal) {
+  onTipoCostoNuevoChange(tipo: 'ORIGINAL' | 'ADICIONAL' | 'AJUSTE') {
+    if (tipo !== 'ORIGINAL' && this.usarBeneficioGlobal) {
       this.nuevoCosto.beneficio = 0;
     }
     if (tipo === 'ORIGINAL' && this.usarBeneficioGlobal) {
@@ -794,7 +795,7 @@ export class ObraPresupuestoComponent implements OnInit, OnChanges, AfterViewIni
       0
     );
     const beneficioMonto = costos.reduce((acc, c) => {
-      const beneficioAplicado = this.usarBeneficioGlobal && c.tipo_costo !== 'ADICIONAL'
+      const beneficioAplicado = this.usarBeneficioGlobal && c.tipo_costo === 'ORIGINAL'
         ? this.beneficioGlobal
         : Number(c.beneficio ?? 0);
       return acc + Number(c.subtotal ?? 0) * (beneficioAplicado / 100);
@@ -846,7 +847,7 @@ export class ObraPresupuestoComponent implements OnInit, OnChanges, AfterViewIni
 
     const filasCostos = costos.map((c, index) => {
       const subtotalBase = Number(c.subtotal ?? (Number(c.cantidad ?? 0) * Number(c.precio_unitario ?? 0)));
-      const beneficioAplicado = this.usarBeneficioGlobal && c.tipo_costo !== 'ADICIONAL'
+      const beneficioAplicado = this.usarBeneficioGlobal && c.tipo_costo === 'ORIGINAL'
         ? this.beneficioGlobal
         : Number(c.beneficio ?? 0);
       const subtotalConBeneficio = subtotalBase * (1 + beneficioAplicado / 100);
@@ -1106,11 +1107,13 @@ export class ObraPresupuestoComponent implements OnInit, OnChanges, AfterViewIni
 
     const subtotal = cantidad * precio;
 
-    const tipoCosto: 'ORIGINAL' | 'ADICIONAL' =
-      costo.tipo_costo === 'ADICIONAL' ? 'ADICIONAL' : 'ORIGINAL';
+    const tipoCosto: 'ORIGINAL' | 'ADICIONAL' | 'AJUSTE' =
+      costo.tipo_costo === 'ADICIONAL' || costo.tipo_costo === 'AJUSTE'
+        ? costo.tipo_costo
+        : 'ORIGINAL';
 
     // EL PDF no usa beneficio ni comision, pero el sistema si.
-    const beneficio = tipoCosto === 'ADICIONAL'
+    const beneficio = tipoCosto !== 'ORIGINAL'
       ? Number(costo.beneficio ?? 0)
       : this.usarBeneficioGlobal
         ? this.beneficioGlobal
@@ -1295,7 +1298,7 @@ export class ObraPresupuestoComponent implements OnInit, OnChanges, AfterViewIni
       (costo as any)?.tipo?.nombre ??
       (costo as any)?.tipo?.name ??
       '';
-    return raw.toString().toUpperCase() === 'ADICIONAL';
+    return raw.toString().toUpperCase() !== 'ORIGINAL';
   }
 
   private costoTieneProveedor(costo: Partial<ObraCosto>): boolean {
@@ -1305,7 +1308,7 @@ export class ObraPresupuestoComponent implements OnInit, OnChanges, AfterViewIni
 
   getTipoCostoOptions() {
     if (!this.estaSelladaCotizacion()) return this.tipoCostoOptions;
-    return this.tipoCostoOptions.filter(o => o.value === 'ADICIONAL');
+    return this.tipoCostoOptions.filter(o => o.value !== 'ORIGINAL');
   }
 
   puedeEditarCosto(costo?: ObraCosto | null): boolean {
@@ -1320,8 +1323,8 @@ export class ObraPresupuestoComponent implements OnInit, OnChanges, AfterViewIni
 
   private ordenarCostos(lista: ObraCosto[]): ObraCosto[] {
     return [...lista].sort((a, b) => {
-      const aAdd = (a.tipo_costo || 'ORIGINAL') === 'ADICIONAL';
-      const bAdd = (b.tipo_costo || 'ORIGINAL') === 'ADICIONAL';
+      const aAdd = (a.tipo_costo || 'ORIGINAL') !== 'ORIGINAL';
+      const bAdd = (b.tipo_costo || 'ORIGINAL') !== 'ORIGINAL';
       if (aAdd !== bAdd) return aAdd ? 1 : -1;
       return (a.id ?? 0) - (b.id ?? 0);
     });
@@ -1348,7 +1351,7 @@ export class ObraPresupuestoComponent implements OnInit, OnChanges, AfterViewIni
 
   private ajustarTipoCostoNuevoSegunEstado() {
     if (!this.estaSelladaCotizacion()) return;
-    if (this.nuevoCosto.tipo_costo !== 'ADICIONAL') {
+    if (this.nuevoCosto.tipo_costo === 'ORIGINAL') {
       this.nuevoCosto.tipo_costo = 'ADICIONAL';
       this.onTipoCostoNuevoChange('ADICIONAL');
     }

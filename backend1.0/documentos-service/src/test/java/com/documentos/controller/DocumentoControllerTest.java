@@ -45,7 +45,7 @@ class DocumentoControllerTest {
         DocumentoDto dto = new DocumentoDto();
         dto.setId_documento(1L);
 
-        when(service.findByTipoAsociado("CLIENTE", 1L)).thenReturn(Flux.just(dto));
+        when(service.findByTipoAsociado("CLIENTE", 1L, null)).thenReturn(Flux.just(dto));
         when(service.findByObra(1L)).thenReturn(Flux.just(dto));
         when(service.findAll()).thenReturn(Flux.just(dto));
         when(service.findById(1L)).thenReturn(Mono.just(dto));
@@ -53,7 +53,7 @@ class DocumentoControllerTest {
         when(service.delete(1L)).thenReturn(Mono.empty());
         when(service.downloadFile(1L)).thenReturn(Mono.just(ResponseEntity.ok(new ByteArrayResource(new byte[]{1}))));
 
-        List<DocumentoDto> porAsociado = controller.getDocumentosPorAsociado("cliente", 1L).collectList().block();
+        List<DocumentoDto> porAsociado = controller.getDocumentosPorAsociado("cliente", 1L, null).collectList().block();
         List<DocumentoDto> porObra = controller.getDocumentosPorObra(1L).collectList().block();
         List<DocumentoDto> all = controller.getAllDocumentos().collectList().block();
         ResponseEntity<DocumentoDto> byId = controller.getDocumentoById(1L).block();

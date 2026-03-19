@@ -247,9 +247,7 @@ export class FacturasCreateComponent implements OnInit {
   }
 
   private esObraFacturable(obra: Obra): boolean {
-    if (!obra || !obra.requiere_factura) return false;
-    const estado = this.normalizarEstado(obra.obra_estado);
-    return ['ADJUDICADA', 'EN_PROGRESO', 'FINALIZADA', 'FACTURADA', 'COBRADA'].includes(estado);
+    return !!obra && Number(obra.id ?? 0) > 0 && Boolean(obra.activo ?? true);
   }
 
   private normalizarEstado(raw: any): string {

@@ -12,6 +12,7 @@ public class CuentaCorrienteObraResponse {
     private String obraNombre;
     private Long clienteId;
     private String clienteNombre;
+    private BigDecimal presupuestado = BigDecimal.ZERO;
     private BigDecimal costoTotal = BigDecimal.ZERO;
     private BigDecimal pagosRecibidos = BigDecimal.ZERO;
     private BigDecimal saldoPendiente = BigDecimal.ZERO;

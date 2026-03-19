@@ -32,7 +32,18 @@
             </ng-template>
           </p-select>
         </div>
-        <div class="md:col-span-3 flex items-center gap-2 h-12">
+        <div class="md:col-span-2">
+          <p-select
+            (onChange)="onSaldoChange()"
+            [(ngModel)]="saldoFiltro"
+            [options]="saldoOptions"
+            optionLabel="label"
+            optionValue="value"
+            placeholder="Filtrar por saldo"
+            styleClass="w-full p-inputtext-sm h-12">
+          </p-select>
+        </div>
+        <div class="md:col-span-1 flex items-center gap-2 h-12">
           <p-checkbox
             [(ngModel)]="mostrarInactivos"
             [binary]="true"
@@ -59,12 +70,13 @@
       >
         <ng-template pTemplate="header">
           <tr>
-            <th>Nombre</th>
-            <th>Tipo</th>
-            <th>Contacto</th>
-            <th>Telefono</th>
-            <th>Email</th>
-            <th class="text-right">Saldo</th>
+            <th pSortableColumn="nombre">Nombre <p-sortIcon field="nombre"></p-sortIcon></th>
+            <th pSortableColumn="contacto">Contacto <p-sortIcon field="contacto"></p-sortIcon></th>
+            <th pSortableColumn="telefono">Telefono <p-sortIcon field="telefono"></p-sortIcon></th>
+            <th pSortableColumn="email">Email <p-sortIcon field="email"></p-sortIcon></th>
+            <th pSortableColumn="tipo_proveedor">Tipo <p-sortIcon field="tipo_proveedor"></p-sortIcon></th>
+            <th pSortableColumn="totalProveedor" class="text-right">Total <p-sortIcon field="totalProveedor"></p-sortIcon></th>
+            <th pSortableColumn="saldoProveedor" class="text-right">Saldo <p-sortIcon field="saldoProveedor"></p-sortIcon></th>
           </tr>
         </ng-template>
 
@@ -72,17 +84,18 @@
           <tr (click)="irAlDetalle(row)"
               class="cursor-pointer hover:bg-gray-200 transition">
             <td>{{ row.nombre }}</td>
-            <td>{{ formatearTipo(row.tipo_proveedor) || '-' }}</td>
             <td>{{ row.contacto || '-' }}</td>
             <td class="whitespace-nowrap max-w-[160px] overflow-hidden text-ellipsis">{{ row.telefono || '-' }}</td>
             <td>{{ row.email || '-' }}</td>
+            <td>{{ formatearTipo(row.tipo_proveedor) || '-' }}</td>
+            <td class="text-right font-semibold">{{ obtenerTotalProveedor(row.id) | currency:'ARS':'symbol':'1.0-2' }}</td>
             <td class="text-right font-semibold">{{ obtenerSaldoProveedor(row.id) | currency:'ARS':'symbol':'1.0-2' }}</td>
           </tr>
         </ng-template>
 
         <ng-template pTemplate="emptymessage">
           <tr>
-            <td class="text-center py-10" colspan="6">
+            <td class="text-center py-10" colspan="7">
               <div class="flex flex-col items-center justify-center gap-2 text-gray-500">
                 <i class="pi pi-inbox text-3xl"></i>
                 <p class="text-base font-medium">No hay registros para mostrar</p>

@@ -193,6 +193,7 @@ export class FacturasEditComponent implements OnInit {
       id_cliente: Number(raw.id_cliente),
       id_obra: raw.id_obra != null ? Number(raw.id_obra) : null,
       monto,
+      monto_restante: (raw.estado || 'EMITIDA') === 'COBRADA' ? 0 : monto,
       fecha: this.formatDate(raw.fecha),
       descripcion: raw.descripcion || '',
       estado: raw.estado,

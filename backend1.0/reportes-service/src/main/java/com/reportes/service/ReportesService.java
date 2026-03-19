@@ -104,53 +104,14 @@ public class ReportesService {
 
     public DeudasGlobalesResponse generarDeudasGlobales(ReportFilterRequest filtro) {
         ReportFilterRequest filtros = filtroSeguro(filtro);
-        List<ObraExternalDto> obrasFiltradas = filtrarObrasConDeuda(filtros);
-        Map<Long, ObraExternalDto> obrasPorId = mapearPorId(obrasFiltradas, ObraExternalDto::getId);
-
-        List<TransaccionExternalDto> transacciones = filtrarTransacciones(filtros, obrasPorId);
-        transacciones = transacciones.stream()
-                .filter(tx -> Boolean.TRUE.equals(tx.getActivo()) || tx.getActivo() == null)
-                .filter(tx -> tx.getIdObra() != null && obrasPorId.containsKey(tx.getIdObra()))
-                .collect(Collectors.toList());
-
-        BigDecimal ingresos = sumarPorTipo(transacciones, "COBRO");
-        BigDecimal egresos = sumarPorTipo(transacciones, "PAGO");
-
-        BigDecimal totalPresupuesto = obrasFiltradas.stream()
-                .map(this::presupuestoEfectivo)
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
-
-        BigDecimal totalCostos = BigDecimal.ZERO;
-        if (filtros.getClienteId() == null) {
-            for (ObraExternalDto obra : obrasFiltradas) {
-                List<ObraCostoExternalDto> costos = obrasClient.obtenerCostos(obra.getId());
-                for (ObraCostoExternalDto costo : costos) {
-                    if (Boolean.FALSE.equals(costo.getActivo())) continue;
-                    if (!costoTieneProveedor(costo)) continue;
-                    if (filtros.getProveedorId() != null
-                            && !Objects.equals(filtros.getProveedorId(), costo.getIdProveedor())) {
-                        continue;
-                    }
-                    totalCostos = totalCostos.add(costoBase(costo));
-                }
-            }
-        }
-        if (filtros.getProveedorId() == null) {
-            BigDecimal totalComisiones = obrasFiltradas.stream()
-                    .map(this::calcularMontoComision)
-                    .reduce(BigDecimal.ZERO, BigDecimal::add);
-            totalCostos = totalCostos.add(totalComisiones);
-        }
-
         DeudasGlobalesResponse response = new DeudasGlobalesResponse();
+        List<DeudasGlobalesResponse.DetalleDeudaCliente> detalleClientes = construirDetalleDeudaClientes(filtros);
+        List<DeudasGlobalesResponse.DetalleDeudaProveedor> detalleProveedores = construirDetalleDeudaProveedores(filtros);
 
-        if (filtros.getProveedorId() != null && filtros.getObraId() == null && filtros.getClienteId() == null) {
-            response.setDeudaClientes(BigDecimal.ZERO);
-        } else {
-            response.setDeudaClientes(saldoPositivo(totalPresupuesto.subtract(ingresos)));
-        }
-
-        response.setDeudaProveedores(saldoPositivo(totalCostos.subtract(egresos)));
+        response.setDetalleDeudaClientes(detalleClientes);
+        response.setDetalleDeudaProveedores(detalleProveedores);
+        response.setDeudaClientes(sumarSaldosClientes(detalleClientes));
+        response.setDeudaProveedores(sumarSaldosProveedores(detalleProveedores));
         return response;
     }
 
@@ -563,9 +524,10 @@ public class ReportesService {
         response.setClienteId(obra.getIdCliente());
         ClienteExternalDto cliente = clientes.get(obra.getIdCliente());
         response.setClienteNombre(cliente != null ? cliente.getNombre() : null);
+        response.setPresupuestado(presupuestoEfectivo(obra));
         response.setCostoTotal(totalCostos);
         response.setPagosRecibidos(pagosRecibidos);
-        response.setSaldoPendiente(saldoPositivo(totalCostos.subtract(pagosRecibidos)));
+        response.setSaldoPendiente(saldoPositivo(response.getPresupuestado().subtract(pagosRecibidos)));
 
         List<CuentaCorrienteObraResponse.Movimiento> movimientos = new ArrayList<>();
 
@@ -629,7 +591,7 @@ public class ReportesService {
         Map<Long, ObraExternalDto> obrasPorId = mapearPorId(obras, ObraExternalDto::getId);
         Map<Long, ProveedorExternalDto> proveedores = mapearPorId(proveedoresClient.obtenerProveedores(), ProveedorExternalDto::getId);
         Set<Long> obrasConDeuda = obras.stream()
-                .filter(obra -> estadoGeneraDeuda(obra.getObraEstado()))
+                .filter(obra -> estadoGeneraSaldoProveedor(obra.getObraEstado()))
                 .map(ObraExternalDto::getId)
                 .filter(Objects::nonNull)
                 .collect(Collectors.toSet());
@@ -659,6 +621,8 @@ public class ReportesService {
                 movimiento.setMonto(total);
                 movimiento.setObraId(obra.getId());
                 movimiento.setObraNombre(obra.getNombre());
+                movimiento.setProveedorId(proveedorId);
+                movimiento.setProveedorNombre(proveedor != null ? proveedor.getNombre() : null);
                 movimiento.setConcepto(costo.getDescripcion());
                 movimiento.setFecha(obra.getFechaInicio() != null ? obra.getFechaInicio().toLocalDate() : null);
                 movimientos.add(movimiento);
@@ -681,6 +645,8 @@ public class ReportesService {
                     ObraExternalDto obra = obrasPorId.get(tx.getIdObra());
                     movimiento.setObraId(tx.getIdObra());
                     movimiento.setObraNombre(obra != null ? obra.getNombre() : null);
+                    movimiento.setProveedorId(proveedorId);
+                    movimiento.setProveedorNombre(proveedor != null ? proveedor.getNombre() : null);
                     movimiento.setConcepto("Pago " + (tx.getId() != null ? tx.getId() : ""));
                     movimiento.setFecha(tx.getFecha());
                     movimientos.add(movimiento);
@@ -711,6 +677,15 @@ public class ReportesService {
         response.setCostos(costos);
         response.setPagos(pagos);
         response.setSaldo(saldoPositivo(costos.subtract(pagos)));
+        CuentaCorrienteProveedorResponse.ResumenProveedor resumen = new CuentaCorrienteProveedorResponse.ResumenProveedor();
+        resumen.setProveedorId(proveedorId);
+        resumen.setProveedorNombre(proveedor != null ? proveedor.getNombre() : null);
+        resumen.setPresupuestado(response.getCostos());
+        resumen.setPagos(response.getPagos());
+        resumen.setSaldo(response.getSaldo());
+        if (tieneSaldoSignificativo(resumen.getSaldo())) {
+            response.getResumenProveedores().add(resumen);
+        }
         return response;
     }
 
@@ -737,7 +712,7 @@ public class ReportesService {
         }
 
         Set<Long> obrasConDeuda = obras.stream()
-                .filter(obra -> estadoGeneraDeuda(obra.getObraEstado()))
+                .filter(obra -> estadoGeneraSaldoProveedor(obra.getObraEstado()))
                 .map(ObraExternalDto::getId)
                 .filter(Objects::nonNull)
                 .collect(Collectors.toSet());
@@ -763,6 +738,8 @@ public class ReportesService {
                 movimiento.setMonto(total);
                 movimiento.setObraId(obra.getId());
                 movimiento.setObraNombre(obra.getNombre());
+                movimiento.setProveedorId(proveedorId);
+                movimiento.setProveedorNombre(resp.getProveedorNombre());
                 movimiento.setConcepto(costo.getDescripcion());
                 movimiento.setFecha(obra.getFechaInicio() != null ? obra.getFechaInicio().toLocalDate() : null);
                 resp.getMovimientos().add(movimiento);
@@ -791,6 +768,8 @@ public class ReportesService {
             ObraExternalDto obra = obraId != null ? obrasPorId.get(obraId) : null;
             movimiento.setObraId(obraId);
             movimiento.setObraNombre(obra != null ? obra.getNombre() : null);
+            movimiento.setProveedorId(proveedorId);
+            movimiento.setProveedorNombre(resp.getProveedorNombre());
             movimiento.setConcepto("Pago " + (tx.getId() != null ? tx.getId() : ""));
             movimiento.setFecha(tx.getFecha());
             resp.getMovimientos().add(movimiento);
@@ -817,6 +796,15 @@ public class ReportesService {
             }
 
             resp.setSaldo(saldoPositivo(resp.getCostos().subtract(resp.getPagos())));
+            if (tieneSaldoSignificativo(resp.getSaldo())) {
+                CuentaCorrienteProveedorResponse.ResumenProveedor resumen = new CuentaCorrienteProveedorResponse.ResumenProveedor();
+                resumen.setProveedorId(resp.getProveedorId());
+                resumen.setProveedorNombre(resp.getProveedorNombre());
+                resumen.setPresupuestado(resp.getCostos());
+                resumen.setPagos(resp.getPagos());
+                resumen.setSaldo(resp.getSaldo());
+                resp.getResumenProveedores().add(resumen);
+            }
         }
 
         return new ArrayList<>(respuestaPorProveedor.values());
@@ -833,21 +821,6 @@ public class ReportesService {
         List<CuentaCorrienteProveedorResponse.Movimiento> movimientos = proveedores.stream()
                 .flatMap(p -> p.getMovimientos().stream())
                 .collect(Collectors.toList());
-
-        // Incluir comisiones pendientes como costo general (no asociadas a proveedor)
-        List<ObraExternalDto> obrasConDeuda = filtrarObrasConDeuda(filtros);
-        for (ObraExternalDto obra : obrasConDeuda) {
-            BigDecimal comisionPendiente = calcularComisionPendiente(obra);
-            if (comisionPendiente.compareTo(BigDecimal.ZERO) <= 0) continue;
-            CuentaCorrienteProveedorResponse.Movimiento mov = new CuentaCorrienteProveedorResponse.Movimiento();
-            mov.setTipo("COSTO");
-            mov.setMonto(comisionPendiente);
-            mov.setObraId(obra.getId());
-            mov.setObraNombre(obra.getNombre());
-            mov.setConcepto("Comision pendiente");
-            mov.setFecha(obra.getFechaInicio() != null ? obra.getFechaInicio().toLocalDate() : LocalDate.now());
-            movimientos.add(mov);
-        }
 
         movimientos.sort(Comparator.comparing(
                 m -> Optional.ofNullable(m.getFecha()).orElse(LocalDate.MAX)
@@ -866,6 +839,7 @@ public class ReportesService {
         response.setPagos(totalPagos);
         response.setSaldo(saldoPositivo(totalCostos.subtract(totalPagos)));
         response.setMovimientos(movimientos);
+        response.setResumenProveedores(construirResumenProveedores(filtros));
         return response;
     }
 
@@ -906,9 +880,12 @@ public class ReportesService {
         CuentaCorrienteObraResponse response = new CuentaCorrienteObraResponse();
         response.setObraId(null);
         response.setObraNombre("Todas las obras");
+        response.setPresupuestado(obrasConDeuda.stream()
+                .map(this::presupuestoEfectivo)
+                .reduce(BigDecimal.ZERO, BigDecimal::add));
         response.setCostoTotal(totalEgresos);
         response.setPagosRecibidos(totalIngresos);
-        response.setSaldoPendiente(saldoPositivo(totalIngresos.subtract(totalEgresos)));
+        response.setSaldoPendiente(saldoPositivo(response.getPresupuestado().subtract(totalIngresos)));
 
         for (FlujoCajaResponse.Movimiento mov : movimientos) {
             CuentaCorrienteObraResponse.Movimiento detalle = new CuentaCorrienteObraResponse.Movimiento();
@@ -930,23 +907,14 @@ public class ReportesService {
         ReportFilterRequest filtros = filtroSeguro(filtro);
         List<ObraExternalDto> obrasConDeuda = filtrarObrasConDeuda(filtros);
         Map<Long, ObraExternalDto> obrasPorId = mapearPorId(obrasConDeuda, ObraExternalDto::getId);
-
         BigDecimal totalCostos = obrasConDeuda.stream()
                 .map(this::presupuestoEfectivo)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
 
-        Map<Long, BigDecimal> comisionesPendientes = new HashMap<>();
-        for (ObraExternalDto obra : obrasConDeuda) {
-            BigDecimal pendiente = calcularComisionPendiente(obra);
-            if (pendiente.compareTo(BigDecimal.ZERO) > 0) {
-                comisionesPendientes.put(obra.getId(), pendiente);
-                totalCostos = totalCostos.add(pendiente);
-            }
-        }
-
         List<TransaccionExternalDto> transacciones = filtrarTransacciones(filtros, obrasPorId);
         List<TransaccionExternalDto> cobros = transacciones.stream()
                 .filter(tx -> "COBRO".equalsIgnoreCase(Optional.ofNullable(tx.getTipoTransaccion()).orElse("")))
+                .sorted(Comparator.comparing(TransaccionExternalDto::getFecha, Comparator.nullsLast(Comparator.naturalOrder())))
                 .collect(Collectors.toList());
 
         BigDecimal totalCobros = cobros.stream()
@@ -965,11 +933,11 @@ public class ReportesService {
 
         response.setTotalCobros(totalCobros);
         response.setTotalCostos(totalCostos);
-        response.setSaldoFinal(totalCostos.subtract(totalCobros));
+        response.setSaldoFinal(saldoPositivo(totalCostos.subtract(totalCobros)));
+        response.setResumenClientes(construirResumenClientes(filtros));
 
         List<CuentaCorrienteClienteResponse.Movimiento> movimientos = new ArrayList<>();
         BigDecimal cobrosAcum = BigDecimal.ZERO;
-        BigDecimal costosAcum = BigDecimal.ZERO;
         for (TransaccionExternalDto tx : cobros) {
             CuentaCorrienteClienteResponse.Movimiento mov = new CuentaCorrienteClienteResponse.Movimiento();
             mov.setFecha(tx.getFecha());
@@ -983,30 +951,11 @@ public class ReportesService {
             mov.setAsociadoId(tx.getIdAsociado());
             cobrosAcum = cobrosAcum.add(mov.getMonto());
             mov.setCobrosAcumulados(cobrosAcum);
-            mov.setCostosAcumulados(costosAcum);
-            mov.setSaldoCliente(saldoPositivo(cobrosAcum.subtract(costosAcum)));
+            mov.setCostosAcumulados(totalCostos);
+            mov.setSaldoCliente(saldoPositivo(totalCostos.subtract(cobrosAcum)));
             movimientos.add(mov);
         }
 
-        for (Map.Entry<Long, BigDecimal> entry : comisionesPendientes.entrySet()) {
-            CuentaCorrienteClienteResponse.Movimiento mov = new CuentaCorrienteClienteResponse.Movimiento();
-            mov.setTipo("COSTO");
-            mov.setMonto(entry.getValue());
-            mov.setReferencia("Comision pendiente");
-            mov.setObraId(entry.getKey());
-            ObraExternalDto obra = obrasPorId.get(entry.getKey());
-            mov.setObraNombre(obra != null ? obra.getNombre() : null);
-            mov.setFecha(obra != null && obra.getFechaInicio() != null ? obra.getFechaInicio().toLocalDate() : LocalDate.now());
-            costosAcum = costosAcum.add(mov.getMonto());
-            mov.setCobrosAcumulados(cobrosAcum);
-            mov.setCostosAcumulados(costosAcum);
-            mov.setSaldoCliente(saldoPositivo(cobrosAcum.subtract(costosAcum)));
-            movimientos.add(mov);
-        }
-
-        movimientos.sort(Comparator.comparing(
-                m -> Optional.ofNullable(m.getFecha()).orElse(LocalDate.MAX)
-        ));
         response.setMovimientos(movimientos);
         return response;
     }
@@ -1313,6 +1262,8 @@ public class ReportesService {
                 .filter(obra -> !Boolean.FALSE.equals(obra.getActivo()))
                 .filter(obra -> filtro.getObraId() == null || Objects.equals(obra.getId(), filtro.getObraId()))
                 .filter(obra -> filtro.getClienteId() == null || Objects.equals(obra.getIdCliente(), filtro.getClienteId()))
+                .filter(obra -> dentroDeRango(obra.getFechaInicio() != null ? obra.getFechaInicio().toLocalDate() : null,
+                        filtro.getFechaInicio(), filtro.getFechaFin()))
                 .collect(Collectors.toList());
     }
 
@@ -1368,6 +1319,186 @@ public class ReportesService {
         return lista.stream()
                 .filter(Objects::nonNull)
                 .collect(Collectors.toMap(extractor, Function.identity(), (a, b) -> a, LinkedHashMap::new));
+    }
+
+    private List<DeudasGlobalesResponse.DetalleDeudaCliente> construirDetalleDeudaClientes(ReportFilterRequest filtro) {
+        List<ObraExternalDto> obras = filtrarObrasConDeuda(filtro);
+        Map<Long, ObraExternalDto> obrasPorId = mapearPorId(obras, ObraExternalDto::getId);
+        Map<Long, ClienteExternalDto> clientes = mapearPorId(clientesClient.obtenerClientes(), ClienteExternalDto::getId);
+
+        Map<Long, BigDecimal> cobrosPorObra = filtrarTransacciones(filtro, obrasPorId).stream()
+                .filter(tx -> tx.getIdObra() != null)
+                .filter(tx -> "COBRO".equalsIgnoreCase(Optional.ofNullable(tx.getTipoTransaccion()).orElse("")))
+                .collect(Collectors.groupingBy(
+                        TransaccionExternalDto::getIdObra,
+                        Collectors.mapping(
+                                tx -> BigDecimal.valueOf(Optional.ofNullable(tx.getMonto()).orElse(0d)),
+                                Collectors.reducing(BigDecimal.ZERO, BigDecimal::add)
+                        )
+                ));
+
+        return obras.stream()
+                .map(obra -> {
+                    BigDecimal presupuesto = presupuestoEfectivo(obra);
+                    BigDecimal cobrado = cobrosPorObra.getOrDefault(obra.getId(), BigDecimal.ZERO);
+                    BigDecimal saldo = saldoPositivo(presupuesto.subtract(cobrado));
+                    if (!tieneSaldoSignificativo(saldo)) {
+                        return null;
+                    }
+
+                    DeudasGlobalesResponse.DetalleDeudaCliente detalle = new DeudasGlobalesResponse.DetalleDeudaCliente();
+                    detalle.setObraId(obra.getId());
+                    detalle.setObraNombre(obra.getNombre());
+                    detalle.setClienteId(obra.getIdCliente());
+                    ClienteExternalDto cliente = clientes.get(obra.getIdCliente());
+                    detalle.setClienteNombre(cliente != null ? cliente.getNombre() : null);
+                    detalle.setPresupuesto(presupuesto);
+                    detalle.setCobrado(cobrado);
+                    detalle.setSaldo(saldo);
+                    return detalle;
+                })
+                .filter(Objects::nonNull)
+                .sorted(comparadorDetalleCliente(obrasPorId))
+                .collect(Collectors.toList());
+    }
+
+    private List<DeudasGlobalesResponse.DetalleDeudaProveedor> construirDetalleDeudaProveedores(ReportFilterRequest filtro) {
+        List<ObraExternalDto> obras = filtrarObrasConDeuda(filtro);
+        Map<Long, ObraExternalDto> obrasPorId = mapearPorId(obras, ObraExternalDto::getId);
+        Map<Long, ProveedorExternalDto> proveedores = mapearPorId(proveedoresClient.obtenerProveedores(), ProveedorExternalDto::getId);
+
+        Map<String, BigDecimal> presupuestadoPorObraProveedor = new HashMap<>();
+        for (ObraExternalDto obra : obras) {
+            List<ObraCostoExternalDto> costos = obrasClient.obtenerCostos(obra.getId());
+            for (ObraCostoExternalDto costo : costos) {
+                if (Boolean.FALSE.equals(costo.getActivo()) || !costoTieneProveedor(costo)) {
+                    continue;
+                }
+                if (filtro.getProveedorId() != null && !Objects.equals(filtro.getProveedorId(), costo.getIdProveedor())) {
+                    continue;
+                }
+                String key = claveObraProveedor(obra.getId(), costo.getIdProveedor());
+                presupuestadoPorObraProveedor.merge(key, costoBase(costo), BigDecimal::add);
+            }
+        }
+
+        Map<String, BigDecimal> pagosPorObraProveedor = filtrarTransacciones(filtro, obrasPorId).stream()
+                .filter(tx -> "PAGO".equalsIgnoreCase(Optional.ofNullable(tx.getTipoTransaccion()).orElse("")))
+                .filter(tx -> "PROVEEDOR".equalsIgnoreCase(Optional.ofNullable(tx.getTipoAsociado()).orElse("")))
+                .filter(tx -> tx.getIdObra() != null && tx.getIdAsociado() != null)
+                .collect(Collectors.groupingBy(
+                        tx -> claveObraProveedor(tx.getIdObra(), tx.getIdAsociado()),
+                        Collectors.mapping(
+                                tx -> BigDecimal.valueOf(Optional.ofNullable(tx.getMonto()).orElse(0d)),
+                                Collectors.reducing(BigDecimal.ZERO, BigDecimal::add)
+                        )
+                ));
+
+        return presupuestadoPorObraProveedor.entrySet().stream()
+                .map(entry -> {
+                    String[] partes = entry.getKey().split(":");
+                    Long obraId = Long.parseLong(partes[0]);
+                    Long proveedorId = Long.parseLong(partes[1]);
+                    BigDecimal presupuestado = entry.getValue();
+                    BigDecimal pagado = pagosPorObraProveedor.getOrDefault(entry.getKey(), BigDecimal.ZERO);
+                    BigDecimal saldo = saldoPositivo(presupuestado.subtract(pagado));
+                    if (!tieneSaldoSignificativo(saldo)) {
+                        return null;
+                    }
+
+                    ObraExternalDto obra = obrasPorId.get(obraId);
+                    ProveedorExternalDto proveedor = proveedores.get(proveedorId);
+                    DeudasGlobalesResponse.DetalleDeudaProveedor detalle = new DeudasGlobalesResponse.DetalleDeudaProveedor();
+                    detalle.setObraId(obraId);
+                    detalle.setObraNombre(obra != null ? obra.getNombre() : null);
+                    detalle.setProveedorId(proveedorId);
+                    detalle.setProveedorNombre(proveedor != null ? proveedor.getNombre() : null);
+                    detalle.setPresupuestado(presupuestado);
+                    detalle.setPagado(pagado);
+                    detalle.setSaldo(saldo);
+                    return detalle;
+                })
+                .filter(Objects::nonNull)
+                .sorted(comparadorDetalleProveedor(obrasPorId))
+                .collect(Collectors.toList());
+    }
+
+    private List<CuentaCorrienteClienteResponse.ResumenCliente> construirResumenClientes(ReportFilterRequest filtro) {
+        Map<Long, CuentaCorrienteClienteResponse.ResumenCliente> resumenPorCliente = new LinkedHashMap<>();
+        for (DeudasGlobalesResponse.DetalleDeudaCliente detalle : construirDetalleDeudaClientes(filtro)) {
+            Long clienteId = detalle.getClienteId();
+            if (clienteId == null) {
+                continue;
+            }
+            CuentaCorrienteClienteResponse.ResumenCliente resumen = resumenPorCliente.computeIfAbsent(clienteId, id -> {
+                CuentaCorrienteClienteResponse.ResumenCliente nuevo = new CuentaCorrienteClienteResponse.ResumenCliente();
+                nuevo.setClienteId(id);
+                nuevo.setClienteNombre(detalle.getClienteNombre());
+                return nuevo;
+            });
+            resumen.setPresupuestado(resumen.getPresupuestado().add(detalle.getPresupuesto()));
+            resumen.setCobros(resumen.getCobros().add(detalle.getCobrado()));
+            resumen.setSaldo(resumen.getSaldo().add(detalle.getSaldo()));
+        }
+
+        return resumenPorCliente.values().stream()
+                .filter(item -> tieneSaldoSignificativo(item.getSaldo()))
+                .collect(Collectors.toList());
+    }
+
+    private List<CuentaCorrienteProveedorResponse.ResumenProveedor> construirResumenProveedores(ReportFilterRequest filtro) {
+        Map<Long, CuentaCorrienteProveedorResponse.ResumenProveedor> resumenPorProveedor = new LinkedHashMap<>();
+        for (DeudasGlobalesResponse.DetalleDeudaProveedor detalle : construirDetalleDeudaProveedores(filtro)) {
+            Long proveedorId = detalle.getProveedorId();
+            if (proveedorId == null) {
+                continue;
+            }
+            CuentaCorrienteProveedorResponse.ResumenProveedor resumen = resumenPorProveedor.computeIfAbsent(proveedorId, id -> {
+                CuentaCorrienteProveedorResponse.ResumenProveedor nuevo = new CuentaCorrienteProveedorResponse.ResumenProveedor();
+                nuevo.setProveedorId(id);
+                nuevo.setProveedorNombre(detalle.getProveedorNombre());
+                return nuevo;
+            });
+            resumen.setPresupuestado(resumen.getPresupuestado().add(detalle.getPresupuestado()));
+            resumen.setPagos(resumen.getPagos().add(detalle.getPagado()));
+            resumen.setSaldo(resumen.getSaldo().add(detalle.getSaldo()));
+        }
+
+        return resumenPorProveedor.values().stream()
+                .filter(item -> tieneSaldoSignificativo(item.getSaldo()))
+                .collect(Collectors.toList());
+    }
+
+    private BigDecimal sumarSaldosClientes(List<DeudasGlobalesResponse.DetalleDeudaCliente> detalles) {
+        return detalles.stream()
+                .map(DeudasGlobalesResponse.DetalleDeudaCliente::getSaldo)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+    }
+
+    private BigDecimal sumarSaldosProveedores(List<DeudasGlobalesResponse.DetalleDeudaProveedor> detalles) {
+        return detalles.stream()
+                .map(DeudasGlobalesResponse.DetalleDeudaProveedor::getSaldo)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+    }
+
+    private String claveObraProveedor(Long obraId, Long proveedorId) {
+        return obraId + ":" + proveedorId;
+    }
+
+    private Comparator<DeudasGlobalesResponse.DetalleDeudaCliente> comparadorDetalleCliente(Map<Long, ObraExternalDto> obrasPorId) {
+        return Comparator
+                .comparing(DeudasGlobalesResponse.DetalleDeudaCliente::getObraId,
+                        (obraIdA, obraIdB) -> compararOrdenObras(obrasPorId.get(obraIdA), obraIdA, obrasPorId.get(obraIdB), obraIdB))
+                .thenComparing(DeudasGlobalesResponse.DetalleDeudaCliente::getClienteNombre,
+                        Comparator.nullsLast(String::compareToIgnoreCase));
+    }
+
+    private Comparator<DeudasGlobalesResponse.DetalleDeudaProveedor> comparadorDetalleProveedor(Map<Long, ObraExternalDto> obrasPorId) {
+        return Comparator
+                .comparing(DeudasGlobalesResponse.DetalleDeudaProveedor::getObraId,
+                        (obraIdA, obraIdB) -> compararOrdenObras(obrasPorId.get(obraIdA), obraIdA, obrasPorId.get(obraIdB), obraIdB))
+                .thenComparing(DeudasGlobalesResponse.DetalleDeudaProveedor::getProveedorNombre,
+                        Comparator.nullsLast(String::compareToIgnoreCase));
     }
 
     private BigDecimal sumarPorTipo(List<TransaccionExternalDto> transacciones, String tipoBuscado) {
@@ -1481,6 +1612,10 @@ public class ReportesService {
         return saldo.compareTo(BigDecimal.ZERO) < 0 ? BigDecimal.ZERO : saldo;
     }
 
+    private boolean tieneSaldoSignificativo(BigDecimal saldo) {
+        return saldo != null && saldo.compareTo(new BigDecimal("0.01")) > 0;
+    }
+
     private boolean costoTieneProveedor(ObraCostoExternalDto costo) {
         if (costo == null) return false;
         Long idProveedor = costo.getIdProveedor();
@@ -1496,12 +1631,26 @@ public class ReportesService {
         return ESTADOS_CON_DEUDA.contains(normalizado);
     }
 
+    private boolean estadoGeneraSaldoProveedor(String estado) {
+        if (estado == null) return false;
+        String normalizado = estado.trim().toUpperCase()
+                .replaceAll("\\s+", "_")
+                .replaceAll("[^A-Z0-9_]+", "")
+                .replaceAll("^_+|_+$", "");
+        return ESTADOS_SALDO_PROVEEDOR.contains(normalizado);
+    }
+
     private static final Set<String> ESTADOS_CON_DEUDA = Set.of(
             "ADJUDICADA",
             "EN_PROGRESO",
             "FINALIZADA",
             "FACTURADA",
             "COBRADA"
+    );
+
+    private static final Set<String> ESTADOS_SALDO_PROVEEDOR = Set.of(
+            "EN_PROGRESO",
+            "FINALIZADA"
     );
 
     private BigDecimal costoBase(ObraCostoExternalDto costo) {
@@ -1511,6 +1660,25 @@ public class ReportesService {
             return costo.getCantidad().multiply(costo.getPrecioUnitario());
         }
         return Optional.ofNullable(costo.getTotal()).orElse(BigDecimal.ZERO);
+    }
+
+    private int compararOrdenObras(ObraExternalDto obraA, Long obraIdA, ObraExternalDto obraB, Long obraIdB) {
+        long fechaA = getFechaInicioMs(obraA);
+        long fechaB = getFechaInicioMs(obraB);
+        if (fechaA != fechaB) {
+            return Long.compare(fechaB, fechaA);
+        }
+        return Long.compare(Optional.ofNullable(obraIdB).orElse(0L), Optional.ofNullable(obraIdA).orElse(0L));
+    }
+
+    private long getFechaInicioMs(ObraExternalDto obra) {
+        if (obra == null || obra.getFechaInicio() == null) {
+            return Long.MIN_VALUE;
+        }
+        return obra.getFechaInicio()
+                .atZone(java.time.ZoneId.systemDefault())
+                .toInstant()
+                .toEpochMilli();
     }
 
     private AvanceTareasResponse.AvanceObra construirAvanceParaTareas(ObraExternalDto obra,

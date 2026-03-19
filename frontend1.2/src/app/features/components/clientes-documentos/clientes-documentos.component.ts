@@ -53,7 +53,7 @@ export class ClientesDocumentosComponent implements OnInit {
     this.loading = true;
     this.documentosService.getDocumentosPorAsociado(this.tipoAsociado, id).subscribe({
       next: docs => {
-        console.log(docs)
+        console.log(docs);
         this.documentos = docs;
         this.loading = false;
       },
@@ -92,38 +92,7 @@ export class ClientesDocumentosComponent implements OnInit {
   eliminarDocumento(doc: Documento) {
     this.confirmationService.confirm({
       header: 'Confirmar eliminacion',
-      message: `¿Seguro que queres eliminar el documento ${doc.nombre_archivo}?`,
-      icon: 'pi pi-exclamation-triangle',
-      acceptLabel: 'Eliminar',
-      rejectLabel: 'Cancelar',
-      acceptButtonStyleClass: 'p-button-danger p-button-sm',
-      rejectButtonStyleClass: 'p-button-text p-button-sm',
-      accept: () => {
-        this.documentosService.deleteDocumento(doc.id_documento).subscribe({
-          next: () => {
-            this.documentos = this.documentos.filter(d => d.id_documento !== doc.id_documento);
-            this.messageService.add({
-              severity: 'success',
-              summary: 'Eliminado',
-              detail: 'Documento eliminado correctamente'
-            });
-          },
-          error: () => {
-            this.messageService.add({
-              severity: 'error',
-              summary: 'Error',
-              detail: 'No se pudo eliminar el documento.'
-            });
-          }
-        });
-      }
-    });
-  }
-
-  eliminarDocumento(doc: Documento) {
-    this.confirmationService.confirm({
-      header: 'Confirmar eliminacion',
-      message: `¿Seguro que queres eliminar el documento ${doc.nombre_archivo}?`,
+      message: `Â¿Seguro que queres eliminar el documento ${doc.nombre_archivo}?`,
       icon: 'pi pi-exclamation-triangle',
       acceptLabel: 'Eliminar',
       rejectLabel: 'Cancelar',

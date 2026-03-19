@@ -329,9 +329,10 @@ class ReportesServiceTest {
 
         CuentaCorrienteObraResponse response = reportesService.generarCuentaCorrientePorObra(1L);
 
-        assertThat(response.getCostoTotal()).isEqualByComparingTo("250");
-        assertThat(response.getPagosRecibidos()).isEqualByComparingTo("1199");
-        assertThat(response.getSaldoPendiente()).isEqualByComparingTo("0");
+        assertThat(response.getPresupuestado()).isEqualByComparingTo("1000");
+        assertThat(response.getCostoTotal()).isEqualByComparingTo("350");
+        assertThat(response.getPagosRecibidos()).isEqualByComparingTo("200");
+        assertThat(response.getSaldoPendiente()).isEqualByComparingTo("800");
         assertThat(response.getMovimientos()).isNotEmpty();
         verify(movimientoReporteRepository, atLeastOnce()).save(any());
     }
@@ -350,7 +351,91 @@ class ReportesServiceTest {
         assertThat(response.getCostos()).isEqualByComparingTo("160");
         assertThat(response.getPagos()).isEqualByComparingTo("50");
         assertThat(response.getSaldo()).isEqualByComparingTo("110");
+        assertThat(response.getResumenProveedores()).hasSize(1);
         assertThat(response.getMovimientos()).isNotEmpty();
+    }
+
+    @Test
+    void generarCuentaCorrientePorProveedor_excluyeObrasFueraDeProgresoYFinalizada() {
+        ObraExternalDto obra3 = new ObraExternalDto();
+        obra3.setId(3L);
+        obra3.setIdCliente(100L);
+        obra3.setNombre("Obra C");
+        obra3.setObraEstado("ADJUDICADA");
+        obra3.setActivo(true);
+        obra3.setFechaInicio(LocalDateTime.of(2024, 3, 1, 0, 0));
+
+        ObraCostoExternalDto costo5 = new ObraCostoExternalDto();
+        costo5.setId(5L);
+        costo5.setIdObra(3L);
+        costo5.setIdProveedor(10L);
+        costo5.setDescripcion("Hierro");
+        costo5.setSubtotal(new BigDecimal("999"));
+        costo5.setActivo(true);
+
+        when(obrasClient.obtenerObras()).thenReturn(List.of(obra1, obra2, obra3));
+        when(obrasClient.obtenerCostos(1L)).thenReturn(costosObra1);
+        when(obrasClient.obtenerCostos(2L)).thenReturn(costosObra2);
+        when(transaccionesClient.obtenerTransacciones()).thenReturn(transacciones);
+        when(proveedoresClient.obtenerProveedores()).thenReturn(List.of(proveedor1, proveedor2));
+        when(movimientoReporteRepository.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
+
+        CuentaCorrienteProveedorResponse response = reportesService.generarCuentaCorrientePorProveedor(10L);
+
+        assertThat(response.getCostos()).isEqualByComparingTo("160");
+        assertThat(response.getMovimientos())
+                .extracting(CuentaCorrienteProveedorResponse.Movimiento::getObraId)
+                .doesNotContain(3L);
+    }
+
+    @Test
+    void generarDeudasGlobales_devuelveDetallesSinSaldoCeroYOrdenados() {
+        obra1.setTotalConBeneficio(new BigDecimal("1234.56"));
+
+        ReportFilterRequest filtro = new ReportFilterRequest();
+
+        when(obrasClient.obtenerObras()).thenReturn(List.of(obra1, obra2));
+        when(clientesClient.obtenerClientes()).thenReturn(List.of(cliente1, cliente2));
+        when(proveedoresClient.obtenerProveedores()).thenReturn(List.of(proveedor1, proveedor2));
+        when(transaccionesClient.obtenerTransacciones()).thenReturn(transacciones);
+        when(obrasClient.obtenerCostos(1L)).thenReturn(costosObra1);
+        when(obrasClient.obtenerCostos(2L)).thenReturn(costosObra2);
+
+        DeudasGlobalesResponse response = reportesService.generarDeudasGlobales(filtro);
+
+        assertThat(response.getDeudaClientes()).isEqualByComparingTo("1234.56");
+        assertThat(response.getDeudaProveedores()).isEqualByComparingTo("180");
+        assertThat(response.getDetalleDeudaClientes()).hasSize(2);
+        assertThat(response.getDetalleDeudaClientes().get(0).getObraId()).isEqualTo(2L);
+        assertThat(response.getDetalleDeudaClientes().get(0).getSaldo()).isEqualByComparingTo("200");
+        assertThat(response.getDetalleDeudaClientes().get(1).getPresupuesto()).isEqualByComparingTo("1234.56");
+        assertThat(response.getDetalleDeudaProveedores()).hasSize(3);
+        assertThat(response.getDetalleDeudaProveedores())
+                .extracting(DeudasGlobalesResponse.DetalleDeudaProveedor::getSaldo)
+                .containsExactly(new BigDecimal("60"), new BigDecimal("50.0"), new BigDecimal("70.0"));
+    }
+
+    @Test
+    void generarCuentaCorrienteCliente_devuelveResumenSinComisiones() {
+        obra1.setTotalConBeneficio(new BigDecimal("1234.56"));
+
+        when(obrasClient.obtenerObras()).thenReturn(List.of(obra1, obra2));
+        when(clientesClient.obtenerClientes()).thenReturn(List.of(cliente1, cliente2));
+        when(transaccionesClient.obtenerTransacciones()).thenReturn(transacciones);
+
+        CuentaCorrienteClienteResponse response = reportesService.generarCuentaCorrienteCliente(new ReportFilterRequest());
+
+        assertThat(response.getTotalCostos()).isEqualByComparingTo("1734.56");
+        assertThat(response.getTotalCobros()).isEqualByComparingTo("500");
+        assertThat(response.getSaldoFinal()).isEqualByComparingTo("1234.56");
+        assertThat(response.getResumenClientes()).hasSize(2);
+        assertThat(response.getResumenClientes().get(0).getClienteNombre()).isEqualTo("Cliente B");
+        assertThat(response.getResumenClientes().get(0).getSaldo()).isEqualByComparingTo("200");
+        assertThat(response.getResumenClientes().get(1).getClienteNombre()).isEqualTo("Cliente A");
+        assertThat(response.getResumenClientes().get(1).getSaldo()).isEqualByComparingTo("1034.56");
+        assertThat(response.getMovimientos())
+                .extracting(CuentaCorrienteClienteResponse.Movimiento::getSaldoCliente)
+                .containsExactly(new BigDecimal("1534.56"), new BigDecimal("1234.56"));
     }
 
     @Test
@@ -415,7 +500,6 @@ class ReportesServiceTest {
 
         when(obrasClient.obtenerObras()).thenReturn(List.of(obra1, obra2));
         when(comisionRepository.findAll()).thenReturn(List.of(comision));
-        when(transaccionesClient.obtenerTransacciones()).thenReturn(Collections.emptyList());
 
         ComisionesFrontResponse response = reportesService.generarComisiones(new ReportFilterRequest());
 

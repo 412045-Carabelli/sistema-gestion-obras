@@ -103,7 +103,7 @@ export class ClientesListComponent implements OnInit {
 
       return matchesSearch && matchesCondicion && matchesActivo;
     })
-      .sort((a, b) => Number(b.id ?? 0) - Number(a.id ?? 0));
+      .sort((a, b) => this.compararTexto(a.nombre, b.nombre));
   }
 
   onMostrarInactivosChange() {
@@ -142,5 +142,9 @@ export class ClientesListComponent implements OnInit {
       cliente.activo = !cliente.activo;
       this.applyFilter();
     });
+  }
+
+  private compararTexto(a?: string | null, b?: string | null): number {
+    return (a || '').localeCompare(b || '', 'es', {sensitivity: 'base'});
   }
 }

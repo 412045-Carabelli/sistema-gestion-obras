@@ -69,10 +69,16 @@ export class ObraTareasComponent {
     private messageService: MessageService
   ) {}
 
+  get proveedoresFiltrados(): Proveedor[] {
+    const manoObra = (this.proveedores || []).filter(p => this.esProveedorManoDeObra(p));
+    return manoObra.length ? manoObra : (this.proveedores || []);
+  }
+
   abrirModal() {
+    const proveedorDefault = this.proveedoresFiltrados[0] ?? null;
     this.nuevaTarea = {
-      proveedor: this.proveedores[0] ?? null,
-      id_proveedor: this.proveedores[0]?.id,
+      proveedor: proveedorDefault,
+      id_proveedor: proveedorDefault?.id,
       numero_orden: undefined,
       estado_tarea: 'PENDIENTE',
       porcentaje: 0,
@@ -117,7 +123,8 @@ export class ObraTareasComponent {
       return;
     }
 
-    const proveedorSeleccionado = this.proveedores.find(p => Number(p.id) === Number(this.nuevaTarea.id_proveedor));
+    const proveedorSeleccionado = this.proveedoresFiltrados.find(p => Number(p.id) === Number(this.nuevaTarea.id_proveedor))
+      ?? this.proveedores.find(p => Number(p.id) === Number(this.nuevaTarea.id_proveedor));
 
     const payload: TareaPayload = {
       id: this.editandoTarea?.id,
@@ -425,5 +432,19 @@ export class ObraTareasComponent {
       if (body?.error) return body.error;
     }
     return fallback;
+  }
+
+  private esProveedorManoDeObra(proveedor?: Proveedor | null): boolean {
+    const raw = (proveedor as any)?.tipo_proveedor ?? '';
+    const value = typeof raw === 'string'
+      ? raw
+      : raw?.name ?? raw?.label ?? raw?.nombre ?? '';
+    return value
+      .toString()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .toUpperCase()
+      .replace(/\s+/g, '_')
+      .includes('MANO_DE_OBRA');
   }
 }

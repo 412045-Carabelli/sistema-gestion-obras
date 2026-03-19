@@ -11,6 +11,7 @@ import {
   CuentaCorrienteProveedorResponse,
   CuentaCorrienteClienteResponse,
   ComisionesResponse,
+  DeudasGlobalesResponse,
   DashboardFinancieroResponse,
   FlujoCajaResponse,
   IngresosEgresosResponse,
@@ -53,8 +54,8 @@ export class ReportesService {
     return this.http.post<DashboardFinancieroResponse>(`${this.apiUrl}/financieros/dashboard`, filtro ?? {});
   }
 
-  getDeudasGlobales(filtro?: ReportFilter): Observable<{ deudaClientes: number; deudaProveedores: number }> {
-    return this.http.post<{ deudaClientes: number; deudaProveedores: number }>(
+  getDeudasGlobales(filtro?: ReportFilter): Observable<DeudasGlobalesResponse> {
+    return this.http.post<DeudasGlobalesResponse>(
       `${this.apiUrl}/financieros/deudas-globales`,
       filtro ?? {}
     );

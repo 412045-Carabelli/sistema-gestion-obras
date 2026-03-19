@@ -9,6 +9,7 @@ import com.obras.enums.EstadoPagoEnum;
 import com.obras.enums.TipoCostoEnum;
 import com.obras.repository.ObraCostoRepository;
 import com.obras.repository.ObraRepository;
+import com.obras.repository.TareaRepository;
 import jakarta.persistence.EntityNotFoundException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -39,6 +40,9 @@ class ObraServiceImplTest {
 
     @Mock
     private ObraCostoRepository costoRepo;
+
+    @Mock
+    private TareaRepository tareaRepo;
 
     @InjectMocks
     private ObraServiceImpl service;

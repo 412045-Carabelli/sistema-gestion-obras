@@ -259,8 +259,8 @@ public class ObraServiceImpl implements ObraService {
                 dto.setCostos(
                     costosActivos.stream()
                         .sorted((a, b) -> {
-                            boolean aAdd = com.obras.enums.TipoCostoEnum.ADICIONAL.equals(a.getTipoCosto());
-                            boolean bAdd = com.obras.enums.TipoCostoEnum.ADICIONAL.equals(b.getTipoCosto());
+                            boolean aAdd = !com.obras.enums.TipoCostoEnum.ORIGINAL.equals(a.getTipoCosto());
+                            boolean bAdd = !com.obras.enums.TipoCostoEnum.ORIGINAL.equals(b.getTipoCosto());
                             int tipoCompare = Boolean.compare(aAdd, bAdd);
                             if (tipoCompare != 0) return tipoCompare;
                             return Long.compare(
@@ -356,7 +356,11 @@ public class ObraServiceImpl implements ObraService {
 
         if (estado instanceof String s) {
             try {
-                return EstadoObraEnum.valueOf(s.toUpperCase());
+                String normalized = s.trim().toUpperCase();
+                if ("FACTURADA_TOTAL".equals(normalized)) {
+                    return EstadoObraEnum.FACTURADA;
+                }
+                return EstadoObraEnum.valueOf(normalized);
             } catch (Exception ex) {
                 throw new RuntimeException("Estado de obra inválido: " + s);
             }
@@ -426,7 +430,7 @@ public class ObraServiceImpl implements ObraService {
                     : Optional.ofNullable(costo.getCantidad()).orElse(BigDecimal.ZERO)
                     .multiply(Optional.ofNullable(costo.getPrecioUnitario()).orElse(BigDecimal.ZERO));
 
-            boolean esAdicional = TipoCostoEnum.ADICIONAL.equals(costo.getTipoCosto());
+            boolean esAdicional = !TipoCostoEnum.ORIGINAL.equals(costo.getTipoCosto());
             BigDecimal beneficioAplicado = esAdicional
                     ? Optional.ofNullable(costo.getBeneficio()).orElse(BigDecimal.ZERO)
                     : (Boolean.TRUE.equals(obra.getBeneficioGlobal())
