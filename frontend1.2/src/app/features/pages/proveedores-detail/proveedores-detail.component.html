@@ -85,7 +85,7 @@
                 <i class="pi pi-briefcase"></i>
                 <span class="font-medium">Obras</span>
                 <span class="ml-2 px-2 py-1 bg-emerald-100 text-emerald-700 text-xs font-semibold rounded-full">
-                  {{ getObrasSaldoProveedor().length || 0 }}
+                  {{ obrasSaldoProveedor.length || 0 }}
                 </span>
               </div>
             </p-tab>
@@ -118,9 +118,23 @@
           <p-tabpanels pStyleClass="p-6">
             <!-- TAB: OBRAS -->
             <p-tabpanel value="0">
-              @if (getObrasSaldoProveedor().length > 0) {
+              @if (obrasSaldoProveedor.length > 0) {
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                  <div class="bg-slate-50 border border-slate-200 rounded-lg p-4">
+                    <p class="text-xs font-semibold uppercase text-slate-600">Total obras proveedor</p>
+                    <p class="text-2xl font-bold text-slate-900">{{ totalObrasProveedor | currency:'ARS':'symbol':'1.0-2' }}</p>
+                  </div>
+                  <div class="bg-red-50 border border-red-200 rounded-lg p-4">
+                    <p class="text-xs font-semibold uppercase text-red-700">Pagado</p>
+                    <p class="text-2xl font-bold text-red-900">{{ totalPagadoObrasProveedor | currency:'ARS':'symbol':'1.0-2' }}</p>
+                  </div>
+                  <div class="bg-emerald-50 border border-emerald-200 rounded-lg p-4">
+                    <p class="text-xs font-semibold uppercase text-emerald-700">Saldo total</p>
+                    <p class="text-2xl font-bold text-emerald-900">{{ totalSaldoObrasProveedor | currency:'ARS':'symbol':'1.0-2' }}</p>
+                  </div>
+                </div>
                 <div class="overflow-hidden rounded-lg border border-gray-200">
-                  <p-table [value]="getObrasSaldoProveedor()" [paginator]="true" [rows]="8" responsiveLayout="scroll" styleClass="p-datatable-sm">
+                  <p-table [value]="obrasSaldoProveedor" [paginator]="true" [rows]="8" responsiveLayout="scroll" styleClass="p-datatable-sm">
                     <ng-template pTemplate="header">
                       <tr>
                         <th>Obra</th>
@@ -128,6 +142,7 @@
                         <th class="text-right">Total</th>
                         <th class="text-right">Pagado</th>
                         <th class="text-right">Saldo</th>
+                        <th class="text-right">Acciones</th>
                       </tr>
                     </ng-template>
                     <ng-template pTemplate="body" let-item>
@@ -141,11 +156,23 @@
                         <td class="text-right font-semibold">{{ item.total | currency:'ARS':'symbol':'1.0-2' }}</td>
                         <td class="text-right text-red-700 font-semibold">{{ item.pagado | currency:'ARS':'symbol':'1.0-2' }}</td>
                         <td class="text-right text-emerald-700 font-semibold">{{ item.saldo | currency:'ARS':'symbol':'1.0-2' }}</td>
+                        <td class="text-right">
+                          <div class="flex justify-end gap-2">
+                            <button pButton type="button" class="p-button-text p-button-sm"
+                                    (click)="$event.stopPropagation(); irADetalleObra(item.id)">
+                              Ver Detalle
+                            </button>
+                            <button pButton type="button" class="p-button-text p-button-sm"
+                                    (click)="$event.stopPropagation(); irADetalleObraMov(item.id)">
+                              Ver Movimientos
+                            </button>
+                          </div>
+                        </td>
                       </tr>
                     </ng-template>
                     <ng-template pTemplate="emptymessage">
                       <tr>
-                        <td colspan="5" class="text-center py-8 text-gray-500">
+                        <td colspan="6" class="text-center py-8 text-gray-500">
                           <i class="pi pi-inbox text-4xl mb-2"></i>
                           <p>No hay obras con saldo para este proveedor</p>
                         </td>
@@ -156,7 +183,7 @@
               } @else {
                 <div class="text-center py-12 text-gray-500">
                   <i class="pi pi-inbox text-5xl mb-3"></i>
-                  <p class="text-lg">No hay obras adjudicadas o en progreso</p>
+                  <p class="text-lg">No hay obras en progreso o finalizadas</p>
                 </div>
               }
             </p-tabpanel>
@@ -310,5 +337,6 @@
             </p-tabpanel>
           </p-tabpanels>
         </p-tabs>
-      </div>    </div>
+      </div>
+    </div>
 }

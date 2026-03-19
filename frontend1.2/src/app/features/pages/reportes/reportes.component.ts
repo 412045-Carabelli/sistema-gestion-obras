@@ -23,7 +23,12 @@ import {
   CuentaCorrienteObraResponse,
   CuentaCorrienteProveedorResponse,
   CuentaCorrienteClienteResponse,
-  ComisionesResponse
+  ComisionesResponse,
+  DeudasGlobalesResponse,
+  DetalleDeudaCliente,
+  DetalleDeudaProveedor,
+  ResumenCuentaCliente,
+  ResumenCuentaProveedor
 } from '../../../core/models/models';
 import {ReportesService} from '../../../services/reportes/reportes.service';
 import {ObrasService} from '../../../services/obras/obras.service';
@@ -107,38 +112,10 @@ export class ReportesComponent implements OnInit, OnDestroy {
   deudaClientesTotal = 0;
   deudaProveedoresTotal = 0;
   presupuestoCuentaCorrienteObra = 0;
-  resumenCtaClientes: Array<{
-    clienteId: number;
-    clienteNombre: string;
-    presupuestado: number;
-    cobros: number;
-    saldo: number;
-  }> = [];
-  resumenCtaProveedores: Array<{
-    proveedorId: number;
-    proveedorNombre: string;
-    presupuestado: number;
-    pagos: number;
-    saldo: number;
-  }> = [];
-  detalleDeudaClientes: Array<{
-    obraId: number;
-    obraNombre: string;
-    clienteId?: number;
-    clienteNombre?: string;
-    presupuesto: number;
-    cobrado: number;
-    saldo: number;
-  }> = [];
-  detalleDeudaProveedores: Array<{
-    obraId: number;
-    obraNombre: string;
-    proveedorId: number;
-    proveedorNombre: string;
-    estadoPago: string;
-    total: number;
-    descripcion: string;
-  }> = [];
+  resumenCtaClientes: ResumenCuentaCliente[] = [];
+  resumenCtaProveedores: ResumenCuentaProveedor[] = [];
+  detalleDeudaClientes: DetalleDeudaCliente[] = [];
+  detalleDeudaProveedores: DetalleDeudaProveedor[] = [];
 
   loading = false;
   private filtrosSub?: Subscription;
@@ -260,9 +237,11 @@ export class ReportesComponent implements OnInit, OnDestroy {
         saldoFinal: 0,
         movimientos: []
       }),
-      deudasGlobales: this.withDefault(this.reportesService.getDeudasGlobales(filtrosReporte), {
+      deudasGlobales: this.withDefault<DeudasGlobalesResponse>(this.reportesService.getDeudasGlobales(filtrosReporte), {
         deudaClientes: 0,
-        deudaProveedores: 0
+        deudaProveedores: 0,
+        detalleDeudaClientes: [],
+        detalleDeudaProveedores: []
       }),
       cuentaCorrienteObra: filtrosCCObra
         ? this.withDefault(this.reportesService.getCuentaCorrienteObra(filtrosCCObra), {
@@ -335,10 +314,13 @@ export class ReportesComponent implements OnInit, OnDestroy {
           this.rankingProveedores = data.rankingProveedores;
           this.notasGenerales = data.notasGenerales;
           this.comisiones = data.comisiones;
+          this.detalleDeudaClientes = data.deudasGlobales?.detalleDeudaClientes || [];
+          this.detalleDeudaProveedores = data.deudasGlobales?.detalleDeudaProveedores || [];
           this.deudaClientesTotal = Number(data.deudasGlobales?.deudaClientes ?? 0);
           this.deudaProveedoresTotal = Number(data.deudasGlobales?.deudaProveedores ?? 0);
-          this.actualizarDetallesDeudas(filtrosReporte);
-          this.actualizarResumenCtas(filtrosReporte);
+          this.resumenCtaClientes = data.cuentaCorrienteCliente?.resumenClientes || [];
+          this.resumenCtaProveedores = data.cuentaCorrienteProveedor?.resumenProveedores || [];
+          this.presupuestoCuentaCorrienteObra = Number(this.cuentaCorrienteObra?.presupuestado ?? 0);
 
           const obraId = filtrosReporte?.obraId ?? null;
           if (obraId) {
@@ -390,6 +372,7 @@ export class ReportesComponent implements OnInit, OnDestroy {
 
   private mapCuentaCorrienteObra(data: any, filtros?: ReportFilter): any {
     if (!data) return null;
+    const presupuestado = data.presupuestado ?? 0;
     const totalEgresos = data.costoTotal ?? data.totalEgresos ?? 0;
     const totalIngresos = data.pagosRecibidos ?? data.totalIngresos ?? 0;
     const saldoFinal = data.saldoPendiente ?? data.saldoFinal ?? (totalIngresos - totalEgresos);
@@ -397,6 +380,7 @@ export class ReportesComponent implements OnInit, OnDestroy {
 
     return {
       ...data,
+      presupuestado,
       totalEgresos,
       totalIngresos,
       saldoFinal,
@@ -693,8 +677,8 @@ export class ReportesComponent implements OnInit, OnDestroy {
           saldo
         };
       })
-      .filter(item => item.saldo > 0)
-      .sort((a, b) => b.saldo - a.saldo);
+      .filter(item => item.saldo > 0.01)
+      .sort((a, b) => this.compararOrdenObras(a.obraId, b.obraId));
   }
 
   private construirResumenCtaClientes(filtros?: ReportFilter): Array<{
@@ -704,45 +688,50 @@ export class ReportesComponent implements OnInit, OnDestroy {
     cobros: number;
     saldo: number;
   }> {
-    if (!this.obras?.length) return [];
-    const obrasFiltradas = this.filtrarObrasPorFiltro(filtros);
-    const presupuestoPorCliente = new Map<number, number>();
-    obrasFiltradas.forEach(obra => {
-      const clienteId = Number(obra?.cliente?.id ?? 0);
-      if (!clienteId) return;
-      presupuestoPorCliente.set(
-        clienteId,
-        (presupuestoPorCliente.get(clienteId) || 0) + this.obtenerPresupuestoObra(obra)
-      );
-    });
+    const resumen = new Map<number, {
+      clienteNombre: string;
+      presupuestado: number;
+      cobros: number;
+      saldo: number;
+      obraOrdenId: number;
+    }>();
 
-    const cobrosPorCliente = new Map<number, number>();
-    (this.cuentaCorrienteCliente?.movimientos || []).forEach(m => {
-      let clienteId = Number(m?.asociadoId ?? 0);
-      if (!clienteId) {
-        const obraId = Number(m?.obraId ?? 0);
-        const obra = this.obras.find(o => Number(o.id) === obraId);
-        clienteId = Number(obra?.cliente?.id ?? 0);
+    this.detalleDeudaClientes.forEach(item => {
+      const clienteId = Number(item.clienteId ?? 0);
+      if (!clienteId) return;
+      const actual = resumen.get(clienteId) || {
+        clienteNombre: item.clienteNombre || this.clientesIndex[clienteId] || `Cliente #${clienteId}`,
+        presupuestado: 0,
+        cobros: 0,
+        saldo: 0,
+        obraOrdenId: item.obraId
+      };
+      actual.presupuestado += Number(item.presupuesto ?? 0);
+      actual.cobros += Number(item.cobrado ?? 0);
+      actual.saldo += Number(item.saldo ?? 0);
+      if (this.compararOrdenObras(item.obraId, actual.obraOrdenId) < 0) {
+        actual.obraOrdenId = item.obraId;
       }
-      if (!clienteId) return;
-      cobrosPorCliente.set(clienteId, (cobrosPorCliente.get(clienteId) || 0) + Number(m?.monto ?? 0));
+      resumen.set(clienteId, actual);
     });
 
-    const resultado = Array.from(presupuestoPorCliente.entries()).map(([clienteId, presupuestado]) => {
-      const cobros = cobrosPorCliente.get(clienteId) || 0;
-      const saldo = presupuestado - cobros;
+    const resultado = Array.from(resumen.entries()).map(([clienteId, data]) => {
       return {
         clienteId,
-        clienteNombre: this.clientesIndex[clienteId] || `Cliente #${clienteId}`,
-        presupuestado,
-        cobros,
-        saldo
+        clienteNombre: data.clienteNombre,
+        presupuestado: data.presupuestado,
+        cobros: data.cobros,
+        saldo: data.saldo
       };
     });
 
     return resultado
       .filter(item => Math.abs(item.saldo) > 0.01)
-      .sort((a, b) => b.saldo - a.saldo);
+      .sort((a, b) => {
+        const ordenA = resumen.get(a.clienteId)?.obraOrdenId ?? 0;
+        const ordenB = resumen.get(b.clienteId)?.obraOrdenId ?? 0;
+        return this.compararOrdenObras(ordenA, ordenB);
+      });
   }
 
   private construirDetalleDeudaProveedores(filtros?: ReportFilter): Array<{
@@ -750,33 +739,71 @@ export class ReportesComponent implements OnInit, OnDestroy {
     obraNombre: string;
     proveedorId: number;
     proveedorNombre: string;
-    estadoPago: string;
-    total: number;
-    descripcion: string;
+    presupuestado: number;
+    pagado: number;
+    saldo: number;
   }> {
-    const lista = this.pendientes?.pendientes || [];
-    return lista
-      .filter(p => {
-        if (!this.movimientoPerteneceObraConDeuda(p)) return false;
-        if (filtros?.obraId && Number(p.obraId) !== Number(filtros.obraId)) return false;
-        if (filtros?.proveedorId && Number(p.proveedorId) !== Number(filtros.proveedorId)) return false;
-        if (filtros?.clienteId) {
-          const obra = this.obras.find(o => Number(o.id) === Number(p.obraId));
-          if (!obra || Number(obra.cliente?.id) !== Number(filtros.clienteId)) return false;
-        }
-        return true;
+    const obrasFiltradas = this.filtrarObrasPorFiltroConDeuda(filtros);
+    const pagosPorObraProveedor = new Map<string, number>();
+
+    (this.cuentaCorrienteProveedor?.movimientos || []).forEach(m => {
+      const tipo = (m?.tipo || '').toString().toUpperCase();
+      if (tipo !== 'PAGO') return;
+      const obraId = Number(m?.obraId ?? 0);
+      const proveedorId = Number(m?.proveedorId ?? m?.asociadoId ?? 0);
+      if (!obraId || !proveedorId) return;
+      const key = `${obraId}:${proveedorId}`;
+      pagosPorObraProveedor.set(key, (pagosPorObraProveedor.get(key) || 0) + Number(m?.monto ?? 0));
+    });
+
+    const detalle = new Map<string, {
+      obraId: number;
+      obraNombre: string;
+      proveedorId: number;
+      proveedorNombre: string;
+      presupuestado: number;
+      pagado: number;
+    }>();
+
+    obrasFiltradas.forEach(obra => {
+      const obraId = Number(obra.id ?? 0);
+      if (!obraId) return;
+      (obra.costos || []).forEach(costo => {
+        if (costo?.activo === false) return;
+        const proveedorId = Number(costo?.id_proveedor ?? costo?.proveedor?.id ?? 0);
+        if (!proveedorId) return;
+        if (filtros?.proveedorId && proveedorId !== Number(filtros.proveedorId)) return;
+        const key = `${obraId}:${proveedorId}`;
+        const actual = detalle.get(key) || {
+          obraId,
+          obraNombre: obra.nombre || this.obrasIndex[obraId] || `Obra #${obraId}`,
+          proveedorId,
+          proveedorNombre: costo?.proveedor?.nombre || this.proveedoresIndex[proveedorId] || `Proveedor #${proveedorId}`,
+          presupuestado: 0,
+          pagado: 0
+        };
+        actual.presupuestado += this.obtenerMontoCostoBase(costo);
+        detalle.set(key, actual);
+      });
+    });
+
+    return Array.from(detalle.values())
+      .map(item => {
+        const key = `${item.obraId}:${item.proveedorId}`;
+        const pagado = pagosPorObraProveedor.get(key) || 0;
+        const saldo = Math.max(0, item.presupuestado - pagado);
+        return {
+          ...item,
+          pagado,
+          saldo
+        };
       })
-      .map(p => ({
-        obraId: p.obraId,
-        obraNombre: p.obraNombre || this.obrasIndex[Number(p.obraId)] || `Obra #${p.obraId}`,
-        proveedorId: p.proveedorId,
-        proveedorNombre: p.proveedorNombre || this.proveedoresIndex[Number(p.proveedorId)] || `Proveedor #${p.proveedorId}`,
-        estadoPago: p.estadoPago,
-        total: Number(p.total ?? 0),
-        descripcion: p.descripcion || '-'
-      }))
-      .filter(p => p.total > 0)
-      .sort((a, b) => b.total - a.total);
+      .filter(item => item.saldo > 0.01)
+      .sort((a, b) => {
+        const obraDiff = this.compararOrdenObras(a.obraId, b.obraId);
+        if (obraDiff !== 0) return obraDiff;
+        return a.proveedorNombre.localeCompare(b.proveedorNombre);
+      });
   }
 
   private construirResumenCtaProveedores(filtros?: ReportFilter): Array<{
@@ -786,42 +813,50 @@ export class ReportesComponent implements OnInit, OnDestroy {
     pagos: number;
     saldo: number;
   }> {
-    const movimientos = this.cuentaCorrienteProveedor?.movimientos || [];
-    const resumen = new Map<number, { presupuestado: number; pagos: number }>();
+    const resumen = new Map<number, {
+      proveedorNombre: string;
+      presupuestado: number;
+      pagos: number;
+      saldo: number;
+      obraOrdenId: number;
+    }>();
 
-    movimientos.forEach(m => {
-      const proveedorId = Number(m?.proveedorId ?? 0);
+    this.detalleDeudaProveedores.forEach(item => {
+      const proveedorId = Number(item.proveedorId ?? 0);
       if (!proveedorId) return;
-      if (filtros?.proveedorId && Number(filtros.proveedorId) !== proveedorId) return;
-      if (filtros?.obraId) {
-        const obraId = Number(m?.obraId ?? 0);
-        if (obraId && Number(filtros.obraId) !== obraId) return;
-      }
-
-      const actual = resumen.get(proveedorId) || { presupuestado: 0, pagos: 0 };
-      const tipo = (m?.tipo || '').toString().toUpperCase();
-      if (tipo === 'COSTO') {
-        actual.presupuestado += Number(m?.monto ?? 0);
-      } else if (tipo === 'PAGO') {
-        actual.pagos += Number(m?.monto ?? 0);
+      const actual = resumen.get(proveedorId) || {
+        proveedorNombre: item.proveedorNombre || this.proveedoresIndex[proveedorId] || `Proveedor #${proveedorId}`,
+        presupuestado: 0,
+        pagos: 0,
+        saldo: 0,
+        obraOrdenId: item.obraId
+      };
+      actual.presupuestado += Number(item.presupuestado ?? 0);
+      actual.pagos += Number(item.pagado ?? 0);
+      actual.saldo += Number(item.saldo ?? 0);
+      if (this.compararOrdenObras(item.obraId, actual.obraOrdenId) < 0) {
+        actual.obraOrdenId = item.obraId;
       }
       resumen.set(proveedorId, actual);
     });
 
     const resultado = Array.from(resumen.entries()).map(([proveedorId, data]) => {
-      const saldo = data.presupuestado - data.pagos;
       return {
         proveedorId,
-        proveedorNombre: this.proveedoresIndex[proveedorId] || `Proveedor #${proveedorId}`,
+        proveedorNombre: data.proveedorNombre,
         presupuestado: data.presupuestado,
         pagos: data.pagos,
-        saldo
+        saldo: data.saldo
       };
     });
 
     return resultado
       .filter(item => Math.abs(item.saldo) > 0.01)
-      .sort((a, b) => b.saldo - a.saldo);
+      .sort((a, b) => {
+        const ordenA = resumen.get(a.proveedorId)?.obraOrdenId ?? 0;
+        const ordenB = resumen.get(b.proveedorId)?.obraOrdenId ?? 0;
+        return this.compararOrdenObras(ordenA, ordenB);
+      });
   }
 
   private filtrarObrasPorFiltro(filtros?: ReportFilter): Obra[] {
@@ -832,12 +867,22 @@ export class ReportesComponent implements OnInit, OnDestroy {
     if (filtros?.clienteId) {
       lista = lista.filter(o => Number(o.cliente?.id) === Number(filtros.clienteId));
     }
+    if (filtros?.fechaInicio || filtros?.fechaFin) {
+      const inicio = filtros?.fechaInicio ? new Date(`${filtros.fechaInicio}T00:00:00`) : null;
+      const fin = filtros?.fechaFin ? new Date(`${filtros.fechaFin}T23:59:59`) : null;
+      lista = lista.filter(o => this.estaEnRangoFecha(o?.fecha_inicio, inicio, fin));
+    }
     return lista;
   }
 
   private obtenerPresupuestoObra(obra: Obra): number {
     if (!obra) return 0;
-    return Number(obra.presupuesto ?? 0);
+    const presupuesto = Number(obra.presupuesto ?? 0);
+    const totalConBeneficio = Number(obra.total_con_beneficio ?? 0);
+    return Math.max(
+      Number.isFinite(presupuesto) ? presupuesto : 0,
+      Number.isFinite(totalConBeneficio) ? totalConBeneficio : 0
+    );
   }
 
   private calcularDeudaProveedores(pendientes: PendientesResponse | null): number {
@@ -863,8 +908,34 @@ export class ReportesComponent implements OnInit, OnDestroy {
     return new Set([
       'ADJUDICADA',
       'EN_PROGRESO',
-      'FINALIZADA'
+      'FINALIZADA',
+      'FACTURADA',
+      'COBRADA'
     ]).has(estado);
+  }
+
+  get totalPresupuestadoClientes(): number {
+    return this.resumenCtaClientes.reduce((sum, item) => sum + Number(item.presupuestado ?? 0), 0);
+  }
+
+  get totalCobrosClientes(): number {
+    return this.resumenCtaClientes.reduce((sum, item) => sum + Number(item.cobros ?? 0), 0);
+  }
+
+  get totalSaldoClientes(): number {
+    return this.resumenCtaClientes.reduce((sum, item) => sum + Number(item.saldo ?? 0), 0);
+  }
+
+  get totalPresupuestadoProveedores(): number {
+    return this.resumenCtaProveedores.reduce((sum, item) => sum + Number(item.presupuestado ?? 0), 0);
+  }
+
+  get totalPagosProveedores(): number {
+    return this.resumenCtaProveedores.reduce((sum, item) => sum + Number(item.pagos ?? 0), 0);
+  }
+
+  get totalSaldoProveedores(): number {
+    return this.resumenCtaProveedores.reduce((sum, item) => sum + Number(item.saldo ?? 0), 0);
   }
 
   private normalizarEstadoObra(raw: any): string {
@@ -897,6 +968,31 @@ export class ReportesComponent implements OnInit, OnDestroy {
 
   saldoSinNegativo(valor?: number): number {
     return Math.max(valor ?? 0, 0);
+  }
+
+  private obtenerMontoCostoBase(costo: any): number {
+    const subtotal = Number(costo?.subtotal ?? NaN);
+    if (Number.isFinite(subtotal)) return subtotal;
+    const cantidad = Number(costo?.cantidad ?? 0);
+    const precioUnitario = Number(costo?.precio_unitario ?? 0);
+    return cantidad * precioUnitario;
+  }
+
+  private compararOrdenObras(obraIdA?: number | null, obraIdB?: number | null): number {
+    const obraA = this.obras.find(o => Number(o.id) === Number(obraIdA ?? 0));
+    const obraB = this.obras.find(o => Number(o.id) === Number(obraIdB ?? 0));
+    const fechaA = this.getFechaInicioMs(obraA);
+    const fechaB = this.getFechaInicioMs(obraB);
+    if (fechaA !== fechaB) return fechaB - fechaA;
+    return Number(obraIdB ?? 0) - Number(obraIdA ?? 0);
+  }
+
+  private getFechaInicioMs(obra?: Obra | null): number {
+    const raw = obra?.fecha_inicio;
+    if (!raw) return Number.NEGATIVE_INFINITY;
+    const fecha = new Date(raw);
+    const time = fecha.getTime();
+    return Number.isFinite(time) ? time : Number.NEGATIVE_INFINITY;
   }
 
   irAObra(obraId?: number | null) {

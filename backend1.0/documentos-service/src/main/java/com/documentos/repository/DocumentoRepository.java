@@ -11,4 +11,5 @@ import java.util.List;
 public interface DocumentoRepository extends JpaRepository<Documento, Long> {
     List<Documento> findByIdObra(Long obraId);
     List<Documento> findByTipoAsociadoAndIdAsociado(String tipo, Long idAsociado);
+    List<Documento> findByTipoAsociadoAndIdAsociadoAndIdObra(String tipo, Long idAsociado, Long idObra);
 }

@@ -746,6 +746,7 @@ export class DashboardComponent implements OnInit {
       id_cliente: Number(this.facturaForm.id_cliente),
       id_obra: this.facturaForm.id_obra != null ? Number(this.facturaForm.id_obra) : null,
       monto,
+      monto_restante: (this.facturaForm.estado || 'EMITIDA') === 'COBRADA' ? 0 : monto,
       fecha: this.formatDate(this.facturaForm.fecha),
       descripcion: this.facturaForm.descripcion || '',
       estado: this.facturaForm.estado || 'EMITIDA'

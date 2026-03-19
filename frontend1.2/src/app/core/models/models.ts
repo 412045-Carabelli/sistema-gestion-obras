@@ -119,7 +119,7 @@ export interface ObraCosto {
   item_numero?: string;
   id_proveedor?: number;
   proveedor?: Proveedor;
-  tipo_costo?: 'ORIGINAL' | 'ADICIONAL';
+  tipo_costo?: 'ORIGINAL' | 'ADICIONAL' | 'AJUSTE';
   descripcion: string;
   unidad: string;
   cantidad: number;
@@ -305,9 +305,53 @@ export interface CuentaCorrienteMovimiento {
   saldoProveedor?: number;
 }
 
+export interface DetalleDeudaCliente {
+  obraId: number;
+  obraNombre: string;
+  clienteId?: number;
+  clienteNombre?: string;
+  presupuesto: number;
+  cobrado: number;
+  saldo: number;
+}
+
+export interface DetalleDeudaProveedor {
+  obraId: number;
+  obraNombre: string;
+  proveedorId: number;
+  proveedorNombre: string;
+  presupuestado: number;
+  pagado: number;
+  saldo: number;
+}
+
+export interface ResumenCuentaCliente {
+  clienteId: number;
+  clienteNombre: string;
+  presupuestado: number;
+  cobros: number;
+  saldo: number;
+}
+
+export interface ResumenCuentaProveedor {
+  proveedorId: number;
+  proveedorNombre: string;
+  presupuestado: number;
+  pagos: number;
+  saldo: number;
+}
+
+export interface DeudasGlobalesResponse {
+  deudaClientes: number;
+  deudaProveedores: number;
+  detalleDeudaClientes: DetalleDeudaCliente[];
+  detalleDeudaProveedores: DetalleDeudaProveedor[];
+}
+
 export interface CuentaCorrienteObraResponse {
   obraId?: number;
   obraNombre?: string;
+  presupuestado?: number;
   totalIngresos: number;
   totalEgresos: number;
   saldoFinal: number;
@@ -321,6 +365,7 @@ export interface CuentaCorrienteProveedorResponse {
   totalPagos: number;
   saldoFinal: number;
   movimientos: CuentaCorrienteMovimiento[];
+  resumenProveedores?: ResumenCuentaProveedor[];
 }
 
 export interface CuentaCorrienteClienteResponse {
@@ -330,6 +375,7 @@ export interface CuentaCorrienteClienteResponse {
   totalCostos: number;
   saldoFinal: number;
   movimientos: CuentaCorrienteMovimiento[];
+  resumenClientes?: ResumenCuentaCliente[];
 }
 
 export interface ComisionesResponse {

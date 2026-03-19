@@ -175,6 +175,7 @@ export class ObraMovimientosComponent implements OnInit {
       .filter(t => (t.tipo_asociado || '').toUpperCase() === 'CLIENTE')
       .filter(t => Number(t.id_asociado) === Number(this.selectedCliente?.id))
       .filter(t => this.tipoValue(t) === 'COBRO')
+      .filter(t => !this.esMovimientoEnEdicion(t))
       .reduce((acc, t) => acc + (t.monto || 0), 0);
   }
 
@@ -206,6 +207,7 @@ export class ObraMovimientosComponent implements OnInit {
       .filter(t => (t.tipo_asociado || '').toUpperCase() === 'PROVEEDOR')
       .filter(t => Number(t.id_asociado) === Number(this.selectedProveedor?.id))
       .filter(t => this.tipoValue(t) === 'PAGO')
+      .filter(t => !this.esMovimientoEnEdicion(t))
       .reduce((acc, t) => acc + (t.monto || 0), 0);
   }
 
@@ -256,7 +258,7 @@ export class ObraMovimientosComponent implements OnInit {
     if (movimiento) {
       this.nuevoMovimiento = {
         ...movimiento,
-        fecha: movimiento.fecha ? new Date(movimiento.fecha) : new Date(),
+        fecha: this.parseFechaLocal(movimiento.fecha) ?? new Date(),
         factura_cobrada: !!movimiento.factura_cobrada
       };
       if (tipoAsociado === 'CLIENTE' && movimiento.id_asociado) {
@@ -400,9 +402,7 @@ export class ObraMovimientosComponent implements OnInit {
       factura_cobrada: !!this.nuevoMovimiento.factura_cobrada
     };
 
-    if (mov.fecha instanceof Date) {
-      mov.fecha = mov.fecha.toISOString().split('T')[0];
-    }
+    mov.fecha = this.formatFechaLocal(mov.fecha);
 
     const action = this.modoEdicion
       ? this.transaccionesService.update(mov.id!, mov)
@@ -522,6 +522,7 @@ export class ObraMovimientosComponent implements OnInit {
     const esComision = tipoAsociado === 'COMISION';
     return {
       ...t,
+      fecha: this.parseFechaLocal(t.fecha) ?? t.fecha,
       forma_pago: t.forma_pago || (esComision ? 'TOTAL' : t.forma_pago),
       medio_pago: t.medio_pago || (esComision ? 'Comisión' : t.medio_pago),
       etiqueta: this.tipoValue(t) === 'COBRO' ? 'FC' : 'RBOS'
@@ -719,6 +720,33 @@ export class ObraMovimientosComponent implements OnInit {
     if (!costo) return false;
     const id = Number((costo as any)?.id_proveedor ?? (costo as any)?.proveedor?.id ?? 0);
     return id > 0;
+  }
+
+  private esMovimientoEnEdicion(t: Transaccion): boolean {
+    if (!this.modoEdicion) return false;
+    return Number(t.id ?? 0) === Number(this.nuevoMovimiento.id ?? 0);
+  }
+
+  private parseFechaLocal(value: unknown): Date | null {
+    if (!value) return null;
+    if (value instanceof Date) return value;
+    const raw = String(value).split('T')[0];
+    const match = raw.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+    if (!match) {
+      const parsed = new Date(String(value));
+      return Number.isNaN(parsed.getTime()) ? null : parsed;
+    }
+    const [, year, month, day] = match;
+    return new Date(Number(year), Number(month) - 1, Number(day));
+  }
+
+  private formatFechaLocal(value: unknown): string | null {
+    const date = this.parseFechaLocal(value);
+    if (!date) return null;
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
   }
 
   private estadoPermiteMovimientos(): boolean {

@@ -8,13 +8,14 @@ import {InputText} from 'primeng/inputtext';
 import {Select} from 'primeng/select';
 import {ButtonModule} from 'primeng/button';
 import {CheckboxModule} from 'primeng/checkbox';
-import {catchError, forkJoin, map, of} from 'rxjs';
+import {catchError, forkJoin, of} from 'rxjs';
 import {Proveedor} from '../../../core/models/models';
 import {ProveedoresService} from '../../../services/proveedores/proveedores.service';
 import {Router} from '@angular/router';
 import {ReportesService} from '../../../services/reportes/reportes.service';
 
 interface TipoOption { label: string; name: string | 'todos'; }
+interface SaldoOption { label: string; value: 'todos' | 'con_saldo' | 'saldo_cero_o_menor'; }
 
 @Component({
   selector: 'app-proveedores-list',
@@ -37,10 +38,17 @@ export class ProveedoresListComponent implements OnInit {
   proveedoresFiltrados: Proveedor[] = [];
   tiposRecords: { label: string; name: string }[] = [];
   tipoOptions: TipoOption[] = [];
+  saldoOptions: SaldoOption[] = [
+    {label: 'Todos', value: 'todos'},
+    {label: 'Con saldo', value: 'con_saldo'},
+    {label: 'Saldo = 0 o < 0', value: 'saldo_cero_o_menor'}
+  ];
   saldosProveedor: Record<number, number> = {};
+  totalesProveedor: Record<number, number> = {};
 
   searchValue: string = '';
   tipoFiltro: number | 'todos' = 'todos';
+  saldoFiltro: 'todos' | 'con_saldo' | 'saldo_cero_o_menor' = 'todos';
   mostrarInactivos = false;
 
   loading = true;
@@ -55,13 +63,17 @@ export class ProveedoresListComponent implements OnInit {
   }
 
   ngOnInit() {
-    forkJoin({ proveedores: this.service.getProveedoresAll(), tipos: this.service.getTipos() }).subscribe({
-      next: ({proveedores, tipos}) => {
+    forkJoin({
+      proveedores: this.service.getProveedoresAll(),
+      tipos: this.service.getTipos(),
+      cuentas: this.reportesService.getCuentaCorrienteProveedores().pipe(catchError(() => of([])))
+    }).subscribe({
+      next: ({proveedores, tipos, cuentas}) => {
         this.proveedores = proveedores;
         this.tiposRecords = tipos;
         this.tipoOptions = [ {label: 'Todos', name: 'todos'}, ...this.tiposRecords.map(r => ({label: r.label, name: r.name})) ];
+        this.aplicarCuentasProveedor(cuentas as any[]);
         this.applyFilter();
-        this.cargarSaldosProveedores();
         this.loading = false;
       },
       error: () => (this.loading = false)
@@ -91,8 +103,21 @@ export class ProveedoresListComponent implements OnInit {
         ? true
         : Boolean(proveedor.activo ?? true);
 
-      return matchesSearch && matchesTipo && matchesActivo;
+      const saldo = this.obtenerSaldoProveedor(proveedor.id);
+      const matchesSaldo =
+        this.saldoFiltro === 'todos'
+          ? true
+          : this.saldoFiltro === 'con_saldo'
+            ? saldo > 0.01
+            : saldo <= 0.01;
+
+      return matchesSearch && matchesTipo && matchesActivo && matchesSaldo;
     })
+      .map(proveedor => ({
+        ...proveedor,
+        totalProveedor: this.obtenerTotalProveedor(proveedor.id),
+        saldoProveedor: this.obtenerSaldoProveedor(proveedor.id)
+      }))
       .sort((a, b) => Number(b.id ?? 0) - Number(a.id ?? 0));
   }
 
@@ -109,32 +134,44 @@ export class ProveedoresListComponent implements OnInit {
     this.applyFilter();
   }
 
-  private cargarSaldosProveedores() {
-    if (!this.proveedores.length) {
+  onSaldoChange() {
+    this.applyFilter();
+  }
+
+  private aplicarCuentasProveedor(results: any[]) {
+    if (!this.proveedores.length || !results?.length) {
       this.saldosProveedor = {};
+      this.totalesProveedor = {};
       return;
     }
-
-    this.reportesService.getCuentaCorrienteProveedores().pipe(
-      map((results) => (results || []).map(item => {
-        const id = Number((item as any)?.proveedorId ?? (item as any)?.id ?? 0);
-        const saldo = (item as any)?.saldoFinal ?? (item as any)?.saldo ?? 0;
-        return {id, saldo};
-      })),
-      catchError(() => of([]))
-    ).subscribe(results => {
-      this.saldosProveedor = results.reduce((acc, item) => {
-        if (item.id) {
-          acc[item.id] = item.saldo;
-        }
-        return acc;
-      }, {} as Record<number, number>);
+    const cuentas = (results || []).map(item => {
+      const id = Number((item as any)?.proveedorId ?? (item as any)?.id ?? 0);
+      const saldo = (item as any)?.saldoFinal ?? (item as any)?.saldo ?? 0;
+      const total = (item as any)?.totalCostos ?? (item as any)?.costos ?? 0;
+      return {id, saldo, total};
     });
+    this.saldosProveedor = cuentas.reduce((acc, item) => {
+      if (item.id) {
+        acc[item.id] = item.saldo;
+      }
+      return acc;
+    }, {} as Record<number, number>);
+    this.totalesProveedor = cuentas.reduce((acc, item) => {
+      if (item.id) {
+        acc[item.id] = item.total;
+      }
+      return acc;
+    }, {} as Record<number, number>);
   }
 
   obtenerSaldoProveedor(id?: number): number {
     if (!id) return 0;
     return this.saldosProveedor[id] ?? 0;
+  }
+
+  obtenerTotalProveedor(id?: number): number {
+    if (!id) return 0;
+    return this.totalesProveedor[id] ?? 0;
   }
 
   formatearTipo(tipo: string | null | undefined): string {

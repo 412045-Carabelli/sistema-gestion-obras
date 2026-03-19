@@ -19,5 +19,9 @@
         <module name="documentos-service" />
       </profile>
     </annotationProcessing>
+    <bytecodeTargetLevel>
+      <module name="backup-service" target="17" />
+      <module name="common" target="17" />
+    </bytecodeTargetLevel>
   </component>
 </project>

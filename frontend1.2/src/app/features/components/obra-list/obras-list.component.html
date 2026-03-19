@@ -17,21 +17,17 @@
         </div>
 
         <div class="md:col-span-3">
-          <p-select
+          <p-multiSelect
             (onChange)="onEstadoChange()"
             [(ngModel)]="estadoFiltro"
             [options]="estadosOptions"
             optionLabel="label"
             optionValue="value"
             placeholder="Filtrar por estado"
-            styleClass="w-full p-inputtext-sm h-12">
-            <ng-template let-option pTemplate="selectedItem">
-              <div class="flex items-center gap-2">
-                <i class="pi pi-filter text-sm"></i>
-                <span>{{ option?.label || 'Todos' }}</span>
-              </div>
-            </ng-template>
-          </p-select>
+            styleClass="w-full obras-estado-multiselect"
+            [display]="'chip'"
+            [showClear]="true">
+          </p-multiSelect>
         </div>
         <div class="md:col-span-3 flex items-center gap-2 h-12">
           <p-checkbox
@@ -59,16 +55,19 @@
 
         <ng-template pTemplate="header">
           <tr>
-            <th class="text-left font-semibold">Obra</th>
-            <th class="text-left font-semibold">Cliente</th>
-            <th class="text-left font-semibold">Estado</th>
-            <th class="text-left font-semibold">Fecha inicio</th>
-            <th class="text-right font-semibold">Presupuesto</th>
+            <th pSortableColumn="id" class="text-left font-semibold w-20">N° <p-sortIcon field="id"></p-sortIcon></th>
+            <th pSortableColumn="nombre" class="text-left font-semibold">Obra <p-sortIcon field="nombre"></p-sortIcon></th>
+            <th pSortableColumn="cliente.nombre" class="text-left font-semibold">Cliente <p-sortIcon field="cliente.nombre"></p-sortIcon></th>
+            <th pSortableColumn="obra_estado" class="text-left font-semibold">Estado <p-sortIcon field="obra_estado"></p-sortIcon></th>
+            <th pSortableColumn="requiere_factura" class="text-left font-semibold">Facturacion <p-sortIcon field="requiere_factura"></p-sortIcon></th>
+            <th pSortableColumn="fecha_inicio" class="text-left font-semibold">Fecha inicio <p-sortIcon field="fecha_inicio"></p-sortIcon></th>
+            <th pSortableColumn="presupuesto" class="text-right font-semibold">Presupuesto <p-sortIcon field="presupuesto"></p-sortIcon></th>
           </tr>
         </ng-template>
 
         <ng-template let-obra pTemplate="body">
           <tr (click)="onRowClick(obra)" class="cursor-pointer hover:bg-gray-50 transition-colors">
+            <td class="font-semibold text-gray-600">{{ getNumeroOrden(obra) }}</td>
             <td>
               <div class="flex flex-col gap-1">
                 <span class="font-semibold text-gray-900 text-sm">{{ obra.nombre }}</span>
@@ -77,9 +76,18 @@
             </td>
             <td class="text-gray-700">{{ obra.cliente.nombre }}</td>
             <td>
-              <p-tag [severity]="getEstadoSeverity(obra.id_estado_obra)"
-                     [value]="estadoLabelObra(obra) | estadoFormat"
-                     styleClass="text-xs"></p-tag>
+              <p-tag
+                [severity]="getEstadoSeverity(obra.id_estado_obra)"
+                [value]="estadoLabelObra(obra) | estadoFormat"
+                styleClass="text-xs">
+              </p-tag>
+            </td>
+            <td>
+              <p-tag
+                [severity]="getEstadoFacturacion(obra).severity"
+                [value]="getEstadoFacturacion(obra).label"
+                styleClass="text-xs">
+              </p-tag>
             </td>
             <td>
               @if (obra.fecha_inicio) {
@@ -101,7 +109,7 @@
 
         <ng-template pTemplate="emptymessage">
           <tr>
-            <td class="text-center py-10" colspan="5">
+            <td class="text-center py-10" colspan="7">
               <div class="flex flex-col items-center justify-center gap-2 text-gray-500">
                 <i class="pi pi-inbox text-3xl"></i>
                 <p class="text-base font-medium">No hay registros para mostrar</p>

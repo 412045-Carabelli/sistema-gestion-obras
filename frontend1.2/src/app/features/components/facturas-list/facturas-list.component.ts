@@ -19,6 +19,7 @@ import {FacturasService} from '../../../services/facturas/facturas.service';
 import {ClientesService} from '../../../services/clientes/clientes.service';
 import {ObrasService} from '../../../services/obras/obras.service';
 import {TransaccionesService} from '../../../services/transacciones/transacciones.service';
+import {EstadoFormatPipe} from '../../../shared/pipes/estado-format.pipe';
 
 interface FacturaView extends Factura {
   clienteNombre?: string;
@@ -50,7 +51,8 @@ interface SelectOption<T> {
     TagModule,
     CurrencyPipe,
     DatePipe,
-    CheckboxModule
+    CheckboxModule,
+    EstadoFormatPipe
   ],
   templateUrl: './facturas-list.component.html',
   styleUrls: ['./facturas-list.component.css']
@@ -312,11 +314,11 @@ export class FacturasListComponent implements OnInit {
   }
 
   private get facturasScopeRequiereFactura(): FacturaView[] {
-    return this.facturasScope.filter(f => this.obraRequiereFactura(f.id_obra) && this.obraEsFacturable(f.id_obra));
+    return this.facturasScope.filter(f => this.obraEsFacturable(f.id_obra));
   }
 
   private get obrasScopeRequiereFactura(): Obra[] {
-    return this.obrasScope.filter(o => !!o.requiere_factura && this.obraEsFacturable(o.id));
+    return this.obrasScope.filter(o => this.obraEsFacturable(o.id));
   }
 
   private get obrasScope(): Obra[] {
@@ -339,9 +341,7 @@ export class FacturasListComponent implements OnInit {
     const id = Number(idObra ?? 0);
     if (!id) return false;
     const obra = this.obrasById.get(id);
-    if (!obra) return false;
-    const estado = this.normalizarEstado(obra.obra_estado);
-    return ['ADJUDICADA', 'EN_PROGRESO', 'FINALIZADA', 'FACTURADA', 'COBRADA'].includes(estado);
+    return !!obra && Boolean(obra.activo ?? true);
   }
 
   private cargarCobrosPorObra() {

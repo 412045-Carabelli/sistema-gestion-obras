@@ -94,7 +94,7 @@ public class FacturaBffController {
             @RequestPart("id_cliente") String idCliente,
             @RequestPart(value = "id_obra", required = false) String idObra,
             @RequestPart("monto") String monto,
-            @RequestPart("monto_restante") String montoRestante,
+            @RequestPart(value = "monto_restante", required = false) String montoRestante,
             @RequestPart("fecha") String fecha,
             @RequestPart(value = "descripcion", required = false) String descripcion,
             @RequestPart(value = "estado", required = false) String estado,
@@ -118,7 +118,7 @@ public class FacturaBffController {
             @RequestPart("id_cliente") String idCliente,
             @RequestPart(value = "id_obra", required = false) String idObra,
             @RequestPart("monto") String monto,
-            @RequestPart("monto_restante") String montoRestante,
+            @RequestPart(value = "monto_restante", required = false) String montoRestante,
             @RequestPart("fecha") String fecha,
             @RequestPart(value = "descripcion", required = false) String descripcion,
             @RequestPart(value = "estado", required = false) String estado,
@@ -179,7 +179,9 @@ public class FacturaBffController {
             builder.part("id_obra", idObra);
         }
         builder.part("monto", monto);
-        builder.part("monto_restante", montoRestante);
+        if (montoRestante != null && !montoRestante.isBlank()) {
+            builder.part("monto_restante", montoRestante);
+        }
         builder.part("fecha", fecha);
         if (descripcion != null) {
             builder.part("descripcion", descripcion);

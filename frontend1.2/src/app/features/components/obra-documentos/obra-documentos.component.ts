@@ -113,7 +113,7 @@ export class ObraDocumentosComponent implements OnInit {
       return;
     }
 
-    this.documentosService.getDocumentosPorAsociado(tipoAsociado, idAsociado).subscribe({
+    this.documentosService.getDocumentosPorAsociado(tipoAsociado, idAsociado, this.obraId).subscribe({
       next: documentos => {
         this.documentos = documentos;
         this.loading = false;
@@ -149,14 +149,12 @@ export class ObraDocumentosComponent implements OnInit {
     this.selectedFiles = [];
     this.documentFileUpload?.clear();
 
-    // Si solo hay un cliente (el de la obra), seleccionarlo por defecto
     if (this.tipoEntidad === 'CLIENTE' && this.clientes && this.clientes.length === 1) {
       this.selectedCliente = this.clientes[0];
     }
   }
 
   onFileSelected(event: any) {
-    // FileUpload limpia el input luego del select, por eso copiamos los files en un array propio
     const fromEvent = event?.currentFiles ?? event?.files ?? [];
     this.selectedFiles = Array.isArray(fromEvent) ? [...fromEvent] : Array.from(fromEvent);
   }
@@ -167,24 +165,25 @@ export class ObraDocumentosComponent implements OnInit {
 
   guardarDocumento() {
     if (this.guardandoDocumento) return;
-    if (!this.selectedFiles.length) {
+    const tieneNota = this.stripHtml(this.observacion).length > 0;
+    if (!this.selectedFiles.length && !tieneNota) {
       this.messageService.add({
         severity: 'warn',
         summary: 'Datos incompletos',
-        detail: 'Seleccioná al menos un archivo.'
+        detail: 'Selecciona al menos un archivo o escribe una nota.'
       });
       return;
     }
 
-    let idAsociado: number
-    let tipoAsociado: string
+    let idAsociado: number;
+    let tipoAsociado: string;
 
     if (this.tipoEntidad === 'PROVEEDOR') {
       if (!this.selectedProveedor) {
         this.messageService.add({
           severity: 'warn',
           summary: 'Falta proveedor',
-          detail: 'Seleccioná un proveedor para asociar el documento.'
+          detail: 'Selecciona un proveedor para asociar el documento.'
         });
         return;
       }
@@ -195,7 +194,7 @@ export class ObraDocumentosComponent implements OnInit {
         this.messageService.add({
           severity: 'warn',
           summary: 'Falta cliente',
-          detail: 'Seleccioná un cliente para asociar el documento.'
+          detail: 'Selecciona un cliente para asociar el documento.'
         });
         return;
       }
@@ -203,18 +202,10 @@ export class ObraDocumentosComponent implements OnInit {
       tipoAsociado = 'CLIENTE';
     }
 
-    console.log('🚀 Subir documento', {
-      obraId: this.obraId,
-      selectedTipo: 'OTRO',
-      idAsociado,
-      tipoAsociado,
-      archivos: this.selectedFiles.map(f => f.name)
-    });
-
-    const cargas = this.selectedFiles.map(file =>
+    const cargas = (this.selectedFiles.length ? this.selectedFiles : [null]).map(file =>
       this.documentosService.uploadDocumentoFlexible(
         this.obraId,
-        "OTRO",
+        'OTRO',
         this.observacion ?? '',
         file,
         idAsociado,
@@ -235,15 +226,15 @@ export class ObraDocumentosComponent implements OnInit {
         this.observacion = '';
         this.messageService.add({
           severity: 'success',
-          summary: 'Documentos subidos',
-          detail: `${nuevos.length} archivo(s) agregados`
+          summary: 'Documentos guardados',
+          detail: `${nuevos.length} registro(s) agregados`
         });
       },
       error: () => {
         this.messageService.add({
           severity: 'error',
           summary: 'Error',
-          detail: 'No se pudieron subir los documentos.'
+          detail: 'No se pudieron guardar los documentos.'
         });
       }
     });
@@ -252,7 +243,7 @@ export class ObraDocumentosComponent implements OnInit {
   eliminarDocumento(doc: Documento) {
     this.confirmationService.confirm({
       header: 'Confirmar eliminacion',
-      message: `¿Seguro que queres eliminar el documento ${doc.nombre_archivo}?`,
+      message: `¿Seguro que queres eliminar el documento ${doc.nombre_archivo || 'sin archivo'}?`,
       icon: 'pi pi-exclamation-triangle',
       acceptLabel: 'Eliminar',
       rejectLabel: 'Cancelar',
@@ -281,6 +272,7 @@ export class ObraDocumentosComponent implements OnInit {
   }
 
   descargarDocumento(doc: Documento) {
+    if (!this.tieneArchivo(doc)) return;
     const docId = Number(doc?.id_documento ?? 0);
     if (!docId) return;
     if (this.descargandoIds.has(docId)) return;
@@ -309,16 +301,6 @@ export class ObraDocumentosComponent implements OnInit {
     return popup;
   }
 
-  private detectarMime(nombre?: string, baseType?: string): string | null {
-    if (baseType) return baseType;
-    if (!nombre) return null;
-    const lower = nombre.toLowerCase();
-    if (lower.endsWith('.pdf')) return 'application/pdf';
-    if (lower.endsWith('.jpg') || lower.endsWith('.jpeg')) return 'image/jpeg';
-    if (lower.endsWith('.png')) return 'image/png';
-    return null;
-  }
-
   private mergeDocumentos(base: Documento[], nuevos: Documento[]): Documento[] {
     const map = new Map<number, Documento>();
     (base || []).forEach(d => {
@@ -331,9 +313,13 @@ export class ObraDocumentosComponent implements OnInit {
     });
     return Array.from(map.values());
   }
+
+  tieneArchivo(doc: Documento): boolean {
+    return !!doc?.path_archivo;
+  }
+
+  private stripHtml(raw?: string | null): string {
+    if (!raw) return '';
+    return raw.replace(/<[^>]*>/g, '').trim();
+  }
 }
-
-
-
-
-

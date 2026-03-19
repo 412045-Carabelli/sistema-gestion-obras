@@ -28,7 +28,7 @@ public class DocumentoController {
             @RequestPart(value = "id_asociado", required = false) String idAsociado,
             @RequestPart(value = "tipo_asociado", required = false) String tipoAsociado,
             @RequestPart(value = "observacion", required = false) String observacion,
-            @RequestPart("file") FilePart filePart
+            @RequestPart(value = "file", required = false) FilePart filePart
     ) {
         // Convert String to Enum
         TipoDocumentoEnum tipoEnum = TipoDocumentoEnum.OTRO;
@@ -53,9 +53,10 @@ public class DocumentoController {
     @GetMapping("/asociado/{tipo}/{id}")
     public Flux<DocumentoDto> getDocumentosPorAsociado(
             @PathVariable("tipo") String tipo,
-            @PathVariable("id") Long id
+            @PathVariable("id") Long id,
+            @RequestParam(value = "obraId", required = false) Long obraId
     ) {
-        return documentoService.findByTipoAsociado(tipo.toUpperCase(), id);
+        return documentoService.findByTipoAsociado(tipo.toUpperCase(), id, obraId);
     }
 
     @GetMapping("/obra/{obraId}")

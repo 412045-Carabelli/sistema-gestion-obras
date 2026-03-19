@@ -438,6 +438,7 @@ export class ObrasCreateComponent implements OnInit {
       'ADJUDICADA',
       'EN_PROGRESO',
       'FINALIZADA',
+      'FACTURADA_PARCIAL',
       'FACTURADA',
       'COBRADA'
     ];

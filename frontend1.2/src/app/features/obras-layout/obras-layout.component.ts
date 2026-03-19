@@ -7,6 +7,7 @@ import {Button} from 'primeng/button';
 import {filter, Subscription} from 'rxjs';
 import {Tooltip} from 'primeng/tooltip';
 import {ConfirmDialog} from 'primeng/confirmdialog';
+import {TagModule} from 'primeng/tag';
 import {Obra} from '../../core/models/models';
 import {ObrasStateService} from '../../services/obras/obras-state.service';
 import {ObrasService} from '../../services/obras/obras.service';
@@ -14,7 +15,7 @@ import {ObrasService} from '../../services/obras/obras.service';
 @Component({
   selector: 'app-obras-layout',
   standalone: true,
-  imports: [RouterOutlet, ToastModule, ProgressSpinnerModule, RouterLink, Button, Tooltip, ConfirmDialog],
+  imports: [RouterOutlet, ToastModule, ProgressSpinnerModule, RouterLink, Button, Tooltip, ConfirmDialog, TagModule],
   providers: [MessageService, ConfirmationService],
   templateUrl: './obras-layout.component.html',
   styleUrls: ['./obras-layout.component.css']
@@ -46,6 +47,7 @@ export class ObrasLayoutComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit() {
+    this.currentRoute = this.router.url;
     // Suscribirse al observable de la obra
     this.subscription.add(
       this.obraStateService.obraActual$.subscribe(obra => {
@@ -63,7 +65,8 @@ export class ObrasLayoutComponent implements OnInit, OnDestroy {
   }
 
   isDetail(): boolean {
-    return /^\/obras\/\d+$/.test(this.currentRoute);
+    const path = (this.currentRoute || '').split('?')[0];
+    return /^\/obras\/\d+$/.test(path);
   }
 
   toggleActivo() {
@@ -104,5 +107,12 @@ export class ObrasLayoutComponent implements OnInit, OnDestroy {
         });
       }
     });
+  }
+
+  getEstadoFacturacion(): { label: string; severity: string } {
+    if (this.obra?.requiere_factura) {
+      return {label: 'Para facturar', severity: 'success'};
+    }
+    return {label: 'Facturacion opcional', severity: 'contrast'};
   }
 }

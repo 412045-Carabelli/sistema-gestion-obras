@@ -11,6 +11,7 @@ import {InputIconModule} from 'primeng/inputicon';
 import {forkJoin} from 'rxjs';
 import {ButtonModule} from 'primeng/button';
 import {CheckboxModule} from 'primeng/checkbox';
+import {MultiSelectModule} from 'primeng/multiselect';
 
 import {Cliente, EstadoObra, Obra} from '../../../core/models/models';
 import {ObrasService} from '../../../services/obras/obras.service';
@@ -40,6 +41,7 @@ interface EstadoOption {
     Select,
     ButtonModule,
     CheckboxModule,
+    MultiSelectModule,
     EstadoFormatPipe
   ],
   templateUrl: './obras-list.component.html',
@@ -54,11 +56,11 @@ export class ObrasListComponent implements OnInit {
   clientes: Cliente[] = [];
   estados: { label: string; name: string }[] = [];
 
-  estadoFiltro: string = 'TODOS';
+  estadoFiltro: string[] = [];
   searchValue: string = '';
   mostrarInactivos = false;
   estadosOptions: EstadoOption[] = [];
-  private estadoInicialDesdeRuta: string | null = null;
+  private estadoInicialDesdeRuta: string[] = [];
 
   constructor(
     private router: Router,
@@ -72,9 +74,9 @@ export class ObrasListComponent implements OnInit {
   ngOnInit() {
     // Leer filtro de estado desde query params
     this.route.queryParams.subscribe(params => {
-      this.estadoInicialDesdeRuta = params['estado'] ?? null;
+      this.estadoInicialDesdeRuta = this.parseEstadoFiltro(params['estado'] ?? null);
       if (this.datosCargados) {
-        this.estadoFiltro = this.estadoInicialDesdeRuta || 'TODOS';
+        this.estadoFiltro = [...this.estadoInicialDesdeRuta];
         this.applyFilter();
       }
     });
@@ -92,14 +94,11 @@ export class ObrasListComponent implements OnInit {
 
       this.obrasFiltradas = [...this.obras];
 
-      this.estadosOptions = [
-        { label: 'Todos', value: 'TODOS'},
-        ...this.estados.map(r => ({ label: r.label || r.name, value: r.name }))
-      ];
+      this.estadosOptions = this.estados.map(r => ({ label: r.label || r.name, value: r.name }));
 
       // Aplicar filtro inicial si vino por query param
       if (this.estadoInicialDesdeRuta) {
-        this.estadoFiltro = this.estadoInicialDesdeRuta;
+        this.estadoFiltro = [...this.estadoInicialDesdeRuta];
       }
 
       this.applyFilter();
@@ -120,9 +119,9 @@ export class ObrasListComponent implements OnInit {
 
       const estadoValor = this.estadoValorObra(obra);
       const matchesEstado =
-        this.estadoFiltro === 'TODOS'
+        this.estadoFiltro.length === 0
           ? true
-          : (estadoValor || '').toUpperCase() === (this.estadoFiltro || '').toUpperCase();
+          : this.estadoFiltro.some(estado => (estadoValor || '').toUpperCase() === (estado || '').toUpperCase());
 
       const matchesActivo = this.mostrarInactivos
         ? true
@@ -159,6 +158,17 @@ export class ObrasListComponent implements OnInit {
     return '';
   }
 
+  getEstadoFacturacion(obra: Obra): {label: string; severity: string} {
+    if (obra.requiere_factura) {
+      return {label: 'Para facturar', severity: 'success'};
+    }
+    return {label: 'Facturacion opcional', severity: 'contrast'};
+  }
+
+  getNumeroOrden(obra: Obra): number {
+    return Number(obra.id ?? 0);
+  }
+
   estadoLabelObra(obra: any): string {
     const raw = (obra as any)?.obra_estado;
     if (!raw) return '';
@@ -177,6 +187,7 @@ export class ObrasListComponent implements OnInit {
       'ADJUDICADA',
       'EN_PROGRESO',
       'FINALIZADA',
+      'FACTURADA_PARCIAL',
       'FACTURADA',
       'COBRADA'
     ];
@@ -194,6 +205,14 @@ export class ObrasListComponent implements OnInit {
 
   onEstadoChange() {
     this.applyFilter();
+  }
+
+  private parseEstadoFiltro(raw: string | string[] | null): string[] {
+    if (!raw) return [];
+    const values = Array.isArray(raw) ? raw : raw.split(',');
+    return values
+      .map(value => (value || '').toString().trim().toUpperCase())
+      .filter(Boolean);
   }
 
   onMostrarInactivosChange() {
