@@ -46,6 +46,7 @@ jobs:
             TAG="${GITHUB_REF##refs/tags/}"
           elif [[ "${GITHUB_REF}" == refs/heads/* ]]; then
             BRANCH="${GITHUB_REF##refs/heads/}"
+            BRANCH="${BRANCH//\//-}"
             SHORT_SHA=$(git rev-parse --short HEAD)
             TAG="${BRANCH}-${SHORT_SHA}"
           else
