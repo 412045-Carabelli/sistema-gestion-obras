@@ -1,28 +1,24 @@
 <p-toast position="bottom-right" appendTo="body"></p-toast>
 <div class="flex flex-col h-screen bg-gray-50">
-  @if (globalLoadingState$ | async; as globalLoadingState) {
-    @if (globalLoadingState.active) {
-      <div class="app-loading-overlay">
-        <div class="app-loading-card">
-          <div class="app-loading-spinner"></div>
-          <h3>Procesando backup</h3>
-          <p>{{ globalLoadingState.message }}</p>
-        </div>
-      </div>
-    }
-  }
 
+  <!-- 🧭 Header -->
   <app-header [sidebarOpen]="sidebarVisible" (toggleMenu)="toggleSidebar()"></app-header>
 
+  <!-- 🧭 Container principal -->
   <div class="flex flex-1 overflow-hidden">
+
+    <!-- 📌 Sidebar -->
     @if (sidebarVisible) {
       <app-sidebar [visible]="sidebarVisible"></app-sidebar>
     }
 
+    <!-- 📄 Main Content -->
     <main
       [class.ml-60]="sidebarVisible"
       class="flex-1 overflow-y-auto bg-gray-50 transition-all duration-300">
       <router-outlet></router-outlet>
     </main>
+
   </div>
+
 </div>

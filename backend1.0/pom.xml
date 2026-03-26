@@ -15,7 +15,6 @@
     <modules>
         <module>common</module>
         <module>api-gateway</module>
-        <module>backup-service</module>
         <module>clientes-service</module>
         <module>proveedores-service</module>
         <module>obras-service</module>

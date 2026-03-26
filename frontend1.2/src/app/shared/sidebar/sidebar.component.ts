@@ -30,7 +30,6 @@ export class SidebarComponent {
     {label: 'Proveedores', icon: 'pi-truck', path: '/proveedores'},
     {label: 'Facturas', icon: 'pi-receipt', path: '/facturas'},
     {label: 'Reportes', icon: 'pi-chart-bar', path: '/reportes'},
-    {label: 'Backups', icon: 'pi-database', path: '/backups'},
     {label: 'Auditoría', icon: 'pi-shield', path: '/auditoria'},
   ];
 

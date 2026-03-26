@@ -22,8 +22,6 @@ import {FacturasDetailComponent} from './features/pages/facturas-detail/facturas
 import {FacturasEditComponent} from './features/pages/facturas-edit/facturas-edit.component';
 import {AuditoriaComponent} from './features/pages/auditoria/auditoria.component';
 import {AuditoriaLayoutComponent} from './features/auditoria-layout/auditoria-layout.component';
-import {BackupsLayoutComponent} from './features/backups-layout/backups-layout.component';
-import {BackupsComponent} from './features/pages/backups/backups.component';
 
 export const routes: Routes = [
   {
@@ -82,13 +80,6 @@ export const routes: Routes = [
     ],
   },
   {path: 'reportes', component: ReportesComponent},
-  {
-    path: 'backups',
-    component: BackupsLayoutComponent,
-    children: [
-      {path: '', component: BackupsComponent}
-    ]
-  },
   {
     path: 'auditoria',
     component: AuditoriaLayoutComponent,

@@ -1,68 +1,17 @@
+/* Layout principal */
 :host {
   display: block;
   height: 100vh;
 }
 
-.app-loading-overlay {
-  position: fixed;
-  inset: 0;
-  z-index: 9999;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: rgba(241, 245, 244, 0.8);
-  backdrop-filter: blur(5px);
-}
-
-.app-loading-card {
-  min-width: 280px;
-  max-width: 380px;
-  padding: 1.6rem;
-  border: 1px solid #d8e3e1;
-  border-radius: 1rem;
-  background: #ffffff;
-  box-shadow: 0 24px 70px rgba(15, 23, 42, 0.18);
-  text-align: center;
-}
-
-.app-loading-card h3 {
-  margin: 0 0 0.45rem;
-  color: #153a35;
-  font-size: 1rem;
-  font-weight: 700;
-}
-
-.app-loading-card p {
-  margin: 0;
-  color: #66807a;
-  font-size: 0.92rem;
-}
-
-.app-loading-spinner {
-  width: 3rem;
-  height: 3rem;
-  margin: 0 auto 1rem;
-  border: 4px solid #d8e3e1;
-  border-top-color: #1f7a67;
-  border-radius: 50%;
-  animation: app-spin 0.8s linear infinite;
-}
-
+/* Margen izquierdo cuando sidebar está visible */
 main.ml-60 {
   margin-left: 240px;
 }
 
+/* Responsive */
 @media (max-width: 768px) {
   main.ml-60 {
     margin-left: 0;
-  }
-}
-
-@keyframes app-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
   }
 }

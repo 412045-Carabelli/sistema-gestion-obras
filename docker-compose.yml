@@ -159,7 +159,6 @@ services:
       - SERVICES_PROVEEDORES_URL=http://proveedores-service:8083/api/v1/proveedores
       - SERVICES_DOCUMENTOS_URL=http://documentos-service:8087/api/v1/documentos
       - SERVICES_TRANSACCIONES_URL=http://transacciones-service:8086/api/v1/transacciones
-      - SERVICES_BACKUPS_URL=http://backup-service:8088/api/v1/backups
     depends_on:
       - obras-service
       - clientes-service
@@ -167,7 +166,6 @@ services:
       - documentos-service
       - transacciones-service
       - reportes-service
-      - backup-service
     restart: unless-stopped
     networks:
       - sgo_backend
@@ -205,30 +203,6 @@ services:
       - SPRING_DATASOURCE_PASSWORD=${MSSQL_SA_PASSWORD:-YourStrong!Passw0rd}
       - APP_MIGRATION_ENABLED=${APP_MIGRATION_ENABLED:-true}
       - APP_MIGRATION_SQLITE_URL=jdbc:sqlite:/app/legacy/reportes.db
-    restart: unless-stopped
-    depends_on:
-      sqlserver-init:
-        condition: service_completed_successfully
-    networks:
-      - sgo_backend
-
-  # -----------------------
-  # Backup microservice: stores backup jobs, schedule and placeholder artifacts.
-  # -----------------------
-  backup-service:
-    build: ./backend1.0/backup-service
-    container_name: backup_service
-    ports:
-      - "8088:8088"
-    volumes:
-      - backup_artifacts:/app/backups
-    environment:
-      - SPRING_PROFILES_ACTIVE=prod
-      - SPRING_DATASOURCE_URL=jdbc:sqlserver://sqlserver:1433;databaseName=sgo_prod;encrypt=true;trustServerCertificate=true
-      - SPRING_DATASOURCE_DRIVER_CLASS_NAME=com.microsoft.sqlserver.jdbc.SQLServerDriver
-      - SPRING_DATASOURCE_USERNAME=backups_app
-      - SPRING_DATASOURCE_PASSWORD=BackupsApp_2026!
-      - BACKUP_STORAGE_ROOT_DIR=/app/backups
     restart: unless-stopped
     depends_on:
       sqlserver-init:
@@ -333,4 +307,3 @@ volumes:
   reportes_data:
   minio_data:
   mssql_data:
-  backup_artifacts:
