@@ -1,4 +1,4 @@
-import {Component, EventEmitter, OnInit, Output} from '@angular/core';
+import {Component, EventEmitter, OnDestroy, OnInit, Output} from '@angular/core';
 import {CommonModule, CurrencyPipe, DatePipe} from '@angular/common';
 import {FormsModule} from '@angular/forms';
 import {Router} from '@angular/router';
@@ -9,10 +9,17 @@ import {Select} from 'primeng/select';
 import {ProgressSpinnerModule} from 'primeng/progressspinner';
 import {TooltipModule} from 'primeng/tooltip';
 import {TagModule} from 'primeng/tag';
-import {forkJoin, Observable} from 'rxjs';
+import {forkJoin, Observable, Subscription} from 'rxjs';
 import {CheckboxModule} from 'primeng/checkbox';
 import {IconFieldModule} from 'primeng/iconfield';
 import {InputIconModule} from 'primeng/inputicon';
+import {ToastModule} from 'primeng/toast';
+import {InputNumber} from 'primeng/inputnumber';
+import {DatePicker} from 'primeng/datepicker';
+import {EditorModule} from 'primeng/editor';
+import {FileUploadModule} from 'primeng/fileupload';
+import {ConfirmationService, MessageService} from 'primeng/api';
+import {ConfirmDialog} from 'primeng/confirmdialog';
 
 import {Cliente, Factura, Obra, Transaccion} from '../../../core/models/models';
 import {FacturasService} from '../../../services/facturas/facturas.service';
@@ -20,6 +27,8 @@ import {ClientesService} from '../../../services/clientes/clientes.service';
 import {ObrasService} from '../../../services/obras/obras.service';
 import {TransaccionesService} from '../../../services/transacciones/transacciones.service';
 import {EstadoFormatPipe} from '../../../shared/pipes/estado-format.pipe';
+import {ModalComponent} from '../../../shared/modal/modal.component';
+import {FacturasStateService} from '../../../services/facturas/facturas-state.service';
 
 interface FacturaView extends Factura {
   clienteNombre?: string;
@@ -52,12 +61,20 @@ interface SelectOption<T> {
     CurrencyPipe,
     DatePipe,
     CheckboxModule,
-    EstadoFormatPipe
+    EstadoFormatPipe,
+    ToastModule,
+    InputNumber,
+    DatePicker,
+    EditorModule,
+    FileUploadModule,
+    ModalComponent,
+    ConfirmDialog
   ],
+  providers: [MessageService, ConfirmationService],
   templateUrl: './facturas-list.component.html',
   styleUrls: ['./facturas-list.component.css']
 })
-export class FacturasListComponent implements OnInit {
+export class FacturasListComponent implements OnInit, OnDestroy {
   @Output() facturaClick = new EventEmitter<Factura>();
 
   facturas: FacturaView[] = [];
@@ -98,16 +115,54 @@ export class FacturasListComponent implements OnInit {
   datosCargados = false;
   private expandedObras = new Set<number>();
 
+  // Modal nueva factura
+  showFacturaModal = false;
+  facturaForm: {
+    id_cliente: number | null;
+    id_obra: number | null;
+    fecha: Date;
+    monto: number | null;
+    descripcion: string;
+    estado: string;
+  } = {
+    id_cliente: null,
+    id_obra: null,
+    fecha: new Date(),
+    monto: null,
+    descripcion: '',
+    estado: 'EMITIDA'
+  };
+  facturaObrasFiltradas: Obra[] = [];
+  facturaFile: File | null = null;
+  facturaRestanteObra: number | null = null;
+
+  private subscription = new Subscription();
+
   constructor(
     private router: Router,
     private facturasService: FacturasService,
     private clientesService: ClientesService,
     private obrasService: ObrasService,
-    private transaccionesService: TransaccionesService
+    private transaccionesService: TransaccionesService,
+    private messageService: MessageService,
+    private confirmationService: ConfirmationService,
+    private facturasStateService: FacturasStateService
   ) {
   }
 
   ngOnInit() {
+    this.subscription.add(
+      this.facturasStateService.openCreateModal$.subscribe(() => this.abrirFacturaModal())
+    );
+    this.cargarDatos();
+  }
+
+  ngOnDestroy() {
+    this.subscription.unsubscribe();
+  }
+
+  private cargarDatos() {
+    this.datosCargados = false;
     forkJoin({
       facturas: this.facturasService.getFacturas(),
       clientes: this.clientesService.getClientes(),
@@ -384,6 +439,44 @@ export class FacturasListComponent implements OnInit {
     });
   }
 
+  verAdjunto(factura: FacturaView, event: Event) {
+    event.stopPropagation();
+    if (!factura?.id || !factura?.nombre_archivo) return;
+    window.open(this.facturasService.getFacturaUrl(factura.id), '_blank', 'noopener');
+  }
+
+  eliminarFactura(factura: FacturaView, event: Event) {
+    event.stopPropagation();
+    this.confirmationService.confirm({
+      header: 'Eliminar factura',
+      message: `¿Seguro que querés eliminar la Factura #${factura.id}?`,
+      icon: 'pi pi-exclamation-triangle',
+      acceptLabel: 'Eliminar',
+      rejectLabel: 'Cancelar',
+      acceptButtonStyleClass: 'p-button-danger p-button-sm',
+      rejectButtonStyleClass: 'p-button-text p-button-sm',
+      accept: () => {
+        this.facturasService.deleteFactura(Number(factura.id)).subscribe({
+          next: () => {
+            this.messageService.add({severity: 'success', summary: 'Factura eliminada', detail: `Factura #${factura.id} eliminada.`});
+            this.cargarDatos();
+          },
+          error: () => {
+            this.messageService.add({severity: 'error', summary: 'Error', detail: 'No se pudo eliminar la factura.'});
+          }
+        });
+      }
+    });
+  }
+
+  getSiguienteEstadoFacturaIcon(factura: FacturaView): string {
+    return (factura.estado || 'EMITIDA').toUpperCase() === 'COBRADA' ? 'pi pi-replay' : 'pi pi-check-circle';
+  }
+
+  getSiguienteEstadoFacturaLabel(factura: FacturaView): string {
+    return (factura.estado || 'EMITIDA').toUpperCase() === 'COBRADA' ? 'Revertir a emitida' : 'Marcar como cobrada';
+  }
+
   toggleEstadoFactura(factura: FacturaView, event?: Event) {
     event?.stopPropagation();
     if (!factura?.id) return;
@@ -404,16 +497,10 @@ export class FacturasListComponent implements OnInit {
       next: (updated) => {
         this.facturas = this.facturas.map(f => {
           if (Number(f.id) !== Number(factura.id)) return f;
-          const porCobrar = this.obtenerPorCobrarFactura({
-            ...f,
-            ...updated
-          });
-          return {
-            ...f,
-            ...updated,
-            porCobrarObra: porCobrar
-          };
+          const porCobrar = this.obtenerPorCobrarFactura({...f, ...updated});
+          return {...f, ...updated, porCobrarObra: porCobrar};
         });
+        this.construirListadoObras();
         this.applyFilter();
       }
     });
@@ -463,9 +550,7 @@ export class FacturasListComponent implements OnInit {
       return acc + (base * (porc / 100));
     }, 0);
 
-    const totalConBeneficio = subtotalCostos + beneficioCostos;
-    const comisionPorc = obra.tiene_comision ? Number(obra.comision ?? 0) : 0;
-    return totalConBeneficio * (1 + (comisionPorc / 100));
+    return subtotalCostos + beneficioCostos;
   }
 
   private construirListadoObras() {
@@ -487,6 +572,7 @@ export class FacturasListComponent implements OnInit {
       const presupuesto = this.presupuestoPorObra[obraId] ?? this.calcularPresupuestoObra(o);
       const facturado = this.facturadoPorObra[obraId] ?? 0;
       const porFacturar = Math.max(0, presupuesto - facturado);
+      this.expandedObras.add(obraId);
       return {
         id: obraId,
         nombre: o.nombre || `Obra #${obraId}`,
@@ -514,6 +600,128 @@ export class FacturasListComponent implements OnInit {
       .toUpperCase()
       .replace(/[^A-Z0-9]+/g, '_')
       .replace(/^_+|_+$/g, '');
+  }
+
+  // --- Modal nueva factura ---
+
+  abrirFacturaModal() {
+    this.resetFacturaForm();
+    this.facturaObrasFiltradas = this.obras.filter(o => this.esObraDisponibleParaFacturar(o));
+    this.showFacturaModal = true;
+  }
+
+  cerrarFacturaModal() {
+    this.showFacturaModal = false;
+  }
+
+  onFacturaClienteChange() {
+    if (!this.facturaForm.id_cliente) {
+      this.facturaObrasFiltradas = this.obras.filter(o => this.esObraDisponibleParaFacturar(o));
+      this.facturaForm.id_obra = null;
+      this.facturaRestanteObra = null;
+      return;
+    }
+    this.facturaObrasFiltradas = this.obras.filter(o =>
+      Number(o.cliente?.id) === Number(this.facturaForm.id_cliente) && this.esObraDisponibleParaFacturar(o)
+    );
+    this.facturaForm.id_obra = null;
+    this.facturaRestanteObra = null;
+  }
+
+  onFacturaObraChange() {
+    const obraId = this.facturaForm.id_obra;
+    if (!obraId) {
+      this.facturaRestanteObra = null;
+      return;
+    }
+    this.actualizarRestanteFacturaObra(Number(obraId));
+  }
+
+  onFacturaFileSelected(event: any) {
+    const files = event?.currentFiles ?? event?.files ?? [];
+    this.facturaFile = files?.[0] ?? null;
+  }
+
+  quitarFacturaArchivo() {
+    this.facturaFile = null;
+  }
+
+  guardarFactura() {
+    if (!this.facturaForm.id_cliente) {
+      this.messageService.add({severity: 'warn', summary: 'Campo requerido', detail: 'Selecciona un cliente.'});
+      return;
+    }
+    const monto = Number(this.facturaForm.monto ?? 0);
+    if (!monto || monto <= 0) {
+      this.messageService.add({severity: 'warn', summary: 'Monto invalido', detail: 'Ingresa un monto mayor a 0.'});
+      return;
+    }
+    if (this.facturaRestanteObra != null && monto > this.facturaRestanteObra + 0.01) {
+      this.messageService.add({severity: 'warn', summary: 'Monto invalido', detail: 'El monto supera el restante disponible de la obra.'});
+      return;
+    }
+    const estado = (this.facturaForm.estado || 'EMITIDA').toUpperCase();
+    const payload = {
+      id_cliente: Number(this.facturaForm.id_cliente),
+      id_obra: this.facturaForm.id_obra != null ? Number(this.facturaForm.id_obra) : null,
+      monto,
+      monto_restante: estado === 'COBRADA' ? 0 : monto,
+      fecha: this.formatDate(this.facturaForm.fecha),
+      descripcion: this.facturaForm.descripcion || '',
+      estado: this.facturaForm.estado || 'EMITIDA'
+    };
+    this.facturasService.createFactura(payload, this.facturaFile).subscribe({
+      next: () => {
+        this.messageService.add({severity: 'success', summary: 'Factura creada', detail: 'La factura se guardo correctamente.'});
+        this.cerrarFacturaModal();
+        this.resetFacturaForm();
+        this.cargarDatos();
+      },
+      error: (err) => {
+        const detail = err?.error?.message || 'No se pudo crear la factura.';
+        this.messageService.add({severity: 'error', summary: 'Error', detail});
+      }
+    });
+  }
+
+  private resetFacturaForm() {
+    this.facturaForm = {
+      id_cliente: null,
+      id_obra: null,
+      fecha: new Date(),
+      monto: null,
+      descripcion: '',
+      estado: 'EMITIDA'
+    };
+    this.facturaFile = null;
+    this.facturaRestanteObra = null;
+  }
+
+  private esObraDisponibleParaFacturar(obra: Obra): boolean {
+    const raw = (obra as any).obra_estado;
+    let nombre = '';
+    if (typeof raw === 'string') nombre = raw;
+    else if (raw && typeof raw === 'object') nombre = raw.nombre ?? raw.name ?? raw.label ?? raw.estado ?? '';
+    const estado = this.sanitizarEstado(String(nombre));
+    return estado !== 'FACTURADA';
+  }
+
+  private actualizarRestanteFacturaObra(obraId: number) {
+    const obra = this.obras.find(o => Number(o.id) === Number(obraId));
+    const presupuesto = Number(obra?.presupuesto ?? NaN);
+    if (!Number.isFinite(presupuesto)) {
+      this.facturaRestanteObra = null;
+      return;
+    }
+    this.facturasService.getFacturasByObra(obraId).subscribe({
+      next: (facturas) => {
+        const facturado = (facturas || []).reduce((sum, f) => sum + Number(f.monto || 0), 0);
+        this.facturaRestanteObra = Math.max(0, presupuesto - facturado);
+      },
+      error: () => {
+        this.facturaRestanteObra = null;
+      }
+    });
   }
 
   private formatDate(value: any): string {

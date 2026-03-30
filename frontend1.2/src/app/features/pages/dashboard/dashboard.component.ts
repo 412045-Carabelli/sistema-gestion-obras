@@ -360,7 +360,7 @@ export class DashboardComponent implements OnInit {
 
   abrirFacturaModal() {
     this.resetFacturaForm();
-    this.facturaObrasFiltradas = [...this.obras];
+    this.facturaObrasFiltradas = this.obras.filter(o => this.esObraDisponibleParaFacturar(o));
     this.showFacturaModal = true;
   }
 
@@ -370,13 +370,13 @@ export class DashboardComponent implements OnInit {
 
   onFacturaClienteChange() {
     if (!this.facturaForm.id_cliente) {
-      this.facturaObrasFiltradas = [...this.obras];
+      this.facturaObrasFiltradas = this.obras.filter(o => this.esObraDisponibleParaFacturar(o));
       this.facturaForm.id_obra = null;
       this.facturaRestanteObra = null;
       return;
     }
     this.facturaObrasFiltradas = this.obras.filter(o =>
-      Number(o.cliente?.id) === Number(this.facturaForm.id_cliente)
+      Number(o.cliente?.id) === Number(this.facturaForm.id_cliente) && this.esObraDisponibleParaFacturar(o)
     );
     this.facturaForm.id_obra = null;
     this.facturaRestanteObra = null;
@@ -762,11 +762,11 @@ export class DashboardComponent implements OnInit {
         this.cerrarFacturaModal();
         this.resetFacturaForm();
       },
-      error: () => {
+      error: (err: any) => {
         this.messageService.add({
           severity: 'error',
           summary: 'Error',
-          detail: 'No se pudo crear la factura.'
+          detail: err?.error?.message || 'No se pudo crear la factura.'
         });
       }
     });
@@ -1723,6 +1723,17 @@ export class DashboardComponent implements OnInit {
       email: '',
       activo: true
     };
+  }
+
+  private esObraDisponibleParaFacturar(obra: Obra): boolean {
+    const raw = (obra as any).obra_estado;
+    let nombre = '';
+    if (typeof raw === 'string') nombre = raw;
+    else if (raw && typeof raw === 'object') nombre = raw.nombre ?? raw.name ?? raw.label ?? raw.estado ?? '';
+    const estado = String(nombre)
+      .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+      .toUpperCase().replace(/[^A-Z0-9]+/g, '_').replace(/^_+|_+$/g, '');
+    return estado !== 'FACTURADA';
   }
 
   private resetFacturaForm() {

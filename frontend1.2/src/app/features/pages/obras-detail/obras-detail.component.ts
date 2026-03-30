@@ -522,11 +522,11 @@ export class ObrasDetailComponent implements OnInit, OnDestroy, AfterViewInit {
         this.resetFacturaForm();
         this.cargarFacturasObra();
       },
-      error: () => {
+      error: (err: any) => {
         this.messageService.add({
           severity: 'error',
           summary: 'Error',
-          detail: 'No se pudo crear la factura.'
+          detail: err?.error?.message || 'No se pudo crear la factura.'
         });
       }
     });
@@ -1185,11 +1185,11 @@ export class ObrasDetailComponent implements OnInit, OnDestroy, AfterViewInit {
     return estado.replace(/_/g, ' ').toLowerCase().replace(/\b\w/g, c => c.toUpperCase());
   }
 
-  getEstadoFacturacionDetalle(): { label: string; severity: string } {
+  getEstadoFacturacionDetalle(): { label: string; severity: string } | undefined {
     if (this.obra?.requiere_factura) {
       return {label: 'Para facturar', severity: 'success'};
     }
-    return {label: 'Facturacion opcional', severity: 'contrast'};
+    return undefined;
   }
 
   private nombreProveedorTarea(t: Tarea): string {
