@@ -56,9 +56,9 @@
             <div class="w-10 h-10 bg-indigo-100 rounded-lg flex items-center justify-center">
               <i class="pi pi-map-marker text-indigo-600 text-lg"></i>
             </div>
-            <span class="text-sm font-medium text-gray-500">Dirección</span>
+            <span class="text-sm font-medium text-gray-500">DirecciÃ³n</span>
           </div>
-          <p class="text-lg font-semibold text-gray-900">{{ cliente.direccion || 'Sin dirección' }}</p>
+          <p class="text-lg font-semibold text-gray-900">{{ cliente.direccion || 'Sin direcciÃ³n' }}</p>
         </div>
 
         <!-- Tarjeta CUIT -->
@@ -78,7 +78,7 @@
             <div class="w-10 h-10 bg-amber-100 rounded-lg flex items-center justify-center">
               <i class="pi pi-percentage text-amber-600 text-lg"></i>
             </div>
-            <span class="text-sm font-medium text-gray-500">Condición IVA</span>
+            <span class="text-sm font-medium text-gray-500">CondiciÃ³n IVA</span>
           </div>
           <p class="text-lg font-semibold text-gray-900">
             {{ getCondicionIvaLabel(cliente.condicionIva ?? cliente.condicion_iva) }}

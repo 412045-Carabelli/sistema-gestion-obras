@@ -158,11 +158,11 @@ export class ObrasListComponent implements OnInit {
     return '';
   }
 
-  getEstadoFacturacion(obra: Obra): {label: string; severity: string} {
+  getEstadoFacturacion(obra: Obra): {label: string; severity: string} | undefined {
     if (obra.requiere_factura) {
       return {label: 'Para facturar', severity: 'success'};
     }
-    return {label: 'Facturacion opcional', severity: 'contrast'};
+    return undefined;
   }
 
   getNumeroOrden(obra: Obra): number {

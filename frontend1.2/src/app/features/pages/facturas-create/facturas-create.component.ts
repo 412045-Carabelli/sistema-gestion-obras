@@ -247,7 +247,13 @@ export class FacturasCreateComponent implements OnInit {
   }
 
   private esObraFacturable(obra: Obra): boolean {
-    return !!obra && Number(obra.id ?? 0) > 0 && Boolean(obra.activo ?? true);
+    if (!obra || !Number(obra.id ?? 0) || !Boolean(obra.activo ?? true)) return false;
+    const raw = (obra as any).obra_estado;
+    let nombre = '';
+    if (typeof raw === 'string') nombre = raw;
+    else if (raw && typeof raw === 'object') nombre = raw.nombre ?? raw.name ?? raw.label ?? raw.estado ?? '';
+    const estado = this.sanitizarEstado(String(nombre));
+    return estado !== 'FACTURADA';
   }
 
   private normalizarEstado(raw: any): string {

@@ -22,6 +22,14 @@ public class RestExceptionHandler {
     @ExceptionHandler(WebClientResponseException.class)
     public ResponseEntity<ErrorApi> handleWebClient(WebClientResponseException ex, ServerHttpRequest request) {
         String path = request != null ? request.getPath().value() : "";
+        String body = ex.getResponseBodyAsString();
+        if (body != null && (body.contains("FileSizeLimitExceeded") || body.contains("MaxUploadSizeExceeded") || body.contains("maximum permitted size"))) {
+            return buildError(
+                "El archivo adjunto es demasiado grande. El tamaño máximo permitido es 10 MB.",
+                HttpStatus.PAYLOAD_TOO_LARGE,
+                request
+            );
+        }
         ErrorApi error = parseRemoteError(ex, path);
         return ResponseEntity.status(ex.getStatusCode()).body(error);
     }
@@ -33,7 +41,26 @@ public class RestExceptionHandler {
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorApi> handleGeneric(Exception ex, ServerHttpRequest request) {
+        if (esTamañoArchivoExcedido(ex)) {
+            return buildError(
+                "El archivo adjunto es demasiado grande. El tamaño máximo permitido es 10 MB.",
+                HttpStatus.PAYLOAD_TOO_LARGE,
+                request
+            );
+        }
         return buildError(ex.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR, request);
+    }
+
+    private boolean esTamañoArchivoExcedido(Throwable ex) {
+        if (ex == null) return false;
+        String nombre = ex.getClass().getName();
+        if (nombre.contains("FileSizeLimitExceeded")
+                || nombre.contains("MaxUploadSizeExceeded")
+                || nombre.contains("DataBufferLimitException")
+                || nombre.contains("SizeLimitExceeded")) {
+            return true;
+        }
+        return esTamañoArchivoExcedido(ex.getCause());
     }
 
     private ResponseEntity<ErrorApi> buildError(String message, HttpStatus status, ServerHttpRequest request) {

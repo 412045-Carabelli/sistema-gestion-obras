@@ -1,5 +1,5 @@
 import {Injectable} from '@angular/core';
-import {BehaviorSubject, Observable} from 'rxjs';
+import {BehaviorSubject, Observable, Subject} from 'rxjs';
 import {Factura} from '../../core/models/models';
 
 @Injectable({
@@ -8,6 +8,13 @@ import {Factura} from '../../core/models/models';
 export class FacturasStateService {
   private facturaActualSubject = new BehaviorSubject<Factura | null>(null);
   public facturaActual$: Observable<Factura | null> = this.facturaActualSubject.asObservable();
+
+  private openCreateModalSubject = new Subject<void>();
+  public openCreateModal$ = this.openCreateModalSubject.asObservable();
+
+  triggerOpenCreate() {
+    this.openCreateModalSubject.next();
+  }
 
   setFactura(factura: Factura | null) {
     this.facturaActualSubject.next(factura);

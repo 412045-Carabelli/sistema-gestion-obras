@@ -109,10 +109,10 @@ export class ObrasLayoutComponent implements OnInit, OnDestroy {
     });
   }
 
-  getEstadoFacturacion(): { label: string; severity: string } {
+  getEstadoFacturacion(): { label: string; severity: string } | undefined {
     if (this.obra?.requiere_factura) {
       return {label: 'Para facturar', severity: 'success'};
     }
-    return {label: 'Facturacion opcional', severity: 'contrast'};
+    return undefined;
   }
 }
