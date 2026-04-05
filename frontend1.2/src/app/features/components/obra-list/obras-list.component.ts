@@ -8,15 +8,16 @@ import {DropdownModule} from 'primeng/dropdown';
 import {TagModule} from 'primeng/tag';
 import {IconFieldModule} from 'primeng/iconfield';
 import {InputIconModule} from 'primeng/inputicon';
-import {forkJoin} from 'rxjs';
+import {catchError, forkJoin, of} from 'rxjs';
 import {ButtonModule} from 'primeng/button';
 import {CheckboxModule} from 'primeng/checkbox';
 import {MultiSelectModule} from 'primeng/multiselect';
 
-import {Cliente, EstadoObra, Obra} from '../../../core/models/models';
+import {Cliente, EstadoObra, Factura, Obra} from '../../../core/models/models';
 import {ObrasService} from '../../../services/obras/obras.service';
 import {ClientesService} from '../../../services/clientes/clientes.service';
 import {EstadoObraService} from '../../../services/estado-obra/estado-obra.service';
+import {FacturasService} from '../../../services/facturas/facturas.service';
 import {Select} from 'primeng/select';
 import {EstadoFormatPipe} from '../../../shared/pipes/estado-format.pipe';
 
@@ -61,13 +62,16 @@ export class ObrasListComponent implements OnInit {
   mostrarInactivos = false;
   estadosOptions: EstadoOption[] = [];
   private estadoInicialDesdeRuta: string[] = [];
+  private facturasPorObra: Record<number, Factura[]> = {};
+  private readonly ESTADOS_CON_FACTURACION = ['ADJUDICADA', 'EN_PROGRESO', 'FINALIZADA'];
 
   constructor(
     private router: Router,
     private route: ActivatedRoute,
     private obrasService: ObrasService,
     private clientesService: ClientesService,
-    private estadoObraService: EstadoObraService
+    private estadoObraService: EstadoObraService,
+    private facturasService: FacturasService
   ) {
   }
 
@@ -85,9 +89,18 @@ export class ObrasListComponent implements OnInit {
     forkJoin({
       obras: this.obrasService.getObrasAll(),
       clientes: this.clientesService.getClientes(),
-      estados: this.estadoObraService.getEstados()
-    }).subscribe(({obras, clientes, estados}) => {
+      estados: this.estadoObraService.getEstados(),
+      facturas: this.facturasService.getFacturas().pipe(catchError(() => of([])))
+    }).subscribe(({obras, clientes, estados, facturas}) => {
       this.obras = obras;
+
+      this.facturasPorObra = (facturas as Factura[]).reduce((acc, f) => {
+        if (f.id_obra) {
+          if (!acc[f.id_obra]) acc[f.id_obra] = [];
+          acc[f.id_obra].push(f);
+        }
+        return acc;
+      }, {} as Record<number, Factura[]>);
 
       this.clientes = clientes.map(c => ({...c, id: Number(c.id)}));
       this.estados = this.ordenarEstadosObra(estados as any);
@@ -159,10 +172,19 @@ export class ObrasListComponent implements OnInit {
   }
 
   getEstadoFacturacion(obra: Obra): {label: string; severity: string} | undefined {
-    if (obra.requiere_factura) {
-      return {label: 'Para facturar', severity: 'success'};
+    const estado = this.estadoValorObra(obra).toUpperCase();
+    if (!this.ESTADOS_CON_FACTURACION.includes(estado)) return undefined;
+
+    const facturas = (this.facturasPorObra[obra.id!] ?? []).filter(f => f.activo !== false);
+    if (facturas.length === 0) {
+      return {label: 'Pendiente', severity: 'warn'};
     }
-    return undefined;
+    const totalFacturado = facturas.reduce((sum, f) => sum + (f.monto ?? 0), 0);
+    const presupuesto = obra.presupuesto ?? 0;
+    if (presupuesto > 0 && totalFacturado >= presupuesto) {
+      return {label: 'Total', severity: 'success'};
+    }
+    return {label: 'Parcial', severity: 'info'};
   }
 
   getNumeroOrden(obra: Obra): number {
