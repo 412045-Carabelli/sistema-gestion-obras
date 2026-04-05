@@ -45,6 +45,7 @@ export class ProveedoresListComponent implements OnInit {
   ];
   saldosProveedor: Record<number, number> = {};
   totalesProveedor: Record<number, number> = {};
+  ultimoMovimientoProveedor: Record<number, number> = {};
 
   searchValue: string = '';
   tipoFiltro: number | 'todos' = 'todos';
@@ -118,7 +119,12 @@ export class ProveedoresListComponent implements OnInit {
         totalProveedor: this.obtenerTotalProveedor(proveedor.id),
         saldoProveedor: this.obtenerSaldoProveedor(proveedor.id)
       }))
-      .sort((a, b) => Number(b.id ?? 0) - Number(a.id ?? 0));
+      .sort((a, b) => {
+        const movA = this.ultimoMovimientoProveedor[a.id] ?? Number.NEGATIVE_INFINITY;
+        const movB = this.ultimoMovimientoProveedor[b.id] ?? Number.NEGATIVE_INFINITY;
+        if (movA !== movB) return movB - movA;
+        return Number(b.id ?? 0) - Number(a.id ?? 0);
+      });
   }
 
   irAlDetalle(proveedor: any) {
@@ -142,24 +148,30 @@ export class ProveedoresListComponent implements OnInit {
     if (!this.proveedores.length || !results?.length) {
       this.saldosProveedor = {};
       this.totalesProveedor = {};
+      this.ultimoMovimientoProveedor = {};
       return;
     }
     const cuentas = (results || []).map(item => {
       const id = Number((item as any)?.proveedorId ?? (item as any)?.id ?? 0);
       const saldo = (item as any)?.saldoFinal ?? (item as any)?.saldo ?? 0;
       const total = (item as any)?.totalCostos ?? (item as any)?.costos ?? 0;
-      return {id, saldo, total};
+      const movimientos: any[] = (item as any)?.movimientos ?? [];
+      const ultimoMs = movimientos.reduce((max, mov) => {
+        const t = mov?.fecha ? new Date(mov.fecha).getTime() : Number.NEGATIVE_INFINITY;
+        return Number.isFinite(t) && t > max ? t : max;
+      }, Number.NEGATIVE_INFINITY);
+      return {id, saldo, total, ultimoMs};
     });
     this.saldosProveedor = cuentas.reduce((acc, item) => {
-      if (item.id) {
-        acc[item.id] = item.saldo;
-      }
+      if (item.id) acc[item.id] = item.saldo;
       return acc;
     }, {} as Record<number, number>);
     this.totalesProveedor = cuentas.reduce((acc, item) => {
-      if (item.id) {
-        acc[item.id] = item.total;
-      }
+      if (item.id) acc[item.id] = item.total;
+      return acc;
+    }, {} as Record<number, number>);
+    this.ultimoMovimientoProveedor = cuentas.reduce((acc, item) => {
+      if (item.id && Number.isFinite(item.ultimoMs)) acc[item.id] = item.ultimoMs;
       return acc;
     }, {} as Record<number, number>);
   }

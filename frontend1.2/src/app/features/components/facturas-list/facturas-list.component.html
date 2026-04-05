@@ -134,9 +134,9 @@
           </tr>
         </ng-template>
         <ng-template pTemplate="body" let-o>
-          <tr class="bg-gray-50 cursor-pointer" (click)="toggleObraRow(o.id)">
+          <tr class="hover:bg-blue-50 transition-colors cursor-pointer" (click)="irAlObraDetalle(o.id)">
             <td class="px-4 py-3 text-sm text-gray-700">{{ o.clienteNombre }}</td>
-            <td class="px-4 py-3 text-sm text-gray-700">{{ o.nombre }}</td>
+            <td class="px-4 py-3 text-sm font-medium text-gray-900">{{ o.nombre }}</td>
             <td class="px-4 py-3 text-sm text-gray-700">{{ o.estado | estadoFormat }}</td>
             <td class="px-4 py-3 text-sm text-gray-900 text-right">
               {{ o.presupuesto | currency:'ARS':'symbol':'1.0-2' }}
@@ -144,69 +144,13 @@
             <td class="px-4 py-3 text-sm text-gray-900 text-right">
               {{ o.facturado | currency:'ARS':'symbol':'1.0-2' }}
             </td>
-            <td class="px-4 py-3 text-sm text-gray-900 text-right">
+            <td class="px-4 py-3 text-sm text-right font-medium" [class.text-amber-600]="o.porFacturar > 0" [class.text-gray-400]="o.porFacturar === 0">
               {{ o.porFacturar | currency:'ARS':'symbol':'1.0-2' }}
             </td>
-            <td></td>
+            <td class="px-4 py-3 text-right">
+              <i class="pi pi-angle-right text-gray-400"></i>
+            </td>
           </tr>
-          @if (isObraExpanded(o.id)) {
-            @if (o.facturas?.length) {
-              @for (f of o.facturas; track f.id) {
-                <tr class="hover:bg-gray-50 transition-colors cursor-pointer" (click)="onRowClick(f)">
-                  <td class="px-4 py-3 text-sm text-gray-500"></td>
-                  <td class="px-4 py-3 text-sm text-gray-700">
-                    Factura #{{ f.id }}
-                  </td>
-                  <td class="px-4 py-3 text-sm text-gray-700">
-                    <p-tag
-                      [value]="f.estado || 'EMITIDA'"
-                      [severity]="(f.estado || 'EMITIDA') === 'COBRADA' ? 'success' : 'info'">
-                    </p-tag>
-                  </td>
-                  <td class="px-4 py-3 text-sm text-gray-700">{{ f.fecha | date:'dd/MM/yyyy' }}</td>
-                  <td class="px-4 py-3 text-sm text-gray-900 text-right">
-                    {{ f.monto | currency:'ARS':'symbol':'1.0-2' }}
-                  </td>
-                  <td class="px-4 py-3 text-sm text-gray-900 text-right">
-                    {{ f.porCobrarObra | currency:'ARS':'symbol':'1.0-2' }}
-                  </td>
-                  <td class="px-4 py-3 text-right">
-                    <div class="flex justify-end gap-1">
-                      <p-button
-                        [icon]="getSiguienteEstadoFacturaIcon(f)"
-                        styleClass="p-button-text p-button-sm"
-                        (onClick)="toggleEstadoFactura(f, $event)"
-                        [pTooltip]="getSiguienteEstadoFacturaLabel(f)"
-                        tooltipPosition="left">
-                      </p-button>
-                      @if (f.nombre_archivo) {
-                        <p-button
-                          icon="pi pi-external-link"
-                          styleClass="p-button-text p-button-sm"
-                          (onClick)="verAdjunto(f, $event)"
-                          pTooltip="Ver adjunto"
-                          tooltipPosition="left">
-                        </p-button>
-                      }
-                      <p-button
-                        icon="pi pi-trash"
-                        styleClass="p-button-text p-button-sm text-red-500"
-                        (onClick)="eliminarFactura(f, $event)"
-                        pTooltip="Eliminar"
-                        tooltipPosition="left">
-                      </p-button>
-                    </div>
-                  </td>
-                </tr>
-              }
-            } @else {
-              <tr>
-                <td colspan="7" class="px-4 py-3 text-sm text-gray-500 italic">
-                  Sin facturas registradas para esta obra.
-                </td>
-              </tr>
-            }
-          }
         </ng-template>
         <ng-template pTemplate="emptymessage">
           <tr>

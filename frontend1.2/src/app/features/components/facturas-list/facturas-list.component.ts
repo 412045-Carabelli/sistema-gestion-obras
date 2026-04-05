@@ -113,7 +113,7 @@ export class FacturasListComponent implements OnInit, OnDestroy {
   clientesOptions: SelectOption<number | 'todos'>[] = [];
   obrasOptions: SelectOption<number | 'todos'>[] = [];
   datosCargados = false;
-  private expandedObras = new Set<number>();
+  private readonly ESTADOS_FACTURABLES = ['ADJUDICADA', 'EN_PROGRESO', 'FINALIZADA'];
 
   // Modal nueva factura
   showFacturaModal = false;
@@ -311,18 +311,8 @@ export class FacturasListComponent implements OnInit, OnDestroy {
     this.router.navigate(['/facturas', factura.id]);
   }
 
-  toggleObraRow(obraId: number) {
-    const id = Number(obraId);
-    if (!id) return;
-    if (this.expandedObras.has(id)) {
-      this.expandedObras.delete(id);
-    } else {
-      this.expandedObras.add(id);
-    }
-  }
-
-  isObraExpanded(obraId: number): boolean {
-    return this.expandedObras.has(Number(obraId));
+  irAlObraDetalle(obraId: number) {
+    this.router.navigate(['/obras', obraId]);
   }
 
 
@@ -386,17 +376,14 @@ export class FacturasListComponent implements OnInit, OnDestroy {
     return this.obras;
   }
 
-  private obraRequiereFactura(idObra?: number | null): boolean {
-    const id = Number(idObra ?? 0);
-    if (!id) return false;
-    return !!this.obrasById.get(id)?.requiere_factura;
-  }
-
   private obraEsFacturable(idObra?: number | null): boolean {
     const id = Number(idObra ?? 0);
     if (!id) return false;
     const obra = this.obrasById.get(id);
-    return !!obra && Boolean(obra.activo ?? true);
+    if (!obra || !Boolean(obra.activo ?? true)) return false;
+    if (!obra.requiere_factura) return false;
+    const estado = this.normalizarEstado(obra.obra_estado);
+    return this.ESTADOS_FACTURABLES.includes(estado);
   }
 
   private cargarCobrosPorObra() {
@@ -564,7 +551,6 @@ export class FacturasListComponent implements OnInit, OnDestroy {
 
     const obrasFacturables = this.obras
       .filter(o => o.id != null)
-      .filter(o => this.obraRequiereFactura(o.id))
       .filter(o => this.obraEsFacturable(o.id));
 
     this.obrasFacturacion = obrasFacturables.map(o => {
@@ -572,7 +558,6 @@ export class FacturasListComponent implements OnInit, OnDestroy {
       const presupuesto = this.presupuestoPorObra[obraId] ?? this.calcularPresupuestoObra(o);
       const facturado = this.facturadoPorObra[obraId] ?? 0;
       const porFacturar = Math.max(0, presupuesto - facturado);
-      this.expandedObras.add(obraId);
       return {
         id: obraId,
         nombre: o.nombre || `Obra #${obraId}`,
@@ -698,12 +683,9 @@ export class FacturasListComponent implements OnInit, OnDestroy {
   }
 
   private esObraDisponibleParaFacturar(obra: Obra): boolean {
-    const raw = (obra as any).obra_estado;
-    let nombre = '';
-    if (typeof raw === 'string') nombre = raw;
-    else if (raw && typeof raw === 'object') nombre = raw.nombre ?? raw.name ?? raw.label ?? raw.estado ?? '';
-    const estado = this.sanitizarEstado(String(nombre));
-    return estado !== 'FACTURADA';
+    if (!obra.requiere_factura) return false;
+    const estado = this.normalizarEstado(obra.obra_estado);
+    return this.ESTADOS_FACTURABLES.includes(estado);
   }
 
   private actualizarRestanteFacturaObra(obraId: number) {
