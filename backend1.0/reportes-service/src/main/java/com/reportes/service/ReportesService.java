@@ -317,7 +317,7 @@ public class ReportesService {
 
     public PendientesResponse generarPendientes(ReportFilterRequest filtro) {
         ReportFilterRequest filtros = filtroSeguro(filtro);
-        List<ObraExternalDto> obras = filtrarObras(filtros);
+        List<ObraExternalDto> obras = filtrarObrasConDeuda(filtros);
         Map<Long, ObraExternalDto> obrasPorId = mapearPorId(obras, ObraExternalDto::getId);
 
         // Calcular totales de costos
