@@ -74,23 +74,6 @@
               </button>
             </div>
           </div>
-          <div class="flex items-center gap-2">
-            <p-button
-              icon="pi pi-external-link"
-              label="Ver adjunto"
-              styleClass="p-button-sm"
-              severity="secondary"
-              [disabled]="!factura?.nombre_archivo"
-              (onClick)="verAdjunto()">
-            </p-button>
-            <p-button
-              icon="pi pi-download"
-              label="Descargar"
-              styleClass="p-button-sm p-button-secondary"
-              [disabled]="!factura?.nombre_archivo"
-              (onClick)="descargarAdjuntoArchivo()">
-            </p-button>
-          </div>
         </div>
       </div>
 

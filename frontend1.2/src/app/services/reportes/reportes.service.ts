@@ -73,6 +73,10 @@ export class ReportesService {
     return this.http.post<AvanceTareasResponse>(`${this.apiUrl}/operativos/avance-tareas`, filtro ?? {});
   }
 
+  obtenerAvancePagosObra(obraId: number): Observable<any> {
+    return this.http.get<any>(`${this.apiUrl}/operativos/avance-pagos-obra/${obraId}`);
+  }
+
   getCostosPorCategoria(filtro?: ReportFilter): Observable<CostosPorCategoriaResponse> {
     return this.http.post<CostosPorCategoriaResponse>(`${this.apiUrl}/operativos/costos-categoria`, filtro ?? {});
   }
