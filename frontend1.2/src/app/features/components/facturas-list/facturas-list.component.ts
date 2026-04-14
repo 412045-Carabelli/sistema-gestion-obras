@@ -113,7 +113,6 @@ export class FacturasListComponent implements OnInit, OnDestroy {
   clientesOptions: SelectOption<number | 'todos'>[] = [];
   obrasOptions: SelectOption<number | 'todos'>[] = [];
   datosCargados = false;
-  private readonly ESTADOS_FACTURABLES = ['ADJUDICADA', 'EN_PROGRESO', 'FINALIZADA'];
 
   // Modal nueva factura
   showFacturaModal = false;
@@ -312,7 +311,7 @@ export class FacturasListComponent implements OnInit, OnDestroy {
   }
 
   irAlObraDetalle(obraId: number) {
-    this.router.navigate(['/obras', obraId]);
+    this.router.navigate(['/obras', obraId], { queryParams: { tab: '3' } });
   }
 
 
@@ -381,9 +380,7 @@ export class FacturasListComponent implements OnInit, OnDestroy {
     if (!id) return false;
     const obra = this.obrasById.get(id);
     if (!obra || !Boolean(obra.activo ?? true)) return false;
-    if (!obra.requiere_factura) return false;
-    const estado = this.normalizarEstado(obra.obra_estado);
-    return this.ESTADOS_FACTURABLES.includes(estado);
+    return Boolean(obra.requiere_factura);
   }
 
   private cargarCobrosPorObra() {
@@ -477,7 +474,7 @@ export class FacturasListComponent implements OnInit, OnDestroy {
       fecha: this.formatDate(factura.fecha),
       descripcion: factura.descripcion || '',
       estado: nuevoEstado,
-      impacta_cta_cte: !!factura.impacta_cta_cte
+      impacta_cta_cte: true
     };
 
     this.facturasService.updateFactura(Number(factura.id), payload).subscribe({
@@ -489,6 +486,18 @@ export class FacturasListComponent implements OnInit, OnDestroy {
         });
         this.construirListadoObras();
         this.applyFilter();
+        this.messageService.add({
+          severity: 'success',
+          summary: 'Estado actualizado',
+          detail: `Factura marcada como ${nuevoEstado === 'COBRADA' ? 'cobrada' : 'emitida'}.`
+        });
+      },
+      error: () => {
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: 'No se pudo actualizar el estado de la factura.'
+        });
       }
     });
   }
@@ -683,9 +692,7 @@ export class FacturasListComponent implements OnInit, OnDestroy {
   }
 
   private esObraDisponibleParaFacturar(obra: Obra): boolean {
-    if (!obra.requiere_factura) return false;
-    const estado = this.normalizarEstado(obra.obra_estado);
-    return this.ESTADOS_FACTURABLES.includes(estado);
+    return Boolean(obra.requiere_factura) && Boolean(obra.activo ?? true);
   }
 
   private actualizarRestanteFacturaObra(obraId: number) {

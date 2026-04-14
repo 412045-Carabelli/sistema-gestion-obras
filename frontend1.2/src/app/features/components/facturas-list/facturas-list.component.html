@@ -134,21 +134,68 @@
           </tr>
         </ng-template>
         <ng-template pTemplate="body" let-o>
-          <tr class="hover:bg-blue-50 transition-colors cursor-pointer" (click)="irAlObraDetalle(o.id)">
+          <!-- Fila de la obra -->
+          <tr class="bg-white border-b border-gray-100">
             <td class="px-4 py-3 text-sm text-gray-700">{{ o.clienteNombre }}</td>
             <td class="px-4 py-3 text-sm font-medium text-gray-900">{{ o.nombre }}</td>
             <td class="px-4 py-3 text-sm text-gray-700">{{ o.estado | estadoFormat }}</td>
-            <td class="px-4 py-3 text-sm text-gray-900 text-right">
-              {{ o.presupuesto | currency:'ARS':'symbol':'1.0-2' }}
-            </td>
-            <td class="px-4 py-3 text-sm text-gray-900 text-right">
-              {{ o.facturado | currency:'ARS':'symbol':'1.0-2' }}
-            </td>
+            <td class="px-4 py-3 text-sm text-gray-900 text-right">{{ o.presupuesto | currency:'ARS':'symbol':'1.0-2' }}</td>
+            <td class="px-4 py-3 text-sm text-gray-900 text-right">{{ o.facturado | currency:'ARS':'symbol':'1.0-2' }}</td>
             <td class="px-4 py-3 text-sm text-right font-medium" [class.text-amber-600]="o.porFacturar > 0" [class.text-gray-400]="o.porFacturar === 0">
               {{ o.porFacturar | currency:'ARS':'symbol':'1.0-2' }}
             </td>
             <td class="px-4 py-3 text-right">
-              <i class="pi pi-angle-right text-gray-400"></i>
+              <button type="button" pButton icon="pi pi-arrow-right" class="p-button-text p-button-sm text-gray-400" (click)="irAlObraDetalle(o.id)" pTooltip="Ver detalle de obra" tooltipPosition="left"></button>
+            </td>
+          </tr>
+          <!-- Facturas de la obra, siempre visibles -->
+          <tr>
+            <td colspan="7" class="bg-blue-50 px-6 py-3">
+              @if (o.facturas.length === 0) {
+                <p class="text-sm text-gray-500 italic">No hay facturas emitidas para esta obra.</p>
+              } @else {
+                <p-table [value]="o.facturas" styleClass="p-datatable-sm">
+                  <ng-template pTemplate="header">
+                    <tr>
+                      <th class="text-xs font-semibold text-gray-500 uppercase px-3 py-2">ID</th>
+                      <th class="text-xs font-semibold text-gray-500 uppercase px-3 py-2">Fecha</th>
+                      <th class="text-xs font-semibold text-gray-500 uppercase px-3 py-2 text-right">Monto</th>
+                      <th class="text-xs font-semibold text-gray-500 uppercase px-3 py-2 text-center">Estado</th>
+                      <th class="text-xs font-semibold text-gray-500 uppercase px-3 py-2 text-center">Cambiar estado</th>
+                    </tr>
+                  </ng-template>
+                  <ng-template pTemplate="body" let-factura>
+                    <tr class="hover:bg-blue-100 transition-colors">
+                      <td class="px-3 py-2 text-sm cursor-pointer text-blue-600 underline font-medium" (click)="onRowClick(factura)">{{ factura.id }}</td>
+                      <td class="px-3 py-2 text-sm text-gray-700">{{ factura.fecha | date:'dd/MM/yyyy' }}</td>
+                      <td class="px-3 py-2 text-sm text-gray-900 text-right font-medium">{{ factura.monto | currency:'ARS':'symbol':'1.0-2' }}</td>
+                      <td class="px-3 py-2 text-center">
+                        <p-tag
+                          [value]="factura.estado === 'COBRADA' ? 'Cobrada' : 'Emitida'"
+                          [severity]="factura.estado === 'COBRADA' ? 'success' : 'warn'"
+                        ></p-tag>
+                      </td>
+                      <td class="px-3 py-2 text-center">
+                        <button
+                          type="button"
+                          class="inline-flex items-center gap-1 px-3 py-1 text-xs rounded-md border transition-colors"
+                          [class.border-emerald-400]="factura.estado !== 'COBRADA'"
+                          [class.text-emerald-700]="factura.estado !== 'COBRADA'"
+                          [class.hover:bg-emerald-50]="factura.estado !== 'COBRADA'"
+                          [class.border-amber-400]="factura.estado === 'COBRADA'"
+                          [class.text-amber-700]="factura.estado === 'COBRADA'"
+                          [class.hover:bg-amber-50]="factura.estado === 'COBRADA'"
+                          (click)="toggleEstadoFactura(factura)"
+                          [title]="getSiguienteEstadoFacturaLabel(factura)"
+                        >
+                          <i [class]="getSiguienteEstadoFacturaIcon(factura)"></i>
+                          {{ getSiguienteEstadoFacturaLabel(factura) }}
+                        </button>
+                      </td>
+                    </tr>
+                  </ng-template>
+                </p-table>
+              }
             </td>
           </tr>
         </ng-template>

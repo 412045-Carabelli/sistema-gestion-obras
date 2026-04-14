@@ -143,19 +143,11 @@ export class ObrasListComponent implements OnInit {
       return matchesSearch && matchesEstado && matchesActivo;
     })
       .sort((a, b) => {
-        const fechaA = this.getFechaInicioMs(a);
-        const fechaB = this.getFechaInicioMs(b);
-        if (fechaA !== fechaB) return fechaB - fechaA; // mas proxima (mas reciente) arriba
+        const creadaA = a.creado_en ? new Date(a.creado_en).getTime() : 0;
+        const creadaB = b.creado_en ? new Date(b.creado_en).getTime() : 0;
+        if (creadaA !== creadaB) return creadaB - creadaA;
         return Number(b.id ?? 0) - Number(a.id ?? 0);
       });
-  }
-
-  private getFechaInicioMs(obra: Obra): number {
-    const raw = (obra as any)?.fecha_inicio;
-    if (!raw) return Number.NEGATIVE_INFINITY;
-    const fecha = new Date(raw);
-    const time = fecha.getTime();
-    return Number.isFinite(time) ? time : Number.NEGATIVE_INFINITY;
   }
 
   private estadoValorObra(obra: any): string {

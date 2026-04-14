@@ -228,6 +228,9 @@ export class ObrasDetailComponent implements OnInit, OnDestroy, AfterViewInit {
       next: ({ obra, estados, proveedores, clientes }) => {
         console.log(obra)
         this.obra = { ...obra, id: Number(obra.id) };
+        if (this.activeTab === '3' && !obra.requiere_factura) {
+          this.activeTab = '0';
+        }
         this.tareas = obra.tareas ?? [];
         this.costos = obra.costos ?? [];
         this.estadosObra = this.ordenarEstadosObra(estados);
