@@ -34,6 +34,7 @@ C:\Users\Usuario\Desktop\my-work\sistema-gestion-obras\backend1.0\reportes-servi
 C:\Users\Usuario\Desktop\my-work\sistema-gestion-obras\backend1.0\reportes-service\src\main\java\com\reportes\dto\external\ObraCostoExternalDto.java
 C:\Users\Usuario\Desktop\my-work\sistema-gestion-obras\backend1.0\reportes-service\src\main\java\com\reportes\dto\external\TransaccionExternalDto.java
 C:\Users\Usuario\Desktop\my-work\sistema-gestion-obras\backend1.0\reportes-service\src\main\java\com\reportes\dto\response\AvanceTareasResponse.java
+C:\Users\Usuario\Desktop\my-work\sistema-gestion-obras\backend1.0\reportes-service\src\main\java\com\reportes\dto\response\AvancePagosObraResponse.java
 C:\Users\Usuario\Desktop\my-work\sistema-gestion-obras\backend1.0\reportes-service\src\main\java\com\reportes\dto\response\EstadoObrasResponse.java
 C:\Users\Usuario\Desktop\my-work\sistema-gestion-obras\backend1.0\reportes-service\src\main\java\com\reportes\dto\response\CostosPorCategoriaResponse.java
 C:\Users\Usuario\Desktop\my-work\sistema-gestion-obras\backend1.0\reportes-service\src\main\java\com\reportes\dto\response\ResumenGeneralResponse.java
