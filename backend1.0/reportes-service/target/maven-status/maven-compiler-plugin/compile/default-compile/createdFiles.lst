@@ -6,6 +6,7 @@ com\reportes\dto\response\CuentaCorrienteProveedorResponse.class
 com\reportes\dto\response\DashboardFinancieroResponse$CtaCte.class
 com\reportes\dto\response\NotasObraResponse.class
 com\reportes\client\ProveedoresClient$1.class
+com\reportes\dto\response\AvancePagosObraResponse$ItemAvancePago.class
 com\reportes\dto\response\ResumenGeneralResponse.class
 com\reportes\dto\external\TareaExternalDto.class
 com\reportes\dto\response\AvanceTareasResponse.class
@@ -20,6 +21,7 @@ com\reportes\controller\ReportesController.class
 com\reportes\dto\response\DeudasGlobalesResponse$DetalleDeudaProveedor.class
 com\reportes\dto\response\CuentaCorrienteClienteResponse.class
 com\reportes\dto\response\DeudasGlobalesResponse.class
+com\reportes\dto\response\AvancePagosObraResponse.class
 com\reportes\dto\response\CostosPorCategoriaResponse.class
 com\reportes\client\ClientesClient$1.class
 com\reportes\dto\response\RankingClientesResponse$ItemRankingCliente.class

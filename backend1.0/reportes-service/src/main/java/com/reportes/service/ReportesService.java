@@ -1639,6 +1639,7 @@ public class ReportesService {
             "EN_PROGRESO",
             "FINALIZADA",
             "FACTURADA",
+            "FACTURADA_PARCIAL",
             "COBRADA"
     );
 

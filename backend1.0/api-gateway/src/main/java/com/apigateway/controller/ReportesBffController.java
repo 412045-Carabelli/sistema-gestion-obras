@@ -114,6 +114,11 @@ public class ReportesBffController {
         return proxyPost("/operativos/avance-tareas", filtro, new ParameterizedTypeReference<>() {});
     }
 
+    @GetMapping("/operativos/avance-pagos-obra/{obraId}")
+    public Mono<ResponseEntity<Object>> avancePagosObra(@PathVariable("obraId") Long obraId) {
+        return proxyGet("/operativos/avance-pagos-obra/" + obraId, new ParameterizedTypeReference<>() {});
+    }
+
     @PostMapping("/operativos/costos-categoria")
     public Mono<ResponseEntity<Object>> costosPorCategoria(@RequestBody(required = false) Object filtro) {
         return proxyPost("/operativos/costos-categoria", filtro, new ParameterizedTypeReference<>() {});

@@ -55,6 +55,7 @@ com\apigateway\controller\ProveedorBffController.class
 com\apigateway\controller\ReportesBffController$9.class
 com\apigateway\controller\ReportesBffController$12.class
 com\apigateway\controller\CostoBffController.class
+com\apigateway\controller\ReportesBffController$22.class
 com\apigateway\controller\TipoDocumentoBffController.class
 com\apigateway\controller\GremioBffController$3.class
 com\apigateway\controller\ReportesBffController$6.class
