@@ -8,6 +8,9 @@ import java.util.List;
 
 @Data
 public class PendientesResponse {
+    private BigDecimal totalCostos = BigDecimal.ZERO;
+    private BigDecimal totalPagos = BigDecimal.ZERO;
+    private BigDecimal saldoPorPagar = BigDecimal.ZERO;
     private List<Pendiente> pendientes = new ArrayList<>();
 
     @Data

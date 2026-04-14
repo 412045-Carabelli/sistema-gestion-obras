@@ -319,11 +319,9 @@ public class ReportesService {
         ReportFilterRequest filtros = filtroSeguro(filtro);
         List<ObraExternalDto> obras = filtrarObras(filtros);
         Map<Long, ObraExternalDto> obrasPorId = mapearPorId(obras, ObraExternalDto::getId);
-        Map<Long, ProveedorExternalDto> proveedores = mapearPorId(proveedoresClient.obtenerProveedores(), ProveedorExternalDto::getId);
-        Map<Long, EstadoPagoExternalDto> estadosPago = mapearPorId(obrasClient.obtenerEstadosPago(), EstadoPagoExternalDto::getId);
 
-        PendientesResponse response = new PendientesResponse();
-
+        // Calcular totales de costos
+        BigDecimal totalCostos = BigDecimal.ZERO;
         for (ObraExternalDto obra : obras) {
             List<ObraCostoExternalDto> costos = obrasClient.obtenerCostos(obra.getId());
             for (ObraCostoExternalDto costo : costos) {
@@ -333,32 +331,18 @@ public class ReportesService {
                 if (filtros.getProveedorId() != null && !Objects.equals(costo.getIdProveedor(), filtros.getProveedorId())) {
                     continue;
                 }
-
-                String estadoNombre = Optional.ofNullable(costo.getIdEstadoPago())
-                        .map(estadosPago::get)
-                        .map(EstadoPagoExternalDto::getEstado)
-                        .orElse("Pendiente");
-
-                if ("PAGADO".equalsIgnoreCase(estadoNombre)) {
-                    continue;
-                }
-
-                PendientesResponse.Pendiente pendiente = new PendientesResponse.Pendiente();
-                pendiente.setObraId(obra.getId());
-                pendiente.setObraNombre(obra.getNombre());
-                pendiente.setDescripcion(costo.getDescripcion());
-                pendiente.setTotal(costoBase(costo));
-                pendiente.setEstadoPago(estadoNombre);
-
-                ProveedorExternalDto proveedor = proveedores.get(costo.getIdProveedor());
-                if (proveedor != null) {
-                    pendiente.setProveedorId(proveedor.getId());
-                    pendiente.setProveedorNombre(proveedor.getNombre());
-                }
-
-                response.getPendientes().add(pendiente);
+                totalCostos = totalCostos.add(costoBase(costo));
             }
         }
+
+        // Calcular totales de pagos (movimientos tipo PAGO)
+        List<TransaccionExternalDto> transacciones = filtrarTransacciones(filtros, obrasPorId);
+        BigDecimal totalPagos = sumarPorTipo(transacciones, "PAGO");
+
+        PendientesResponse response = new PendientesResponse();
+        response.setTotalCostos(totalCostos);
+        response.setTotalPagos(totalPagos);
+        response.setSaldoPorPagar(saldoPositivo(totalCostos.subtract(totalPagos)));
 
         return response;
     }
