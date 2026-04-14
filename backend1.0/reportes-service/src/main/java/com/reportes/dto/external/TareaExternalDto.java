@@ -23,6 +23,7 @@ public class TareaExternalDto {
     private LocalDateTime fechaInicio;
     @JsonProperty("fecha_fin")
     private LocalDateTime fechaFin;
+    private Integer porcentaje;
     @JsonProperty("creado_en")
     private Instant creadoEn;
     private Boolean activo;

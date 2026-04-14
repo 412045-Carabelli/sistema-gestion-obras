@@ -1764,7 +1764,7 @@ public class ReportesService {
 
         // Calcular resumen por proveedor
         proveedorIds.forEach(proveedorId -> {
-            Proveedor proveedor = obtenerProveedorById(proveedorId);
+            ProveedorExternalDto proveedor = obtenerProveedorById(proveedorId);
 
             BigDecimal costoTotal = costos.stream()
                     .filter(c -> Objects.equals(c.getIdProveedor(), proveedorId))
@@ -1825,9 +1825,9 @@ public class ReportesService {
         }
     }
 
-    private Proveedor obtenerProveedorById(Long proveedorId) {
+    private ProveedorExternalDto obtenerProveedorById(Long proveedorId) {
         try {
-            List<Proveedor> proveedores = proveedoresClient.obtenerProveedores();
+            List<ProveedorExternalDto> proveedores = proveedoresClient.obtenerProveedores();
             if (proveedores != null) {
                 return proveedores.stream()
                         .filter(p -> Objects.equals(p.getId(), proveedorId))
@@ -1835,19 +1835,8 @@ public class ReportesService {
                         .orElse(null);
             }
         } catch (Exception e) {
-            log.warn("No se pudieron obtener proveedores: {}", e.getMessage());
+            // Error al obtener proveedores, retorna null
         }
         return null;
-    }
-
-    private BigDecimal costoBase(ObraCostoExternalDto costo) {
-        if (costo == null) return BigDecimal.ZERO;
-        if (costo.getSubtotal() != null && costo.getSubtotal().compareTo(BigDecimal.ZERO) > 0) {
-            return costo.getSubtotal();
-        }
-        if (costo.getCantidad() != null && costo.getPrecioUnitario() != null) {
-            return costo.getCantidad().multiply(costo.getPrecioUnitario());
-        }
-        return Optional.ofNullable(costo.getTotal()).orElse(BigDecimal.ZERO);
     }
 }
