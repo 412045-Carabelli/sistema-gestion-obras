@@ -1,6 +1,7 @@
 package com.reportes.service;
 
 import com.reportes.client.ClientesClient;
+import com.reportes.client.FacturasClient;
 import com.reportes.client.ObrasClient;
 import com.reportes.client.ProveedoresClient;
 import com.reportes.client.TransaccionesClient;
@@ -13,6 +14,7 @@ import com.reportes.entity.MovimientoReporte;
 import com.reportes.repository.ComisionRepository;
 import com.reportes.repository.MovimientoReporteRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -23,6 +25,7 @@ import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class ReportesService {
@@ -31,6 +34,7 @@ public class ReportesService {
     private final TransaccionesClient transaccionesClient;
     private final ClientesClient clientesClient;
     private final ProveedoresClient proveedoresClient;
+    private final FacturasClient facturasClient;
     private final ComisionRepository comisionRepository;
     private final MovimientoReporteRepository movimientoReporteRepository;
 
@@ -1632,6 +1636,14 @@ public class ReportesService {
             "FINALIZADA"
     );
 
+    private static final Set<String> ESTADOS_KPI_FACTURAS = Set.of(
+            "ADJUDICADA",
+            "EN_PROGRESO",
+            "FINALIZADA",
+            "FACTURADA",
+            "FACTURADA_PARCIAL"
+    );
+
     private BigDecimal costoBase(ObraCostoExternalDto costo) {
         if (costo == null) return BigDecimal.ZERO;
         if (costo.getSubtotal() != null) return costo.getSubtotal();
@@ -1823,5 +1835,111 @@ public class ReportesService {
             // Error al obtener proveedores, retorna null
         }
         return null;
+    }
+
+    public FacturasKpiResponse generarKpiFacturas(ReportFilterRequest filtro) {
+        ReportFilterRequest filtros = filtroSeguro(filtro);
+
+        // 1. Obtener todas las obras
+        List<ObraExternalDto> todasObras = filtrarObras(filtros);
+        Map<Long, ObraExternalDto> obrasPorId = mapearPorId(todasObras, ObraExternalDto::getId);
+
+        // 2. Obtener facturas solo de obras que requieren factura
+        List<FacturaExternalDto> todasFacturas = new ArrayList<>();
+        int contadorFacturas = 0;
+        List<ObraExternalDto> obrasQuiereFactura = todasObras.stream()
+                .filter(o -> Boolean.TRUE.equals(o.getRequiereFactura()))
+                .collect(Collectors.toList());
+
+        for (ObraExternalDto obra : obrasQuiereFactura) {
+            List<FacturaExternalDto> facturasPorObra = facturasClient.obtenerFacturasPorObra(obra.getId());
+            if (!facturasPorObra.isEmpty()) {
+                log.info("Obra {} ({}): {} facturas", obra.getId(), obra.getNombre(), facturasPorObra.size());
+                todasFacturas.addAll(facturasPorObra);
+                contadorFacturas += facturasPorObra.size();
+            }
+        }
+        log.info("Total de facturas obtenidas: {}", contadorFacturas);
+
+        // Filtrar facturas activas
+        todasFacturas = todasFacturas.stream()
+                .filter(f -> Boolean.TRUE.equals(f.getActivo()) || f.getActivo() == null)
+                .collect(Collectors.toList());
+
+        log.info("Facturas activas después de filtro: {}", todasFacturas.size());
+
+        // 2. totalFacturado: suma de TODAS las facturas (SIN NINGUN FILTRO)
+        BigDecimal totalFacturado = todasFacturas.stream()
+                .map(f -> BigDecimal.valueOf(Optional.ofNullable(f.getMonto()).orElse(0d)))
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        // Facturas que tienen idObra para otros usos
+        List<FacturaExternalDto> facturasRequeridas = todasFacturas.stream()
+                .filter(f -> f.getIdObra() != null)
+                .collect(Collectors.toList());
+
+        // 3. Obras facturables: requieren factura Y están en estados KPI
+        List<ObraExternalDto> obrasFacturables = todasObras.stream()
+                .filter(o -> Boolean.TRUE.equals(o.getRequiereFactura()))
+                .filter(o -> ESTADOS_KPI_FACTURAS.contains(normalizarEstado(o.getObraEstado())))
+                .collect(Collectors.toList());
+
+        // 4. Mapa de facturado por obra: suma de facturas de cada obra
+        Map<Long, BigDecimal> facturadoPorObra = todasFacturas.stream()
+                .filter(f -> f.getIdObra() != null)
+                .collect(Collectors.groupingBy(
+                    FacturaExternalDto::getIdObra,
+                    Collectors.reducing(BigDecimal.ZERO,
+                        f -> BigDecimal.valueOf(Optional.ofNullable(f.getMonto()).orElse(0d)),
+                        BigDecimal::add)));
+
+        // 5. totalPorFacturar: suma de (presupuesto - facturado) por cada obra facturable
+        BigDecimal totalPorFacturar = obrasFacturables.stream()
+                .map(o -> {
+                    BigDecimal presupuesto = presupuestoEfectivo(o);
+                    BigDecimal facturado = facturadoPorObra.getOrDefault(o.getId(), BigDecimal.ZERO);
+                    return saldoPositivo(presupuesto.subtract(facturado));
+                })
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        // 6. Cobros de obras en estado KPI
+        Set<Long> obraIdsFacturables = obrasFacturables.stream()
+                .map(ObraExternalDto::getId)
+                .collect(Collectors.toSet());
+
+        List<TransaccionExternalDto> cobrosObrasFacturables = obtenerTransaccionesActivas().stream()
+                .filter(tx -> "COBRO".equalsIgnoreCase(Optional.ofNullable(tx.getTipoTransaccion()).orElse("")))
+                .filter(tx -> tx.getIdObra() != null && obraIdsFacturables.contains(tx.getIdObra()))
+                .collect(Collectors.toList());
+
+        // Mapa de cobrado por obra: suma de cobros de cada obra
+        Map<Long, BigDecimal> cobradoPorObra = cobrosObrasFacturables.stream()
+                .collect(Collectors.groupingBy(
+                    TransaccionExternalDto::getIdObra,
+                    Collectors.reducing(BigDecimal.ZERO,
+                        tx -> BigDecimal.valueOf(Optional.ofNullable(tx.getMonto()).orElse(0d)),
+                        BigDecimal::add)));
+
+        BigDecimal totalCobrado = cobradoPorObra.values().stream()
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        // 7. totalPorCobrar: suma de (presupuesto - cobrado) por cada obra facturable
+        BigDecimal totalPorCobrar = obrasFacturables.stream()
+                .map(o -> {
+                    BigDecimal presupuesto = presupuestoEfectivo(o);
+                    BigDecimal cobrado = cobradoPorObra.getOrDefault(o.getId(), BigDecimal.ZERO);
+                    return saldoPositivo(presupuesto.subtract(cobrado));
+                })
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        return new FacturasKpiResponse(totalFacturado, totalPorFacturar, totalCobrado, totalPorCobrar);
+    }
+
+    private String normalizarEstado(String estado) {
+        if (estado == null) return "";
+        return estado.trim().toUpperCase()
+                .replaceAll("\\s+", "_")
+                .replaceAll("[^A-Z0-9_]+", "")
+                .replaceAll("^_+|_+$", "");
     }
 }

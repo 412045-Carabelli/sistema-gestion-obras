@@ -13,6 +13,7 @@ import {
   ComisionesResponse,
   DeudasGlobalesResponse,
   DashboardFinancieroResponse,
+  FacturasKpiResponse,
   FlujoCajaResponse,
   IngresosEgresosResponse,
   NotasObraResponse,
@@ -124,6 +125,10 @@ export class ReportesService {
   getComisiones(filtro?: ReportFilter): Observable<ComisionesResponse> {
     // BFF espera POST y redirige a /comisiones/general o /comisiones/obra/{id} segÃºn filtro
     return this.http.post<ComisionesResponse>(`${this.apiUrl}/financieros/comisiones`, filtro ?? {});
+  }
+
+  getKpiFacturas(filtro?: ReportFilter): Observable<FacturasKpiResponse> {
+    return this.http.post<FacturasKpiResponse>(`${this.apiUrl}/financieros/kpi-facturas`, filtro ?? {});
   }
 
 }

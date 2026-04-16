@@ -1,8 +1,11 @@
+com\reportes\client\FacturasClient$1.class
+com\reportes\dto\external\ObraConTransaccionesDto.class
 com\reportes\client\ObrasClient$2.class
 com\reportes\dto\response\RankingClientesResponse.class
 com\reportes\dto\response\DeudasGlobalesResponse$DetalleDeudaCliente.class
 com\reportes\dto\external\TransaccionExternalDto.class
 com\reportes\dto\response\CuentaCorrienteProveedorResponse.class
+com\reportes\client\FacturasClient.class
 com\reportes\dto\response\DashboardFinancieroResponse$CtaCte.class
 com\reportes\dto\response\NotasObraResponse.class
 com\reportes\client\ProveedoresClient$1.class
@@ -10,6 +13,7 @@ com\reportes\dto\response\AvancePagosObraResponse$ItemAvancePago.class
 com\reportes\dto\response\ResumenGeneralResponse.class
 com\reportes\dto\external\TareaExternalDto.class
 com\reportes\dto\response\AvanceTareasResponse.class
+com\reportes\dto\external\FacturaExternalDto.class
 com\reportes\dto\response\IngresosEgresosResponse$DetalleObra.class
 com\reportes\client\TransaccionesClient$1.class
 com\reportes\config\RestTemplateConfig.class
@@ -67,6 +71,7 @@ com\reportes\dto\response\RankingProveedoresResponse$ItemRankingProveedor.class
 com\reportes\client\ProveedoresClient.class
 com\reportes\dto\response\EstadoObrasResponse.class
 com\reportes\service\ReportesService.class
+com\reportes\dto\response\FacturasKpiResponse.class
 com\reportes\dto\response\PendientesResponse$Pendiente.class
 com\reportes\dto\external\ObraExternalDto.class
 com\reportes\client\ObrasClient.class

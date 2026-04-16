@@ -12,7 +12,7 @@ services:
     ports:
       - "8081:8081"
     volumes:
-      - obras_data:/app/data
+      - ./data/obras:/app/data
     environment:
       - SPRING_PROFILES_ACTIVE=prod
     restart: unless-stopped
@@ -28,7 +28,7 @@ services:
     ports:
       - "8082:8082"
     volumes:
-      - clientes_data:/app/data
+      - ./data/clientes:/app/data
     environment:
       - SPRING_PROFILES_ACTIVE=prod
     restart: unless-stopped
@@ -44,7 +44,7 @@ services:
     ports:
       - "8083:8083"
     volumes:
-      - proveedores_data:/app/data
+      - ./data/proveedores:/app/data
     environment:
       - SPRING_PROFILES_ACTIVE=prod
     restart: unless-stopped
@@ -60,8 +60,8 @@ services:
     ports:
       - "8087:8087"
     volumes:
-      - documentos_data:/app/data
-      - documentos_uploads:/app/uploads
+      - ./data/documentos:/app/data
+      - ./data/uploads:/app/uploads
     environment:
       - SPRING_PROFILES_ACTIVE=prod
       - MINIO_ENABLED=true
@@ -84,7 +84,7 @@ services:
     ports:
       - "8086:8086"
     volumes:
-      - transacciones_data:/app/data
+      - ./data/transacciones:/app/data
     environment:
       - SPRING_PROFILES_ACTIVE=prod
     restart: unless-stopped
@@ -143,9 +143,19 @@ services:
     ports:
       - "8084:8084"
     volumes:
-      - reportes_data:/app/data
+      - ./data/reportes:/app/data
     environment:
       - SPRING_PROFILES_ACTIVE=prod
+      - SERVICIOS_OBRAS_BASE_URL=http://obras-service:8081
+      - SERVICIOS_CLIENTES_BASE_URL=http://clientes-service:8082
+      - SERVICIOS_PROVEEDORES_BASE_URL=http://proveedores-service:8083
+      - SERVICIOS_TRANSACCIONES_BASE_URL=http://transacciones-service:8086
+      - SERVICIOS_FACTURAS_BASE_URL=http://transacciones-service:8086
+    depends_on:
+      - obras-service
+      - clientes-service
+      - proveedores-service
+      - transacciones-service
     restart: unless-stopped
     networks:
       - sgo_backend
@@ -161,7 +171,7 @@ services:
       - "9000:9000"
       - "9001:9001"
     volumes:
-      - minio_data:/data
+      - ./data/minio:/data
     environment:
       - MINIO_ROOT_USER=minioadmin
       - MINIO_ROOT_PASSWORD=minioadmin
@@ -175,13 +185,3 @@ services:
 networks:
   sgo_backend:
     driver: bridge
-
-volumes:
-  obras_data:
-  clientes_data:
-  proveedores_data:
-  documentos_data:
-  documentos_uploads:
-  transacciones_data:
-  reportes_data:
-  minio_data:

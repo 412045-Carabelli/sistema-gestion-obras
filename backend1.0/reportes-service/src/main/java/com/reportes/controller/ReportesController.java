@@ -136,4 +136,9 @@ public class ReportesController {
     public ResponseEntity<NotasObraResponse> notasPorObra(@PathVariable Long obraId) {
         return ResponseEntity.ok(reportesService.generarNotasPorObra(obraId));
     }
+
+    @PostMapping("/financieros/kpi-facturas")
+    public ResponseEntity<FacturasKpiResponse> kpiFacturas(@RequestBody(required = false) ReportFilterRequest filtro) {
+        return ResponseEntity.ok(reportesService.generarKpiFacturas(filtro));
+    }
 }

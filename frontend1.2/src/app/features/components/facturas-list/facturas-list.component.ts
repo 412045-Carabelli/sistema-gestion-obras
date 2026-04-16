@@ -21,10 +21,11 @@ import {FileUploadModule} from 'primeng/fileupload';
 import {ConfirmationService, MessageService} from 'primeng/api';
 import {ConfirmDialog} from 'primeng/confirmdialog';
 
-import {Cliente, Factura, Obra, Transaccion} from '../../../core/models/models';
+import {Cliente, Factura, FacturasKpiResponse, Obra, Transaccion} from '../../../core/models/models';
 import {FacturasService} from '../../../services/facturas/facturas.service';
 import {ClientesService} from '../../../services/clientes/clientes.service';
 import {ObrasService} from '../../../services/obras/obras.service';
+import {ReportesService} from '../../../services/reportes/reportes.service';
 import {TransaccionesService} from '../../../services/transacciones/transacciones.service';
 import {EstadoFormatPipe} from '../../../shared/pipes/estado-format.pipe';
 import {ModalComponent} from '../../../shared/modal/modal.component';
@@ -113,6 +114,7 @@ export class FacturasListComponent implements OnInit, OnDestroy {
   clientesOptions: SelectOption<number | 'todos'>[] = [];
   obrasOptions: SelectOption<number | 'todos'>[] = [];
   datosCargados = false;
+  kpiFacturas: FacturasKpiResponse | null = null;
 
   // Modal nueva factura
   showFacturaModal = false;
@@ -142,6 +144,7 @@ export class FacturasListComponent implements OnInit, OnDestroy {
     private facturasService: FacturasService,
     private clientesService: ClientesService,
     private obrasService: ObrasService,
+    private reportesService: ReportesService,
     private transaccionesService: TransaccionesService,
     private messageService: MessageService,
     private confirmationService: ConfirmationService,
@@ -320,31 +323,19 @@ export class FacturasListComponent implements OnInit, OnDestroy {
   }
 
   get totalFacturado(): number {
-    return this.facturasScopeRequiereFactura.reduce((sum, f) => sum + Number(f.monto || 0), 0);
+    return Number(this.kpiFacturas?.totalFacturado ?? 0);
   }
 
   get totalPorFacturar(): number {
-    return this.obrasScopeRequiereFactura.reduce((sum, obra) => {
-      const obraId = Number(obra.id ?? 0);
-      const facturado = this.facturadoPorObra[obraId] ?? 0;
-      const presupuesto = this.presupuestoPorObra[obraId] ?? this.calcularPresupuestoObra(obra);
-      return sum + Math.max(0, Number(presupuesto || 0) - facturado);
-    }, 0);
+    return Number(this.kpiFacturas?.totalPorFacturar ?? 0);
   }
 
   get totalCobrado(): number {
-    return this.obrasScopeRequiereFactura.reduce((sum, obra) => {
-      const obraId = Number(obra.id ?? 0);
-      const facturado = this.facturadoPorObra[obraId] ?? 0;
-      if (facturado <= 0) return sum;
-      return sum + (this.cobrosPorObra[obraId] ?? 0);
-    }, 0);
+    return Number(this.kpiFacturas?.totalCobrado ?? 0);
   }
 
   get totalPorCobrar(): number {
-    return this.facturasScopeRequiereFactura.reduce((sum, factura) => {
-      return sum + this.obtenerPorCobrarFactura(factura);
-    }, 0);
+    return Number(this.kpiFacturas?.totalPorCobrar ?? 0);
   }
 
   private get facturasScope(): FacturaView[] {
@@ -415,6 +406,18 @@ export class FacturasListComponent implements OnInit, OnDestroy {
         }));
         this.construirListadoObras();
         this.applyFilter();
+        this.cargarKpis();
+      },
+      error: () => {
+        this.datosCargados = true;
+      }
+    });
+  }
+
+  private cargarKpis() {
+    this.reportesService.getKpiFacturas().subscribe({
+      next: (kpi) => {
+        this.kpiFacturas = kpi;
         this.datosCargados = true;
       },
       error: () => {

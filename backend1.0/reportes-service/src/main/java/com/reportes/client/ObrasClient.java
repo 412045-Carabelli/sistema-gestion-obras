@@ -36,8 +36,9 @@ public class ObrasClient {
 
     public List<ObraExternalDto> obtenerObras() {
         try {
+            // Obtener TODAS las obras sin paginación (size=1000 es un número arbitrariamente grande)
             ResponseEntity<List<ObraExternalDto>> response = restTemplate.exchange(
-                    baseUrl + "/api/obras",
+                    baseUrl + "/api/obras?size=1000",
                     HttpMethod.GET,
                     null,
                     OBRAS_TYPE

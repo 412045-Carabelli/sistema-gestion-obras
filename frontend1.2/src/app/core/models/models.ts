@@ -348,6 +348,13 @@ export interface DeudasGlobalesResponse {
   detalleDeudaProveedores: DetalleDeudaProveedor[];
 }
 
+export interface FacturasKpiResponse {
+  totalFacturado: number;
+  totalPorFacturar: number;
+  totalCobrado: number;
+  totalPorCobrar: number;
+}
+
 export interface CuentaCorrienteObraResponse {
   obraId?: number;
   obraNombre?: string;
