@@ -89,6 +89,7 @@ com\apigateway\controller\ReportesBffController$7.class
 com\apigateway\controller\ReportesBffController$1.class
 com\apigateway\controller\GremioBffController$4.class
 com\apigateway\controller\ProveedorBffController$1.class
+com\apigateway\controller\ReportesBffController$23.class
 com\apigateway\controller\CostoBffController$2.class
 com\apigateway\controller\ClienteBffController$5.class
 com\apigateway\controller\TipoTransaccionBffController$1.class

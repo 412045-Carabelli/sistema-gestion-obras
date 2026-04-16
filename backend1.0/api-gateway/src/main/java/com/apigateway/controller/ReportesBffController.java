@@ -71,6 +71,11 @@ public class ReportesBffController {
         return proxyPost("/financieros/pendientes", filtro, new ParameterizedTypeReference<>() {});
     }
 
+    @PostMapping("/financieros/kpi-facturas")
+    public Mono<ResponseEntity<Object>> kpiFacturas(@RequestBody(required = false) Object filtro) {
+        return proxyPost("/financieros/kpi-facturas", filtro, new ParameterizedTypeReference<>() {});
+    }
+
     @PostMapping("/financieros/cuenta-corriente-obra")
     public Mono<ResponseEntity<Object>> cuentaCorrienteObra(@RequestBody(required = false) Map<String, Object> filtro) {
         Long obraId = extractLong(filtro, "obraId");

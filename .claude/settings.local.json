@@ -1,0 +1,29 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(find /c/Users/Usuario/Desktop/my-work/sistema-gestion-obras/frontend1.2/src/app -name *routing* -type f)",
+      "Bash(grep -iE \"\\\\.\\(ts|html\\)$\")",
+      "Bash(grep -E \"\\\\.\\(ts|html|css\\)$\")",
+      "Bash(find /c/Users/Usuario/Desktop/my-work/sistema-gestion-obras -type f -name *obra*.component.ts)",
+      "Bash(find /c/Users/Usuario/Desktop/my-work/sistema-gestion-obras -type f -name *progreso*)",
+      "Bash(xargs grep:*)",
+      "Bash(mvn clean:*)",
+      "Bash(mvn -f backend1.0/reportes-service/pom.xml clean -DskipTests)",
+      "Bash(mvn -f backend1.0/reportes-service/pom.xml compile -DskipTests)",
+      "Bash(mvn compile:*)",
+      "Bash(npm run:*)",
+      "Bash(git reset:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(mv \"C:\\\\Users\\\\Usuario\\\\Desktop\\\\my-work\\\\sistema-gestion-obras\\\\data\\\\obras.db\" \"C:\\\\Users\\\\Usuario\\\\Desktop\\\\my-work\\\\sistema-gestion-obras\\\\data\\\\obras\"\" && mv \"C:UsersUsuarioDesktopmy-worksistema-gestion-obrasdataclientes.db\" \"C:UsersUsuarioDesktopmy-worksistema-gestion-obrasdataclientes\"\")",
+      "Bash(mv \"C:\\\\Users\\\\Usuario\\\\Desktop\\\\my-work\\\\sistema-gestion-obras\\\\data\\\\proveedores.db\" \"C:\\\\Users\\\\Usuario\\\\Desktop\\\\my-work\\\\sistema-gestion-obras\\\\data\\\\proveedores\"\" && mv \"C:UsersUsuarioDesktopmy-worksistema-gestion-obrasdatadocumentos.db\" \"C:UsersUsuarioDesktopmy-worksistema-gestion-obrasdatadocumentos\"\")",
+      "Bash(mv \"C:\\\\Users\\\\Usuario\\\\Desktop\\\\my-work\\\\sistema-gestion-obras\\\\data\\\\transacciones.db\" \"C:\\\\Users\\\\Usuario\\\\Desktop\\\\my-work\\\\sistema-gestion-obras\\\\data\\\\transacciones\"\" && mv \"C:UsersUsuarioDesktopmy-worksistema-gestion-obrasdatareportes.db\" \"C:UsersUsuarioDesktopmy-worksistema-gestion-obrasdatareportes\"\")",
+      "Bash(grep -E \"\\\\.db$\")",
+      "Bash(cp clientes.db clientes/)",
+      "Bash(cp documentos.db documentos/)",
+      "Bash(cp reportes.db reportes/)",
+      "Bash(find C:UsersUsuarioDesktopmy-worksistema-gestion-obrasdata -type f \\\\\\(-name *.db -o -name *.sqlite -o -name *.sqlite3 \\\\\\))",
+      "Bash(sqlite3:*)"
+    ]
+  }
+}
