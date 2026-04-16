@@ -20,7 +20,7 @@ public class FacturasClient {
 
     private final RestTemplate restTemplate;
 
-    @Value("${servicios.facturas.base-url}")
+    @Value("${servicios.transacciones.base-url}")
     private String baseUrl;
 
     private static final ParameterizedTypeReference<List<FacturaExternalDto>> FACTURAS_TYPE =
@@ -45,15 +45,19 @@ public class FacturasClient {
 
     public List<FacturaExternalDto> obtenerFacturasPorObra(Long obraId) {
         try {
+            String url = baseUrl + "/api/facturas/obra/" + obraId;
+            log.info("Llamando a: {}", url);
             ResponseEntity<List<FacturaExternalDto>> response = restTemplate.exchange(
-                    baseUrl + "/api/facturas/obra/" + obraId,
+                    url,
                     HttpMethod.GET,
                     null,
                     FACTURAS_TYPE
             );
-            return response.getBody() != null ? response.getBody() : Collections.emptyList();
+            List<FacturaExternalDto> result = response.getBody() != null ? response.getBody() : Collections.emptyList();
+            log.info("Facturas obtenidas para obra {}: {}", obraId, result.size());
+            return result;
         } catch (RestClientException e) {
-            log.debug("No se pudieron obtener facturas para obra {}: {}", obraId, e.getMessage());
+            log.error("ERROR: No se pudieron obtener facturas para obra {}: {} (URL: {})", obraId, e.getMessage(), baseUrl + "/api/facturas/obra/" + obraId);
             return Collections.emptyList();
         }
     }

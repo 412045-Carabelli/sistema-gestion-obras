@@ -1640,8 +1640,10 @@ public class ReportesService {
             "ADJUDICADA",
             "EN_PROGRESO",
             "FINALIZADA",
+            "COBRADA",
             "FACTURADA",
-            "FACTURADA_PARCIAL"
+            "FACTURADA_PARCIAL",
+            "FACTURADA_TOTAL"
     );
 
     private BigDecimal costoBase(ObraCostoExternalDto costo) {
@@ -1851,6 +1853,10 @@ public class ReportesService {
                 .filter(o -> Boolean.TRUE.equals(o.getRequiereFactura()))
                 .collect(Collectors.toList());
 
+        log.info("=== KPI FACTURAS DEBUG ===");
+        log.info("Total obras: {}", todasObras.size());
+        log.info("Obras que requieren factura: {}", obrasQuiereFactura.size());
+
         for (ObraExternalDto obra : obrasQuiereFactura) {
             List<FacturaExternalDto> facturasPorObra = facturasClient.obtenerFacturasPorObra(obra.getId());
             if (!facturasPorObra.isEmpty()) {
@@ -1868,21 +1874,41 @@ public class ReportesService {
 
         log.info("Facturas activas después de filtro: {}", todasFacturas.size());
 
-        // 2. totalFacturado: suma de TODAS las facturas (SIN NINGUN FILTRO)
-        BigDecimal totalFacturado = todasFacturas.stream()
+        // 3. Obras facturables: requieren factura Y están en estados KPI
+        log.info("Estados KPI permitidos: {}", ESTADOS_KPI_FACTURAS);
+
+        List<ObraExternalDto> obrasFacturables = todasObras.stream()
+                .filter(o -> Boolean.TRUE.equals(o.getRequiereFactura()))
+                .filter(o -> {
+                    String estadoNormalizado = normalizarEstado(o.getObraEstado());
+                    boolean esValido = ESTADOS_KPI_FACTURAS.contains(estadoNormalizado);
+                    if (!esValido) {
+                        log.debug("Obra {} - Estado {} (normalizado: {}) NO está en KPI", o.getId(), o.getObraEstado(), estadoNormalizado);
+                    }
+                    return esValido;
+                })
+                .collect(Collectors.toList());
+
+        log.info("Obras facturables (requiere_factura=true + estado en KPI): {}", obrasFacturables.size());
+        obrasFacturables.forEach(o -> log.info("  - Obra {} ({}): estado={}", o.getId(), o.getNombre(), o.getObraEstado()));
+
+        Set<Long> obraIdsFacturables = obrasFacturables.stream()
+                .map(ObraExternalDto::getId)
+                .collect(Collectors.toSet());
+
+        // 2. totalFacturado: suma de facturas solo de obras en estado KPI
+        List<FacturaExternalDto> facturasValidas = todasFacturas.stream()
+                .filter(f -> f.getIdObra() != null && obraIdsFacturables.contains(f.getIdObra()))
+                .collect(Collectors.toList());
+
+        log.info("Facturas de obras validas: {}", facturasValidas.size());
+        facturasValidas.forEach(f -> log.info("  - Factura {} (Obra {}): monto={}", f.getId(), f.getIdObra(), f.getMonto()));
+
+        BigDecimal totalFacturado = facturasValidas.stream()
                 .map(f -> BigDecimal.valueOf(Optional.ofNullable(f.getMonto()).orElse(0d)))
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
 
-        // Facturas que tienen idObra para otros usos
-        List<FacturaExternalDto> facturasRequeridas = todasFacturas.stream()
-                .filter(f -> f.getIdObra() != null)
-                .collect(Collectors.toList());
-
-        // 3. Obras facturables: requieren factura Y están en estados KPI
-        List<ObraExternalDto> obrasFacturables = todasObras.stream()
-                .filter(o -> Boolean.TRUE.equals(o.getRequiereFactura()))
-                .filter(o -> ESTADOS_KPI_FACTURAS.contains(normalizarEstado(o.getObraEstado())))
-                .collect(Collectors.toList());
+        log.info("TOTAL FACTURADO: {}", totalFacturado);
 
         // 4. Mapa de facturado por obra: suma de facturas de cada obra
         Map<Long, BigDecimal> facturadoPorObra = todasFacturas.stream()
@@ -1903,10 +1929,6 @@ public class ReportesService {
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
 
         // 6. Cobros de obras en estado KPI
-        Set<Long> obraIdsFacturables = obrasFacturables.stream()
-                .map(ObraExternalDto::getId)
-                .collect(Collectors.toSet());
-
         List<TransaccionExternalDto> cobrosObrasFacturables = obtenerTransaccionesActivas().stream()
                 .filter(tx -> "COBRO".equalsIgnoreCase(Optional.ofNullable(tx.getTipoTransaccion()).orElse("")))
                 .filter(tx -> tx.getIdObra() != null && obraIdsFacturables.contains(tx.getIdObra()))

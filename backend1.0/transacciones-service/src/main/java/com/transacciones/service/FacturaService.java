@@ -8,6 +8,7 @@ import com.transacciones.enums.TipoTransaccionEnum;
 import com.transacciones.repository.FacturaRepository;
 import com.transacciones.repository.TransaccionRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
@@ -24,9 +25,10 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.time.LocalDate;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class FacturaService {
@@ -40,24 +42,39 @@ public class FacturaService {
 
     @Transactional(readOnly = true)
     public List<FacturaDto> listar() {
-        return facturaRepository.findAll()
-                .stream()
+        log.info("=== LISTAR FACTURAS DEBUG ===");
+        List<Factura> todasFacturas = facturaRepository.findAll();
+        log.info("Total facturas en BD: {}", todasFacturas.size());
+        todasFacturas.forEach(f -> log.info("  - Factura {} (Obra {}): monto={}, estado={}",
+                f.getId(), f.getIdObra(), f.getMonto(), f.getEstado()));
+
+        return todasFacturas.stream()
                 .map(this::toDto)
                 .collect(Collectors.toList());
     }
 
     @Transactional(readOnly = true)
     public List<FacturaDto> listarPorCliente(Long idCliente) {
-        return facturaRepository.findByIdCliente(idCliente)
-                .stream()
+        log.info("=== LISTAR FACTURAS POR CLIENTE {} DEBUG ===", idCliente);
+        List<Factura> facturas = facturaRepository.findByIdCliente(idCliente);
+        log.info("Total facturas para cliente {}: {}", idCliente, facturas.size());
+        facturas.forEach(f -> log.info("  - Factura {} (Obra {}): monto={}, estado={}",
+                f.getId(), f.getIdObra(), f.getMonto(), f.getEstado()));
+
+        return facturas.stream()
                 .map(this::toDto)
                 .collect(Collectors.toList());
     }
 
     @Transactional(readOnly = true)
     public List<FacturaDto> listarPorObra(Long idObra) {
-        return facturaRepository.findByIdObra(idObra)
-                .stream()
+        log.info("=== LISTAR FACTURAS POR OBRA {} DEBUG ===", idObra);
+        List<Factura> facturas = facturaRepository.findByIdObra(idObra);
+        log.info("Total facturas para obra {}: {}", idObra, facturas.size());
+        facturas.forEach(f -> log.info("  - Factura {} (Obra {}): monto={}, estado={}",
+                f.getId(), f.getIdObra(), f.getMonto(), f.getEstado()));
+
+        return facturas.stream()
                 .map(this::toDto)
                 .collect(Collectors.toList());
     }
