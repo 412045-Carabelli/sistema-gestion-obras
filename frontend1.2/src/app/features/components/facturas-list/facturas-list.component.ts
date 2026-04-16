@@ -78,6 +78,17 @@ interface SelectOption<T> {
 export class FacturasListComponent implements OnInit, OnDestroy {
   @Output() facturaClick = new EventEmitter<Factura>();
 
+  // Estados permitidos para facturación (deben coincidir con backend)
+  private readonly ESTADOS_PERMITIDOS = [
+    'ADJUDICADA',
+    'EN_PROGRESO',
+    'FINALIZADA',
+    'COBRADA',
+    'FACTURADA',
+    'FACTURADA_PARCIAL',
+    'FACTURADA_TOTAL'
+  ];
+
   facturas: FacturaView[] = [];
   facturasFiltradas: FacturaView[] = [];
   obrasFacturacion: Array<{
@@ -371,7 +382,11 @@ export class FacturasListComponent implements OnInit, OnDestroy {
     if (!id) return false;
     const obra = this.obrasById.get(id);
     if (!obra || !Boolean(obra.activo ?? true)) return false;
-    return Boolean(obra.requiere_factura);
+    if (!Boolean(obra.requiere_factura)) return false;
+
+    // Verificar que el estado esté en los permitidos
+    const estadoNormalizado = this.sanitizarEstado(String(obra.obra_estado || ''));
+    return this.ESTADOS_PERMITIDOS.includes(estadoNormalizado);
   }
 
   private cargarCobrosPorObra() {
@@ -695,7 +710,12 @@ export class FacturasListComponent implements OnInit, OnDestroy {
   }
 
   private esObraDisponibleParaFacturar(obra: Obra): boolean {
-    return Boolean(obra.requiere_factura) && Boolean(obra.activo ?? true);
+    if (!Boolean(obra.requiere_factura) || !Boolean(obra.activo ?? true)) {
+      return false;
+    }
+    // Verificar que el estado esté en los permitidos
+    const estadoNormalizado = this.sanitizarEstado(String(obra.obra_estado || ''));
+    return this.ESTADOS_PERMITIDOS.includes(estadoNormalizado);
   }
 
   private actualizarRestanteFacturaObra(obraId: number) {
