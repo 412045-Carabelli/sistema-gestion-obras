@@ -49,6 +49,7 @@ public class TransaccionService {
                 .monto(dto.getMonto())
                 .forma_pago(dto.getForma_pago())
                 .medio_pago(dto.getMedio_pago())
+                .concepto(dto.getConcepto())
                 .facturaCobrada(dto.getFacturaCobrada())
                 .activo(dto.getActivo() != null ? dto.getActivo() : true)
                 .bajaObra(Boolean.FALSE)
@@ -82,6 +83,7 @@ public class TransaccionService {
         entity.setMonto(dto.getMonto());
         entity.setForma_pago(dto.getForma_pago());
         entity.setMedio_pago(dto.getMedio_pago());
+        entity.setConcepto(dto.getConcepto());
         entity.setFacturaCobrada(dto.getFacturaCobrada());
         entity.setActivo(dto.getActivo());
         if (dto.getActivo() != null && !dto.getActivo()) {
@@ -182,6 +184,7 @@ public class TransaccionService {
                 .monto(transaccion.getMonto())
                 .forma_pago(transaccion.getForma_pago())
                 .medio_pago(transaccion.getMedio_pago())
+                .concepto(transaccion.getConcepto())
                 .factura_cobrada(transaccion.getFacturaCobrada())
                 .activo(transaccion.getActivo())
                 .ultima_actualizacion(transaccion.getUltimaActualizacion())
