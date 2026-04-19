@@ -23,7 +23,16 @@
       "Bash(cp documentos.db documentos/)",
       "Bash(cp reportes.db reportes/)",
       "Bash(find C:UsersUsuarioDesktopmy-worksistema-gestion-obrasdata -type f \\\\\\(-name *.db -o -name *.sqlite -o -name *.sqlite3 \\\\\\))",
-      "Bash(sqlite3:*)"
+      "Bash(sqlite3:*)",
+      "mcp__claude_ai_Google_Drive__search_files",
+      "mcp__claude_ai_Google_Drive__read_file_content",
+      "Bash(sed 's/<[^>]*>//g')",
+      "Bash(find ./frontend1.2/src -name *estado*obra* -type f)",
+      "Bash(grep -E \"\\\\.ts$|\\\\.html$\")",
+      "Bash(grep -E \"\\\\.java$\")",
+      "Bash(mvn -q test -Dtest=DeudasGlobalesYDashboardTest)",
+      "Bash(mvn test:*)",
+      "Bash(grep:*)"
     ]
   }
 }

@@ -21,6 +21,7 @@ public class TransaccionDto {
     private Double monto;
     private String forma_pago;
     private String medio_pago;
+    private String concepto;
     private Boolean factura_cobrada;
     private Boolean activo;
     private Instant ultima_actualizacion;

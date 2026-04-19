@@ -787,6 +787,9 @@ export class ObraPresupuestoComponent implements OnInit, OnChanges, AfterViewIni
     const licitacion = String(obra?.id ?? 0).padStart(5, '0');
     const fechaHoy = new Date().toLocaleDateString('es-AR');
 
+    // Obtener documentos existentes para calcular versionado
+    const existingDocs = await this.obtenerDocumentosExistentes(obra.id!);
+
     const formatCurrency = (valor: number) =>
       (Number(valor) || 0).toLocaleString('es-AR', {style: 'currency', currency: 'ARS'});
 
@@ -973,7 +976,8 @@ export class ObraPresupuestoComponent implements OnInit, OnChanges, AfterViewIni
       return;
     }
 
-    const filename = `Presupuesto_${licitacion}.pdf`;
+    // Calcular nombre del archivo con versionado
+    const filename = this.calcularNombreArchivoConVersio(licitacion, existingDocs);
     const modoLabel =
       modo === 'DETALLADO' ? 'Itemizado' : modo === 'MEMORIA' ? 'Global' : 'Mixto';
     const observacion = `Presupuesto ${modoLabel}`;
@@ -1706,6 +1710,57 @@ export class ObraPresupuestoComponent implements OnInit, OnChanges, AfterViewIni
     }
     const el = this.memoriaBody.nativeElement;
     this.memoriaOverflow = el.scrollHeight > el.clientHeight + 2;
+  }
+
+  /**
+   * Obtiene los documentos existentes de una obra de forma síncrona (con Promise)
+   */
+  private obtenerDocumentosExistentes(obraId: number): Promise<any[]> {
+    return new Promise((resolve) => {
+      this.documentosService.getDocumentosByObra(obraId).subscribe({
+        next: (docs) => resolve(docs || []),
+        error: () => resolve([])
+      });
+    });
+  }
+
+  /**
+   * Calcula el nombre del archivo con versionado
+   * Si "Presupuesto_00001.pdf" existe, genera "Presupuesto_00001 (version 1).pdf"
+   * Si "Presupuesto_00001 (version 1).pdf" existe, genera "Presupuesto_00001 (version 2).pdf"
+   */
+  private calcularNombreArchivoConVersio(licitacion: string, existingDocs: any[]): string {
+    const baseFilename = `Presupuesto_${licitacion}`;
+    const basePdfFilename = `${baseFilename}.pdf`;
+
+    // Filtrar documentos que coincidan con el patrón del presupuesto
+    const presupuestosExistentes = (existingDocs || [])
+      .map(doc => doc.nombre_archivo || '')
+      .filter(name => {
+        // Coincide si es el archivo base o si es una versión del archivo base
+        const isBase = name === basePdfFilename;
+        const isVersioned = name.startsWith(`${baseFilename} (version `) && name.endsWith('.pdf');
+        return isBase || isVersioned;
+      });
+
+    // Si no existe el archivo base, creamos sin versión
+    if (!presupuestosExistentes.includes(basePdfFilename)) {
+      return basePdfFilename;
+    }
+
+    // Extraer números de versión existentes
+    const versionNumbers: number[] = [];
+    presupuestosExistentes.forEach(name => {
+      if (name === basePdfFilename) return; // Saltamos el base
+      const match = name.match(new RegExp(`^${baseFilename.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')} \\(version (\\d+)\\)\\.pdf$`));
+      if (match && match[1]) {
+        versionNumbers.push(parseInt(match[1], 10));
+      }
+    });
+
+    // El siguiente número de versión es el máximo + 1
+    const nextVersion = versionNumbers.length > 0 ? Math.max(...versionNumbers) + 1 : 1;
+    return `${baseFilename} (version ${nextVersion}).pdf`;
   }
 }
 

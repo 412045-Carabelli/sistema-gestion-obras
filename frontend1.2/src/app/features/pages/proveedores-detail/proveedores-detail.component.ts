@@ -152,6 +152,7 @@ export class ProveedoresDetailComponent implements OnInit, OnDestroy {
     if (!obra) return false;
     const estado = this.normalizarEstadoObra(obra?.obra_estado);
     return new Set([
+      'ADJUDICADA',
       'EN_PROGRESO',
       'FINALIZADA'
     ]).has(estado);
@@ -198,7 +199,8 @@ export class ProveedoresDetailComponent implements OnInit, OnDestroy {
         const obraId = Number((mov as any)?.id_obra ?? (mov as any)?.obraId ?? 0);
         if (!obraId) return;
         const obra = this.obrasMap[obraId];
-        if (!this.obraGeneraDeudaProveedor(obra)) return;
+        // Permitir obras sin datos en el mapa si tienen movimientos (solo filtrar por estado si obra existe)
+        if (obra && !this.obraGeneraDeudaProveedor(obra)) return;
         const actual = agrupado.get(obraId) || {
           id: obraId,
           nombre: obra?.nombre || `Obra #${obraId}`,

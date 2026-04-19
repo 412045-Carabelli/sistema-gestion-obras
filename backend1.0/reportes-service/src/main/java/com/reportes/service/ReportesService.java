@@ -1632,6 +1632,7 @@ public class ReportesService {
     );
 
     private static final Set<String> ESTADOS_SALDO_PROVEEDOR = Set.of(
+            "ADJUDICADA",
             "EN_PROGRESO",
             "FINALIZADA"
     );

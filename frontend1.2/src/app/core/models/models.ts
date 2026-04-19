@@ -163,6 +163,7 @@ export interface Transaccion {
   monto: number;
   forma_pago: string; // PARCIAL | TOTAL
   medio_pago?: string; // efectivo, transferencia, cheque, etc.
+  concepto?: string; // concepto o detalle del movimiento (opcional)
   factura_cobrada?: boolean;
   saldo_cliente?: number;
   saldo_proveedor?: number;
