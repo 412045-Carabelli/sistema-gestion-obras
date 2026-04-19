@@ -203,7 +203,7 @@ export class ProveedoresDetailComponent implements OnInit, OnDestroy {
         if (obra && !this.obraGeneraDeudaProveedor(obra)) return;
         const actual = agrupado.get(obraId) || {
           id: obraId,
-          nombre: obra?.nombre || `Obra #${obraId}`,
+          nombre: (mov as any)?.obra_nombre || obra?.nombre || `Obra #${obraId}`,
           estado: this.getEstadoObraDisplay(obra),
           total: 0,
           pagado: 0,
@@ -227,6 +227,7 @@ export class ProveedoresDetailComponent implements OnInit, OnDestroy {
       .map(mov => ({
         ...mov,
         id_obra: (mov as any)?.obraId ?? (mov as any)?.id_obra,
+        obra_nombre: (mov as any)?.obraNombre ?? (mov as any)?.obra_nombre,
         tipo_transaccion: (mov as any)?.tipo ?? (mov as any)?.tipo_transaccion,
         medio_pago: (mov as any)?.concepto ?? (mov as any)?.medio_pago,
         forma_pago: (mov as any)?.forma_pago ?? ((mov as any)?.tipo === 'COSTO' ? 'PENDIENTE' : (mov as any)?.forma_pago)
