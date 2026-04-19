@@ -609,7 +609,13 @@ public class ReportesService {
                 movimiento.setMonto(total);
                 movimiento.setObraId(obra.getId());
                 movimiento.setObraNombre(obra.getNombre());
-                movimiento.setObraEstado(obra.getObraEstado() != null ? obra.getObraEstado() : null);
+                String estado = obra.getObraEstado();
+                if (estado == null || estado.isEmpty()) {
+                    estado = obrasClient.obtenerObra(obra.getId())
+                            .map(ObraExternalDto::getObraEstado)
+                            .orElse(null);
+                }
+                movimiento.setObraEstado(estado);
                 movimiento.setProveedorId(proveedorId);
                 movimiento.setProveedorNombre(proveedor != null ? proveedor.getNombre() : null);
                 movimiento.setConcepto(costo.getDescripcion());
@@ -634,7 +640,13 @@ public class ReportesService {
                     ObraExternalDto obra = obrasPorId.get(tx.getIdObra());
                     movimiento.setObraId(tx.getIdObra());
                     movimiento.setObraNombre(obra != null ? obra.getNombre() : null);
-                    movimiento.setObraEstado(obra != null && obra.getObraEstado() != null ? obra.getObraEstado() : null);
+                    String estado = obra != null ? obra.getObraEstado() : null;
+                    if ((estado == null || estado.isEmpty()) && tx.getIdObra() != null) {
+                        estado = obrasClient.obtenerObra(tx.getIdObra())
+                                .map(ObraExternalDto::getObraEstado)
+                                .orElse(null);
+                    }
+                    movimiento.setObraEstado(estado);
                     movimiento.setProveedorId(proveedorId);
                     movimiento.setProveedorNombre(proveedor != null ? proveedor.getNombre() : null);
                     movimiento.setConcepto("Pago " + (tx.getId() != null ? tx.getId() : ""));
