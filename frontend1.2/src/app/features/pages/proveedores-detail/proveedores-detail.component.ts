@@ -201,10 +201,12 @@ export class ProveedoresDetailComponent implements OnInit, OnDestroy {
         const obra = this.obrasMap[obraId];
         // Permitir obras sin datos en el mapa si tienen movimientos (solo filtrar por estado si obra existe)
         if (obra && !this.obraGeneraDeudaProveedor(obra)) return;
+        const estadoDesdeObra = this.getEstadoObraDisplay(obra);
+        const estado = estadoDesdeObra !== '-' ? estadoDesdeObra : ((mov as any)?.obra_estado || '-');
         const actual = agrupado.get(obraId) || {
           id: obraId,
           nombre: (mov as any)?.obra_nombre || obra?.nombre || `Obra #${obraId}`,
-          estado: this.getEstadoObraDisplay(obra) || (mov as any)?.obra_estado || '-',
+          estado: estado,
           total: 0,
           pagado: 0,
           saldo: 0
