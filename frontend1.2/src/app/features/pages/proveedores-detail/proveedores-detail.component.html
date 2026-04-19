@@ -137,6 +137,7 @@
                   <p-table [value]="obrasSaldoProveedor" [paginator]="true" [rows]="8" responsiveLayout="scroll" styleClass="p-datatable-sm">
                     <ng-template pTemplate="header">
                       <tr>
+                        <th>ID</th>
                         <th>Obra</th>
                         <th>Estado</th>
                         <th class="text-right">Total</th>
@@ -147,6 +148,7 @@
                     </ng-template>
                     <ng-template pTemplate="body" let-item>
                       <tr class="cursor-pointer hover:bg-gray-50 transition-colors" (click)="irADetalleObra(item.id)">
+                        <td class="font-mono text-sm font-semibold text-gray-600">{{ item.id }}</td>
                         <td class="font-medium text-gray-900">{{ item.nombre }}</td>
                         <td>
                           <span class="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">
@@ -172,7 +174,7 @@
                     </ng-template>
                     <ng-template pTemplate="emptymessage">
                       <tr>
-                        <td colspan="6" class="text-center py-8 text-gray-500">
+                        <td colspan="7" class="text-center py-8 text-gray-500">
                           <i class="pi pi-inbox text-4xl mb-2"></i>
                           <p>No hay obras con saldo para este proveedor</p>
                         </td>
