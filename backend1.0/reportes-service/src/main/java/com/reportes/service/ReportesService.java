@@ -609,6 +609,7 @@ public class ReportesService {
                 movimiento.setMonto(total);
                 movimiento.setObraId(obra.getId());
                 movimiento.setObraNombre(obra.getNombre());
+                movimiento.setObraEstado(obra.getObraEstado() != null ? obra.getObraEstado() : null);
                 movimiento.setProveedorId(proveedorId);
                 movimiento.setProveedorNombre(proveedor != null ? proveedor.getNombre() : null);
                 movimiento.setConcepto(costo.getDescripcion());
@@ -633,6 +634,7 @@ public class ReportesService {
                     ObraExternalDto obra = obrasPorId.get(tx.getIdObra());
                     movimiento.setObraId(tx.getIdObra());
                     movimiento.setObraNombre(obra != null ? obra.getNombre() : null);
+                    movimiento.setObraEstado(obra != null && obra.getObraEstado() != null ? obra.getObraEstado() : null);
                     movimiento.setProveedorId(proveedorId);
                     movimiento.setProveedorNombre(proveedor != null ? proveedor.getNombre() : null);
                     movimiento.setConcepto("Pago " + (tx.getId() != null ? tx.getId() : ""));

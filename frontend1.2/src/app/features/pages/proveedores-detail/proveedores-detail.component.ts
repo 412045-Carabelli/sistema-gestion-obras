@@ -204,7 +204,7 @@ export class ProveedoresDetailComponent implements OnInit, OnDestroy {
         const actual = agrupado.get(obraId) || {
           id: obraId,
           nombre: (mov as any)?.obra_nombre || obra?.nombre || `Obra #${obraId}`,
-          estado: this.getEstadoObraDisplay(obra),
+          estado: this.getEstadoObraDisplay(obra) || (mov as any)?.obra_estado || '-',
           total: 0,
           pagado: 0,
           saldo: 0
@@ -228,6 +228,7 @@ export class ProveedoresDetailComponent implements OnInit, OnDestroy {
         ...mov,
         id_obra: (mov as any)?.obraId ?? (mov as any)?.id_obra,
         obra_nombre: (mov as any)?.obraNombre ?? (mov as any)?.obra_nombre,
+        obra_estado: (mov as any)?.obraEstado ?? (mov as any)?.obra_estado,
         tipo_transaccion: (mov as any)?.tipo ?? (mov as any)?.tipo_transaccion,
         medio_pago: (mov as any)?.concepto ?? (mov as any)?.medio_pago,
         forma_pago: (mov as any)?.forma_pago ?? ((mov as any)?.tipo === 'COSTO' ? 'PENDIENTE' : (mov as any)?.forma_pago)
