@@ -228,6 +228,9 @@ export class ObrasDetailComponent implements OnInit, OnDestroy, AfterViewInit {
       next: ({ obra, estados, proveedores, clientes }) => {
         console.log(obra)
         this.obra = { ...obra, id: Number(obra.id) };
+        if (this.activeTab === '3' && !obra.requiere_factura) {
+          this.activeTab = '0';
+        }
         this.tareas = obra.tareas ?? [];
         this.costos = obra.costos ?? [];
         this.estadosObra = this.ordenarEstadosObra(estados);
@@ -522,11 +525,11 @@ export class ObrasDetailComponent implements OnInit, OnDestroy, AfterViewInit {
         this.resetFacturaForm();
         this.cargarFacturasObra();
       },
-      error: () => {
+      error: (err: any) => {
         this.messageService.add({
           severity: 'error',
           summary: 'Error',
-          detail: 'No se pudo crear la factura.'
+          detail: err?.error?.message || 'No se pudo crear la factura.'
         });
       }
     });
@@ -743,6 +746,48 @@ export class ObrasDetailComponent implements OnInit, OnDestroy, AfterViewInit {
       return;
     }
 
+    const encontrado = this.estadosObra.find(
+      e => e.name === estadoNormalizado || e.label === estadoNormalizado
+    );
+
+    const onSuccess = (fechaAdj?: string | null, fechaPerd?: string | null) => {
+      this.obra = {
+        ...this.obra,
+        obra_estado: estadoNormalizado,
+        ...(fechaAdj !== undefined ? { fecha_adjudicada: fechaAdj ?? undefined } : {}),
+        ...(fechaPerd !== undefined ? { fecha_perdida: fechaPerd ?? undefined } : {})
+      };
+      this.estadoSeleccionado = estadoNormalizado;
+      this.obraStateService.setObra(this.obra);
+      this.scheduleNotasOverflowCheck();
+      this.cancelarCambioEstado();
+      this.messageService.add({
+        severity: 'success',
+        summary: 'Estado actualizado',
+        detail: 'La obra ahora esta en estado "' + (encontrado?.label ?? estadoNormalizado) + '".'
+      });
+    };
+
+    const onError = () => {
+      this.estadoSeleccionado = estadoPrevio ?? this.obra.obra_estado;
+      this.cancelarCambioEstado();
+      this.messageService.add({
+        severity: 'error',
+        summary: 'Error',
+        detail: 'El estado de la obra no se pudo actualizar',
+      });
+    };
+
+    if (!tipoFecha) {
+      // Sin fecha requerida: usar PATCH simple (evita validaciones de beneficio del PUT)
+      this.obraService.updateEstadoObra(this.obra.id!, estadoNormalizado).subscribe({
+        next: () => onSuccess(),
+        error: onError
+      });
+      return;
+    }
+
+    // Con fecha requerida: usar PUT para persistir la fecha junto al estado
     const payload: any = {
       id_cliente: idCliente,
       obra_estado: estadoNormalizado,
@@ -774,35 +819,12 @@ export class ObrasDetailComponent implements OnInit, OnDestroy, AfterViewInit {
 
     this.obraService.updateObra(this.obra.id!, payload).subscribe({
       next: (updated) => {
-        const encontrado = this.estadosObra.find(
-          e => e.name === estadoNormalizado || e.label === estadoNormalizado
-        );
-        this.obra = {
-          ...this.obra,
-          ...updated,
-          obra_estado: updated?.obra_estado ?? estadoNormalizado,
-          fecha_adjudicada: updated?.fecha_adjudicada ?? payload.fecha_adjudicada ?? this.obra.fecha_adjudicada,
-          fecha_perdida: updated?.fecha_perdida ?? payload.fecha_perdida ?? this.obra.fecha_perdida
-        };
-        this.estadoSeleccionado = estadoNormalizado;
-        this.obraStateService.setObra(this.obra);
-        this.scheduleNotasOverflowCheck();
-        this.cancelarCambioEstado();
-        this.messageService.add({
-          severity: 'success',
-          summary: 'Estado actualizado',
-          detail: 'La obra ahora esta en estado "' + (encontrado?.label ?? this.obra.obra_estado) + '".'
-        });
+        const fechaAdj = updated?.fecha_adjudicada ?? payload.fecha_adjudicada ?? this.obra.fecha_adjudicada;
+        const fechaPerd = updated?.fecha_perdida ?? payload.fecha_perdida ?? this.obra.fecha_perdida;
+        this.obra = { ...this.obra, ...updated, obra_estado: updated?.obra_estado ?? estadoNormalizado };
+        onSuccess(fechaAdj, fechaPerd);
       },
-      error: () => {
-        this.estadoSeleccionado = estadoPrevio ?? this.obra.obra_estado;
-        this.cancelarCambioEstado();
-        this.messageService.add({
-          severity: 'error',
-          summary: 'Estado actualizado',
-          detail: 'El estado de la obra no se pudo actualizar',
-        });
-      }
+      error: onError
     });
   }
 
@@ -1185,11 +1207,11 @@ export class ObrasDetailComponent implements OnInit, OnDestroy, AfterViewInit {
     return estado.replace(/_/g, ' ').toLowerCase().replace(/\b\w/g, c => c.toUpperCase());
   }
 
-  getEstadoFacturacionDetalle(): { label: string; severity: string } {
+  getEstadoFacturacionDetalle(): { label: string; severity: string } | undefined {
     if (this.obra?.requiere_factura) {
       return {label: 'Para facturar', severity: 'success'};
     }
-    return {label: 'Facturacion opcional', severity: 'contrast'};
+    return undefined;
   }
 
   private nombreProveedorTarea(t: Tarea): string {

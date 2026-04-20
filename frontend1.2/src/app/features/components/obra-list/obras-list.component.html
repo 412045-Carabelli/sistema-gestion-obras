@@ -83,11 +83,9 @@
               </p-tag>
             </td>
             <td>
-              <p-tag
-                [severity]="getEstadoFacturacion(obra).severity"
-                [value]="getEstadoFacturacion(obra).label"
-                styleClass="text-xs">
-              </p-tag>
+              @if (getEstadoFacturacion(obra); as ef) {
+                <p-tag [severity]="ef.severity" [value]="ef.label" styleClass="text-xs"></p-tag>
+              }
             </td>
             <td>
               @if (obra.fecha_inicio) {

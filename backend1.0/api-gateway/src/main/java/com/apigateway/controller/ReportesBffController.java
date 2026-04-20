@@ -71,6 +71,11 @@ public class ReportesBffController {
         return proxyPost("/financieros/pendientes", filtro, new ParameterizedTypeReference<>() {});
     }
 
+    @PostMapping("/financieros/kpi-facturas")
+    public Mono<ResponseEntity<Object>> kpiFacturas(@RequestBody(required = false) Object filtro) {
+        return proxyPost("/financieros/kpi-facturas", filtro, new ParameterizedTypeReference<>() {});
+    }
+
     @PostMapping("/financieros/cuenta-corriente-obra")
     public Mono<ResponseEntity<Object>> cuentaCorrienteObra(@RequestBody(required = false) Map<String, Object> filtro) {
         Long obraId = extractLong(filtro, "obraId");
@@ -112,6 +117,11 @@ public class ReportesBffController {
     @PostMapping("/operativos/avance-tareas")
     public Mono<ResponseEntity<Object>> avanceTareas(@RequestBody(required = false) Object filtro) {
         return proxyPost("/operativos/avance-tareas", filtro, new ParameterizedTypeReference<>() {});
+    }
+
+    @GetMapping("/operativos/avance-pagos-obra/{obraId}")
+    public Mono<ResponseEntity<Object>> avancePagosObra(@PathVariable("obraId") Long obraId) {
+        return proxyGet("/operativos/avance-pagos-obra/" + obraId, new ParameterizedTypeReference<>() {});
     }
 
     @PostMapping("/operativos/costos-categoria")

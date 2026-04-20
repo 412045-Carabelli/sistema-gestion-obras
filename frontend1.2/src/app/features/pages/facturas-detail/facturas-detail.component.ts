@@ -117,6 +117,12 @@ export class FacturasDetailComponent implements OnInit, OnDestroy {
     );
   }
 
+  verAdjunto() {
+    if (!this.factura?.id || !this.factura?.nombre_archivo) return;
+    const url = this.facturasService.getFacturaUrl(this.factura.id);
+    window.open(url, '_blank', 'noopener');
+  }
+
   descargarAdjunto() {
     if (!this.factura?.id || !this.factura?.nombre_archivo) return;
     const popup = this.abrirPopup();
@@ -171,6 +177,11 @@ export class FacturasDetailComponent implements OnInit, OnDestroy {
         });
       }
     });
+  }
+
+  irAObra() {
+    if (!this.obra?.id) return;
+    this.router.navigate(['/obras', this.obra.id], { queryParams: { tab: '3' } });
   }
 
   editarFactura() {

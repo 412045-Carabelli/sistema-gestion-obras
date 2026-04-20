@@ -98,6 +98,7 @@ public class TransaccionController {
         entity.setMonto(dto.getMonto());
         entity.setForma_pago(dto.getForma_pago());
         entity.setMedio_pago(dto.getMedio_pago());
+        entity.setConcepto(dto.getConcepto());
         entity.setFacturaCobrada(dto.getFactura_cobrada());
         entity.setActivo(dto.getActivo());
 

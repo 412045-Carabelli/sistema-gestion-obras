@@ -1,5 +1,6 @@
 import {Component, Input, OnInit, ViewChild} from '@angular/core';
-import {CommonModule, DatePipe} from '@angular/common';
+import {DatePipe} from '@angular/common';
+import {DomSanitizer, SafeHtml} from '@angular/platform-browser';
 import {TableModule} from 'primeng/table';
 import {ButtonModule} from 'primeng/button';
 import {DialogModule} from 'primeng/dialog';
@@ -23,7 +24,6 @@ import {finalize} from 'rxjs/operators';
   selector: 'app-obra-documentos',
   standalone: true,
   imports: [
-    CommonModule,
     TableModule,
     ButtonModule,
     DropdownModule,
@@ -61,11 +61,14 @@ export class ObraDocumentosComponent implements OnInit {
   filteredProveedores: Proveedor[] = [];
   filteredClientes: Cliente[] = [];
   descargandoIds = new Set<number>();
+  detalleVisible = false;
+  documentoDetalle: Documento | null = null;
 
   constructor(
     private documentosService: DocumentosService,
     private messageService: MessageService,
-    private confirmationService: ConfirmationService
+    private confirmationService: ConfirmationService,
+    private sanitizer: DomSanitizer
   ) {}
 
   ngOnInit(): void {
@@ -115,7 +118,7 @@ export class ObraDocumentosComponent implements OnInit {
 
     this.documentosService.getDocumentosPorAsociado(tipoAsociado, idAsociado, this.obraId).subscribe({
       next: documentos => {
-        this.documentos = documentos;
+        this.documentos = this.ordenarDocumentos(documentos || []);
         this.loading = false;
       },
       error: () => {
@@ -133,7 +136,7 @@ export class ObraDocumentosComponent implements OnInit {
     }
     this.documentosService.getDocumentosByObra(this.obraId).subscribe({
       next: documentos => {
-        this.documentos = documentos || [];
+        this.documentos = this.ordenarDocumentos(documentos || []);
         this.loading = false;
       },
       error: () => {
@@ -271,6 +274,21 @@ export class ObraDocumentosComponent implements OnInit {
     });
   }
 
+  abrirDetalle(doc: Documento) {
+    this.documentoDetalle = doc;
+    this.detalleVisible = true;
+  }
+
+  sanitizarHtml(html?: string): SafeHtml {
+    return this.sanitizer.bypassSecurityTrustHtml(html || '');
+  }
+
+  previewObservacion(observacion?: string): string {
+    const texto = this.stripHtml(observacion);
+    if (!texto) return '-';
+    return texto.length > 100 ? texto.slice(0, 100) + '…' : texto;
+  }
+
   descargarDocumento(doc: Documento) {
     if (!this.tieneArchivo(doc)) return;
     const docId = Number(doc?.id_documento ?? 0);
@@ -311,7 +329,16 @@ export class ObraDocumentosComponent implements OnInit {
       const id = Number(d?.id_documento ?? 0);
       if (id) map.set(id, d);
     });
-    return Array.from(map.values());
+    return this.ordenarDocumentos(Array.from(map.values()));
+  }
+
+  private ordenarDocumentos(docs: Documento[]): Documento[] {
+    return [...docs].sort((a, b) => {
+      const creadoA = a.creado_en ? new Date(a.creado_en).getTime() : 0;
+      const creadoB = b.creado_en ? new Date(b.creado_en).getTime() : 0;
+      if (creadoA !== creadoB) return creadoB - creadoA;
+      return Number(b.id_documento ?? 0) - Number(a.id_documento ?? 0);
+    });
   }
 
   tieneArchivo(doc: Documento): boolean {

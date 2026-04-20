@@ -23,6 +23,7 @@ public class CuentaCorrienteProveedorResponse {
         private BigDecimal monto = BigDecimal.ZERO;
         private Long obraId;
         private String obraNombre;
+        private String obraEstado;
         private Long proveedorId;
         private String proveedorNombre;
         private String concepto;

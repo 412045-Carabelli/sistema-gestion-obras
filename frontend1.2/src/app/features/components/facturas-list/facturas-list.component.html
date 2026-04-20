@@ -124,64 +124,86 @@
         styleClass="p-datatable-sm">
         <ng-template pTemplate="header">
           <tr>
+            <th pSortableColumn="id" class="bg-gray-50 px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase">ID Obra <p-sortIcon field="id"></p-sortIcon></th>
             <th pSortableColumn="clienteNombre" class="bg-gray-50 px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Cliente <p-sortIcon field="clienteNombre"></p-sortIcon></th>
             <th pSortableColumn="nombre" class="bg-gray-50 px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Obra <p-sortIcon field="nombre"></p-sortIcon></th>
             <th pSortableColumn="estado" class="bg-gray-50 px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Estado <p-sortIcon field="estado"></p-sortIcon></th>
             <th pSortableColumn="presupuesto" class="bg-gray-50 px-4 py-3 text-right text-xs font-semibold text-gray-500 uppercase">Presupuesto <p-sortIcon field="presupuesto"></p-sortIcon></th>
             <th pSortableColumn="facturado" class="bg-gray-50 px-4 py-3 text-right text-xs font-semibold text-gray-500 uppercase">Facturado <p-sortIcon field="facturado"></p-sortIcon></th>
             <th pSortableColumn="porFacturar" class="bg-gray-50 px-4 py-3 text-right text-xs font-semibold text-gray-500 uppercase">Por facturar <p-sortIcon field="porFacturar"></p-sortIcon></th>
+            <th class="bg-gray-50 px-4 py-3 text-right text-xs font-semibold text-gray-500 uppercase">Acciones</th>
           </tr>
         </ng-template>
         <ng-template pTemplate="body" let-o>
-          <tr class="bg-gray-50 cursor-pointer" (click)="toggleObraRow(o.id)">
+          <!-- Fila de la obra -->
+          <tr class="bg-white border-b border-gray-100">
+            <td class="px-4 py-3 text-sm font-medium text-blue-600">{{ o.id }}</td>
             <td class="px-4 py-3 text-sm text-gray-700">{{ o.clienteNombre }}</td>
-            <td class="px-4 py-3 text-sm text-gray-700">{{ o.nombre }}</td>
+            <td class="px-4 py-3 text-sm font-medium text-gray-900">{{ o.nombre }}</td>
             <td class="px-4 py-3 text-sm text-gray-700">{{ o.estado | estadoFormat }}</td>
-            <td class="px-4 py-3 text-sm text-gray-900 text-right">
-              {{ o.presupuesto | currency:'ARS':'symbol':'1.0-2' }}
-            </td>
-            <td class="px-4 py-3 text-sm text-gray-900 text-right">
-              {{ o.facturado | currency:'ARS':'symbol':'1.0-2' }}
-            </td>
-            <td class="px-4 py-3 text-sm text-gray-900 text-right">
+            <td class="px-4 py-3 text-sm text-gray-900 text-right">{{ o.presupuesto | currency:'ARS':'symbol':'1.0-2' }}</td>
+            <td class="px-4 py-3 text-sm text-gray-900 text-right">{{ o.facturado | currency:'ARS':'symbol':'1.0-2' }}</td>
+            <td class="px-4 py-3 text-sm text-right font-medium" [class.text-amber-600]="o.porFacturar > 0" [class.text-gray-400]="o.porFacturar === 0">
               {{ o.porFacturar | currency:'ARS':'symbol':'1.0-2' }}
             </td>
+            <td class="px-4 py-3 text-right">
+              <button type="button" pButton icon="pi pi-arrow-right" class="p-button-text p-button-sm text-gray-400" (click)="irAlObraDetalle(o.id)" pTooltip="Ver detalle de obra" tooltipPosition="left"></button>
+            </td>
           </tr>
-          @if (isObraExpanded(o.id)) {
-            @if (o.facturas?.length) {
-              @for (f of o.facturas; track f.id) {
-                <tr class="hover:bg-gray-50 transition-colors cursor-pointer" (click)="onRowClick(f)">
-                  <td class="px-4 py-3 text-sm text-gray-500"></td>
-                  <td class="px-4 py-3 text-sm text-gray-700">
-                    Factura #{{ f.id }}
-                  </td>
-                  <td class="px-4 py-3 text-sm text-gray-700">
-                    <p-tag
-                      [value]="f.estado || 'EMITIDA'"
-                      [severity]="(f.estado || 'EMITIDA') === 'COBRADA' ? 'success' : 'info'">
-                    </p-tag>
-                  </td>
-                  <td class="px-4 py-3 text-sm text-gray-700">{{ f.fecha | date:'dd/MM/yyyy' }}</td>
-                  <td class="px-4 py-3 text-sm text-gray-900 text-right">
-                    {{ f.monto | currency:'ARS':'symbol':'1.0-2' }}
-                  </td>
-                  <td class="px-4 py-3 text-sm text-gray-900 text-right">
-                    {{ f.porCobrarObra | currency:'ARS':'symbol':'1.0-2' }}
-                  </td>
-                </tr>
+          <!-- Facturas de la obra, siempre visibles -->
+          <tr>
+            <td colspan="8" class="bg-blue-50 px-6 py-3">
+              @if (o.facturas.length === 0) {
+                <p class="text-sm text-gray-500 italic">No hay facturas emitidas para esta obra.</p>
+              } @else {
+                <p-table [value]="o.facturas" styleClass="p-datatable-sm">
+                  <ng-template pTemplate="header">
+                    <tr>
+                      <th class="text-xs font-semibold text-gray-500 uppercase px-3 py-2">ID</th>
+                      <th class="text-xs font-semibold text-gray-500 uppercase px-3 py-2">Fecha</th>
+                      <th class="text-xs font-semibold text-gray-500 uppercase px-3 py-2 text-right">Monto</th>
+                      <th class="text-xs font-semibold text-gray-500 uppercase px-3 py-2 text-center">Estado</th>
+                      <th class="text-xs font-semibold text-gray-500 uppercase px-3 py-2 text-center">Cambiar estado</th>
+                    </tr>
+                  </ng-template>
+                  <ng-template pTemplate="body" let-factura>
+                    <tr class="hover:bg-blue-100 transition-colors">
+                      <td class="px-3 py-2 text-sm cursor-pointer text-blue-600 underline font-medium" (click)="onRowClick(factura)">{{ factura.id }}</td>
+                      <td class="px-3 py-2 text-sm text-gray-700">{{ factura.fecha | date:'dd/MM/yyyy' }}</td>
+                      <td class="px-3 py-2 text-sm text-gray-900 text-right font-medium">{{ factura.monto | currency:'ARS':'symbol':'1.0-2' }}</td>
+                      <td class="px-3 py-2 text-center">
+                        <p-tag
+                          [value]="factura.estado === 'COBRADA' ? 'Cobrada' : 'Emitida'"
+                          [severity]="factura.estado === 'COBRADA' ? 'success' : 'warn'"
+                        ></p-tag>
+                      </td>
+                      <td class="px-3 py-2 text-center">
+                        <button
+                          type="button"
+                          class="inline-flex items-center gap-1 px-3 py-1 text-xs rounded-md border transition-colors"
+                          [class.border-emerald-400]="factura.estado !== 'COBRADA'"
+                          [class.text-emerald-700]="factura.estado !== 'COBRADA'"
+                          [class.hover:bg-emerald-50]="factura.estado !== 'COBRADA'"
+                          [class.border-amber-400]="factura.estado === 'COBRADA'"
+                          [class.text-amber-700]="factura.estado === 'COBRADA'"
+                          [class.hover:bg-amber-50]="factura.estado === 'COBRADA'"
+                          (click)="toggleEstadoFactura(factura)"
+                          [title]="getSiguienteEstadoFacturaLabel(factura)"
+                        >
+                          <i [class]="getSiguienteEstadoFacturaIcon(factura)"></i>
+                          {{ getSiguienteEstadoFacturaLabel(factura) }}
+                        </button>
+                      </td>
+                    </tr>
+                  </ng-template>
+                </p-table>
               }
-            } @else {
-              <tr>
-                <td colspan="6" class="px-4 py-3 text-sm text-gray-500 italic">
-                  Sin facturas registradas para esta obra.
-                </td>
-              </tr>
-            }
-          }
+            </td>
+          </tr>
         </ng-template>
         <ng-template pTemplate="emptymessage">
           <tr>
-            <td colspan="6" class="text-center py-10 text-gray-500">
+            <td colspan="8" class="text-center py-10 text-gray-500">
               <i class="pi pi-inbox text-4xl mb-2"></i>
               <p>No hay obras pendientes de facturacion.</p>
             </td>
@@ -191,3 +213,107 @@
     </div>
   </div>
 }
+
+<p-confirmDialog></p-confirmDialog>
+<p-toast position="bottom-right"></p-toast>
+
+<app-modal
+  [visible]="showFacturaModal"
+  [title]="'Nueva factura'"
+  [width]="'600px'"
+  (closed)="cerrarFacturaModal()"
+  (confirmed)="guardarFactura()"
+>
+  <div class="p-3 space-y-3">
+    <div class="flex gap-5 justify-between">
+      <div>
+        <label class="block text-sm font-medium mb-1 text-gray-700">Cliente</label>
+        <p-select
+          [(ngModel)]="facturaForm.id_cliente"
+          [options]="clientes"
+          optionLabel="nombre"
+          optionValue="id"
+          placeholder="Seleccionar cliente"
+          styleClass="w-full"
+          appendTo="body"
+          (onChange)="onFacturaClienteChange()"
+        ></p-select>
+      </div>
+      <div>
+        <label class="block text-sm font-medium mb-1 text-gray-700">Obra</label>
+        <p-select
+          [(ngModel)]="facturaForm.id_obra"
+          [options]="facturaObrasFiltradas"
+          optionLabel="nombre"
+          optionValue="id"
+          placeholder="Seleccionar obra"
+          styleClass="w-full"
+          appendTo="body"
+          (onChange)="onFacturaObraChange()"
+        ></p-select>
+      </div>
+    </div>
+
+    <div class="flex gap-5">
+      <div class="flex flex-col w-1/2">
+        <label class="block text-sm font-medium mb-1 text-gray-700">Fecha</label>
+        <p-datepicker
+          [(ngModel)]="facturaForm.fecha"
+          appendTo="body"
+          class="w-full"
+          dateFormat="dd/mm/yy"
+        ></p-datepicker>
+      </div>
+      <div class="flex flex-col w-1/2">
+        <label class="block text-sm font-medium mb-1 text-gray-700">Monto</label>
+        <p-inputNumber
+          [(ngModel)]="facturaForm.monto"
+          class="w-full"
+          mode="decimal"
+          locale="es-AR"
+        ></p-inputNumber>
+        @if (facturaRestanteObra != null) {
+          <p class="text-xs text-gray-500 mt-1">
+            Restante por facturar: {{ facturaRestanteObra | currency:'ARS' }}
+          </p>
+        }
+      </div>
+    </div>
+
+    <label class="block text-sm font-medium mb-1 text-gray-700">Estado</label>
+    <p-select
+      [(ngModel)]="facturaForm.estado"
+      [options]="[
+        { label: 'Emitida', value: 'EMITIDA' },
+        { label: 'Cobrada', value: 'COBRADA' }
+      ]"
+      optionLabel="label"
+      optionValue="value"
+      placeholder="Seleccionar estado"
+      styleClass="w-full"
+      appendTo="body"
+    ></p-select>
+
+    <label class="block text-sm font-medium mb-1 text-gray-700">Descripcion</label>
+    <p-editor
+      [(ngModel)]="facturaForm.descripcion"
+      [style]="{ height: '160px' }"
+    ></p-editor>
+
+    <label class="block text-sm font-medium mb-1 text-gray-700">Adjuntar factura (opcional)</label>
+    <p-fileUpload
+      mode="basic"
+      chooseLabel="Seleccionar archivo"
+      chooseIcon="pi pi-upload"
+      accept=".jpg,.jpeg,.png,.pdf"
+      [auto]="false"
+      (onSelect)="onFacturaFileSelected($event)"
+    ></p-fileUpload>
+    @if (facturaFile) {
+      <div class="flex items-center gap-2 text-sm text-gray-700">
+        <span>{{ facturaFile.name }}</span>
+        <button type="button" class="text-red-500 hover:text-red-700" (click)="quitarFacturaArchivo()">x</button>
+      </div>
+    }
+  </div>
+</app-modal>
