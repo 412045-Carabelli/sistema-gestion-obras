@@ -45,6 +45,9 @@ public class Transaccion {
     @Column(name = "medio_pago")
     private String medio_pago; // transferencia, efectivo, cheque, etc.
 
+    @Column(name = "concepto", length = 500)
+    private String concepto; // concepto o detalle del movimiento (opcional)
+
     @Column(name = "factura_cobrada")
     private Boolean facturaCobrada;
 

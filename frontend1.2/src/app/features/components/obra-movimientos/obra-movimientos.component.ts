@@ -70,7 +70,8 @@ export class ObraMovimientosComponent implements OnInit {
     factura_cobrada: false,
     activo: true,
     id_asociado: undefined,
-    tipo_asociado: 'CLIENTE'
+    tipo_asociado: 'CLIENTE',
+    concepto: ''
   };
 
   constructor(
@@ -224,7 +225,14 @@ export class ObraMovimientosComponent implements OnInit {
 
   cargarDatos() {
     this.transaccionesService.getByObra(this.obraId).subscribe(transacciones => {
-      this.transacciones = transacciones.map(t => this.normalizarTransaccion(t));
+      this.transacciones = (transacciones || [])
+        .map(t => this.normalizarTransaccion(t))
+        .sort((a, b) => {
+          const fechaA = a.fecha ? new Date(a.fecha).getTime() : 0;
+          const fechaB = b.fecha ? new Date(b.fecha).getTime() : 0;
+          if (fechaA !== fechaB) return fechaB - fechaA;
+          return Number(b.id ?? 0) - Number(a.id ?? 0);
+        });
       this.movimientosActualizados.emit();
     });
 
@@ -278,7 +286,8 @@ export class ObraMovimientosComponent implements OnInit {
         medio_pago: 'Transferencia',
         factura_cobrada: false,
         activo: true,
-        tipo_asociado: 'CLIENTE'
+        tipo_asociado: 'CLIENTE',
+        concepto: ''
       };
       this.asegurarTipoTransaccionSegunAsociado();
       // Si solo hay un cliente (el de la obra), seleccionarlo por defecto

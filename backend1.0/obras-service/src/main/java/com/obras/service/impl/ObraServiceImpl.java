@@ -384,11 +384,10 @@ public class ObraServiceImpl implements ObraService {
 
         boolean cambiaBeneficio = false;
         if (dto.getBeneficio() != null) {
-            if (existing.getBeneficio() == null) {
-                cambiaBeneficio = true;
-            } else {
-                cambiaBeneficio = dto.getBeneficio().compareTo(existing.getBeneficio()) != 0;
-            }
+            BigDecimal existingBeneficio = existing.getBeneficio() != null
+                    ? existing.getBeneficio()
+                    : BigDecimal.ZERO;
+            cambiaBeneficio = dto.getBeneficio().compareTo(existingBeneficio) != 0;
         }
 
         return cambiaFlag || cambiaBeneficio;

@@ -8,7 +8,7 @@
     <p-button (onClick)="abrirModal()" icon="pi pi-plus" label="Nueva Tarea"></p-button>
   </div>
 
-  @if (resumenProveedores.length > 0) {
+  @if (avancePagos && avancePagos.items.length > 0) {
     <div class="bg-white border border-gray-200 rounded-lg p-4">
       <div class="flex flex-wrap items-center justify-between gap-3 mb-3">
         <div class="text-sm font-semibold text-gray-800">Avance y pagos habilitados</div>
@@ -22,15 +22,40 @@
               <th class="text-right px-3 py-2">Costo total</th>
               <th class="text-right px-3 py-2">Avance</th>
               <th class="text-right px-3 py-2">Pago habilitado</th>
+              <th class="text-right px-3 py-2">Pagado</th>
+              <th class="text-right px-3 py-2">Saldo</th>
+              <th class="text-center px-3 py-2">Estado</th>
             </tr>
           </thead>
           <tbody>
-            @for (row of resumenProveedores; track row.proveedorId) {
+            @for (row of avancePagos.items; track row.proveedorId) {
               <tr class="border-t border-gray-100">
                 <td class="px-3 py-2">{{ row.proveedorNombre }}</td>
                 <td class="px-3 py-2 text-right">{{ row.costoTotal | currency:'ARS':'symbol-narrow':'1.0-0' }}</td>
                 <td class="px-3 py-2 text-right">{{ row.avancePorcentaje | number:'1.0-1' }}%</td>
                 <td class="px-3 py-2 text-right font-semibold">{{ row.pagoHabilitado | currency:'ARS':'symbol-narrow':'1.0-0' }}</td>
+                <td class="px-3 py-2 text-right text-blue-700 font-semibold">{{ row.pagado | currency:'ARS':'symbol-narrow':'1.0-0' }}</td>
+                <td class="px-3 py-2 text-right"
+                  [ngClass]="row.saldo > 1 ? 'text-red-600 font-semibold' : row.saldo < -1 ? 'text-green-600 font-semibold' : 'text-gray-500'">
+                  {{ row.saldo | currency:'ARS':'symbol-narrow':'1.0-0' }}
+                </td>
+                <td class="px-3 py-2 text-center">
+                  @if (row.estadoPago === 'AL_DIA') {
+                    <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-700">
+                      <i class="pi pi-check-circle text-xs"></i> Al día
+                    </span>
+                  } @else if (row.estadoPago === 'ATRASADO') {
+                    <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-700">
+                      <i class="pi pi-exclamation-circle text-xs"></i> Atrasado
+                    </span>
+                  } @else if (row.estadoPago === 'ADELANTADO') {
+                    <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-700">
+                      <i class="pi pi-arrow-up-right text-xs"></i> Adelantado
+                    </span>
+                  } @else {
+                    <span class="text-xs text-gray-400">—</span>
+                  }
+                </td>
               </tr>
             }
           </tbody>

@@ -60,6 +60,10 @@ export class FacturasLayoutComponent implements OnInit, OnDestroy {
     this.router.navigate(['/facturas']);
   }
 
+  abrirNuevaFactura() {
+    this.facturasStateService.triggerOpenCreate();
+  }
+
   isDetail(): boolean {
     return /^\/facturas\/\d+$/.test(this.currentRoute);
   }

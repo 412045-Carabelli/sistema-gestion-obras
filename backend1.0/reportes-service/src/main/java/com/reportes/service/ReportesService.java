@@ -1,6 +1,7 @@
 package com.reportes.service;
 
 import com.reportes.client.ClientesClient;
+import com.reportes.client.FacturasClient;
 import com.reportes.client.ObrasClient;
 import com.reportes.client.ProveedoresClient;
 import com.reportes.client.TransaccionesClient;
@@ -13,6 +14,7 @@ import com.reportes.entity.MovimientoReporte;
 import com.reportes.repository.ComisionRepository;
 import com.reportes.repository.MovimientoReporteRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -23,6 +25,7 @@ import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class ReportesService {
@@ -31,6 +34,7 @@ public class ReportesService {
     private final TransaccionesClient transaccionesClient;
     private final ClientesClient clientesClient;
     private final ProveedoresClient proveedoresClient;
+    private final FacturasClient facturasClient;
     private final ComisionRepository comisionRepository;
     private final MovimientoReporteRepository movimientoReporteRepository;
 
@@ -317,13 +321,11 @@ public class ReportesService {
 
     public PendientesResponse generarPendientes(ReportFilterRequest filtro) {
         ReportFilterRequest filtros = filtroSeguro(filtro);
-        List<ObraExternalDto> obras = filtrarObras(filtros);
+        List<ObraExternalDto> obras = filtrarObrasConDeuda(filtros);
         Map<Long, ObraExternalDto> obrasPorId = mapearPorId(obras, ObraExternalDto::getId);
-        Map<Long, ProveedorExternalDto> proveedores = mapearPorId(proveedoresClient.obtenerProveedores(), ProveedorExternalDto::getId);
-        Map<Long, EstadoPagoExternalDto> estadosPago = mapearPorId(obrasClient.obtenerEstadosPago(), EstadoPagoExternalDto::getId);
 
-        PendientesResponse response = new PendientesResponse();
-
+        // Calcular totales de costos
+        BigDecimal totalCostos = BigDecimal.ZERO;
         for (ObraExternalDto obra : obras) {
             List<ObraCostoExternalDto> costos = obrasClient.obtenerCostos(obra.getId());
             for (ObraCostoExternalDto costo : costos) {
@@ -333,32 +335,18 @@ public class ReportesService {
                 if (filtros.getProveedorId() != null && !Objects.equals(costo.getIdProveedor(), filtros.getProveedorId())) {
                     continue;
                 }
-
-                String estadoNombre = Optional.ofNullable(costo.getIdEstadoPago())
-                        .map(estadosPago::get)
-                        .map(EstadoPagoExternalDto::getEstado)
-                        .orElse("Pendiente");
-
-                if ("PAGADO".equalsIgnoreCase(estadoNombre)) {
-                    continue;
-                }
-
-                PendientesResponse.Pendiente pendiente = new PendientesResponse.Pendiente();
-                pendiente.setObraId(obra.getId());
-                pendiente.setObraNombre(obra.getNombre());
-                pendiente.setDescripcion(costo.getDescripcion());
-                pendiente.setTotal(costoBase(costo));
-                pendiente.setEstadoPago(estadoNombre);
-
-                ProveedorExternalDto proveedor = proveedores.get(costo.getIdProveedor());
-                if (proveedor != null) {
-                    pendiente.setProveedorId(proveedor.getId());
-                    pendiente.setProveedorNombre(proveedor.getNombre());
-                }
-
-                response.getPendientes().add(pendiente);
+                totalCostos = totalCostos.add(costoBase(costo));
             }
         }
+
+        // Calcular totales de pagos (movimientos tipo PAGO)
+        List<TransaccionExternalDto> transacciones = filtrarTransacciones(filtros, obrasPorId);
+        BigDecimal totalPagos = sumarPorTipo(transacciones, "PAGO");
+
+        PendientesResponse response = new PendientesResponse();
+        response.setTotalCostos(totalCostos);
+        response.setTotalPagos(totalPagos);
+        response.setSaldoPorPagar(saldoPositivo(totalCostos.subtract(totalPagos)));
 
         return response;
     }
@@ -621,6 +609,13 @@ public class ReportesService {
                 movimiento.setMonto(total);
                 movimiento.setObraId(obra.getId());
                 movimiento.setObraNombre(obra.getNombre());
+                String estado = obra.getObraEstado();
+                if (estado == null || estado.isEmpty()) {
+                    estado = obrasClient.obtenerObra(obra.getId())
+                            .map(ObraExternalDto::getObraEstado)
+                            .orElse(null);
+                }
+                movimiento.setObraEstado(estado);
                 movimiento.setProveedorId(proveedorId);
                 movimiento.setProveedorNombre(proveedor != null ? proveedor.getNombre() : null);
                 movimiento.setConcepto(costo.getDescripcion());
@@ -645,6 +640,13 @@ public class ReportesService {
                     ObraExternalDto obra = obrasPorId.get(tx.getIdObra());
                     movimiento.setObraId(tx.getIdObra());
                     movimiento.setObraNombre(obra != null ? obra.getNombre() : null);
+                    String estado = obra != null ? obra.getObraEstado() : null;
+                    if ((estado == null || estado.isEmpty()) && tx.getIdObra() != null) {
+                        estado = obrasClient.obtenerObra(tx.getIdObra())
+                                .map(ObraExternalDto::getObraEstado)
+                                .orElse(null);
+                    }
+                    movimiento.setObraEstado(estado);
                     movimiento.setProveedorId(proveedorId);
                     movimiento.setProveedorNombre(proveedor != null ? proveedor.getNombre() : null);
                     movimiento.setConcepto("Pago " + (tx.getId() != null ? tx.getId() : ""));
@@ -1514,6 +1516,8 @@ public class ReportesService {
     }
 
     private BigDecimal calcularMontoComision(ObraExternalDto obra) {
+        if (obra == null) return BigDecimal.ZERO;
+
         BigDecimal porcentaje = Optional.ofNullable(obra.getComision()).orElse(BigDecimal.ZERO);
         if (porcentaje.compareTo(BigDecimal.ZERO) <= 0) {
             return BigDecimal.ZERO;
@@ -1524,31 +1528,23 @@ public class ReportesService {
             return comisionMonto;
         }
 
+        // Usar totalConBeneficio como base de cálculo (incluye beneficios)
         BigDecimal base = Optional.ofNullable(obra.getTotalConBeneficio()).orElse(BigDecimal.ZERO);
-        if (base.compareTo(BigDecimal.ZERO) > 0) {
-            return base
-                    .multiply(porcentaje)
-                    .divide(BigDecimal.valueOf(100), 2, RoundingMode.HALF_UP);
-        }
-
-        BigDecimal presupuesto = Optional.ofNullable(obra.getPresupuesto()).orElse(BigDecimal.ZERO);
-        if (presupuesto.compareTo(BigDecimal.ZERO) <= 0) {
+        if (base.compareTo(BigDecimal.ZERO) <= 0) {
             return BigDecimal.ZERO;
         }
-        return presupuesto
+        return base
                 .multiply(porcentaje)
                 .divide(BigDecimal.valueOf(100), 2, RoundingMode.HALF_UP);
     }
 
     private BigDecimal presupuestoEfectivo(ObraExternalDto obra) {
         if (obra == null) return BigDecimal.ZERO;
-        BigDecimal presupuesto = Optional.ofNullable(obra.getPresupuesto()).orElse(BigDecimal.ZERO);
         BigDecimal totalConBeneficio = Optional.ofNullable(obra.getTotalConBeneficio()).orElse(BigDecimal.ZERO);
-
         if (totalConBeneficio.compareTo(BigDecimal.ZERO) > 0) {
-            return totalConBeneficio.max(presupuesto);
+            return totalConBeneficio;
         }
-        return presupuesto;
+        return Optional.ofNullable(obra.getPresupuesto()).orElse(BigDecimal.ZERO);
     }
 
     private BigDecimal calcularComisionPendiente(ObraExternalDto obra) {
@@ -1594,8 +1590,7 @@ public class ReportesService {
 
     private List<TransaccionExternalDto> obtenerTransaccionesActivas() {
         return transaccionesClient.obtenerTransacciones().stream()
-                .filter(tx -> tx == null || tx.getActivo() == null || Boolean.TRUE.equals(tx.getActivo()))
-                .filter(Objects::nonNull)
+                .filter(tx -> tx != null && (tx.getActivo() == null || Boolean.TRUE.equals(tx.getActivo())))
                 .collect(Collectors.toList());
     }
 
@@ -1609,7 +1604,8 @@ public class ReportesService {
     }
 
     private BigDecimal saldoPositivo(BigDecimal saldo) {
-        return saldo.compareTo(BigDecimal.ZERO) < 0 ? BigDecimal.ZERO : saldo;
+        // Devuelve el saldo real, positivo o negativo (no clampea a ZERO)
+        return saldo != null ? saldo : BigDecimal.ZERO;
     }
 
     private boolean tieneSaldoSignificativo(BigDecimal saldo) {
@@ -1645,12 +1641,24 @@ public class ReportesService {
             "EN_PROGRESO",
             "FINALIZADA",
             "FACTURADA",
+            "FACTURADA_PARCIAL",
             "COBRADA"
     );
 
     private static final Set<String> ESTADOS_SALDO_PROVEEDOR = Set.of(
+            "ADJUDICADA",
             "EN_PROGRESO",
             "FINALIZADA"
+    );
+
+    private static final Set<String> ESTADOS_KPI_FACTURAS = Set.of(
+            "ADJUDICADA",
+            "EN_PROGRESO",
+            "FINALIZADA",
+            "COBRADA",
+            "FACTURADA",
+            "FACTURADA_PARCIAL",
+            "FACTURADA_TOTAL"
     );
 
     private BigDecimal costoBase(ObraCostoExternalDto costo) {
@@ -1691,9 +1699,11 @@ public class ReportesService {
 
         long total = tareas.stream()
                 .filter(t -> filtroPorObra(obra, t))
+                .filter(t -> t.getActivo() == null || Boolean.TRUE.equals(t.getActivo()))
                 .count();
         long completadas = tareas.stream()
                 .filter(t -> filtroPorObra(obra, t))
+                .filter(t -> t.getActivo() == null || Boolean.TRUE.equals(t.getActivo()))
                 .filter(t -> t.getEstadoTarea() != null && "COMPLETADA".equalsIgnoreCase(t.getEstadoTarea()))
                 .count();
 
@@ -1734,5 +1744,239 @@ public class ReportesService {
         boolean desde = inicio == null || !fecha.isBefore(inicio);
         boolean hasta = fin == null || !fecha.isAfter(fin);
         return desde && hasta;
+    }
+
+    public AvancePagosObraResponse generarAvancePagosObra(Long obraId) {
+        AvancePagosObraResponse response = new AvancePagosObraResponse();
+        if (obraId == null) return response;
+
+        // Obtener la obra
+        List<ObraExternalDto> obras = obrasClient.obtenerObras();
+        ObraExternalDto obra = obras.stream()
+                .filter(o -> Objects.equals(o.getId(), obraId))
+                .findFirst()
+                .orElse(null);
+        if (obra == null) return response;
+
+        // Obtener costos y tareas
+        List<ObraCostoExternalDto> costos = obrasClient.obtenerCostos(obraId);
+        List<TareaExternalDto> tareas = obrasClient.obtenerTareasDeObra(obraId);
+        List<TransaccionExternalDto> transacciones = obtenerTransaccionesActivas();
+
+        // Agrupar por proveedor
+        Set<Long> proveedorIds = new HashSet<>();
+        costos.forEach(c -> {
+            if (c.getIdProveedor() != null && c.getIdProveedor() > 0) {
+                proveedorIds.add(c.getIdProveedor());
+            }
+        });
+        tareas.forEach(t -> {
+            if (t.getIdProveedor() != null && t.getIdProveedor() > 0) {
+                proveedorIds.add(t.getIdProveedor());
+            }
+        });
+
+        // Calcular resumen por proveedor
+        proveedorIds.forEach(proveedorId -> {
+            ProveedorExternalDto proveedor = obtenerProveedorById(proveedorId);
+
+            BigDecimal costoTotal = costos.stream()
+                    .filter(c -> Objects.equals(c.getIdProveedor(), proveedorId))
+                    .map(this::costoBase)
+                    .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+            // Calcular avance: suma de porcentajes de tareas COMPLETADAS
+            BigDecimal avancePorcentaje = tareas.stream()
+                    .filter(t -> Objects.equals(t.getIdProveedor(), proveedorId))
+                    .filter(t -> t.getActivo() == null || Boolean.TRUE.equals(t.getActivo()))
+                    .filter(t -> t.getEstadoTarea() != null && "COMPLETADA".equalsIgnoreCase(t.getEstadoTarea()))
+                    .map(t -> BigDecimal.valueOf(t.getPorcentaje() != null ? t.getPorcentaje() : 0))
+                    .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+            avancePorcentaje = avancePorcentaje.min(new BigDecimal("100"));
+
+            BigDecimal pagoHabilitado = costoTotal.multiply(avancePorcentaje)
+                    .divide(BigDecimal.valueOf(100), 2, RoundingMode.HALF_UP);
+
+            // Calcular pagado: suma de transacciones PAGO para este proveedor
+            BigDecimal pagado = transacciones.stream()
+                    .filter(tx -> Objects.equals(tx.getIdObra(), obraId))
+                    .filter(tx -> Objects.equals(tx.getIdAsociado(), proveedorId))
+                    .filter(tx -> "PROVEEDOR".equalsIgnoreCase(Optional.ofNullable(tx.getTipoAsociado()).orElse("")))
+                    .filter(tx -> "PAGO".equalsIgnoreCase(Optional.ofNullable(tx.getTipoTransaccion()).orElse("")))
+                    .map(tx -> BigDecimal.valueOf(Math.abs(tx.getMonto() != null ? tx.getMonto() : 0)))
+                    .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+            BigDecimal saldo = pagoHabilitado.subtract(pagado);
+            String estadoPago = calcularEstadoPago(saldo);
+
+            AvancePagosObraResponse.ItemAvancePago item = new AvancePagosObraResponse.ItemAvancePago();
+            item.setProveedorId(proveedorId);
+            item.setProveedorNombre(proveedor != null ? proveedor.getNombre() : "Proveedor #" + proveedorId);
+            item.setCostoTotal(costoTotal);
+            item.setAvancePorcentaje(avancePorcentaje);
+            item.setPagoHabilitado(pagoHabilitado);
+            item.setPagado(pagado);
+            item.setSaldo(saldo);
+            item.setEstadoPago(estadoPago);
+
+            response.getItems().add(item);
+        });
+
+        response.getItems().sort((a, b) -> a.getProveedorNombre().compareTo(b.getProveedorNombre()));
+        return response;
+    }
+
+    private String calcularEstadoPago(BigDecimal saldo) {
+        if (saldo == null) return "SIN_MOVIMIENTO";
+        BigDecimal threshold = new BigDecimal("1");
+        if (saldo.abs().compareTo(threshold) <= 0) {
+            return "AL_DIA";
+        } else if (saldo.compareTo(BigDecimal.ZERO) > 0) {
+            return "ATRASADO";
+        } else {
+            return "ADELANTADO";
+        }
+    }
+
+    private ProveedorExternalDto obtenerProveedorById(Long proveedorId) {
+        try {
+            List<ProveedorExternalDto> proveedores = proveedoresClient.obtenerProveedores();
+            if (proveedores != null) {
+                return proveedores.stream()
+                        .filter(p -> Objects.equals(p.getId(), proveedorId))
+                        .findFirst()
+                        .orElse(null);
+            }
+        } catch (Exception e) {
+            // Error al obtener proveedores, retorna null
+        }
+        return null;
+    }
+
+    public FacturasKpiResponse generarKpiFacturas(ReportFilterRequest filtro) {
+        ReportFilterRequest filtros = filtroSeguro(filtro);
+
+        // 1. Obtener todas las obras
+        List<ObraExternalDto> todasObras = filtrarObras(filtros);
+        Map<Long, ObraExternalDto> obrasPorId = mapearPorId(todasObras, ObraExternalDto::getId);
+
+        // 2. Obtener facturas solo de obras que requieren factura
+        List<FacturaExternalDto> todasFacturas = new ArrayList<>();
+        int contadorFacturas = 0;
+        List<ObraExternalDto> obrasQuiereFactura = todasObras.stream()
+                .filter(o -> Boolean.TRUE.equals(o.getRequiereFactura()))
+                .collect(Collectors.toList());
+
+        log.info("=== KPI FACTURAS DEBUG ===");
+        log.info("Total obras: {}", todasObras.size());
+        log.info("Obras que requieren factura: {}", obrasQuiereFactura.size());
+
+        for (ObraExternalDto obra : obrasQuiereFactura) {
+            List<FacturaExternalDto> facturasPorObra = facturasClient.obtenerFacturasPorObra(obra.getId());
+            if (!facturasPorObra.isEmpty()) {
+                log.info("Obra {} ({}): {} facturas", obra.getId(), obra.getNombre(), facturasPorObra.size());
+                todasFacturas.addAll(facturasPorObra);
+                contadorFacturas += facturasPorObra.size();
+            }
+        }
+        log.info("Total de facturas obtenidas: {}", contadorFacturas);
+
+        // Filtrar facturas activas
+        todasFacturas = todasFacturas.stream()
+                .filter(f -> Boolean.TRUE.equals(f.getActivo()) || f.getActivo() == null)
+                .collect(Collectors.toList());
+
+        log.info("Facturas activas después de filtro: {}", todasFacturas.size());
+
+        // 3. Obras facturables: requieren factura Y están en estados KPI
+        log.info("Estados KPI permitidos: {}", ESTADOS_KPI_FACTURAS);
+
+        List<ObraExternalDto> obrasFacturables = todasObras.stream()
+                .filter(o -> Boolean.TRUE.equals(o.getRequiereFactura()))
+                .filter(o -> {
+                    String estadoNormalizado = normalizarEstado(o.getObraEstado());
+                    boolean esValido = ESTADOS_KPI_FACTURAS.contains(estadoNormalizado);
+                    if (!esValido) {
+                        log.debug("Obra {} - Estado {} (normalizado: {}) NO está en KPI", o.getId(), o.getObraEstado(), estadoNormalizado);
+                    }
+                    return esValido;
+                })
+                .collect(Collectors.toList());
+
+        log.info("Obras facturables (requiere_factura=true + estado en KPI): {}", obrasFacturables.size());
+        obrasFacturables.forEach(o -> log.info("  - Obra {} ({}): estado={}", o.getId(), o.getNombre(), o.getObraEstado()));
+
+        Set<Long> obraIdsFacturables = obrasFacturables.stream()
+                .map(ObraExternalDto::getId)
+                .collect(Collectors.toSet());
+
+        // 2. totalFacturado: suma de facturas solo de obras en estado KPI
+        List<FacturaExternalDto> facturasValidas = todasFacturas.stream()
+                .filter(f -> f.getIdObra() != null && obraIdsFacturables.contains(f.getIdObra()))
+                .collect(Collectors.toList());
+
+        log.info("Facturas de obras validas: {}", facturasValidas.size());
+        facturasValidas.forEach(f -> log.info("  - Factura {} (Obra {}): monto={}", f.getId(), f.getIdObra(), f.getMonto()));
+
+        BigDecimal totalFacturado = facturasValidas.stream()
+                .map(f -> BigDecimal.valueOf(Optional.ofNullable(f.getMonto()).orElse(0d)))
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        log.info("TOTAL FACTURADO: {}", totalFacturado);
+
+        // 4. Mapa de facturado por obra: suma de facturas de cada obra
+        Map<Long, BigDecimal> facturadoPorObra = todasFacturas.stream()
+                .filter(f -> f.getIdObra() != null)
+                .collect(Collectors.groupingBy(
+                    FacturaExternalDto::getIdObra,
+                    Collectors.reducing(BigDecimal.ZERO,
+                        f -> BigDecimal.valueOf(Optional.ofNullable(f.getMonto()).orElse(0d)),
+                        BigDecimal::add)));
+
+        // 5. totalPorFacturar: suma de (presupuesto - facturado) por cada obra facturable
+        BigDecimal totalPorFacturar = obrasFacturables.stream()
+                .map(o -> {
+                    BigDecimal presupuesto = presupuestoEfectivo(o);
+                    BigDecimal facturado = facturadoPorObra.getOrDefault(o.getId(), BigDecimal.ZERO);
+                    return saldoPositivo(presupuesto.subtract(facturado));
+                })
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        // 6. Cobros de obras en estado KPI
+        List<TransaccionExternalDto> cobrosObrasFacturables = obtenerTransaccionesActivas().stream()
+                .filter(tx -> "COBRO".equalsIgnoreCase(Optional.ofNullable(tx.getTipoTransaccion()).orElse("")))
+                .filter(tx -> tx.getIdObra() != null && obraIdsFacturables.contains(tx.getIdObra()))
+                .collect(Collectors.toList());
+
+        // Mapa de cobrado por obra: suma de cobros de cada obra
+        Map<Long, BigDecimal> cobradoPorObra = cobrosObrasFacturables.stream()
+                .collect(Collectors.groupingBy(
+                    TransaccionExternalDto::getIdObra,
+                    Collectors.reducing(BigDecimal.ZERO,
+                        tx -> BigDecimal.valueOf(Optional.ofNullable(tx.getMonto()).orElse(0d)),
+                        BigDecimal::add)));
+
+        BigDecimal totalCobrado = cobradoPorObra.values().stream()
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        // 7. totalPorCobrar: suma de (presupuesto - cobrado) por cada obra facturable
+        BigDecimal totalPorCobrar = obrasFacturables.stream()
+                .map(o -> {
+                    BigDecimal presupuesto = presupuestoEfectivo(o);
+                    BigDecimal cobrado = cobradoPorObra.getOrDefault(o.getId(), BigDecimal.ZERO);
+                    return saldoPositivo(presupuesto.subtract(cobrado));
+                })
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        return new FacturasKpiResponse(totalFacturado, totalPorFacturar, totalCobrado, totalPorCobrar);
+    }
+
+    private String normalizarEstado(String estado) {
+        if (estado == null) return "";
+        return estado.trim().toUpperCase()
+                .replaceAll("\\s+", "_")
+                .replaceAll("[^A-Z0-9_]+", "")
+                .replaceAll("^_+|_+$", "");
     }
 }

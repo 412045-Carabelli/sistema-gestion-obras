@@ -13,6 +13,7 @@ import {
   ComisionesResponse,
   DeudasGlobalesResponse,
   DashboardFinancieroResponse,
+  FacturasKpiResponse,
   FlujoCajaResponse,
   IngresosEgresosResponse,
   NotasObraResponse,
@@ -73,6 +74,10 @@ export class ReportesService {
     return this.http.post<AvanceTareasResponse>(`${this.apiUrl}/operativos/avance-tareas`, filtro ?? {});
   }
 
+  obtenerAvancePagosObra(obraId: number): Observable<any> {
+    return this.http.get<any>(`${this.apiUrl}/operativos/avance-pagos-obra/${obraId}`);
+  }
+
   getCostosPorCategoria(filtro?: ReportFilter): Observable<CostosPorCategoriaResponse> {
     return this.http.post<CostosPorCategoriaResponse>(`${this.apiUrl}/operativos/costos-categoria`, filtro ?? {});
   }
@@ -120,6 +125,10 @@ export class ReportesService {
   getComisiones(filtro?: ReportFilter): Observable<ComisionesResponse> {
     // BFF espera POST y redirige a /comisiones/general o /comisiones/obra/{id} segÃºn filtro
     return this.http.post<ComisionesResponse>(`${this.apiUrl}/financieros/comisiones`, filtro ?? {});
+  }
+
+  getKpiFacturas(filtro?: ReportFilter): Observable<FacturasKpiResponse> {
+    return this.http.post<FacturasKpiResponse>(`${this.apiUrl}/financieros/kpi-facturas`, filtro ?? {});
   }
 
 }

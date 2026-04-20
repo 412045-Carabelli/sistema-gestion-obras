@@ -72,6 +72,11 @@ public class ReportesController {
         return ResponseEntity.ok(reportesService.generarAvanceTareas(filtro));
     }
 
+    @GetMapping("/operativos/avance-pagos-obra/{obraId}")
+    public ResponseEntity<AvancePagosObraResponse> avancePagosObra(@PathVariable("obraId") Long obraId) {
+        return ResponseEntity.ok(reportesService.generarAvancePagosObra(obraId));
+    }
+
     @PostMapping("/operativos/costos-categoria")
     public ResponseEntity<CostosPorCategoriaResponse> costosPorCategoria(@RequestBody(required = false) ReportFilterRequest filtro) {
         return ResponseEntity.ok(reportesService.generarCostosPorCategoria(filtro));
@@ -130,5 +135,10 @@ public class ReportesController {
     @GetMapping("/obras/{obraId}/notas")
     public ResponseEntity<NotasObraResponse> notasPorObra(@PathVariable Long obraId) {
         return ResponseEntity.ok(reportesService.generarNotasPorObra(obraId));
+    }
+
+    @PostMapping("/financieros/kpi-facturas")
+    public ResponseEntity<FacturasKpiResponse> kpiFacturas(@RequestBody(required = false) ReportFilterRequest filtro) {
+        return ResponseEntity.ok(reportesService.generarKpiFacturas(filtro));
     }
 }

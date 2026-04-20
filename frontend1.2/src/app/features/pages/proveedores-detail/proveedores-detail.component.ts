@@ -152,6 +152,7 @@ export class ProveedoresDetailComponent implements OnInit, OnDestroy {
     if (!obra) return false;
     const estado = this.normalizarEstadoObra(obra?.obra_estado);
     return new Set([
+      'ADJUDICADA',
       'EN_PROGRESO',
       'FINALIZADA'
     ]).has(estado);
@@ -198,11 +199,14 @@ export class ProveedoresDetailComponent implements OnInit, OnDestroy {
         const obraId = Number((mov as any)?.id_obra ?? (mov as any)?.obraId ?? 0);
         if (!obraId) return;
         const obra = this.obrasMap[obraId];
-        if (!this.obraGeneraDeudaProveedor(obra)) return;
+        // Permitir obras sin datos en el mapa si tienen movimientos (solo filtrar por estado si obra existe)
+        if (obra && !this.obraGeneraDeudaProveedor(obra)) return;
+        const estadoDesdeObra = this.getEstadoObraDisplay(obra);
+        const estado = estadoDesdeObra !== '-' ? estadoDesdeObra : ((mov as any)?.obra_estado || '-');
         const actual = agrupado.get(obraId) || {
           id: obraId,
-          nombre: obra?.nombre || `Obra #${obraId}`,
-          estado: this.getEstadoObraDisplay(obra),
+          nombre: (mov as any)?.obra_nombre || obra?.nombre || `Obra #${obraId}`,
+          estado: estado,
           total: 0,
           pagado: 0,
           saldo: 0
@@ -225,6 +229,8 @@ export class ProveedoresDetailComponent implements OnInit, OnDestroy {
       .map(mov => ({
         ...mov,
         id_obra: (mov as any)?.obraId ?? (mov as any)?.id_obra,
+        obra_nombre: (mov as any)?.obraNombre ?? (mov as any)?.obra_nombre,
+        obra_estado: (mov as any)?.obraEstado ?? (mov as any)?.obra_estado,
         tipo_transaccion: (mov as any)?.tipo ?? (mov as any)?.tipo_transaccion,
         medio_pago: (mov as any)?.concepto ?? (mov as any)?.medio_pago,
         forma_pago: (mov as any)?.forma_pago ?? ((mov as any)?.tipo === 'COSTO' ? 'PENDIENTE' : (mov as any)?.forma_pago)

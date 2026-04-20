@@ -74,15 +74,6 @@
               </button>
             </div>
           </div>
-          <div class="flex items-center gap-2">
-            <p-button
-              icon="pi pi-download"
-              label="Descargar adjunto"
-              styleClass="p-button-sm p-button-secondary"
-              [disabled]="!factura?.nombre_archivo"
-              (onClick)="descargarAdjuntoArchivo()">
-            </p-button>
-          </div>
         </div>
       </div>
 
@@ -104,7 +95,16 @@
               <div class="w-12 h-12 rounded-lg bg-blue-100 flex items-center justify-center flex-shrink-0">
                 <i class="pi pi-building text-blue-600 text-lg"></i>
               </div>
-              <p class="text-lg font-semibold text-gray-900">{{ obra?.nombre || 'Sin obra' }}</p>
+              @if (obra?.id) {
+                <button
+                  type="button"
+                  class="text-lg font-semibold text-blue-600 hover:text-blue-800 hover:underline cursor-pointer text-left"
+                  (click)="irAObra()">
+                  {{ obra?.nombre }}
+                </button>
+              } @else {
+                <p class="text-lg font-semibold text-gray-900">Sin obra</p>
+              }
             </div>
           </div>
         </div>

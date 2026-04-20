@@ -44,6 +44,8 @@ public class ObraExternalDto {
     @JsonProperty("beneficio_neto")
     private BigDecimal beneficioNeto;
     private Boolean activo;
+    @JsonProperty("requiere_factura")
+    private Boolean requiereFactura;
     @JsonProperty("creado_en")
     private Instant creadoEn;
     private String notas;

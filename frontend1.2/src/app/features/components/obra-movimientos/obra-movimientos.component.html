@@ -271,6 +271,17 @@
         placeholder="Ej: Transferencia, Efectivo, Cheque"
       />
 
+      <label class="block text-sm font-medium mb-1 text-gray-700">
+        Concepto <span class="text-gray-500 text-xs">(opcional)</span>
+      </label>
+      <input
+        type="text"
+        pInputText
+        [(ngModel)]="nuevoMovimiento.concepto"
+        class="w-full"
+        placeholder="Ej: Adelanto de pago, Comisión, etc."
+      />
+
       <!-- Monto y Fecha -->
       <div class="flex gap-5">
         <div class="flex flex-col w-1/2">
