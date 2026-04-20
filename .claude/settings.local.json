@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(find c:/Users/User/Desktop/Proyectos/sistema-gestion-obras -name *.db)",
+      "Bash(grep -r \"APP_MIGRATION\\\\|sqlite\\\\|migration\" c:/Users/User/Desktop/Proyectos/sistema-gestion-obras/backend1.0/obras-service/src --include=*.java --include=*.yml --include=*.properties -l)"
+    ]
+  }
+}
