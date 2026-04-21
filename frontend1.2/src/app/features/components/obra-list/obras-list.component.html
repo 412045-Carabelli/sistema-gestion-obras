@@ -3,7 +3,7 @@
     <!-- Filtros -->
     <div class="bg-white p-4 rounded-lg border border-gray-200">
       <div class="grid grid-cols-1 md:grid-cols-12 gap-4">
-        <div class="md:col-span-6">
+        <div class="md:col-span-5">
           <p-iconfield iconPosition="left" styleClass="w-full">
             <p-inputicon styleClass="pi pi-search"/>
             <input
@@ -29,7 +29,22 @@
             [showClear]="true">
           </p-multiSelect>
         </div>
-        <div class="md:col-span-3 flex items-center gap-2 h-12">
+
+        <div class="md:col-span-2">
+          <p-multiSelect
+            (onChange)="onFacturacionChange()"
+            [(ngModel)]="estadoFacturacionFiltro"
+            [options]="estadosFacturacionOptions"
+            optionLabel="label"
+            optionValue="value"
+            placeholder="Facturación"
+            styleClass="w-full"
+            [display]="'chip'"
+            [showClear]="true">
+          </p-multiSelect>
+        </div>
+
+        <div class="md:col-span-2 flex items-center gap-2 h-12">
           <p-checkbox
             [(ngModel)]="mostrarInactivos"
             [binary]="true"
