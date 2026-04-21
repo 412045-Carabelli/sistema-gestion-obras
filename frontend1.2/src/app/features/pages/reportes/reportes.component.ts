@@ -981,18 +981,18 @@ export class ReportesComponent implements OnInit, OnDestroy {
   private compararOrdenObras(obraIdA?: number | null, obraIdB?: number | null): number {
     const obraA = this.obras.find(o => Number(o.id) === Number(obraIdA ?? 0));
     const obraB = this.obras.find(o => Number(o.id) === Number(obraIdB ?? 0));
-    const fechaA = this.getFechaInicioMs(obraA);
-    const fechaB = this.getFechaInicioMs(obraB);
+    const fechaA = this.getCreadoEnMs(obraA);
+    const fechaB = this.getCreadoEnMs(obraB);
     if (fechaA !== fechaB) return fechaB - fechaA;
     return Number(obraIdB ?? 0) - Number(obraIdA ?? 0);
   }
 
-  private getFechaInicioMs(obra?: Obra | null): number {
-    const raw = obra?.fecha_inicio;
-    if (!raw) return Number.NEGATIVE_INFINITY;
+  private getCreadoEnMs(obra?: Obra | null): number {
+    const raw = obra?.creado_en;
+    if (!raw) return 0;
     const fecha = new Date(raw);
     const time = fecha.getTime();
-    return Number.isFinite(time) ? time : Number.NEGATIVE_INFINITY;
+    return Number.isFinite(time) ? time : 0;
   }
 
   irAObra(obraId?: number | null) {

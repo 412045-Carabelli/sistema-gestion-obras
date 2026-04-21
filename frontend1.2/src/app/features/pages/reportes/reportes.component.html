@@ -161,14 +161,14 @@
       <div class="grid grid-cols-1 xl:grid-cols-2 gap-6 mt-6">
         <div>
           <h3 class="text-sm font-semibold text-gray-700 mb-3">Me deben</h3>
-          <p-table [value]="detalleDeudaClientes" [paginator]="true" [rows]="5" responsiveLayout="scroll" styleClass="p-datatable-sm">
+          <p-table [value]="detalleDeudaClientes" [paginator]="true" [rows]="5" responsiveLayout="scroll" styleClass="p-datatable-sm" [sortField]="'obraNombre'" [sortOrder]="1">
             <ng-template pTemplate="header">
               <tr>
-                <th>Obra</th>
-                <th>Cliente</th>
-                <th class="text-right">Presupuesto</th>
-                <th class="text-right">Cobrado</th>
-                <th class="text-right">Saldo</th>
+                <th pSortableColumn="obraNombre" class="text-left">Obra <p-sortIcon field="obraNombre"></p-sortIcon></th>
+                <th pSortableColumn="clienteNombre" class="text-left">Cliente <p-sortIcon field="clienteNombre"></p-sortIcon></th>
+                <th pSortableColumn="presupuesto" class="text-right">Presupuesto <p-sortIcon field="presupuesto"></p-sortIcon></th>
+                <th pSortableColumn="cobrado" class="text-right">Cobrado <p-sortIcon field="cobrado"></p-sortIcon></th>
+                <th pSortableColumn="saldo" class="text-right">Saldo <p-sortIcon field="saldo"></p-sortIcon></th>
               </tr>
             </ng-template>
             <ng-template pTemplate="body" let-item>
@@ -194,14 +194,14 @@
 
         <div>
           <h3 class="text-sm font-semibold text-gray-700 mb-3">Debo</h3>
-          <p-table [value]="detalleDeudaProveedores" [paginator]="true" [rows]="5" responsiveLayout="scroll" styleClass="p-datatable-sm">
+          <p-table [value]="detalleDeudaProveedores" [paginator]="true" [rows]="5" responsiveLayout="scroll" styleClass="p-datatable-sm" [sortField]="'obraNombre'" [sortOrder]="1">
             <ng-template pTemplate="header">
               <tr>
-                <th>Obra</th>
-                <th>Proveedor</th>
-                <th class="text-right">Presupuestado</th>
-                <th class="text-right">Pagado</th>
-                <th class="text-right">Saldo</th>
+                <th pSortableColumn="obraNombre" class="text-left">Obra <p-sortIcon field="obraNombre"></p-sortIcon></th>
+                <th pSortableColumn="proveedorNombre" class="text-left">Proveedor <p-sortIcon field="proveedorNombre"></p-sortIcon></th>
+                <th pSortableColumn="presupuestado" class="text-right">Presupuestado <p-sortIcon field="presupuestado"></p-sortIcon></th>
+                <th pSortableColumn="pagado" class="text-right">Pagado <p-sortIcon field="pagado"></p-sortIcon></th>
+                <th pSortableColumn="saldo" class="text-right">Saldo <p-sortIcon field="saldo"></p-sortIcon></th>
               </tr>
             </ng-template>
             <ng-template pTemplate="body" let-item>
