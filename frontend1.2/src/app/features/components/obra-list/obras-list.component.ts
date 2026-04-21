@@ -58,9 +58,15 @@ export class ObrasListComponent implements OnInit {
   estados: { label: string; name: string }[] = [];
 
   estadoFiltro: string[] = [];
+  estadoFacturacionFiltro: string[] = [];
   searchValue: string = '';
   mostrarInactivos = false;
   estadosOptions: EstadoOption[] = [];
+  readonly estadosFacturacionOptions: EstadoOption[] = [
+    { label: 'Pendiente', value: 'Pendiente' },
+    { label: 'Parcial',   value: 'Parcial' },
+    { label: 'Total',     value: 'Total' },
+  ];
   private estadoInicialDesdeRuta: string[] = [];
   private facturasPorObra: Record<number, Factura[]> = {};
   private readonly ESTADOS_CON_FACTURACION = ['ADJUDICADA', 'EN_PROGRESO', 'FINALIZADA'];
@@ -140,7 +146,13 @@ export class ObrasListComponent implements OnInit {
         ? true
         : Boolean(obra.activo ?? true);
 
-      return matchesSearch && matchesEstado && matchesActivo;
+      const ef = this.getEstadoFacturacion(obra);
+      const matchesFacturacion =
+        this.estadoFacturacionFiltro.length === 0
+          ? true
+          : ef != null && this.estadoFacturacionFiltro.includes(ef.label);
+
+      return matchesSearch && matchesEstado && matchesActivo && matchesFacturacion;
     })
       .sort((a, b) => {
         const creadaA = a.creado_en ? new Date(a.creado_en).getTime() : 0;
@@ -218,6 +230,10 @@ export class ObrasListComponent implements OnInit {
   }
 
   onEstadoChange() {
+    this.applyFilter();
+  }
+
+  onFacturacionChange() {
     this.applyFilter();
   }
 
