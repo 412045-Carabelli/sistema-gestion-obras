@@ -808,5 +808,44 @@
     (created)="onProveedorCreado($event)"
   ></app-proveedor-quick-create>
 
+  <app-modal
+    [visible]="showFechaExportModal"
+    title="Seleccionar fecha para cotización"
+    [showFooter]="false"
+    (closed)="cerrarFechaExportModal()"
+  >
+    <div class="p-4 space-y-4">
+      <div class="flex flex-col gap-2">
+        <label class="text-sm font-medium text-gray-700">Fecha de la cotización</label>
+        <p-datepicker
+          [(ngModel)]="fechaExportSeleccionada"
+          [showIcon]="true"
+          dateFormat="dd/mm/yy"
+          appendTo="body"
+          fluid
+          placeholder="Selecciona una fecha"
+          [maxDate]="maxDateExport"
+        ></p-datepicker>
+        <p class="text-xs text-gray-500 mt-1">Por defecto aparece la fecha de hoy</p>
+      </div>
+
+      <div class="flex justify-end gap-2">
+        <p-button
+          label="Cancelar"
+          icon="pi pi-times"
+          styleClass="p-button-text p-button-sm"
+          (onClick)="cerrarFechaExportModal()"
+        ></p-button>
+        <p-button
+          label="Exportar PDF"
+          icon="pi pi-download"
+          styleClass="p-button-primary p-button-sm"
+          (onClick)="confirmarExportarPDFConFecha()"
+          [loading]="exportandoPdf"
+        ></p-button>
+      </div>
+    </div>
+  </app-modal>
+
 </div>
 
