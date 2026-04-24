@@ -1,18 +1,69 @@
 version: '3.9'
 
 services:
+
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: sgo_sqlserver
+    ports:
+      - "1433:1433"
+    environment:
+      - ACCEPT_EULA=Y
+      - MSSQL_SA_PASSWORD=${DB_PASSWORD:-SgoAdmin2024!}
+      - MSSQL_PID=Express
+    volumes:
+      - sqlserver_data:/var/opt/mssql
+      - ./db/sqlserver-init:/init
+    entrypoint: ["/bin/bash", "/init/entrypoint.sh"]
+    healthcheck:
+      test: ["CMD", "/opt/mssql-tools18/bin/sqlcmd", "-S", "localhost",
+             "-U", "sa", "-P", "${DB_PASSWORD:-SgoAdmin2024!}", "-C", "-Q", "SELECT 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 30s
+    restart: unless-stopped
+    networks:
+      - sgo_backend
+
+  migrador:
+    image: ghcr.io/412045-carabelli/sgo-migrador:latest
+    container_name: sgo_migrador
+    environment:
+      - DB_HOST=sqlserver
+      - DB_PORT=1433
+      - DB_USER=sa
+      - DB_PASSWORD=${DB_PASSWORD:-SgoAdmin2024!}
+    volumes:
+      - obras_data:/data/obras
+      - clientes_data:/data/clientes
+      - proveedores_data:/data/proveedores
+      - reportes_data:/data/reportes
+      - transacciones_data:/data/transacciones
+      - documentos_data:/data/documentos
+      - migration_flags:/data/migration
+    depends_on:
+      sqlserver:
+        condition: service_healthy
+    restart: "no"
+    networks:
+      - sgo_backend
+
   obras-service:
     image: ghcr.io/412045-carabelli/sgo-obras-service:latest
     container_name: obras_service
     ports:
       - "8081:8081"
-    volumes:
-      - obras_data:/app/data
     environment:
       - SPRING_PROFILES_ACTIVE=prod
-      - SPRING_SQL_INIT_MODE=always
-      - SPRING_SQL_INIT_DATA_LOCATIONS=classpath:data-prod.sql
-      - SPRING_JPA_DEFER_DATASOURCE_INITIALIZATION=true
+      - DB_HOST=sqlserver
+      - DB_USER=sa
+      - DB_PASSWORD=${DB_PASSWORD:-SgoAdmin2024!}
+    depends_on:
+      sqlserver:
+        condition: service_healthy
+      migrador:
+        condition: service_completed_successfully
     restart: unless-stopped
     networks:
       - sgo_backend
@@ -22,10 +73,16 @@ services:
     container_name: clientes_service
     ports:
       - "8082:8082"
-    volumes:
-      - clientes_data:/app/data
     environment:
       - SPRING_PROFILES_ACTIVE=prod
+      - DB_HOST=sqlserver
+      - DB_USER=sa
+      - DB_PASSWORD=${DB_PASSWORD:-SgoAdmin2024!}
+    depends_on:
+      sqlserver:
+        condition: service_healthy
+      migrador:
+        condition: service_completed_successfully
     restart: unless-stopped
     networks:
       - sgo_backend
@@ -35,13 +92,16 @@ services:
     container_name: proveedores_service
     ports:
       - "8083:8083"
-    volumes:
-      - proveedores_data:/app/data
     environment:
       - SPRING_PROFILES_ACTIVE=prod
-      - SPRING_SQL_INIT_MODE=always
-      - SPRING_SQL_INIT_DATA_LOCATIONS=classpath:data-prod.sql
-      - SPRING_JPA_DEFER_DATASOURCE_INITIALIZATION=true
+      - DB_HOST=sqlserver
+      - DB_USER=sa
+      - DB_PASSWORD=${DB_PASSWORD:-SgoAdmin2024!}
+    depends_on:
+      sqlserver:
+        condition: service_healthy
+      migrador:
+        condition: service_completed_successfully
     restart: unless-stopped
     networks:
       - sgo_backend
@@ -52,13 +112,17 @@ services:
     ports:
       - "8087:8087"
     volumes:
-      - documentos_data:/app/data
       - documentos_uploads:/app/uploads
     environment:
       - SPRING_PROFILES_ACTIVE=prod
-      - SPRING_SQL_INIT_MODE=always
-      - SPRING_SQL_INIT_DATA_LOCATIONS=classpath:data-prod.sql
-      - SPRING_JPA_DEFER_DATASOURCE_INITIALIZATION=true
+      - DB_HOST=sqlserver
+      - DB_USER=sa
+      - DB_PASSWORD=${DB_PASSWORD:-SgoAdmin2024!}
+    depends_on:
+      sqlserver:
+        condition: service_healthy
+      migrador:
+        condition: service_completed_successfully
     restart: unless-stopped
     networks:
       - sgo_backend
@@ -68,13 +132,16 @@ services:
     container_name: transacciones_service
     ports:
       - "8086:8086"
-    volumes:
-      - transacciones_data:/app/data
     environment:
       - SPRING_PROFILES_ACTIVE=prod
-      - SPRING_SQL_INIT_MODE=always
-      - SPRING_SQL_INIT_DATA_LOCATIONS=classpath:data-prod.sql
-      - SPRING_JPA_DEFER_DATASOURCE_INITIALIZATION=true
+      - DB_HOST=sqlserver
+      - DB_USER=sa
+      - DB_PASSWORD=${DB_PASSWORD:-SgoAdmin2024!}
+    depends_on:
+      sqlserver:
+        condition: service_healthy
+      migrador:
+        condition: service_completed_successfully
     restart: unless-stopped
     networks:
       - sgo_backend
@@ -84,10 +151,21 @@ services:
     container_name: reportes_service
     ports:
       - "8084:8084"
-    volumes:
-      - reportes_data:/app/data
     environment:
       - SPRING_PROFILES_ACTIVE=prod
+      - DB_HOST=sqlserver
+      - DB_USER=sa
+      - DB_PASSWORD=${DB_PASSWORD:-SgoAdmin2024!}
+      - SERVICIOS_OBRAS_BASE_URL=http://obras-service:8081
+      - SERVICIOS_CLIENTES_BASE_URL=http://clientes-service:8082
+      - SERVICIOS_PROVEEDORES_BASE_URL=http://proveedores-service:8083
+      - SERVICIOS_TRANSACCIONES_BASE_URL=http://transacciones-service:8086
+      - SERVICIOS_FACTURAS_BASE_URL=http://transacciones-service:8086
+    depends_on:
+      sqlserver:
+        condition: service_healthy
+      migrador:
+        condition: service_completed_successfully
     restart: unless-stopped
     networks:
       - sgo_backend
@@ -120,6 +198,8 @@ services:
     container_name: obras_frontend
     ports:
       - "4200:80"
+    depends_on:
+      - api-gateway
     restart: unless-stopped
     networks:
       - sgo_backend
@@ -129,6 +209,8 @@ networks:
     driver: bridge
 
 volumes:
+  sqlserver_data:
+  migration_flags:
   obras_data:
   clientes_data:
   proveedores_data:
