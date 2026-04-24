@@ -6,7 +6,7 @@ services:
 
   sqlserver:
     image: mcr.microsoft.com/mssql/server:2022-latest
-    container_name: sgo_sqlserver
+    container_name: sgo_sqlserver_v2
     ports:
       - "1433:1433"
     environment:
@@ -21,16 +21,16 @@ services:
       test: ["CMD", "/opt/mssql-tools18/bin/sqlcmd", "-S", "localhost",
              "-U", "sa", "-P", "${DB_PASSWORD:-SgoAdmin2024!}", "-C", "-Q", "SELECT 1"]
       interval: 10s
-      timeout: 5s
-      retries: 12
-      start_period: 30s
+      timeout: 10s
+      retries: 30
+      start_period: 90s
     restart: unless-stopped
     networks:
       - sgo_backend
 
   migrador:
     build: ./db/migrador
-    container_name: sgo_migrador
+    container_name: sgo_migrador_v2
     environment:
       - DB_HOST=sqlserver
       - DB_PORT=1433
@@ -53,7 +53,7 @@ services:
 
   obras-service:
     build: ./backend1.0/obras-service
-    container_name: obras_service_local
+    container_name: obras_service_local_v2
     ports:
       - "8081:8081"
     environment:
@@ -75,7 +75,7 @@ services:
 
   clientes-service:
     build: ./backend1.0/clientes-service
-    container_name: clientes_service_local
+    container_name: clientes_service_local_v2
     ports:
       - "8082:8082"
     environment:
@@ -97,7 +97,7 @@ services:
 
   proveedores-service:
     build: ./backend1.0/proveedores-service
-    container_name: proveedores_service_local
+    container_name: proveedores_service_local_v2
     ports:
       - "8083:8083"
     environment:
@@ -119,7 +119,7 @@ services:
 
   documentos-service:
     build: ./backend1.0/documentos-service
-    container_name: documentos_service_local
+    container_name: documentos_service_local_v2
     ports:
       - "8087:8087"
     volumes:
@@ -150,7 +150,7 @@ services:
 
   transacciones-service:
     build: ./backend1.0/transacciones-service
-    container_name: transacciones_service_local
+    container_name: transacciones_service_local_v2
     ports:
       - "8086:8086"
     environment:
@@ -172,7 +172,7 @@ services:
 
   reportes-service:
     build: ./backend1.0/reportes-service
-    container_name: reportes_service_local
+    container_name: reportes_service_local_v2
     ports:
       - "8084:8084"
     environment:
@@ -201,7 +201,7 @@ services:
     build:
       context: ./backend1.0/api-gateway
       dockerfile: Dockerfile
-    container_name: api_gateway_service_local
+    container_name: api_gateway_service_local_v2
     ports:
       - "8080:8080"
     environment:
@@ -232,7 +232,7 @@ services:
 
   frontend:
     build: ./frontend1.2
-    container_name: obras_frontend
+    container_name: obras_frontend_v2
     ports:
       - "4200:80"
     depends_on:
@@ -243,7 +243,7 @@ services:
 
   minio:
     image: minio/minio:latest
-    container_name: minio
+    container_name: minio_v2
     command: server /data --console-address ":9001"
     ports:
       - "9000:9000"

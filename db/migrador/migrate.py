@@ -365,35 +365,75 @@ def migrate_transacciones():
         )
         cur.execute("SET IDENTITY_INSERT tipo_transaccion OFF")
 
-    tx_rows = src.execute(
-        "SELECT id,id_obra,tipo_asociado,id_asociado,id_tipo_transaccion,fecha,monto,"
-        "forma_pago,medio_pago,concepto,factura_cobrada,activo,baja_obra,"
-        "ultima_actualizacion,tipo_actualizacion FROM transacciones"
-    ).fetchall()
-    if tx_rows:
-        tx_rows = process_rows(tx_rows, [5, 13])
-        cur.execute("SET IDENTITY_INSERT transacciones ON")
-        cur.executemany(
-            "INSERT INTO transacciones (id,id_obra,tipo_asociado,id_asociado,id_tipo_transaccion,fecha,monto,"
-            "forma_pago,medio_pago,concepto,factura_cobrada,activo,baja_obra,"
-            "ultima_actualizacion,tipo_actualizacion) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)", tx_rows
-        )
-        cur.execute("SET IDENTITY_INSERT transacciones OFF")
+    # Verificar si la columna 'concepto' existe
+    columns_info = src.execute("PRAGMA table_info(transacciones)").fetchall()
+    column_names = [col[1] for col in columns_info]
 
-    fac_rows = src.execute(
-        "SELECT id,id_cliente,id_obra,monto,monto_restante,fecha,descripcion,estado,"
-        "nombre_archivo,path_archivo,activo,impacta_cta_cte,id_transaccion,"
-        "ultima_actualizacion,tipo_actualizacion FROM facturas"
-    ).fetchall()
-    if fac_rows:
-        fac_rows = process_rows(fac_rows, [5, 13])
-        cur.execute("SET IDENTITY_INSERT facturas ON")
-        cur.executemany(
-            "INSERT INTO facturas (id,id_cliente,id_obra,monto,monto_restante,fecha,descripcion,estado,"
+    if "concepto" in column_names:
+        tx_rows = src.execute(
+            "SELECT id,id_obra,tipo_asociado,id_asociado,id_tipo_transaccion,fecha,monto,"
+            "forma_pago,medio_pago,concepto,factura_cobrada,activo,baja_obra,"
+            "ultima_actualizacion,tipo_actualizacion FROM transacciones"
+        ).fetchall()
+        if tx_rows:
+            tx_rows = process_rows(tx_rows, [5, 13])
+            cur.execute("SET IDENTITY_INSERT transacciones ON")
+            cur.executemany(
+                "INSERT INTO transacciones (id,id_obra,tipo_asociado,id_asociado,id_tipo_transaccion,fecha,monto,"
+                "forma_pago,medio_pago,concepto,factura_cobrada,activo,baja_obra,"
+                "ultima_actualizacion,tipo_actualizacion) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)", tx_rows
+            )
+            cur.execute("SET IDENTITY_INSERT transacciones OFF")
+    else:
+        tx_rows = src.execute(
+            "SELECT id,id_obra,tipo_asociado,id_asociado,id_tipo_transaccion,fecha,monto,"
+            "forma_pago,medio_pago,factura_cobrada,activo,baja_obra,"
+            "ultima_actualizacion,tipo_actualizacion FROM transacciones"
+        ).fetchall()
+        if tx_rows:
+            tx_rows = process_rows(tx_rows, [5, 12])
+            cur.execute("SET IDENTITY_INSERT transacciones ON")
+            cur.executemany(
+                "INSERT INTO transacciones (id,id_obra,tipo_asociado,id_asociado,id_tipo_transaccion,fecha,monto,"
+                "forma_pago,medio_pago,factura_cobrada,activo,baja_obra,"
+                "ultima_actualizacion,tipo_actualizacion) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)", tx_rows
+            )
+            cur.execute("SET IDENTITY_INSERT transacciones OFF")
+
+    # Verificar si la columna 'impacta_cta_cte' existe en facturas
+    columns_info = src.execute("PRAGMA table_info(facturas)").fetchall()
+    column_names = [col[1] for col in columns_info]
+
+    if "impacta_cta_cte" in column_names:
+        fac_rows = src.execute(
+            "SELECT id,id_cliente,id_obra,monto,monto_restante,fecha,descripcion,estado,"
             "nombre_archivo,path_archivo,activo,impacta_cta_cte,id_transaccion,"
-            "ultima_actualizacion,tipo_actualizacion) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)", fac_rows
-        )
-        cur.execute("SET IDENTITY_INSERT facturas OFF")
+            "ultima_actualizacion,tipo_actualizacion FROM facturas"
+        ).fetchall()
+        if fac_rows:
+            fac_rows = process_rows(fac_rows, [5, 13])
+            cur.execute("SET IDENTITY_INSERT facturas ON")
+            cur.executemany(
+                "INSERT INTO facturas (id,id_cliente,id_obra,monto,monto_restante,fecha,descripcion,estado,"
+                "nombre_archivo,path_archivo,activo,impacta_cta_cte,id_transaccion,"
+                "ultima_actualizacion,tipo_actualizacion) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)", fac_rows
+            )
+            cur.execute("SET IDENTITY_INSERT facturas OFF")
+    else:
+        fac_rows = src.execute(
+            "SELECT id,id_cliente,id_obra,monto,monto_restante,fecha,descripcion,estado,"
+            "nombre_archivo,path_archivo,activo,id_transaccion,"
+            "ultima_actualizacion,tipo_actualizacion FROM facturas"
+        ).fetchall()
+        if fac_rows:
+            fac_rows = process_rows(fac_rows, [5, 12])
+            cur.execute("SET IDENTITY_INSERT facturas ON")
+            cur.executemany(
+                "INSERT INTO facturas (id,id_cliente,id_obra,monto,monto_restante,fecha,descripcion,estado,"
+                "nombre_archivo,path_archivo,activo,id_transaccion,"
+                "ultima_actualizacion,tipo_actualizacion) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)", fac_rows
+            )
+            cur.execute("SET IDENTITY_INSERT facturas OFF")
 
     src.close()
     conn.commit()
