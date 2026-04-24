@@ -7,7 +7,8 @@ group "default" {
     "transacciones-service",
     "reportes-service",
     "api-gateway",
-    "frontend"
+    "frontend",
+    "migrador"
   ]
 }
 
@@ -99,6 +100,15 @@ target "frontend" {
   tags     = [
     "${REGISTRY}/${OWNER}/sgo-frontend:${TAG}",
     "${REGISTRY}/${OWNER}/sgo-frontend:latest"
+  ]
+}
+
+target "migrador" {
+  inherits = ["_common"]
+  context  = "db/migrador"
+  tags     = [
+    "${REGISTRY}/${OWNER}/sgo-migrador:${TAG}",
+    "${REGISTRY}/${OWNER}/sgo-migrador:latest"
   ]
 }
 

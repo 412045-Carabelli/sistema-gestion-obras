@@ -34,8 +34,7 @@ public class Factura {
     @Column(name = "fecha")
     private LocalDate fecha;
 
-    @Lob
-    @Column(name = "descripcion")
+    @Column(name = "descripcion", columnDefinition = "NVARCHAR(MAX)")
     private String descripcion;
 
     @Column(name = "estado")
