@@ -36,7 +36,7 @@ CREATE TABLE movimientos (
     id            BIGINT IDENTITY(1,1) PRIMARY KEY,
     proveedor_id  BIGINT        NOT NULL,
     obra_id       BIGINT,
-    descripcion   VARCHAR(255),
+    descripcion   NVARCHAR(MAX),
     monto         DECIMAL(14,2) NOT NULL DEFAULT 0,
     monto_pagado  DECIMAL(14,2) NOT NULL DEFAULT 0,
     pagado        BIT           NOT NULL DEFAULT 0,

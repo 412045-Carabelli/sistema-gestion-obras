@@ -61,11 +61,14 @@ services:
       - DB_HOST=sqlserver
       - DB_USER=sa
       - DB_PASSWORD=${DB_PASSWORD:-SgoAdmin2024!}
+      - SPRING_DATASOURCE_URL=jdbc:sqlserver://sqlserver:1433;databaseName=sgo_obras;encrypt=false;trustServerCertificate=true
+      - SPRING_DATASOURCE_USERNAME=sa
+      - SPRING_DATASOURCE_PASSWORD=${DB_PASSWORD:-SgoAdmin2024!}
+      - SPRING_JPA_PROPERTIES_HIBERNATE_DIALECT=org.hibernate.dialect.SQLServerDialect
+      - SPRING_FLYWAY_ENABLED=true
     depends_on:
       sqlserver:
         condition: service_healthy
-      migrador:
-        condition: service_completed_successfully
     restart: unless-stopped
     networks:
       - sgo_backend
@@ -80,11 +83,14 @@ services:
       - DB_HOST=sqlserver
       - DB_USER=sa
       - DB_PASSWORD=${DB_PASSWORD:-SgoAdmin2024!}
+      - SPRING_DATASOURCE_URL=jdbc:sqlserver://sqlserver:1433;databaseName=sgo_clientes;encrypt=false;trustServerCertificate=true
+      - SPRING_DATASOURCE_USERNAME=sa
+      - SPRING_DATASOURCE_PASSWORD=${DB_PASSWORD:-SgoAdmin2024!}
+      - SPRING_JPA_PROPERTIES_HIBERNATE_DIALECT=org.hibernate.dialect.SQLServerDialect
+      - SPRING_FLYWAY_ENABLED=true
     depends_on:
       sqlserver:
         condition: service_healthy
-      migrador:
-        condition: service_completed_successfully
     restart: unless-stopped
     networks:
       - sgo_backend
@@ -99,11 +105,14 @@ services:
       - DB_HOST=sqlserver
       - DB_USER=sa
       - DB_PASSWORD=${DB_PASSWORD:-SgoAdmin2024!}
+      - SPRING_DATASOURCE_URL=jdbc:sqlserver://sqlserver:1433;databaseName=sgo_proveedores;encrypt=false;trustServerCertificate=true
+      - SPRING_DATASOURCE_USERNAME=sa
+      - SPRING_DATASOURCE_PASSWORD=${DB_PASSWORD:-SgoAdmin2024!}
+      - SPRING_JPA_PROPERTIES_HIBERNATE_DIALECT=org.hibernate.dialect.SQLServerDialect
+      - SPRING_FLYWAY_ENABLED=true
     depends_on:
       sqlserver:
         condition: service_healthy
-      migrador:
-        condition: service_completed_successfully
     restart: unless-stopped
     networks:
       - sgo_backend
@@ -120,6 +129,11 @@ services:
       - DB_HOST=sqlserver
       - DB_USER=sa
       - DB_PASSWORD=${DB_PASSWORD:-SgoAdmin2024!}
+      - SPRING_DATASOURCE_URL=jdbc:sqlserver://sqlserver:1433;databaseName=sgo_documentos;encrypt=false;trustServerCertificate=true
+      - SPRING_DATASOURCE_USERNAME=sa
+      - SPRING_DATASOURCE_PASSWORD=${DB_PASSWORD:-SgoAdmin2024!}
+      - SPRING_JPA_PROPERTIES_HIBERNATE_DIALECT=org.hibernate.dialect.SQLServerDialect
+      - SPRING_FLYWAY_ENABLED=true
       - MINIO_ENABLED=true
       - MINIO_URL=http://minio:9000
       - MINIO_ACCESS_KEY=minioadmin
@@ -128,8 +142,6 @@ services:
     depends_on:
       sqlserver:
         condition: service_healthy
-      migrador:
-        condition: service_completed_successfully
       minio:
         condition: service_started
     restart: unless-stopped
@@ -146,11 +158,14 @@ services:
       - DB_HOST=sqlserver
       - DB_USER=sa
       - DB_PASSWORD=${DB_PASSWORD:-SgoAdmin2024!}
+      - SPRING_DATASOURCE_URL=jdbc:sqlserver://sqlserver:1433;databaseName=sgo_transacciones;encrypt=false;trustServerCertificate=true
+      - SPRING_DATASOURCE_USERNAME=sa
+      - SPRING_DATASOURCE_PASSWORD=${DB_PASSWORD:-SgoAdmin2024!}
+      - SPRING_JPA_PROPERTIES_HIBERNATE_DIALECT=org.hibernate.dialect.SQLServerDialect
+      - SPRING_FLYWAY_ENABLED=true
     depends_on:
       sqlserver:
         condition: service_healthy
-      migrador:
-        condition: service_completed_successfully
     restart: unless-stopped
     networks:
       - sgo_backend
@@ -165,6 +180,11 @@ services:
       - DB_HOST=sqlserver
       - DB_USER=sa
       - DB_PASSWORD=${DB_PASSWORD:-SgoAdmin2024!}
+      - SPRING_DATASOURCE_URL=jdbc:sqlserver://sqlserver:1433;databaseName=sgo_reportes;encrypt=false;trustServerCertificate=true
+      - SPRING_DATASOURCE_USERNAME=sa
+      - SPRING_DATASOURCE_PASSWORD=${DB_PASSWORD:-SgoAdmin2024!}
+      - SPRING_JPA_PROPERTIES_HIBERNATE_DIALECT=org.hibernate.dialect.SQLServerDialect
+      - SPRING_FLYWAY_ENABLED=true
       - SERVICIOS_OBRAS_BASE_URL=http://obras-service:8081
       - SERVICIOS_CLIENTES_BASE_URL=http://clientes-service:8082
       - SERVICIOS_PROVEEDORES_BASE_URL=http://proveedores-service:8083
@@ -173,8 +193,6 @@ services:
     depends_on:
       sqlserver:
         condition: service_healthy
-      migrador:
-        condition: service_completed_successfully
     restart: unless-stopped
     networks:
       - sgo_backend
@@ -194,12 +212,20 @@ services:
       - SERVICES_DOCUMENTOS_URL=http://documentos-service:8087/api/documentos
       - SERVICES_TRANSACCIONES_URL=http://transacciones-service:8086/api/transacciones
     depends_on:
-      - obras-service
-      - clientes-service
-      - proveedores-service
-      - documentos-service
-      - transacciones-service
-      - reportes-service
+      obras-service:
+        condition: service_started
+      clientes-service:
+        condition: service_started
+      proveedores-service:
+        condition: service_started
+      documentos-service:
+        condition: service_started
+      transacciones-service:
+        condition: service_started
+      reportes-service:
+        condition: service_started
+      migrador:
+        condition: service_completed_successfully
     restart: unless-stopped
     networks:
       - sgo_backend
