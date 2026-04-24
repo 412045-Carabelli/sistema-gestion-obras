@@ -11,7 +11,7 @@ CREATE TABLE documentos (
     nombre_archivo    VARCHAR(255)  NOT NULL,
     path_archivo      VARCHAR(255)  NOT NULL,
     fecha             DATE          NOT NULL,
-    observacion       VARCHAR(255),
+    observacion       NVARCHAR(MAX),
     creado_en         DATETIME2,
     id_tipo_documento VARCHAR(50)   NOT NULL
 );

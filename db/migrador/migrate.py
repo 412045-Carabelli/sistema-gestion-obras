@@ -5,6 +5,7 @@ Se ejecuta una sola vez por servicio; deja un flag file para no repetirse.
 import os
 import sqlite3
 import time
+from datetime import datetime
 import pyodbc
 
 DB_HOST     = os.getenv("DB_HOST", "sqlserver")
@@ -12,6 +13,43 @@ DB_PORT     = os.getenv("DB_PORT", "1433")
 DB_USER     = os.getenv("DB_USER", "sa")
 DB_PASSWORD = os.getenv("DB_PASSWORD", "SgoAdmin2024!")
 FLAG_DIR    = "/data/migration"
+
+def to_datetime(val):
+    if val is None or val == "":
+        return None
+    dt = None
+    try:
+        if isinstance(val, (int, float)):
+            # Si es > 10^11 es probablemente milisegundos (post 1973)
+            if val > 100000000000:
+                dt = datetime.fromtimestamp(val / 1000.0)
+            else:
+                dt = datetime.fromtimestamp(val)
+        elif isinstance(val, str):
+            # Manejar formatos comunes de SQLite/ISO
+            try:
+                dt = datetime.fromisoformat(val.replace("Z", "+00:00"))
+            except:
+                # Intentar otros formatos si es necesario
+                return val
+    except Exception as e:
+        print(f"  [WARN] Error convirtiendo fecha '{val}': {e}", flush=True)
+        return val
+
+    if dt:
+        return dt.strftime('%Y-%m-%d %H:%M:%S.%f')[:-3]
+    return val
+
+def process_rows(rows, date_indices):
+    if not rows: return []
+    new_rows = []
+    for row in rows:
+        r = list(row)
+        for i in date_indices:
+            if i < len(r):
+                r[i] = to_datetime(r[i])
+        new_rows.append(tuple(r))
+    return new_rows
 
 CONN_TMPL = (
     "DRIVER={ODBC Driver 18 for SQL Server};"
@@ -25,22 +63,22 @@ os.makedirs(FLAG_DIR, exist_ok=True)
 
 def wait_for_sqlserver():
     print("Esperando que SQL Server esté disponible...", flush=True)
-    for i in range(60):
+    for i in range(150):
         try:
             pyodbc.connect(CONN_TMPL + "DATABASE=master;", timeout=3).close()
             print("SQL Server disponible.", flush=True)
             return
         except Exception:
-            print(f"  Intento {i+1}/60...", flush=True)
+            print(f"  Intento {i+1}/150...", flush=True)
             time.sleep(2)
-    raise RuntimeError("SQL Server no respondió en 120 segundos.")
+    raise RuntimeError("SQL Server no respondió en 300 segundos.")
 
 
 def wait_for_tables(db_name: str, table: str):
     """Espera hasta que Flyway haya creado las tablas en la DB destino."""
     conn_str = CONN_TMPL + f"DATABASE={db_name};"
     print(f"  Esperando tabla '{table}' en {db_name}...", flush=True)
-    for i in range(60):
+    for i in range(150):
         try:
             with pyodbc.connect(conn_str, timeout=3) as c:
                 rows = c.execute(
@@ -53,7 +91,7 @@ def wait_for_tables(db_name: str, table: str):
         except Exception:
             pass
         time.sleep(2)
-    raise RuntimeError(f"La tabla '{table}' en {db_name} no apareció en 120 segundos.")
+    raise RuntimeError(f"La tabla '{table}' en {db_name} no apareció en 300 segundos.")
 
 
 def is_migrated(service: str) -> bool:
@@ -95,6 +133,7 @@ def migrate_clientes():
         "FROM clientes"
     ).fetchall()
     src.close()
+    rows = process_rows(rows, [10, 11])
     print(f"  {len(rows)} filas encontradas.", flush=True)
     if rows:
         conn = pyodbc.connect(CONN_TMPL + "DATABASE=sgo_clientes;")
@@ -128,19 +167,20 @@ def migrate_obras():
     conn.autocommit = False
     cur = conn.cursor()
 
-    for tbl, sql, insert_sql in [
+    for tbl, sql, insert_sql, date_cols in [
         ("estado_obra",
          "SELECT id, nombre, activo, ultima_actualizacion, tipo_actualizacion FROM estado_obra",
-         "INSERT INTO estado_obra VALUES (?,?,?,?,?)"),
+         "INSERT INTO estado_obra (id, nombre, activo, ultima_actualizacion, tipo_actualizacion) VALUES (?,?,?,?,?)", [3]),
         ("estado_pago",
          "SELECT id, estado, ultima_actualizacion, tipo_actualizacion FROM estado_pago",
-         "INSERT INTO estado_pago VALUES (?,?,?,?)"),
+         "INSERT INTO estado_pago (id, estado, ultima_actualizacion, tipo_actualizacion) VALUES (?,?,?,?)", [2]),
         ("estado_tarea",
          "SELECT id, nombre, activo, ultima_actualizacion, tipo_actualizacion FROM estado_tarea",
-         "INSERT INTO estado_tarea VALUES (?,?,?,?,?)"),
+         "INSERT INTO estado_tarea (id, nombre, activo, ultima_actualizacion, tipo_actualizacion) VALUES (?,?,?,?,?)", [3]),
     ]:
         rows = src.execute(sql).fetchall()
         if rows:
+            rows = process_rows(rows, date_cols)
             cur.execute(f"SET IDENTITY_INSERT {tbl} ON")
             cur.executemany(insert_sql, rows)
             cur.execute(f"SET IDENTITY_INSERT {tbl} OFF")
@@ -152,26 +192,36 @@ def migrate_obras():
         "observaciones_presupuesto,requiere_factura,ultima_actualizacion,tipo_actualizacion FROM obras"
     ).fetchall()
     if obras_rows:
+        obras_rows = process_rows(obras_rows, [5, 6, 7, 8, 9, 16, 22])
         cur.execute("SET IDENTITY_INSERT obras ON")
         cur.executemany(
-            "INSERT INTO obras VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)", obras_rows
+            "INSERT INTO obras (id,id_cliente,estado_obra,nombre,direccion,fecha_presupuesto,fecha_inicio,"
+            "fecha_fin,fecha_adjudicada,fecha_perdida,presupuesto,beneficio_global,tiene_comision,"
+            "beneficio,comision,activo,creado_en,notas,memoria_descriptiva,condiciones_presupuesto,"
+            "observaciones_presupuesto,requiere_factura,ultima_actualizacion,tipo_actualizacion) "
+            "VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)", obras_rows
         )
         cur.execute("SET IDENTITY_INSERT obras OFF")
 
-    for tbl, sql, insert_sql in [
+    for tbl, sql, insert_sql, date_cols in [
         ("tareas",
          "SELECT id,id_obra,id_proveedor,numero_orden,estado_tarea,nombre,descripcion,"
          "porcentaje,fecha_inicio,fecha_fin,creado_en,activo,baja_obra,"
          "ultima_actualizacion,tipo_actualizacion FROM tareas",
-         "INSERT INTO tareas VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)"),
+         "INSERT INTO tareas (id,id_obra,id_proveedor,numero_orden,estado_tarea,nombre,descripcion,"
+         "porcentaje,fecha_inicio,fecha_fin,creado_en,activo,baja_obra,"
+         "ultima_actualizacion,tipo_actualizacion) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)", [8, 9, 10, 13]),
         ("obra_costo",
          "SELECT id,id_proveedor,precio_unitario,id_estado_pago,id_obra,tipo_costo,"
          "item_numero,descripcion,unidad,cantidad,beneficio,subtotal,total,activo,baja_obra,"
          "ultima_actualizacion,tipo_actualizacion FROM obra_costo",
-         "INSERT INTO obra_costo VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)"),
+         "INSERT INTO obra_costo (id,id_proveedor,precio_unitario,id_estado_pago,id_obra,tipo_costo,"
+         "item_numero,descripcion,unidad,cantidad,beneficio,subtotal,total,activo,baja_obra,"
+         "ultima_actualizacion,tipo_actualizacion) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)", [15]),
     ]:
         rows = src.execute(sql).fetchall()
         if rows:
+            rows = process_rows(rows, date_cols)
             cur.execute(f"SET IDENTITY_INSERT {tbl} ON")
             cur.executemany(insert_sql, rows)
             cur.execute(f"SET IDENTITY_INSERT {tbl} OFF")
@@ -202,16 +252,17 @@ def migrate_proveedores():
     conn.autocommit = False
     cur = conn.cursor()
 
-    for tbl, sql, insert_sql in [
+    for tbl, sql, insert_sql, date_cols in [
         ("tipo_proveedor",
          "SELECT id, nombre, activo, ultima_actualizacion, tipo_actualizacion FROM tipo_proveedor",
-         "INSERT INTO tipo_proveedor VALUES (?,?,?,?,?)"),
+         "INSERT INTO tipo_proveedor (id, nombre, activo, ultima_actualizacion, tipo_actualizacion) VALUES (?,?,?,?,?)", [3]),
         ("gremios",
          "SELECT id, nombre, activo, ultima_actualizacion, tipo_actualizacion FROM gremios",
-         "INSERT INTO gremios VALUES (?,?,?,?,?)"),
+         "INSERT INTO gremios (id, nombre, activo, ultima_actualizacion, tipo_actualizacion) VALUES (?,?,?,?,?)", [3]),
     ]:
         rows = src.execute(sql).fetchall()
         if rows:
+            rows = process_rows(rows, date_cols)
             cur.execute(f"SET IDENTITY_INSERT {tbl} ON")
             cur.executemany(insert_sql, rows)
             cur.execute(f"SET IDENTITY_INSERT {tbl} OFF")
@@ -221,8 +272,13 @@ def migrate_proveedores():
         "direccion,activo,creado_en,ultima_actualizacion,tipo_actualizacion FROM proveedores"
     ).fetchall()
     if prov_rows:
+        prov_rows = process_rows(prov_rows, [10, 11])
         cur.execute("SET IDENTITY_INSERT proveedores ON")
-        cur.executemany("INSERT INTO proveedores VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)", prov_rows)
+        cur.executemany(
+            "INSERT INTO proveedores (id,nombre,tipo_proveedor_id,gremio_id,dni_cuit,contacto,telefono,email,"
+            "direccion,activo,creado_en,ultima_actualizacion,tipo_actualizacion) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)",
+            prov_rows
+        )
         cur.execute("SET IDENTITY_INSERT proveedores OFF")
 
     mov_rows = src.execute(
@@ -230,8 +286,12 @@ def migrate_proveedores():
         "FROM movimientos"
     ).fetchall()
     if mov_rows:
+        mov_rows = process_rows(mov_rows, [7])
         cur.execute("SET IDENTITY_INSERT movimientos ON")
-        cur.executemany("INSERT INTO movimientos VALUES (?,?,?,?,?,?,?,?)", mov_rows)
+        cur.executemany(
+            "INSERT INTO movimientos (id, proveedor_id, obra_id, descripcion, monto, monto_pagado, pagado, creado_en) "
+            "VALUES (?,?,?,?,?,?,?,?)", mov_rows
+        )
         cur.execute("SET IDENTITY_INSERT movimientos OFF")
 
     src.close()
@@ -256,16 +316,17 @@ def migrate_reportes():
     conn.autocommit = False
     cur = conn.cursor()
 
-    for tbl, sql, insert_sql in [
+    for tbl, sql, insert_sql, date_cols in [
         ("comisiones",
          "SELECT id, id_obra, monto, fecha, pagado FROM comisiones",
-         "INSERT INTO comisiones VALUES (?,?,?,?,?)"),
+         "INSERT INTO comisiones (id, id_obra, monto, fecha, pagado) VALUES (?,?,?,?,?)", [3]),
         ("movimientos_reporte",
          "SELECT id, referencia, monto, fecha, tipo FROM movimientos_reporte",
-         "INSERT INTO movimientos_reporte VALUES (?,?,?,?,?)"),
+         "INSERT INTO movimientos_reporte (id, referencia, monto, fecha, tipo) VALUES (?,?,?,?,?)", [3]),
     ]:
         rows = src.execute(sql).fetchall()
         if rows:
+            rows = process_rows(rows, date_cols)
             cur.execute(f"SET IDENTITY_INSERT {tbl} ON")
             cur.executemany(insert_sql, rows)
             cur.execute(f"SET IDENTITY_INSERT {tbl} OFF")
@@ -296,8 +357,12 @@ def migrate_transacciones():
         "SELECT id, nombre, activo, ultima_actualizacion, tipo_actualizacion FROM tipo_transaccion"
     ).fetchall()
     if tt_rows:
+        tt_rows = process_rows(tt_rows, [3])
         cur.execute("SET IDENTITY_INSERT tipo_transaccion ON")
-        cur.executemany("INSERT INTO tipo_transaccion VALUES (?,?,?,?,?)", tt_rows)
+        cur.executemany(
+            "INSERT INTO tipo_transaccion (id, nombre, activo, ultima_actualizacion, tipo_actualizacion) VALUES (?,?,?,?,?)",
+            tt_rows
+        )
         cur.execute("SET IDENTITY_INSERT tipo_transaccion OFF")
 
     tx_rows = src.execute(
@@ -306,8 +371,13 @@ def migrate_transacciones():
         "ultima_actualizacion,tipo_actualizacion FROM transacciones"
     ).fetchall()
     if tx_rows:
+        tx_rows = process_rows(tx_rows, [5, 13])
         cur.execute("SET IDENTITY_INSERT transacciones ON")
-        cur.executemany("INSERT INTO transacciones VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)", tx_rows)
+        cur.executemany(
+            "INSERT INTO transacciones (id,id_obra,tipo_asociado,id_asociado,id_tipo_transaccion,fecha,monto,"
+            "forma_pago,medio_pago,concepto,factura_cobrada,activo,baja_obra,"
+            "ultima_actualizacion,tipo_actualizacion) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)", tx_rows
+        )
         cur.execute("SET IDENTITY_INSERT transacciones OFF")
 
     fac_rows = src.execute(
@@ -316,8 +386,13 @@ def migrate_transacciones():
         "ultima_actualizacion,tipo_actualizacion FROM facturas"
     ).fetchall()
     if fac_rows:
+        fac_rows = process_rows(fac_rows, [5, 13])
         cur.execute("SET IDENTITY_INSERT facturas ON")
-        cur.executemany("INSERT INTO facturas VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)", fac_rows)
+        cur.executemany(
+            "INSERT INTO facturas (id,id_cliente,id_obra,monto,monto_restante,fecha,descripcion,estado,"
+            "nombre_archivo,path_archivo,activo,impacta_cta_cte,id_transaccion,"
+            "ultima_actualizacion,tipo_actualizacion) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)", fac_rows
+        )
         cur.execute("SET IDENTITY_INSERT facturas OFF")
 
     src.close()
@@ -345,7 +420,7 @@ def migrate_documentos():
     td_rows = src.execute("SELECT id, nombre FROM tipos_documento").fetchall()
     if td_rows:
         cur.execute("SET IDENTITY_INSERT tipos_documento ON")
-        cur.executemany("INSERT INTO tipos_documento VALUES (?,?)", td_rows)
+        cur.executemany("INSERT INTO tipos_documento (id, nombre) VALUES (?,?)", td_rows)
         cur.execute("SET IDENTITY_INSERT tipos_documento OFF")
 
     doc_rows = src.execute(
@@ -353,8 +428,12 @@ def migrate_documentos():
         "fecha,observacion,creado_en,id_tipo_documento FROM documentos"
     ).fetchall()
     if doc_rows:
+        doc_rows = process_rows(doc_rows, [6, 8])
         cur.execute("SET IDENTITY_INSERT documentos ON")
-        cur.executemany("INSERT INTO documentos VALUES (?,?,?,?,?,?,?,?,?,?)", doc_rows)
+        cur.executemany(
+            "INSERT INTO documentos (id_documento,id_obra,id_asociado,tipo_asociado,nombre_archivo,path_archivo,"
+            "fecha,observacion,creado_en,id_tipo_documento) VALUES (?,?,?,?,?,?,?,?,?,?)", doc_rows
+        )
         cur.execute("SET IDENTITY_INSERT documentos OFF")
 
     src.close()

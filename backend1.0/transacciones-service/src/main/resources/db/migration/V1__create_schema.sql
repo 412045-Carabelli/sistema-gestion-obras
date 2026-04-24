@@ -16,7 +16,7 @@ CREATE TABLE transacciones (
     monto               FLOAT         NOT NULL,
     forma_pago          VARCHAR(255)  NOT NULL,
     medio_pago          VARCHAR(255),
-    concepto            VARCHAR(500),
+    concepto            NVARCHAR(MAX),
     factura_cobrada     BIT,
     activo              BIT           DEFAULT 1,
     baja_obra           BIT           DEFAULT 0,
