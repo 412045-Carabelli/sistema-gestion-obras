@@ -42,7 +42,9 @@
       "Bash(mkdir -p \"c:/Users/Usuario/Desktop/my-work/sistema-gestion-obras/backend1.0/documentos-service/src/main/resources/db/migration\")",
       "Bash(find C:UsersUsuarioDesktopmy-worksistema-gestion-obras -maxdepth 3 -type d -name backend* -o -name *service)",
       "Bash(git push:*)",
-      "Bash(git mv *)"
+      "Bash(git mv *)",
+      "PowerShell(Move-Item *)",
+      "Bash(git gc *)"
     ]
   }
 }

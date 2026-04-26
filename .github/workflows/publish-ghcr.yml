@@ -39,7 +39,7 @@ jobs:
       - name: Build backend JARs (skip tests)
         run: |
           set -e
-          for dir in backend1.0/*-service backend1.0/api-gateway; do
+          for dir in backend/*-service backend/api-gateway; do
             echo "Building $dir"
             (cd "$dir" && mvn -B -DskipTests package)
           done

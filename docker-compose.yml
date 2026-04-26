@@ -52,7 +52,7 @@ services:
       - sgo_backend
 
   obras-service:
-    build: ./backend1.0/obras-service
+    build: ./backend/obras-service
     container_name: obras_service_local_v2
     ports:
       - "8081:8081"
@@ -74,7 +74,7 @@ services:
       - sgo_backend
 
   clientes-service:
-    build: ./backend1.0/clientes-service
+    build: ./backend/clientes-service
     container_name: clientes_service_local_v2
     ports:
       - "8082:8082"
@@ -96,7 +96,7 @@ services:
       - sgo_backend
 
   proveedores-service:
-    build: ./backend1.0/proveedores-service
+    build: ./backend/proveedores-service
     container_name: proveedores_service_local_v2
     ports:
       - "8083:8083"
@@ -118,7 +118,7 @@ services:
       - sgo_backend
 
   documentos-service:
-    build: ./backend1.0/documentos-service
+    build: ./backend/documentos-service
     container_name: documentos_service_local_v2
     ports:
       - "8087:8087"
@@ -149,7 +149,7 @@ services:
       - sgo_backend
 
   transacciones-service:
-    build: ./backend1.0/transacciones-service
+    build: ./backend/transacciones-service
     container_name: transacciones_service_local_v2
     ports:
       - "8086:8086"
@@ -171,7 +171,7 @@ services:
       - sgo_backend
 
   reportes-service:
-    build: ./backend1.0/reportes-service
+    build: ./backend/reportes-service
     container_name: reportes_service_local_v2
     ports:
       - "8084:8084"
@@ -199,7 +199,7 @@ services:
 
   api-gateway:
     build:
-      context: ./backend1.0/api-gateway
+      context: ./backend/api-gateway
       dockerfile: Dockerfile
     container_name: api_gateway_service_local_v2
     ports:
@@ -231,7 +231,7 @@ services:
       - sgo_backend
 
   frontend:
-    build: ./frontend1.2
+    build: ./frontend
     container_name: obras_frontend_v2
     ports:
       - "4200:80"
