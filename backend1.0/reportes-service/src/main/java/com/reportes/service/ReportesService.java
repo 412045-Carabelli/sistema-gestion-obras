@@ -976,6 +976,7 @@ public class ReportesService {
             detalle.setObraId(obraId);
             detalle.setObraNombre(obra != null ? obra.getNombre() : null);
             detalle.setMonto(Optional.ofNullable(comision.getMonto()).orElse(BigDecimal.ZERO));
+            detalle.setFecha(comision.getFecha());
             BigDecimal pagosDetalle = pagosRestantes.min(detalle.getMonto());
             detalle.setPagos(pagosDetalle);
             detalle.setSaldo(saldoPositivo(detalle.getMonto().subtract(detalle.getPagos())));
@@ -1038,6 +1039,7 @@ public class ReportesService {
             ObraExternalDto obra = obrasPorId.get(comision.getIdObra());
             detalle.setObraNombre(obra != null ? obra.getNombre() : null);
             detalle.setMonto(Optional.ofNullable(comision.getMonto()).orElse(BigDecimal.ZERO));
+            detalle.setFecha(comision.getFecha());
             BigDecimal pagosDetalle = pagosRestantes
                     .getOrDefault(comision.getIdObra(), BigDecimal.ZERO)
                     .min(detalle.getMonto());

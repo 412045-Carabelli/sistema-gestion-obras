@@ -1,100 +1,208 @@
 version: '3.9'
 
 services:
+
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: sgo_sqlserver_v2
+    ports:
+      - "1433:1433"
+    environment:
+      - ACCEPT_EULA=Y
+      - MSSQL_SA_PASSWORD=${DB_PASSWORD:-SgoAdmin2024}
+      - MSSQL_PID=Express
+    volumes:
+      - sqlserver_data_v2:/var/opt/mssql
+      - ./db/sqlserver-init:/init
+    entrypoint: ["/bin/bash", "/init/entrypoint.sh"]
+    healthcheck:
+      test: ["CMD", "/opt/mssql-tools18/bin/sqlcmd", "-S", "127.0.0.1",
+             "-U", "sa", "-P", "${DB_PASSWORD:-SgoAdmin2024}", "-C", "-Q", "SELECT 1"]
+      interval: 15s
+      timeout: 10s
+      retries: 30
+      start_period: 300s
+    restart: unless-stopped
+    networks:
+      - sgo_backend
+
+  migrador:
+    image: ghcr.io/412045-carabelli/sgo-migrador:latest
+    container_name: sgo_migrador_v2
+    environment:
+      - DB_HOST=sqlserver
+      - DB_PORT=1433
+      - DB_USER=sa
+      - DB_PASSWORD=${DB_PASSWORD:-SgoAdmin2024}
+    volumes:
+      - ./db/obras.db:/data/obras/obras.db
+      - ./db/clientes.db:/data/clientes/clientes.db
+      - ./db/proveedores.db:/data/proveedores/proveedores.db
+      - ./db/reportes.db:/data/reportes/reportes.db
+      - ./db/transacciones.db:/data/transacciones/transacciones.db
+      - ./db/documentos.db:/data/documentos/documentos.db
+      - migration_flags_v2:/data/migration
+    depends_on:
+      sqlserver:
+        condition: service_healthy
+      obras-service:
+        condition: service_started
+      clientes-service:
+        condition: service_started
+      proveedores-service:
+        condition: service_started
+      documentos-service:
+        condition: service_started
+      transacciones-service:
+        condition: service_started
+      reportes-service:
+        condition: service_started
+    restart: "no"
+    networks:
+      - sgo_backend
+
   obras-service:
     image: ghcr.io/412045-carabelli/sgo-obras-service:latest
-    container_name: obras_service
+    container_name: obras_service_v2
     ports:
       - "8081:8081"
-    volumes:
-      - obras_data:/app/data
     environment:
       - SPRING_PROFILES_ACTIVE=prod
-      - SPRING_SQL_INIT_MODE=always
-      - SPRING_SQL_INIT_DATA_LOCATIONS=classpath:data-prod.sql
-      - SPRING_JPA_DEFER_DATASOURCE_INITIALIZATION=true
-    restart: unless-stopped
+      - DB_HOST=sqlserver
+      - DB_USER=sa
+      - DB_PASSWORD=${DB_PASSWORD:-SgoAdmin2024}
+      - SPRING_DATASOURCE_URL=jdbc:sqlserver://sqlserver:1433;databaseName=sgo_obras;encrypt=false;trustServerCertificate=true
+      - SPRING_DATASOURCE_USERNAME=sa
+      - SPRING_DATASOURCE_PASSWORD=${DB_PASSWORD:-SgoAdmin2024}
+      - SPRING_JPA_PROPERTIES_HIBERNATE_DIALECT=org.hibernate.dialect.SQLServerDialect
+      - SPRING_FLYWAY_ENABLED=true
+    depends_on:
+      sqlserver:
+        condition: service_healthy
+    restart: "no"
     networks:
       - sgo_backend
 
   clientes-service:
     image: ghcr.io/412045-carabelli/sgo-clientes-service:latest
-    container_name: clientes_service
+    container_name: clientes_service_v2
     ports:
       - "8082:8082"
-    volumes:
-      - clientes_data:/app/data
     environment:
       - SPRING_PROFILES_ACTIVE=prod
-    restart: unless-stopped
+      - DB_HOST=sqlserver
+      - DB_USER=sa
+      - DB_PASSWORD=${DB_PASSWORD:-SgoAdmin2024}
+      - SPRING_DATASOURCE_URL=jdbc:sqlserver://sqlserver:1433;databaseName=sgo_clientes;encrypt=false;trustServerCertificate=true
+      - SPRING_DATASOURCE_USERNAME=sa
+      - SPRING_DATASOURCE_PASSWORD=${DB_PASSWORD:-SgoAdmin2024}
+      - SPRING_JPA_PROPERTIES_HIBERNATE_DIALECT=org.hibernate.dialect.SQLServerDialect
+      - SPRING_FLYWAY_ENABLED=true
+    depends_on:
+      sqlserver:
+        condition: service_healthy
+    restart: "no"
     networks:
       - sgo_backend
 
   proveedores-service:
     image: ghcr.io/412045-carabelli/sgo-proveedores-service:latest
-    container_name: proveedores_service
+    container_name: proveedores_service_v2
     ports:
       - "8083:8083"
-    volumes:
-      - proveedores_data:/app/data
     environment:
       - SPRING_PROFILES_ACTIVE=prod
-      - SPRING_SQL_INIT_MODE=always
-      - SPRING_SQL_INIT_DATA_LOCATIONS=classpath:data-prod.sql
-      - SPRING_JPA_DEFER_DATASOURCE_INITIALIZATION=true
-    restart: unless-stopped
+      - DB_HOST=sqlserver
+      - DB_USER=sa
+      - DB_PASSWORD=${DB_PASSWORD:-SgoAdmin2024}
+      - SPRING_DATASOURCE_URL=jdbc:sqlserver://sqlserver:1433;databaseName=sgo_proveedores;encrypt=false;trustServerCertificate=true
+      - SPRING_DATASOURCE_USERNAME=sa
+      - SPRING_DATASOURCE_PASSWORD=${DB_PASSWORD:-SgoAdmin2024}
+      - SPRING_JPA_PROPERTIES_HIBERNATE_DIALECT=org.hibernate.dialect.SQLServerDialect
+      - SPRING_FLYWAY_ENABLED=true
+    depends_on:
+      sqlserver:
+        condition: service_healthy
+    restart: "no"
     networks:
       - sgo_backend
 
   documentos-service:
     image: ghcr.io/412045-carabelli/sgo-documentos-service:latest
-    container_name: documentos_service
+    container_name: documentos_service_v2
     ports:
       - "8087:8087"
     volumes:
-      - documentos_data:/app/data
-      - documentos_uploads:/app/uploads
+      - documentos_uploads_v2:/app/uploads
     environment:
       - SPRING_PROFILES_ACTIVE=prod
-      - SPRING_SQL_INIT_MODE=always
-      - SPRING_SQL_INIT_DATA_LOCATIONS=classpath:data-prod.sql
-      - SPRING_JPA_DEFER_DATASOURCE_INITIALIZATION=true
-    restart: unless-stopped
+      - DB_HOST=sqlserver
+      - DB_USER=sa
+      - DB_PASSWORD=${DB_PASSWORD:-SgoAdmin2024}
+      - SPRING_DATASOURCE_URL=jdbc:sqlserver://sqlserver:1433;databaseName=sgo_documentos;encrypt=false;trustServerCertificate=true
+      - SPRING_DATASOURCE_USERNAME=sa
+      - SPRING_DATASOURCE_PASSWORD=${DB_PASSWORD:-SgoAdmin2024}
+      - SPRING_JPA_PROPERTIES_HIBERNATE_DIALECT=org.hibernate.dialect.SQLServerDialect
+      - SPRING_FLYWAY_ENABLED=true
+    depends_on:
+      sqlserver:
+        condition: service_healthy
+    restart: "no"
     networks:
       - sgo_backend
 
   transacciones-service:
     image: ghcr.io/412045-carabelli/sgo-transacciones-service:latest
-    container_name: transacciones_service
+    container_name: transacciones_service_v2
     ports:
       - "8086:8086"
-    volumes:
-      - transacciones_data:/app/data
     environment:
       - SPRING_PROFILES_ACTIVE=prod
-      - SPRING_SQL_INIT_MODE=always
-      - SPRING_SQL_INIT_DATA_LOCATIONS=classpath:data-prod.sql
-      - SPRING_JPA_DEFER_DATASOURCE_INITIALIZATION=true
-    restart: unless-stopped
+      - DB_HOST=sqlserver
+      - DB_USER=sa
+      - DB_PASSWORD=${DB_PASSWORD:-SgoAdmin2024}
+      - SPRING_DATASOURCE_URL=jdbc:sqlserver://sqlserver:1433;databaseName=sgo_transacciones;encrypt=false;trustServerCertificate=true
+      - SPRING_DATASOURCE_USERNAME=sa
+      - SPRING_DATASOURCE_PASSWORD=${DB_PASSWORD:-SgoAdmin2024}
+      - SPRING_JPA_PROPERTIES_HIBERNATE_DIALECT=org.hibernate.dialect.SQLServerDialect
+      - SPRING_FLYWAY_ENABLED=true
+    depends_on:
+      sqlserver:
+        condition: service_healthy
+    restart: "no"
     networks:
       - sgo_backend
 
   reportes-service:
     image: ghcr.io/412045-carabelli/sgo-reportes-service:latest
-    container_name: reportes_service
+    container_name: reportes_service_v2
     ports:
       - "8084:8084"
-    volumes:
-      - reportes_data:/app/data
     environment:
       - SPRING_PROFILES_ACTIVE=prod
-    restart: unless-stopped
+      - DB_HOST=sqlserver
+      - DB_USER=sa
+      - DB_PASSWORD=${DB_PASSWORD:-SgoAdmin2024}
+      - SPRING_DATASOURCE_URL=jdbc:sqlserver://sqlserver:1433;databaseName=sgo_reportes;encrypt=false;trustServerCertificate=true
+      - SPRING_DATASOURCE_USERNAME=sa
+      - SPRING_DATASOURCE_PASSWORD=${DB_PASSWORD:-SgoAdmin2024}
+      - SPRING_JPA_PROPERTIES_HIBERNATE_DIALECT=org.hibernate.dialect.SQLServerDialect
+      - SPRING_FLYWAY_ENABLED=true
+      - SERVICIOS_OBRAS_BASE_URL=http://obras-service:8081
+      - SERVICIOS_CLIENTES_BASE_URL=http://clientes-service:8082
+      - SERVICIOS_PROVEEDORES_BASE_URL=http://proveedores-service:8083
+      - SERVICIOS_TRANSACCIONES_BASE_URL=http://transacciones-service:8086
+      - SERVICIOS_FACTURAS_BASE_URL=http://transacciones-service:8086
+    depends_on:
+      sqlserver:
+        condition: service_healthy
+    restart: "no"
     networks:
       - sgo_backend
 
   api-gateway:
     image: ghcr.io/412045-carabelli/sgo-api-gateway:latest
-    container_name: api_gateway_service
+    container_name: api_gateway_service_v2
     ports:
       - "8080:8080"
     environment:
@@ -105,22 +213,32 @@ services:
       - SERVICES_DOCUMENTOS_URL=http://documentos-service:8087/api/documentos
       - SERVICES_TRANSACCIONES_URL=http://transacciones-service:8086/api/transacciones
     depends_on:
-      - obras-service
-      - clientes-service
-      - proveedores-service
-      - documentos-service
-      - transacciones-service
-      - reportes-service
-    restart: unless-stopped
+      obras-service:
+        condition: service_started
+      clientes-service:
+        condition: service_started
+      proveedores-service:
+        condition: service_started
+      documentos-service:
+        condition: service_started
+      transacciones-service:
+        condition: service_started
+      reportes-service:
+        condition: service_started
+      migrador:
+        condition: service_completed_successfully
+    restart: "no"
     networks:
       - sgo_backend
 
   frontend:
     image: ghcr.io/412045-carabelli/sgo-frontend:latest
-    container_name: obras_frontend
+    container_name: obras_frontend_v2
     ports:
       - "4200:80"
-    restart: unless-stopped
+    depends_on:
+      - api-gateway
+    restart: "no"
     networks:
       - sgo_backend
 
@@ -129,10 +247,12 @@ networks:
     driver: bridge
 
 volumes:
-  obras_data:
-  clientes_data:
-  proveedores_data:
-  documentos_data:
-  documentos_uploads:
-  transacciones_data:
-  reportes_data:
+  sqlserver_data_v2:
+  migration_flags_v2:
+  obras_data_v2:
+  clientes_data_v2:
+  proveedores_data_v2:
+  documentos_data_v2:
+  documentos_uploads_v2:
+  transacciones_data_v2:
+  reportes_data_v2:

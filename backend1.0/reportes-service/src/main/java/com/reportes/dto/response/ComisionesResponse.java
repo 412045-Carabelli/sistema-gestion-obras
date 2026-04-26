@@ -3,6 +3,7 @@ package com.reportes.dto.response;
 import lombok.Data;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -20,5 +21,6 @@ public class ComisionesResponse {
         private BigDecimal monto = BigDecimal.ZERO;
         private BigDecimal pagos = BigDecimal.ZERO;
         private BigDecimal saldo = BigDecimal.ZERO;
+        private LocalDate fecha;
     }
 }

@@ -1,108 +1,210 @@
 # =======================
-# Docker Compose file for the SGO microservices stack in production.
+# Docker Compose file for the SGO microservices stack (build local).
 # All services communicate through the internal bridge network `sgo_backend`.
 # =======================
 services:
-  # -----------------------
-  # Obras microservice: manages construction projects and stores SQLite data under /data.
-  # -----------------------
+
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: sgo_sqlserver_v2
+    ports:
+      - "1433:1433"
+    environment:
+      - ACCEPT_EULA=Y
+      - MSSQL_SA_PASSWORD=${DB_PASSWORD:-SgoAdmin2024!}
+      - MSSQL_PID=Express
+    volumes:
+      - sqlserver_data:/var/opt/mssql
+      - ./db/sqlserver-init:/init
+    entrypoint: ["/bin/bash", "/init/entrypoint.sh"]
+    healthcheck:
+      test: ["CMD", "/opt/mssql-tools18/bin/sqlcmd", "-S", "localhost",
+             "-U", "sa", "-P", "${DB_PASSWORD:-SgoAdmin2024!}", "-C", "-Q", "SELECT 1"]
+      interval: 10s
+      timeout: 10s
+      retries: 30
+      start_period: 90s
+    restart: unless-stopped
+    networks:
+      - sgo_backend
+
+  migrador:
+    build: ./db/migrador
+    container_name: sgo_migrador_v2
+    environment:
+      - DB_HOST=sqlserver
+      - DB_PORT=1433
+      - DB_USER=sa
+      - DB_PASSWORD=${DB_PASSWORD:-SgoAdmin2024!}
+    volumes:
+      - ./data/obras:/data/obras
+      - ./data/clientes:/data/clientes
+      - ./data/proveedores:/data/proveedores
+      - ./data/reportes:/data/reportes
+      - ./data/transacciones:/data/transacciones
+      - ./data/documentos:/data/documentos
+      - migration_flags:/data/migration
+    depends_on:
+      sqlserver:
+        condition: service_healthy
+    restart: "no"
+    networks:
+      - sgo_backend
+
   obras-service:
     build: ./backend1.0/obras-service
-    container_name: obras_service_local
+    container_name: obras_service_local_v2
     ports:
       - "8081:8081"
-    volumes:
-      - ./data/obras:/app/data
     environment:
       - SPRING_PROFILES_ACTIVE=prod
+      - DB_HOST=sqlserver
+      - DB_USER=sa
+      - DB_PASSWORD=${DB_PASSWORD:-SgoAdmin2024!}
+      - SPRING_DATASOURCE_URL=jdbc:sqlserver://sqlserver:1433;databaseName=sgo_obras;encrypt=false;trustServerCertificate=true
+      - SPRING_DATASOURCE_USERNAME=sa
+      - SPRING_DATASOURCE_PASSWORD=${DB_PASSWORD:-SgoAdmin2024!}
+      - SPRING_JPA_PROPERTIES_HIBERNATE_DIALECT=org.hibernate.dialect.SQLServerDialect
+      - SPRING_FLYWAY_ENABLED=true
+    depends_on:
+      sqlserver:
+        condition: service_healthy
     restart: unless-stopped
     networks:
       - sgo_backend
 
-  # -----------------------
-  # Clientes microservice: customer management with SQLite persistence in /data.
-  # -----------------------
   clientes-service:
     build: ./backend1.0/clientes-service
-    container_name: clientes_service_local
+    container_name: clientes_service_local_v2
     ports:
       - "8082:8082"
-    volumes:
-      - ./data/clientes:/app/data
     environment:
       - SPRING_PROFILES_ACTIVE=prod
+      - DB_HOST=sqlserver
+      - DB_USER=sa
+      - DB_PASSWORD=${DB_PASSWORD:-SgoAdmin2024!}
+      - SPRING_DATASOURCE_URL=jdbc:sqlserver://sqlserver:1433;databaseName=sgo_clientes;encrypt=false;trustServerCertificate=true
+      - SPRING_DATASOURCE_USERNAME=sa
+      - SPRING_DATASOURCE_PASSWORD=${DB_PASSWORD:-SgoAdmin2024!}
+      - SPRING_JPA_PROPERTIES_HIBERNATE_DIALECT=org.hibernate.dialect.SQLServerDialect
+      - SPRING_FLYWAY_ENABLED=true
+    depends_on:
+      sqlserver:
+        condition: service_healthy
     restart: unless-stopped
     networks:
       - sgo_backend
 
-  # -----------------------
-  # Proveedores microservice: supplier management with a dedicated SQLite store.
-  # -----------------------
   proveedores-service:
     build: ./backend1.0/proveedores-service
-    container_name: proveedores_service_local
+    container_name: proveedores_service_local_v2
     ports:
       - "8083:8083"
-    volumes:
-      - ./data/proveedores:/app/data
     environment:
       - SPRING_PROFILES_ACTIVE=prod
+      - DB_HOST=sqlserver
+      - DB_USER=sa
+      - DB_PASSWORD=${DB_PASSWORD:-SgoAdmin2024!}
+      - SPRING_DATASOURCE_URL=jdbc:sqlserver://sqlserver:1433;databaseName=sgo_proveedores;encrypt=false;trustServerCertificate=true
+      - SPRING_DATASOURCE_USERNAME=sa
+      - SPRING_DATASOURCE_PASSWORD=${DB_PASSWORD:-SgoAdmin2024!}
+      - SPRING_JPA_PROPERTIES_HIBERNATE_DIALECT=org.hibernate.dialect.SQLServerDialect
+      - SPRING_FLYWAY_ENABLED=true
+    depends_on:
+      sqlserver:
+        condition: service_healthy
     restart: unless-stopped
     networks:
       - sgo_backend
 
-  # -----------------------
-  # Documentos microservice: handles document metadata and files.
-  # -----------------------
   documentos-service:
     build: ./backend1.0/documentos-service
-    container_name: documentos_service_local
+    container_name: documentos_service_local_v2
     ports:
       - "8087:8087"
     volumes:
-      - ./data/documentos:/app/data
       - ./data/uploads:/app/uploads
     environment:
       - SPRING_PROFILES_ACTIVE=prod
+      - DB_HOST=sqlserver
+      - DB_USER=sa
+      - DB_PASSWORD=${DB_PASSWORD:-SgoAdmin2024!}
+      - SPRING_DATASOURCE_URL=jdbc:sqlserver://sqlserver:1433;databaseName=sgo_documentos;encrypt=false;trustServerCertificate=true
+      - SPRING_DATASOURCE_USERNAME=sa
+      - SPRING_DATASOURCE_PASSWORD=${DB_PASSWORD:-SgoAdmin2024!}
+      - SPRING_JPA_PROPERTIES_HIBERNATE_DIALECT=org.hibernate.dialect.SQLServerDialect
+      - SPRING_FLYWAY_ENABLED=true
       - MINIO_ENABLED=true
       - MINIO_URL=http://minio:9000
       - MINIO_ACCESS_KEY=minioadmin
       - MINIO_SECRET_KEY=minioadmin
       - MINIO_BUCKET=documentos
     depends_on:
-      - minio
+      sqlserver:
+        condition: service_healthy
+      minio:
+        condition: service_started
     restart: unless-stopped
     networks:
       - sgo_backend
 
-  # -----------------------
-  # Transacciones microservice: financial operations, persisting SQLite in /data.
-  # -----------------------
   transacciones-service:
     build: ./backend1.0/transacciones-service
-    container_name: transacciones_service_local
+    container_name: transacciones_service_local_v2
     ports:
       - "8086:8086"
-    volumes:
-      - ./data/transacciones:/app/data
     environment:
       - SPRING_PROFILES_ACTIVE=prod
+      - DB_HOST=sqlserver
+      - DB_USER=sa
+      - DB_PASSWORD=${DB_PASSWORD:-SgoAdmin2024!}
+      - SPRING_DATASOURCE_URL=jdbc:sqlserver://sqlserver:1433;databaseName=sgo_transacciones;encrypt=false;trustServerCertificate=true
+      - SPRING_DATASOURCE_USERNAME=sa
+      - SPRING_DATASOURCE_PASSWORD=${DB_PASSWORD:-SgoAdmin2024!}
+      - SPRING_JPA_PROPERTIES_HIBERNATE_DIALECT=org.hibernate.dialect.SQLServerDialect
+      - SPRING_FLYWAY_ENABLED=true
+    depends_on:
+      sqlserver:
+        condition: service_healthy
     restart: unless-stopped
     networks:
       - sgo_backend
 
-  # -----------------------
-  # API Gateway (BFF): routes requests to internal services using service URLs (not localhost).
-  # -----------------------
+  reportes-service:
+    build: ./backend1.0/reportes-service
+    container_name: reportes_service_local_v2
+    ports:
+      - "8084:8084"
+    environment:
+      - SPRING_PROFILES_ACTIVE=prod
+      - DB_HOST=sqlserver
+      - DB_USER=sa
+      - DB_PASSWORD=${DB_PASSWORD:-SgoAdmin2024!}
+      - SPRING_DATASOURCE_URL=jdbc:sqlserver://sqlserver:1433;databaseName=sgo_reportes;encrypt=false;trustServerCertificate=true
+      - SPRING_DATASOURCE_USERNAME=sa
+      - SPRING_DATASOURCE_PASSWORD=${DB_PASSWORD:-SgoAdmin2024!}
+      - SPRING_JPA_PROPERTIES_HIBERNATE_DIALECT=org.hibernate.dialect.SQLServerDialect
+      - SPRING_FLYWAY_ENABLED=true
+      - SERVICIOS_OBRAS_BASE_URL=http://obras-service:8081
+      - SERVICIOS_CLIENTES_BASE_URL=http://clientes-service:8082
+      - SERVICIOS_PROVEEDORES_BASE_URL=http://proveedores-service:8083
+      - SERVICIOS_TRANSACCIONES_BASE_URL=http://transacciones-service:8086
+      - SERVICIOS_FACTURAS_BASE_URL=http://transacciones-service:8086
+    depends_on:
+      sqlserver:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - sgo_backend
+
   api-gateway:
     build:
       context: ./backend1.0/api-gateway
       dockerfile: Dockerfile
-    container_name: api_gateway_service_local
+    container_name: api_gateway_service_local_v2
     ports:
       - "8080:8080"
     environment:
-      # Use service DNS names provided by Docker; localhost is not reachable between containers.
       - SPRING_PROFILES_ACTIVE=prod
       - SERVICES_OBRAS_URL=http://obras-service:8081/api/obras
       - SERVICES_CLIENTES_URL=http://clientes-service:8082/api/clientes
@@ -110,22 +212,27 @@ services:
       - SERVICES_DOCUMENTOS_URL=http://documentos-service:8087/api/documentos
       - SERVICES_TRANSACCIONES_URL=http://transacciones-service:8086/api/transacciones
     depends_on:
-      - obras-service
-      - clientes-service
-      - proveedores-service
-      - documentos-service
-      - transacciones-service
-      - reportes-service
+      obras-service:
+        condition: service_started
+      clientes-service:
+        condition: service_started
+      proveedores-service:
+        condition: service_started
+      documentos-service:
+        condition: service_started
+      transacciones-service:
+        condition: service_started
+      reportes-service:
+        condition: service_started
+      migrador:
+        condition: service_completed_successfully
     restart: unless-stopped
     networks:
       - sgo_backend
 
-  # -----------------------
-  # Frontend: Angular app served by Nginx on port 80 (mapped to 4200).
-  # -----------------------
   frontend:
     build: ./frontend1.2
-    container_name: obras_frontend
+    container_name: obras_frontend_v2
     ports:
       - "4200:80"
     depends_on:
@@ -134,38 +241,9 @@ services:
     networks:
       - sgo_backend
 
-  # -----------------------
-  # Reportes microservice: aggregated reporting endpoints.
-  # -----------------------
-  reportes-service:
-    build: ./backend1.0/reportes-service
-    container_name: reportes_service_local
-    ports:
-      - "8084:8084"
-    volumes:
-      - ./data/reportes:/app/data
-    environment:
-      - SPRING_PROFILES_ACTIVE=prod
-      - SERVICIOS_OBRAS_BASE_URL=http://obras-service:8081
-      - SERVICIOS_CLIENTES_BASE_URL=http://clientes-service:8082
-      - SERVICIOS_PROVEEDORES_BASE_URL=http://proveedores-service:8083
-      - SERVICIOS_TRANSACCIONES_BASE_URL=http://transacciones-service:8086
-      - SERVICIOS_FACTURAS_BASE_URL=http://transacciones-service:8086
-    depends_on:
-      - obras-service
-      - clientes-service
-      - proveedores-service
-      - transacciones-service
-    restart: unless-stopped
-    networks:
-      - sgo_backend
-
-  # -----------------------
-  # MinIO: object storage for documentos-service.
-  # -----------------------
   minio:
     image: minio/minio:latest
-    container_name: minio
+    container_name: minio_v2
     command: server /data --console-address ":9001"
     ports:
       - "9000:9000"
@@ -179,9 +257,10 @@ services:
     networks:
       - sgo_backend
 
-# =======================
-# Network configuration: shared bridge network for all backend services.
-# =======================
 networks:
   sgo_backend:
     driver: bridge
+
+volumes:
+  sqlserver_data:
+  migration_flags:
