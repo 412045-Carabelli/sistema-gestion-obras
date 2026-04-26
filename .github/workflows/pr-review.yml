@@ -30,17 +30,17 @@ jobs:
         with:
           files: |
             backend1.0/**
-            frontend1.2/**
+            frontend/**
             db/migration/**
             db/migrador/**
 
       - name: Analyze Spring Boot code
         if: steps.changed-files.outputs.any_changed == 'true'
-        id: backend-check
+        id: backend1.0-check
         run: |
           ISSUES=""
 
-          # Check for SQL injection vulnerabilities in backend
+          # Check for SQL injection vulnerabilities in backend1.0
           if find backend1.0 -name "*.java" -type f | xargs grep -l "\"SELECT.*\" +" 2>/dev/null | grep -q .; then
             ISSUES="$ISSUES\n❌ **SQL Injection Risk:** Encontradas consultas SQL concatenadas en código Java. Usa PreparedStatement o parametrizadas."
           fi
@@ -96,7 +96,7 @@ jobs:
             ISSUES="$ISSUES\n⚠️ **Performance:** Evita concatenar strings en loops. Usa StringBuilder."
           fi
 
-          echo "backend_issues<<EOF" >> $GITHUB_OUTPUT
+          echo "backend1.0_issues<<EOF" >> $GITHUB_OUTPUT
           echo -e "$ISSUES" >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
 
@@ -107,69 +107,69 @@ jobs:
           ISSUES=""
 
           # Check for console.log in production code
-          if find frontend1.2 -name "*.ts" -type f ! -path "*/node_modules/*" | xargs grep -l "console\.log" 2>/dev/null | grep -q .; then
+          if find frontend -name "*.ts" -type f ! -path "*/node_modules/*" | xargs grep -l "console\.log" 2>/dev/null | grep -q .; then
             ISSUES="$ISSUES\n⚠️ **Console.log:** Encontrados console.log en código. Remover antes de producción."
           fi
 
           # Check for missing async/await error handling
-          if find frontend1.2 -name "*.ts" -type f ! -path "*/node_modules/*" | xargs grep -l "\.subscribe(" 2>/dev/null | grep -q .; then
+          if find frontend -name "*.ts" -type f ! -path "*/node_modules/*" | xargs grep -l "\.subscribe(" 2>/dev/null | grep -q .; then
             ISSUES="$ISSUES\n⚠️ **Subscription Management:** Asegúrate de desuscribirse en onDestroy para evitar memory leaks."
           fi
 
           # Check for any 'as any' type assertions
-          if find frontend1.2 -name "*.ts" -type f ! -path "*/node_modules/*" | xargs grep -l "as any" 2>/dev/null | grep -q .; then
+          if find frontend -name "*.ts" -type f ! -path "*/node_modules/*" | xargs grep -l "as any" 2>/dev/null | grep -q .; then
             ISSUES="$ISSUES\n❌ **Type Safety:** Evita 'as any'. Usa tipos correctos en lugar de type assertions."
           fi
 
           # Check for missing OnDestroy implementation
-          if find frontend1.2 -name "*.component.ts" -type f ! -path "*/node_modules/*" | xargs grep -l "\.subscribe(" 2>/dev/null | xargs grep -L "OnDestroy\|ngOnDestroy" 2>/dev/null | grep -q .; then
+          if find frontend -name "*.component.ts" -type f ! -path "*/node_modules/*" | xargs grep -l "\.subscribe(" 2>/dev/null | xargs grep -L "OnDestroy\|ngOnDestroy" 2>/dev/null | grep -q .; then
             ISSUES="$ISSUES\n⚠️ **Missing OnDestroy:** Componentes con subscriptions deben implementar OnDestroy y desuscribirse."
           fi
 
           # Check for missing Change Detection strategy
-          COMPONENTS=$(find frontend1.2 -name "*.component.ts" -type f ! -path "*/node_modules/*" | wc -l)
+          COMPONENTS=$(find frontend -name "*.component.ts" -type f ! -path "*/node_modules/*" | wc -l)
           if [ "$COMPONENTS" -gt 5 ]; then
             ISSUES="$ISSUES\n💡 **Change Detection:** Considera usar ChangeDetectionStrategy.OnPush para mejor performance en componentes."
           fi
 
           # Check for ngFor without trackBy
-          if find frontend1.2 -name "*.html" -type f | xargs grep "*ngFor" 2>/dev/null | grep -v "trackBy" | grep -q .; then
+          if find frontend -name "*.html" -type f | xargs grep "*ngFor" 2>/dev/null | grep -v "trackBy" | grep -q .; then
             ISSUES="$ISSUES\n⚠️ **Performance:** Agrega trackBy en *ngFor para mejor rendimiento en listas grandes."
           fi
 
           # Check for *ngIf with *ngFor (redundant)
-          if find frontend1.2 -name "*.html" -type f | xargs grep -l "*ngIf.*\*ngFor\|*ngFor.*\*ngIf" 2>/dev/null | grep -q .; then
+          if find frontend -name "*.html" -type f | xargs grep -l "*ngIf.*\*ngFor\|*ngFor.*\*ngIf" 2>/dev/null | grep -q .; then
             ISSUES="$ISSUES\n💡 **Template Optimization:** Evita usar *ngIf y *ngFor en el mismo elemento. Separa la lógica."
           fi
 
           # Check for inline styles
-          if find frontend1.2 -name "*.html" -type f | xargs grep "style=" 2>/dev/null | grep -q .; then
+          if find frontend -name "*.html" -type f | xargs grep "style=" 2>/dev/null | grep -q .; then
             ISSUES="$ISSUES\n💡 **Code Organization:** Evita estilos inline en HTML. Usa CSS en componentes o archivos .scss."
           fi
 
           # Check for ngOn hooks in templates
-          if find frontend1.2 -name "*.html" -type f | xargs grep "(ngOnInit)\|(ngOnDestroy)\|(ngOnChanges)" 2>/dev/null | grep -q .; then
+          if find frontend -name "*.html" -type f | xargs grep "(ngOnInit)\|(ngOnDestroy)\|(ngOnChanges)" 2>/dev/null | grep -q .; then
             ISSUES="$ISSUES\n⚠️ **Logic in Templates:** No llames lifecycle hooks desde templates. Usa métodos normales."
           fi
 
           # Check for missing @Input/@Output documentation
-          if find frontend1.2 -name "*.ts" -type f ! -path "*/node_modules/*" | xargs grep "@Input\|@Output" 2>/dev/null | grep -v "//" | grep -q .; then
+          if find frontend -name "*.ts" -type f ! -path "*/node_modules/*" | xargs grep "@Input\|@Output" 2>/dev/null | grep -v "//" | grep -q .; then
             ISSUES="$ISSUES\n💡 **Documentation:** Documenta @Input y @Output con comentarios JSDoc."
           fi
 
           # Check for large components
-          LARGE_COMPONENTS=$(find frontend1.2 -name "*.component.ts" -type f ! -path "*/node_modules/*" -exec wc -l {} \; | awk '$1 > 200 {print $2}' | wc -l)
+          LARGE_COMPONENTS=$(find frontend -name "*.component.ts" -type f ! -path "*/node_modules/*" -exec wc -l {} \; | awk '$1 > 200 {print $2}' | wc -l)
           if [ "$LARGE_COMPONENTS" -gt 0 ]; then
             ISSUES="$ISSUES\n💡 **Component Size:** Detectados componentes grandes (>200 líneas). Considera dividir en componentes más pequeños."
           fi
 
           # Check for async pipe usage
-          if find frontend1.2 -name "*.html" -type f | xargs grep "\.subscribe" 2>/dev/null | grep -q .; then
+          if find frontend -name "*.html" -type f | xargs grep "\.subscribe" 2>/dev/null | grep -q .; then
             ISSUES="$ISSUES\n💡 **Async Pipe:** Considera usar async pipe en templates en lugar de .subscribe en el componente."
           fi
 
           # Check for missing error handling in HTTP calls
-          if find frontend1.2 -name "*.ts" -type f ! -path "*/node_modules/*" | xargs grep "http\.\(get\|post\|put\|delete\)" 2>/dev/null | grep -v "catchError\|catch" | grep -q .; then
+          if find frontend -name "*.ts" -type f ! -path "*/node_modules/*" | xargs grep "http\.\(get\|post\|put\|delete\)" 2>/dev/null | grep -v "catchError\|catch" | grep -q .; then
             ISSUES="$ISSUES\n⚠️ **Error Handling:** Agrega catchError() en llamadas HTTP para manejar errores."
           fi
 
@@ -226,7 +226,7 @@ jobs:
         uses: actions/github-script@v7
         with:
           script: |
-            const backend = `${{ steps.backend-check.outputs.backend_issues }}`.trim();
+            const backend1.0 = `${{ steps.backend1.0-check.outputs.backend1.0_issues }}`.trim();
             const frontend = `${{ steps.frontend-check.outputs.frontend_issues }}`.trim();
             const migration = `${{ steps.migration-check.outputs.migration_issues }}`.trim();
             const security = `${{ steps.security-check.outputs.security_issues }}`.trim();
@@ -235,8 +235,8 @@ jobs:
 
             let hasIssues = false;
 
-            if (backend) {
-              comment += `### Backend (Spring Boot)\n${backend}\n\n`;
+            if (backend1.0) {
+              comment += `### Backend (Spring Boot)\n${backend1.0}\n\n`;
               hasIssues = true;
             } else {
               comment += `### Backend (Spring Boot)\n✅ Sin problemas detectados\n\n`;
