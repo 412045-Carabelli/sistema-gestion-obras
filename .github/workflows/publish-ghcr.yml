@@ -36,7 +36,7 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-maven-
 
-      - name: Build backend JARs (skip tests)
+      - name: Build backend1.0 JARs (skip tests)
         run: |
           set -e
           for dir in backend1.0/*-service backend1.0/api-gateway; do

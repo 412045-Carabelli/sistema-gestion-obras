@@ -113,6 +113,21 @@ services:
     networks:
       - sgo_backend
 
+  agendas-service:
+    build:
+      context: ./agendas-service
+    image: sistema-gestion-obras/agendas-service:latest
+    container_name: agendas_service_local
+    ports:
+      - "8088:8088"
+    volumes:
+      - ./agendas-service/data:/app/data
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+    restart: unless-stopped
+    networks:
+      - sgo_backend
+
   api-gateway:
     build:
       context: ./api-gateway
@@ -124,6 +139,7 @@ services:
       - proveedores-service
       - documentos-service
       - transacciones-service
+      - agendas-service
     ports:
       - "8080:8080"
     environment:
