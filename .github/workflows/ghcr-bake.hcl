@@ -33,7 +33,7 @@ target "_common" {
 
 target "obras-service" {
   inherits = ["_common"]
-  context  = "backend/obras-service"
+  context  = "backend1.0/obras-service"
   tags     = [
     "${REGISTRY}/${OWNER}/sgo-obras-service:${TAG}",
     "${REGISTRY}/${OWNER}/sgo-obras-service:latest"
@@ -42,7 +42,7 @@ target "obras-service" {
 
 target "clientes-service" {
   inherits = ["_common"]
-  context  = "backend/clientes-service"
+  context  = "backend1.0/clientes-service"
   tags     = [
     "${REGISTRY}/${OWNER}/sgo-clientes-service:${TAG}",
     "${REGISTRY}/${OWNER}/sgo-clientes-service:latest"
@@ -51,7 +51,7 @@ target "clientes-service" {
 
 target "proveedores-service" {
   inherits = ["_common"]
-  context  = "backend/proveedores-service"
+  context  = "backend1.0/proveedores-service"
   tags     = [
     "${REGISTRY}/${OWNER}/sgo-proveedores-service:${TAG}",
     "${REGISTRY}/${OWNER}/sgo-proveedores-service:latest"
@@ -60,7 +60,7 @@ target "proveedores-service" {
 
 target "documentos-service" {
   inherits = ["_common"]
-  context  = "backend/documentos-service"
+  context  = "backend1.0/documentos-service"
   tags     = [
     "${REGISTRY}/${OWNER}/sgo-documentos-service:${TAG}",
     "${REGISTRY}/${OWNER}/sgo-documentos-service:latest"
@@ -69,7 +69,7 @@ target "documentos-service" {
 
 target "transacciones-service" {
   inherits = ["_common"]
-  context  = "backend/transacciones-service"
+  context  = "backend1.0/transacciones-service"
   tags     = [
     "${REGISTRY}/${OWNER}/sgo-transacciones-service:${TAG}",
     "${REGISTRY}/${OWNER}/sgo-transacciones-service:latest"
@@ -78,7 +78,7 @@ target "transacciones-service" {
 
 target "reportes-service" {
   inherits = ["_common"]
-  context  = "backend/reportes-service"
+  context  = "backend1.0/reportes-service"
   tags     = [
     "${REGISTRY}/${OWNER}/sgo-reportes-service:${TAG}",
     "${REGISTRY}/${OWNER}/sgo-reportes-service:latest"
@@ -87,7 +87,7 @@ target "reportes-service" {
 
 target "api-gateway" {
   inherits = ["_common"]
-  context  = "backend/api-gateway"
+  context  = "backend1.0/api-gateway"
   tags     = [
     "${REGISTRY}/${OWNER}/sgo-api-gateway:${TAG}",
     "${REGISTRY}/${OWNER}/sgo-api-gateway:latest"
