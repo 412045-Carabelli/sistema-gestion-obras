@@ -1,0 +1,185 @@
+<p-dialog
+  [visible]="visible()"
+  [modal]="true"
+  [header]="esEdicion() ? 'Editar Tarea' : 'Nueva Tarea'"
+  [style]="{width: '700px'}"
+  [draggable]="false"
+  [closable]="true"
+  (onHide)="cerrar()">
+
+  <form [formGroup]="form!" class="space-y-5" *ngIf="form">
+
+    <!-- Sección: Información Principal -->
+    <div class="space-y-4">
+      <h3 class="text-sm font-semibold text-gray-800 uppercase tracking-wider">Información Principal</h3>
+
+      <!-- Titulo (obligatorio) -->
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-2">
+          Título <span class="text-red-500 font-bold">*</span>
+        </label>
+        <input
+          pInputText
+          formControlName="titulo"
+          class="w-full"
+          placeholder="Ej: Instalación de puertas"
+          [class.ng-invalid]="form?.get('titulo')?.invalid && form?.get('titulo')?.touched">
+        @if (form?.get('titulo')?.invalid && form?.get('titulo')?.touched) {
+          <p class="text-red-500 text-xs mt-1 flex items-center gap-1">
+            <i class="pi pi-exclamation-circle text-xs"></i>
+            Este campo es obligatorio
+          </p>
+        }
+      </div>
+    </div>
+
+    <!-- Divider -->
+    <p-divider></p-divider>
+
+    <!-- Sección: Referencias (Opcional) -->
+    <div class="space-y-4">
+      <h3 class="text-sm font-semibold text-gray-800 uppercase tracking-wider">Referencias Asociadas</h3>
+
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <!-- Obra (opcional) -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2">
+            <i class="pi pi-building text-xs mr-1"></i>Obra
+          </label>
+          <p-dropdown
+            [options]="obrasOptions()"
+            optionLabel="label"
+            optionValue="value"
+            formControlName="obraId"
+            [showClear]="true"
+            [filter]="true"
+            filterPlaceholder="Buscar obra..."
+            styleClass="w-full"
+            placeholder="Selecciona una obra"
+            [loading]="cargandoDatos()"
+            appendTo="body">
+          </p-dropdown>
+        </div>
+
+        <!-- Cliente (opcional) -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2">
+            <i class="pi pi-users text-xs mr-1"></i>Cliente
+          </label>
+          <p-dropdown
+            [options]="clientesOptions()"
+            optionLabel="label"
+            optionValue="value"
+            formControlName="clienteId"
+            [showClear]="true"
+            [filter]="true"
+            filterPlaceholder="Buscar cliente..."
+            styleClass="w-full"
+            placeholder="Selecciona un cliente"
+            [loading]="cargandoDatos()"
+            appendTo="body">
+          </p-dropdown>
+        </div>
+
+        <!-- Proveedor (opcional) -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2">
+            <i class="pi pi-truck text-xs mr-1"></i>Proveedor
+          </label>
+          <p-dropdown
+            [options]="proveedoresOptions()"
+            optionLabel="label"
+            optionValue="value"
+            formControlName="proveedorId"
+            [showClear]="true"
+            [filter]="true"
+            filterPlaceholder="Buscar proveedor..."
+            styleClass="w-full"
+            placeholder="Selecciona un proveedor"
+            [loading]="cargandoDatos()"
+            appendTo="body">
+          </p-dropdown>
+        </div>
+      </div>
+    </div>
+
+    <!-- Divider -->
+    <p-divider></p-divider>
+
+    <!-- Divider -->
+    <p-divider></p-divider>
+
+    <!-- Sección: Descripción y Fecha -->
+    <div class="space-y-4">
+      <h3 class="text-sm font-semibold text-gray-800 uppercase tracking-wider">Detalles</h3>
+
+      <!-- Descripcion (opcional) -->
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-2">
+          <i class="pi pi-file-edit text-xs mr-1"></i>Descripción
+        </label>
+        <textarea
+          pInputTextarea
+          formControlName="descripcion"
+          class="w-full"
+          rows="4"
+          placeholder="Ingresa detalles adicionales sobre la tarea (opcional)">
+        </textarea>
+      </div>
+
+      <!-- Fecha de Vencimiento (opcional) -->
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-2">
+          <i class="pi pi-calendar text-xs mr-1"></i>Fecha de Vencimiento
+        </label>
+        <input
+          pInputText
+          formControlName="fechaVencimiento"
+          type="date"
+          class="w-full">
+      </div>
+    </div>
+  </form>
+
+  <!-- Footer con botones -->
+  <ng-template pTemplate="footer">
+    <div class="flex justify-between items-center gap-2">
+      <!-- Botones de acciones a la izquierda (solo en edición) -->
+      @if (esEdicion()) {
+        <button
+          pButton
+          type="button"
+          label="Eliminar"
+          icon="pi pi-trash"
+          class="p-button-danger p-button-text p-button-sm"
+          [disabled]="guardando()"
+          (click)="eliminar()">
+        </button>
+      } @else {
+        <div></div>
+      }
+
+      <!-- Botones de guardar/cancelar a la derecha -->
+      <div class="flex gap-2">
+        <button
+          pButton
+          type="button"
+          label="Cancelar"
+          icon="pi pi-times"
+          class="p-button-text p-button-sm"
+          (click)="cerrar()">
+        </button>
+        <button
+          pButton
+          type="button"
+          [label]="esEdicion() ? 'Guardar Cambios' : 'Crear Tarea'"
+          icon="pi pi-check"
+          class="p-button-success p-button-sm"
+          [loading]="guardando()"
+          [disabled]="!form?.valid"
+          (click)="guardar()">
+        </button>
+      </div>
+    </div>
+  </ng-template>
+</p-dialog>

@@ -5,6 +5,7 @@ group "default" {
     "proveedores-service",
     "documentos-service",
     "transacciones-service",
+    "agendas-service",
     "reportes-service",
     "api-gateway",
     "frontend",
@@ -73,6 +74,15 @@ target "transacciones-service" {
   tags     = [
     "${REGISTRY}/${OWNER}/sgo-transacciones-service:${TAG}",
     "${REGISTRY}/${OWNER}/sgo-transacciones-service:latest"
+  ]
+}
+
+target "agendas-service" {
+  inherits = ["_common"]
+  context  = "backend1.0/agendas-service"
+  tags     = [
+    "${REGISTRY}/${OWNER}/sgo-agendas-service:${TAG}",
+    "${REGISTRY}/${OWNER}/sgo-agendas-service:latest"
   ]
 }
 

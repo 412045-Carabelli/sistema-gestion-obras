@@ -1,0 +1,53 @@
+package com.agendas.controller;
+
+import com.common.dto.tareas.TareaRequest;
+import com.common.dto.tareas.TareaResponse;
+import com.agendas.service.TareaService;
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+import java.util.Map;
+
+@RestController
+@RequestMapping("/api/tareas")
+@RequiredArgsConstructor
+public class TareaController {
+
+    private final TareaService service;
+
+    @PostMapping
+    public ResponseEntity<TareaResponse> crear(@RequestBody @Valid TareaRequest request) {
+        return ResponseEntity.ok(service.crear(request));
+    }
+
+    @GetMapping
+    public List<TareaResponse> listar() {
+        return service.listar();
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<TareaResponse> obtener(@PathVariable("id") Long id) {
+        return ResponseEntity.ok(service.obtener(id));
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<TareaResponse> actualizar(@PathVariable("id") Long id, @RequestBody @Valid TareaRequest request) {
+        return ResponseEntity.ok(service.actualizar(id, request));
+    }
+
+    @DeleteMapping("/{id}")
+    public void eliminar(@PathVariable("id") Long id) {
+        service.eliminar(id);
+    }
+
+    @PatchMapping("/{id}/estado")
+    public ResponseEntity<TareaResponse> cambiarEstado(
+            @PathVariable("id") Long id,
+            @RequestBody Map<String, String> request) {
+        String nuevoEstado = request.get("estado");
+        return ResponseEntity.ok(service.cambiarEstado(id, nuevoEstado));
+    }
+}

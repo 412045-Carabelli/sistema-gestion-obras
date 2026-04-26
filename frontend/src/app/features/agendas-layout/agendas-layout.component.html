@@ -1,0 +1,36 @@
+<p-toast position="bottom-right"></p-toast>
+<p-confirmDialog></p-confirmDialog>
+
+<div class="flex justify-between items-center">
+  @switch (true) {
+    @case (currentRoute === '/agendas') {
+      <div class="relative flex justify-between items-center w-full bg-gradient-to-r from-blue-600 to-blue-800 p-8 shadow-lg text-white overflow-hidden">
+        <div class="absolute inset-0 opacity-10">
+          <div class="absolute -right-10 -top-10 w-40 h-40 bg-white rounded-full"></div>
+          <div class="absolute -left-10 -bottom-10 w-32 h-32 bg-white rounded-full"></div>
+        </div>
+
+        <div class="relative z-10">
+          <h1 class="text-3xl font-bold mb-2">Agendas</h1>
+          <p class="text-blue-100">Gestión de tareas y agendas del proyecto</p>
+        </div>
+
+        <p-button
+          label="Nueva Agenda"
+          icon="pi pi-plus"
+          (onClick)="abrirModalCrearAgenda()"
+          styleClass="p-button">
+        </p-button>
+      </div>
+    }
+    @default {
+      <div>
+        <h1 class="text-3xl font-semibold text-gray-800 m-0">Agendas</h1>
+      </div>
+    }
+  }
+</div>
+
+<div class="p-5 bg-gray-50">
+  <router-outlet></router-outlet>
+</div>

@@ -20,6 +20,8 @@ import {FacturasListComponent} from './features/components/facturas-list/factura
 import {FacturasCreateComponent} from './features/pages/facturas-create/facturas-create.component';
 import {FacturasDetailComponent} from './features/pages/facturas-detail/facturas-detail.component';
 import {FacturasEditComponent} from './features/pages/facturas-edit/facturas-edit.component';
+import {AgendasLayoutComponent} from './features/agendas-layout/agendas-layout.component';
+import {AgendasListComponent} from './features/components/agendas-list/agendas-list.component';
 
 export const routes: Routes = [
   {
@@ -75,6 +77,13 @@ export const routes: Routes = [
       {path: 'nueva', component: FacturasCreateComponent},
       {path: ':id', component: FacturasDetailComponent},
       {path: 'editar/:id', component: FacturasEditComponent},
+    ],
+  },
+  {
+    path: 'agendas',
+    component: AgendasLayoutComponent,
+    children: [
+      {path: '', component: AgendasListComponent},
     ],
   },
   {path: 'reportes', component: ReportesComponent},

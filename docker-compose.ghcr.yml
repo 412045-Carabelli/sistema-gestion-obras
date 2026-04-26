@@ -55,6 +55,8 @@ services:
         condition: service_started
       transacciones-service:
         condition: service_started
+      agendas-service:
+        condition: service_started
       reportes-service:
         condition: service_started
     restart: "no"
@@ -173,6 +175,28 @@ services:
     networks:
       - sgo_backend
 
+  agendas-service:
+    image: ghcr.io/412045-carabelli/sgo-agendas-service:latest
+    container_name: agendas_service_v2
+    ports:
+      - "8085:8085"
+    environment:
+      - SPRING_PROFILES_ACTIVE=prod
+      - DB_HOST=sqlserver
+      - DB_USER=sa
+      - DB_PASSWORD=${DB_PASSWORD:-SgoAdmin2024}
+      - SPRING_DATASOURCE_URL=jdbc:sqlserver://sqlserver:1433;databaseName=sgo_agendas;encrypt=false;trustServerCertificate=true
+      - SPRING_DATASOURCE_USERNAME=sa
+      - SPRING_DATASOURCE_PASSWORD=${DB_PASSWORD:-SgoAdmin2024}
+      - SPRING_JPA_PROPERTIES_HIBERNATE_DIALECT=org.hibernate.dialect.SQLServerDialect
+      - SPRING_FLYWAY_ENABLED=true
+    depends_on:
+      sqlserver:
+        condition: service_healthy
+    restart: "no"
+    networks:
+      - sgo_backend
+
   reportes-service:
     image: ghcr.io/412045-carabelli/sgo-reportes-service:latest
     container_name: reportes_service_v2
@@ -212,6 +236,7 @@ services:
       - SERVICES_PROVEEDORES_URL=http://proveedores-service:8083/api/proveedores
       - SERVICES_DOCUMENTOS_URL=http://documentos-service:8087/api/documentos
       - SERVICES_TRANSACCIONES_URL=http://transacciones-service:8086/api/transacciones
+      - SERVICES_AGENDAS_URL=http://agendas-service:8085/api/agendas
     depends_on:
       obras-service:
         condition: service_started
@@ -222,6 +247,8 @@ services:
       documentos-service:
         condition: service_started
       transacciones-service:
+        condition: service_started
+      agendas-service:
         condition: service_started
       reportes-service:
         condition: service_started

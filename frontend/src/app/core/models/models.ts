@@ -496,3 +496,24 @@ export interface MovimientoDashboard {
   asociadoTipo: string;
   asociadoId: number;
 }
+
+export type EstadoAgenda = 'PENDIENTE' | 'EN_PROGRESO' | 'COMPLETADA';
+
+export const ESTADOS_AGENDA_OPCIONES: RecordOption[] = [
+  {label: 'Pendiente', name: 'PENDIENTE'},
+  {label: 'En Progreso', name: 'EN_PROGRESO'},
+  {label: 'Completada', name: 'COMPLETADA'}
+];
+
+export interface Agenda {
+  id?: number;
+  titulo: string;
+  obraId?: number;
+  clienteId?: number;
+  proveedorId?: number;
+  estado: EstadoAgenda;
+  descripcion?: string;
+  fechaVencimiento?: string;
+  creadoEn?: string;
+  ultimaActualizacion?: string;
+}
