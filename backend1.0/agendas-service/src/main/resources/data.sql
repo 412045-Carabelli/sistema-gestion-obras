@@ -1,0 +1,2 @@
+-- Data de prueba para agendas
+-- Este archivo se ejecuta después de las migraciones de Flyway

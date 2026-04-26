@@ -26,6 +26,7 @@ export class SidebarComponent {
   menuItems: MenuItem[] = [
     {label: 'Dashboard', icon: 'pi-home', path: '/dashboard'},
     {label: 'Obras', icon: 'pi-building', path: '/obras'},
+    {label: 'Agendas', icon: 'pi-calendar', path: '/agendas'},
     {label: 'Clientes', icon: 'pi-users', path: '/clientes'},
     {label: 'Proveedores', icon: 'pi-truck', path: '/proveedores'},
     {label: 'Facturas', icon: 'pi-receipt', path: '/facturas'},
