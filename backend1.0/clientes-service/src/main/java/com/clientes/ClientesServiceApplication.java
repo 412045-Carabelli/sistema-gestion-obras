@@ -17,6 +17,7 @@ public class ClientesServiceApplication {
     private static final Logger log = LoggerFactory.getLogger(ClientesServiceApplication.class);
 
     public static void main(String[] args) {
+        System.out.println("🚀 SGO - Clientes Service v1.13.20");
         File dbDir = new File("data");
         if (!dbDir.exists()) {
             dbDir.mkdirs();
