@@ -8,7 +8,6 @@ com\transacciones\dto\FacturaDto.class
 com\transacciones\dto\ComisionPagoRequest.class
 com\transacciones\dto\TransaccionDto.class
 com\transacciones\repository\FacturaRepository.class
-com\transacciones\config\DatabasePatchConfig.class
 com\transacciones\service\TransaccionService.class
 com\transacciones\entity\TipoTransaccion.class
 com\transacciones\service\FacturaService.class

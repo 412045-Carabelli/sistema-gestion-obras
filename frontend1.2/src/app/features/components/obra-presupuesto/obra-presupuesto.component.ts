@@ -38,6 +38,7 @@ import { EditorModule } from 'primeng/editor';
 import {ProveedorQuickCreateComponent} from '../proveedor-quick-create/proveedor-quick-create.component';
 import { DocumentosService } from '../../../services/documentos/documentos.service';
 import { TransaccionesService } from '../../../services/transacciones/transacciones.service';
+import { DatePicker } from 'primeng/datepicker';
 
 // PDFMAKE
 import pdfMake from 'pdfmake/build/pdfmake';
@@ -68,7 +69,8 @@ pdfMake.vfs = pdfFonts.vfs;
     MenuModule,
     EditorModule,
     ConfirmDialog,
-    ProveedorQuickCreateComponent
+    ProveedorQuickCreateComponent,
+    DatePicker
   ],
   providers: [MessageService, ConfirmationService],
   templateUrl: './obra-presupuesto.component.html',
@@ -132,6 +134,10 @@ export class ObraPresupuestoComponent implements OnInit, OnChanges, AfterViewIni
   beneficioGlobalActivoDraft = false;
   guardandoBeneficioGlobal = false;
   exportandoPdf = false;
+  showFechaExportModal = false;
+  fechaExportSeleccionada: Date = new Date();
+  modoExportPendiente: 'DETALLADO' | 'MEMORIA' | 'AMBOS' | null = null;
+  maxDateExport = new Date();
 
   constructor(
     private estadoPagoService: EstadoPagoService,
@@ -767,7 +773,47 @@ export class ObraPresupuestoComponent implements OnInit, OnChanges, AfterViewIni
   // ----------------------------------------------------------
   // ------------------- EXPORTAR PDF --------------------------
   // ----------------------------------------------------------
-  async exportarPDF(modo: 'DETALLADO' | 'MEMORIA' | 'AMBOS' = 'DETALLADO') {
+  exportarPDF(modo: 'DETALLADO' | 'MEMORIA' | 'AMBOS' = 'DETALLADO') {
+    if (this.exportandoPdf) {
+      this.messageService.add({
+        severity: 'warn',
+        summary: 'PDF en proceso',
+        detail: 'Espera a que termine la generacion actual.'
+      });
+      return;
+    }
+
+    // Validar memoria descriptiva si es necesaria
+    const memoriaTexto = this.normalizarMemoriaTexto(this.obra.memoria_descriptiva);
+    if ((modo === 'MEMORIA' || modo === 'AMBOS') && !memoriaTexto) {
+      this.messageService.add({
+        severity: 'warn',
+        summary: 'Falta memoria descriptiva',
+        detail: 'Completa la memoria descriptiva para exportarla como Global.'
+      });
+      return;
+    }
+
+    // Abrir modal para seleccionar fecha
+    this.fechaExportSeleccionada = new Date();
+    this.modoExportPendiente = modo;
+    this.showFechaExportModal = true;
+  }
+
+  cerrarFechaExportModal() {
+    this.showFechaExportModal = false;
+    this.modoExportPendiente = null;
+  }
+
+  async confirmarExportarPDFConFecha() {
+    if (!this.modoExportPendiente) return;
+    const modo = this.modoExportPendiente;
+    const fecha = this.fechaExportSeleccionada;
+    this.cerrarFechaExportModal();
+    await this.generarPDF(modo, fecha);
+  }
+
+  private async generarPDF(modo: 'DETALLADO' | 'MEMORIA' | 'AMBOS', fechaExport: Date) {
     if (this.exportandoPdf) {
       this.messageService.add({
         severity: 'warn',
@@ -785,7 +831,7 @@ export class ObraPresupuestoComponent implements OnInit, OnChanges, AfterViewIni
 
     const logoDataUrl = await this.obtenerLogoDataUrl();
     const licitacion = String(obra?.id ?? 0).padStart(5, '0');
-    const fechaHoy = new Date().toLocaleDateString('es-AR');
+    const fechaHoy = fechaExport.toLocaleDateString('es-AR');
 
     // Obtener documentos existentes para calcular versionado
     const existingDocs = await this.obtenerDocumentosExistentes(obra.id!);

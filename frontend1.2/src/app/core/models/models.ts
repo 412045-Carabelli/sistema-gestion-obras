@@ -396,6 +396,7 @@ export interface ComisionesResponse {
     monto: number;
     pagos: number;
     saldo: number;
+    fecha?: string;
   }>;
 }
 

@@ -78,7 +78,8 @@ $services = @(
   @{ Name = 'transacciones-service'; Context = 'backend1.0/transacciones-service' },
   @{ Name = 'reportes-service';      Context = 'backend1.0/reportes-service' },
   @{ Name = 'api-gateway';           Context = 'backend1.0/api-gateway' },
-  @{ Name = 'frontend';              Context = 'frontend1.2' }
+  @{ Name = 'frontend';              Context = 'frontend1.2' },
+  @{ Name = 'migrador';              Context = 'db/migrador' }
 )
 
 foreach ($s in $services) {

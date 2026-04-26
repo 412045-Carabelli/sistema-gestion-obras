@@ -1,5 +1,8 @@
 import {Component, OnDestroy, OnInit} from '@angular/core';
-import {CommonModule, formatDate} from '@angular/common';
+import {CommonModule, DatePipe, formatDate} from '@angular/common';
+import pdfMake from 'pdfmake/build/pdfmake';
+import pdfFonts from 'pdfmake/build/vfs_fonts';
+pdfMake.vfs = pdfFonts.vfs;
 import {FormBuilder, FormGroup, ReactiveFormsModule} from '@angular/forms';
 import {forkJoin, Observable, of, Subscription} from 'rxjs';
 import {catchError, debounceTime, switchMap, tap, map} from 'rxjs/operators';
@@ -981,18 +984,82 @@ export class ReportesComponent implements OnInit, OnDestroy {
   private compararOrdenObras(obraIdA?: number | null, obraIdB?: number | null): number {
     const obraA = this.obras.find(o => Number(o.id) === Number(obraIdA ?? 0));
     const obraB = this.obras.find(o => Number(o.id) === Number(obraIdB ?? 0));
-    const fechaA = this.getFechaInicioMs(obraA);
-    const fechaB = this.getFechaInicioMs(obraB);
+    const fechaA = this.getCreadoEnMs(obraA);
+    const fechaB = this.getCreadoEnMs(obraB);
     if (fechaA !== fechaB) return fechaB - fechaA;
     return Number(obraIdB ?? 0) - Number(obraIdA ?? 0);
   }
 
-  private getFechaInicioMs(obra?: Obra | null): number {
-    const raw = obra?.fecha_inicio;
-    if (!raw) return Number.NEGATIVE_INFINITY;
+  private getCreadoEnMs(obra?: Obra | null): number {
+    const raw = obra?.creado_en;
+    if (!raw) return 0;
     const fecha = new Date(raw);
     const time = fecha.getTime();
-    return Number.isFinite(time) ? time : Number.NEGATIVE_INFINITY;
+    return Number.isFinite(time) ? time : 0;
+  }
+
+  exportComisionesPdf() {
+    const detalle = this.comisiones?.detalle || [];
+    const datePipe = new DatePipe('es-AR');
+    const hoy = datePipe.transform(new Date(), 'dd/MM/yyyy') ?? '';
+
+    const cell = (text: any, extra: any = {}) => ({ text: String(text ?? ''), fontSize: 9, ...extra });
+    const headerCell = (text: string) => cell(text, { bold: true, fillColor: '#f3f4f6', alignment: 'center', fontSize: 9 });
+
+    const filas = detalle.map(item => [
+      cell(item.obraNombre || 'General', { alignment: 'left' }),
+      cell(item.fecha ? (datePipe.transform(item.fecha, 'dd/MM/yyyy') ?? '-') : '-', { alignment: 'center' }),
+      cell(this.formatARS(item.monto), { alignment: 'right' }),
+      cell(this.formatARS(item.pagos), { alignment: 'right' }),
+      cell(this.formatARS(item.saldo), { alignment: 'right', bold: item.saldo > 0 }),
+    ]);
+
+    const docDefinition: any = {
+      pageMargins: [30, 40, 30, 40],
+      content: [
+        { text: 'Reporte de Comisiones', style: 'title', margin: [0, 0, 0, 4] },
+        { text: `Generado: ${hoy}`, fontSize: 8, color: '#6b7280', margin: [0, 0, 0, 16] },
+        {
+          columns: [
+            { text: `Total comisiones: ${this.formatARS(this.comisiones?.totalComision ?? 0)}`, fontSize: 10, bold: true },
+            { text: `Pagado: ${this.formatARS(this.comisiones?.totalPagos ?? 0)}`, fontSize: 10 },
+            { text: `Saldo: ${this.formatARS(this.comisiones?.saldo ?? 0)}`, fontSize: 10, bold: true },
+          ],
+          margin: [0, 0, 0, 12]
+        },
+        {
+          table: {
+            widths: ['*', 70, 80, 80, 80],
+            headerRows: 1,
+            body: [
+              [
+                headerCell('OBRA'),
+                headerCell('FECHA'),
+                headerCell('MONTO'),
+                headerCell('PAGADO'),
+                headerCell('SALDO'),
+              ],
+              ...filas
+            ]
+          },
+          layout: {
+            fillColor: (ri: number) => ri === 0 ? '#f3f4f6' : ri % 2 === 0 ? '#f9fafb' : null,
+            hLineColor: () => '#e5e7eb',
+            vLineColor: () => '#e5e7eb',
+          }
+        }
+      ],
+      styles: {
+        title: { fontSize: 16, bold: true, color: '#1e293b' }
+      }
+    };
+
+    pdfMake.createPdf(docDefinition).download(`comisiones_${hoy.replace(/\//g, '-')}.pdf`);
+  }
+
+  private formatARS(value: number | null | undefined): string {
+    const num = Number(value ?? 0);
+    return new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS', minimumFractionDigits: 2 }).format(num);
   }
 
   irAObra(obraId?: number | null) {
