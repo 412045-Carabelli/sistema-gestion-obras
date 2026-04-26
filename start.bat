@@ -40,9 +40,11 @@ rem Permitir omitir pull con --no-pull
 set "DO_PULL=1"
 if /I "%~1"=="--no-pull" set "DO_PULL=0"
 
+set "COMPOSE_FILE=docker-compose.ghcr.yml"
+
 if %DO_PULL%==1 (
   echo Descargando imagenes publicas de GHCR...
-  %COMPOSE_CMD% -f "docker-compose.yml" pull
+  %COMPOSE_CMD% -f "%COMPOSE_FILE%" pull
   if errorlevel 1 (
     echo [WARN] Fallo el pull; se continuara con las imagenes locales disponibles.
   ) else (
@@ -51,7 +53,7 @@ if %DO_PULL%==1 (
 )
 
 echo Levantando contenedores...
-%COMPOSE_CMD% -f "docker-compose.yml" up -d || exit /b 1
+%COMPOSE_CMD% -f "%COMPOSE_FILE%" up -d || exit /b 1
 
 echo.
 echo ================== Puntos de acceso ==================
@@ -61,12 +63,13 @@ echo - Obras:            http://localhost:8081
 echo - Clientes:         http://localhost:8082
 echo - Proveedores:      http://localhost:8083
 echo - Reportes:         http://localhost:8084
+echo - Agendas:          http://localhost:8085
 echo - Transacciones:    http://localhost:8086
 echo - Documentos:       http://localhost:8087
 echo ======================================================
 echo.
 echo Para detener todo mas tarde:
-echo   %COMPOSE_CMD% -f docker-compose.yml down
+echo   %COMPOSE_CMD% -f docker-compose.ghcr.yml down
 echo.
 echo Listo. Puedes abrir el navegador y usar la aplicacion.
 pause
