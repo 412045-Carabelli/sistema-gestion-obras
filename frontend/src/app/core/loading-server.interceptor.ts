@@ -22,13 +22,8 @@ export class LoadingServerInterceptor implements HttpInterceptor {
   ) {}
 
   intercept(req: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
-    const isApiRequest = req.url.startsWith(environment.apiGateway);
-
     return next.handle(req).pipe(
       catchError((error: HttpErrorResponse) => {
-        if (isApiRequest && error.status === 404 && req.method === 'GET') {
-          this.router.navigateByUrl('/dashboard');
-        }
         return throwError(() => error);
       })
     );

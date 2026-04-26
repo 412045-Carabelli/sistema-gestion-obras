@@ -16,3 +16,6 @@ GO
 IF NOT EXISTS (SELECT name FROM sys.databases WHERE name = 'sgo_documentos')
     CREATE DATABASE sgo_documentos;
 GO
+IF NOT EXISTS (SELECT name FROM sys.databases WHERE name = 'sgo_agendas')
+    CREATE DATABASE sgo_agendas;
+GO
