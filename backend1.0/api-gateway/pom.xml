@@ -8,13 +8,13 @@
     <parent>
         <groupId>com.meliquina</groupId>
         <artifactId>gestion-obras</artifactId>
-        <version>1.0.0</version>
+        <version>1.14.21</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
     <groupId>com.meliquina</groupId>
     <artifactId>api-gateway</artifactId>
-    <version>1.0.0</version>
+    <version>1.14.21</version>
 
     <properties>
         <maven.compiler.source>21</maven.compiler.source>
