@@ -280,6 +280,7 @@ public class ObraServiceImpl implements ObraService {
                             cdto.setBeneficio(c.getBeneficio());
                             cdto.setSubtotal(c.getSubtotal());
                             cdto.setTotal(c.getTotal());
+                            cdto.setMonto_real(c.getMontoReal());
                             cdto.setEstado_pago(c.getEstadoPago());
                             cdto.setTipo_costo(c.getTipoCosto());
                             cdto.setActivo(c.getActivo());
@@ -334,6 +335,7 @@ public class ObraServiceImpl implements ObraService {
                     .tipoCosto(tipoCosto)
                     .subtotal(subtotal)
                     .total(total)
+                    .montoReal(cdto.getMonto_real())
                     .estadoPago(cdto.getEstado_pago() != null ? cdto.getEstado_pago() : EstadoPagoEnum.PENDIENTE)
                     .activo(cdto.getActivo() != null ? cdto.getActivo() : Boolean.TRUE)
                     .obra(obra)

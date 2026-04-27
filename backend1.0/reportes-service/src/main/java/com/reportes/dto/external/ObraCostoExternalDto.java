@@ -21,6 +21,8 @@ public class ObraCostoExternalDto {
     private BigDecimal beneficio;
     private BigDecimal subtotal;
     private BigDecimal total;
+    @JsonProperty("monto_real")
+    private BigDecimal montoReal;
     @JsonProperty("id_estado_pago")
     private Long idEstadoPago;
     private Boolean activo;
