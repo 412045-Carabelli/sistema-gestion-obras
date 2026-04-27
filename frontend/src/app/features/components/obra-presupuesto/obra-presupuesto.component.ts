@@ -45,7 +45,7 @@ import pdfMake from 'pdfmake/build/pdfmake';
 import pdfFonts from 'pdfmake/build/vfs_fonts';
 import { ObrasService } from '../../../services/obras/obras.service';
 
-pdfMake.vfs = pdfFonts.vfs;
+(pdfMake as any).vfs = (pdfFonts as any)['vfs'];
 
 
 @Component({
@@ -674,9 +674,9 @@ export class ObraPresupuestoComponent implements OnInit, OnChanges, AfterViewIni
     return totalCotizado - totalReal;
   }
 
-  guardarMontoReal(costo: ObraCosto, valor: number | null): void {
+  guardarMontoReal(costo: ObraCosto, valor: number | null | undefined): void {
     if (!costo.id) return;
-    const payload = { ...costo, monto_real: valor };
+    const payload = { ...costo, monto_real: valor ?? undefined };
     this.costosService.updateCosto(costo.id, payload).subscribe({
       next: (actualizado) => {
         const idx = this.costosFiltrados.findIndex(c => c.id === costo.id);
