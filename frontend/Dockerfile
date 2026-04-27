@@ -8,7 +8,7 @@ WORKDIR /usr/src/app
 # Copiamos los archivos de dependencias e instalamos
 COPY package*.json ./
 RUN npm install -g @angular/cli
-RUN npm install
+RUN npm ci --build=missing
 
 # Copiamos el resto del código fuente
 COPY . .
