@@ -63,6 +63,7 @@ public class ObraCostoServiceImpl implements ObraCostoService {
         entity.setCantidad(dto.getCantidad());
         entity.setPrecioUnitario(dto.getPrecio_unitario());
         entity.setBeneficio(dto.getBeneficio());
+        entity.setMontoReal(dto.getMonto_real());
         if (dto.getTipo_costo() != null) {
             entity.setTipoCosto(dto.getTipo_costo());
         }
@@ -152,6 +153,7 @@ public class ObraCostoServiceImpl implements ObraCostoService {
         dto.setBeneficio(entity.getBeneficio());
         dto.setSubtotal(entity.getSubtotal());
         dto.setTotal(entity.getTotal());
+        dto.setMonto_real(entity.getMontoReal());
         dto.setEstado_pago(entity.getEstadoPago());
         dto.setTipo_costo(entity.getTipoCosto());
         dto.setActivo(entity.getActivo());
@@ -171,6 +173,7 @@ public class ObraCostoServiceImpl implements ObraCostoService {
         entity.setCantidad(dto.getCantidad());
         entity.setPrecioUnitario(dto.getPrecio_unitario());
         entity.setBeneficio(dto.getBeneficio());
+        entity.setMontoReal(dto.getMonto_real());
 
         TipoCostoEnum tipoCosto = dto.getTipo_costo() != null ? dto.getTipo_costo() : TipoCostoEnum.ORIGINAL;
         validarTipoCosto(tipoCosto);
