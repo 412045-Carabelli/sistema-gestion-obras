@@ -45,7 +45,7 @@ import pdfMake from 'pdfmake/build/pdfmake';
 import pdfFonts from 'pdfmake/build/vfs_fonts';
 import { ObrasService } from '../../../services/obras/obras.service';
 
-pdfMake.vfs = pdfFonts.vfs;
+pdfMake.vfs = pdfFonts['vfs'];
 
 
 @Component({
