@@ -51,6 +51,9 @@ public class ObraCosto {
     @Column(nullable=false, precision=14, scale=2) private BigDecimal subtotal; // set en servicio
     @Column(nullable=false, precision=14, scale=2) private BigDecimal total;    // set en servicio
 
+    @Column(name = "monto_real", precision = 14, scale = 2)
+    private BigDecimal montoReal; // null = no registrado aún; real cost for this line item
+
     private Boolean activo = Boolean.TRUE;
     @Column(name = "baja_obra")
     private Boolean bajaObra = Boolean.FALSE;
