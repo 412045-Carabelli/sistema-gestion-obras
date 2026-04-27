@@ -2,7 +2,7 @@ import {Component, OnDestroy, OnInit} from '@angular/core';
 import {CommonModule, DatePipe, formatDate} from '@angular/common';
 import pdfMake from 'pdfmake/build/pdfmake';
 import pdfFonts from 'pdfmake/build/vfs_fonts';
-pdfMake.vfs = pdfFonts['vfs'];
+(pdfMake as any).vfs = (pdfFonts as any).pdfMake?.vfs ?? (pdfFonts as any).vfs;
 import {FormBuilder, FormGroup, ReactiveFormsModule} from '@angular/forms';
 import {forkJoin, Observable, of, Subscription} from 'rxjs';
 import {catchError, debounceTime, switchMap, tap, map} from 'rxjs/operators';
