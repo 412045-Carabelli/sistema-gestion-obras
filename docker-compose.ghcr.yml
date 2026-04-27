@@ -178,6 +178,8 @@ services:
     container_name: agendas_service_v2
     ports:
       - "8085:8085"
+    volumes:
+      - ./backend1.0/agendas-service/src/main/resources/db/migration:/app/db/migration
     environment:
       - SPRING_PROFILES_ACTIVE=prod
       - DB_HOST=sqlserver
