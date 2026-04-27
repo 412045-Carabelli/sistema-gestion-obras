@@ -342,7 +342,16 @@ public class TransaccionService {
 
     private double getMontoBaseCosto(ObraCostoDto costo) {
         if (costo == null) return 0d;
+
+        // Priorizar monto_real si está registrado
+        if (costo.getMonto_real() != null && costo.getMonto_real() > 0) {
+            return costo.getMonto_real();
+        }
+
+        // Si no, usar subtotal
         if (costo.getSubtotal() != null) return costo.getSubtotal();
+
+        // Si no hay subtotal, calcular
         double cantidad = costo.getCantidad() != null ? costo.getCantidad() : 0d;
         double precio = costo.getPrecio_unitario() != null ? costo.getPrecio_unitario() : 0d;
         return cantidad * precio;

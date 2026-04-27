@@ -13,4 +13,5 @@ public class ObraCostoDto {
     private Double precio_unitario;
     private Double subtotal;
     private Double total;
+    private Double monto_real;
 }
