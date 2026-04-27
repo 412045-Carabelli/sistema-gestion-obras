@@ -1,6 +1,6 @@
 # ---- Etapa 1: Construcción (Build) ----
 # Usamos una imagen de Node para compilar el proyecto Angular
-FROM node:18-alpine as build
+FROM node:18 as build
 
 # Definimos el directorio de trabajo dentro del contenedor
 WORKDIR /usr/src/app
@@ -8,7 +8,7 @@ WORKDIR /usr/src/app
 # Copiamos los archivos de dependencias e instalamos
 COPY package*.json ./
 RUN npm install -g @angular/cli
-RUN npm install
+RUN npm ci --build=missing
 
 # Copiamos el resto del código fuente
 COPY . .

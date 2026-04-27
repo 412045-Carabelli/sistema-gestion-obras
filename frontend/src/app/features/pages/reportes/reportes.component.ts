@@ -4,6 +4,8 @@ import pdfMake from 'pdfmake/build/pdfmake';
 import pdfFonts from 'pdfmake/build/vfs_fonts';
 (pdfMake as any).vfs = (pdfFonts as any).pdfMake?.vfs ?? (pdfFonts as any).vfs;
 import {FormBuilder, FormGroup, ReactiveFormsModule} from '@angular/forms';
+
+(pdfMake as any).vfs = (pdfFonts as any)['vfs'];
 import {forkJoin, Observable, of, Subscription} from 'rxjs';
 import {catchError, debounceTime, switchMap, tap, map} from 'rxjs/operators';
 import {

@@ -129,6 +129,7 @@ export interface ObraCosto {
   estado_pago?: string;
   subtotal: number;
   total: number;
+  monto_real?: number;
   activo?: boolean;
   ultima_actualizacion?: string;
   tipo_actualizacion?: string;
