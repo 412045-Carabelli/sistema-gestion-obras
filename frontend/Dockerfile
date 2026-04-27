@@ -1,6 +1,6 @@
 # ---- Etapa 1: Construcción (Build) ----
 # Usamos una imagen de Node para compilar el proyecto Angular
-FROM node:18-alpine as build
+FROM node:18 as build
 
 # Definimos el directorio de trabajo dentro del contenedor
 WORKDIR /usr/src/app
