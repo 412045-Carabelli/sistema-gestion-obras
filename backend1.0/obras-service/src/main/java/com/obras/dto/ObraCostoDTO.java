@@ -20,6 +20,7 @@ public class ObraCostoDTO {
     private BigDecimal beneficio;
     private BigDecimal subtotal;
     private BigDecimal total;
+    private BigDecimal monto_real;
     private EstadoPagoEnum estado_pago;
     private TipoCostoEnum tipo_costo;
     private Boolean activo;
