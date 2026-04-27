@@ -45,7 +45,7 @@ import pdfMake from 'pdfmake/build/pdfmake';
 import pdfFonts from 'pdfmake/build/vfs_fonts';
 import { ObrasService } from '../../../services/obras/obras.service';
 
-pdfMake.vfs = pdfFonts.vfs;
+(pdfMake as any).vfs = (pdfFonts as any)['vfs'];
 
 
 @Component({
@@ -653,6 +653,46 @@ export class ObraPresupuestoComponent implements OnInit, OnChanges, AfterViewIni
 
   calcularPresupuestoTotal(): number {
     return Number(this.obra?.presupuesto ?? 0);
+  }
+
+  calcularDesvio(costo: ObraCosto): number | null {
+    if (costo.monto_real == null) return null;
+    return costo.subtotal - costo.monto_real;
+  }
+
+  calcularTotalReal(): number {
+    return this.costosFiltrados
+      .filter(c => c.monto_real != null)
+      .reduce((acc, c) => acc + (c.monto_real ?? 0), 0);
+  }
+
+  calcularDesvioTotal(): number | null {
+    const tienenReal = this.costosFiltrados.filter(c => c.monto_real != null);
+    if (tienenReal.length === 0) return null;
+    const totalCotizado = tienenReal.reduce((acc, c) => acc + c.subtotal, 0);
+    const totalReal = tienenReal.reduce((acc, c) => acc + (c.monto_real ?? 0), 0);
+    return totalCotizado - totalReal;
+  }
+
+  guardarMontoReal(costo: ObraCosto, valor: number | null | undefined): void {
+    if (!costo.id) return;
+    const payload = { ...costo, monto_real: valor ?? undefined };
+    this.costosService.updateCosto(costo.id, payload).subscribe({
+      next: (actualizado) => {
+        const idx = this.costosFiltrados.findIndex(c => c.id === costo.id);
+        if (idx !== -1) {
+          this.costosFiltrados[idx] = { ...this.costosFiltrados[idx], ...actualizado };
+        }
+        this.costosActualizados.emit([...this.costosFiltrados]);
+      },
+      error: () => {
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: 'No se pudo guardar el monto real.'
+        });
+      }
+    });
   }
 
   pagarComisionObra() {

@@ -1665,6 +1665,13 @@ public class ReportesService {
 
     private BigDecimal costoBase(ObraCostoExternalDto costo) {
         if (costo == null) return BigDecimal.ZERO;
+
+        // Si tiene monto_real registrado, usar eso para reportes (gasto real)
+        if (costo.getMontoReal() != null && costo.getMontoReal().compareTo(BigDecimal.ZERO) >= 0) {
+            return costo.getMontoReal();
+        }
+
+        // Si no, usar subtotal cotizado (fallback)
         if (costo.getSubtotal() != null) return costo.getSubtotal();
         if (costo.getCantidad() != null && costo.getPrecioUnitario() != null) {
             return costo.getCantidad().multiply(costo.getPrecioUnitario());

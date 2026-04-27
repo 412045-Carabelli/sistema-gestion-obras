@@ -291,6 +291,8 @@
           <th class="text-left px-3 py-2 font-semibold">Beneficio (%)</th>
           <th class="text-left px-3 py-2 font-semibold">Subtotal</th>
           <th class="text-left px-3 py-2 font-semibold">Total</th>
+          <th class="text-left px-3 py-2 font-semibold">Gastado Real</th>
+          <th class="text-left px-3 py-2 font-semibold">Desvío</th>
           <th class="text-center px-2 py-2 font-semibold w-10"></th>
         </tr>
       </ng-template>
@@ -449,6 +451,36 @@
               <span>{{ c.total | currency:'ARS' }}</span>
             </div>
           </td>
+
+          <td class="px-3 py-2">
+            <div class="flex justify-start">
+              <p-inputNumber
+                [(ngModel)]="c.monto_real"
+                (ngModelChange)="guardarMontoReal(c, $event)"
+                mode="currency"
+                currency="ARS"
+                locale="es-AR"
+                [useGrouping]="true"
+                [minFractionDigits]="2"
+                [maxFractionDigits]="2"
+                inputStyleClass="w-full text-left"
+                placeholder="No registrado"
+                [min]="0"
+                (onClick)="$event.stopPropagation()">
+              </p-inputNumber>
+            </div>
+          </td>
+
+          <td class="px-3 py-2"
+            [ngClass]="{
+              'text-green-600 font-semibold': (calcularDesvio(c) ?? 0) >= 0,
+              'text-red-600 font-semibold': (calcularDesvio(c) ?? 0) < 0
+            }">
+            {{ calcularDesvio(c) !== null
+               ? (calcularDesvio(c)! | currency:'ARS')
+               : '—' }}
+          </td>
+
           <td class="px-2 py-2 text-center w-10">
             <p-button
               icon="pi pi-trash"
@@ -522,6 +554,36 @@
           <td class="px-3 py-2 text-green-700">
             <div class="flex justify-start">{{ calcularBeneficioNeto() | currency:'ARS' }}</div>
           </td>
+          <td class="px-3 py-2"></td>
+          <td class="px-3 py-2"></td>
+          <td class="px-3 py-2"></td>
+        </tr>
+
+        <tr class="bg-gray-50 text-sm">
+          <td class="text-right px-3 py-2 text-gray-600" colspan="6">Gastado real:</td>
+          <td class="px-3 py-2"></td>
+          <td class="px-3 py-2 text-gray-700 font-medium">
+            <div class="flex justify-start">{{ calcularTotalReal() | currency:'ARS' }}</div>
+          </td>
+          <td class="px-3 py-2"></td>
+          <td class="px-3 py-2"></td>
+        </tr>
+
+        <tr class="bg-gray-100 font-bold"
+          [ngClass]="{
+            'text-green-700': (calcularDesvioTotal() ?? 0) >= 0,
+            'text-red-700': (calcularDesvioTotal() ?? 0) < 0
+          }">
+          <td class="text-right px-3 py-2" colspan="6">Desvío total:</td>
+          <td class="px-3 py-2"></td>
+          <td class="px-3 py-2">
+            <div class="flex justify-start">
+              {{ calcularDesvioTotal() !== null
+                 ? (calcularDesvioTotal()! | currency:'ARS')
+                 : '—' }}
+            </div>
+          </td>
+          <td class="px-3 py-2"></td>
           <td class="px-3 py-2"></td>
         </tr>
       </ng-template>
