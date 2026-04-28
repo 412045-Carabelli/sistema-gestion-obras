@@ -47,7 +47,8 @@
       "Bash(git gc *)",
       "Bash(mvn -v)",
       "Bash(git rm *)",
-      "Bash(ng build:*)"
+      "Bash(docker compose:*)",
+      "Skill(update-config)"
     ]
   }
 }

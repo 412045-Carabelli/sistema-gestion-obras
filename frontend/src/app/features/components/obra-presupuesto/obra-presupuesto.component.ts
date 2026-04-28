@@ -457,6 +457,10 @@ export class ObraPresupuestoComponent implements OnInit, OnChanges, AfterViewIni
       return;
     }
     const payload = this.calcularMontosPayload(this.costoDetalleDraft);
+    // Incluir monto_real en el payload
+    if (this.costoDetalleDraft.monto_real != null) {
+      (payload as any).monto_real = this.costoDetalleDraft.monto_real;
+    }
     this.costosService.updateCosto(this.costoDetalleDraft.id, payload).subscribe({
       next: actualizado => {
         const actualizadoFull = {
@@ -661,17 +665,16 @@ export class ObraPresupuestoComponent implements OnInit, OnChanges, AfterViewIni
   }
 
   calcularTotalReal(): number {
-    return this.costosFiltrados
-      .filter(c => c.monto_real != null)
-      .reduce((acc, c) => acc + (c.monto_real ?? 0), 0);
+    return Number(this.obra?.economia_obra ?? 0);
+  }
+
+  calcularDemaseaTotal(): number {
+    return Number(this.obra?.demasia_obra ?? 0);
   }
 
   calcularDesvioTotal(): number | null {
-    const tienenReal = this.costosFiltrados.filter(c => c.monto_real != null);
-    if (tienenReal.length === 0) return null;
-    const totalCotizado = tienenReal.reduce((acc, c) => acc + c.subtotal, 0);
-    const totalReal = tienenReal.reduce((acc, c) => acc + (c.monto_real ?? 0), 0);
-    return totalCotizado - totalReal;
+    if (this.obra?.desvio_total == null) return null;
+    return Number(this.obra.desvio_total);
   }
 
   guardarMontoReal(costo: ObraCosto, valor: number | null | undefined): void {
