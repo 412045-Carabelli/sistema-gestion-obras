@@ -32,6 +32,9 @@ public class ObraDTO {
     private BigDecimal total_con_beneficio;
     private BigDecimal comision_monto;
     private BigDecimal beneficio_neto;
+    private BigDecimal economia_obra;
+    private BigDecimal demasia_obra;
+    private BigDecimal desvio_total;
     private List<TareaDTO> tareas;
     private List<ObraCostoDTO> costos;
     private String notas;

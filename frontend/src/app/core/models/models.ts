@@ -95,6 +95,9 @@ export interface Obra {
   total_con_beneficio?: number;
   comision_monto?: number;
   beneficio_neto?: number;
+  economia_obra?: number;
+  demasia_obra?: number;
+  desvio_total?: number;
   activo?: boolean;
   creado_en?: string;
   notas?: string;
