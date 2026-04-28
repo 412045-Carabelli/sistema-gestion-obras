@@ -247,6 +247,9 @@ public class ObraServiceImpl implements ObraService {
         dto.setComision_monto(totales.comisionMonto());
         dto.setBeneficio_neto(totales.beneficioNeto());
         dto.setPresupuesto(totales.presupuestoFinal());
+        dto.setEconomia_obra(totales.economiaObra());
+        dto.setDemasia_obra(totales.demasiasObra());
+        dto.setDesvio_total(totales.desvioTotal());
 
         if (entity.getId() != null) {
             boolean obraActiva = Boolean.TRUE.equals(entity.getActivo());
@@ -402,6 +405,9 @@ public class ObraServiceImpl implements ObraService {
                 BigDecimal.ZERO,
                 BigDecimal.ZERO,
                 BigDecimal.ZERO,
+                BigDecimal.ZERO,
+                BigDecimal.ZERO,
+                BigDecimal.ZERO,
                 BigDecimal.ZERO
             );
         }
@@ -418,13 +424,17 @@ public class ObraServiceImpl implements ObraService {
                 BigDecimal.ZERO,
                 BigDecimal.ZERO,
                 BigDecimal.ZERO,
+                BigDecimal.ZERO,
+                BigDecimal.ZERO,
+                BigDecimal.ZERO,
                 BigDecimal.ZERO
             );
         }
 
         BigDecimal subtotalCostos = BigDecimal.ZERO;
         BigDecimal beneficioCostos = BigDecimal.ZERO;
-        BigDecimal desvioTotal = BigDecimal.ZERO;
+        BigDecimal economiaObra = BigDecimal.ZERO;
+        BigDecimal demasiasObra = BigDecimal.ZERO;
 
         for (ObraCosto costo : costos) {
             BigDecimal base = costo.getSubtotal() != null
@@ -444,15 +454,18 @@ public class ObraServiceImpl implements ObraService {
                     base.multiply(beneficioAplicado).divide(new BigDecimal("100"), 6, RoundingMode.HALF_UP)
             );
 
-            // Calcular desvío (ahorro por gastar menos de lo presupuestado)
+            // Calcular economía (ahorro) y demasia (sobrecosto)
             if (costo.getMontoReal() != null) {
                 BigDecimal desvio = base.subtract(costo.getMontoReal());
                 if (desvio.compareTo(BigDecimal.ZERO) > 0) {
-                    desvioTotal = desvioTotal.add(desvio);
+                    economiaObra = economiaObra.add(desvio);
+                } else if (desvio.compareTo(BigDecimal.ZERO) < 0) {
+                    demasiasObra = demasiasObra.add(desvio.abs());
                 }
             }
         }
 
+        BigDecimal desvioTotal = economiaObra.subtract(demasiasObra);
         BigDecimal totalConBeneficio = subtotalCostos.add(beneficioCostos);
         BigDecimal comisionMonto = BigDecimal.ZERO;
         if (Boolean.TRUE.equals(obra.getTieneComision()) && obra.getComision() != null) {
@@ -461,8 +474,6 @@ public class ObraServiceImpl implements ObraService {
             );
         }
 
-        // La comisión no se suma al presupuesto: se descuenta del beneficio bruto.
-        // El desvío se suma al beneficio neto (ahorro por gastar menos de lo presupuestado)
         BigDecimal beneficioNeto = beneficioCostos.subtract(comisionMonto).add(desvioTotal);
         BigDecimal presupuestoFinal = totalConBeneficio;
 
@@ -472,7 +483,10 @@ public class ObraServiceImpl implements ObraService {
                 totalConBeneficio.setScale(2, RoundingMode.HALF_UP),
                 comisionMonto.setScale(2, RoundingMode.HALF_UP),
                 beneficioNeto.setScale(2, RoundingMode.HALF_UP),
-                presupuestoFinal.setScale(2, RoundingMode.HALF_UP)
+                presupuestoFinal.setScale(2, RoundingMode.HALF_UP),
+                economiaObra.setScale(2, RoundingMode.HALF_UP),
+                demasiasObra.setScale(2, RoundingMode.HALF_UP),
+                desvioTotal.setScale(2, RoundingMode.HALF_UP)
         );
     }
 
@@ -482,7 +496,10 @@ public class ObraServiceImpl implements ObraService {
             BigDecimal totalConBeneficio,
             BigDecimal comisionMonto,
             BigDecimal beneficioNeto,
-            BigDecimal presupuestoFinal
+            BigDecimal presupuestoFinal,
+            BigDecimal economiaObra,
+            BigDecimal demasiasObra,
+            BigDecimal desvioTotal
     ) {
     }
 }
