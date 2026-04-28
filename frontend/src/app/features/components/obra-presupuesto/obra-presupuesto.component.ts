@@ -457,6 +457,10 @@ export class ObraPresupuestoComponent implements OnInit, OnChanges, AfterViewIni
       return;
     }
     const payload = this.calcularMontosPayload(this.costoDetalleDraft);
+    // Incluir monto_real en el payload
+    if (this.costoDetalleDraft.monto_real != null) {
+      (payload as any).monto_real = this.costoDetalleDraft.monto_real;
+    }
     this.costosService.updateCosto(this.costoDetalleDraft.id, payload).subscribe({
       next: actualizado => {
         const actualizadoFull = {
