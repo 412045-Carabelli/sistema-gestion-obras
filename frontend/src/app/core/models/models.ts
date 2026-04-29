@@ -157,6 +157,22 @@ export interface Tarea {
   tipo_actualizacion?: string;
 }
 
+export interface TareaAntiguaAgenda {
+  id: number;
+  titulo: string;
+  obraId?: number;
+  obraNombre?: string;
+  clienteId?: number;
+  clienteNombre?: string;
+  proveedorId?: number;
+  proveedorNombre?: string;
+  estado: string;
+  descripcion?: string;
+  fechaVencimiento?: string;
+  creadoEn?: string;
+  ultimaActualizacion?: string;
+}
+
 export interface Transaccion {
   id?: number;
   id_obra: number;
@@ -235,6 +251,23 @@ export interface DashboardFinancieroResponse {
     ingresos: number;
     egresos: number;
     saldo: number;
+  };
+}
+
+export interface DashboardConsolidadoResponse {
+  totalPresupuesto: number;
+  totalCostos: number;
+  porPresupuestar: number;
+  totalCobros: number;
+  totalPagos: number;
+  saldoFlujo: number;
+  porCobrar: number;
+  porPagar: number;
+  cuentaCorriente: {
+    loCobrado: number;
+    porCobrar: number;
+    pagado: number;
+    porPagar: number;
   };
 }
 
@@ -520,4 +553,21 @@ export interface Agenda {
   fechaVencimiento?: string;
   creadoEn?: string;
   ultimaActualizacion?: string;
+}
+
+export interface MovimientoRecenteDTO {
+  id: number;
+  obraId: number;
+  obraNombre: string;
+  asociadoId: number;
+  asociadoTipo: string;
+  asociadoNombre: string;
+  tipoTransaccion: string;
+  tipo_movimiento?: string; // alias para compatibilidad con template
+  tipo?: string; // alias para compatibilidad con template
+  fecha: string;
+  monto: number;
+  formaPago: string;
+  medioPago: string;
+  concepto: string;
 }

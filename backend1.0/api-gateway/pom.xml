@@ -23,6 +23,13 @@
     </properties>
 
     <dependencies>
+        <!-- Common DTOs -->
+        <dependency>
+            <groupId>com.meliquina</groupId>
+            <artifactId>common</artifactId>
+            <version>1.14.21</version>
+        </dependency>
+
         <!-- WebFlux -->
         <dependency>
             <groupId>org.springframework.boot</groupId>

@@ -48,7 +48,27 @@
       "Bash(mvn -v)",
       "Bash(git rm *)",
       "Bash(docker compose:*)",
-      "Skill(update-config)"
+      "Skill(update-config)",
+      "Bash(mvn -pl backend1.0/reportes-service clean compile -q)",
+      "Bash(mvn -pl reportes-service clean compile -q)",
+      "Bash(mvn -pl reportes-service clean package -DskipTests -q)",
+      "Bash(mvn -pl obras-service clean compile -q)",
+      "Bash(mvn -pl obras-service clean package -DskipTests -q)",
+      "Bash(mvn -pl api-gateway clean compile -q)",
+      "Bash(mvn -pl api-gateway clean package -DskipTests -q)",
+      "Bash(cd:*)",
+      "Bash(mvn -pl transacciones-service clean compile -q)",
+      "Bash(mvn -pl transacciones-service clean package -DskipTests -q)",
+      "Bash(curl -s http://localhost:8086/api/flujo-caja/principal)",
+      "Bash(mv -v n8n-*.* bot-whatsapp/)",
+      "Bash(mv -v README-N8N.md bot-whatsapp/)",
+      "Bash(mv -v N8N-*.* bot-whatsapp/)",
+      "Bash(mv -v docker-compose.n8n.yml bot-whatsapp/)",
+      "Bash(mv -v test-webhook.sh bot-whatsapp/)",
+      "Bash(mvn -pl obras-service,transacciones-service clean package -DskipTests -q)",
+      "Bash(mv:*)",
+      "Bash(mvn -pl agendas-service clean package -DskipTests -q)",
+      "Bash(find C:UsersUsuarioDesktopmy-worksistema-gestion-obrasbackend1.0obras-service -name *TareaController* -o -name *Tarea*Controller*)"
     ]
   }
 }
