@@ -7,7 +7,7 @@
 
     <groupId>com.meliquina</groupId>
     <artifactId>gestion-obras</artifactId>
-    <version>1.14.21</version>
+    <version>1.14.25</version>
     <packaging>pom</packaging>
     <name>Gestion de Obras - Parent</name>
 
