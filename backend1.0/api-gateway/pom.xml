@@ -8,13 +8,13 @@
     <parent>
         <groupId>com.meliquina</groupId>
         <artifactId>gestion-obras</artifactId>
-        <version>1.14.21</version>
+        <version>1.14.25</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
     <groupId>com.meliquina</groupId>
     <artifactId>api-gateway</artifactId>
-    <version>1.14.21</version>
+    <version>1.14.25</version>
 
     <properties>
         <maven.compiler.source>21</maven.compiler.source>
@@ -27,7 +27,7 @@
         <dependency>
             <groupId>com.meliquina</groupId>
             <artifactId>common</artifactId>
-            <version>1.14.21</version>
+            <version>1.14.25</version>
         </dependency>
 
         <!-- WebFlux -->
