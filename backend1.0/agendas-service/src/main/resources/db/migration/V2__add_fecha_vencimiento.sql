@@ -1,2 +1,1 @@
-ALTER TABLE tareas
-ADD fecha_vencimiento DATETIME2;
+-- Esta migración está vacía porque fecha_vencimiento ya está definida en V1

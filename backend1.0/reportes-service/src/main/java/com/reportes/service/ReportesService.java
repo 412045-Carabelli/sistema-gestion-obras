@@ -106,6 +106,74 @@ public class ReportesService {
         return response;
     }
 
+    public DashboardConsolidadoResponse generarDashboardConsolidado(ReportFilterRequest filtro) {
+        ReportFilterRequest filtros = filtroSeguro(filtro);
+        List<ObraExternalDto> obrasFiltradas = filtrarObrasConDeuda(filtros);
+        Map<Long, ObraExternalDto> obrasPorId = mapearPorId(obrasFiltradas, ObraExternalDto::getId);
+
+        // Transacciones
+        List<TransaccionExternalDto> transacciones = filtrarTransacciones(filtros, obrasPorId);
+        transacciones = transacciones.stream()
+                .filter(tx -> Boolean.TRUE.equals(tx.getActivo()) || tx.getActivo() == null)
+                .filter(tx -> tx.getIdObra() != null && obrasPorId.containsKey(tx.getIdObra()))
+                .collect(Collectors.toList());
+
+        BigDecimal totalCobros = sumarPorTipo(transacciones, "COBRO");
+        BigDecimal totalPagos = sumarPorTipo(transacciones, "PAGO");
+
+        // Presupuestos
+        BigDecimal totalPresupuesto = obrasFiltradas.stream()
+                .map(this::presupuestoEfectivo)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        // Costos
+        BigDecimal totalCostos = BigDecimal.ZERO;
+        if (filtros.getClienteId() == null) {
+            for (ObraExternalDto obra : obrasFiltradas) {
+                List<ObraCostoExternalDto> costos = obrasClient.obtenerCostos(obra.getId());
+                for (ObraCostoExternalDto costo : costos) {
+                    if (Boolean.FALSE.equals(costo.getActivo())) continue;
+                    if (!costoTieneProveedor(costo)) continue;
+                    if (filtros.getProveedorId() != null
+                            && !Objects.equals(filtros.getProveedorId(), costo.getIdProveedor())) {
+                        continue;
+                    }
+                    totalCostos = totalCostos.add(costoBase(costo));
+                }
+            }
+        }
+        if (filtros.getProveedorId() == null) {
+            BigDecimal totalComisiones = obrasFiltradas.stream()
+                    .map(this::calcularMontoComision)
+                    .reduce(BigDecimal.ZERO, BigDecimal::add);
+            totalCostos = totalCostos.add(totalComisiones);
+        }
+
+        // Consolidar
+        DashboardConsolidadoResponse response = DashboardConsolidadoResponse.builder()
+                .totalPresupuesto(totalPresupuesto)
+                .totalCostos(totalCostos)
+                .porPresupuestar(saldoPositivo(totalPresupuesto.subtract(totalCostos)))
+                .totalCobros(totalCobros)
+                .totalPagos(totalPagos)
+                .saldoFlujo(totalCobros.subtract(totalPagos))
+                .porCobrar(saldoPositivo(totalPresupuesto.subtract(totalCobros)))
+                .porPagar(saldoPositivo(totalCostos.subtract(totalPagos)))
+                .build();
+
+        // Cuenta corriente consolidada
+        DashboardConsolidadoResponse.CuentaCorrienteConsolidada ctaCte =
+                DashboardConsolidadoResponse.CuentaCorrienteConsolidada.builder()
+                        .loCobrado(totalCobros)
+                        .porCobrar(saldoPositivo(totalPresupuesto.subtract(totalCobros)))
+                        .pagado(totalPagos)
+                        .porPagar(saldoPositivo(totalCostos.subtract(totalPagos)))
+                        .build();
+        response.setCuentaCorriente(ctaCte);
+
+        return response;
+    }
+
     public DeudasGlobalesResponse generarDeudasGlobales(ReportFilterRequest filtro) {
         ReportFilterRequest filtros = filtroSeguro(filtro);
         DeudasGlobalesResponse response = new DeudasGlobalesResponse();
@@ -663,18 +731,48 @@ public class ReportesService {
                 m -> Optional.ofNullable(m.getFecha()).orElse(LocalDate.MAX)
         ));
 
-        BigDecimal costosAcum = BigDecimal.ZERO;
+        // Calcular saldo neto por obra para filtrar obras con saldo = 0
+        Map<Long, BigDecimal> saldoPorObra = new HashMap<>();
         for (CuentaCorrienteProveedorResponse.Movimiento mov : movimientos) {
+            Long obraId = mov.getObraId();
+            if (obraId != null) {
+                BigDecimal saldo = saldoPorObra.getOrDefault(obraId, BigDecimal.ZERO);
+                if ("COSTO".equalsIgnoreCase(mov.getTipo())) {
+                    saldo = saldo.add(mov.getMonto());
+                } else {
+                    saldo = saldo.subtract(mov.getMonto());
+                }
+                saldoPorObra.put(obraId, saldo);
+            }
+        }
+
+        // Filtrar movimientos: solo mantener los de obras con saldo != 0
+        Set<Long> obrasConSaldo = saldoPorObra.entrySet().stream()
+                .filter(e -> e.getValue().compareTo(BigDecimal.ZERO) != 0)
+                .map(Map.Entry::getKey)
+                .collect(Collectors.toSet());
+
+        List<CuentaCorrienteProveedorResponse.Movimiento> movimientosFiltrados = movimientos.stream()
+                .filter(mov -> {
+                    Long obraId = mov.getObraId();
+                    return obraId != null && obrasConSaldo.contains(obraId);
+                })
+                .collect(Collectors.toList());
+
+        // Recalcular acumulados solo con movimientos filtrados
+        BigDecimal costosAcum = BigDecimal.ZERO;
+        BigDecimal pagosAcumReCalculados = BigDecimal.ZERO;
+        for (CuentaCorrienteProveedorResponse.Movimiento mov : movimientosFiltrados) {
             if ("COSTO".equalsIgnoreCase(mov.getTipo())) {
                 costosAcum = costosAcum.add(mov.getMonto());
             } else {
-                pagosAcum = pagosAcum.add(mov.getMonto());
+                pagosAcumReCalculados = pagosAcumReCalculados.add(mov.getMonto());
             }
             mov.setCostosAcumulados(costosAcum);
-            mov.setPagosAcumulados(pagosAcum);
-            mov.setSaldoProveedor(saldoPositivo(costosAcum.subtract(pagosAcum)));
+            mov.setPagosAcumulados(pagosAcumReCalculados);
+            mov.setSaldoProveedor(saldoPositivo(costosAcum.subtract(pagosAcumReCalculados)));
         }
-        response.setMovimientos(movimientos);
+        response.setMovimientos(movimientosFiltrados);
 
         response.setCostos(costos);
         response.setPagos(pagos);

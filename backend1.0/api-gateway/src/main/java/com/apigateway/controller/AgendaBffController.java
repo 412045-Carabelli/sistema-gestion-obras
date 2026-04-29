@@ -1,0 +1,138 @@
+package com.apigateway.controller;
+
+import com.common.dto.tareas.TareaAntiguaAgendaResponse;
+import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.reactive.function.client.WebClient;
+import reactor.core.publisher.Mono;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+
+@RestController
+@RequestMapping("/bff/agendas")
+@RequiredArgsConstructor
+public class AgendaBffController {
+
+    @Value("${services.agendas.url}/api/agenda/tareas")
+    private String AGENDA_TAREAS_URL;
+
+    private final WebClient.Builder webClientBuilder;
+
+    // ✅ Listar todas las tareas de agendas
+    @GetMapping
+    public Mono<ResponseEntity<List<Map<String, Object>>>> getTareasAgendas() {
+        return webClientBuilder.build()
+                .get()
+                .uri(AGENDA_TAREAS_URL)
+                .retrieve()
+                .bodyToFlux(new ParameterizedTypeReference<Map<String, Object>>() {})
+                .collectList()
+                .map(ResponseEntity::ok);
+    }
+
+    // ✅ Tareas por obra
+    @GetMapping("/{idObra}")
+    public Mono<ResponseEntity<List<Map<String, Object>>>> getTareasPorObra(
+            @PathVariable("idObra") Long idObra,
+            @RequestParam(name = "soloActivas", defaultValue = "false") boolean soloActivas,
+            @RequestParam(name = "ordenAntiguas", defaultValue = "false") boolean ordenAntiguas
+    ) {
+        String url = AGENDA_TAREAS_URL + "/" + idObra;
+        List<String> params = new ArrayList<>();
+        if (soloActivas) params.add("soloActivas=true");
+        if (ordenAntiguas) params.add("ordenAntiguas=true");
+        if (!params.isEmpty()) {
+            url = url + "?" + String.join("&", params);
+        }
+        return webClientBuilder.build()
+                .get()
+                .uri(url)
+                .retrieve()
+                .bodyToFlux(new ParameterizedTypeReference<Map<String, Object>>() {})
+                .collectList()
+                .map(ResponseEntity::ok);
+    }
+
+    // ✅ Tareas por proveedor
+    @GetMapping("/proveedor/{idProveedor}")
+    public Mono<ResponseEntity<List<Map<String, Object>>>> getTareasPorProveedor(@PathVariable("idProveedor") Long idProveedor) {
+        return webClientBuilder.build()
+                .get()
+                .uri(AGENDA_TAREAS_URL + "/proveedor/{idProveedor}", idProveedor)
+                .retrieve()
+                .bodyToFlux(new ParameterizedTypeReference<Map<String, Object>>() {})
+                .collectList()
+                .map(ResponseEntity::ok);
+    }
+
+    // ✅ Tareas antiguas de la agenda (enriquecidas con nombres)
+    @GetMapping("/antiguas")
+    public Mono<ResponseEntity<List<TareaAntiguaAgendaResponse>>> getTareasAntiguasAgenda(
+            @RequestParam(name = "limit", defaultValue = "10") int limit) {
+        String url = AGENDA_TAREAS_URL + "/antiguas?limit=" + limit;
+        return webClientBuilder.build()
+                .get()
+                .uri(url)
+                .retrieve()
+                .bodyToFlux(TareaAntiguaAgendaResponse.class)
+                .collectList()
+                .map(ResponseEntity::ok);
+    }
+
+    // ✅ POST Crear tarea
+    @PostMapping("/{idObra}")
+    public Mono<ResponseEntity<Map<String, Object>>> crearTarea(
+            @PathVariable("idObra") Long idObra,
+            @RequestBody Map<String, Object> tareaDTO) {
+
+        return webClientBuilder.build()
+                .post()
+                .uri(AGENDA_TAREAS_URL + "/{idObra}", idObra)
+                .bodyValue(tareaDTO)
+                .retrieve()
+                .bodyToMono(new ParameterizedTypeReference<Map<String, Object>>() {})
+                .map(ResponseEntity::ok);
+    }
+
+    // ✅ PUT actualizar
+    @PutMapping("/{id}")
+    public Mono<ResponseEntity<Map<String, Object>>> actualizarTarea(
+            @PathVariable("id") Long id,
+            @RequestBody Map<String, Object> tareaDTO) {
+
+        return webClientBuilder.build()
+                .put()
+                .uri(AGENDA_TAREAS_URL + "/{id}", id)
+                .bodyValue(tareaDTO)
+                .retrieve()
+                .bodyToMono(new ParameterizedTypeReference<Map<String, Object>>() {})
+                .map(ResponseEntity::ok);
+    }
+
+    // ✅ PUT completar
+    @PutMapping("/{id}/completar")
+    public Mono<ResponseEntity<Map<String, Object>>> completarTarea(@PathVariable("id") Long id) {
+        return webClientBuilder.build()
+                .put()
+                .uri(AGENDA_TAREAS_URL + "/{id}/completar", id)
+                .retrieve()
+                .bodyToMono(new ParameterizedTypeReference<Map<String, Object>>() {})
+                .map(ResponseEntity::ok);
+    }
+
+    // ✅ DELETE borrar
+    @DeleteMapping("/{id}")
+    public Mono<ResponseEntity<Void>> borrarTarea(@PathVariable("id") Long id) {
+        return webClientBuilder.build()
+                .delete()
+                .uri(AGENDA_TAREAS_URL + "/{id}", id)
+                .retrieve()
+                .bodyToMono(Void.class)
+                .map(ResponseEntity::ok);
+    }
+}

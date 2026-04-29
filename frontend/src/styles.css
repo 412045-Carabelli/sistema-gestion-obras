@@ -1,3 +1,12 @@
 @import "tailwindcss";
 @import "primeicons/primeicons.css";
 @import "quill/dist/quill.snow.css";
+
+/* Escala global: 80% del tamaño original (reducción del 20%) */
+html {
+  font-size: 12.8px; /* Reduce base size proportionally */
+}
+
+body {
+  font-size: 0.875rem; /* 14px con base de 16px, pero será 11.2px */
+}

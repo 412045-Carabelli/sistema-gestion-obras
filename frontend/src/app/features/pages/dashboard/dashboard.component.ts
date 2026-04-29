@@ -7,7 +7,7 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { Toast } from 'primeng/toast';
 import { ProgressSpinnerModule } from 'primeng/progressspinner';
 import { Button } from 'primeng/button';
-import {FlujoCajaResponse, MovimientoDashboard, ResumenGeneralResponse, Tarea, Obra, Cliente, Proveedor, Transaccion, ObraCosto, ReportFilter, DashboardFinancieroResponse} from '../../../core/models/models';
+import {FlujoCajaResponse, MovimientoDashboard, ResumenGeneralResponse, Tarea, Obra, Cliente, Proveedor, Transaccion, ObraCosto, ReportFilter, DashboardFinancieroResponse, DashboardConsolidadoResponse, TareaAntiguaAgenda, MovimientoRecenteDTO} from '../../../core/models/models';
 import {TareasService} from '../../../services/tareas/tareas.service';
 import {ReportesService} from '../../../services/reportes/reportes.service';
 import {TransaccionesService} from '../../../services/transacciones/transacciones.service';
@@ -61,8 +61,9 @@ export class DashboardComponent implements OnInit {
   resumenGeneral!: ResumenGeneralResponse;
   flujoCaja!: FlujoCajaResponse;
   dashboardFinanciero: DashboardFinancieroResponse | null = null;
-  tareasRecientes: Tarea[] = [];
-  movimientosRecientes: MovimientoDashboard[] = [];
+  dashboardConsolidado: DashboardConsolidadoResponse | null = null;
+  tareasAntiguasAgenda: TareaAntiguaAgenda[] = [];
+  movimientosRecientes: MovimientoRecenteDTO[] = [];
   obrasComparativo: Array<{ id: number; nombre: string; presupuesto: number; porcentaje: number }> = [];
   flujoDineroSerie: Array<{ fecha: string; ingresos: number; egresos: number; saldo: number }> = [];
   flujoDineroMax = 0;
@@ -201,14 +202,17 @@ export class DashboardComponent implements OnInit {
       resumen: this.reportesService.getResumenGeneral(),
       flujo: this.reportesService.getFlujoCaja(filtro),
       dashboard: this.reportesService.getDashboardFinanciero(filtro),
+      consolidado: this.reportesService.getDashboardConsolidado(filtro),
       obras: this.obrasService.getObras(),
       proveedores: this.proveedoresService.getProveedoresAll(),
-      clientes: this.clientesService.getClientes()
+      clientes: this.clientesService.getClientes(),
+      movimientosRecientes: this.reportesService.getMovimientosRecientes()
     }).subscribe({
-      next: ({ resumen, flujo, dashboard, obras, proveedores, clientes }) => {
+      next: ({ resumen, flujo, dashboard, consolidado, obras, proveedores, clientes, movimientosRecientes }) => {
         this.resumenGeneral = resumen;
         this.flujoCaja = flujo;
         this.dashboardFinanciero = dashboard;
+        this.dashboardConsolidado = consolidado;
         this.conteoObras = this.calcularConteosObras(obras);
         this.obras = obras || [];
         this.proveedores = proveedores || [];
@@ -219,47 +223,19 @@ export class DashboardComponent implements OnInit {
         this.filteredProveedores = [...this.proveedores];
         this.obrasComparativo = this.construirComparativoObras(this.obras, filtro);
 
-        // Cargar tareas de las ultimas 3 obras segun filtros
-        const obrasRecientes = this.obtenerObrasFiltradasDashboard().slice(0, 3);
-        const tareasPromises = obrasRecientes.map(obra =>
-          this.tareasService.getTareasByObra(obra.id!, true, true)
-        );
+        // Cargar tareas antiguas de la agenda
+        this.tareasService.getTareasAntiguasAgenda(10).subscribe({
+          next: (tareas) => {
+            this.tareasAntiguasAgenda = tareas || [];
+          },
+          error: (error) => {
+            console.warn('Error cargando tareas de agenda:', error);
+            this.tareasAntiguasAgenda = [];
+          }
+        });
 
-        if (tareasPromises.length > 0) {
-          forkJoin(tareasPromises).subscribe({
-            next: (tareasPorObra) => {
-              // Aplanar y ordenar por más recientes
-              const mapaObras = new Map(obrasRecientes.map(o => [o.id, o.nombre]));
-              const ordenEstado = (t: Tarea) => {
-                const estado = (t.estado_tarea || '').toString().toUpperCase();
-                if (estado === 'PENDIENTE') return 0;
-                if (estado === 'EN_PROGRESO') return 1;
-                if (estado === 'COMPLETADA') return 2;
-                return 99;
-              };
-              const fechaTarea = (t: Tarea) => new Date(
-                (t as any).fecha_inicio ?? (t as any).creado_en ?? (t as any).ultima_actualizacion ?? 0
-              ).getTime();
-
-              this.tareasRecientes = ([] as (Tarea & { obraNombre?: string })[])
-                .concat(...tareasPorObra)
-                .map(t => ({
-                  ...t,
-                  obraNombre: mapaObras.get(t.id_obra) || 'Obra sin nombre'
-                }))
-                .sort((a, b) => {
-                  const estadoDiff = ordenEstado(a) - ordenEstado(b);
-                  if (estadoDiff !== 0) return estadoDiff;
-                  return fechaTarea(a) - fechaTarea(b);
-                });
-            }
-          });
-        }
-
-        // Cargar movimientos recientes
-        this.movimientosRecientes = (flujo.movimientos || [])
-          .sort((a, b) => new Date(b.fecha).getTime() - new Date(a.fecha).getTime())
-          .slice(0, 10);
+        // Asignar movimientos recientes desde el endpoint
+        this.movimientosRecientes = movimientosRecientes || [];
         this.flujoDineroSerie = this.construirSerieFlujo(flujo.movimientos || []);
 
         this.loadingGeneral = false;
@@ -781,39 +757,47 @@ export class DashboardComponent implements OnInit {
   }
 
   get totalCobrosDashboard(): number {
-    return this.calcularTotalMovimientos(['INGRESO', 'COBRO']);
+    return this.dashboardConsolidado?.totalCobros ?? this.calcularTotalMovimientos(['INGRESO', 'COBRO']);
   }
 
   get totalPagosDashboard(): number {
-    return this.calcularTotalMovimientos(['EGRESO', 'PAGO']);
+    return this.dashboardConsolidado?.totalPagos ?? this.calcularTotalMovimientos(['EGRESO', 'PAGO']);
   }
 
   get totalPresupuestoObras(): number {
-    const obras = this.filtrarObrasConDeuda(this.obras || []);
-    return obras.reduce((acc, o) => acc + Number(o.presupuesto || 0), 0);
+    return this.dashboardConsolidado?.totalPresupuesto ?? (() => {
+      const obras = this.filtrarObrasConDeuda(this.obras || []);
+      return obras.reduce((acc, o) => acc + Number(o.presupuesto || 0), 0);
+    })();
   }
 
   get totalPresupuestoFiltradoDashboard(): number {
-    const obrasFiltradas = this.filtrarObrasConDeuda(this.obtenerObrasFiltradasDashboard());
-    return obrasFiltradas.reduce((acc, obra) => acc + Number(obra.presupuesto || 0), 0);
+    return this.dashboardConsolidado?.totalPresupuesto ?? (() => {
+      const obrasFiltradas = this.filtrarObrasConDeuda(this.obtenerObrasFiltradasDashboard());
+      return obrasFiltradas.reduce((acc, obra) => acc + Number(obra.presupuesto || 0), 0);
+    })();
   }
 
   get totalCostosObras(): number {
-    const obras = this.filtrarObrasConDeuda(this.obras || []);
-    return obras.reduce((acc, obra) => {
-      const costos = obra.costos || [];
-      const totalObra = costos.reduce((sum, costo) => sum + this.obtenerSubtotalCosto(costo), 0);
-      return acc + totalObra;
-    }, 0);
+    return this.dashboardConsolidado?.totalCostos ?? (() => {
+      const obras = this.filtrarObrasConDeuda(this.obras || []);
+      return obras.reduce((acc, obra) => {
+        const costos = obra.costos || [];
+        const totalObra = costos.reduce((sum, costo) => sum + this.obtenerSubtotalCosto(costo), 0);
+        return acc + totalObra;
+      }, 0);
+    })();
   }
 
   get totalCostosFiltradosDashboard(): number {
-    const obrasFiltradas = this.filtrarObrasConDeuda(this.obtenerObrasFiltradasDashboard());
-    return (obrasFiltradas || []).reduce((acc, obra) => {
-      const costos = obra.costos || [];
-      const totalObra = costos.reduce((sum, costo) => sum + this.obtenerSubtotalCosto(costo), 0);
-      return acc + totalObra;
-    }, 0);
+    return this.dashboardConsolidado?.totalCostos ?? (() => {
+      const obrasFiltradas = this.filtrarObrasConDeuda(this.obtenerObrasFiltradasDashboard());
+      return (obrasFiltradas || []).reduce((acc, obra) => {
+        const costos = obra.costos || [];
+        const totalObra = costos.reduce((sum, costo) => sum + this.obtenerSubtotalCosto(costo), 0);
+        return acc + totalObra;
+      }, 0);
+    })();
   }
 
   get porCobrarPendienteDashboard(): number {
@@ -835,32 +819,8 @@ export class DashboardComponent implements OnInit {
     return this.totalCobrosDashboard - this.totalPagosDashboard;
   }
 
-  get tareasRecientesFiltradas(): Tarea[] {
-    let tareas = this.tareasRecientes || [];
-    const obraId = this.filtrosDashboard?.obra?.id;
-    const proveedorId = this.filtrosDashboard?.proveedor?.id;
-    const rangoFechas = this.filtrosDashboard?.rangoFechas;
-
-    if (obraId) {
-      tareas = tareas.filter(t => Number(t.id_obra) === Number(obraId));
-    }
-
-    if (proveedorId) {
-      tareas = tareas.filter(t => Number(t.proveedor?.id ?? t.id_proveedor) === Number(proveedorId));
-    }
-
-    if (rangoFechas?.[0] || rangoFechas?.[1]) {
-      tareas = tareas.filter(t =>
-        this.estaEnRangoFecha(t.fecha_inicio ?? t.creado_en, rangoFechas)
-      );
-    }
-
-    return tareas;
-  }
-
-  get movimientosRecientesFiltradas(): MovimientoDashboard[] {
-    return this.obtenerMovimientosFiltradosDashboard()
-      .sort((a, b) => new Date(b.fecha).getTime() - new Date(a.fecha).getTime());
+  get movimientosRecientesFiltradas(): MovimientoRecenteDTO[] {
+    return this.movimientosRecientes;
   }
 
   get cuentaCorrienteModo(): 'CLIENTE' | 'PROVEEDOR' | 'GENERAL' {
@@ -1846,7 +1806,8 @@ export class DashboardComponent implements OnInit {
 
   private obtenerSubtotalCosto(costo: any): number {
     if (!this.costoTieneProveedor(costo)) return 0;
-    return Number(costo?.subtotal ?? costo?.total ?? 0);
+    // Priorizar montoReal (gasto real) como el backend
+    return Number(costo?.montoReal ?? costo?.subtotal ?? costo?.total ?? 0);
   }
 
   private obtenerFechaCreacionObra(obra: Obra): string | Date | null {
@@ -1900,11 +1861,16 @@ export class DashboardComponent implements OnInit {
     return fallback;
   }
 
-  getAsociadoNombre(mov: MovimientoDashboard): string {
+  getAsociadoNombre(mov: any): string {
     const tipo = (mov.asociadoTipo || '').toString().toUpperCase();
     if (tipo === 'COMISION') {
       return 'Comisión';
     }
+    // Usar asociadoNombre si está disponible (MovimientoRecenteDTO)
+    if (mov.asociadoNombre) {
+      return mov.asociadoNombre;
+    }
+    // Fallback para MovimientoDashboard
     if (tipo === 'CLIENTE') {
       const cliente = this.clientes.find(c => Number(c.id) === Number(mov.asociadoId));
       if (cliente?.nombre) return cliente.nombre;
@@ -1916,13 +1882,6 @@ export class DashboardComponent implements OnInit {
     return mov.asociadoId ? `Asociado #${mov.asociadoId}` : 'Asociado';
   }
 
-  getProveedorNombreTarea(tarea: Tarea): string {
-    if (tarea.proveedor?.nombre) return tarea.proveedor.nombre;
-    const proveedorId = tarea.id_proveedor;
-    if (!proveedorId) return 'Proveedor';
-    const proveedor = this.proveedores.find(p => Number(p.id) === Number(proveedorId));
-    return proveedor?.nombre || `Proveedor #${proveedorId}`;
-  }
 }
 
 
