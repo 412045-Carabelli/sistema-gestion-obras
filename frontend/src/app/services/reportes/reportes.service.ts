@@ -4,6 +4,7 @@ import {Observable} from 'rxjs';
 import {
   AvanceTareasResponse,
   CostosPorCategoriaResponse,
+  DashboardConsolidadoResponse,
   EstadoFinancieroObraResponse,
   EstadoObrasFilter,
   EstadoObrasResponse,
@@ -16,6 +17,7 @@ import {
   FacturasKpiResponse,
   FlujoCajaResponse,
   IngresosEgresosResponse,
+  MovimientoRecenteDTO,
   NotasObraResponse,
   PendientesResponse,
   RankingClientesResponse,
@@ -48,11 +50,15 @@ export class ReportesService {
   }
 
   getFlujoCaja(filtro?: ReportFilter): Observable<FlujoCajaResponse> {
-    return this.http.post<FlujoCajaResponse>(`${this.apiUrl}/financieros/flujo-caja`, filtro ?? {});
+    return this.http.post<FlujoCajaResponse>(`${this.apiUrl}/financieros/flujo-caja-principal`, filtro ?? {});
   }
 
   getDashboardFinanciero(filtro?: ReportFilter): Observable<DashboardFinancieroResponse> {
     return this.http.post<DashboardFinancieroResponse>(`${this.apiUrl}/financieros/dashboard`, filtro ?? {});
+  }
+
+  getDashboardConsolidado(filtro?: ReportFilter): Observable<DashboardConsolidadoResponse> {
+    return this.http.post<DashboardConsolidadoResponse>(`${this.apiUrl}/financieros/dashboard-consolidado`, filtro ?? {});
   }
 
   getDeudasGlobales(filtro?: ReportFilter): Observable<DeudasGlobalesResponse> {
@@ -129,6 +135,10 @@ export class ReportesService {
 
   getKpiFacturas(filtro?: ReportFilter): Observable<FacturasKpiResponse> {
     return this.http.post<FacturasKpiResponse>(`${this.apiUrl}/financieros/kpi-facturas`, filtro ?? {});
+  }
+
+  getMovimientosRecientes(): Observable<MovimientoRecenteDTO[]> {
+    return this.http.get<MovimientoRecenteDTO[]>(`${this.apiUrl}/movimientos/recientes`);
   }
 
 }

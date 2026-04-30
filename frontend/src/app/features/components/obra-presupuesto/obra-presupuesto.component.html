@@ -291,8 +291,6 @@
           <th class="text-left px-3 py-2 font-semibold">Beneficio (%)</th>
           <th class="text-left px-3 py-2 font-semibold">Subtotal</th>
           <th class="text-left px-3 py-2 font-semibold">Total</th>
-          <th class="text-left px-3 py-2 font-semibold">Gastado Real</th>
-          <th class="text-left px-3 py-2 font-semibold">Desvío</th>
           <th class="text-center px-2 py-2 font-semibold w-10"></th>
         </tr>
       </ng-template>
@@ -452,35 +450,6 @@
             </div>
           </td>
 
-          <td class="px-3 py-2">
-            <div class="flex justify-start">
-              <p-inputNumber
-                [(ngModel)]="c.monto_real"
-                (ngModelChange)="guardarMontoReal(c, $event)"
-                mode="currency"
-                currency="ARS"
-                locale="es-AR"
-                [useGrouping]="true"
-                [minFractionDigits]="2"
-                [maxFractionDigits]="2"
-                inputStyleClass="w-full text-left"
-                placeholder="No registrado"
-                [min]="0"
-                (onClick)="$event.stopPropagation()">
-              </p-inputNumber>
-            </div>
-          </td>
-
-          <td class="px-3 py-2"
-            [ngClass]="{
-              'text-green-600 font-semibold': (calcularDesvio(c) ?? 0) >= 0,
-              'text-red-600 font-semibold': (calcularDesvio(c) ?? 0) < 0
-            }">
-            {{ calcularDesvio(c) !== null
-               ? (calcularDesvio(c)! | currency:'ARS')
-               : '—' }}
-          </td>
-
           <td class="px-2 py-2 text-center w-10">
             <p-button
               icon="pi pi-trash"
@@ -560,10 +529,20 @@
         </tr>
 
         <tr class="bg-gray-50 text-sm">
-          <td class="text-right px-3 py-2 text-gray-600" colspan="6">Gastado real:</td>
+          <td class="text-right px-3 py-2 text-gray-600" colspan="6">Economía de obra:</td>
           <td class="px-3 py-2"></td>
           <td class="px-3 py-2 text-gray-700 font-medium">
             <div class="flex justify-start">{{ calcularTotalReal() | currency:'ARS' }}</div>
+          </td>
+          <td class="px-3 py-2"></td>
+          <td class="px-3 py-2"></td>
+        </tr>
+
+        <tr class="bg-gray-50 text-sm">
+          <td class="text-right px-3 py-2 text-gray-600" colspan="6">Demasia de obra:</td>
+          <td class="px-3 py-2"></td>
+          <td class="px-3 py-2 text-red-600 font-medium">
+            <div class="flex justify-start">{{ calcularDemaseaTotal() | currency:'ARS' }}</div>
           </td>
           <td class="px-3 py-2"></td>
           <td class="px-3 py-2"></td>
@@ -763,6 +742,41 @@
                 [(ngModel)]="costoDetalleDraft.beneficio"
                 [disabled]="!costoDetalleEditando"
                 (input)="recalcularEnEdicion(costoDetalleDraft)"
+                type="text"/>
+            </div>
+            <div class="flex flex-col gap-2">
+              <label class="text-sm font-medium text-gray-700">Gasto Real</label>
+              @if (costoDetalleEditando) {
+                <p-inputNumber
+                  [(ngModel)]="costoDetalleDraft.monto_real"
+                  mode="currency"
+                  currency="ARS"
+                  locale="es-AR"
+                  [useGrouping]="true"
+                  [minFractionDigits]="2"
+                  [maxFractionDigits]="2"
+                  inputStyleClass="w-full max-w-[220px] text-left text-sm py-1"
+                  placeholder="Sin registro"
+                  [min]="0">
+                </p-inputNumber>
+              } @else {
+                <input
+                  class="p-inputtext p-component w-full max-w-[220px] text-sm py-1"
+                  [value]="costoDetalleDraft.monto_real ? (costoDetalleDraft.monto_real | currency:'ARS':'symbol':'1.0-2') : '—'"
+                  disabled
+                  type="text"/>
+              }
+            </div>
+            <div class="flex flex-col gap-2">
+              <label class="text-sm font-medium text-gray-700">Desvío</label>
+              <input
+                class="p-inputtext p-component w-full max-w-[220px] text-sm py-1 text-right font-semibold"
+                [value]="calcularDesvio(costoDetalleDraft) !== null ? (calcularDesvio(costoDetalleDraft) | currency:'ARS':'symbol':'1.0-2') : '—'"
+                [ngClass]="{
+                  'bg-green-50 text-green-600': (calcularDesvio(costoDetalleDraft) ?? 0) >= 0,
+                  'bg-red-50 text-red-600': (calcularDesvio(costoDetalleDraft) ?? 0) < 0
+                }"
+                disabled
                 type="text"/>
             </div>
             <div class="flex flex-col gap-2">

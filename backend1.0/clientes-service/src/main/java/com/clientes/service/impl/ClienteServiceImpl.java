@@ -27,6 +27,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.HashMap;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
 
 @Service
 @RequiredArgsConstructor
@@ -91,28 +92,47 @@ public class ClienteServiceImpl implements ClienteService {
 
     @Override
     public List<ClienteResponse> listar() {
+        // ⚡ RÁPIDO: sin obras ni transacciones, para dashboard/reportes
         return repository.findAll().stream()
-                .map(cliente -> {
-                    List<ObraClienteResponse> obras;
-                    try {
-                        obras = obrasClient.obtenerObrasPorCliente(cliente.getId());
-                    } catch (Exception ex) {
-                        log.warn("No se pudieron obtener las obras para el cliente {}", cliente.getId(), ex);
-                        obras = Collections.emptyList();
-                    }
-
-                    List<TransaccionExternalDto> transacciones;
-                    try {
-                        transacciones = transaccionesClient.obtenerTransaccionesPorAsociado("CLIENTE", cliente.getId());
-                    } catch (Exception ex) {
-                        log.warn("No se pudieron obtener transacciones del cliente {}", cliente.getId(), ex);
-                        transacciones = Collections.emptyList();
-                    }
-
-                    TotalesCliente totales = calcularTotalesCliente(obras, transacciones, false);
-                    return mapearRespuesta(cliente, null, totales.totalCliente, totales.cobrosRealizados, totales.saldoCliente);
-                })
+                .map(cliente -> mapearRespuestaLite(cliente))
                 .toList();
+    }
+
+    @Override
+    public List<ClienteResponse> listarConDetalles() {
+        // 📊 COMPLETO: con obras, saldos, transacciones (PAGINADO en controller)
+        return repository.findAll().stream()
+                .map(cliente -> cargarClienteConDetallesEnParalelo(cliente))
+                .toList();
+    }
+
+    private ClienteResponse cargarClienteConDetallesEnParalelo(Cliente cliente) {
+        try {
+            // Paralelizar las dos llamadas HTTP
+            var futuraObras = CompletableFuture.supplyAsync(() ->
+                    obrasClient.obtenerObrasPorCliente(cliente.getId())
+            ).exceptionally(ex -> {
+                log.warn("No se pudieron obtener obras para cliente {}", cliente.getId());
+                return Collections.emptyList();
+            });
+
+            var futuraTransacciones = CompletableFuture.supplyAsync(() ->
+                    transaccionesClient.obtenerTransaccionesPorAsociado("CLIENTE", cliente.getId())
+            ).exceptionally(ex -> {
+                log.warn("No se pudieron obtener transacciones para cliente {}", cliente.getId());
+                return Collections.emptyList();
+            });
+
+            // Esperar ambas en paralelo
+            var obras = futuraObras.join();
+            var transacciones = futuraTransacciones.join();
+
+            TotalesCliente totales = calcularTotalesCliente(obras, transacciones, true);
+            return mapearRespuesta(cliente, obras, totales.totalCliente, totales.cobrosRealizados, totales.saldoCliente);
+        } catch (Exception ex) {
+            log.error("Error cargando detalles del cliente {}: {}", cliente.getId(), ex.getMessage());
+            return mapearRespuestaLite(cliente);
+        }
     }
 
     @Override
@@ -169,13 +189,8 @@ public class ClienteServiceImpl implements ClienteService {
         }
     }
 
-    private ClienteResponse mapearRespuesta(
-            Cliente cliente,
-            List<ObraClienteResponse> obras,
-            BigDecimal totalCliente,
-            BigDecimal cobrosRealizados,
-            BigDecimal saldoCliente
-    ) {
+    private ClienteResponse mapearRespuestaLite(Cliente cliente) {
+        // ⚡ LITE: solo datos básicos, sin obras ni transacciones
         ClienteResponse response = new ClienteResponse();
         response.setId(cliente.getId());
         response.setNombre(cliente.getNombre());
@@ -185,17 +200,24 @@ public class ClienteServiceImpl implements ClienteService {
         response.setCuit(cliente.getCuit());
         response.setTelefono(cliente.getTelefono());
         response.setEmail(cliente.getEmail());
-        String condicion = null;
-        if (cliente.getCondicionIVA() != null) {
-            condicion = cliente.getCondicionIVA();
-        } else if (cliente.getCondicionIVA() != null) {
-            condicion = cliente.getCondicionIVA();
-        }
-        response.setCondicionIVA(condicion != null ? condicion : CondicionIva.CONSUMIDOR_FINAL.name());
+        response.setCondicionIVA(cliente.getCondicionIVA() != null ?
+                cliente.getCondicionIVA() : CondicionIva.CONSUMIDOR_FINAL.name());
         response.setActivo(cliente.getActivo() != null ? cliente.getActivo() : Boolean.TRUE);
         response.setCreadoEn(cliente.getCreadoEn());
         response.setUltimaActualizacion(cliente.getUltimaActualizacion());
         response.setTipoActualizacion(cliente.getTipoActualizacion());
+        return response;
+    }
+
+    private ClienteResponse mapearRespuesta(
+            Cliente cliente,
+            List<ObraClienteResponse> obras,
+            BigDecimal totalCliente,
+            BigDecimal cobrosRealizados,
+            BigDecimal saldoCliente
+    ) {
+        // 📊 COMPLETO: con obras y totales
+        ClienteResponse response = mapearRespuestaLite(cliente);
 
         if (obras != null) {
             response.setObras(obras);

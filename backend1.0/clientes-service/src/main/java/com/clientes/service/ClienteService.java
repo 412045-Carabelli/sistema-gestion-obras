@@ -11,6 +11,7 @@ public interface ClienteService {
     ClienteResponse obtener(Long id);
     ClienteResponse obtenerConObras(Long id);
     List<ClienteResponse> listar();
+    List<ClienteResponse> listarConDetalles();
     List<String> listarCondicionesIva();
     void activar(Long id);
     void desactivar(Long id);

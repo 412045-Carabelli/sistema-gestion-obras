@@ -2,6 +2,7 @@ package com.agendas.controller;
 
 import com.common.dto.tareas.TareaRequest;
 import com.common.dto.tareas.TareaResponse;
+import com.common.dto.tareas.TareaAntiguaAgendaResponse;
 import com.agendas.service.TareaService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -12,7 +13,7 @@ import java.util.List;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/bff/agendas")
+@RequestMapping("/api/agenda/tareas")
 @RequiredArgsConstructor
 public class TareaController {
 
@@ -26,6 +27,17 @@ public class TareaController {
     @GetMapping
     public List<TareaResponse> listar() {
         return service.listar();
+    }
+
+    @GetMapping("/proveedor/{idProveedor}")
+    public List<TareaResponse> obtenerTareasPorProveedor(@PathVariable("idProveedor") Long idProveedor) {
+        return service.obtenerTareasPorProveedor(idProveedor);
+    }
+
+    @GetMapping("/antiguas")
+    public List<TareaAntiguaAgendaResponse> obtenerTareasAntiguasAgenda(
+            @RequestParam(name = "limit", defaultValue = "10") int limit) {
+        return service.obtenerTareasAntiguasAgendaEnriquecidas(limit);
     }
 
     @GetMapping("/{id}")

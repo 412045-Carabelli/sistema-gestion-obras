@@ -24,6 +24,9 @@ public class ReportesBffController {
     @Value("${services.reportes.url}")
     private String reportesServiceUrl;
 
+    @Value("${services.transacciones.url}")
+    private String transaccionesServiceUrl;
+
     // ---------- FINANCIEROS ----------
 
     @PostMapping("/financieros/ingresos-egresos")
@@ -41,9 +44,32 @@ public class ReportesBffController {
         return proxyPost("/financieros/flujo-caja", filtro, new ParameterizedTypeReference<>() {});
     }
 
+    @PostMapping("/financieros/flujo-caja-principal")
+    public Mono<ResponseEntity<Object>> flujoCajaPrincipal(@RequestBody(required = false) Object filtro) {
+        // Endpoint confiable que devuelve: cobrado, por_cobrar, pagado, por_pagar, resultado
+        // Filtrado por 6 estados: Adjudicada, En progreso, Cobrada, Facturada, Facturada parcial, Finalizada
+        // transaccionesServiceUrl = http://localhost:8086/api/transacciones, necesitamos solo http://localhost:8086
+        String baseUrl = transaccionesServiceUrl.replaceAll("/api/transacciones$", "");
+        String url = baseUrl + "/api/flujo-caja/principal";
+        return webClientBuilder.build()
+                .get()
+                .uri(url)
+                .accept(MediaType.APPLICATION_JSON)
+                .retrieve()
+                .bodyToMono(new ParameterizedTypeReference<Object>() {})
+                .map(ResponseEntity::ok)
+                .onErrorResume(e -> Mono.just(ResponseEntity.internalServerError()
+                        .body((Object) ("Error al obtener flujo de caja: " + e.getMessage()))));
+    }
+
     @PostMapping("/financieros/dashboard")
     public Mono<ResponseEntity<Object>> dashboardFinanciero(@RequestBody(required = false) Object filtro) {
         return proxyPost("/financieros/dashboard", filtro, new ParameterizedTypeReference<>() {});
+    }
+
+    @PostMapping("/financieros/dashboard-consolidado")
+    public Mono<ResponseEntity<Object>> dashboardConsolidado(@RequestBody(required = false) Object filtro) {
+        return proxyPost("/financieros/dashboard-consolidado", filtro, new ParameterizedTypeReference<>() {});
     }
 
     @PostMapping("/financieros/deudas-globales")
@@ -144,6 +170,23 @@ public class ReportesBffController {
     @PostMapping("/generales/ranking-proveedores")
     public Mono<ResponseEntity<Object>> rankingProveedores(@RequestBody(required = false) Object filtro) {
         return proxyPost("/generales/ranking-proveedores", filtro, new ParameterizedTypeReference<>() {});
+    }
+
+    // ---------- MOVIMIENTOS ----------
+
+    @GetMapping("/movimientos/recientes")
+    public Mono<ResponseEntity<Object>> getUltimosMovimientos() {
+        String baseUrl = transaccionesServiceUrl.replaceAll("/api/transacciones$", "");
+        String url = baseUrl + "/api/transacciones/recientes";
+        return webClientBuilder.build()
+                .get()
+                .uri(url)
+                .accept(MediaType.APPLICATION_JSON)
+                .retrieve()
+                .bodyToMono(new ParameterizedTypeReference<Object>() {})
+                .map(ResponseEntity::ok)
+                .onErrorResume(e -> Mono.just(ResponseEntity.internalServerError()
+                        .body((Object) ("Error al obtener movimientos recientes: " + e.getMessage()))));
     }
 
     // ---------- NOTAS ----------

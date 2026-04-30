@@ -2,6 +2,7 @@ package com.transacciones.controller;
 
 import com.transacciones.dto.ComisionPagoRequest;
 import com.transacciones.dto.TransaccionDto;
+import com.transacciones.dto.MovimientoRecenteDTO;
 import com.transacciones.entity.Transaccion;
 import com.transacciones.enums.TipoTransaccionEnum;
 import com.transacciones.service.TransaccionService;
@@ -45,6 +46,12 @@ public class TransaccionController {
     @GetMapping("/obra/{obraId}")
     public ResponseEntity<List<TransaccionDto>> getByObra(@PathVariable("obraId") Long obraId) {
         List<TransaccionDto> lista = transaccionService.listarPorObra(obraId);
+        return ResponseEntity.ok(lista);
+    }
+
+    @GetMapping("/recientes")
+    public ResponseEntity<List<MovimientoRecenteDTO>> getUltimos10() {
+        List<MovimientoRecenteDTO> lista = transaccionService.obtenerUltimos10Movimientos();
         return ResponseEntity.ok(lista);
     }
 
