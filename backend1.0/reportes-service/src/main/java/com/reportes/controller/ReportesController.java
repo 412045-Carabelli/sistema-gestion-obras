@@ -37,6 +37,11 @@ public class ReportesController {
         return ResponseEntity.ok(reportesService.generarDashboardFinanciero(filtro));
     }
 
+    @PostMapping("/financieros/dashboard-consolidado")
+    public ResponseEntity<DashboardConsolidadoResponse> dashboardConsolidado(@RequestBody(required = false) ReportFilterRequest filtro) {
+        return ResponseEntity.ok(reportesService.generarDashboardConsolidado(filtro));
+    }
+
     @PostMapping("/financieros/deudas-globales")
     public ResponseEntity<DeudasGlobalesResponse> deudasGlobales(@RequestBody(required = false) ReportFilterRequest filtro) {
         return ResponseEntity.ok(reportesService.generarDeudasGlobales(filtro));

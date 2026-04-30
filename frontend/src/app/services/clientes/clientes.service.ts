@@ -15,10 +15,20 @@ export class ClientesService {
   constructor(private http: HttpClient) {
   }
 
-  // Obtener todos
+  // Obtener todos (rápido, sin detalles)
   getClientes(): Observable<Cliente[]> {
     return this.http.get<Cliente[]>(this.apiUrl).pipe(
       map(list => list.map(c => this.normalize(c)))
+    );
+  }
+
+  // Obtener todos con detalles (obras, saldos) - paginado
+  getClientesConDetalles(page: number = 0, size: number = 50): Observable<any> {
+    return this.http.get<any>(`${this.apiUrl}/con-detalles?page=${page}&size=${size}`).pipe(
+      map(pageResult => ({
+        ...pageResult,
+        content: pageResult.content.map((c: any) => this.normalize(c))
+      }))
     );
   }
 

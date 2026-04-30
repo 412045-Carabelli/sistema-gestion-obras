@@ -3,14 +3,18 @@ package com.transacciones.service;
 import com.transacciones.dto.ObraCostoDto;
 import com.transacciones.dto.ObraResumenDto;
 import com.transacciones.dto.TransaccionDto;
+import com.transacciones.dto.MovimientoRecenteDTO;
+import com.transacciones.dto.ObraNombreDto;
 import com.transacciones.entity.Transaccion;
 import com.transacciones.enums.TipoTransaccionEnum;
 import com.transacciones.repository.TransaccionRepository;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.client.RestTemplate;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -25,6 +29,10 @@ public class TransaccionService {
 
     private final TransaccionRepository transaccionRepository;
     private final ObraCostoClient obraCostoClient;
+    private final RestTemplate restTemplate;
+
+    @Value("${services.obras.url}")
+    private String obrasServiceUrl;
 
     public List<TransaccionDto> listar() {
         return transaccionRepository.findAll()
@@ -361,6 +369,61 @@ public class TransaccionService {
         String estado = obra.getObra_estado() == null ? "" : obra.getObra_estado().trim().toUpperCase().replaceAll("\\s+", "_");
         if (!"ADJUDICADA".equals(estado) && !"EN_PROGRESO".equals(estado) && !"FINALIZADA".equals(estado)) {
             throw new IllegalArgumentException("La obra debe estar Adjudicada, En progreso o Finalizada para registrar movimientos");
+        }
+    }
+
+    @Transactional(readOnly = true)
+    public List<MovimientoRecenteDTO> obtenerUltimos10Movimientos() {
+        List<Transaccion> movimientos = transaccionRepository.obtenerMovimientosActivos()
+                .stream()
+                .limit(10)
+                .collect(Collectors.toList());
+
+        return movimientos.stream()
+                .map(t -> {
+                    String obraNombre = null;
+                    if (t.getIdObra() != null) {
+                        try {
+                            obraNombre = obtenerNombreObra(t.getIdObra());
+                        } catch (Exception e) {
+                            log.warn("No se pudo obtener nombre de obra {}", t.getIdObra());
+                        }
+                    }
+                    return toMovimientoRecenteDTO(t, obraNombre);
+                })
+                .collect(Collectors.toList());
+    }
+
+    private MovimientoRecenteDTO toMovimientoRecenteDTO(Transaccion transaccion) {
+        return toMovimientoRecenteDTO(transaccion, null);
+    }
+
+    private MovimientoRecenteDTO toMovimientoRecenteDTO(Transaccion transaccion, String obraNombre) {
+        if (transaccion == null) return null;
+
+        return MovimientoRecenteDTO.builder()
+                .id(transaccion.getId())
+                .obraId(transaccion.getIdObra())
+                .obraNombre(obraNombre)
+                .asociadoId(transaccion.getIdAsociado())
+                .asociadoTipo(transaccion.getTipoAsociado())
+                .tipoTransaccion(transaccion.getTipo_transaccion() != null ? transaccion.getTipo_transaccion().toString() : null)
+                .fecha(transaccion.getFecha())
+                .monto(transaccion.getMonto())
+                .formaPago(transaccion.getForma_pago())
+                .medioPago(transaccion.getMedio_pago())
+                .concepto(transaccion.getConcepto())
+                .build();
+    }
+
+    private String obtenerNombreObra(Long obraId) {
+        try {
+            String url = String.format("%s/%s", obrasServiceUrl, obraId);
+            ObraNombreDto obra = restTemplate.getForObject(url, ObraNombreDto.class);
+            return obra != null ? obra.getNombre() : null;
+        } catch (Exception e) {
+            log.warn("Error obteniendo nombre de obra {}", obraId, e);
+            return null;
         }
     }
 }
