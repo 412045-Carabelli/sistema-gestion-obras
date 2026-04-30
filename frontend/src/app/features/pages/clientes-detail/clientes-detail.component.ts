@@ -60,7 +60,7 @@ export class ClientesDetailComponent implements OnInit, OnDestroy {
   totalCobrosCliente = 0;
   private saldoPendientePorObra = new Map<number, number>();
   private cobrosPorObra = new Map<number, number>();
-  private readonly obrasConDeudaCliente = new Set(['ADJUDICADA', 'EN_PROGRESO']);
+  private readonly obrasConDeudaCliente = new Set(['ADJUDICADA', 'EN_PROGRESO', 'FINALIZADA', 'COBRADA', 'FACTURADA', 'FACTURADA_PARCIAL']);
 
   private subs = new Subscription();
 

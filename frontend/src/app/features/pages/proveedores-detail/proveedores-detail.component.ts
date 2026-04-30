@@ -151,11 +151,7 @@ export class ProveedoresDetailComponent implements OnInit, OnDestroy {
   private obraGeneraDeuda(obra: Obra | null | undefined): boolean {
     if (!obra) return false;
     const estado = this.normalizarEstadoObra(obra?.obra_estado);
-    return new Set([
-      'ADJUDICADA',
-      'EN_PROGRESO',
-      'FINALIZADA'
-    ]).has(estado);
+    return new Set(['ADJUDICADA', 'EN_PROGRESO', 'FINALIZADA', 'COBRADA', 'FACTURADA', 'FACTURADA_PARCIAL']).has(estado);
   }
 
   private obraGeneraDeudaProveedor(obra: Obra | null | undefined): boolean {
