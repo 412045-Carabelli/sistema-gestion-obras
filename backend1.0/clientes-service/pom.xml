@@ -7,13 +7,13 @@
     <parent>
         <groupId>com.meliquina</groupId>
         <artifactId>gestion-obras</artifactId>
-        <version>1.14.25</version>
+        <version>1.14.29</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
     <groupId>com.meliquina</groupId>
     <artifactId>clientes-service</artifactId>
-    <version>1.14.25</version>
+    <version>1.14.29</version>
     <packaging>jar</packaging>
 
     <properties>

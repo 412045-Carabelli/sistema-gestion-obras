@@ -14,6 +14,9 @@ import com.clientes.repository.ClienteRepository;
 import com.clientes.service.ClienteService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
@@ -27,7 +30,6 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.HashMap;
 import java.util.Set;
-import java.util.concurrent.CompletableFuture;
 
 @Service
 @RequiredArgsConstructor
@@ -99,33 +101,33 @@ public class ClienteServiceImpl implements ClienteService {
     }
 
     @Override
-    public List<ClienteResponse> listarConDetalles() {
-        // 📊 COMPLETO: con obras, saldos, transacciones (PAGINADO en controller)
-        return repository.findAll().stream()
+    public Page<ClienteResponse> listarConDetalles(Pageable pageable) {
+        // 📊 COMPLETO: con obras, saldos, transacciones (PAGINADO en BD)
+        Page<Cliente> clientes = repository.findAll(pageable);
+        List<ClienteResponse> detalles = clientes.getContent().stream()
                 .map(cliente -> cargarClienteConDetallesEnParalelo(cliente))
                 .toList();
+        return new PageImpl<>(detalles, pageable, clientes.getTotalElements());
     }
 
     private ClienteResponse cargarClienteConDetallesEnParalelo(Cliente cliente) {
         try {
-            // Paralelizar las dos llamadas HTTP
-            var futuraObras = CompletableFuture.supplyAsync(() ->
-                    obrasClient.obtenerObrasPorCliente(cliente.getId())
-            ).exceptionally(ex -> {
-                log.warn("No se pudieron obtener obras para cliente {}", cliente.getId());
-                return Collections.emptyList();
-            });
+            // Llamadas HTTP secuenciales (en MVC la latencia de red domina)
+            List<ObraClienteResponse> obras;
+            try {
+                obras = obrasClient.obtenerObrasPorCliente(cliente.getId());
+            } catch (Exception ex) {
+                log.warn("No se pudieron obtener obras para cliente {}", cliente.getId(), ex);
+                obras = Collections.emptyList();
+            }
 
-            var futuraTransacciones = CompletableFuture.supplyAsync(() ->
-                    transaccionesClient.obtenerTransaccionesPorAsociado("CLIENTE", cliente.getId())
-            ).exceptionally(ex -> {
-                log.warn("No se pudieron obtener transacciones para cliente {}", cliente.getId());
-                return Collections.emptyList();
-            });
-
-            // Esperar ambas en paralelo
-            var obras = futuraObras.join();
-            var transacciones = futuraTransacciones.join();
+            List<TransaccionExternalDto> transacciones;
+            try {
+                transacciones = transaccionesClient.obtenerTransaccionesPorAsociado("CLIENTE", cliente.getId());
+            } catch (Exception ex) {
+                log.warn("No se pudieron obtener transacciones para cliente {}", cliente.getId(), ex);
+                transacciones = Collections.emptyList();
+            }
 
             TotalesCliente totales = calcularTotalesCliente(obras, transacciones, true);
             return mapearRespuesta(cliente, obras, totales.totalCliente, totales.cobrosRealizados, totales.saldoCliente);

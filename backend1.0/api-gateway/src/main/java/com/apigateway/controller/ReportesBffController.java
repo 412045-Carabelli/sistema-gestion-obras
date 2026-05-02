@@ -7,8 +7,11 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.reactive.function.client.WebClient;
+import org.springframework.web.util.UriComponentsBuilder;
 import reactor.core.publisher.Mono;
 
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -48,8 +51,7 @@ public class ReportesBffController {
     public Mono<ResponseEntity<Object>> flujoCajaPrincipal(@RequestBody(required = false) Object filtro) {
         // Endpoint confiable que devuelve: cobrado, por_cobrar, pagado, por_pagar, resultado
         // Filtrado por 6 estados: Adjudicada, En progreso, Cobrada, Facturada, Facturada parcial, Finalizada
-        // transaccionesServiceUrl = http://localhost:8086/api/transacciones, necesitamos solo http://localhost:8086
-        String baseUrl = transaccionesServiceUrl.replaceAll("/api/transacciones$", "");
+        String baseUrl = extractBaseUrl(transaccionesServiceUrl);
         String url = baseUrl + "/api/flujo-caja/principal";
         return webClientBuilder.build()
                 .get()
@@ -222,7 +224,7 @@ public class ReportesBffController {
 
     @GetMapping("/movimientos/recientes")
     public Mono<ResponseEntity<Object>> getUltimosMovimientos() {
-        String baseUrl = transaccionesServiceUrl.replaceAll("/api/transacciones$", "");
+        String baseUrl = extractBaseUrl(transaccionesServiceUrl);
         String url = baseUrl + "/api/transacciones/recientes";
         return webClientBuilder.build()
                 .get()
@@ -298,5 +300,32 @@ public class ReportesBffController {
                     }
                 })
                 .orElse(null);
+    }
+
+    /**
+     * Extrae la URL base (esquema + host + puerto) de una URL completa.
+     * Ej: http://localhost:8086/api/transacciones -> http://localhost:8086
+     * Más robusto que regex: tolera cambios en la estructura de la ruta.
+     */
+    private String extractBaseUrl(String fullUrl) {
+        try {
+            URI uri = new URI(fullUrl);
+            int port = uri.getPort();
+            String baseUrl = String.format("%s://%s", uri.getScheme(), uri.getHost());
+
+            // Incluir puerto si no es el default
+            if (port != -1) {
+                baseUrl += ":" + port;
+            }
+            return baseUrl;
+        } catch (URISyntaxException e) {
+            // Fallback: intenta extraer todo antes de /api/
+            int apiIndex = fullUrl.indexOf("/api/");
+            if (apiIndex > 0) {
+                return fullUrl.substring(0, apiIndex);
+            }
+            // Si todo falla, retorna la URL tal cual
+            return fullUrl;
+        }
     }
 }

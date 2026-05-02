@@ -7,8 +7,7 @@ import com.clientes.service.ClienteService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -27,14 +26,8 @@ public class ClientesController {
     public List<ClienteResponse> all(){ return service.listar(); }
 
     @GetMapping("/con-detalles")
-    public Page<ClienteResponse> listarConDetalles(
-            @RequestParam(name = "page", defaultValue = "0") int page,
-            @RequestParam(name = "size", defaultValue = "50") int size) {
-        List<ClienteResponse> todos = service.listarConDetalles();
-        int start = page * size;
-        int end = Math.min(start + size, todos.size());
-        List<ClienteResponse> pagina = todos.subList(start, end);
-        return new PageImpl<>(pagina, PageRequest.of(page, size), todos.size());
+    public Page<ClienteResponse> listarConDetalles(Pageable pageable) {
+        return service.listarConDetalles(pageable);
     }
 
     @GetMapping("/{id}") public ResponseEntity<ClienteResponse> one(@PathVariable("id") Long id){ return ResponseEntity.ok(service.obtenerConObras(id)); }

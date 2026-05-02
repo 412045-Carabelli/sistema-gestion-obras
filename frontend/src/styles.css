@@ -2,11 +2,40 @@
 @import "primeicons/primeicons.css";
 @import "quill/dist/quill.snow.css";
 
-/* Escala global: 80% del tamaño original (reducción del 20%) */
+/**
+ * Sistema de escalado de tipografía accesible
+ * - Respeta preferencias del navegador/SO
+ * - Usa CSS variables para personalización sin comprometer accesibilidad
+ * - Los usuarios pueden escalar via navegador sin afectar el diseño
+ */
+:root {
+  /* Multiplicador de escala (1 = sin cambios, 0.8 = 80% del tamaño base) */
+  --font-scale-multiplier: 0.9;
+  /* Tamaño base: respeta preferencias del navegador/SO */
+  --base-font-size: 1rem;
+}
+
 html {
-  font-size: 12.8px; /* Reduce base size proportionally */
+  /* NO FIJAR font-size aquí - permite que rem sea relativo a preferencias del usuario */
+  font-size: calc(var(--base-font-size) * var(--font-scale-multiplier));
 }
 
 body {
-  font-size: 0.875rem; /* 14px con base de 16px, pero será 11.2px */
+  /* Utiliza el tamaño escalado desde html */
+  font-size: 1rem;
+  line-height: 1.5;
+}
+
+/**
+ * Respetar preferencias de accesibilidad del usuario
+ * Si el usuario configura "Texto más grande" en navegador, aumentar escala
+ */
+@media (prefers-reduced-text: no-preference) {
+  /* Usuarios sin preferencia específica usan la escala por defecto */
+}
+
+@media (prefers-large-text: enabled) {
+  :root {
+    --font-scale-multiplier: 1.1; /* +10% para usuarios que prefieren texto grande */
+  }
 }

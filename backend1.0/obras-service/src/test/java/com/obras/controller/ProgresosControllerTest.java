@@ -1,5 +1,6 @@
 package com.obras.controller;
 
+import com.obras.audit.AuditLogService;
 import com.obras.dto.ProgresoDTO;
 import com.obras.repository.ObraCostoRepository;
 import com.obras.repository.ObraProveedorRepository;
@@ -38,6 +39,9 @@ class ProgresosControllerTest {
 
     @MockBean
     private ObraProveedorRepository obraProveedorRepository;
+
+    @MockBean
+    private AuditLogService auditLogService;
 
     @Test
     void progreso_ok() throws Exception {
