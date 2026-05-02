@@ -222,6 +222,28 @@
                       </tr>
                     </ng-template>
                   </p-table>
+
+                  <!-- FILA DE TOTALES -->
+                  @if (getObrasSaldoCliente().length > 0) {
+                    <div class="border-t-2 border-gray-300 bg-gray-100 grid gap-0"
+                         [style.grid-template-columns]="'auto 1fr 150px 150px 150px 150px'">
+                      @if (modoExportacion === 'algunas') {
+                        <div class="px-6 py-4"></div>
+                      }
+                      <div class="px-6 py-4 font-bold text-gray-900">TOTAL</div>
+                      <div class="px-6 py-4"></div>
+                      <div class="px-6 py-4 text-right font-bold text-gray-900">
+                        {{ totalObrasCliente | currency:'ARS':'symbol':'1.0-2' }}
+                      </div>
+                      <div class="px-6 py-4 text-right font-bold text-green-700">
+                        {{ totalCobradoObrasCliente | currency:'ARS':'symbol':'1.0-2' }}
+                      </div>
+                      <div class="px-6 py-4 text-right font-bold text-amber-700">
+                        {{ totalSaldoObrasCliente | currency:'ARS':'symbol':'1.0-2' }}
+                      </div>
+                      <div class="px-6 py-4"></div>
+                    </div>
+                  }
                 </div>
               } @else {
                 <div class="text-center py-12 text-gray-500">

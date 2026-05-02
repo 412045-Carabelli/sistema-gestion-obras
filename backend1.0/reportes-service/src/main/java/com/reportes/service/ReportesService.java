@@ -806,6 +806,149 @@ public class ReportesService {
         return response;
     }
 
+    public SaldosClienteResponse generarSaldosCliente(Long clienteId) {
+        SaldosClienteResponse response = new SaldosClienteResponse();
+        response.setClienteId(clienteId);
+
+        // Obtener cliente
+        Map<Long, ClienteExternalDto> clientes = mapearPorId(clientesClient.obtenerClientes(), ClienteExternalDto::getId);
+        ClienteExternalDto cliente = clientes.get(clienteId);
+        if (cliente != null) {
+            response.setClienteNombre(cliente.getNombre());
+        }
+
+        // Filtrar obras del cliente con deuda
+        ReportFilterRequest filtro = new ReportFilterRequest();
+        filtro.setClienteId(clienteId);
+        List<ObraExternalDto> obras = filtrarObrasConDeuda(filtro);
+        Map<Long, ObraExternalDto> obrasPorId = mapearPorId(obras, ObraExternalDto::getId);
+
+        // Obtener cobros agrupados por obra
+        List<TransaccionExternalDto> transacciones = filtrarTransacciones(filtro, obrasPorId);
+        Map<Long, BigDecimal> cobrosPorObra = transacciones.stream()
+                .filter(tx -> tx.getIdObra() != null)
+                .filter(tx -> "COBRO".equalsIgnoreCase(Optional.ofNullable(tx.getTipoTransaccion()).orElse("")))
+                .collect(Collectors.groupingBy(
+                        TransaccionExternalDto::getIdObra,
+                        Collectors.mapping(
+                                tx -> BigDecimal.valueOf(Optional.ofNullable(tx.getMonto()).orElse(0d)),
+                                Collectors.reducing(BigDecimal.ZERO, BigDecimal::add)
+                        )
+                ));
+
+        // Construir lista de obras con saldos
+        BigDecimal totalPresupuestado = BigDecimal.ZERO;
+        BigDecimal totalCobrado = BigDecimal.ZERO;
+
+        for (ObraExternalDto obra : obras) {
+            BigDecimal presupuestado = presupuestoEfectivo(obra);
+            BigDecimal cobrado = cobrosPorObra.getOrDefault(obra.getId(), BigDecimal.ZERO);
+            BigDecimal saldo = saldoPositivo(presupuestado.subtract(cobrado));
+
+            if (presupuestado.compareTo(BigDecimal.ZERO) > 0 || cobrado.compareTo(BigDecimal.ZERO) > 0) {
+                SaldosClienteResponse.ObraSaldo obraSaldo = new SaldosClienteResponse.ObraSaldo();
+                obraSaldo.setObraId(obra.getId());
+                obraSaldo.setNombre(obra.getNombre());
+                obraSaldo.setEstado(obra.getObraEstado());
+                obraSaldo.setPresupuestado(presupuestado);
+                obraSaldo.setCobrado(cobrado);
+                obraSaldo.setSaldo(saldo);
+                response.getObras().add(obraSaldo);
+
+                totalPresupuestado = totalPresupuestado.add(presupuestado);
+                totalCobrado = totalCobrado.add(cobrado);
+            }
+        }
+
+        response.setTotalPresupuestado(totalPresupuestado);
+        response.setTotalCobrado(totalCobrado);
+        response.setSaldo(saldoPositivo(totalPresupuestado.subtract(totalCobrado)));
+
+        return response;
+    }
+
+    public SaldosProveedorResponse generarSaldosProveedor(Long proveedorId) {
+        SaldosProveedorResponse response = new SaldosProveedorResponse();
+        response.setProveedorId(proveedorId);
+
+        // Obtener proveedor
+        Map<Long, ProveedorExternalDto> proveedores = mapearPorId(proveedoresClient.obtenerProveedores(), ProveedorExternalDto::getId);
+        ProveedorExternalDto proveedor = proveedores.get(proveedorId);
+        if (proveedor != null) {
+            response.setProveedorNombre(proveedor.getNombre());
+        }
+
+        // Filtrar obras con deuda de proveedor
+        List<ObraExternalDto> todasObras = obrasClient.obtenerObras();
+        Set<Long> obrasConDeuda = todasObras.stream()
+                .filter(obra -> estadoGeneraSaldoProveedor(obra.getObraEstado()))
+                .map(ObraExternalDto::getId)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toSet());
+
+        // Obtener costos del proveedor por obra
+        Map<Long, BigDecimal> costosPorObra = new HashMap<>();
+        Map<Long, ObraExternalDto> obrasPorId = mapearPorId(todasObras, ObraExternalDto::getId);
+
+        for (ObraExternalDto obra : todasObras) {
+            if (!obrasConDeuda.contains(obra.getId())) continue;
+            List<ObraCostoExternalDto> costosObra = obrasClient.obtenerCostos(obra.getId());
+            for (ObraCostoExternalDto costo : costosObra) {
+                if (!Objects.equals(proveedorId, costo.getIdProveedor()) || Boolean.FALSE.equals(costo.getActivo())) {
+                    continue;
+                }
+                BigDecimal total = costoBase(costo);
+                costosPorObra.merge(obra.getId(), total, BigDecimal::add);
+            }
+        }
+
+        // Obtener pagos del proveedor por obra
+        Map<Long, BigDecimal> pagosPorObra = obtenerTransaccionesActivas().stream()
+                .filter(tx -> Objects.equals(tx.getIdAsociado(), proveedorId))
+                .filter(tx -> "PROVEEDOR".equalsIgnoreCase(Optional.ofNullable(tx.getTipoAsociado()).orElse("")))
+                .filter(tx -> "PAGO".equalsIgnoreCase(Optional.ofNullable(tx.getTipoTransaccion()).orElse("")))
+                .filter(tx -> tx.getIdObra() != null && obrasConDeuda.contains(tx.getIdObra()))
+                .collect(Collectors.groupingBy(
+                        TransaccionExternalDto::getIdObra,
+                        Collectors.mapping(
+                                tx -> BigDecimal.valueOf(Optional.ofNullable(tx.getMonto()).orElse(0d)),
+                                Collectors.reducing(BigDecimal.ZERO, BigDecimal::add)
+                        )
+                ));
+
+        // Construir lista de obras con saldos
+        BigDecimal totalCostos = BigDecimal.ZERO;
+        BigDecimal totalPagado = BigDecimal.ZERO;
+
+        for (Map.Entry<Long, BigDecimal> entry : costosPorObra.entrySet()) {
+            Long obraId = entry.getKey();
+            BigDecimal costos = entry.getValue();
+            BigDecimal pagado = pagosPorObra.getOrDefault(obraId, BigDecimal.ZERO);
+            BigDecimal saldo = saldoPositivo(costos.subtract(pagado));
+
+            ObraExternalDto obra = obrasPorId.get(obraId);
+            if (obra != null && (costos.compareTo(BigDecimal.ZERO) > 0 || pagado.compareTo(BigDecimal.ZERO) > 0)) {
+                SaldosProveedorResponse.ObraSaldo obraSaldo = new SaldosProveedorResponse.ObraSaldo();
+                obraSaldo.setObraId(obraId);
+                obraSaldo.setNombre(obra.getNombre());
+                obraSaldo.setEstado(obra.getObraEstado());
+                obraSaldo.setPresupuestado(costos);
+                obraSaldo.setPagado(pagado);
+                obraSaldo.setSaldo(saldo);
+                response.getObras().add(obraSaldo);
+
+                totalCostos = totalCostos.add(costos);
+                totalPagado = totalPagado.add(pagado);
+            }
+        }
+
+        response.setTotalCostos(totalCostos);
+        response.setTotalPagado(totalPagado);
+        response.setSaldo(saldoPositivo(totalCostos.subtract(totalPagado)));
+
+        return response;
+    }
+
     public List<CuentaCorrienteProveedorResponse> generarCuentaCorrienteProveedores() {
         return generarCuentaCorrienteProveedores(null);
     }

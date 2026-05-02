@@ -24,7 +24,9 @@ import {
   RankingClientesResponse,
   RankingProveedoresResponse,
   ReportFilter,
-  ResumenGeneralResponse
+  ResumenGeneralResponse,
+  SaldosClienteResponse,
+  SaldosProveedorResponse
 } from '../../core/models/models';
 import {environment} from '../../../environments/environment';
 
@@ -158,6 +160,14 @@ export class ReportesService {
 
   getMovimientosRecientes(): Observable<MovimientoRecenteDTO[]> {
     return this.http.get<MovimientoRecenteDTO[]>(`${this.apiUrl}/movimientos/recientes`);
+  }
+
+  getSaldosCliente(clienteId: number): Observable<SaldosClienteResponse> {
+    return this.http.get<SaldosClienteResponse>(`${this.apiUrl}/financieros/saldos/cliente/${clienteId}`);
+  }
+
+  getSaldosProveedor(proveedorId: number): Observable<SaldosProveedorResponse> {
+    return this.http.get<SaldosProveedorResponse>(`${this.apiUrl}/financieros/saldos/proveedor/${proveedorId}`);
   }
 
 }

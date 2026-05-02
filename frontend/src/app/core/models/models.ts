@@ -591,3 +591,31 @@ export interface MovimientoRecenteDTO {
   medioPago: string;
   concepto: string;
 }
+
+export interface ObraSaldoItem {
+  obraId: number;
+  nombre: string;
+  estado: string;
+  presupuestado: number;
+  cobrado?: number;
+  pagado?: number;
+  saldo: number;
+}
+
+export interface SaldosClienteResponse {
+  clienteId: number;
+  clienteNombre: string;
+  totalPresupuestado: number;
+  totalCobrado: number;
+  saldo: number;
+  obras: ObraSaldoItem[];
+}
+
+export interface SaldosProveedorResponse {
+  proveedorId: number;
+  proveedorNombre: string;
+  totalCostos: number;
+  totalPagado: number;
+  saldo: number;
+  obras: ObraSaldoItem[];
+}
