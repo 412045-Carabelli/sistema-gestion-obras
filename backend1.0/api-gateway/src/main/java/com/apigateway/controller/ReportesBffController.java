@@ -125,6 +125,52 @@ public class ReportesBffController {
         return proxyGet("/cuenta-corriente/proveedores", new ParameterizedTypeReference<>() {});
     }
 
+    @PostMapping("/cuenta-corriente-pdf/proveedor/{proveedorId}")
+    public Mono<ResponseEntity<Object>> cuentaCorrientePdfProveedor(
+            @PathVariable("proveedorId") Long proveedorId,
+            @RequestParam(name = "obraIds", required = false) List<Long> obraIds) {
+        StringBuilder url = new StringBuilder(reportesServiceUrl + "/cuenta-corriente-pdf/proveedor/" + proveedorId);
+        if (obraIds != null && !obraIds.isEmpty()) {
+            url.append("?");
+            for (int i = 0; i < obraIds.size(); i++) {
+                if (i > 0) url.append("&");
+                url.append("obraIds=").append(obraIds.get(i));
+            }
+        }
+        return webClientBuilder.build()
+                .post()
+                .uri(url.toString())
+                .contentType(MediaType.APPLICATION_JSON)
+                .retrieve()
+                .bodyToMono(new ParameterizedTypeReference<Object>() {})
+                .map(ResponseEntity::ok)
+                .onErrorResume(e -> Mono.just(ResponseEntity.internalServerError()
+                        .body((Object) ("Error al obtener datos: " + e.getMessage()))));
+    }
+
+    @PostMapping("/cuenta-corriente-pdf/cliente/{clienteId}")
+    public Mono<ResponseEntity<Object>> cuentaCorrientePdfCliente(
+            @PathVariable("clienteId") Long clienteId,
+            @RequestParam(name = "obraIds", required = false) List<Long> obraIds) {
+        StringBuilder url = new StringBuilder(reportesServiceUrl + "/cuenta-corriente-pdf/cliente/" + clienteId);
+        if (obraIds != null && !obraIds.isEmpty()) {
+            url.append("?");
+            for (int i = 0; i < obraIds.size(); i++) {
+                if (i > 0) url.append("&");
+                url.append("obraIds=").append(obraIds.get(i));
+            }
+        }
+        return webClientBuilder.build()
+                .post()
+                .uri(url.toString())
+                .contentType(MediaType.APPLICATION_JSON)
+                .retrieve()
+                .bodyToMono(new ParameterizedTypeReference<Object>() {})
+                .map(ResponseEntity::ok)
+                .onErrorResume(e -> Mono.just(ResponseEntity.internalServerError()
+                        .body((Object) ("Error al obtener datos: " + e.getMessage()))));
+    }
+
     @PostMapping("/financieros/comisiones")
     public Mono<ResponseEntity<Object>> comisiones(@RequestBody(required = false) Map<String, Object> filtro) {
         Long obraId = extractLong(filtro, "obraId");

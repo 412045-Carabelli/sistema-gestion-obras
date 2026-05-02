@@ -16,7 +16,7 @@ services:
     volumes:
       - sqlserver_data:/var/opt/mssql
       - ./db/sqlserver-init:/init
-    #entrypoint: ["/bin/bash", "/init/entrypoint.sh"]
+    entrypoint: ["/bin/bash", "/init/entrypoint.sh"]
     healthcheck:
       test: ["CMD", "/opt/mssql-tools18/bin/sqlcmd", "-S", "localhost",
              "-U", "sa", "-P", "${DB_PASSWORD:-SgoAdmin2024!}", "-C", "-Q", "SELECT 1"]

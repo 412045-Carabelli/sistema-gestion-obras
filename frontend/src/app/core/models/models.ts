@@ -234,6 +234,7 @@ export interface Documento {
 
 export interface ReportFilter {
   obraId?: number;
+  obraIds?: number[];
   clienteId?: number;
   proveedorId?: number;
   fechaInicio?: string;
@@ -421,6 +422,25 @@ export interface CuentaCorrienteClienteResponse {
   saldoFinal: number;
   movimientos: CuentaCorrienteMovimiento[];
   resumenClientes?: ResumenCuentaCliente[];
+}
+
+export interface CuentaCorrientePdfResponse {
+  asociadoId: number;
+  asociadoNombre: string;
+  asociadoEmail?: string;
+  asociadoTelefono?: string;
+  totalCostos: number;
+  totalPagos: number;
+  saldoFinal: number;
+  fechasUnicas: string[];
+  filas: CuentaCorrientePdfFila[];
+}
+
+export interface CuentaCorrientePdfFila {
+  obraId: number;
+  obraNombre: string;
+  movimientosPorFecha: Record<string, number>;
+  saldoObra?: number;
 }
 
 export interface ComisionesResponse {

@@ -122,6 +122,20 @@ public class ReportesController {
         return ResponseEntity.ok(reportesService.generarComisionesGeneral());
     }
 
+    @PostMapping("/cuenta-corriente-pdf/proveedor/{proveedorId}")
+    public ResponseEntity<CuentaCorrientePdfResponse> cuentaCorrientePdfProveedor(
+            @PathVariable("proveedorId") Long proveedorId,
+            @RequestParam(required = false) List<Long> obraIds) {
+        return ResponseEntity.ok(reportesService.generarCuentaCorrienteProveedorPdf(proveedorId, obraIds));
+    }
+
+    @PostMapping("/cuenta-corriente-pdf/cliente/{clienteId}")
+    public ResponseEntity<CuentaCorrientePdfResponse> cuentaCorrientePdfCliente(
+            @PathVariable("clienteId") Long clienteId,
+            @RequestParam(required = false) List<Long> obraIds) {
+        return ResponseEntity.ok(reportesService.generarCuentaCorrienteClientePdf(clienteId, obraIds));
+    }
+
     @PostMapping("/generales/ranking-clientes")
     public ResponseEntity<RankingClientesResponse> rankingClientes(@RequestBody(required = false) ReportFilterRequest filtro) {
         return ResponseEntity.ok(reportesService.generarRankingClientes(filtro));
