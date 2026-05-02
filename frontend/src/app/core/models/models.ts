@@ -157,6 +157,22 @@ export interface Tarea {
   tipo_actualizacion?: string;
 }
 
+export interface TareaAntiguaAgenda {
+  id: number;
+  titulo: string;
+  obraId?: number;
+  obraNombre?: string;
+  clienteId?: number;
+  clienteNombre?: string;
+  proveedorId?: number;
+  proveedorNombre?: string;
+  estado: string;
+  descripcion?: string;
+  fechaVencimiento?: string;
+  creadoEn?: string;
+  ultimaActualizacion?: string;
+}
+
 export interface Transaccion {
   id?: number;
   id_obra: number;
@@ -218,6 +234,7 @@ export interface Documento {
 
 export interface ReportFilter {
   obraId?: number;
+  obraIds?: number[];
   clienteId?: number;
   proveedorId?: number;
   fechaInicio?: string;
@@ -235,6 +252,23 @@ export interface DashboardFinancieroResponse {
     ingresos: number;
     egresos: number;
     saldo: number;
+  };
+}
+
+export interface DashboardConsolidadoResponse {
+  totalPresupuesto: number;
+  totalCostos: number;
+  porPresupuestar: number;
+  totalCobros: number;
+  totalPagos: number;
+  saldoFlujo: number;
+  porCobrar: number;
+  porPagar: number;
+  cuentaCorriente: {
+    loCobrado: number;
+    porCobrar: number;
+    pagado: number;
+    porPagar: number;
   };
 }
 
@@ -390,6 +424,25 @@ export interface CuentaCorrienteClienteResponse {
   resumenClientes?: ResumenCuentaCliente[];
 }
 
+export interface CuentaCorrientePdfResponse {
+  asociadoId: number;
+  asociadoNombre: string;
+  asociadoEmail?: string;
+  asociadoTelefono?: string;
+  totalCostos: number;
+  totalPagos: number;
+  saldoFinal: number;
+  fechasUnicas: string[];
+  filas: CuentaCorrientePdfFila[];
+}
+
+export interface CuentaCorrientePdfFila {
+  obraId: number;
+  obraNombre: string;
+  movimientosPorFecha: Record<string, number>;
+  saldoObra?: number;
+}
+
 export interface ComisionesResponse {
   totalComision: number;
   totalPagos: number;
@@ -520,4 +573,49 @@ export interface Agenda {
   fechaVencimiento?: string;
   creadoEn?: string;
   ultimaActualizacion?: string;
+}
+
+export interface MovimientoRecenteDTO {
+  id: number;
+  obraId: number;
+  obraNombre: string;
+  asociadoId: number;
+  asociadoTipo: string;
+  asociadoNombre: string;
+  tipoTransaccion: string;
+  tipo_movimiento?: string; // alias para compatibilidad con template
+  tipo?: string; // alias para compatibilidad con template
+  fecha: string;
+  monto: number;
+  formaPago: string;
+  medioPago: string;
+  concepto: string;
+}
+
+export interface ObraSaldoItem {
+  obraId: number;
+  nombre: string;
+  estado: string;
+  presupuestado: number;
+  cobrado?: number;
+  pagado?: number;
+  saldo: number;
+}
+
+export interface SaldosClienteResponse {
+  clienteId: number;
+  clienteNombre: string;
+  totalPresupuestado: number;
+  totalCobrado: number;
+  saldo: number;
+  obras: ObraSaldoItem[];
+}
+
+export interface SaldosProveedorResponse {
+  proveedorId: number;
+  proveedorNombre: string;
+  totalCostos: number;
+  totalPagado: number;
+  saldo: number;
+  obras: ObraSaldoItem[];
 }

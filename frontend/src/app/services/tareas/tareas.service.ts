@@ -1,7 +1,7 @@
 import {Injectable} from '@angular/core';
 import {HttpClient} from '@angular/common/http';
 import {BehaviorSubject, Observable, tap} from 'rxjs';
-import {EstadoTarea, Proveedor, Tarea} from '../../core/models/models';
+import {EstadoTarea, Proveedor, Tarea, TareaAntiguaAgenda} from '../../core/models/models';
 import {environment} from '../../../environments/environment';
 
 export interface TareaPayload {
@@ -20,6 +20,7 @@ export interface TareaPayload {
 @Injectable({providedIn: 'root'})
 export class TareasService {
   private apiUrl = `${environment.apiGateway}${environment.endpoints.tareas}`;
+  private agendaTareasUrl = `${environment.apiGateway}/bff/agendas`;
 
   private tareasSubject = new BehaviorSubject<Tarea[]>([]);
   tareas$ = this.tareasSubject.asObservable();
@@ -43,6 +44,35 @@ export class TareasService {
   // ✅ Obtener tareas por proveedor
   getTareasByProveedor(idProveedor: number): Observable<Tarea[]> {
     return this.http.get<Tarea[]>(`${this.apiUrl}/proveedor/${idProveedor}`);
+  }
+
+  // ✅ Obtener TODAS las tareas de AGENDAS SERVICE
+  getTareasAgendas(): Observable<any[]> {
+    return this.http.get<any[]>(this.agendaTareasUrl);
+  }
+
+  // ✅ Obtener tareas de una obra desde AGENDAS SERVICE
+  getTareasByObraAgenda(idObra: number, soloActivas = false, ordenAntiguas = false): Observable<Tarea[]> {
+    const params: string[] = [];
+    if (soloActivas) params.push('soloActivas=true');
+    if (ordenAntiguas) params.push('ordenAntiguas=true');
+    const url = params.length
+      ? `${this.agendaTareasUrl}/${idObra}?${params.join('&')}`
+      : `${this.agendaTareasUrl}/${idObra}`;
+    return this.http.get<Tarea[]>(url).pipe(
+      tap(tareas => this.emitirActualizacion(tareas))
+    );
+  }
+
+  // ✅ Obtener tareas por proveedor desde AGENDAS SERVICE
+  getTareasByProveedorAgenda(idProveedor: number): Observable<Tarea[]> {
+    return this.http.get<Tarea[]>(`${this.agendaTareasUrl}/proveedor/${idProveedor}`);
+  }
+
+  // ✅ Obtener tareas más antiguas de la agenda (enriquecidas con nombres)
+  getTareasAntiguasAgenda(limit: number = 10): Observable<TareaAntiguaAgenda[]> {
+    const url = `${this.agendaTareasUrl}/antiguas?limit=${limit}`;
+    return this.http.get<TareaAntiguaAgenda[]>(url);
   }
 
   // ✅ Crear tarea (usa la URL con idObra en el path)

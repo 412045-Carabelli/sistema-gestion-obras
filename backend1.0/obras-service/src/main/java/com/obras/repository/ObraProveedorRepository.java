@@ -9,7 +9,7 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 
 @Repository
-public interface ObraProveedorRepository extends JpaRepository<com.obras.entity.ObraProveedor, Long> {
+public interface ObraProveedorRepository extends JpaRepository<com.obras.entity.ObraProveedor, com.obras.entity.ObraProveedor.PK> {
 
     @Modifying
     @Transactional

@@ -1,9 +1,11 @@
 package com.clientes.controller;
 
+import com.clientes.audit.AuditLogService;
 import com.clientes.dto.ClienteRequest;
 import com.clientes.dto.ClienteResponse;
 import com.clientes.entity.CondicionIva;
 import com.clientes.exception.ClienteNotFoundException;
+import com.clientes.repository.ClienteRepository;
 import com.clientes.service.ClienteService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
@@ -32,6 +34,12 @@ class ClientesControllerTest {
 
     @MockBean
     private ClienteService service;
+
+    @MockBean
+    private AuditLogService auditLogService;
+
+    @MockBean
+    private ClienteRepository clienteRepository;
 
     @Test
     void crear_ok() throws Exception {

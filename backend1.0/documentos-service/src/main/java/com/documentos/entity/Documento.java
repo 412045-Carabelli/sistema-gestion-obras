@@ -18,7 +18,7 @@ public class Documento {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long idDocumento;
 
-    @Column(name = "id_obra", nullable = false)
+    @Column(name = "id_obra", nullable = true)
     private Long idObra;
 
     @Column(name = "id_asociado")

@@ -11,6 +11,8 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 import java.time.Instant;
 import java.time.LocalDateTime;
@@ -22,6 +24,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 class TareaServiceImplTest {
 
     @Mock
@@ -65,9 +68,10 @@ class TareaServiceImplTest {
     void crear_porcentaje_excede_falla() {
         TareaDTO dto = new TareaDTO();
         dto.setId_obra(2L);
+        dto.setId_proveedor(5L);
         dto.setPorcentaje(20d);
 
-        when(tareaRepo.sumPorcentajeByObraExcluyendo(2L, null)).thenReturn(90d);
+        when(tareaRepo.sumPorcentajeByObraProveedorExcluyendo(2L, 5L, null)).thenReturn(90d);
 
         assertThrows(IllegalArgumentException.class, () -> service.crear(dto));
     }

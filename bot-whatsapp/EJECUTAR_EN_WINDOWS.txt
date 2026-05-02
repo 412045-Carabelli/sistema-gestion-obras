@@ -1,0 +1,241 @@
+================================================================================
+COMO EJECUTAR N8N-SETUP EN WINDOWS
+================================================================================
+
+El problema: Los scripts .sh se abren y cierran rápido en Windows
+
+La solución: Usa los scripts .bat o .ps1
+
+================================================================================
+OPCION 1: Doble clic en n8n-setup.bat (MÁS FÁCIL)
+================================================================================
+
+1. Abre la carpeta: bot-whatsapp/
+2. Busca: n8n-setup.bat
+3. Doble clic sobre él
+4. Se abrirá una ventana que se quedará abierta
+5. Sigue las instrucciones que aparecen
+6. Al final presiona Enter
+
+✅ Más fácil - Recomendado
+
+
+================================================================================
+OPCION 2: Desde PowerShell (Si la opción 1 no funciona)
+================================================================================
+
+1. Abre PowerShell (presiona Win+R, escribe "powershell" y Enter)
+
+2. Navega a la carpeta:
+   cd C:\Users\Usuario\Desktop\my-work\sistema-gestion-obras\bot-whatsapp
+
+3. Permite ejecutar scripts:
+   Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
+
+4. Presiona "S" y luego Enter cuando pida confirmación
+
+5. Ejecuta:
+   .\n8n-setup.ps1
+
+6. Espera a que termine y presiona Enter
+
+
+================================================================================
+OPCION 3: Desde CMD (Símbolo del Sistema)
+================================================================================
+
+1. Abre CMD (presiona Win+R, escribe "cmd" y Enter)
+
+2. Navega a la carpeta:
+   cd C:\Users\Usuario\Desktop\my-work\sistema-gestion-obras\bot-whatsapp
+
+3. Ejecuta:
+   n8n-setup.bat
+
+4. Espera a que termine y presiona una tecla
+
+
+================================================================================
+OPCION 4: Manual (Si nada anterior funciona)
+================================================================================
+
+Hazlo paso a paso manualmente:
+
+PASO 1: Crear archivo .env.n8n
+─────────────────────────────
+1. Abre Notepad (o tu editor preferido)
+2. Copia el contenido de abajo
+3. Guarda como: .env.n8n en la carpeta bot-whatsapp/
+
+---CONTENIDO DE .ENV.N8N---
+N8N_HOST=0.0.0.0
+N8N_PORT=5678
+N8N_TIMEZONE=America/Argentina/Buenos_Aires
+N8N_DEFAULT_LANGUAGE=es
+N8N_EDITOR_BASE_URL=http://localhost:5678/
+N8N_WEBHOOK_URL=http://localhost:5678
+DB_TYPE=sqlite
+DB_SQLITE_PATH=/data/n8n.sqlite3
+N8N_USER_MANAGEMENT_JWT_SECRET=super_secret_jwt_key_change_this_123456
+N8N_ENCRYPTION_KEY=super_secret_encryption_key_change_this_98765
+N8N_API_ENABLED=true
+WHATSAPP_WEBHOOK_URL=https://api.whatsapp.com/send
+WHATSAPP_API_TOKEN=your_whatsapp_token_here
+WHATSAPP_BUSINESS_ACCOUNT_ID=your_business_id_here
+IMAP_HOST=mail.sgo.local
+IMAP_PORT=993
+EMAIL_USER=transacciones@sgo.local
+EMAIL_PASSWORD=your_email_password_here
+SLACK_BOT_TOKEN=xoxb-your-slack-token
+SLACK_SIGNING_SECRET=your-slack-signing-secret
+GSHEETS_ID=your-spreadsheet-id
+GSHEETS_API_KEY=your-google-api-key
+TELEGRAM_BOT_TOKEN=your-telegram-bot-token
+MINIO_URL=http://minio:9000
+MINIO_ACCESS_KEY=minioadmin
+MINIO_SECRET_KEY=minioadmin
+MINIO_BUCKET=sgo-transacciones
+API_GATEWAY_URL=http://api-gateway:8080
+TRANSACCIONES_SERVICE_URL=http://transacciones-service:8086
+OBRAS_SERVICE_URL=http://obras-service:8081
+CLIENTES_SERVICE_URL=http://clientes-service:8082
+PROVEEDORES_SERVICE_URL=http://proveedores-service:8083
+DASHBOARD_URL=http://localhost:4200
+LOG_LEVEL=info
+---FIN CONTENIDO---
+
+
+PASO 2: Editar .env.n8n
+───────────────────────
+1. Abre .env.n8n en tu editor
+2. Busca estas líneas:
+   WHATSAPP_WEBHOOK_URL=https://api.whatsapp.com/send
+   WHATSAPP_API_TOKEN=your_whatsapp_token_here
+   WHATSAPP_BUSINESS_ACCOUNT_ID=your_business_id_here
+
+3. Reemplaza los valores con tus credenciales de WhatsApp
+4. Guarda (Ctrl+S)
+
+
+PASO 3: Iniciar N8N
+───────────────────
+1. Abre CMD o PowerShell
+2. Navega a bot-whatsapp/
+3. Ejecuta:
+   docker-compose -f docker-compose.n8n.yml up -d
+
+4. Espera 30 segundos
+5. Abre en navegador: http://localhost:5678
+
+
+PASO 4: Importar Workflow
+──────────────────────────
+1. Dashboard de n8n abierto: http://localhost:5678
+2. Click en "Workflows" (izquierda)
+3. Click en "+ New" o "Import from JSON"
+4. Selecciona: n8n-workflow-whatsapp-transacciones.json
+5. Click "Import"
+
+¡Listo! 🎉
+
+
+================================================================================
+VERIFICAR QUE FUNCIONA
+================================================================================
+
+Opción A: Doble clic en test-webhook.bat
+─────────────────────────────────────────
+1. Busca test-webhook.bat en bot-whatsapp/
+2. Doble clic
+3. Debería hacer un request al webhook
+
+Opción B: Desde CMD
+───────────────────
+1. CMD → cd bot-whatsapp
+2. test-webhook.bat
+3. Verifica que no haya errores
+
+
+Opción C: Ver logs
+──────────────────
+1. CMD → docker logs sgo_n8n -f
+2. Ver si hay errores
+3. Ctrl+C para salir
+
+
+================================================================================
+SOLUCIONES COMUNES
+================================================================================
+
+❌ "No se puede encontrar docker"
+✅ Instala Docker Desktop: https://www.docker.com/products/docker-desktop
+
+❌ "El puerto 5678 ya está en uso"
+✅ docker-compose -f docker-compose.n8n.yml down
+✅ Luego vuelve a iniciar
+
+❌ "Connection refused a http://api-gateway:8080"
+✅ Verifica que el API Gateway está corriendo:
+   docker ps | findstr api-gateway
+
+❌ Script se abre y se cierra rápido
+✅ Usa n8n-setup.bat (doble clic, no .sh)
+
+❌ PowerShell dice "no se permite ejecutar scripts"
+✅ Ejecuta desde CMD en lugar de PowerShell
+✅ O usa: powershell -ExecutionPolicy Bypass -File n8n-setup.ps1
+
+
+================================================================================
+RESUMEN RAPIDO
+================================================================================
+
+Lo más fácil:
+
+1. Doble clic en: n8n-setup.bat
+2. Espera a que termine
+3. Edita .env.n8n con tus credenciales WhatsApp
+4. Abre terminal y ejecuta:
+   docker-compose -f docker-compose.n8n.yml up -d
+5. Abre: http://localhost:5678
+6. Importa workflow JSON
+7. Doble clic en: test-webhook.bat
+
+Total: 20 minutos
+
+
+================================================================================
+¿TODAVÍA NO FUNCIONA?
+================================================================================
+
+Opciones:
+
+1. Lee: README-N8N.md → Troubleshooting
+2. Lee: N8N-CHECKLIST.md → Testing
+3. Ver logs: docker logs sgo_n8n -f
+4. Check health: curl http://localhost:5678/healthz
+
+================================================================================
+ARCHIVOS EJECUTABLES EN WINDOWS
+================================================================================
+
+✓ n8n-setup.bat         ← Doble clic para setup
+✓ n8n-setup.ps1        ← PowerShell (alternativa)
+✓ test-webhook.bat     ← Doble clic para testear
+✓ n8n-setup.sh         ← Git Bash (si lo tienes instalado)
+
+Recomendado para Windows: n8n-setup.bat
+
+
+================================================================================
+¿PREGUNTAS?
+================================================================================
+
+Lee la documentación en este orden:
+1. INICIO_AQUI.txt
+2. N8N-RESUMEN-EJECUTIVO.txt
+3. README-N8N.md
+
+Buena suerte! 🚀
+
+================================================================================

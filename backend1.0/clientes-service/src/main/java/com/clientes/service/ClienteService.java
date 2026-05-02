@@ -2,6 +2,8 @@ package com.clientes.service;
 
 import com.clientes.dto.ClienteRequest;
 import com.clientes.dto.ClienteResponse;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 import java.util.List;
 
@@ -11,6 +13,7 @@ public interface ClienteService {
     ClienteResponse obtener(Long id);
     ClienteResponse obtenerConObras(Long id);
     List<ClienteResponse> listar();
+    Page<ClienteResponse> listarConDetalles(Pageable pageable);
     List<String> listarCondicionesIva();
     void activar(Long id);
     void desactivar(Long id);

@@ -4,24 +4,29 @@ import {Observable} from 'rxjs';
 import {
   AvanceTareasResponse,
   CostosPorCategoriaResponse,
+  DashboardConsolidadoResponse,
   EstadoFinancieroObraResponse,
   EstadoObrasFilter,
   EstadoObrasResponse,
   CuentaCorrienteObraResponse,
   CuentaCorrienteProveedorResponse,
   CuentaCorrienteClienteResponse,
+  CuentaCorrientePdfResponse,
   ComisionesResponse,
   DeudasGlobalesResponse,
   DashboardFinancieroResponse,
   FacturasKpiResponse,
   FlujoCajaResponse,
   IngresosEgresosResponse,
+  MovimientoRecenteDTO,
   NotasObraResponse,
   PendientesResponse,
   RankingClientesResponse,
   RankingProveedoresResponse,
   ReportFilter,
-  ResumenGeneralResponse
+  ResumenGeneralResponse,
+  SaldosClienteResponse,
+  SaldosProveedorResponse
 } from '../../core/models/models';
 import {environment} from '../../../environments/environment';
 
@@ -48,11 +53,15 @@ export class ReportesService {
   }
 
   getFlujoCaja(filtro?: ReportFilter): Observable<FlujoCajaResponse> {
-    return this.http.post<FlujoCajaResponse>(`${this.apiUrl}/financieros/flujo-caja`, filtro ?? {});
+    return this.http.post<FlujoCajaResponse>(`${this.apiUrl}/financieros/flujo-caja-principal`, filtro ?? {});
   }
 
   getDashboardFinanciero(filtro?: ReportFilter): Observable<DashboardFinancieroResponse> {
     return this.http.post<DashboardFinancieroResponse>(`${this.apiUrl}/financieros/dashboard`, filtro ?? {});
+  }
+
+  getDashboardConsolidado(filtro?: ReportFilter): Observable<DashboardConsolidadoResponse> {
+    return this.http.post<DashboardConsolidadoResponse>(`${this.apiUrl}/financieros/dashboard-consolidado`, filtro ?? {});
   }
 
   getDeudasGlobales(filtro?: ReportFilter): Observable<DeudasGlobalesResponse> {
@@ -122,6 +131,24 @@ export class ReportesService {
     return this.http.post<CuentaCorrienteClienteResponse>(`${this.apiUrl}/financieros/cuenta-corriente-cliente`, filtro ?? {});
   }
 
+  getCuentaCorrientePdfProveedor(proveedorId: number, obraIds?: number[]): Observable<CuentaCorrientePdfResponse> {
+    let url = `${this.apiUrl}/cuenta-corriente-pdf/proveedor/${proveedorId}`;
+    if (obraIds && obraIds.length > 0) {
+      const params = obraIds.map(id => `obraIds=${id}`).join('&');
+      url += `?${params}`;
+    }
+    return this.http.post<CuentaCorrientePdfResponse>(url, {});
+  }
+
+  getCuentaCorrientePdfCliente(clienteId: number, obraIds?: number[]): Observable<CuentaCorrientePdfResponse> {
+    let url = `${this.apiUrl}/cuenta-corriente-pdf/cliente/${clienteId}`;
+    if (obraIds && obraIds.length > 0) {
+      const params = obraIds.map(id => `obraIds=${id}`).join('&');
+      url += `?${params}`;
+    }
+    return this.http.post<CuentaCorrientePdfResponse>(url, {});
+  }
+
   getComisiones(filtro?: ReportFilter): Observable<ComisionesResponse> {
     // BFF espera POST y redirige a /comisiones/general o /comisiones/obra/{id} segÃºn filtro
     return this.http.post<ComisionesResponse>(`${this.apiUrl}/financieros/comisiones`, filtro ?? {});
@@ -129,6 +156,18 @@ export class ReportesService {
 
   getKpiFacturas(filtro?: ReportFilter): Observable<FacturasKpiResponse> {
     return this.http.post<FacturasKpiResponse>(`${this.apiUrl}/financieros/kpi-facturas`, filtro ?? {});
+  }
+
+  getMovimientosRecientes(): Observable<MovimientoRecenteDTO[]> {
+    return this.http.get<MovimientoRecenteDTO[]>(`${this.apiUrl}/movimientos/recientes`);
+  }
+
+  getSaldosCliente(clienteId: number): Observable<SaldosClienteResponse> {
+    return this.http.get<SaldosClienteResponse>(`${this.apiUrl}/financieros/saldos/cliente/${clienteId}`);
+  }
+
+  getSaldosProveedor(proveedorId: number): Observable<SaldosProveedorResponse> {
+    return this.http.get<SaldosProveedorResponse>(`${this.apiUrl}/financieros/saldos/proveedor/${proveedorId}`);
   }
 
 }

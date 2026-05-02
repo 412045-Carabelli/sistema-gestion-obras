@@ -33,4 +33,7 @@ public interface TransaccionRepository extends JpaRepository<Transaccion, Long> 
     @Modifying
     @Query("UPDATE Transaccion t SET t.activo = true, t.bajaObra = false WHERE t.idObra = :obraId and t.activo = false and t.bajaObra = true")
     void activarPorObraId(@Param("obraId") Long obraId);
+
+    @Query("SELECT t FROM Transaccion t WHERE t.activo = true ORDER BY t.fecha DESC")
+    List<Transaccion> obtenerMovimientosActivos();
 }

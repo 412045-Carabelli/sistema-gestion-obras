@@ -4,6 +4,7 @@ import com.reportes.dto.request.EstadoObraFilterRequest;
 import com.reportes.dto.request.ReportFilterRequest;
 import com.reportes.dto.response.*;
 import com.reportes.service.ReportesService;
+import com.reportes.service.ReportesProveedoresService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -22,11 +23,14 @@ class ReportesControllerTest {
     @Mock
     private ReportesService reportesService;
 
+    @Mock
+    private ReportesProveedoresService proveedoresService;
+
     private ReportesController controller;
 
     @BeforeEach
     void setUp() {
-        controller = new ReportesController(reportesService);
+        controller = new ReportesController(reportesService, proveedoresService);
     }
 
     @Test

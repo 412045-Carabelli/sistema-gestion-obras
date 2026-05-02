@@ -20,6 +20,7 @@ import {TooltipModule} from 'primeng/tooltip';
 
 import {Agenda, ESTADOS_AGENDA_OPCIONES, Obra, Cliente, Proveedor} from '../../../core/models/models';
 import {AgendasService} from '../../../services/agendas/agendas.service';
+import {TareasService} from '../../../services/tareas/tareas.service';
 import {ObrasService} from '../../../services/obras/obras.service';
 import {ClientesService} from '../../../services/clientes/clientes.service';
 import {ProveedoresService} from '../../../services/proveedores/proveedores.service';
@@ -58,6 +59,7 @@ interface EstadoOption {
 export class AgendasListComponent implements OnInit, OnDestroy {
   private messageService = inject(MessageService);
   private agendasService = inject(AgendasService);
+  private tareasService = inject(TareasService);
   private obrasService = inject(ObrasService);
   private clientesService = inject(ClientesService);
   private proveedoresService = inject(ProveedoresService);
@@ -132,8 +134,8 @@ export class AgendasListComponent implements OnInit, OnDestroy {
   }
 
   private cargarAgendas() {
-    this.agendasService.getAgendas().subscribe({
-      next: (agendas) => {
+    this.tareasService.getTareasAgendas().subscribe({
+      next: (agendas: any) => {
         this.agendas.set(agendas);
         this.datosCargados.set(true);
       },
@@ -141,7 +143,7 @@ export class AgendasListComponent implements OnInit, OnDestroy {
         this.messageService.add({
           severity: 'error',
           summary: 'Error',
-          detail: 'No se pudieron cargar las tareas'
+          detail: 'No se pudieron cargar las tareas de agendas'
         });
         this.datosCargados.set(true);
       }

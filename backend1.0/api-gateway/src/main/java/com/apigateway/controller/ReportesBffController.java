@@ -7,8 +7,11 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.reactive.function.client.WebClient;
+import org.springframework.web.util.UriComponentsBuilder;
 import reactor.core.publisher.Mono;
 
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -23,6 +26,9 @@ public class ReportesBffController {
 
     @Value("${services.reportes.url}")
     private String reportesServiceUrl;
+
+    @Value("${services.transacciones.url}")
+    private String transaccionesServiceUrl;
 
     // ---------- FINANCIEROS ----------
 
@@ -41,9 +47,31 @@ public class ReportesBffController {
         return proxyPost("/financieros/flujo-caja", filtro, new ParameterizedTypeReference<>() {});
     }
 
+    @PostMapping("/financieros/flujo-caja-principal")
+    public Mono<ResponseEntity<Object>> flujoCajaPrincipal(@RequestBody(required = false) Object filtro) {
+        // Endpoint confiable que devuelve: cobrado, por_cobrar, pagado, por_pagar, resultado
+        // Filtrado por 6 estados: Adjudicada, En progreso, Cobrada, Facturada, Facturada parcial, Finalizada
+        String baseUrl = extractBaseUrl(transaccionesServiceUrl);
+        String url = baseUrl + "/api/flujo-caja/principal";
+        return webClientBuilder.build()
+                .get()
+                .uri(url)
+                .accept(MediaType.APPLICATION_JSON)
+                .retrieve()
+                .bodyToMono(new ParameterizedTypeReference<Object>() {})
+                .map(ResponseEntity::ok)
+                .onErrorResume(e -> Mono.just(ResponseEntity.internalServerError()
+                        .body((Object) ("Error al obtener flujo de caja: " + e.getMessage()))));
+    }
+
     @PostMapping("/financieros/dashboard")
     public Mono<ResponseEntity<Object>> dashboardFinanciero(@RequestBody(required = false) Object filtro) {
         return proxyPost("/financieros/dashboard", filtro, new ParameterizedTypeReference<>() {});
+    }
+
+    @PostMapping("/financieros/dashboard-consolidado")
+    public Mono<ResponseEntity<Object>> dashboardConsolidado(@RequestBody(required = false) Object filtro) {
+        return proxyPost("/financieros/dashboard-consolidado", filtro, new ParameterizedTypeReference<>() {});
     }
 
     @PostMapping("/financieros/deudas-globales")
@@ -99,6 +127,52 @@ public class ReportesBffController {
         return proxyGet("/cuenta-corriente/proveedores", new ParameterizedTypeReference<>() {});
     }
 
+    @PostMapping("/cuenta-corriente-pdf/proveedor/{proveedorId}")
+    public Mono<ResponseEntity<Object>> cuentaCorrientePdfProveedor(
+            @PathVariable("proveedorId") Long proveedorId,
+            @RequestParam(name = "obraIds", required = false) List<Long> obraIds) {
+        StringBuilder url = new StringBuilder(reportesServiceUrl + "/cuenta-corriente-pdf/proveedor/" + proveedorId);
+        if (obraIds != null && !obraIds.isEmpty()) {
+            url.append("?");
+            for (int i = 0; i < obraIds.size(); i++) {
+                if (i > 0) url.append("&");
+                url.append("obraIds=").append(obraIds.get(i));
+            }
+        }
+        return webClientBuilder.build()
+                .post()
+                .uri(url.toString())
+                .contentType(MediaType.APPLICATION_JSON)
+                .retrieve()
+                .bodyToMono(new ParameterizedTypeReference<Object>() {})
+                .map(ResponseEntity::ok)
+                .onErrorResume(e -> Mono.just(ResponseEntity.internalServerError()
+                        .body((Object) ("Error al obtener datos: " + e.getMessage()))));
+    }
+
+    @PostMapping("/cuenta-corriente-pdf/cliente/{clienteId}")
+    public Mono<ResponseEntity<Object>> cuentaCorrientePdfCliente(
+            @PathVariable("clienteId") Long clienteId,
+            @RequestParam(name = "obraIds", required = false) List<Long> obraIds) {
+        StringBuilder url = new StringBuilder(reportesServiceUrl + "/cuenta-corriente-pdf/cliente/" + clienteId);
+        if (obraIds != null && !obraIds.isEmpty()) {
+            url.append("?");
+            for (int i = 0; i < obraIds.size(); i++) {
+                if (i > 0) url.append("&");
+                url.append("obraIds=").append(obraIds.get(i));
+            }
+        }
+        return webClientBuilder.build()
+                .post()
+                .uri(url.toString())
+                .contentType(MediaType.APPLICATION_JSON)
+                .retrieve()
+                .bodyToMono(new ParameterizedTypeReference<Object>() {})
+                .map(ResponseEntity::ok)
+                .onErrorResume(e -> Mono.just(ResponseEntity.internalServerError()
+                        .body((Object) ("Error al obtener datos: " + e.getMessage()))));
+    }
+
     @PostMapping("/financieros/comisiones")
     public Mono<ResponseEntity<Object>> comisiones(@RequestBody(required = false) Map<String, Object> filtro) {
         Long obraId = extractLong(filtro, "obraId");
@@ -146,6 +220,23 @@ public class ReportesBffController {
         return proxyPost("/generales/ranking-proveedores", filtro, new ParameterizedTypeReference<>() {});
     }
 
+    // ---------- MOVIMIENTOS ----------
+
+    @GetMapping("/movimientos/recientes")
+    public Mono<ResponseEntity<Object>> getUltimosMovimientos() {
+        String baseUrl = extractBaseUrl(transaccionesServiceUrl);
+        String url = baseUrl + "/api/transacciones/recientes";
+        return webClientBuilder.build()
+                .get()
+                .uri(url)
+                .accept(MediaType.APPLICATION_JSON)
+                .retrieve()
+                .bodyToMono(new ParameterizedTypeReference<Object>() {})
+                .map(ResponseEntity::ok)
+                .onErrorResume(e -> Mono.just(ResponseEntity.internalServerError()
+                        .body((Object) ("Error al obtener movimientos recientes: " + e.getMessage()))));
+    }
+
     // ---------- NOTAS ----------
 
     @GetMapping("/obras/notas")
@@ -156,6 +247,18 @@ public class ReportesBffController {
     @GetMapping("/obras/{obraId}/notas")
     public Mono<ResponseEntity<Object>> notasPorObra(@PathVariable("obraId") Long obraId) {
         return proxyGet("/obras/" + obraId + "/notas", new ParameterizedTypeReference<>() {});
+    }
+
+    // ---------- SALDOS ----------
+
+    @GetMapping("/financieros/saldos/cliente/{clienteId}")
+    public Mono<ResponseEntity<Object>> saldosCliente(@PathVariable("clienteId") Long clienteId) {
+        return proxyGet("/financieros/saldos/cliente/" + clienteId, new ParameterizedTypeReference<>() {});
+    }
+
+    @GetMapping("/financieros/saldos/proveedor/{proveedorId}")
+    public Mono<ResponseEntity<Object>> saldosProveedor(@PathVariable("proveedorId") Long proveedorId) {
+        return proxyGet("/financieros/saldos/proveedor/" + proveedorId, new ParameterizedTypeReference<>() {});
     }
 
     // ---------- MÉTODOS UTILITARIOS ----------
@@ -197,5 +300,32 @@ public class ReportesBffController {
                     }
                 })
                 .orElse(null);
+    }
+
+    /**
+     * Extrae la URL base (esquema + host + puerto) de una URL completa.
+     * Ej: http://localhost:8086/api/transacciones -> http://localhost:8086
+     * Más robusto que regex: tolera cambios en la estructura de la ruta.
+     */
+    private String extractBaseUrl(String fullUrl) {
+        try {
+            URI uri = new URI(fullUrl);
+            int port = uri.getPort();
+            String baseUrl = String.format("%s://%s", uri.getScheme(), uri.getHost());
+
+            // Incluir puerto si no es el default
+            if (port != -1) {
+                baseUrl += ":" + port;
+            }
+            return baseUrl;
+        } catch (URISyntaxException e) {
+            // Fallback: intenta extraer todo antes de /api/
+            int apiIndex = fullUrl.indexOf("/api/");
+            if (apiIndex > 0) {
+                return fullUrl.substring(0, apiIndex);
+            }
+            // Si todo falla, retorna la URL tal cual
+            return fullUrl;
+        }
     }
 }

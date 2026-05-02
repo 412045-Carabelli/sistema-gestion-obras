@@ -121,6 +121,27 @@
             <!-- TAB: OBRAS -->
             <p-tabpanel value="0">
               @if (getObrasSaldoCliente().length > 0) {
+                <!-- Botones de exportación -->
+                <div class="mb-4 flex gap-2 items-center">
+                  <button pButton pRipple type="button" icon="pi pi-download"
+                          label="Generar ctas. ctes."
+                          (click)="menu.toggle($event)"
+                          class="p-button-sm"></button>
+                  <p-menu #menu [model]="menuExportOptions" [popup]="true"></p-menu>
+
+                  @if (modoExportacion === 'algunas') {
+                    <button pButton pRipple type="button" icon="pi pi-check"
+                            label="Generar"
+                            (click)="generarCtaCte()"
+                            [loading]="generandoPdf"
+                            class="p-button-sm p-button-success"></button>
+                    <button pButton pRipple type="button" icon="pi pi-times"
+                            label="Cancelar"
+                            (click)="cancelarSeleccion()"
+                            class="p-button-sm p-button-danger"></button>
+                  }
+                </div>
+
                 <div class="overflow-hidden rounded-lg border border-gray-200">
                                     <p-table
                     [value]="getObrasSaldoCliente()"
@@ -129,6 +150,9 @@
                   >
                     <ng-template pTemplate="header">
                       <tr>
+                        @if (modoExportacion === 'algunas') {
+                          <th style="width: 3rem;"></th>
+                        }
                         <th class="bg-gray-50 px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                           Obra
                         </th>
@@ -144,11 +168,22 @@
                         <th class="bg-gray-50 px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
                           Saldo
                         </th>
+                        <th class="bg-gray-50 px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          Acciones
+                        </th>
                       </tr>
                     </ng-template>
 
                     <ng-template pTemplate="body" let-obra>
-                      <tr class="hover:bg-gray-50 transition-colors cursor-pointer" (click)="irAObraPorId(obra.id)">
+                      <tr class="hover:bg-gray-50 transition-colors cursor-pointer"
+                          (click)="modoExportacion !== 'algunas' && irAObraPorId(obra.id)">
+                        @if (modoExportacion === 'algunas') {
+                          <td class="px-6 py-4 text-center" (click)="$event.stopPropagation()">
+                            <p-checkbox [ngModel]="esObraSeleccionada(obra.id)"
+                                        (onChange)="toggleSeleccionObra(obra.id)"
+                                        [binary]="true"></p-checkbox>
+                          </td>
+                        }
                         <td class="px-6 py-4 whitespace-nowrap">
                           <div class="flex items-center gap-2">
                             <i class="pi pi-building text-cyan-600"></i>
@@ -169,6 +204,12 @@
                         <td class="px-6 py-4 whitespace-nowrap text-right font-semibold text-amber-700">
                           {{ obra.saldo | currency:'ARS':'symbol':'1.0-2' }}
                         </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-right">
+                          <button pButton type="button" class="p-button-text p-button-sm" icon="pi pi-download"
+                                  (click)="$event.stopPropagation(); generarCtaCte(obra.id)"
+                                  [loading]="generandoPdf"
+                                  pTooltip="Generar cta. cte."></button>
+                        </td>
                       </tr>
                     </ng-template>
 
@@ -181,6 +222,28 @@
                       </tr>
                     </ng-template>
                   </p-table>
+
+                  <!-- FILA DE TOTALES -->
+                  @if (getObrasSaldoCliente().length > 0) {
+                    <div class="border-t-2 border-gray-300 bg-gray-100 grid gap-0"
+                         [style.grid-template-columns]="'auto 1fr 150px 150px 150px 150px'">
+                      @if (modoExportacion === 'algunas') {
+                        <div class="px-6 py-4"></div>
+                      }
+                      <div class="px-6 py-4 font-bold text-gray-900">TOTAL</div>
+                      <div class="px-6 py-4"></div>
+                      <div class="px-6 py-4 text-right font-bold text-gray-900">
+                        {{ totalPresupuestado | currency:'ARS':'symbol':'1.0-2' }}
+                      </div>
+                      <div class="px-6 py-4 text-right font-bold text-green-700">
+                        {{ totalCobrosCliente | currency:'ARS':'symbol':'1.0-2' }}
+                      </div>
+                      <div class="px-6 py-4 text-right font-bold text-amber-700">
+                        {{ saldoPendiente | currency:'ARS':'symbol':'1.0-2' }}
+                      </div>
+                      <div class="px-6 py-4"></div>
+                    </div>
+                  }
                 </div>
               } @else {
                 <div class="text-center py-12 text-gray-500">
