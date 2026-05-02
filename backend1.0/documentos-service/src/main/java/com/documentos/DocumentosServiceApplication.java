@@ -17,7 +17,7 @@ public class DocumentosServiceApplication {
     private static final Logger log = LoggerFactory.getLogger(DocumentosServiceApplication.class);
 
     public static void main(String[] args) {
-        System.out.println("🚀 SGO - Documentos Service v1.14.20");
+        System.out.println("🚀 SGO - Documentos Service v1.14.29");
         File dbDir = new File("data");
         if (!dbDir.exists()) {
             dbDir.mkdirs();
