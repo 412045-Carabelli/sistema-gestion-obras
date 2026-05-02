@@ -11,6 +11,7 @@ import {
   CuentaCorrienteObraResponse,
   CuentaCorrienteProveedorResponse,
   CuentaCorrienteClienteResponse,
+  CuentaCorrientePdfResponse,
   ComisionesResponse,
   DeudasGlobalesResponse,
   DashboardFinancieroResponse,
@@ -126,6 +127,24 @@ export class ReportesService {
 
   getCuentaCorrienteCliente(filtro?: ReportFilter): Observable<CuentaCorrienteClienteResponse> {
     return this.http.post<CuentaCorrienteClienteResponse>(`${this.apiUrl}/financieros/cuenta-corriente-cliente`, filtro ?? {});
+  }
+
+  getCuentaCorrientePdfProveedor(proveedorId: number, obraIds?: number[]): Observable<CuentaCorrientePdfResponse> {
+    let url = `${this.apiUrl}/cuenta-corriente-pdf/proveedor/${proveedorId}`;
+    if (obraIds && obraIds.length > 0) {
+      const params = obraIds.map(id => `obraIds=${id}`).join('&');
+      url += `?${params}`;
+    }
+    return this.http.post<CuentaCorrientePdfResponse>(url, {});
+  }
+
+  getCuentaCorrientePdfCliente(clienteId: number, obraIds?: number[]): Observable<CuentaCorrientePdfResponse> {
+    let url = `${this.apiUrl}/cuenta-corriente-pdf/cliente/${clienteId}`;
+    if (obraIds && obraIds.length > 0) {
+      const params = obraIds.map(id => `obraIds=${id}`).join('&');
+      url += `?${params}`;
+    }
+    return this.http.post<CuentaCorrientePdfResponse>(url, {});
   }
 
   getComisiones(filtro?: ReportFilter): Observable<ComisionesResponse> {
