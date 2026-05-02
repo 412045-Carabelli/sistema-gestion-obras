@@ -233,13 +233,13 @@
                       <div class="px-6 py-4 font-bold text-gray-900">TOTAL</div>
                       <div class="px-6 py-4"></div>
                       <div class="px-6 py-4 text-right font-bold text-gray-900">
-                        {{ totalObrasCliente | currency:'ARS':'symbol':'1.0-2' }}
+                        {{ totalPresupuestado | currency:'ARS':'symbol':'1.0-2' }}
                       </div>
                       <div class="px-6 py-4 text-right font-bold text-green-700">
-                        {{ totalCobradoObrasCliente | currency:'ARS':'symbol':'1.0-2' }}
+                        {{ totalCobrosCliente | currency:'ARS':'symbol':'1.0-2' }}
                       </div>
                       <div class="px-6 py-4 text-right font-bold text-amber-700">
-                        {{ totalSaldoObrasCliente | currency:'ARS':'symbol':'1.0-2' }}
+                        {{ saldoPendiente | currency:'ARS':'symbol':'1.0-2' }}
                       </div>
                       <div class="px-6 py-4"></div>
                     </div>
