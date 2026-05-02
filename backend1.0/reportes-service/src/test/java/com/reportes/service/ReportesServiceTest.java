@@ -215,7 +215,6 @@ class ReportesServiceTest {
         when(obrasClient.obtenerCostos(1L)).thenReturn(costosObra1);
         when(obrasClient.obtenerCostos(2L)).thenReturn(costosObra2);
         when(proveedoresClient.obtenerProveedores()).thenReturn(List.of(proveedor1, proveedor2));
-        when(obrasClient.obtenerEstadosPago()).thenReturn(List.of(estadoPendiente, estadoPagado));
 
         PendientesResponse response = reportesService.generarPendientes(filtro);
 

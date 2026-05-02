@@ -17,7 +17,7 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class TareaBffController {
 
-    @Value("${services.obras.url}/tareas")
+    @Value("${services.tareas.url}/tareas")
     private String TAREAS_URL;
 
     private final WebClient.Builder webClientBuilder;

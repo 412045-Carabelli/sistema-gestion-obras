@@ -1,6 +1,7 @@
 package com.obras.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.obras.audit.AuditLogService;
 import com.obras.dto.ObraDTO;
 import com.obras.enums.EstadoObraEnum;
 import com.obras.repository.ObraCostoRepository;
@@ -49,6 +50,9 @@ class ObrasControllerTest {
 
     @MockBean
     private ObraProveedorRepository obraProveedorRepository;
+
+    @MockBean
+    private AuditLogService auditLogService;
 
     @Test
     void crear_ok() throws Exception {

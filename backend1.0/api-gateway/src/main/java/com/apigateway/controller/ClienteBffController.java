@@ -25,7 +25,7 @@ public class ClienteBffController {
     private final WebClient.Builder webClientBuilder;
 
     // ================================
-    // 📥 GET - Listar todos los clientes
+    // 📥 GET - Listar todos los clientes (LITE, rápido)
     // ================================
     @GetMapping
     public Mono<ResponseEntity<List<Map<String, Object>>>> getAllClientes(
@@ -54,6 +54,25 @@ public class ClienteBffController {
                 .bodyToFlux(new ParameterizedTypeReference<Map<String, Object>>() {});
 
         return clientesFlux.collectList().map(ResponseEntity::ok);
+    }
+
+    // ================================
+    // 📥 GET - Listar clientes CON DETALLES (paginado)
+    // IMPORTANTE: Este endpoint debe ir ANTES de /{id} para evitar conflictos de routing
+    // ================================
+    @GetMapping("/con-detalles")
+    public Mono<ResponseEntity<Map<String, Object>>> getAllClientesConDetalles(
+            @RequestParam(name = "page", defaultValue = "0") int page,
+            @RequestParam(name = "size", defaultValue = "50") int size
+    ) {
+        WebClient client = webClientBuilder.build();
+
+        return client.get()
+                .uri(CLIENTES_URL + "/con-detalles?page={page}&size={size}", page, size)
+                .retrieve()
+                .bodyToMono(new ParameterizedTypeReference<Map<String, Object>>() {})
+                .map(ResponseEntity::ok)
+                .onErrorResume(ex -> Mono.just(ResponseEntity.badRequest().build()));
     }
 
     // ================================

@@ -1,0 +1,303 @@
+================================================================================
+🤖 BOT WHATSAPP - CREAR TRANSACCIONES DESDE WHATSAPP Y MÁS
+================================================================================
+
+¡BIENVENIDO! 👋
+
+Tienes un sistema completo de N8N para crear transacciones (pagos/cobros) desde
+WhatsApp, Email, Slack, Formulario Web, Google Sheets y más.
+
+================================================================================
+EMPEZA AQUI (30 SEGUNDOS)
+================================================================================
+
+1. Abre y lee:
+   👉 N8N-RESUMEN-EJECUTIVO.txt
+
+2. Luego ejecuta:
+   👉 ./n8n-setup.sh
+
+3. Configura:
+   👉 nano .env.n8n (agrega tus credenciales de WhatsApp)
+
+4. Inicia:
+   👉 docker-compose -f docker-compose.n8n.yml up -d
+
+5. Entra a:
+   👉 http://localhost:5678
+
+¡Listo! ✅
+
+================================================================================
+ESTRUCTURA DE LA CARPETA
+================================================================================
+
+bot-whatsapp/
+│
+├─ 🚀 INICIO_AQUI.txt                         ← TÚ ESTÁS AQUÍ
+├─ 📖 INDEX.md                                ← Índice completo
+│
+├─ 📋 DOCUMENTACIÓN (Lee en este orden):
+│  ├─ N8N-RESUMEN-EJECUTIVO.txt              (5 min, EMPEZAR)
+│  ├─ README-N8N.md                          (15 min)
+│  ├─ docs-n8n-workflow.md                   (20 min)
+│  ├─ n8n-workflow-diagram.md                (15 min)
+│  └─ n8n-disparadores-adicionales.md        (30 min, futuro)
+│
+├─ ✅ IMPLEMENTACIÓN:
+│  ├─ N8N-CHECKLIST.md                       (Seguimiento)
+│  ├─ n8n-setup.sh                           (Script automático)
+│  └─ .env.n8n                               (Credenciales, creado por setup)
+│
+└─ ⚙️ CONFIGURACIÓN:
+   ├─ n8n-workflow-whatsapp-transacciones.json (Workflow a importar)
+   └─ docker-compose.n8n.yml                  (Docker config)
+
+================================================================================
+FLUJO RÁPIDO (20 MINUTOS)
+================================================================================
+
+Mensaje WhatsApp → N8N → API Transacciones → BD → Respuesta WhatsApp ✅
+
+Ejemplo:
+--------
+Cliente: "Quiero hacer un pago de $5000"
+N8N: Recibe mensaje, extrae datos
+API: Crea transacción en BD
+N8N: Responde "✅ Transacción #123 creada"
+Cliente: Recibe confirmación
+
+
+================================================================================
+5 PASOS PARA EMPEZAR
+================================================================================
+
+PASO 1: Leer Resumen (2 minutos)
+────────────────────────────────
+$ cat N8N-RESUMEN-EJECUTIVO.txt
+
+
+PASO 2: Setup Automático (2 minutos)
+─────────────────────────────────────
+$ chmod +x n8n-setup.sh
+$ ./n8n-setup.sh
+
+Qué hace:
+- ✓ Valida que Docker esté instalado
+- ✓ Crea archivo .env.n8n
+- ✓ Genera docker-compose.n8n.yml
+- ✓ Crea script de test
+
+
+PASO 3: Configurar Credenciales (5 minutos)
+────────────────────────────────────────────
+$ nano .env.n8n
+
+Actualizar SOLAMENTE estos campos:
+  WHATSAPP_WEBHOOK_URL = tu URL de WhatsApp
+  WHATSAPP_API_TOKEN = tu token
+  WHATSAPP_BUSINESS_ACCOUNT_ID = tu account ID
+
+Guardar: Ctrl+O → Enter → Ctrl+X
+
+
+PASO 4: Iniciar N8N (1 minuto)
+───────────────────────────────
+$ docker-compose -f docker-compose.n8n.yml up -d
+
+Esperar 30 segundos...
+
+Verificar:
+$ docker ps | grep n8n
+$ curl http://localhost:5678/healthz
+
+
+PASO 5: Importar Workflow (5 minutos)
+──────────────────────────────────────
+1. Abrir navegador: http://localhost:5678
+2. Click: Workflows → Import from JSON
+3. Seleccionar: n8n-workflow-whatsapp-transacciones.json
+4. Click: Import
+
+¡Listo! El workflow está en tu dashboard. 🎉
+
+
+================================================================================
+TESTING (5 MINUTOS)
+================================================================================
+
+Test 1: Script incluido
+$ ./test-webhook.sh
+
+Test 2: Desde Postman o Curl
+$ curl -X POST http://localhost:5678/webhook/whatsapp-transacciones \
+  -H "Content-Type: application/json" \
+  -d '{
+    "phone_number": "5491123456789",
+    "message_data": {
+      "obra_id": 1,
+      "tipo_transaccion": "pago",
+      "associated_id": 5,
+      "associated_type": "CLIENTE",
+      "monto": 5000.00,
+      "concepto": "Test"
+    }
+  }'
+
+Test 3: Desde WhatsApp real
+1. Registra el webhook en tu proveedor de WhatsApp
+2. Envía un mensaje
+3. Verifica que llega la respuesta ✅
+
+
+================================================================================
+REQUISITOS MÍNIMOS
+================================================================================
+
+✓ Docker instalado
+✓ Docker Compose instalado
+✓ API Gateway corriendo (puerto 8080)
+✓ Transacciones Service corriendo (puerto 8086)
+✓ Credenciales de WhatsApp (teléfono, token, account ID)
+✓ 30 minutos libres
+
+
+================================================================================
+DISPARADORES INCLUIDOS
+================================================================================
+
+Hoy:
+✅ WhatsApp         (Implementado)
+
+Próximamente (agregar fácilmente):
+◯ Email            (Guía en n8n-disparadores-adicionales.md)
+◯ Slack            (Guía en n8n-disparadores-adicionales.md)
+◯ Formulario Web   (Guía en n8n-disparadores-adicionales.md)
+◯ Google Sheets    (Guía en n8n-disparadores-adicionales.md)
+◯ Telegram         (Guía en n8n-disparadores-adicionales.md)
+◯ CSV/Excel        (Guía en n8n-disparadores-adicionales.md)
+
+
+================================================================================
+DOCUMENTACIÓN
+================================================================================
+
+Para...                          Lee...
+────────────────────────────────────────────────────────────
+Empezar rápido (5 min)          → N8N-RESUMEN-EJECUTIVO.txt
+Guía paso a paso (15 min)       → README-N8N.md
+Manual completo (20 min)        → docs-n8n-workflow.md
+Arquitectura (15 min)           → n8n-workflow-diagram.md
+Agregar más canales             → n8n-disparadores-adicionales.md
+Checklist de proyecto           → N8N-CHECKLIST.md
+Ver estructura                  → INDEX.md
+
+
+================================================================================
+TROUBLESHOOTING RÁPIDO
+================================================================================
+
+❌ "Webhook not reachable"
+✅ docker ps | grep n8n
+✅ docker logs sgo_n8n
+
+❌ "Connection refused a API Gateway"
+✅ Usa http://api-gateway:8080 (no localhost)
+✅ docker exec sgo_n8n curl http://api-gateway:8080/healthz
+
+❌ "Transaction creation failed"
+✅ Abre http://localhost:5678/admin/execution
+✅ Ver detalles de ejecución
+
+Más soluciones: README-N8N.md → Troubleshooting
+
+
+================================================================================
+PRÓXIMOS PASOS
+================================================================================
+
+Corto plazo (esta semana):
+□ Completar setup de WhatsApp
+□ Testear flujo completo
+□ Documentar para el equipo
+
+Mediano plazo (próximas 2 semanas):
+□ Agregar disparador Email
+□ Agregar disparador Slack
+□ Agregar Formulario Web
+
+Largo plazo (próximas 4 semanas):
+□ Almacenamiento de archivos
+□ Notificaciones push/SMS
+□ Dashboard de reportes
+□ Machine Learning para anomalías
+
+
+================================================================================
+¿PREGUNTAS?
+================================================================================
+
+1️⃣  ¿Por dónde empiezo?
+    → Lee N8N-RESUMEN-EJECUTIVO.txt (2 min)
+
+2️⃣  ¿Cómo configuro?
+    → Ejecuta ./n8n-setup.sh (2 min)
+
+3️⃣  ¿Cómo importo el workflow?
+    → Ve a README-N8N.md → Importar Workflow
+
+4️⃣  ¿Cómo agrego Email/Slack?
+    → Lee n8n-disparadores-adicionales.md
+
+5️⃣  ¿Algo no funciona?
+    → Lee README-N8N.md → Troubleshooting
+
+
+================================================================================
+COMANDOS ÚTILES
+================================================================================
+
+# Ver logs en tiempo real
+docker logs sgo_n8n -f
+
+# Detener n8n
+docker-compose -f docker-compose.n8n.yml down
+
+# Reiniciar n8n
+docker-compose -f docker-compose.n8n.yml restart
+
+# Ver si está corriendo
+docker ps | grep n8n
+
+# Acceder a shell de n8n
+docker exec -it sgo_n8n bash
+
+
+================================================================================
+IMPORTANTE ⚠️
+================================================================================
+
+✓ Este es un sistema en producción
+✓ Tus datos se guardan en /data/n8n.sqlite3
+✓ Haz backup regularmente
+✓ Cambia JWT_SECRET y ENCRYPTION_KEY antes de producción
+✓ Usa HTTPS en producción (con reverse proxy)
+✓ Valida tokens de proveedores
+
+
+================================================================================
+¡VAMOS! 🚀
+================================================================================
+
+1. Lee N8N-RESUMEN-EJECUTIVO.txt (ahora mismo, 2 minutos)
+2. Ejecuta ./n8n-setup.sh
+3. Configura .env.n8n
+4. Abre http://localhost:5678
+
+Tiempo total: 20 minutos
+
+¡Buena suerte! 💪
+
+================================================================================
+Versión: 1.0 | Fecha: 2026-04-29 | Status: Ready
+================================================================================

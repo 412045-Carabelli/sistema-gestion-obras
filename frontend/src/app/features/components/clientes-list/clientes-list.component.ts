@@ -46,6 +46,10 @@ export class ClientesListComponent implements OnInit {
   condicionIvaFiltro: string | 'todos' = 'todos';
   mostrarInactivos = false;
 
+  currentPage = 0;
+  pageSize = 50;
+  totalElements = 0;
+
   constructor(
     private router: Router,
     private clientesService: ClientesService
@@ -54,11 +58,12 @@ export class ClientesListComponent implements OnInit {
 
   ngOnInit() {
     forkJoin({
-      clientes: this.clientesService.getClientes(),
+      clientesPage: this.clientesService.getClientesConDetalles(this.currentPage, this.pageSize),
       condicionesIva: this.clientesService.getCondicionesIva()
     }).subscribe({
-      next: ({clientes, condicionesIva}) => {
-        this.clientes = clientes.map(c => ({...c, id: Number(c.id)}));
+      next: ({clientesPage, condicionesIva}) => {
+        this.clientes = (clientesPage.content || []).map((c: Cliente) => ({...c, id: Number(c.id)}));
+        this.totalElements = clientesPage.totalElements || 0;
         this.ivaOptions = [
           {label: 'Todas', name: 'todos'},
           ...condicionesIva
@@ -67,10 +72,26 @@ export class ClientesListComponent implements OnInit {
         this.applyFilter();
         this.datosCargados = true;
       },
-      error: () => {
+      error: (err) => {
+        console.error('Error cargando clientes:', err);
         this.datosCargados = true;
       }
     });
+  }
+
+  loadNextPage(): void {
+    if ((this.currentPage + 1) * this.pageSize < this.totalElements) {
+      this.currentPage++;
+      this.clientesService.getClientesConDetalles(this.currentPage, this.pageSize).subscribe({
+        next: (page) => {
+          this.clientes = [
+            ...this.clientes,
+            ...(page.content || []).map((c: Cliente) => ({...c, id: Number(c.id)}))
+          ];
+          this.applyFilter();
+        }
+      });
+    }
   }
 
   // 🔍 Filtrado por búsqueda y activo

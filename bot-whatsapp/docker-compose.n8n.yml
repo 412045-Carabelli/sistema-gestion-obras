@@ -1,0 +1,76 @@
+version: '3.9'
+
+services:
+  n8n:
+    image: n8n:latest
+    container_name: sgo_n8n
+    restart: unless-stopped
+    environment:
+      - N8N_HOST=${N8N_HOST:-0.0.0.0}
+      - N8N_PORT=${N8N_PORT:-5678}
+      - N8N_TIMEZONE=${N8N_TIMEZONE:-America/Argentina/Buenos_Aires}
+      - N8N_DEFAULT_LANGUAGE=${N8N_DEFAULT_LANGUAGE:-es}
+      - DB_TYPE=${DB_TYPE:-sqlite}
+      - DB_SQLITE_PATH=${DB_SQLITE_PATH:-/data/n8n.sqlite3}
+      - N8N_USER_MANAGEMENT_JWT_SECRET=${N8N_USER_MANAGEMENT_JWT_SECRET}
+      - N8N_ENCRYPTION_KEY=${N8N_ENCRYPTION_KEY}
+      - N8N_API_ENABLED=${N8N_API_ENABLED:-true}
+      - N8N_WEBHOOK_URL=${N8N_WEBHOOK_URL}
+      - N8N_EDITOR_BASE_URL=${N8N_EDITOR_BASE_URL}
+      - WHATSAPP_WEBHOOK_URL=${WHATSAPP_WEBHOOK_URL}
+      - WHATSAPP_API_TOKEN=${WHATSAPP_API_TOKEN}
+      - WHATSAPP_BUSINESS_ACCOUNT_ID=${WHATSAPP_BUSINESS_ACCOUNT_ID}
+      - IMAP_HOST=${IMAP_HOST}
+      - IMAP_PORT=${IMAP_PORT:-993}
+      - EMAIL_USER=${EMAIL_USER}
+      - EMAIL_PASSWORD=${EMAIL_PASSWORD}
+      - SLACK_BOT_TOKEN=${SLACK_BOT_TOKEN}
+      - SLACK_SIGNING_SECRET=${SLACK_SIGNING_SECRET}
+      - GSHEETS_ID=${GSHEETS_ID}
+      - GSHEETS_API_KEY=${GSHEETS_API_KEY}
+      - TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN}
+      - MINIO_URL=${MINIO_URL}
+      - MINIO_ACCESS_KEY=${MINIO_ACCESS_KEY}
+      - MINIO_SECRET_KEY=${MINIO_SECRET_KEY}
+      - MINIO_BUCKET=${MINIO_BUCKET}
+      - API_GATEWAY_URL=${API_GATEWAY_URL}
+      - TRANSACCIONES_SERVICE_URL=${TRANSACCIONES_SERVICE_URL}
+      - DASHBOARD_URL=${DASHBOARD_URL}
+      - LOG_LEVEL=${LOG_LEVEL:-info}
+    ports:
+      - "${N8N_PORT:-5678}:${N8N_PORT:-5678}"
+    volumes:
+      - n8n_data:/data
+      - ./logs:/data/logs
+    networks:
+      - sgo_backend
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5678/healthz"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    depends_on:
+      - api-gateway
+
+  # PostgreSQL para N8N (opcional, más robusto que SQLite)
+  # n8n_postgres:
+  #   image: postgres:15-alpine
+  #   container_name: sgo_n8n_postgres
+  #   environment:
+  #     POSTGRES_USER: n8n_user
+  #     POSTGRES_PASSWORD: n8n_password
+  #     POSTGRES_DB: n8n_db
+  #   volumes:
+  #     - n8n_postgres_data:/var/lib/postgresql/data
+  #   networks:
+  #     - sgo_backend
+  #   restart: unless-stopped
+
+volumes:
+  n8n_data:
+  # n8n_postgres_data:
+
+networks:
+  sgo_backend:
+    external: true

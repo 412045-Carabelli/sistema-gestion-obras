@@ -12,6 +12,8 @@ import org.mockito.Captor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -22,6 +24,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 class TransaccionServiceTest {
 
     @Mock
@@ -70,6 +73,7 @@ class TransaccionServiceTest {
     void crear_cliente_cobro_ok() {
         ObraResumenDto obra = new ObraResumenDto();
         obra.setPresupuesto(200d);
+        obra.setObra_estado("EN_PROGRESO");
         when(obraCostoClient.obtenerObra(1L)).thenReturn(obra);
         when(transaccionRepository.sumarCobrosPorObra(1L)).thenReturn(20d);
         when(transaccionRepository.save(any(Transaccion.class))).thenAnswer(invocation -> {

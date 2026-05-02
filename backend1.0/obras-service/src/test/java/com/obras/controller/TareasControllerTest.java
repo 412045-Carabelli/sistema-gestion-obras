@@ -1,6 +1,7 @@
 package com.obras.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.obras.audit.AuditLogService;
 import com.obras.dto.TareaDTO;
 import com.obras.enums.EstadoTareaEnum;
 import com.obras.repository.ObraCostoRepository;
@@ -45,6 +46,9 @@ class TareasControllerTest {
 
     @MockBean
     private ObraProveedorRepository obraProveedorRepository;
+
+    @MockBean
+    private AuditLogService auditLogService;
 
     @Test
     void listar_tareas_ok() throws Exception {

@@ -119,6 +119,27 @@
             <!-- TAB: OBRAS -->
             <p-tabpanel value="0">
               @if (obrasSaldoProveedor.length > 0) {
+                <!-- Botones de exportación -->
+                <div class="mb-4 flex gap-2 items-center">
+                  <button pButton pRipple type="button" icon="pi pi-download"
+                          label="Generar ctas. ctes."
+                          (click)="menu.toggle($event)"
+                          class="p-button-sm"></button>
+                  <p-menu #menu [model]="menuExportOptions" [popup]="true"></p-menu>
+
+                  @if (modoExportacion === 'algunas') {
+                    <button pButton pRipple type="button" icon="pi pi-check"
+                            label="Generar"
+                            (click)="generarCtaCte()"
+                            [loading]="generandoPdf"
+                            class="p-button-sm p-button-success"></button>
+                    <button pButton pRipple type="button" icon="pi pi-times"
+                            label="Cancelar"
+                            (click)="cancelarSeleccion()"
+                            class="p-button-sm p-button-danger"></button>
+                  }
+                </div>
+
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
                   <div class="bg-slate-50 border border-slate-200 rounded-lg p-4">
                     <p class="text-xs font-semibold uppercase text-slate-600">Total obras proveedor</p>
@@ -137,6 +158,11 @@
                   <p-table [value]="obrasSaldoProveedor" [paginator]="true" [rows]="8" responsiveLayout="scroll" styleClass="p-datatable-sm">
                     <ng-template pTemplate="header">
                       <tr>
+                        @if (modoExportacion === 'algunas') {
+                          <th style="width: 3rem;">
+                            <p-checkbox (ngModel)="false" [binary]="true"></p-checkbox>
+                          </th>
+                        }
                         <th>ID</th>
                         <th>Obra</th>
                         <th>Estado</th>
@@ -147,7 +173,15 @@
                       </tr>
                     </ng-template>
                     <ng-template pTemplate="body" let-item>
-                      <tr class="cursor-pointer hover:bg-gray-50 transition-colors" (click)="irADetalleObra(item.id)">
+                      <tr class="cursor-pointer hover:bg-gray-50 transition-colors"
+                          (click)="modoExportacion !== 'algunas' && irADetalleObra(item.id)">
+                        @if (modoExportacion === 'algunas') {
+                          <td class="text-center" (click)="$event.stopPropagation()">
+                            <p-checkbox [ngModel]="esObraSeleccionada(item.id)"
+                                        (onChange)="toggleSeleccionObra(item.id)"
+                                        [binary]="true"></p-checkbox>
+                          </td>
+                        }
                         <td class="font-mono text-sm font-semibold text-gray-600">{{ item.id }}</td>
                         <td class="font-medium text-gray-900">{{ item.nombre }}</td>
                         <td>
@@ -168,6 +202,10 @@
                                     (click)="$event.stopPropagation(); irADetalleObraMov(item.id)">
                               Ver Movimientos
                             </button>
+                            <button pButton type="button" class="p-button-text p-button-sm" icon="pi pi-download"
+                                    (click)="$event.stopPropagation(); generarCtaCte(item.id)"
+                                    [loading]="generandoPdf"
+                                    pTooltip="Generar cta. cte."></button>
                           </div>
                         </td>
                       </tr>
@@ -181,6 +219,29 @@
                       </tr>
                     </ng-template>
                   </p-table>
+
+                  <!-- FILA DE TOTALES -->
+                  @if (obrasSaldoProveedor.length > 0) {
+                    <div class="border-t-2 border-gray-300 bg-gray-100 grid gap-0"
+                         [style.grid-template-columns]="'40px 1fr auto auto auto auto auto auto'">
+                      @if (modoExportacion === 'algunas') {
+                        <div class="px-6 py-4"></div>
+                      }
+                      <div class="px-6 py-4"></div>
+                      <div class="px-6 py-4 font-bold text-gray-900">TOTAL</div>
+                      <div class="px-6 py-4"></div>
+                      <div class="px-6 py-4 text-right font-bold text-gray-900">
+                        {{ totalObrasProveedor | currency:'ARS':'symbol':'1.0-2' }}
+                      </div>
+                      <div class="px-6 py-4 text-right font-bold text-red-700">
+                        {{ totalPagadoObrasProveedor | currency:'ARS':'symbol':'1.0-2' }}
+                      </div>
+                      <div class="px-6 py-4 text-right font-bold text-emerald-700">
+                        {{ totalSaldoObrasProveedor | currency:'ARS':'symbol':'1.0-2' }}
+                      </div>
+                      <div class="px-6 py-4"></div>
+                    </div>
+                  }
                 </div>
               } @else {
                 <div class="text-center py-12 text-gray-500">

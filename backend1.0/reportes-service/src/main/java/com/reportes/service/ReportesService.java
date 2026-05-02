@@ -106,6 +106,74 @@ public class ReportesService {
         return response;
     }
 
+    public DashboardConsolidadoResponse generarDashboardConsolidado(ReportFilterRequest filtro) {
+        ReportFilterRequest filtros = filtroSeguro(filtro);
+        List<ObraExternalDto> obrasFiltradas = filtrarObrasConDeuda(filtros);
+        Map<Long, ObraExternalDto> obrasPorId = mapearPorId(obrasFiltradas, ObraExternalDto::getId);
+
+        // Transacciones
+        List<TransaccionExternalDto> transacciones = filtrarTransacciones(filtros, obrasPorId);
+        transacciones = transacciones.stream()
+                .filter(tx -> Boolean.TRUE.equals(tx.getActivo()) || tx.getActivo() == null)
+                .filter(tx -> tx.getIdObra() != null && obrasPorId.containsKey(tx.getIdObra()))
+                .collect(Collectors.toList());
+
+        BigDecimal totalCobros = sumarPorTipo(transacciones, "COBRO");
+        BigDecimal totalPagos = sumarPorTipo(transacciones, "PAGO");
+
+        // Presupuestos
+        BigDecimal totalPresupuesto = obrasFiltradas.stream()
+                .map(this::presupuestoEfectivo)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        // Costos
+        BigDecimal totalCostos = BigDecimal.ZERO;
+        if (filtros.getClienteId() == null) {
+            for (ObraExternalDto obra : obrasFiltradas) {
+                List<ObraCostoExternalDto> costos = obrasClient.obtenerCostos(obra.getId());
+                for (ObraCostoExternalDto costo : costos) {
+                    if (Boolean.FALSE.equals(costo.getActivo())) continue;
+                    if (!costoTieneProveedor(costo)) continue;
+                    if (filtros.getProveedorId() != null
+                            && !Objects.equals(filtros.getProveedorId(), costo.getIdProveedor())) {
+                        continue;
+                    }
+                    totalCostos = totalCostos.add(costoBase(costo));
+                }
+            }
+        }
+        if (filtros.getProveedorId() == null) {
+            BigDecimal totalComisiones = obrasFiltradas.stream()
+                    .map(this::calcularMontoComision)
+                    .reduce(BigDecimal.ZERO, BigDecimal::add);
+            totalCostos = totalCostos.add(totalComisiones);
+        }
+
+        // Consolidar
+        DashboardConsolidadoResponse response = DashboardConsolidadoResponse.builder()
+                .totalPresupuesto(totalPresupuesto)
+                .totalCostos(totalCostos)
+                .porPresupuestar(saldoPositivo(totalPresupuesto.subtract(totalCostos)))
+                .totalCobros(totalCobros)
+                .totalPagos(totalPagos)
+                .saldoFlujo(totalCobros.subtract(totalPagos))
+                .porCobrar(saldoPositivo(totalPresupuesto.subtract(totalCobros)))
+                .porPagar(saldoPositivo(totalCostos.subtract(totalPagos)))
+                .build();
+
+        // Cuenta corriente consolidada
+        DashboardConsolidadoResponse.CuentaCorrienteConsolidada ctaCte =
+                DashboardConsolidadoResponse.CuentaCorrienteConsolidada.builder()
+                        .loCobrado(totalCobros)
+                        .porCobrar(saldoPositivo(totalPresupuesto.subtract(totalCobros)))
+                        .pagado(totalPagos)
+                        .porPagar(saldoPositivo(totalCostos.subtract(totalPagos)))
+                        .build();
+        response.setCuentaCorriente(ctaCte);
+
+        return response;
+    }
+
     public DeudasGlobalesResponse generarDeudasGlobales(ReportFilterRequest filtro) {
         ReportFilterRequest filtros = filtroSeguro(filtro);
         DeudasGlobalesResponse response = new DeudasGlobalesResponse();
@@ -323,9 +391,15 @@ public class ReportesService {
         ReportFilterRequest filtros = filtroSeguro(filtro);
         List<ObraExternalDto> obras = filtrarObrasConDeuda(filtros);
         Map<Long, ObraExternalDto> obrasPorId = mapearPorId(obras, ObraExternalDto::getId);
+        Map<Long, ProveedorExternalDto> proveedoresPorId = mapearPorId(
+            proveedoresClient.obtenerProveedores(),
+            ProveedorExternalDto::getId
+        );
 
-        // Calcular totales de costos
+        // Calcular totales de costos y construir lista de pendientes
         BigDecimal totalCostos = BigDecimal.ZERO;
+        PendientesResponse response = new PendientesResponse();
+
         for (ObraExternalDto obra : obras) {
             List<ObraCostoExternalDto> costos = obrasClient.obtenerCostos(obra.getId());
             for (ObraCostoExternalDto costo : costos) {
@@ -335,7 +409,19 @@ public class ReportesService {
                 if (filtros.getProveedorId() != null && !Objects.equals(costo.getIdProveedor(), filtros.getProveedorId())) {
                     continue;
                 }
-                totalCostos = totalCostos.add(costoBase(costo));
+                BigDecimal costoBD = costoBase(costo);
+                totalCostos = totalCostos.add(costoBD);
+
+                // Agregar a lista de pendientes
+                PendientesResponse.Pendiente pendiente = new PendientesResponse.Pendiente();
+                pendiente.setObraId(obra.getId());
+                pendiente.setObraNombre(obra.getNombre());
+                pendiente.setProveedorId(costo.getIdProveedor());
+                ProveedorExternalDto proveedor = proveedoresPorId.get(costo.getIdProveedor());
+                pendiente.setProveedorNombre(proveedor != null ? proveedor.getNombre() : null);
+                pendiente.setDescripcion(costo.getDescripcion());
+                pendiente.setTotal(costoBD);
+                response.getPendientes().add(pendiente);
             }
         }
 
@@ -343,7 +429,6 @@ public class ReportesService {
         List<TransaccionExternalDto> transacciones = filtrarTransacciones(filtros, obrasPorId);
         BigDecimal totalPagos = sumarPorTipo(transacciones, "PAGO");
 
-        PendientesResponse response = new PendientesResponse();
         response.setTotalCostos(totalCostos);
         response.setTotalPagos(totalPagos);
         response.setSaldoPorPagar(saldoPositivo(totalCostos.subtract(totalPagos)));
@@ -663,18 +748,48 @@ public class ReportesService {
                 m -> Optional.ofNullable(m.getFecha()).orElse(LocalDate.MAX)
         ));
 
-        BigDecimal costosAcum = BigDecimal.ZERO;
+        // Calcular saldo neto por obra para filtrar obras con saldo = 0
+        Map<Long, BigDecimal> saldoPorObra = new HashMap<>();
         for (CuentaCorrienteProveedorResponse.Movimiento mov : movimientos) {
+            Long obraId = mov.getObraId();
+            if (obraId != null) {
+                BigDecimal saldo = saldoPorObra.getOrDefault(obraId, BigDecimal.ZERO);
+                if ("COSTO".equalsIgnoreCase(mov.getTipo())) {
+                    saldo = saldo.add(mov.getMonto());
+                } else {
+                    saldo = saldo.subtract(mov.getMonto());
+                }
+                saldoPorObra.put(obraId, saldo);
+            }
+        }
+
+        // Filtrar movimientos: solo mantener los de obras con saldo != 0
+        Set<Long> obrasConSaldo = saldoPorObra.entrySet().stream()
+                .filter(e -> e.getValue().compareTo(BigDecimal.ZERO) != 0)
+                .map(Map.Entry::getKey)
+                .collect(Collectors.toSet());
+
+        List<CuentaCorrienteProveedorResponse.Movimiento> movimientosFiltrados = movimientos.stream()
+                .filter(mov -> {
+                    Long obraId = mov.getObraId();
+                    return obraId != null && obrasConSaldo.contains(obraId);
+                })
+                .collect(Collectors.toList());
+
+        // Recalcular acumulados solo con movimientos filtrados
+        BigDecimal costosAcum = BigDecimal.ZERO;
+        BigDecimal pagosAcumReCalculados = BigDecimal.ZERO;
+        for (CuentaCorrienteProveedorResponse.Movimiento mov : movimientosFiltrados) {
             if ("COSTO".equalsIgnoreCase(mov.getTipo())) {
                 costosAcum = costosAcum.add(mov.getMonto());
             } else {
-                pagosAcum = pagosAcum.add(mov.getMonto());
+                pagosAcumReCalculados = pagosAcumReCalculados.add(mov.getMonto());
             }
             mov.setCostosAcumulados(costosAcum);
-            mov.setPagosAcumulados(pagosAcum);
-            mov.setSaldoProveedor(saldoPositivo(costosAcum.subtract(pagosAcum)));
+            mov.setPagosAcumulados(pagosAcumReCalculados);
+            mov.setSaldoProveedor(saldoPositivo(costosAcum.subtract(pagosAcumReCalculados)));
         }
-        response.setMovimientos(movimientos);
+        response.setMovimientos(movimientosFiltrados);
 
         response.setCostos(costos);
         response.setPagos(pagos);
@@ -688,6 +803,149 @@ public class ReportesService {
         if (tieneSaldoSignificativo(resumen.getSaldo())) {
             response.getResumenProveedores().add(resumen);
         }
+        return response;
+    }
+
+    public SaldosClienteResponse generarSaldosCliente(Long clienteId) {
+        SaldosClienteResponse response = new SaldosClienteResponse();
+        response.setClienteId(clienteId);
+
+        // Obtener cliente
+        Map<Long, ClienteExternalDto> clientes = mapearPorId(clientesClient.obtenerClientes(), ClienteExternalDto::getId);
+        ClienteExternalDto cliente = clientes.get(clienteId);
+        if (cliente != null) {
+            response.setClienteNombre(cliente.getNombre());
+        }
+
+        // Filtrar obras del cliente con deuda
+        ReportFilterRequest filtro = new ReportFilterRequest();
+        filtro.setClienteId(clienteId);
+        List<ObraExternalDto> obras = filtrarObrasConDeuda(filtro);
+        Map<Long, ObraExternalDto> obrasPorId = mapearPorId(obras, ObraExternalDto::getId);
+
+        // Obtener cobros agrupados por obra
+        List<TransaccionExternalDto> transacciones = filtrarTransacciones(filtro, obrasPorId);
+        Map<Long, BigDecimal> cobrosPorObra = transacciones.stream()
+                .filter(tx -> tx.getIdObra() != null)
+                .filter(tx -> "COBRO".equalsIgnoreCase(Optional.ofNullable(tx.getTipoTransaccion()).orElse("")))
+                .collect(Collectors.groupingBy(
+                        TransaccionExternalDto::getIdObra,
+                        Collectors.mapping(
+                                tx -> BigDecimal.valueOf(Optional.ofNullable(tx.getMonto()).orElse(0d)),
+                                Collectors.reducing(BigDecimal.ZERO, BigDecimal::add)
+                        )
+                ));
+
+        // Construir lista de obras con saldos
+        BigDecimal totalPresupuestado = BigDecimal.ZERO;
+        BigDecimal totalCobrado = BigDecimal.ZERO;
+
+        for (ObraExternalDto obra : obras) {
+            BigDecimal presupuestado = presupuestoEfectivo(obra);
+            BigDecimal cobrado = cobrosPorObra.getOrDefault(obra.getId(), BigDecimal.ZERO);
+            BigDecimal saldo = saldoPositivo(presupuestado.subtract(cobrado));
+
+            if (presupuestado.compareTo(BigDecimal.ZERO) > 0 || cobrado.compareTo(BigDecimal.ZERO) > 0) {
+                SaldosClienteResponse.ObraSaldo obraSaldo = new SaldosClienteResponse.ObraSaldo();
+                obraSaldo.setObraId(obra.getId());
+                obraSaldo.setNombre(obra.getNombre());
+                obraSaldo.setEstado(obra.getObraEstado());
+                obraSaldo.setPresupuestado(presupuestado);
+                obraSaldo.setCobrado(cobrado);
+                obraSaldo.setSaldo(saldo);
+                response.getObras().add(obraSaldo);
+
+                totalPresupuestado = totalPresupuestado.add(presupuestado);
+                totalCobrado = totalCobrado.add(cobrado);
+            }
+        }
+
+        response.setTotalPresupuestado(totalPresupuestado);
+        response.setTotalCobrado(totalCobrado);
+        response.setSaldo(saldoPositivo(totalPresupuestado.subtract(totalCobrado)));
+
+        return response;
+    }
+
+    public SaldosProveedorResponse generarSaldosProveedor(Long proveedorId) {
+        SaldosProveedorResponse response = new SaldosProveedorResponse();
+        response.setProveedorId(proveedorId);
+
+        // Obtener proveedor
+        Map<Long, ProveedorExternalDto> proveedores = mapearPorId(proveedoresClient.obtenerProveedores(), ProveedorExternalDto::getId);
+        ProveedorExternalDto proveedor = proveedores.get(proveedorId);
+        if (proveedor != null) {
+            response.setProveedorNombre(proveedor.getNombre());
+        }
+
+        // Filtrar obras con deuda de proveedor
+        List<ObraExternalDto> todasObras = obrasClient.obtenerObras();
+        Set<Long> obrasConDeuda = todasObras.stream()
+                .filter(obra -> estadoGeneraSaldoProveedor(obra.getObraEstado()))
+                .map(ObraExternalDto::getId)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toSet());
+
+        // Obtener costos del proveedor por obra
+        Map<Long, BigDecimal> costosPorObra = new HashMap<>();
+        Map<Long, ObraExternalDto> obrasPorId = mapearPorId(todasObras, ObraExternalDto::getId);
+
+        for (ObraExternalDto obra : todasObras) {
+            if (!obrasConDeuda.contains(obra.getId())) continue;
+            List<ObraCostoExternalDto> costosObra = obrasClient.obtenerCostos(obra.getId());
+            for (ObraCostoExternalDto costo : costosObra) {
+                if (!Objects.equals(proveedorId, costo.getIdProveedor()) || Boolean.FALSE.equals(costo.getActivo())) {
+                    continue;
+                }
+                BigDecimal total = costoBase(costo);
+                costosPorObra.merge(obra.getId(), total, BigDecimal::add);
+            }
+        }
+
+        // Obtener pagos del proveedor por obra
+        Map<Long, BigDecimal> pagosPorObra = obtenerTransaccionesActivas().stream()
+                .filter(tx -> Objects.equals(tx.getIdAsociado(), proveedorId))
+                .filter(tx -> "PROVEEDOR".equalsIgnoreCase(Optional.ofNullable(tx.getTipoAsociado()).orElse("")))
+                .filter(tx -> "PAGO".equalsIgnoreCase(Optional.ofNullable(tx.getTipoTransaccion()).orElse("")))
+                .filter(tx -> tx.getIdObra() != null && obrasConDeuda.contains(tx.getIdObra()))
+                .collect(Collectors.groupingBy(
+                        TransaccionExternalDto::getIdObra,
+                        Collectors.mapping(
+                                tx -> BigDecimal.valueOf(Optional.ofNullable(tx.getMonto()).orElse(0d)),
+                                Collectors.reducing(BigDecimal.ZERO, BigDecimal::add)
+                        )
+                ));
+
+        // Construir lista de obras con saldos
+        BigDecimal totalCostos = BigDecimal.ZERO;
+        BigDecimal totalPagado = BigDecimal.ZERO;
+
+        for (Map.Entry<Long, BigDecimal> entry : costosPorObra.entrySet()) {
+            Long obraId = entry.getKey();
+            BigDecimal costos = entry.getValue();
+            BigDecimal pagado = pagosPorObra.getOrDefault(obraId, BigDecimal.ZERO);
+            BigDecimal saldo = saldoPositivo(costos.subtract(pagado));
+
+            ObraExternalDto obra = obrasPorId.get(obraId);
+            if (obra != null && (costos.compareTo(BigDecimal.ZERO) > 0 || pagado.compareTo(BigDecimal.ZERO) > 0)) {
+                SaldosProveedorResponse.ObraSaldo obraSaldo = new SaldosProveedorResponse.ObraSaldo();
+                obraSaldo.setObraId(obraId);
+                obraSaldo.setNombre(obra.getNombre());
+                obraSaldo.setEstado(obra.getObraEstado());
+                obraSaldo.setPresupuestado(costos);
+                obraSaldo.setPagado(pagado);
+                obraSaldo.setSaldo(saldo);
+                response.getObras().add(obraSaldo);
+
+                totalCostos = totalCostos.add(costos);
+                totalPagado = totalPagado.add(pagado);
+            }
+        }
+
+        response.setTotalCostos(totalCostos);
+        response.setTotalPagado(totalPagado);
+        response.setSaldo(saldoPositivo(totalCostos.subtract(totalPagado)));
+
         return response;
     }
 
@@ -1987,5 +2245,232 @@ public class ReportesService {
                 .replaceAll("\\s+", "_")
                 .replaceAll("[^A-Z0-9_]+", "")
                 .replaceAll("^_+|_+$", "");
+    }
+
+    // ===== PDF ACCOUNT STATEMENTS =====
+
+    /**
+     * Genera tabla pivotada de cuenta corriente para PDF de Proveedor
+     * Retorna movimientos agrupados por obra y fecha para mostrar en tabla dinámica
+     */
+    public CuentaCorrientePdfResponse generarCuentaCorrienteProveedorPdf(
+            Long proveedorId, List<Long> obraIds) {
+
+        List<ObraExternalDto> obras = obrasClient.obtenerObras();
+        Map<Long, ObraExternalDto> obrasPorId = mapearPorId(obras, ObraExternalDto::getId);
+        Map<Long, ProveedorExternalDto> proveedores = mapearPorId(
+                proveedoresClient.obtenerProveedores(), ProveedorExternalDto::getId);
+
+        // Filtrar obras válidas
+        Set<Long> obrasValidas = obras.stream()
+                .filter(obra -> estadoGeneraSaldoProveedor(obra.getObraEstado()))
+                .filter(obra -> obraIds == null || obraIds.isEmpty() || obraIds.contains(obra.getId()))
+                .map(ObraExternalDto::getId)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toSet());
+
+        ProveedorExternalDto proveedor = proveedores.get(proveedorId);
+
+        CuentaCorrientePdfResponse response = new CuentaCorrientePdfResponse();
+        response.setAsociadoId(proveedorId);
+        response.setAsociadoNombre(proveedor != null ? proveedor.getNombre() : null);
+        response.setAsociadoEmail(proveedor != null ? proveedor.getEmail() : null);
+        response.setAsociadoTelefono(proveedor != null ? proveedor.getTelefono() : null);
+
+        // Estructura: obra → fecha → sumatoria
+        Map<Long, Map<LocalDate, BigDecimal>> movimientosAgrupadosPorObraYFecha = new TreeMap<>();
+        Set<LocalDate> fechasUnicas = new TreeSet<>();
+
+        BigDecimal[] costosYPagos = {BigDecimal.ZERO, BigDecimal.ZERO}; // [costos, pagos]
+
+        // Procesar costos (desde costos de obra)
+        for (ObraExternalDto obra : obras) {
+            if (!obrasValidas.contains(obra.getId())) continue;
+
+            List<ObraCostoExternalDto> costosObra = obrasClient.obtenerCostos(obra.getId());
+            for (ObraCostoExternalDto costo : costosObra) {
+                if (!Objects.equals(proveedorId, costo.getIdProveedor()) ||
+                        Boolean.FALSE.equals(costo.getActivo())) {
+                    continue;
+                }
+
+                BigDecimal monto = costoBase(costo);
+                costosYPagos[0] = costosYPagos[0].add(monto);
+
+                // Usar fecha de actualización del costo, o fecha de inicio de la obra como fallback
+                LocalDate fecha = costo.getUltimaActualizacion() != null
+                        ? costo.getUltimaActualizacion().atZone(java.time.ZoneId.systemDefault()).toLocalDate()
+                        : (obra.getFechaInicio() != null ? obra.getFechaInicio().toLocalDate() : LocalDate.now());
+
+                movimientosAgrupadosPorObraYFecha
+                        .computeIfAbsent(obra.getId(), k -> new TreeMap<>())
+                        .merge(fecha, monto, BigDecimal::add);
+
+                fechasUnicas.add(fecha);
+            }
+        }
+
+        // Procesar pagos (desde transacciones)
+        for (TransaccionExternalDto tx : obtenerTransaccionesActivas()) {
+            if (!Objects.equals(tx.getIdAsociado(), proveedorId)) continue;
+            if (!"PROVEEDOR".equalsIgnoreCase(Optional.ofNullable(tx.getTipoAsociado()).orElse(""))) continue;
+            if (!"PAGO".equalsIgnoreCase(Optional.ofNullable(tx.getTipoTransaccion()).orElse(""))) continue;
+            if (!obrasValidas.contains(tx.getIdObra())) continue;
+
+            BigDecimal monto = BigDecimal.valueOf(Optional.ofNullable(tx.getMonto()).orElse(0d));
+            costosYPagos[1] = costosYPagos[1].add(monto);
+
+            LocalDate fecha = tx.getFecha();
+            if (fecha == null) fecha = LocalDate.now();
+
+            Long obraId = tx.getIdObra();
+            movimientosAgrupadosPorObraYFecha
+                    .computeIfAbsent(obraId, k -> new TreeMap<>())
+                    .merge(fecha, monto.negate(), BigDecimal::add); // Negativo para pagos
+
+            fechasUnicas.add(fecha);
+        }
+
+        // Construir filas (una por obra)
+        List<CuentaCorrientePdfResponse.FilaObra> filas = new ArrayList<>();
+        for (Long obraId : movimientosAgrupadosPorObraYFecha.keySet()) {
+            ObraExternalDto obra = obrasPorId.get(obraId);
+            CuentaCorrientePdfResponse.FilaObra fila = new CuentaCorrientePdfResponse.FilaObra();
+            fila.setObraId(obraId);
+            fila.setObraNombre(obra != null ? obra.getNombre() : ("Obra #" + obraId));
+
+            // Mapear movimientos por fecha como strings
+            Map<String, BigDecimal> movPorFecha = new LinkedHashMap<>();
+            BigDecimal saldoObra = BigDecimal.ZERO;
+            for (LocalDate fecha : movimientosAgrupadosPorObraYFecha.get(obraId).entrySet()
+                    .stream()
+                    .sorted(Map.Entry.comparingByKey())
+                    .map(Map.Entry::getKey)
+                    .collect(Collectors.toList())) {
+                BigDecimal monto = movimientosAgrupadosPorObraYFecha.get(obraId).get(fecha);
+                movPorFecha.put(fecha.toString(), monto);
+                saldoObra = saldoObra.add(monto);
+            }
+
+            fila.setMovimientosPorFecha(movPorFecha);
+            fila.setSaldoObra(saldoObra);
+            filas.add(fila);
+        }
+
+        response.setFechasUnicas(new ArrayList<>(fechasUnicas));
+        response.setFilas(filas);
+        response.setTotalCostos(costosYPagos[0]);
+        response.setTotalPagos(costosYPagos[1]);
+        response.setSaldoFinal(costosYPagos[0].subtract(costosYPagos[1]));
+
+        return response;
+    }
+
+    /**
+     * Genera tabla pivotada de cuenta corriente para PDF de Cliente
+     * Retorna cobros agrupados por obra y fecha para mostrar en tabla dinámica
+     */
+    public CuentaCorrientePdfResponse generarCuentaCorrienteClientePdf(
+            Long clienteId, List<Long> obraIds) {
+
+        List<ObraExternalDto> obras = obrasClient.obtenerObras();
+        Map<Long, ObraExternalDto> obrasPorId = mapearPorId(obras, ObraExternalDto::getId);
+        Map<Long, ClienteExternalDto> clientes = mapearPorId(
+                clientesClient.obtenerClientes(), ClienteExternalDto::getId);
+
+        // Filtrar obras válidas (del cliente)
+        Set<Long> obrasValidas = obras.stream()
+                .filter(obra -> Objects.equals(obra.getIdCliente(), clienteId))
+                .filter(obra -> estadoGeneraSaldoCliente(obra.getObraEstado()))
+                .filter(obra -> obraIds == null || obraIds.isEmpty() || obraIds.contains(obra.getId()))
+                .map(ObraExternalDto::getId)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toSet());
+
+        ClienteExternalDto cliente = clientes.get(clienteId);
+
+        CuentaCorrientePdfResponse response = new CuentaCorrientePdfResponse();
+        response.setAsociadoId(clienteId);
+        response.setAsociadoNombre(cliente != null ? cliente.getNombre() : null);
+        response.setAsociadoEmail(cliente != null ? cliente.getEmail() : null);
+        response.setAsociadoTelefono(cliente != null ? cliente.getTelefono() : null);
+
+        // Estructura: obra → fecha → sumatoria
+        Map<Long, Map<LocalDate, BigDecimal>> cobrosPorObraYFecha = new TreeMap<>();
+        Set<LocalDate> fechasUnicas = new TreeSet<>();
+
+        BigDecimal[] totalCobrosFacurado = {BigDecimal.ZERO, BigDecimal.ZERO}; // [cobros, facturado]
+
+        // Procesar cobros (solo transacciones tipo COBRO/INGRESO)
+        for (TransaccionExternalDto tx : obtenerTransaccionesActivas()) {
+            if (!Objects.equals(tx.getIdAsociado(), clienteId)) continue;
+            if (!"CLIENTE".equalsIgnoreCase(Optional.ofNullable(tx.getTipoAsociado()).orElse(""))) continue;
+            String tipo = Optional.ofNullable(tx.getTipoTransaccion()).orElse("");
+            if (!"COBRO".equalsIgnoreCase(tipo) && !"INGRESO".equalsIgnoreCase(tipo)) continue;
+            if (!obrasValidas.contains(tx.getIdObra())) continue;
+
+            BigDecimal monto = BigDecimal.valueOf(Optional.ofNullable(tx.getMonto()).orElse(0d));
+            totalCobrosFacurado[0] = totalCobrosFacurado[0].add(monto);
+
+            LocalDate fecha = tx.getFecha();
+            if (fecha == null) fecha = LocalDate.now();
+
+            Long obraId = tx.getIdObra();
+            cobrosPorObraYFecha
+                    .computeIfAbsent(obraId, k -> new TreeMap<>())
+                    .merge(fecha, monto, BigDecimal::add);
+
+            fechasUnicas.add(fecha);
+        }
+
+        // Calcular total facturado (suma de presupuestos de obras)
+        for (Long obraId : obrasValidas) {
+            ObraExternalDto obra = obrasPorId.get(obraId);
+            if (obra != null && obra.getPresupuesto() != null) {
+                totalCobrosFacurado[1] = totalCobrosFacurado[1].add(obra.getPresupuesto());
+            }
+        }
+
+        // Construir filas (una por obra)
+        List<CuentaCorrientePdfResponse.FilaObra> filas = new ArrayList<>();
+        for (Long obraId : cobrosPorObraYFecha.keySet()) {
+            ObraExternalDto obra = obrasPorId.get(obraId);
+            CuentaCorrientePdfResponse.FilaObra fila = new CuentaCorrientePdfResponse.FilaObra();
+            fila.setObraId(obraId);
+            fila.setObraNombre(obra != null ? obra.getNombre() : ("Obra #" + obraId));
+
+            // Mapear cobros por fecha
+            Map<String, BigDecimal> cobrosPorFecha = new LinkedHashMap<>();
+            BigDecimal saldoObra = BigDecimal.ZERO;
+            for (LocalDate fecha : cobrosPorObraYFecha.get(obraId).entrySet()
+                    .stream()
+                    .sorted(Map.Entry.comparingByKey())
+                    .map(Map.Entry::getKey)
+                    .collect(Collectors.toList())) {
+                BigDecimal monto = cobrosPorObraYFecha.get(obraId).get(fecha);
+                cobrosPorFecha.put(fecha.toString(), monto);
+                saldoObra = saldoObra.add(monto);
+            }
+
+            fila.setMovimientosPorFecha(cobrosPorFecha);
+            fila.setSaldoObra(saldoObra);
+            filas.add(fila);
+        }
+
+        response.setFechasUnicas(new ArrayList<>(fechasUnicas));
+        response.setFilas(filas);
+        response.setTotalCostos(totalCobrosFacurado[1]); // Para cliente, "costos" = facturado
+        response.setTotalPagos(totalCobrosFacurado[0]);
+        response.setSaldoFinal(totalCobrosFacurado[1].subtract(totalCobrosFacurado[0]));
+
+        return response;
+    }
+
+    private boolean estadoGeneraSaldoCliente(String estado) {
+        if (estado == null) return false;
+        String normalizado = normalizarEstado(estado);
+        return new HashSet<>(Arrays.asList(
+                "ADJUDICADA", "EN_PROGRESO", "FINALIZADA", "COBRADA", "FACTURADA", "FACTURADA_PARCIAL"
+        )).contains(normalizado);
     }
 }

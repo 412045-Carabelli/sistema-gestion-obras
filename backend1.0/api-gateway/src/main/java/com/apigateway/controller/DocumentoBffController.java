@@ -33,7 +33,7 @@ public class DocumentoBffController {
     // ================================
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public Mono<ResponseEntity<Map<String, Object>>> create(
-            @RequestPart("id_obra") String idObra,
+            @RequestPart(value = "id_obra", required = false) String idObra,
             @RequestPart(value = "tipo_documento", required = false) String tipoDocumento,
             @RequestPart(value = "observacion", required = false) String observacion,
             @RequestPart(value = "id_asociado", required = false) String idAsociado,
