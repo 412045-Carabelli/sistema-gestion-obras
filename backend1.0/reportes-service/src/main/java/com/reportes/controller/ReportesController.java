@@ -4,6 +4,7 @@ import com.reportes.dto.request.EstadoObraFilterRequest;
 import com.reportes.dto.request.ReportFilterRequest;
 import com.reportes.dto.response.*;
 import com.reportes.service.ReportesService;
+import com.reportes.service.ReportesProveedoresService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -16,6 +17,7 @@ import java.util.List;
 public class ReportesController {
 
     private final ReportesService reportesService;
+    private final ReportesProveedoresService proveedoresService;
 
     @PostMapping("/financieros/ingresos-egresos")
     public ResponseEntity<IngresosEgresosResponse> ingresosEgresos(@RequestBody(required = false) ReportFilterRequest filtro) {
@@ -169,5 +171,10 @@ public class ReportesController {
     @GetMapping("/financieros/saldos/proveedor/{proveedorId}")
     public ResponseEntity<SaldosProveedorResponse> saldosProveedor(@PathVariable("proveedorId") Long proveedorId) {
         return ResponseEntity.ok(reportesService.generarSaldosProveedor(proveedorId));
+    }
+
+    @GetMapping("/financieros/saldos/proveedores")
+    public ResponseEntity<List<ProveedorSaldoResponse>> saldosProveedores() {
+        return ResponseEntity.ok(proveedoresService.obtenerSaldosProveedores());
     }
 }

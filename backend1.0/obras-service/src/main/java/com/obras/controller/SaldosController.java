@@ -4,6 +4,7 @@ import com.obras.service.SaldosService;
 import com.obras.dto.SaldoProveedorDTO;
 import com.obras.dto.SaldoClienteDTO;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import jakarta.persistence.EntityManager;
@@ -16,6 +17,7 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api/saldos")
 @RequiredArgsConstructor
+@Slf4j
 public class SaldosController {
 
     private final SaldosService saldosService;
@@ -118,11 +120,11 @@ public class SaldosController {
                             "AND o.estado_obra IN ('Adjudicada', 'En progreso', 'Cobrada', 'Facturada', 'Facturada parcial', 'Finalizada')"
                     )
                     .getSingleResult();
-            System.out.println("DEBUG: obtenerCostosDesdeObras result = " + result + ", type = " + (result != null ? result.getClass().getName() : "null"));
+            log.debug("Costos totales desde obras: result = {}, type = {}", result,
+                    result != null ? result.getClass().getName() : "null");
             return result;
         } catch (Exception e) {
-            System.out.println("DEBUG: Error en obtenerCostosDesdeObras: " + e.getMessage());
-            e.printStackTrace();
+            log.error("Error al obtener costos desde obras", e);
             return 0;
         }
     }

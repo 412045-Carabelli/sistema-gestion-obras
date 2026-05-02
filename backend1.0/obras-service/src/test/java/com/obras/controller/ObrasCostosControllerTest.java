@@ -1,6 +1,7 @@
 package com.obras.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.obras.audit.AuditLogService;
 import com.obras.dto.ObraCostoDTO;
 import com.obras.enums.EstadoPagoEnum;
 import com.obras.enums.TipoCostoEnum;
@@ -47,6 +48,9 @@ class ObrasCostosControllerTest {
 
     @MockBean
     private ObraProveedorRepository obraProveedorRepository;
+
+    @MockBean
+    private AuditLogService auditLogService;
 
     @Test
     void listar_costos_ok() throws Exception {

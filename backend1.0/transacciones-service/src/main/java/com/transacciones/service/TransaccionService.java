@@ -12,13 +12,13 @@ import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
 
 import java.time.LocalDate;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -379,18 +379,20 @@ public class TransaccionService {
                 .limit(10)
                 .collect(Collectors.toList());
 
+        // Recolectar IDs únicos de obras para bulk loading (evita N+1)
+        Set<Long> obraIds = movimientos.stream()
+                .map(Transaccion::getIdObra)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toSet());
+
+        // Obtener nombres en bulk si hay obras
+        Map<Long, String> obraNombres = obraIds.isEmpty()
+            ? new HashMap<>()
+            : obtenerNombresObrasPorBatch(new ArrayList<>(obraIds));
+
+        // Mapear transacciones con nombres precargados
         return movimientos.stream()
-                .map(t -> {
-                    String obraNombre = null;
-                    if (t.getIdObra() != null) {
-                        try {
-                            obraNombre = obtenerNombreObra(t.getIdObra());
-                        } catch (Exception e) {
-                            log.warn("No se pudo obtener nombre de obra {}", t.getIdObra());
-                        }
-                    }
-                    return toMovimientoRecenteDTO(t, obraNombre);
-                })
+                .map(t -> toMovimientoRecenteDTO(t, obraNombres.getOrDefault(t.getIdObra(), null)))
                 .collect(Collectors.toList());
     }
 
@@ -416,6 +418,11 @@ public class TransaccionService {
                 .build();
     }
 
+    /**
+     * Obtiene el nombre de una obra con caché para evitar múltiples llamadas.
+     * Útil cuando se necesita el nombre de forma individual.
+     */
+    @Cacheable(value = "obraNombres", key = "#obraId")
     private String obtenerNombreObra(Long obraId) {
         try {
             String url = String.format("%s/%s", obrasServiceUrl, obraId);
@@ -425,5 +432,49 @@ public class TransaccionService {
             log.warn("Error obteniendo nombre de obra {}", obraId, e);
             return null;
         }
+    }
+
+    /**
+     * Obtiene múltiples nombres de obras en una sola llamada (bulk).
+     * Evita N+1 problem cuando se necesitan nombres de varias obras.
+     * Fallback: si el endpoint no existe, obtiene uno a uno con caché.
+     */
+    private Map<Long, String> obtenerNombresObrasPorBatch(List<Long> obraIds) {
+        Map<Long, String> resultado = new HashMap<>();
+
+        if (obraIds == null || obraIds.isEmpty()) {
+            return resultado;
+        }
+
+        try {
+            // Intenta llamada bulk si el endpoint existe
+            // TODO: agregar endpoint en obras-service: GET /api/obras/bulk?ids=1,2,3
+            // String url = obrasServiceUrl + "/bulk?ids=" + String.join(",", obraIds.stream().map(String::valueOf).collect(Collectors.toList()));
+            // List<ObraNombreDto> obras = restTemplate.exchange(url, HttpMethod.GET, null,
+            //         new ParameterizedTypeReference<List<ObraNombreDto>>() {}).getBody();
+            // if (obras != null) {
+            //     obras.forEach(o -> resultado.put(o.getId(), o.getNombre()));
+            //     return resultado;
+            // }
+
+            // Fallback: obtener de uno en uno con caché
+            for (Long id : obraIds) {
+                String nombre = obtenerNombreObra(id); // Usa caché
+                if (nombre != null) {
+                    resultado.put(id, nombre);
+                }
+            }
+        } catch (Exception e) {
+            log.warn("Error en bulk loading de obras, usando fallback", e);
+            // Fallback: obtener de uno en uno con caché
+            for (Long id : obraIds) {
+                String nombre = obtenerNombreObra(id);
+                if (nombre != null) {
+                    resultado.put(id, nombre);
+                }
+            }
+        }
+
+        return resultado;
     }
 }

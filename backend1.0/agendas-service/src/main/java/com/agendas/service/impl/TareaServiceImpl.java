@@ -3,6 +3,9 @@ package com.agendas.service.impl;
 import com.common.dto.tareas.TareaRequest;
 import com.common.dto.tareas.TareaResponse;
 import com.common.dto.tareas.TareaAntiguaAgendaResponse;
+import com.agendas.dto.external.ObraExternalDto;
+import com.agendas.dto.external.ClienteExternalDto;
+import com.agendas.dto.external.ProveedorExternalDto;
 import com.agendas.entity.EstadoTarea;
 import com.agendas.entity.Tarea;
 import com.agendas.exception.TareaNotFoundException;
@@ -188,12 +191,12 @@ public class TareaServiceImpl implements TareaService {
 
     private String obtenerNombreObra(Long obraId) {
         try {
-            Map response = restTemplate.getForObject(
+            ObraExternalDto response = restTemplate.getForObject(
                     obrasServiceUrl + "/api/obras/{id}",
-                    Map.class,
+                    ObraExternalDto.class,
                     obraId
             );
-            return response != null ? (String) response.get("nombre") : null;
+            return response != null ? response.getNombre() : null;
         } catch (RestClientException e) {
             log.warn("No se pudo obtener nombre de obra {}: {}", obraId, e.getMessage());
             return null;
@@ -202,12 +205,12 @@ public class TareaServiceImpl implements TareaService {
 
     private String obtenerNombreCliente(Long clienteId) {
         try {
-            Map response = restTemplate.getForObject(
+            ClienteExternalDto response = restTemplate.getForObject(
                     clientesServiceUrl + "/api/clientes/{id}",
-                    Map.class,
+                    ClienteExternalDto.class,
                     clienteId
             );
-            return response != null ? (String) response.get("nombre") : null;
+            return response != null ? response.getNombre() : null;
         } catch (RestClientException e) {
             log.warn("No se pudo obtener nombre de cliente {}: {}", clienteId, e.getMessage());
             return null;
@@ -216,12 +219,12 @@ public class TareaServiceImpl implements TareaService {
 
     private String obtenerNombreProveedor(Long proveedorId) {
         try {
-            Map response = restTemplate.getForObject(
+            ProveedorExternalDto response = restTemplate.getForObject(
                     proveedoresServiceUrl + "/api/proveedores/{id}",
-                    Map.class,
+                    ProveedorExternalDto.class,
                     proveedorId
             );
-            return response != null ? (String) response.get("nombre") : null;
+            return response != null ? response.getNombre() : null;
         } catch (RestClientException e) {
             log.warn("No se pudo obtener nombre de proveedor {}: {}", proveedorId, e.getMessage());
             return null;

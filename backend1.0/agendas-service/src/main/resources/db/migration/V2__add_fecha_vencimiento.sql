@@ -1,1 +1,0 @@
--- Esta migración está vacía porque fecha_vencimiento ya está definida en V1

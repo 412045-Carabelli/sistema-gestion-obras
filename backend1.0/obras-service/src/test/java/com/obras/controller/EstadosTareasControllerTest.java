@@ -1,5 +1,6 @@
 package com.obras.controller;
 
+import com.obras.audit.AuditLogService;
 import com.obras.enums.EstadoTareaEnum;
 import com.obras.repository.ObraCostoRepository;
 import com.obras.repository.ObraProveedorRepository;
@@ -32,6 +33,9 @@ class EstadosTareasControllerTest {
 
     @MockBean
     private ObraProveedorRepository obraProveedorRepository;
+
+    @MockBean
+    private AuditLogService auditLogService;
 
     @Test
     void estados_tareas_ok() throws Exception {

@@ -7,9 +7,9 @@ import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.reactive.function.client.WebClient;
+import org.springframework.web.util.UriComponentsBuilder;
 import reactor.core.publisher.Mono;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -42,16 +42,14 @@ public class AgendaBffController {
             @RequestParam(name = "soloActivas", defaultValue = "false") boolean soloActivas,
             @RequestParam(name = "ordenAntiguas", defaultValue = "false") boolean ordenAntiguas
     ) {
-        String url = AGENDA_TAREAS_URL + "/" + idObra;
-        List<String> params = new ArrayList<>();
-        if (soloActivas) params.add("soloActivas=true");
-        if (ordenAntiguas) params.add("ordenAntiguas=true");
-        if (!params.isEmpty()) {
-            url = url + "?" + String.join("&", params);
-        }
+        String uri = UriComponentsBuilder.fromUriString(AGENDA_TAREAS_URL + "/" + idObra)
+                .queryParamIfPresent("soloActivas", soloActivas ? java.util.Optional.of(true) : java.util.Optional.empty())
+                .queryParamIfPresent("ordenAntiguas", ordenAntiguas ? java.util.Optional.of(true) : java.util.Optional.empty())
+                .toUriString();
+
         return webClientBuilder.build()
                 .get()
-                .uri(url)
+                .uri(uri)
                 .retrieve()
                 .bodyToFlux(new ParameterizedTypeReference<Map<String, Object>>() {})
                 .collectList()
@@ -74,10 +72,13 @@ public class AgendaBffController {
     @GetMapping("/antiguas")
     public Mono<ResponseEntity<List<TareaAntiguaAgendaResponse>>> getTareasAntiguasAgenda(
             @RequestParam(name = "limit", defaultValue = "10") int limit) {
-        String url = AGENDA_TAREAS_URL + "/antiguas?limit=" + limit;
+        String uri = UriComponentsBuilder.fromUriString(AGENDA_TAREAS_URL + "/antiguas")
+                .queryParam("limit", limit)
+                .toUriString();
+
         return webClientBuilder.build()
                 .get()
-                .uri(url)
+                .uri(uri)
                 .retrieve()
                 .bodyToFlux(TareaAntiguaAgendaResponse.class)
                 .collectList()
