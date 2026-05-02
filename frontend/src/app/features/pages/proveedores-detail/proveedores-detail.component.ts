@@ -2,6 +2,8 @@ import {Component, OnDestroy, OnInit} from '@angular/core';
 import {ActivatedRoute, Router, RouterLink} from '@angular/router';
 import {forkJoin, Subscription} from 'rxjs';
 import {CommonModule, DatePipe} from '@angular/common';
+import {HttpClient} from '@angular/common/http';
+import {environment} from '../../../../environments/environment';
 import {ButtonModule} from 'primeng/button';
 import {Tab, TabList, TabPanel, TabPanels, Tabs} from 'primeng/tabs';
 import {ProveedoresService} from '../../../services/proveedores/proveedores.service';
@@ -74,7 +76,8 @@ export class ProveedoresDetailComponent implements OnInit, OnDestroy {
     private proveedoresStateService: ProveedoresStateService,
     private reportesService: ReportesService,
     private messageService: MessageService,
-    private confirmationService: ConfirmationService
+    private confirmationService: ConfirmationService,
+    private http: HttpClient
   ) {
     this.menuExportOptions = [
       {
@@ -145,23 +148,30 @@ export class ProveedoresDetailComponent implements OnInit, OnDestroy {
       tareas: this.tareasService.getTareasByProveedor(id),
       transacciones: this.transaccionesService.getByAsociado('PROVEEDOR', id),
       obras: this.obrasService.getObras(),
-      cuentaCorriente: this.reportesService.getCuentaCorrienteProveedor({proveedorId: id})
+      saldos: this.reportesService.getSaldosProveedor(id)
     })
       .subscribe({
-        next: ({proveedor, tareas, transacciones, obras, cuentaCorriente}) => {
+        next: ({proveedor, tareas, transacciones, obras, saldos}) => {
           this.proveedor = proveedor;
           this.proveedoresStateService.setProveedor(proveedor);
           this.tareas = tareas;
-          this.transacciones = this.normalizarMovimientosProveedor(cuentaCorriente?.movimientos || transacciones || []);
+          this.transacciones = transacciones || [];
           this.obras = obras || [];
           this.obrasMap = (obras || []).reduce((acc, obra) => {
             acc[obra.id!] = obra;
             return acc;
           }, {} as Record<number, Obra>);
-          this.totalCostos = Number((cuentaCorriente as any)?.totalCostos ?? (cuentaCorriente as any)?.costos ?? 0);
-          this.totalPagos = Number((cuentaCorriente as any)?.totalPagos ?? (cuentaCorriente as any)?.pagos ?? 0);
-          this.saldoProveedor = Number((cuentaCorriente as any)?.saldoFinal ?? (cuentaCorriente as any)?.saldo ?? 0);
-          this.obrasSaldoProveedor = this.construirObrasSaldoProveedor();
+          this.totalCostos = saldos.totalCostos;
+          this.totalPagos = saldos.totalPagado;
+          this.saldoProveedor = saldos.saldo;
+          this.obrasSaldoProveedor = saldos.obras.map(o => ({
+            id: o.obraId,
+            nombre: o.nombre,
+            estado: o.estado,
+            total: o.presupuestado,
+            pagado: o.pagado || 0,
+            saldo: o.saldo
+          }));
           this.loading = false;
         },
         error: () => (this.loading = false)
@@ -175,40 +185,6 @@ export class ProveedoresDetailComponent implements OnInit, OnDestroy {
     return limpio.charAt(0).toUpperCase() + limpio.slice(1);
   }
 
-  private movimientoPerteneceObraConDeuda(transaccion: Transaccion): boolean {
-    const obraId = Number((transaccion as any)?.id_obra ?? (transaccion as any)?.obraId ?? 0);
-    if (!obraId) return true;
-    const obra = this.obrasMap[obraId];
-    if (!obra) return true;
-    return this.obraGeneraDeuda(obra);
-  }
-
-  private obraGeneraDeuda(obra: Obra | null | undefined): boolean {
-    if (!obra) return false;
-    const estado = this.normalizarEstadoObra(obra?.obra_estado);
-    // TODO ESTO TIENE QUE VENIR DEL BACKEND
-    return new Set(['ADJUDICADA', 'EN_PROGRESO', 'FINALIZADA', 'COBRADA', 'FACTURADA', 'FACTURADA_PARCIAL']).has(estado);
-  }
-
-  private obraGeneraDeudaProveedor(obra: Obra | null | undefined): boolean {
-    return this.obraGeneraDeuda(obra);
-  }
-
-  private normalizarEstadoObra(raw: any): string {
-    if (!raw) return '';
-    if (typeof raw === 'string') return this.sanitizarEstado(raw);
-    const nombre = raw?.nombre ?? raw?.name ?? raw?.label ?? raw?.estado ?? '';
-    return this.sanitizarEstado(String(nombre || ''));
-  }
-
-  private sanitizarEstado(valor: string): string {
-    return valor
-      .normalize('NFD')
-      .replace(/[\u0300-\u036f]/g, '')
-      .toUpperCase()
-      .replace(/[^A-Z0-9]+/g, '_')
-      .replace(/^_+|_+$/g, '');
-  }
 
   get totalObrasProveedor(): number {
     return this.obrasSaldoProveedor.reduce((sum, item) => sum + Number(item.total || 0), 0);
@@ -222,57 +198,6 @@ export class ProveedoresDetailComponent implements OnInit, OnDestroy {
     return this.obrasSaldoProveedor.reduce((sum, item) => sum + Number(item.saldo || 0), 0);
   }
 
-  private construirObrasSaldoProveedor(): Array<{ id: number; nombre: string; estado: string; total: number; pagado: number; saldo: number }> {
-    const agrupado = new Map<number, { id: number; nombre: string; estado: string; total: number; pagado: number; saldo: number }>();
-
-    (this.transacciones || [])
-      .filter(m => this.movimientoPerteneceObraConDeuda(m))
-      .forEach(mov => {
-        const obraId = Number((mov as any)?.id_obra ?? (mov as any)?.obraId ?? 0);
-        if (!obraId) return;
-        const obra = this.obrasMap[obraId];
-        // Permitir obras sin datos en el mapa si tienen movimientos (solo filtrar por estado si obra existe)
-        if (obra && !this.obraGeneraDeudaProveedor(obra)) return;
-        const estadoDesdeObra = this.getEstadoObraDisplay(obra);
-        const estado = estadoDesdeObra !== '-' ? estadoDesdeObra : ((mov as any)?.obra_estado || '-');
-        const actual = agrupado.get(obraId) || {
-          id: obraId,
-          nombre: (mov as any)?.obra_nombre || obra?.nombre || `Obra #${obraId}`,
-          estado: estado,
-          total: 0,
-          pagado: 0,
-          saldo: 0
-        };
-        const tipo = String((mov as any)?.tipo_transaccion ?? (mov as any)?.tipo ?? '').toUpperCase();
-        const monto = Number((mov as any)?.monto ?? 0);
-        if (tipo === 'COSTO') actual.total += monto;
-        if (tipo === 'PAGO') actual.pagado += monto;
-        actual.saldo = Math.max(0, actual.total - actual.pagado);
-        agrupado.set(obraId, actual);
-      });
-
-    return Array.from(agrupado.values())
-      .filter(item => item.total > 0 || item.pagado > 0)
-      .sort((a, b) => b.saldo - a.saldo);
-  }
-
-  private normalizarMovimientosProveedor(movimientos: any[]): Transaccion[] {
-    return (movimientos || [])
-      .map(mov => ({
-        ...mov,
-        id_obra: (mov as any)?.obraId ?? (mov as any)?.id_obra,
-        obra_nombre: (mov as any)?.obraNombre ?? (mov as any)?.obra_nombre,
-        obra_estado: (mov as any)?.obraEstado ?? (mov as any)?.obra_estado,
-        tipo_transaccion: (mov as any)?.tipo ?? (mov as any)?.tipo_transaccion,
-        medio_pago: (mov as any)?.concepto ?? (mov as any)?.medio_pago,
-        forma_pago: (mov as any)?.forma_pago ?? ((mov as any)?.tipo === 'COSTO' ? 'PENDIENTE' : (mov as any)?.forma_pago)
-      } as Transaccion))
-      .sort((a, b) => {
-        const fa = new Date(String(a.fecha || '')).getTime() || 0;
-        const fb = new Date(String(b.fecha || '')).getTime() || 0;
-        return fb - fa;
-      });
-  }
 
   // ===== EXPORTAR CUENTA CORRIENTE PDF =====
 
@@ -447,7 +372,27 @@ export class ProveedoresDetailComponent implements OnInit, OnDestroy {
     };
 
     try {
-      pdfMake.createPdf(docDefinition).download(`CtaCte_Proveedor_${data.asociadoNombre}_${hoy.replace(/\//g, '-')}.pdf`);
+      const nombreArchivo = `CtaCte_Proveedor_${data.asociadoNombre}_${hoy.replace(/\//g, '-')}.pdf`;
+      pdfMake.createPdf(docDefinition).download(nombreArchivo);
+      pdfMake.createPdf(docDefinition).getBuffer((buffer: Uint8Array) => {
+        const blob = new Blob([buffer], { type: 'application/pdf' });
+        const formData = new FormData();
+        formData.append('file', blob, nombreArchivo);
+        formData.append('tipo_documento', 'OTRO');
+        formData.append('id_asociado', String(data.asociadoId));
+        formData.append('tipo_asociado', 'PROVEEDOR');
+        formData.append('observacion', `Cuenta corriente generada el ${hoy}`);
+
+        this.http.post(`${environment.apiGateway}/bff/documentos`, formData).subscribe({
+          next: () => this.messageService.add({
+            severity: 'success',
+            summary: 'Guardado',
+            detail: 'Cta. cte. guardada en documentos.'
+          }),
+          error: () => {} // silencioso si falla
+        });
+      });
+
       this.messageService.add({
         severity: 'success',
         summary: 'PDF generado',

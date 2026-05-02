@@ -1,6 +1,8 @@
 import {Component, OnDestroy, OnInit} from '@angular/core';
 import {ActivatedRoute, Router} from '@angular/router';
 import {forkJoin, Subscription} from 'rxjs';
+import {HttpClient} from '@angular/common/http';
+import {environment} from '../../../../environments/environment';
 import {ButtonModule} from 'primeng/button';
 import {CardModule} from 'primeng/card';
 import {ProgressSpinnerModule} from 'primeng/progressspinner';
@@ -67,15 +69,12 @@ export class ClientesDetailComponent implements OnInit, OnDestroy {
   transacciones: Transaccion[] = [];
   loading = true;
 
-  // Estadísticas calculadas
+  // Estadísticas desde el backend
   obrasActivas = 0;
   totalPresupuestado = 0;
   saldoPendiente = 0;
   totalCobrosCliente = 0;
-  private saldoPendientePorObra = new Map<number, number>();
-  private cobrosPorObra = new Map<number, number>();
-  // TODO ESTO TIENE QUE VENIR DEL BACKEND
-  private readonly obrasConDeudaCliente = new Set(['ADJUDICADA', 'EN_PROGRESO', 'FINALIZADA', 'COBRADA', 'FACTURADA', 'FACTURADA_PARCIAL']);
+  obrasSaldo: Array<{ id: number; nombre: string; estado: string; total: number; cobrado: number; saldo: number }> = [];
 
   // Estado selector de obras para exportar
   modoExportacion: 'todas' | 'algunas' | null = null;
@@ -95,7 +94,8 @@ export class ClientesDetailComponent implements OnInit, OnDestroy {
     private messageService: MessageService,
     private confirmationService: ConfirmationService,
     private clienteStateService: ClienteStateService,
-    private reportesService: ReportesService
+    private reportesService: ReportesService,
+    private http: HttpClient
   ) {
     this.menuExportOptions = [
       {
@@ -193,30 +193,16 @@ export class ClientesDetailComponent implements OnInit, OnDestroy {
       .sort((a, b) => b.cantidad - a.cantidad);
   }
 
-  getSaldoPendienteObra(obra: Obra): number {
-    if (!this.obraGeneraDeudaCliente(obra)) return 0;
-    const saldoDesdeApi = (obra as any)?.saldo_pendiente ?? (obra as any)?.saldoPendiente;
-    if (saldoDesdeApi != null && !Number.isNaN(Number(saldoDesdeApi))) {
-      return Math.max(0, Number(saldoDesdeApi));
-    }
-    const id = Number(obra.id);
-    if (!Number.isFinite(id)) {
-      return Math.max(0, Number(obra.presupuesto ?? 0));
-    }
-
-    return this.saldoPendientePorObra.get(id)
-      ?? Math.max(0, Number(obra.presupuesto ?? 0));
-  }
-
   private cargarDetalle(idCliente: number) {
     this.loading = true;
 
     forkJoin({
       cliente: this.clientesService.getClienteById(idCliente),
       obras: this.obrasService.getObras(),
-      transacciones: this.transaccionesService.getByAsociado('CLIENTE', idCliente)
+      transacciones: this.transaccionesService.getByAsociado('CLIENTE', idCliente),
+      saldos: this.reportesService.getSaldosCliente(idCliente)
     }).subscribe({
-      next: ({cliente, obras, transacciones}) => {
+      next: ({cliente, obras, transacciones, saldos}) => {
         this.cliente = cliente;
         this.clienteStateService.setCliente(this.cliente);
 
@@ -241,8 +227,19 @@ export class ClientesDetailComponent implements OnInit, OnDestroy {
             new Date(b.fecha || '').getTime() - new Date(a.fecha || '').getTime()
           );
 
-        // Calcular estadísticas
-        this.calcularEstadisticas();
+        // Usar saldos del backend
+        this.totalPresupuestado = saldos.totalPresupuestado;
+        this.totalCobrosCliente = saldos.totalCobrado;
+        this.saldoPendiente = saldos.saldo;
+        this.obrasActivas = saldos.obras.length;
+        this.obrasSaldo = saldos.obras.map(o => ({
+          id: o.obraId,
+          nombre: o.nombre,
+          estado: o.estado,
+          total: o.presupuestado,
+          cobrado: o.cobrado || 0,
+          saldo: o.saldo
+        })).sort((a, b) => b.saldo - a.saldo);
 
         this.loading = false;
       },
@@ -259,142 +256,8 @@ export class ClientesDetailComponent implements OnInit, OnDestroy {
     });
   }
 
-  private calcularEstadisticas() {
-    // Total de obras asociadas al cliente
-    this.obrasActivas = this.obras.length;
-
-    // Total presupuestado
-    const totalDesdeApi = (this.cliente as any)?.totalCliente;
-    this.totalPresupuestado = Number.isFinite(Number(totalDesdeApi))
-      ? Number(totalDesdeApi)
-      : this.obras.reduce((sum, obra) => sum + this.calcularPresupuestoObra(obra), 0);
-
-    
-    const cobrosPorObra = new Map<number, number>();
-    const totalCobros = (this.transacciones || []).reduce((acc, t) => {
-      const tipo = (t.tipo_transaccion || (t as any).tipo || '').toString().toUpperCase();
-      if (tipo !== 'COBRO' && tipo !== 'INGRESO') return acc;
-
-      const monto = Number(t.monto ?? 0);
-      const obraId = Number((t as any).id_obra ?? t.id_obra);
-
-      if (Number.isFinite(obraId)) {
-        cobrosPorObra.set(obraId, (cobrosPorObra.get(obraId) ?? 0) + monto);
-      }
-
-      return acc + monto;
-    }, 0);
-    const cobrosDesdeApi = (this.cliente as any)?.cobrosRealizados;
-    this.totalCobrosCliente = Number.isFinite(Number(cobrosDesdeApi))
-      ? Number(cobrosDesdeApi)
-      : totalCobros;
-    const saldoDesdeApi = (this.cliente as any)?.saldoCliente;
-    this.saldoPendiente = Number.isFinite(Number(saldoDesdeApi))
-      ? Math.max(0, Number(saldoDesdeApi))
-      : Math.max(0, this.totalPresupuestado - this.totalCobrosCliente);
-
-    this.saldoPendientePorObra = new Map<number, number>();
-    this.cobrosPorObra = cobrosPorObra;
-    for (const obra of this.obras) {
-      const id = Number(obra.id);
-      if (!Number.isFinite(id)) {
-        continue;
-      }
-
-      if (!this.obraGeneraDeudaCliente(obra)) {
-        this.saldoPendientePorObra.set(id, 0);
-        continue;
-      }
-
-      const presupuesto = this.calcularPresupuestoObra(obra);
-      const cobros = cobrosPorObra.get(id) ?? 0;
-      const saldoObraApi = (obra as any)?.saldo_pendiente ?? (obra as any)?.saldoPendiente;
-      const saldoObra = Number.isFinite(Number(saldoObraApi))
-        ? Math.max(0, Number(saldoObraApi))
-        : Math.max(0, presupuesto - cobros);
-      this.saldoPendientePorObra.set(id, saldoObra);
-    }
-
-  }
-
-  private obraGeneraDeudaCliente(obra: Obra | null | undefined): boolean {
-    if (!obra) return false;
-    const estado = this.normalizarEstadoObra(obra?.obra_estado);
-    return this.obrasConDeudaCliente.has(estado);
-  }
-
-  getObrasConDeudaCliente(): Obra[] {
-    return (this.obras || []).filter(obra => this.obraGeneraDeudaCliente(obra));
-  }
-
   getObrasSaldoCliente(): Array<{ id: number; nombre: string; estado: string; total: number; cobrado: number; saldo: number }> {
-    const obrasFiltradas = this.getObrasConDeudaCliente();
-    return obrasFiltradas.map(obra => {
-      const id = Number(obra.id);
-      const total = this.calcularPresupuestoObra(obra);
-      const cobrado = this.cobrosPorObra.get(id) ?? 0;
-      const saldo = this.getSaldoPendienteObra(obra);
-      const estado = (typeof obra.obra_estado === 'string'
-        ? obra.obra_estado
-        : (obra.obra_estado as any)?.nombre) || 'Sin estado';
-      return {
-        id,
-        nombre: obra.nombre || `Obra #${id}`,
-        estado: estado?.toString?.() ?? 'Sin estado',
-        total,
-        cobrado,
-        saldo
-      };
-    }).filter(item => item.total > 0 || item.cobrado > 0).sort((a, b) => b.saldo - a.saldo);
-  }
-
-  private normalizarEstadoObra(raw: any): string {
-    if (!raw) return '';
-    if (typeof raw === 'string') return this.sanitizarEstado(raw);
-    const nombre = raw?.nombre ?? raw?.name ?? raw?.label ?? raw?.estado ?? '';
-    return this.sanitizarEstado(String(nombre || ''));
-  }
-
-  private sanitizarEstado(valor: string): string {
-    return valor
-      .normalize('NFD')
-      .replace(/[\u0300-\u036f]/g, '')
-      .toUpperCase()
-      .replace(/[^A-Z0-9]+/g, '_')
-      .replace(/^_+|_+$/g, '');
-  }
-
-  private calcularPresupuestoObra(obra: Obra): number {
-    if (!obra) return 0;
-    const costos = obra.costos ?? [];
-    if (!costos.length) {
-      return Number(obra.presupuesto ?? 0);
-    }
-
-    const beneficioGlobal = obra.beneficio_global ? Number(obra.beneficio ?? 0) : null;
-    const subtotalCostos = costos.reduce((acc, c) => {
-      const base = Number(
-        c.subtotal ??
-        (Number(c.cantidad ?? 0) * Number(c.precio_unitario ?? 0))
-      );
-      return acc + base;
-    }, 0);
-
-    const beneficioCostos = costos.reduce((acc, c) => {
-      const esAdicional = (c.tipo_costo || '').toString().toUpperCase() === 'ADICIONAL';
-      const porc = esAdicional
-        ? Number(c.beneficio ?? 0)
-        : (beneficioGlobal !== null ? beneficioGlobal : Number(c.beneficio ?? 0));
-      const base = Number(
-        c.subtotal ??
-        (Number(c.cantidad ?? 0) * Number(c.precio_unitario ?? 0))
-      );
-      return acc + (base * (porc / 100));
-    }, 0);
-
-    const totalConBeneficio = subtotalCostos + beneficioCostos;
-    const comisionPorc = obra.tiene_comision ? Number(obra.comision ?? 0) : 0;
-    return totalConBeneficio * (1 + (comisionPorc / 100));
+    return this.obrasSaldo;
   }
 
   // ===== EXPORTAR CUENTA CORRIENTE PDF =====
@@ -560,7 +423,22 @@ export class ClientesDetailComponent implements OnInit, OnDestroy {
     };
 
     try {
-      pdfMake.createPdf(docDefinition).download(`CtaCte_Cliente_${data.asociadoNombre}_${hoy.replace(/\//g, '-')}.pdf`);
+      const nombreArchivo = `CtaCte_Cliente_${data.asociadoNombre}_${hoy.replace(/\//g, '-')}.pdf`;
+      pdfMake.createPdf(docDefinition).download(nombreArchivo);
+      pdfMake.createPdf(docDefinition).getBuffer((buffer: Uint8Array) => {
+        const blob = new Blob([buffer], { type: 'application/pdf' });
+        const formData = new FormData();
+        formData.append('file', blob, nombreArchivo);
+        formData.append('tipo_documento', 'OTRO');
+        formData.append('id_asociado', String(data.asociadoId));
+        formData.append('tipo_asociado', 'CLIENTE');
+        formData.append('observacion', `Cuenta corriente generada el ${hoy}`);
+
+        this.http.post(`${environment.apiGateway}/bff/documentos`, formData).subscribe({
+          next: () => this.messageService.add({ severity: 'success', summary: 'Guardado', detail: 'Cta. cte. guardada en documentos.' }),
+          error: () => {} // silencioso si falla
+        });
+      });
       this.messageService.add({
         severity: 'success',
         summary: 'PDF generado',

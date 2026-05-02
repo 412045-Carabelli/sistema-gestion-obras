@@ -160,4 +160,14 @@ public class ReportesController {
     public ResponseEntity<FacturasKpiResponse> kpiFacturas(@RequestBody(required = false) ReportFilterRequest filtro) {
         return ResponseEntity.ok(reportesService.generarKpiFacturas(filtro));
     }
+
+    @GetMapping("/financieros/saldos/cliente/{clienteId}")
+    public ResponseEntity<SaldosClienteResponse> saldosCliente(@PathVariable("clienteId") Long clienteId) {
+        return ResponseEntity.ok(reportesService.generarSaldosCliente(clienteId));
+    }
+
+    @GetMapping("/financieros/saldos/proveedor/{proveedorId}")
+    public ResponseEntity<SaldosProveedorResponse> saldosProveedor(@PathVariable("proveedorId") Long proveedorId) {
+        return ResponseEntity.ok(reportesService.generarSaldosProveedor(proveedorId));
+    }
 }

@@ -247,6 +247,18 @@ public class ReportesBffController {
         return proxyGet("/obras/" + obraId + "/notas", new ParameterizedTypeReference<>() {});
     }
 
+    // ---------- SALDOS ----------
+
+    @GetMapping("/financieros/saldos/cliente/{clienteId}")
+    public Mono<ResponseEntity<Object>> saldosCliente(@PathVariable("clienteId") Long clienteId) {
+        return proxyGet("/financieros/saldos/cliente/" + clienteId, new ParameterizedTypeReference<>() {});
+    }
+
+    @GetMapping("/financieros/saldos/proveedor/{proveedorId}")
+    public Mono<ResponseEntity<Object>> saldosProveedor(@PathVariable("proveedorId") Long proveedorId) {
+        return proxyGet("/financieros/saldos/proveedor/" + proveedorId, new ParameterizedTypeReference<>() {});
+    }
+
     // ---------- MÉTODOS UTILITARIOS ----------
 
     private <T> Mono<ResponseEntity<T>> proxyGet(String path, ParameterizedTypeReference<T> type) {
