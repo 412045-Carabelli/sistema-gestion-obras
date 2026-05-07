@@ -84,8 +84,7 @@ export class ObraMovimientosComponent implements OnInit {
 
   filtrarProveedores(event: any) {
     const query = (event?.query || '').toLowerCase();
-    const proveedoresObra = this.proveedoresDeObra();
-    this.filteredProveedores = proveedoresObra.filter(p =>
+    this.filteredProveedores = (this.proveedores || []).filter(p =>
       p.nombre.toLowerCase().includes(query)
     );
   }
@@ -195,11 +194,17 @@ export class ObraMovimientosComponent implements OnInit {
 
   get totalProveedorSeleccionado(): number | null {
     if (!this.selectedProveedor?.id) return null;
-    return (this.costosObra || []).reduce((acc, costo) => {
-      const id = Number((costo as any)?.id_proveedor ?? (costo as any)?.proveedor?.id ?? 0);
-      if (id !== Number(this.selectedProveedor?.id)) return acc;
-      return acc + this.getMontoBaseCosto(costo);
+    const proveedorId = Number(this.selectedProveedor.id);
+    const total = (this.costosObra || []).reduce((acc, costo) => {
+      const costoIdProveedor = Number((costo as any)?.id_proveedor ?? 0);
+      const costoProveedorId = Number((costo as any)?.proveedor?.id ?? 0);
+      const id = costoIdProveedor > 0 ? costoIdProveedor : costoProveedorId;
+
+      if (id !== proveedorId) return acc;
+      const monto = this.getMontoBaseCosto(costo);
+      return acc + monto;
     }, 0);
+    return total > 0 ? total : null;
   }
 
   get pagadoProveedorSeleccionado(): number | null {
@@ -256,6 +261,16 @@ export class ObraMovimientosComponent implements OnInit {
       });
       return;
     }
+
+    // Cargar costos de la obra ANTES de abrir el modal
+    this.costosService.getByObra(this.obraId).subscribe(costos => {
+      this.costosObra = costos || [];
+      console.log('Costos cargados en openModal:', this.costosObra);
+      this._abrirModalConDatosListos(movimiento);
+    });
+  }
+
+  private _abrirModalConDatosListos(movimiento?: Transaccion) {
     this.modoEdicion = !!movimiento;
     this.selectedCliente = null;
     this.selectedProveedor = null;
@@ -328,7 +343,11 @@ export class ObraMovimientosComponent implements OnInit {
 
   onProveedorSeleccionado() {
     if (!this.selectedProveedor) return;
-    this.aplicarMontoProveedorSeleccionado();
+    // Asegurar que los costos estén cargados antes de calcular
+    this.costosService.getByObra(this.obraId).subscribe(costos => {
+      this.costosObra = costos || [];
+      this.aplicarMontoProveedorSeleccionado();
+    });
   }
 
   onFormaPagoChange(value: 'TOTAL' | 'PARCIAL') {

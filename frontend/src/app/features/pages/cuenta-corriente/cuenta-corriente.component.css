@@ -1,0 +1,48 @@
+.container {
+  padding: 1rem;
+}
+
+h2 {
+  margin-bottom: 1.5rem;
+}
+
+.filtros-card {
+  margin-bottom: 2rem;
+}
+
+.filtros-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.filtro-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1rem;
+}
+
+.filtro-col {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.filtro-col label {
+  font-weight: 500;
+  font-size: 0.9rem;
+}
+
+.botones {
+  display: flex;
+  gap: 1rem;
+  justify-content: flex-start;
+}
+
+.tabla-card {
+  margin-bottom: 2rem;
+}
+
+.tabla-card h3 {
+  margin: 0 0 1rem 0;
+}

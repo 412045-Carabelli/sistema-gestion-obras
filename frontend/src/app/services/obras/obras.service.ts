@@ -7,6 +7,7 @@ import {environment} from '../../../environments/environment';
 export interface ObraPayload {
   id?: number;
   id_cliente: number;
+  id_grupo?: number;
   obra_estado: EstadoObra;
   nombre?: string;
   direccion?: string;

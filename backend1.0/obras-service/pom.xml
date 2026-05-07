@@ -9,13 +9,13 @@
     <parent>
         <groupId>com.meliquina</groupId>
         <artifactId>gestion-obras</artifactId>
-        <version>1.14.29</version>
+        <version>1.15.32</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
     <groupId>com.meliquina</groupId>
     <artifactId>obras-service</artifactId>
-    <version>1.14.29</version>
+    <version>1.15.32</version>
     <packaging>jar</packaging>
 
     <properties>
@@ -73,6 +73,9 @@
                 <configuration>
                     <source>${java.version}</source>
                     <target>${java.version}</target>
+                    <compilerArgs>
+                        <arg>-parameters</arg>
+                    </compilerArgs>
                     <annotationProcessorPaths>
                         <path>
                             <groupId>org.projectlombok</groupId>

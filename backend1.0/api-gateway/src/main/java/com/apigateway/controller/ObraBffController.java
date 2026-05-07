@@ -19,17 +19,20 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class ObraBffController {
 
-    @Value("${services.obras.url}")
+    @Value("${services.obras.url}/obras")
     private String OBRAS_URL;
 
     @Value("${services.clientes.url}")
     private String CLIENTES_URL;
 
-    @Value("${services.obras.url}/costos")
+    @Value("${services.obras.url}/obras/costos")
     private String COSTOS_URL;
 
-    @Value("${services.obras.url}/tareas")
+    @Value("${services.obras.url}/obras/tareas")
     private String TAREAS_URL;
+
+    @Value("${services.obras.url}/grupos-obras")
+    private String GRUPOS_URL;
 
     @Value("${services.proveedores.url}")
     private String PROVEEDORES_URL;
@@ -182,21 +185,30 @@ public class ObraBffController {
 
         Flux<Map<String, Object>> obrasEnriquecidas = obrasFlux.flatMap(obra -> {
             Object idClienteObj = obra.get("id_cliente");
-            if (idClienteObj == null) {
-                obra.put("cliente", null);
-                obra.remove("id_cliente");
-                return Mono.just(obra);
-            }
+            Object idGrupoObj = obra.get("id_grupo");
 
-            Long idCliente = ((Number) idClienteObj).longValue();
-            return client.get()
-                    .uri(CLIENTES_URL + "/{id}", idCliente)
+            Mono<Map<String, Object>> clienteMono2 = idClienteObj == null
+                    ? Mono.just(Map.of())
+                    : client.get()
+                    .uri(CLIENTES_URL + "/{id}", ((Number) idClienteObj).longValue())
                     .retrieve()
                     .bodyToMono(new ParameterizedTypeReference<Map<String, Object>>() {})
-                    .onErrorResume(ex -> Mono.just(Map.of()))
-                    .map(cliente -> {
-                        obra.put("cliente", cliente.isEmpty() ? null : cliente);
+                    .onErrorResume(ex -> Mono.just(Map.of()));
+
+            Mono<Map<String, Object>> grupoMono2 = idGrupoObj == null
+                    ? Mono.just(Map.of())
+                    : client.get()
+                    .uri(GRUPOS_URL + "/{id}", ((Number) idGrupoObj).longValue())
+                    .retrieve()
+                    .bodyToMono(new ParameterizedTypeReference<Map<String, Object>>() {})
+                    .onErrorResume(ex -> Mono.just(Map.of()));
+
+            return Mono.zip(clienteMono2, grupoMono2)
+                    .map(tuple -> {
+                        obra.put("cliente", tuple.getT1().isEmpty() ? null : tuple.getT1());
+                        obra.put("grupo", tuple.getT2().isEmpty() ? null : tuple.getT2());
                         obra.remove("id_cliente");
+                        obra.remove("id_grupo");
                         return obra;
                     });
         });
@@ -258,6 +270,18 @@ public class ObraBffController {
                     .onErrorResume(ex -> Mono.empty());
         });
 
+        Mono<Map<String, Object>> grupoMono = obraMono.flatMap(obra -> {
+            Object idGrupoObj = obra.get("id_grupo");
+            if (idGrupoObj == null) return Mono.empty();
+
+            Long idGrupo = ((Number) idGrupoObj).longValue();
+            return client.get()
+                    .uri(GRUPOS_URL + "/{id}", idGrupo)
+                    .retrieve()
+                    .bodyToMono(new ParameterizedTypeReference<Map<String, Object>>() {})
+                    .onErrorResume(ex -> Mono.empty());
+        });
+
         Mono<List<Map<String, Object>>> costosMono = client.get()
                 .uri(COSTOS_URL + "/{id}", id)
                 .retrieve()
@@ -307,18 +331,22 @@ public class ObraBffController {
         return Mono.zip(
                 obraMono,
                 clienteMono.switchIfEmpty(Mono.just(Map.of())),
+                grupoMono.switchIfEmpty(Mono.just(Map.of())),
                 costosMono,
                 tareasMono
         ).map(tuple -> {
             Map<String, Object> obra = tuple.getT1();
             Map<String, Object> cliente = tuple.getT2();
-            List<Map<String, Object>> costos = tuple.getT3();
-            List<Map<String, Object>> tareas = tuple.getT4();
+            Map<String, Object> grupo = tuple.getT3();
+            List<Map<String, Object>> costos = tuple.getT4();
+            List<Map<String, Object>> tareas = tuple.getT5();
 
             obra.put("cliente", cliente.isEmpty() ? null : cliente);
+            obra.put("grupo", grupo.isEmpty() ? null : grupo);
             obra.put("costos", costos);
             obra.put("tareas", tareas);
             obra.remove("id_cliente");
+            obra.remove("id_grupo");
 
             return ResponseEntity.ok(obra);
         }).onErrorResume(ex -> {

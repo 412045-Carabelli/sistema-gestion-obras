@@ -51,6 +51,7 @@ export class AgendasService {
       proveedorId: agenda.proveedorId || null,
       estado: agenda.estado,
       descripcion: agenda.descripcion || '',
+      fechaInicio: agenda.fechaInicio || null,
       fechaVencimiento: agenda.fechaVencimiento || null
     };
   }
