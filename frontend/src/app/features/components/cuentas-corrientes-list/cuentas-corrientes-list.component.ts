@@ -65,9 +65,7 @@ export class CuentasCorrientesListComponent implements OnInit, OnDestroy {
       grupoId: [null],
       obraId: [null],
       clienteId: [null],
-      proveedorId: [null],
-      fechaInicio: [null],
-      fechaFin: [null]
+      proveedorId: [null]
     });
 
     // Listener para cambios en los controles
@@ -100,9 +98,7 @@ export class CuentasCorrientesListComponent implements OnInit, OnDestroy {
       grupoId: this.form.get('grupoId')?.value,
       obraId: this.form.get('obraId')?.value,
       clienteId: this.form.get('clienteId')?.value,
-      proveedorId: this.form.get('proveedorId')?.value,
-      fechaInicio: this.form.get('fechaInicio')?.value,
-      fechaFin: this.form.get('fechaFin')?.value
+      proveedorId: this.form.get('proveedorId')?.value
     };
 
     this.subs.add(
