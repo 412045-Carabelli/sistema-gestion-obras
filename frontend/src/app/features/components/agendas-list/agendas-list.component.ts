@@ -177,11 +177,6 @@ export class AgendasListComponent implements OnInit, OnDestroy {
       this.agendas.set([...this.agendas(), agenda]);
     }
     this.cerrarModal();
-    this.messageService.add({
-      severity: 'success',
-      summary: 'Éxito',
-      detail: this.agendaSeleccionada() ? 'Tarea actualizada' : 'Tarea creada'
-    });
   }
 
   onAgendaEliminada(id: number) {

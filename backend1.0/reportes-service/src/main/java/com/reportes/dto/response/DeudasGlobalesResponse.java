@@ -15,6 +15,8 @@ public class DeudasGlobalesResponse {
 
     @Data
     public static class DetalleDeudaCliente {
+        private Long grupoId;
+        private String grupoNombre;
         private Long obraId;
         private String obraNombre;
         private Long clienteId;
@@ -26,6 +28,8 @@ public class DeudasGlobalesResponse {
 
     @Data
     public static class DetalleDeudaProveedor {
+        private Long grupoId;
+        private String grupoNombre;
         private Long obraId;
         private String obraNombre;
         private Long proveedorId;

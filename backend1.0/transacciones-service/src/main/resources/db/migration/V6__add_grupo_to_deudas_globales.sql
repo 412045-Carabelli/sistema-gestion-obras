@@ -1,0 +1,3 @@
+-- V6__add_grupo_to_deudas_globales.sql
+-- Stub: esta migración fue ejecutada en la BD anteriormente
+-- El contenido fue refactorizado a V7__create_sp_deudas_globales_con_grupo.sql

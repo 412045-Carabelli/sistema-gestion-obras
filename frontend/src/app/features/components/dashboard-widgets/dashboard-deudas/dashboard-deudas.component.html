@@ -41,7 +41,7 @@
             <tbody>
               @if (datos.detalleDeudaClientes.length > 0 || datos.detalleDeudaProveedores.length > 0) {
                 <!-- Mostrar máximo número de filas entre clientes y proveedores -->
-                @for (i of [0, 1, 2, 3, 4]; track i) {
+                @for (i of getRangeArray(); track i) {
                   <tr class="border-t border-gray-100">
                     <!-- Columnas de clientes -->
                     @if (i < datos.detalleDeudaClientes.length) {

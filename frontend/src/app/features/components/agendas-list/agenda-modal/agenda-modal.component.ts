@@ -1,6 +1,6 @@
-import {Component, Input, Output, EventEmitter, signal, effect, inject, input} from '@angular/core';
+import {Component, Input, Output, EventEmitter, signal, effect, inject, input, computed} from '@angular/core';
 import {CommonModule} from '@angular/common';
-import {FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators} from '@angular/forms';
+import {FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators, AbstractControl, ValidationErrors} from '@angular/forms';
 import {DialogModule} from 'primeng/dialog';
 import {ButtonModule} from 'primeng/button';
 import {InputTextModule} from 'primeng/inputtext';
@@ -52,8 +52,24 @@ export class AgendaModalComponent {
   esEdicion = signal(false);
   estadosOptions = ESTADOS_AGENDA_OPCIONES;
   obrasOptions = signal<Array<{label: string; value: number}>>([]);
+  obrasMap = signal<Map<number, Obra>>(new Map());
   clientesOptions = signal<Array<{label: string; value: number}>>([]);
   proveedoresOptions = signal<Array<{label: string; value: number}>>([]);
+  clientesFiltrados = computed(() => {
+    const obraId = this.form?.get('obraId')?.value;
+    if (!obraId) return this.clientesOptions();
+
+    const obra = this.obrasMap().get(obraId);
+    if (!obra || !obra.cliente) return [];
+
+    return this.clientesOptions().filter(c => c.value === obra.cliente.id);
+  });
+  proveedoresFiltrados = computed(() => {
+    const obraId = this.form?.get('obraId')?.value;
+    if (!obraId) return this.proveedoresOptions();
+
+    return this.proveedoresOptions();
+  });
   cargandoDatos = signal(false);
 
   constructor() {
@@ -70,6 +86,9 @@ export class AgendaModalComponent {
 
     this.obrasService.getObrasAll().subscribe({
       next: (obras) => {
+        const map = new Map<number, Obra>();
+        obras.forEach(o => map.set(o.id!, o));
+        this.obrasMap.set(map);
         this.obrasOptions.set(
           obras.map(o => ({ label: o.nombre, value: o.id! }))
         );
@@ -120,11 +139,17 @@ export class AgendaModalComponent {
     const agenda = this.agenda();
     this.esEdicion.set(!!agenda?.id);
 
-    // Convertir fecha de ISO 8601 a formato YYYY-MM-DD para el input type="date"
-    let fechaFormato: string | null = null;
+    let fechaInicioFormato: string | null = null;
+    let fechaVencimientoFormato: string | null = null;
+
+    if (agenda?.fechaInicio) {
+      const fecha = new Date(agenda.fechaInicio);
+      fechaInicioFormato = fecha.toISOString().split('T')[0];
+    }
+
     if (agenda?.fechaVencimiento) {
       const fecha = new Date(agenda.fechaVencimiento);
-      fechaFormato = fecha.toISOString().split('T')[0];
+      fechaVencimientoFormato = fecha.toISOString().split('T')[0];
     }
 
     this.form = this.fb.group({
@@ -134,8 +159,48 @@ export class AgendaModalComponent {
       clienteId: [agenda?.clienteId || null],
       proveedorId: [agenda?.proveedorId || null],
       descripcion: [agenda?.descripcion || ''],
-      fechaVencimiento: [fechaFormato || null]
-    });
+      fechaInicio: [fechaInicioFormato || null],
+      fechaVencimiento: [fechaVencimientoFormato || null]
+    }, { validators: this.validadorFechas() });
+  }
+
+  private validadorFechas() {
+    return (group: AbstractControl): ValidationErrors | null => {
+      const fechaInicio = group.get('fechaInicio')?.value;
+      const fechaVencimiento = group.get('fechaVencimiento')?.value;
+
+      if (fechaInicio && fechaVencimiento) {
+        const inicio = new Date(fechaInicio).getTime();
+        const vencimiento = new Date(fechaVencimiento).getTime();
+
+        if (vencimiento < inicio) {
+          group.get('fechaVencimiento')?.setErrors({ fechaMenorQueInicio: true });
+          return { fechaMenorQueInicio: true };
+        } else {
+          const errors = group.get('fechaVencimiento')?.errors;
+          if (errors) {
+            delete errors['fechaMenorQueInicio'];
+            if (Object.keys(errors).length === 0) {
+              group.get('fechaVencimiento')?.setErrors(null);
+            }
+          }
+        }
+      }
+      return null;
+    };
+  }
+
+  onObraChange() {
+    const obraId = this.form.get('obraId')?.value;
+    if (obraId) {
+      this.form.patchValue({ clienteId: null, proveedorId: null });
+      const obra = this.obrasMap().get(obraId);
+      if (obra?.cliente) {
+        this.form.patchValue({ clienteId: obra.cliente.id });
+      }
+    } else {
+      this.form.patchValue({ clienteId: null, proveedorId: null });
+    }
   }
 
   guardar() {
@@ -143,7 +208,7 @@ export class AgendaModalComponent {
       this.messageService.add({
         severity: 'warn',
         summary: 'Validación',
-        detail: 'Por favor completa los campos obligatorios'
+        detail: 'Por favor completa los campos obligatorios y verifica las fechas'
       });
       return;
     }
@@ -151,7 +216,11 @@ export class AgendaModalComponent {
     this.guardando.set(true);
     const formValue = this.form.value;
 
-    // Convertir fecha de formato YYYY-MM-DD a ISO 8601 si existe
+    if (formValue.fechaInicio) {
+      const fecha = new Date(formValue.fechaInicio);
+      formValue.fechaInicio = fecha.toISOString();
+    }
+
     if (formValue.fechaVencimiento) {
       const fecha = new Date(formValue.fechaVencimiento);
       formValue.fechaVencimiento = fecha.toISOString();

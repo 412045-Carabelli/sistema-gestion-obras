@@ -42,6 +42,15 @@ export class DashboardDeudasComponent implements OnInit, OnChanges, OnDestroy {
     this.subs.unsubscribe();
   }
 
+  getRangeArray(): number[] {
+    if (!this.datos) return [];
+    const max = Math.max(
+      this.datos.detalleDeudaClientes?.length || 0,
+      this.datos.detalleDeudaProveedores?.length || 0
+    );
+    return Array.from({ length: max }, (_, i) => i);
+  }
+
   private cargar(): void {
     this.loading = true;
     this.subs.add(

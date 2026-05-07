@@ -30,6 +30,78 @@ public class ReportesBffController {
     @Value("${services.transacciones.url}")
     private String transaccionesServiceUrl;
 
+    @Value("${services.obras.url}")
+    private String obrasServiceUrl;
+
+    @Value("${services.clientes.url}")
+    private String clientesServiceUrl;
+
+    @Value("${services.proveedores.url}")
+    private String proveedoresServiceUrl;
+
+    // ---------- CATÁLOGOS ----------
+
+    @GetMapping("/catalogos/filtros-cuenta-corriente")
+    public Mono<ResponseEntity<Map<String, Object>>> getCatalogosFiltroCuentaCorriente() {
+        return Mono.zip(
+                fetchGrupos(),
+                fetchObras(),
+                fetchClientes(),
+                fetchProveedores()
+        ).map(tuple -> {
+            Map<String, Object> result = new java.util.HashMap<>();
+            result.put("grupos", tuple.getT1());
+            result.put("obras", tuple.getT2());
+            result.put("clientes", tuple.getT3());
+            result.put("proveedores", tuple.getT4());
+            return ResponseEntity.ok(result);
+        }).onErrorResume(e -> {
+            Map<String, Object> errorResult = new java.util.HashMap<>();
+            errorResult.put("error", "Error al cargar catálogos: " + e.getMessage());
+            return Mono.just(ResponseEntity.internalServerError().body(errorResult));
+        });
+    }
+
+    private Mono<List<Map<String, Object>>> fetchGrupos() {
+        return webClientBuilder.build()
+                .get()
+                .uri(obrasServiceUrl + "/grupos-obras")
+                .accept(MediaType.APPLICATION_JSON)
+                .retrieve()
+                .bodyToMono(new ParameterizedTypeReference<List<Map<String, Object>>>() {})
+                .onErrorResume(e -> Mono.just(List.of()));
+    }
+
+    private Mono<List<Map<String, Object>>> fetchObras() {
+        return webClientBuilder.build()
+                .get()
+                .uri(obrasServiceUrl + "/obras")
+                .accept(MediaType.APPLICATION_JSON)
+                .retrieve()
+                .bodyToMono(new ParameterizedTypeReference<List<Map<String, Object>>>() {})
+                .onErrorResume(e -> Mono.just(List.of()));
+    }
+
+    private Mono<List<Map<String, Object>>> fetchClientes() {
+        return webClientBuilder.build()
+                .get()
+                .uri(clientesServiceUrl)
+                .accept(MediaType.APPLICATION_JSON)
+                .retrieve()
+                .bodyToMono(new ParameterizedTypeReference<List<Map<String, Object>>>() {})
+                .onErrorResume(e -> Mono.just(List.of()));
+    }
+
+    private Mono<List<Map<String, Object>>> fetchProveedores() {
+        return webClientBuilder.build()
+                .get()
+                .uri(proveedoresServiceUrl)
+                .accept(MediaType.APPLICATION_JSON)
+                .retrieve()
+                .bodyToMono(new ParameterizedTypeReference<List<Map<String, Object>>>() {})
+                .onErrorResume(e -> Mono.just(List.of()));
+    }
+
     // ---------- FINANCIEROS ----------
 
     @PostMapping("/financieros/ingresos-egresos")
