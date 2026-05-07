@@ -2089,7 +2089,7 @@ public class ReportesService {
                     .map(tx -> BigDecimal.valueOf(Math.abs(tx.getMonto() != null ? tx.getMonto() : 0)))
                     .reduce(BigDecimal.ZERO, BigDecimal::add);
 
-            BigDecimal saldo = pagoHabilitado.subtract(pagado);
+            BigDecimal saldo = costoTotal.subtract(pagado);
             String estadoPago = calcularEstadoPago(saldo);
 
             AvancePagosObraResponse.ItemAvancePago item = new AvancePagosObraResponse.ItemAvancePago();
