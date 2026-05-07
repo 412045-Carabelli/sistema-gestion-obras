@@ -12,6 +12,7 @@ public class TareaResponse {
     private Long proveedorId;
     private String estado;
     private String descripcion;
+    private Instant fechaInicio;
     private Instant fechaVencimiento;
     private Instant creadoEn;
     private Instant ultimaActualizacion;

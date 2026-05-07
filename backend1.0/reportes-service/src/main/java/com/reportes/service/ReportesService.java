@@ -12,6 +12,7 @@ import com.reportes.dto.response.*;
 import com.reportes.entity.Comision;
 import com.reportes.entity.MovimientoReporte;
 import com.reportes.repository.ComisionRepository;
+import com.reportes.repository.DeudasGlobalesRepository;
 import com.reportes.repository.MovimientoReporteRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -37,6 +38,7 @@ public class ReportesService {
     private final FacturasClient facturasClient;
     private final ComisionRepository comisionRepository;
     private final MovimientoReporteRepository movimientoReporteRepository;
+    private final DeudasGlobalesRepository deudasGlobalesRepository;
 
     public DashboardFinancieroResponse generarDashboardFinanciero(ReportFilterRequest filtro) {
         ReportFilterRequest filtros = filtroSeguro(filtro);
@@ -177,8 +179,21 @@ public class ReportesService {
     public DeudasGlobalesResponse generarDeudasGlobales(ReportFilterRequest filtro) {
         ReportFilterRequest filtros = filtroSeguro(filtro);
         DeudasGlobalesResponse response = new DeudasGlobalesResponse();
-        List<DeudasGlobalesResponse.DetalleDeudaCliente> detalleClientes = construirDetalleDeudaClientes(filtros);
-        List<DeudasGlobalesResponse.DetalleDeudaProveedor> detalleProveedores = construirDetalleDeudaProveedores(filtros);
+
+        List<DeudasGlobalesResponse.DetalleDeudaCliente> detalleClientes = deudasGlobalesRepository.obtenerDeudaClientes(
+            filtros.getGrupoId(),
+            filtros.getObraId(),
+            filtros.getClienteId(),
+            filtros.getFechaInicio(),
+            filtros.getFechaFin()
+        );
+        List<DeudasGlobalesResponse.DetalleDeudaProveedor> detalleProveedores = deudasGlobalesRepository.obtenerDeudaProveedores(
+            filtros.getGrupoId(),
+            filtros.getObraId(),
+            filtros.getProveedorId(),
+            filtros.getFechaInicio(),
+            filtros.getFechaFin()
+        );
 
         response.setDetalleDeudaClientes(detalleClientes);
         response.setDetalleDeudaProveedores(detalleProveedores);

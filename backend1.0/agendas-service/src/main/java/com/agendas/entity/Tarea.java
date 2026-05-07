@@ -31,6 +31,9 @@ public class Tarea {
     @Column(columnDefinition = "NVARCHAR(MAX)")
     private String descripcion;
 
+    @Column(name = "fecha_inicio")
+    private Instant fechaInicio;
+
     @Column(name = "fecha_vencimiento")
     private Instant fechaVencimiento;
 

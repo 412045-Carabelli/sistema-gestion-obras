@@ -245,12 +245,13 @@ export interface Documento {
 }
 
 export interface ReportFilter {
+  grupoId?: number;
   obraId?: number;
   obraIds?: number[];
   clienteId?: number;
   proveedorId?: number;
-  fechaInicio?: string;
-  fechaFin?: string;
+  fechaInicio?: string | Date;
+  fechaFin?: string | Date;
 }
 
 export interface DashboardFinancieroResponse {
@@ -357,6 +358,8 @@ export interface CuentaCorrienteMovimiento {
 }
 
 export interface DetalleDeudaCliente {
+  grupoId?: number;
+  grupoNombre?: string;
   obraId: number;
   obraNombre: string;
   clienteId?: number;
@@ -367,6 +370,8 @@ export interface DetalleDeudaCliente {
 }
 
 export interface DetalleDeudaProveedor {
+  grupoId?: number;
+  grupoNombre?: string;
   obraId: number;
   obraNombre: string;
   proveedorId: number;
@@ -582,6 +587,7 @@ export interface Agenda {
   proveedorId?: number;
   estado: EstadoAgenda;
   descripcion?: string;
+  fechaInicio?: string;
   fechaVencimiento?: string;
   creadoEn?: string;
   ultimaActualizacion?: string;
@@ -678,4 +684,11 @@ export interface ResumenObraProveedor {
   costos: number;
   pagos_realizados: number;
   saldo: number;
+}
+
+export interface CatalogoCuentaCorriente {
+  grupos: Array<{ id: number; nombre: string }>;
+  obras: Array<{ id: number; nombre: string }>;
+  clientes: Array<{ id: number; nombre: string }>;
+  proveedores: Array<{ id: number; nombre: string }>;
 }

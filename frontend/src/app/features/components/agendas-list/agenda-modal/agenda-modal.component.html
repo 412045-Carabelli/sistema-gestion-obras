@@ -13,23 +13,41 @@
     <div class="space-y-4">
       <h3 class="text-sm font-semibold text-gray-800 uppercase tracking-wider">Información Principal</h3>
 
-      <!-- Titulo (obligatorio) -->
-      <div>
-        <label class="block text-sm font-medium text-gray-700 mb-2">
-          Título <span class="text-red-500 font-bold">*</span>
-        </label>
-        <input
-          pInputText
-          formControlName="titulo"
-          class="w-full"
-          placeholder="Ej: Instalación de puertas"
-          [class.ng-invalid]="form?.get('titulo')?.invalid && form?.get('titulo')?.touched">
-        @if (form?.get('titulo')?.invalid && form?.get('titulo')?.touched) {
-          <p class="text-red-500 text-xs mt-1 flex items-center gap-1">
-            <i class="pi pi-exclamation-circle text-xs"></i>
-            Este campo es obligatorio
-          </p>
-        }
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <!-- Titulo (obligatorio) -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2">
+            Título <span class="text-red-500 font-bold">*</span>
+          </label>
+          <input
+            pInputText
+            formControlName="titulo"
+            class="w-full"
+            placeholder="Ej: Instalación de puertas"
+            [class.ng-invalid]="form?.get('titulo')?.invalid && form?.get('titulo')?.touched">
+          @if (form?.get('titulo')?.invalid && form?.get('titulo')?.touched) {
+            <p class="text-red-500 text-xs mt-1 flex items-center gap-1">
+              <i class="pi pi-exclamation-circle text-xs"></i>
+              Este campo es obligatorio
+            </p>
+          }
+        </div>
+
+        <!-- Estado (opcional) -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2">
+            <i class="pi pi-check-circle text-xs mr-1"></i>Estado
+          </label>
+          <p-dropdown
+            [options]="estadosOptions"
+            optionLabel="label"
+            optionValue="name"
+            formControlName="estado"
+            styleClass="w-full"
+            placeholder="Selecciona un estado"
+            appendTo="body">
+          </p-dropdown>
+        </div>
       </div>
     </div>
 
@@ -57,6 +75,7 @@
             styleClass="w-full"
             placeholder="Selecciona una obra"
             [loading]="cargandoDatos()"
+            (onChange)="onObraChange()"
             appendTo="body">
           </p-dropdown>
         </div>
@@ -67,7 +86,7 @@
             <i class="pi pi-users text-xs mr-1"></i>Cliente
           </label>
           <p-dropdown
-            [options]="clientesOptions()"
+            [options]="clientesFiltrados()"
             optionLabel="label"
             optionValue="value"
             formControlName="clienteId"
@@ -79,6 +98,11 @@
             [loading]="cargandoDatos()"
             appendTo="body">
           </p-dropdown>
+          @if (form?.get('obraId')?.value && clientesFiltrados().length === 0) {
+            <p class="text-orange-500 text-xs mt-1">
+              <i class="pi pi-info-circle text-xs mr-1"></i>No hay clientes en esta obra
+            </p>
+          }
         </div>
 
         <!-- Proveedor (opcional) -->
@@ -87,7 +111,7 @@
             <i class="pi pi-truck text-xs mr-1"></i>Proveedor
           </label>
           <p-dropdown
-            [options]="proveedoresOptions()"
+            [options]="proveedoresFiltrados()"
             optionLabel="label"
             optionValue="value"
             formControlName="proveedorId"
@@ -109,7 +133,7 @@
     <!-- Divider -->
     <p-divider></p-divider>
 
-    <!-- Sección: Descripción y Fecha -->
+    <!-- Sección: Descripción y Fechas -->
     <div class="space-y-4">
       <h3 class="text-sm font-semibold text-gray-800 uppercase tracking-wider">Detalles</h3>
 
@@ -127,16 +151,38 @@
         </textarea>
       </div>
 
-      <!-- Fecha de Vencimiento (opcional) -->
-      <div>
-        <label class="block text-sm font-medium text-gray-700 mb-2">
-          <i class="pi pi-calendar text-xs mr-1"></i>Fecha de Vencimiento
-        </label>
-        <input
-          pInputText
-          formControlName="fechaVencimiento"
-          type="date"
-          class="w-full">
+      <!-- Fechas -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <!-- Fecha de Inicio (opcional) -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2">
+            <i class="pi pi-calendar text-xs mr-1"></i>Fecha de Inicio
+          </label>
+          <input
+            pInputText
+            formControlName="fechaInicio"
+            type="date"
+            class="w-full">
+        </div>
+
+        <!-- Fecha de Vencimiento (opcional) -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2">
+            <i class="pi pi-calendar text-xs mr-1"></i>Fecha de Vencimiento
+          </label>
+          <input
+            pInputText
+            formControlName="fechaVencimiento"
+            type="date"
+            class="w-full"
+            [class.ng-invalid]="form?.get('fechaVencimiento')?.hasError('fechaMenorQueInicio') && form?.get('fechaVencimiento')?.touched">
+          @if (form?.get('fechaVencimiento')?.hasError('fechaMenorQueInicio') && form?.get('fechaVencimiento')?.touched) {
+            <p class="text-red-500 text-xs mt-1 flex items-center gap-1">
+              <i class="pi pi-exclamation-circle text-xs"></i>
+              La fecha de vencimiento no puede ser anterior a la fecha de inicio
+            </p>
+          }
+        </div>
       </div>
     </div>
   </form>
