@@ -14,6 +14,7 @@ import java.util.List;
 public class ObraDTO {
     private Long id;
     private Long id_cliente;
+    private Long id_grupo;
     private EstadoObraEnum obra_estado;
     private String nombre;
     private String direccion;

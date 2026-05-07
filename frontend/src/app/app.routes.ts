@@ -87,5 +87,10 @@ export const routes: Routes = [
     ],
   },
   {path: 'reportes', component: ReportesComponent},
+  {
+    path: 'grupos-obras',
+    loadComponent: () => import('./features/pages/grupos-obras/grupos-obras.component')
+      .then(m => m.GruposObrasComponent)
+  },
   {path: '**', redirectTo: 'dashboard'},
 ];
