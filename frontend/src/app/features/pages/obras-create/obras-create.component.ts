@@ -8,10 +8,11 @@ import {ButtonModule} from 'primeng/button';
 import {TooltipModule} from 'primeng/tooltip';
 import {ObraCostosTableComponent} from '../../components/obra-costos-table/obra-costos-table.component';
 
-import {Cliente, EstadoObra, Proveedor} from '../../../core/models/models';
+import {Cliente, EstadoObra, Proveedor, GrupoObra} from '../../../core/models/models';
 import {EstadoObraService} from '../../../services/estado-obra/estado-obra.service';
 import {ClientesService} from '../../../services/clientes/clientes.service';
 import {ProveedoresService} from '../../../services/proveedores/proveedores.service';
+import {GrupoObrasService} from '../../../services/grupos-obras/grupos-obras.service';
 import {Checkbox} from 'primeng/checkbox';
 import {DatePicker, DatePickerModule} from 'primeng/datepicker';
 import {ObraPayload, ObrasService} from '../../../services/obras/obras.service';
@@ -57,14 +58,19 @@ import {ProveedorQuickCreateComponent} from '../../components/proveedor-quick-cr
 export class ObrasCreateComponent implements OnInit {
   form: FormGroup;
   clientes: Cliente[] = [];
+  grupos: GrupoObra[] = [];
+  gruposFiltered: GrupoObra[] = [];
   estadosRecords: { label: string; name: string }[] = [];
   proveedores: Proveedor[] = [];
   ivaOptions: {label: string; name: string}[] = [];
   filteredClientes: Cliente[] = [];
   clienteForm: FormGroup;
+  grupoForm: FormGroup;
   showClienteModal = false;
   showProveedorModal = false;
+  showGrupoModal = false;
   creandoCliente = false;
+  creandoGrupo = false;
 
   constructor(
     private fb: FormBuilder,
@@ -72,11 +78,13 @@ export class ObrasCreateComponent implements OnInit {
     private clientesService: ClientesService,
     private estadoObraService: EstadoObraService,
     private proveedoresService: ProveedoresService,
+    private grupoObrasService: GrupoObrasService,
     private messageService: MessageService
   ) {
     this.form = this.fb.group({
       nombre: ['', [Validators.required, Validators.minLength(3)]],
       cliente: [null, Validators.required],
+      id_grupo: [null],
       obra_estado: [null, Validators.required],
       direccion: ['', [Validators.required, Validators.minLength(5)]],
       fecha_presupuesto: [new Date(), Validators.required],
@@ -104,6 +112,11 @@ export class ObrasCreateComponent implements OnInit {
       activo: [true, Validators.required]
     });
 
+    this.grupoForm = this.fb.group({
+      nombre: ['', [Validators.required, Validators.minLength(3)]],
+      id_cliente: [null, Validators.required]
+    });
+
   }
 
   get costos(): FormArray {
@@ -117,6 +130,19 @@ export class ObrasCreateComponent implements OnInit {
         this.filteredClientes = this.clientes;
       }
     );
+
+    this.grupoObrasService.listar().subscribe(list =>
+      this.grupos = list
+    );
+
+    this.form.get('cliente')?.valueChanges.subscribe((cliente: Cliente) => {
+      if (cliente?.id) {
+        this.gruposFiltered = this.grupos.filter(g => g.id_cliente === cliente.id);
+        this.form.get('id_grupo')?.reset();
+      } else {
+        this.gruposFiltered = [];
+      }
+    });
 
     this.estadoObraService.getEstados().subscribe(list => {
       const ordenados = this.ordenarEstadosObra(list);
@@ -250,6 +276,7 @@ export class ObrasCreateComponent implements OnInit {
 
     const payload: ObraPayload = {
       id_cliente: raw.cliente?.id ?? raw.cliente ?? 0,
+      id_grupo: raw.id_grupo,
       obra_estado: (raw.obra_estado?.name ?? raw.obra_estado),
       nombre: raw.nombre,
       direccion: raw.direccion,
@@ -428,6 +455,52 @@ export class ObrasCreateComponent implements OnInit {
       ultimaFila.get('id_proveedor')?.setValue(proveedor.id);
     }
     this.cerrarModalProveedor();
+  }
+
+  abrirModalGrupo() {
+    this.grupoForm.reset({
+      nombre: '',
+      id_cliente: this.form.get('cliente')?.value?.id
+    });
+    this.showGrupoModal = true;
+  }
+
+  cerrarModalGrupo() {
+    this.showGrupoModal = false;
+    this.creandoGrupo = false;
+  }
+
+  guardarGrupo() {
+    if (this.grupoForm.invalid || this.creandoGrupo) {
+      this.grupoForm.markAllAsTouched();
+      return;
+    }
+    this.creandoGrupo = true;
+    const payload = this.grupoForm.getRawValue();
+    this.grupoObrasService.crear(payload).subscribe({
+      next: (nuevoGrupo) => {
+        this.grupos = [...this.grupos, nuevoGrupo];
+        const cliente = this.form.get('cliente')?.value;
+        if (cliente?.id === nuevoGrupo.id_cliente) {
+          this.gruposFiltered = [...this.gruposFiltered, nuevoGrupo];
+        }
+        this.form.get('id_grupo')?.setValue(nuevoGrupo.id);
+        this.messageService.add({
+          severity: 'success',
+          summary: 'Grupo creado',
+          detail: 'Asignado al formulario.'
+        });
+        this.cerrarModalGrupo();
+      },
+      error: () => {
+        this.creandoGrupo = false;
+        this.messageService.add({
+          severity: 'error',
+          summary: 'No se creó el grupo',
+          detail: 'Intentá nuevamente.'
+        });
+      }
+    });
   }
 
   private ordenarEstadosObra(records: { label: string; name: string }[]): { label: string; name: string }[] {

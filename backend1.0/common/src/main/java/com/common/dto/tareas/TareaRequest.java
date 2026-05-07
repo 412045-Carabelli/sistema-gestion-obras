@@ -11,5 +11,6 @@ public class TareaRequest {
     private Long proveedorId;
     private String estado;
     private String descripcion;
+    private Instant fechaInicio;
     private Instant fechaVencimiento;
 }

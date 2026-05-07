@@ -7,7 +7,7 @@ import {FormBuilder, FormGroup, ReactiveFormsModule} from '@angular/forms';
 
 (pdfMake as any).vfs = (pdfFonts as any)['vfs'];
 import {forkJoin, Observable, of, Subscription} from 'rxjs';
-import {catchError, debounceTime, switchMap, tap, map} from 'rxjs/operators';
+import {catchError, debounceTime, switchMap, tap, map, timeout} from 'rxjs/operators';
 import {
   AvanceTareasResponse,
   Cliente,
@@ -55,6 +55,7 @@ import {ConfirmDialog} from 'primeng/confirmdialog';
 import {ConfirmationService, MessageService} from 'primeng/api';
 import {ProveedoresService} from '../../../services/proveedores/proveedores.service';
 import {Router} from '@angular/router';
+import {ResumenObrasComponent} from '../../components/resumen-obras/resumen-obras.component';
 
 interface SelectOption<T> {
   label: string;
@@ -79,7 +80,8 @@ interface SelectOption<T> {
     Select,
     DatePicker,
     Toast,
-    ConfirmDialog
+    ConfirmDialog,
+    ResumenObrasComponent
   ],
   providers: [MessageService, ConfirmationService],
   templateUrl: './reportes.component.html',
@@ -304,6 +306,7 @@ export class ReportesComponent implements OnInit, OnDestroy {
         detalle: []
       })
     }).pipe(
+      timeout(30000),
       tap({
         next: (data) => {
         this.resumenGeneral = data.resumen;
@@ -337,10 +340,16 @@ export class ReportesComponent implements OnInit, OnDestroy {
 
           this.loading = false;
         },
-        error: () => {
+        error: (err) => {
           this.loading = false;
+          console.error('Error cargando reportes:', err);
           this.showToast('error', 'Error', 'No se pudieron cargar los reportes. Intenta nuevamente.');
         }
+      }),
+      catchError((err) => {
+        this.loading = false;
+        console.error('Error en loadReportes$:', err);
+        return of(void 0);
       }),
       map(() => void 0)
     );

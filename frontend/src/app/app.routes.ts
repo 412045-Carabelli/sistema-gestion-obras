@@ -22,6 +22,10 @@ import {FacturasDetailComponent} from './features/pages/facturas-detail/facturas
 import {FacturasEditComponent} from './features/pages/facturas-edit/facturas-edit.component';
 import {AgendasLayoutComponent} from './features/agendas-layout/agendas-layout.component';
 import {AgendasListComponent} from './features/components/agendas-list/agendas-list.component';
+import {GruposLayoutComponent} from './features/grupos-layout/grupos-layout.component';
+import {GruposObrasComponent} from './features/pages/grupos-obras/grupos-obras.component';
+import {CuentaCorrienteLayoutComponent} from './features/cuenta-corriente-layout/cuenta-corriente-layout.component';
+import {CuentaCorrienteComponent} from './features/pages/cuenta-corriente/cuenta-corriente.component';
 
 export const routes: Routes = [
   {
@@ -87,5 +91,19 @@ export const routes: Routes = [
     ],
   },
   {path: 'reportes', component: ReportesComponent},
+  {
+    path: 'grupos',
+    component: GruposLayoutComponent,
+    children: [
+      {path: '', component: GruposObrasComponent},
+    ],
+  },
+  {
+    path: 'cuentas-corrientes',
+    component: CuentaCorrienteLayoutComponent,
+    children: [
+      {path: '', component: CuentaCorrienteComponent},
+    ],
+  },
   {path: '**', redirectTo: 'dashboard'},
 ];

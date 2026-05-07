@@ -7,7 +7,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 public class AgendasServiceApplication {
 
     public static void main(String[] args) {
-        System.out.println("🚀 SGO - Agendas Service v1.14.29");
+        System.out.println("🚀 SGO - Agendas Service v1.15.32");
         SpringApplication.run(AgendasServiceApplication.class, args);
     }
 }

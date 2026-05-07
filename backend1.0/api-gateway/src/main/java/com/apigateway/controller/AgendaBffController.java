@@ -85,9 +85,23 @@ public class AgendaBffController {
                 .map(ResponseEntity::ok);
     }
 
-    // ✅ POST Crear tarea
-    @PostMapping("/{idObra}")
+    // ✅ POST Crear tarea (sin idObra)
+    @PostMapping
     public Mono<ResponseEntity<Map<String, Object>>> crearTarea(
+            @RequestBody Map<String, Object> tareaDTO) {
+
+        return webClientBuilder.build()
+                .post()
+                .uri(AGENDA_TAREAS_URL)
+                .bodyValue(tareaDTO)
+                .retrieve()
+                .bodyToMono(new ParameterizedTypeReference<Map<String, Object>>() {})
+                .map(ResponseEntity::ok);
+    }
+
+    // ✅ POST Crear tarea (con idObra)
+    @PostMapping("/{idObra}")
+    public Mono<ResponseEntity<Map<String, Object>>> crearTareaConObra(
             @PathVariable("idObra") Long idObra,
             @RequestBody Map<String, Object> tareaDTO) {
 

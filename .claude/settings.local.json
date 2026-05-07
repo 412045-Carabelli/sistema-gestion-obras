@@ -69,7 +69,20 @@
       "Bash(mv:*)",
       "Bash(mvn -pl agendas-service clean package -DskipTests -q)",
       "Bash(find C:UsersUsuarioDesktopmy-worksistema-gestion-obrasbackend1.0obras-service -name *TareaController* -o -name *Tarea*Controller*)",
-      "Bash(find C:UsersUsuarioDesktopmy-worksistema-gestion-obrasbackend1.0 -name *BffControllerTest.java -type f)"
+      "Bash(find C:UsersUsuarioDesktopmy-worksistema-gestion-obrasbackend1.0 -name *BffControllerTest.java -type f)",
+      "Bash(curl -s http://localhost:8080/bff/obras/grupos/3)",
+      "Bash(ConvertFrom-Json)",
+      "Bash(ConvertTo-Json -Depth 3)",
+      "Bash(curl -s \"http://localhost:8080/bff/obras/grupos/cliente/2\")",
+      "Bash(curl -s \"http://localhost:8080/bff/obras/grupos\")",
+      "Bash(curl -v \"http://localhost:8081/api/grupos-obras/3\")",
+      "Bash(find /c/Users/Usuario/Desktop/my-work/sistema-gestion-obras -name *BffController* -o -name *Bff*Controller*)",
+      "Bash(\"frontend/src/app/features/cuenta-corriente-layout/cuenta-corriente-layout.component.html\":*)",
+      "Bash(\"frontend/src/app/features/cuenta-corriente-layout/cuenta-corriente-layout.component.css\":*)",
+      "Bash(\"frontend/src/app/features/components/cuentas-corrientes-list/cuentas-corrientes-list.component.css\":*)",
+      "Bash(\"backend1.0/transacciones-service/src/main/resources/db/migration/V9__fix_sp_transacciones_join.sql\":*)",
+      "Bash(\"backend1.0/transacciones-service/src/main/resources/db/migration/V10__fix_sp_join_by_nombre.sql\":*)",
+      "WebFetch(domain:github.com)"
     ]
   }
 }

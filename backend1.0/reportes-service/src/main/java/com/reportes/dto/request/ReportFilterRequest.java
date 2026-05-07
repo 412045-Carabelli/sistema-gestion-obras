@@ -7,6 +7,7 @@ import java.time.LocalDate;
 
 @Data
 public class ReportFilterRequest {
+    private Long grupoId;
     private Long obraId;
     private Long clienteId;
     private Long proveedorId;
