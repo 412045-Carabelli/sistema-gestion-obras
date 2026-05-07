@@ -117,6 +117,7 @@ public class ObraServiceImpl implements ObraService {
         existing.setBeneficio(dto.getBeneficio());
         existing.setComision(dto.getComision());
         existing.setIdCliente(dto.getId_cliente());
+        existing.setIdGrupo(dto.getId_grupo());
         existing.setMemoriaDescriptiva(dto.getMemoria_descriptiva());
         existing.setNotas(dto.getNotas());
         existing.setCondicionesPresupuesto(dto.getCondiciones_presupuesto());
@@ -176,6 +177,7 @@ public class ObraServiceImpl implements ObraService {
         Obra entity = new Obra();
         entity.setId(dto.getId());
         entity.setIdCliente(dto.getId_cliente());
+        entity.setIdGrupo(dto.getId_grupo());
 
         if (dto.getObra_estado() != null) {
             entity.setEstadoObra(parseEstado(dto.getObra_estado()));
@@ -217,6 +219,7 @@ public class ObraServiceImpl implements ObraService {
         ObraDTO dto = new ObraDTO();
         dto.setId(entity.getId());
         dto.setId_cliente(entity.getIdCliente());
+        dto.setId_grupo(entity.getIdGrupo());
         dto.setObra_estado(entity.getEstadoObra());
         dto.setNombre(entity.getNombre());
         dto.setDireccion(entity.getDireccion());

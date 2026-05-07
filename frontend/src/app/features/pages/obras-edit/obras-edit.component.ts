@@ -63,10 +63,13 @@ export class ObrasEditComponent implements OnInit {
   ivaOptions: {label: string; name: string}[] = [];
   clienteForm!: FormGroup;
   proveedorForm!: FormGroup;
+  grupoForm!: FormGroup;
   creandoCliente = false;
   creandoProveedor = false;
+  creandoGrupo = false;
   showClienteModal = false;
   showProveedorModal = false;
+  showGrupoModal = false;
   form!: FormGroup;
   loading = true;
   private obraId: number | null = null;
@@ -93,8 +96,8 @@ export class ObrasEditComponent implements OnInit {
   ngOnInit(): void {
     this.inicializarFormulariosRapidos();
     this.obraId = Number(this.route.snapshot.paramMap.get('id'));
-    if (this.obraId) this.cargarDatosIniciales(this.obraId);
     this.cargarCatalogosRapidos();
+    if (this.obraId) this.cargarDatosIniciales(this.obraId);
   }
 
   parseDate(value?: string): Date | null {
@@ -131,7 +134,7 @@ export class ObrasEditComponent implements OnInit {
     const payload: ObraPayload = {
       id: this.obraId!,
       id_cliente: clienteId as number,
-      id_grupo: raw.id_grupo ?? undefined,
+      id_grupo: raw.id_grupo,
       obra_estado: estadoValue as any,
       nombre: raw.nombre,
       direccion: raw.direccion,
@@ -161,9 +164,13 @@ export class ObrasEditComponent implements OnInit {
       })
     };
 
-    // 🧼 limpiar undefined
+    // 🧼 limpiar undefined (mantener id_grupo para soportar cambios)
     Object.keys(payload).forEach(
-      key => (payload as any)[key] === undefined && delete (payload as any)[key]
+      key => {
+        if (key !== 'id_grupo' && (payload as any)[key] === undefined) {
+          delete (payload as any)[key];
+        }
+      }
     );
 
     this.loading = true;
@@ -228,7 +235,14 @@ export class ObrasEditComponent implements OnInit {
     });
 
     this.grupoObrasService.listar().subscribe({
-      next: data => this.grupos = data,
+      next: data => {
+        this.grupos = data;
+        // Aplicar filtrado después de cargar los grupos
+        const clienteActualId = this.form?.get('cliente')?.value;
+        if (clienteActualId) {
+          this.actualizarGruposFiltered(clienteActualId);
+        }
+      },
       error: () => this.grupos = []
     });
 
@@ -357,18 +371,14 @@ export class ObrasEditComponent implements OnInit {
       }
     });
 
-    this.form.get('cliente')?.valueChanges.subscribe((cliente: Cliente) => {
-      if (cliente?.id) {
-        this.gruposFiltered = this.grupos.filter(g => g.id_cliente === cliente.id);
-      } else {
-        this.gruposFiltered = [];
-      }
+    this.form.get('cliente')?.valueChanges.subscribe((clienteId: any) => {
+      this.actualizarGruposFiltered(clienteId);
     });
 
     // Cargar grupos iniciales del cliente actual
-    const clienteActual = this.form.get('cliente')?.value as Cliente;
-    if (clienteActual?.id) {
-      this.gruposFiltered = this.grupos.filter(g => g.id_cliente === clienteActual.id);
+    const clienteActualId = this.form.get('cliente')?.value;
+    if (clienteActualId) {
+      this.actualizarGruposFiltered(clienteActualId);
     }
   }
 
@@ -393,6 +403,11 @@ export class ObrasEditComponent implements OnInit {
       telefono: ['', Validators.required],
       email: ['', [Validators.email]],
       activo: [true, Validators.required],
+    });
+
+    this.grupoForm = this.fb.group({
+      nombre: ['', [Validators.required, Validators.minLength(3)]],
+      id_cliente: [null, Validators.required]
     });
   }
 
@@ -518,6 +533,60 @@ export class ObrasEditComponent implements OnInit {
           total: [{value: costo.total ?? (costo.cantidad * costo.precio_unitario) ?? 0, disabled: true}],
         })
       );
+    });
+  }
+
+  private actualizarGruposFiltered(clienteId: number | null): void {
+    if (clienteId) {
+      this.gruposFiltered = this.grupos.filter(g => g.id_cliente === clienteId);
+    } else {
+      this.gruposFiltered = [];
+    }
+  }
+
+  abrirModalGrupo() {
+    this.grupoForm.reset({
+      nombre: '',
+      id_cliente: this.form.get('cliente')?.value
+    });
+    this.showGrupoModal = true;
+  }
+
+  cerrarModalGrupo() {
+    this.showGrupoModal = false;
+    this.creandoGrupo = false;
+  }
+
+  guardarGrupo() {
+    if (this.grupoForm.invalid || this.creandoGrupo) {
+      this.grupoForm.markAllAsTouched();
+      return;
+    }
+    this.creandoGrupo = true;
+    const payload = this.grupoForm.getRawValue();
+    this.grupoObrasService.crear(payload).subscribe({
+      next: (nuevoGrupo) => {
+        this.grupos = [...this.grupos, nuevoGrupo];
+        const clienteId = this.form.get('cliente')?.value;
+        if (clienteId === nuevoGrupo.id_cliente) {
+          this.gruposFiltered = [...this.gruposFiltered, nuevoGrupo];
+        }
+        this.form.get('id_grupo')?.setValue(nuevoGrupo.id);
+        this.messageService.add({
+          severity: 'success',
+          summary: 'Grupo creado',
+          detail: 'Asignado al formulario.'
+        });
+        this.cerrarModalGrupo();
+      },
+      error: () => {
+        this.creandoGrupo = false;
+        this.messageService.add({
+          severity: 'error',
+          summary: 'No se creó el grupo',
+          detail: 'Intentá nuevamente.'
+        });
+      }
     });
   }
 

@@ -115,4 +115,8 @@ export class ObrasLayoutComponent implements OnInit, OnDestroy {
     }
     return undefined;
   }
+
+  getGrupoObra(): string | undefined {
+    return this.obra?.grupo?.nombre;
+  }
 }

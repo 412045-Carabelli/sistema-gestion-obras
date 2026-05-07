@@ -17,7 +17,7 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class EstadosObraBffController {
 
-    @Value("${services.obras.url}/estados")
+    @Value("${services.obras.url}/obras/estados")
     private String ESTADOS_OBRAS_URL;
 
     private final WebClient.Builder webClientBuilder;
