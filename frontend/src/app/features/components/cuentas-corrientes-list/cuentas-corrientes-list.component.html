@@ -67,7 +67,7 @@
           </thead>
           <tbody>
             @for (item of datos?.detalleDeudaClientes ?? []; track item.clienteId) {
-              <tr class="border-t border-gray-100 hover:bg-gray-50">
+              <tr class="border-t border-gray-100 hover:bg-gray-50 cursor-pointer transition-colors" (click)="onClienteRowClick(item)">
                 <td class="px-4 py-3 text-gray-700">{{ item.grupoNombre || '—' }}</td>
                 <td class="px-4 py-3 font-medium text-gray-900">{{ item.obraNombre }}</td>
                 <td class="px-4 py-3 text-gray-700">{{ item.clienteNombre }}</td>
@@ -103,7 +103,7 @@
           </thead>
           <tbody>
             @for (item of datos?.detalleDeudaProveedores ?? []; track item.proveedorId) {
-              <tr class="border-t border-gray-100 hover:bg-gray-50">
+              <tr class="border-t border-gray-100 hover:bg-gray-50 cursor-pointer transition-colors" (click)="onProveedorRowClick(item)">
                 <td class="px-4 py-3 text-gray-700">{{ item.grupoNombre || '—' }}</td>
                 <td class="px-4 py-3 font-medium text-gray-900">{{ item.obraNombre }}</td>
                 <td class="px-4 py-3 text-gray-700">{{ item.proveedorNombre }}</td>
