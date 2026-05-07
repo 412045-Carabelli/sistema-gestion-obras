@@ -1,6 +1,7 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { FormsModule } from '@angular/forms';
 import { TableModule } from 'primeng/table';
 import { ButtonModule } from 'primeng/button';
 import { InputTextModule } from 'primeng/inputtext';
@@ -8,11 +9,15 @@ import { SelectModule } from 'primeng/select';
 import { ToastModule } from 'primeng/toast';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { DialogModule } from 'primeng/dialog';
+import { CheckboxModule } from 'primeng/checkbox';
+import { IconFieldModule } from 'primeng/iconfield';
+import { InputIconModule } from 'primeng/inputicon';
 import { MessageService, ConfirmationService } from 'primeng/api';
-import { Subscription } from 'rxjs';
+import { Subscription, forkJoin } from 'rxjs';
 
 import { GrupoObrasService } from '../../../services/grupos-obras/grupos-obras.service';
 import { ClientesService } from '../../../services/clientes/clientes.service';
+import { GruposModalService } from '../../../services/grupos-obras/grupos-modal.service';
 import { GrupoObra, Cliente } from '../../../core/models/models';
 
 @Component({
@@ -23,30 +28,38 @@ import { GrupoObra, Cliente } from '../../../core/models/models';
   imports: [
     CommonModule,
     ReactiveFormsModule,
+    FormsModule,
     TableModule,
     ButtonModule,
     InputTextModule,
     SelectModule,
     ToastModule,
     ConfirmDialogModule,
-    DialogModule
+    DialogModule,
+    CheckboxModule,
+    IconFieldModule,
+    InputIconModule
   ],
   providers: [MessageService, ConfirmationService]
 })
 export class GruposObrasComponent implements OnInit, OnDestroy {
   grupos: GrupoObra[] = [];
+  gruposFiltrados: GrupoObra[] = [];
   clientes: Cliente[] = [];
-  loading = false;
+  datosCargados = false;
   showModal = false;
   isEditing = false;
   form!: FormGroup;
   clientesOptions: any[] = [];
+  searchValue: string = '';
+  mostrarInactivos: boolean = false;
 
   private subs = new Subscription();
 
   constructor(
     private grupoObrasService: GrupoObrasService,
     private clientesService: ClientesService,
+    private gruposModalService: GruposModalService,
     private messageService: MessageService,
     private confirmationService: ConfirmationService,
     private fb: FormBuilder
@@ -59,46 +72,54 @@ export class GruposObrasComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
-    this.cargarClientes();
-    this.cargarGrupos();
+    this.cargarDatos();
+    this.subs.add(
+      this.gruposModalService.openModal$.subscribe(() => {
+        this.openNew();
+      })
+    );
   }
 
-  private cargarClientes(): void {
+  private cargarDatos(): void {
+    this.datosCargados = false;
     this.subs.add(
-      this.clientesService.getClientes().subscribe({
-        next: (data: Cliente[]) => {
-          this.clientes = data;
-          this.clientesOptions = data.map((c: Cliente) => ({ label: c.nombre, value: c.id }));
+      forkJoin({
+        clientes: this.clientesService.getClientes(),
+        grupos: this.grupoObrasService.listar()
+      }).subscribe({
+        next: ({ clientes, grupos }) => {
+          this.clientes = clientes;
+          this.clientesOptions = clientes.map((c: Cliente) => ({ label: c.nombre, value: c.id }));
+          this.grupos = grupos;
+          this.applyFilter();
+          this.datosCargados = true;
         },
         error: () => {
           this.messageService.add({
             severity: 'error',
             summary: 'Error',
-            detail: 'No se pudieron cargar los clientes'
+            detail: 'No se pudieron cargar los datos'
           });
+          this.datosCargados = true;
         }
       })
     );
   }
 
-  private cargarGrupos(): void {
-    this.loading = true;
-    this.subs.add(
-      this.grupoObrasService.listar().subscribe({
-        next: (data: GrupoObra[]) => {
-          this.grupos = data;
-          this.loading = false;
-        },
-        error: () => {
-          this.messageService.add({
-            severity: 'error',
-            summary: 'Error',
-            detail: 'No se pudieron cargar los grupos'
-          });
-          this.loading = false;
-        }
-      })
-    );
+  applyFilter(): void {
+    this.gruposFiltrados = this.grupos.filter(grupo => {
+      const matchesSearch = !this.searchValue ||
+        grupo.nombre.toLowerCase().includes(this.searchValue.toLowerCase()) ||
+        this.getNombreCliente(grupo.id_cliente).toLowerCase().includes(this.searchValue.toLowerCase());
+
+      const matchesActivo = this.mostrarInactivos || grupo.activo;
+
+      return matchesSearch && matchesActivo;
+    });
+  }
+
+  onMostrarInactivosChange(): void {
+    this.applyFilter();
   }
 
   openNew(): void {
@@ -130,7 +151,7 @@ export class GruposObrasComponent implements OnInit, OnDestroy {
               summary: 'Actualizado',
               detail: 'Grupo actualizado correctamente'
             });
-            this.cargarGrupos();
+            this.cargarDatos();
             this.showModal = false;
           },
           error: (err) => {
@@ -151,7 +172,7 @@ export class GruposObrasComponent implements OnInit, OnDestroy {
               summary: 'Creado',
               detail: 'Grupo creado correctamente'
             });
-            this.cargarGrupos();
+            this.cargarDatos();
             this.showModal = false;
           },
           error: (err) => {
@@ -180,7 +201,7 @@ export class GruposObrasComponent implements OnInit, OnDestroy {
                 summary: 'Eliminado',
                 detail: 'Grupo eliminado correctamente'
               });
-              this.cargarGrupos();
+              this.cargarDatos();
             },
             error: () => {
               this.messageService.add({

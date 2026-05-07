@@ -25,39 +25,39 @@ public class ObrasBffController {
 
   @PostMapping("/grupos")
   public Mono<ResponseEntity<Object>> crearGrupo(@RequestBody Object dto) {
-    return proxyPost("/api/grupos-obras", dto, new ParameterizedTypeReference<>() {});
+    return proxyPost("/grupos-obras", dto, new ParameterizedTypeReference<>() {});
   }
 
   @GetMapping("/grupos")
   public Mono<ResponseEntity<Object>> listarGrupos() {
-    return proxyGet("/api/grupos-obras", new ParameterizedTypeReference<>() {});
+    return proxyGet("/grupos-obras", new ParameterizedTypeReference<>() {});
   }
 
   @GetMapping("/grupos/{id}")
   public Mono<ResponseEntity<Object>> obtenerGrupo(@PathVariable Long id) {
-    return proxyGet("/api/grupos-obras/" + id, new ParameterizedTypeReference<>() {});
+    return proxyGet("/grupos-obras/" + id, new ParameterizedTypeReference<>() {});
   }
 
   @GetMapping("/grupos/cliente/{idCliente}")
   public Mono<ResponseEntity<Object>> listarGruposPorCliente(@PathVariable Long idCliente) {
-    return proxyGet("/api/grupos-obras/cliente/" + idCliente, new ParameterizedTypeReference<>() {});
+    return proxyGet("/grupos-obras/cliente/" + idCliente, new ParameterizedTypeReference<>() {});
   }
 
   @GetMapping("/grupos/cliente/{idCliente}/activos")
   public Mono<ResponseEntity<Object>> listarGruposActivosPorCliente(@PathVariable Long idCliente) {
-    return proxyGet("/api/grupos-obras/cliente/" + idCliente + "/activos", new ParameterizedTypeReference<>() {});
+    return proxyGet("/grupos-obras/cliente/" + idCliente + "/activos", new ParameterizedTypeReference<>() {});
   }
 
   @PutMapping("/grupos/{id}")
   public Mono<ResponseEntity<Object>> actualizarGrupo(@PathVariable Long id, @RequestBody Object dto) {
-    return proxyPut("/api/grupos-obras/" + id, dto, new ParameterizedTypeReference<>() {});
+    return proxyPut("/grupos-obras/" + id, dto, new ParameterizedTypeReference<>() {});
   }
 
   @DeleteMapping("/grupos/{id}")
   public Mono<ResponseEntity<Void>> eliminarGrupo(@PathVariable Long id) {
     return webClientBuilder.build()
         .delete()
-        .uri(obrasServiceUrl + "/api/grupos-obras/" + id)
+        .uri(obrasServiceUrl + "/grupos-obras/" + id)
         .retrieve()
         .bodyToMono(Void.class)
         .map(ResponseEntity::ok)
@@ -68,22 +68,22 @@ public class ObrasBffController {
 
   @GetMapping("/saldos-grupos/clientes")
   public Mono<ResponseEntity<Object>> obtenerSaldosGruposClientes() {
-    return proxyGet("/api/saldos-grupos/clientes", new ParameterizedTypeReference<>() {});
+    return proxyGet("/saldos-grupos/clientes", new ParameterizedTypeReference<>() {});
   }
 
   @GetMapping("/saldos-grupos/proveedores")
   public Mono<ResponseEntity<Object>> obtenerSaldosGruposProveedores() {
-    return proxyGet("/api/saldos-grupos/proveedores", new ParameterizedTypeReference<>() {});
+    return proxyGet("/saldos-grupos/proveedores", new ParameterizedTypeReference<>() {});
   }
 
   @GetMapping("/saldos-grupos/resumen-obras/clientes")
   public Mono<ResponseEntity<Object>> obtenerResumenObrasClientes() {
-    return proxyGet("/api/saldos-grupos/resumen-obras/clientes", new ParameterizedTypeReference<>() {});
+    return proxyGet("/saldos-grupos/resumen-obras/clientes", new ParameterizedTypeReference<>() {});
   }
 
   @GetMapping("/saldos-grupos/resumen-obras/proveedores")
   public Mono<ResponseEntity<Object>> obtenerResumenObrasProveedores() {
-    return proxyGet("/api/saldos-grupos/resumen-obras/proveedores", new ParameterizedTypeReference<>() {});
+    return proxyGet("/saldos-grupos/resumen-obras/proveedores", new ParameterizedTypeReference<>() {});
   }
 
   // ---------- MÉTODOS UTILITARIOS ----------

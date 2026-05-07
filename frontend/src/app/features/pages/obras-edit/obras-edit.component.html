@@ -148,19 +148,34 @@
                   <i class="pi pi-folder text-gray-400 text-xs"></i>
                   Grupo de Obra (opcional)
                 </label>
-                <p-select
-                  [options]="gruposFiltered"
-                  appendTo="body"
-                  styleClass="w-full"
-                  formControlName="id_grupo"
-                  optionLabel="nombre"
-                  optionValue="id"
-                  placeholder="Selecciona un grupo"
-                  [showClear]="true"
-                  [disabled]="gruposFiltered.length === 0"
-                ></p-select>
+                <div class="flex gap-2">
+                  <div class="flex-1">
+                    <p-select
+                      [options]="gruposFiltered"
+                      appendTo="body"
+                      styleClass="w-full"
+                      formControlName="id_grupo"
+                      optionLabel="nombre"
+                      optionValue="id"
+                      placeholder="Selecciona un grupo"
+                      [showClear]="true"
+                      [disabled]="!form.get('cliente')?.value"
+                      filter
+                      filterBy="nombre"
+                    ></p-select>
+                  </div>
+                  <p-button
+                    icon="pi pi-plus"
+                    label="Nuevo"
+                    size="small"
+                    (onClick)="abrirModalGrupo()"
+                    [disabled]="!form.get('cliente')?.value"
+                    styleClass="h-[42px]"
+                    type="button"
+                  ></p-button>
+                </div>
                 @if (gruposFiltered.length === 0 && form.get('cliente')?.value) {
-                  <small class="text-gray-500 text-xs mt-1">No hay grupos para este cliente. Crear uno en Grupos de Obras.</small>
+                  <small class="text-gray-500 text-xs mt-1">No hay grupos para este cliente. Crea uno arriba.</small>
                 }
               </div>
 
@@ -491,6 +506,28 @@
       <div class="flex justify-end gap-2 pt-2">
         <p-button label="Cancelar" severity="secondary" [outlined]="true" (onClick)="cerrarModalProveedor()"></p-button>
         <p-button type="submit" label="Guardar proveedor" icon="pi pi-save" [loading]="creandoProveedor"></p-button>
+      </div>
+    </form>
+  </app-modal>
+
+  <app-modal
+    [visible]="showGrupoModal"
+    [title]="'Nuevo grupo de obra'"
+    [width]="'500px'"
+    [showFooter]="false"
+    (closed)="cerrarModalGrupo()"
+  >
+    <form class="space-y-4" [formGroup]="grupoForm" (ngSubmit)="guardarGrupo()">
+      <div class="flex flex-col gap-1">
+        <label class="text-sm font-semibold text-gray-700">Nombre</label>
+        <input pInputText formControlName="nombre" placeholder="Ej. Grupo A - Frente 1" />
+        @if (grupoForm.get('nombre')?.invalid && grupoForm.get('nombre')?.touched) {
+          <small class="text-red-500">Campo requerido, mínimo 3 caracteres</small>
+        }
+      </div>
+      <div class="flex justify-end gap-2 pt-2">
+        <p-button label="Cancelar" severity="secondary" [outlined]="true" (onClick)="cerrarModalGrupo()" type="button"></p-button>
+        <p-button type="submit" label="Crear grupo" icon="pi pi-save" [loading]="creandoGrupo"></p-button>
       </div>
     </form>
   </app-modal>

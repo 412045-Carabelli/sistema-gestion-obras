@@ -83,6 +83,7 @@ export interface Obra {
   id_cliente?: number;
   id_grupo?: number;
   cliente: Cliente;
+  grupo?: GrupoObra;
   obra_estado: string;
   nombre: string;
   direccion?: string;

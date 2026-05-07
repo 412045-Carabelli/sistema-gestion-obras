@@ -65,9 +65,12 @@ export class ObrasCreateComponent implements OnInit {
   ivaOptions: {label: string; name: string}[] = [];
   filteredClientes: Cliente[] = [];
   clienteForm: FormGroup;
+  grupoForm: FormGroup;
   showClienteModal = false;
   showProveedorModal = false;
+  showGrupoModal = false;
   creandoCliente = false;
+  creandoGrupo = false;
 
   constructor(
     private fb: FormBuilder,
@@ -107,6 +110,11 @@ export class ObrasCreateComponent implements OnInit {
       telefono: ['', [Validators.required, Validators.minLength(6)]],
       email: ['', [Validators.email]],
       activo: [true, Validators.required]
+    });
+
+    this.grupoForm = this.fb.group({
+      nombre: ['', [Validators.required, Validators.minLength(3)]],
+      id_cliente: [null, Validators.required]
     });
 
   }
@@ -268,6 +276,7 @@ export class ObrasCreateComponent implements OnInit {
 
     const payload: ObraPayload = {
       id_cliente: raw.cliente?.id ?? raw.cliente ?? 0,
+      id_grupo: raw.id_grupo,
       obra_estado: (raw.obra_estado?.name ?? raw.obra_estado),
       nombre: raw.nombre,
       direccion: raw.direccion,
@@ -446,6 +455,52 @@ export class ObrasCreateComponent implements OnInit {
       ultimaFila.get('id_proveedor')?.setValue(proveedor.id);
     }
     this.cerrarModalProveedor();
+  }
+
+  abrirModalGrupo() {
+    this.grupoForm.reset({
+      nombre: '',
+      id_cliente: this.form.get('cliente')?.value?.id
+    });
+    this.showGrupoModal = true;
+  }
+
+  cerrarModalGrupo() {
+    this.showGrupoModal = false;
+    this.creandoGrupo = false;
+  }
+
+  guardarGrupo() {
+    if (this.grupoForm.invalid || this.creandoGrupo) {
+      this.grupoForm.markAllAsTouched();
+      return;
+    }
+    this.creandoGrupo = true;
+    const payload = this.grupoForm.getRawValue();
+    this.grupoObrasService.crear(payload).subscribe({
+      next: (nuevoGrupo) => {
+        this.grupos = [...this.grupos, nuevoGrupo];
+        const cliente = this.form.get('cliente')?.value;
+        if (cliente?.id === nuevoGrupo.id_cliente) {
+          this.gruposFiltered = [...this.gruposFiltered, nuevoGrupo];
+        }
+        this.form.get('id_grupo')?.setValue(nuevoGrupo.id);
+        this.messageService.add({
+          severity: 'success',
+          summary: 'Grupo creado',
+          detail: 'Asignado al formulario.'
+        });
+        this.cerrarModalGrupo();
+      },
+      error: () => {
+        this.creandoGrupo = false;
+        this.messageService.add({
+          severity: 'error',
+          summary: 'No se creó el grupo',
+          detail: 'Intentá nuevamente.'
+        });
+      }
+    });
   }
 
   private ordenarEstadosObra(records: { label: string; name: string }[]): { label: string; name: string }[] {

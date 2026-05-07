@@ -69,7 +69,13 @@
       "Bash(mv:*)",
       "Bash(mvn -pl agendas-service clean package -DskipTests -q)",
       "Bash(find C:UsersUsuarioDesktopmy-worksistema-gestion-obrasbackend1.0obras-service -name *TareaController* -o -name *Tarea*Controller*)",
-      "Bash(find C:UsersUsuarioDesktopmy-worksistema-gestion-obrasbackend1.0 -name *BffControllerTest.java -type f)"
+      "Bash(find C:UsersUsuarioDesktopmy-worksistema-gestion-obrasbackend1.0 -name *BffControllerTest.java -type f)",
+      "Bash(curl -s http://localhost:8080/bff/obras/grupos/3)",
+      "Bash(ConvertFrom-Json)",
+      "Bash(ConvertTo-Json -Depth 3)",
+      "Bash(curl -s \"http://localhost:8080/bff/obras/grupos/cliente/2\")",
+      "Bash(curl -s \"http://localhost:8080/bff/obras/grupos\")",
+      "Bash(curl -v \"http://localhost:8081/api/grupos-obras/3\")"
     ]
   }
 }

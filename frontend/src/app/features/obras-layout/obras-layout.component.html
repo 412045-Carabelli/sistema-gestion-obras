@@ -80,6 +80,9 @@
                 @if (getEstadoFacturacion(); as ef) {
                   <p-tag [value]="ef.label" [severity]="ef.severity"></p-tag>
                 }
+                @if (getGrupoObra(); as grupo) {
+                  <p-tag [value]="grupo" [severity]="'info'"></p-tag>
+                }
               </div>
               <div class="flex items-center gap-2 text-blue-100">
                 <i class="pi pi-map-marker"></i>
