@@ -1,9 +1,9 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, Output, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, FormBuilder, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '../../../../environments/environment';
-import { ReportFilter, DeudasGlobalesResponse, CatalogoCuentaCorriente } from '../../../core/models/models';
+import { ReportFilter, DeudasGlobalesResponse, CatalogoCuentaCorriente, DetalleDeudaCliente, DetalleDeudaProveedor } from '../../../core/models/models';
 import { TableModule } from 'primeng/table';
 import { ButtonModule } from 'primeng/button';
 import { InputTextModule } from 'primeng/inputtext';
@@ -37,6 +37,9 @@ export class CuentasCorrientesListComponent implements OnInit, OnDestroy {
   obras: Array<{ id: number; nombre: string }> = [];
   clientes: Array<{ id: number; nombre: string }> = [];
   proveedores: Array<{ id: number; nombre: string }> = [];
+
+  @Output() clienteRowClicked = new EventEmitter<DetalleDeudaCliente>();
+  @Output() proveedorRowClicked = new EventEmitter<DetalleDeudaProveedor>();
 
   private subs = new Subscription();
   private catalogoUrl = `${environment.apiGateway}/bff/reportes/catalogos/filtros-cuenta-corriente`;
@@ -128,5 +131,13 @@ export class CuentasCorrientesListComponent implements OnInit, OnDestroy {
   getRangeProveedores(): number[] {
     if (!this.datos?.detalleDeudaProveedores) return [];
     return Array.from({ length: this.datos.detalleDeudaProveedores.length }, (_, i) => i);
+  }
+
+  onClienteRowClick(item: DetalleDeudaCliente): void {
+    this.clienteRowClicked.emit(item);
+  }
+
+  onProveedorRowClick(item: DetalleDeudaProveedor): void {
+    this.proveedorRowClicked.emit(item);
   }
 }
