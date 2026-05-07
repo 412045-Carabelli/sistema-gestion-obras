@@ -134,16 +134,16 @@ export class AgendasListComponent implements OnInit, OnDestroy {
   }
 
   private cargarAgendas() {
-    this.tareasService.getTareasAgendas().subscribe({
-      next: (agendas: any) => {
+    this.agendasService.getAgendas().subscribe({
+      next: (agendas: Agenda[]) => {
         this.agendas.set(agendas);
         this.datosCargados.set(true);
       },
-      error: (error) => {
+      error: () => {
         this.messageService.add({
           severity: 'error',
           summary: 'Error',
-          detail: 'No se pudieron cargar las tareas de agendas'
+          detail: 'No se pudieron cargar las agendas'
         });
         this.datosCargados.set(true);
       }
