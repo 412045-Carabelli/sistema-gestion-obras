@@ -24,6 +24,9 @@ public class Obra {
     @Column(name = "id_cliente", nullable = false)
     private Long idCliente;
 
+    @Column(name = "id_grupo")
+    private Long idGrupo;
+
     @Enumerated(EnumType.STRING)
     @Column(name = "estado_obra", nullable = false)
     private EstadoObraEnum estadoObra;

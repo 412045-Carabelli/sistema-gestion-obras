@@ -1,0 +1,84 @@
+@if (loading) {
+  <!-- Skeleton loading -->
+  <div class="bg-white rounded-xl shadow-md p-6 animate-pulse">
+    <div class="h-6 bg-gray-200 rounded w-1/3 mb-5"></div>
+    <div class="space-y-3">
+      @for (i of [1, 2, 3, 4, 5]; track i) {
+        <div class="h-12 bg-gray-100 rounded-lg"></div>
+      }
+    </div>
+  </div>
+} @else {
+  @if (datos) {
+    <div class="bg-white rounded-xl shadow-md p-6">
+      <div class="flex items-center justify-between mb-5 pb-3 border-b border-gray-200">
+        <h2 class="text-lg font-semibold text-gray-900 flex items-center gap-2">
+          <i class="pi pi-briefcase text-indigo-600"></i>
+          Reporte de cuentas por cobrar y pagar
+        </h2>
+        <span class="text-xs text-gray-500">Detalle por cliente y proveedor</span>
+      </div>
+
+      <div class="border border-gray-200 rounded-lg overflow-hidden">
+        <div class="overflow-x-auto max-h-[520px] overflow-y-auto">
+          <table class="w-full text-sm">
+            <thead class="bg-gray-50 text-gray-600">
+              <tr>
+                <th class="text-left px-3 py-2 bg-green-50 text-green-800" colspan="4">A cobrar</th>
+                <th class="text-left px-3 py-2 bg-red-50 text-red-800" colspan="4">Por pagar</th>
+              </tr>
+              <tr>
+                <th class="text-left px-3 py-2">Obra</th>
+                <th class="text-left px-3 py-2">Cliente</th>
+                <th class="text-right px-3 py-2">Total</th>
+                <th class="text-right px-3 py-2">Saldo</th>
+                <th class="text-left px-3 py-2">Proveedor</th>
+                <th class="text-right px-3 py-2">Total</th>
+                <th class="text-right px-3 py-2">Pagado</th>
+                <th class="text-right px-3 py-2">Saldo</th>
+              </tr>
+            </thead>
+            <tbody>
+              @if (datos.detalleDeudaClientes.length > 0 || datos.detalleDeudaProveedores.length > 0) {
+                <!-- Mostrar máximo número de filas entre clientes y proveedores -->
+                @for (i of [0, 1, 2, 3, 4]; track i) {
+                  <tr class="border-t border-gray-100">
+                    <!-- Columnas de clientes -->
+                    @if (i < datos.detalleDeudaClientes.length) {
+                      <td class="px-3 py-2">{{ datos.detalleDeudaClientes[i].obraNombre }}</td>
+                      <td class="px-3 py-2">{{ datos.detalleDeudaClientes[i].clienteNombre }}</td>
+                      <td class="px-3 py-2 text-right">{{ datos.detalleDeudaClientes[i].presupuesto | currency:'ARS':'symbol-narrow':'1.0-0' }}</td>
+                      <td class="px-3 py-2 text-right font-semibold">{{ datos.detalleDeudaClientes[i].saldo | currency:'ARS':'symbol-narrow':'1.0-0' }}</td>
+                    } @else {
+                      <td class="px-3 py-2"></td>
+                      <td class="px-3 py-2"></td>
+                      <td class="px-3 py-2"></td>
+                      <td class="px-3 py-2"></td>
+                    }
+
+                    <!-- Columnas de proveedores -->
+                    @if (i < datos.detalleDeudaProveedores.length) {
+                      <td class="px-3 py-2">{{ datos.detalleDeudaProveedores[i].proveedorNombre }}</td>
+                      <td class="px-3 py-2 text-right">{{ datos.detalleDeudaProveedores[i].presupuestado | currency:'ARS':'symbol-narrow':'1.0-0' }}</td>
+                      <td class="px-3 py-2 text-right">{{ datos.detalleDeudaProveedores[i].pagado | currency:'ARS':'symbol-narrow':'1.0-0' }}</td>
+                      <td class="px-3 py-2 text-right font-semibold">{{ datos.detalleDeudaProveedores[i].saldo | currency:'ARS':'symbol-narrow':'1.0-0' }}</td>
+                    } @else {
+                      <td class="px-3 py-2"></td>
+                      <td class="px-3 py-2"></td>
+                      <td class="px-3 py-2"></td>
+                      <td class="px-3 py-2"></td>
+                    }
+                  </tr>
+                }
+              } @else {
+                <tr>
+                  <td class="px-3 py-4 text-center text-gray-500" colspan="8">Sin pendientes de cobro o pago</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  }
+}

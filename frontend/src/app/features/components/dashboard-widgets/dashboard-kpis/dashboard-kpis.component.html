@@ -1,0 +1,88 @@
+@if (loading) {
+  <!-- Skeleton loading -->
+  <div class="grid gap-6 md:grid-cols-5">
+    @for (i of [1, 2, 3, 4, 5]; track i) {
+      <div class="bg-white rounded-xl shadow-md p-6 animate-pulse">
+        <div class="h-4 bg-gray-200 rounded w-1/2 mb-4"></div>
+        <div class="h-8 bg-gray-100 rounded"></div>
+      </div>
+    }
+  </div>
+} @else {
+  @if (datos) {
+    <div class="grid gap-6 md:grid-cols-5">
+      <!-- Cobrado -->
+      <div class="bg-white rounded-xl shadow-md p-6 border-l-4 border-green-500">
+        <div class="flex items-center gap-2 mb-2">
+          <i class="pi pi-arrow-up text-green-600"></i>
+          <span class="text-sm font-medium text-gray-600">Cobrado</span>
+        </div>
+        <div class="text-2xl font-bold text-green-600">
+          {{ datos.cobrado | currency:'ARS':'symbol-narrow':'1.0-0' }}
+        </div>
+      </div>
+
+      <!-- Por cobrar -->
+      <div class="bg-white rounded-xl shadow-md p-6 border-l-4 border-emerald-500">
+        <div class="flex items-center gap-2 mb-2">
+          <i class="pi pi-wallet text-emerald-600"></i>
+          <span class="text-sm font-medium text-gray-600">Por cobrar</span>
+        </div>
+        <div class="text-2xl font-bold text-emerald-700">
+          {{ datos.porCobrar | currency:'ARS':'symbol-narrow':'1.0-0' }}
+        </div>
+      </div>
+
+      <!-- Pagado -->
+      <div class="bg-white rounded-xl shadow-md p-6 border-l-4 border-red-500">
+        <div class="flex items-center gap-2 mb-2">
+          <i class="pi pi-arrow-down text-red-600"></i>
+          <span class="text-sm font-medium text-gray-600">Pagado</span>
+        </div>
+        <div class="text-2xl font-bold text-red-600">
+          {{ datos.pagado | currency:'ARS':'symbol-narrow':'1.0-0' }}
+        </div>
+      </div>
+
+      <!-- Por pagar -->
+      <div class="bg-white rounded-xl shadow-md p-6 border-l-4 border-amber-500">
+        <div class="flex items-center gap-2 mb-2">
+          <i class="pi pi-chart-line text-amber-600"></i>
+          <span class="text-sm font-medium text-gray-600">Por pagar</span>
+        </div>
+        <div class="text-2xl font-bold text-amber-700">
+          {{ datos.porPagar | currency:'ARS':'symbol-narrow':'1.0-0' }}
+        </div>
+      </div>
+
+      <!-- Resultado -->
+      <div
+        class="rounded-xl shadow-md p-6 border-l-4"
+        [ngClass]="{
+          'bg-green-50 border-green-500': datos.resultado > 0,
+          'bg-red-50 border-red-500': datos.resultado < 0,
+          'bg-gray-50 border-gray-500': datos.resultado === 0
+        }">
+        <div class="flex items-center gap-2 mb-2">
+          <i
+            class="pi pi-chart-pie"
+            [ngClass]="{
+              'text-green-600': datos.resultado > 0,
+              'text-red-600': datos.resultado < 0,
+              'text-gray-500': datos.resultado === 0
+            }"></i>
+          <span class="text-sm font-medium text-gray-600">Resultado</span>
+        </div>
+        <div
+          class="text-2xl font-bold"
+          [ngClass]="{
+            'text-green-700': datos.resultado > 0,
+            'text-red-600': datos.resultado < 0,
+            'text-gray-700': datos.resultado === 0
+          }">
+          {{ datos.resultado | currency:'ARS':'symbol-narrow':'1.0-0' }}
+        </div>
+      </div>
+    </div>
+  }
+}

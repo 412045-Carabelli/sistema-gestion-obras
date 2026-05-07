@@ -27,6 +27,10 @@ import {ProveedorQuickModalComponent} from '../../components/proveedor-quick-mod
 import {ClientesService} from '../../../services/clientes/clientes.service';
 import {ProveedoresService, CatalogoOption} from '../../../services/proveedores/proveedores.service';
 import {FacturasService} from '../../../services/facturas/facturas.service';
+import {DashboardKpisComponent} from '../../components/dashboard-widgets/dashboard-kpis/dashboard-kpis.component';
+import {DashboardDeudasComponent} from '../../components/dashboard-widgets/dashboard-deudas/dashboard-deudas.component';
+import {DashboardTareasComponent} from '../../components/dashboard-widgets/dashboard-tareas/dashboard-tareas.component';
+import {DashboardMovimientosComponent} from '../../components/dashboard-widgets/dashboard-movimientos/dashboard-movimientos.component';
 
 @Component({
   selector: 'app-dashboard',
@@ -35,8 +39,6 @@ import {FacturasService} from '../../../services/facturas/facturas.service';
     CommonModule,
     Toast,
     ProgressSpinnerModule,
-    Button,
-    EstadoFormatPipe,
     FormsModule,
     AutoComplete,
     Select,
@@ -47,7 +49,11 @@ import {FacturasService} from '../../../services/facturas/facturas.service';
     FileUploadModule,
     EditorModule,
     ModalComponent,
-    ProveedorQuickModalComponent
+    ProveedorQuickModalComponent,
+    DashboardKpisComponent,
+    DashboardDeudasComponent,
+    DashboardTareasComponent,
+    DashboardMovimientosComponent
   ],
   providers: [MessageService],
   templateUrl: './dashboard.component.html',
@@ -58,15 +64,9 @@ export class DashboardComponent implements OnInit {
   loadingGeneral = true;
 
   // Datos principales
-  resumenGeneral!: ResumenGeneralResponse;
   flujoCaja!: FlujoCajaResponse;
   dashboardFinanciero: DashboardFinancieroResponse | null = null;
   dashboardConsolidado: DashboardConsolidadoResponse | null = null;
-  tareasAntiguasAgenda: TareaAntiguaAgenda[] = [];
-  movimientosRecientes: MovimientoRecenteDTO[] = [];
-  obrasComparativo: Array<{ id: number; nombre: string; presupuesto: number; porcentaje: number }> = [];
-  flujoDineroSerie: Array<{ fecha: string; ingresos: number; egresos: number; saldo: number }> = [];
-  flujoDineroMax = 0;
   obras: Obra[] = [];
   filteredObras: Obra[] = [];
   proveedores: Proveedor[] = [];
@@ -79,19 +79,14 @@ export class DashboardComponent implements OnInit {
   };
   filteredClientes: Cliente[] = [];
   filteredProveedores: Proveedor[] = [];
+
+  // Filtros activos para pasar a los componentes hijos
+  filtrosActivos: ReportFilter = {};
   ivaOptions: { label: string; name: string }[] = [];
   tiposProveedor: CatalogoOption[] = [];
   gremiosProveedor: CatalogoOption[] = [];
   private readonly NUEVO_TIPO_VALUE = '__nuevo_tipo__';
   private readonly NUEVO_GREMIO_VALUE = '__nuevo_gremio__';
-  conteoObras = {
-    total: 0,
-    cotizadas: 0,
-    perdidas: 0,
-    adjudicadas: 0,
-    activas: 0,
-    finalizadas: 0,
-  };
 
   showMovimientoModal = false;
   showClienteModal = false;
@@ -191,29 +186,20 @@ export class DashboardComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    this.cargarDashboard();
+    // Cargar listas para filtros y modales
+    this.cargarListasParaFiltros();
   }
 
-  private cargarDashboard(filtro?: ReportFilter): void {
+  private cargarListasParaFiltros(): void {
     this.loadingGeneral = true;
 
-    // Cargar datos principales en paralelo
+    // Cargar solo las listas necesarias para los filtros y modales
     forkJoin({
-      resumen: this.reportesService.getResumenGeneral(),
-      flujo: this.reportesService.getFlujoCaja(filtro),
-      dashboard: this.reportesService.getDashboardFinanciero(filtro),
-      consolidado: this.reportesService.getDashboardConsolidado(filtro),
       obras: this.obrasService.getObras(),
       proveedores: this.proveedoresService.getProveedoresAll(),
-      clientes: this.clientesService.getClientes(),
-      movimientosRecientes: this.reportesService.getMovimientosRecientes()
+      clientes: this.clientesService.getClientes()
     }).subscribe({
-      next: ({ resumen, flujo, dashboard, consolidado, obras, proveedores, clientes, movimientosRecientes }) => {
-        this.resumenGeneral = resumen;
-        this.flujoCaja = flujo;
-        this.dashboardFinanciero = dashboard;
-        this.dashboardConsolidado = consolidado;
-        this.conteoObras = this.calcularConteosObras(obras);
+      next: ({ obras, proveedores, clientes }) => {
         this.obras = obras || [];
         this.proveedores = proveedores || [];
         this.clientes = clientes || [];
@@ -221,35 +207,27 @@ export class DashboardComponent implements OnInit {
         this.filteredObras = [...this.obras];
         this.filteredClientes = [...this.clientes];
         this.filteredProveedores = [...this.proveedores];
-        this.obrasComparativo = this.construirComparativoObras(this.obras, filtro);
 
-        // Cargar tareas antiguas de la agenda
-        this.tareasService.getTareasAntiguasAgenda(10).subscribe({
-          next: (tareas) => {
-            this.tareasAntiguasAgenda = tareas || [];
-          },
-          error: (error) => {
-            console.warn('Error cargando tareas de agenda:', error);
-            this.tareasAntiguasAgenda = [];
-          }
-        });
-
-        // Asignar movimientos recientes desde el endpoint
-        this.movimientosRecientes = movimientosRecientes || [];
-        this.flujoDineroSerie = this.construirSerieFlujo(flujo.movimientos || []);
+        // Cargar opciones de IVA y catálogos de proveedores
+        this.cargarOpcionesAdicionales();
 
         this.loadingGeneral = false;
       },
       error: (error) => {
-        console.error('Error cargando dashboard:', error);
+        console.error('Error cargando listas para filtros:', error);
         this.loadingGeneral = false;
         this.messageService.add({
           severity: 'error',
           summary: 'Error',
-          detail: 'No se pudo cargar la información del dashboard'
+          detail: 'No se pudo cargar la información necesaria'
         });
       }
     });
+  }
+
+  private cargarOpcionesAdicionales(): void {
+    // Cargar opciones de IVA y catálogos si es necesario
+    // (esto estaba disperso en el código original)
   }
 
   navigateTo(route: string): void {
@@ -278,9 +256,8 @@ export class DashboardComponent implements OnInit {
   }
 
   aplicarFiltrosDashboard() {
-    const filtro = this.construirFiltroDashboard();
-    this.cargarDashboard(filtro);
-    this.obrasComparativo = this.construirComparativoObras(this.obras, filtro);
+    // Los componentes hijos se recargan automáticamente via ngOnChanges
+    this.onFiltroChange();
   }
 
   limpiarFiltrosDashboard() {
@@ -293,7 +270,21 @@ export class DashboardComponent implements OnInit {
     this.filteredObras = [...this.obras];
     this.filteredClientes = [...this.clientes];
     this.filteredProveedores = [...this.proveedores];
-    this.obrasComparativo = this.construirComparativoObras(this.obras);
+    this.onFiltroChange();
+  }
+
+  /**
+   * Reconstruye los filtros activos para pasar a los componentes hijos.
+   * Se ejecuta cuando cambian los filtros del dashboard.
+   */
+  onFiltroChange(): void {
+    this.filtrosActivos = {
+      obraId: this.filtrosDashboard.obra?.id,
+      clienteId: this.filtrosDashboard.cliente?.id,
+      proveedorId: this.filtrosDashboard.proveedor?.id,
+      fechaInicio: this.filtrosDashboard.rangoFechas?.[0] ? new Date(this.filtrosDashboard.rangoFechas[0]).toISOString().split('T')[0] : undefined,
+      fechaFin: this.filtrosDashboard.rangoFechas?.[1] ? new Date(this.filtrosDashboard.rangoFechas[1]).toISOString().split('T')[0] : undefined
+    };
   }
 
   abrirMovimientoModal() {
@@ -819,10 +810,6 @@ export class DashboardComponent implements OnInit {
     return this.totalCobrosDashboard - this.totalPagosDashboard;
   }
 
-  get movimientosRecientesFiltradas(): MovimientoRecenteDTO[] {
-    return this.movimientosRecientes;
-  }
-
   get cuentaCorrienteModo(): 'CLIENTE' | 'PROVEEDOR' | 'GENERAL' {
     if (this.filtrosDashboard?.proveedor?.id) return 'PROVEEDOR';
     if (this.filtrosDashboard?.cliente?.id) return 'CLIENTE';
@@ -988,20 +975,6 @@ export class DashboardComponent implements OnInit {
     return new Set(['ADJUDICADA', 'EN_PROGRESO', 'FINALIZADA']).has(estado);
   }
 
-  private calcularConteosObras(obras: { obra_estado: string }[]): typeof this.conteoObras {
-    const normalizar = (estado: string | undefined | null) => (estado || '').toUpperCase();
-    return obras.reduce((acc, obra) => {
-      const estado = normalizar((obra as any).obra_estado);
-      acc.total += 1;
-      if (estado.includes('COTIZ')) acc.cotizadas += 1;
-      if (estado.includes('PERDID')) acc.perdidas += 1;
-      if (estado.includes('ADJUDIC')) acc.adjudicadas += 1;
-      if (estado.includes('ACTIV')) acc.activas += 1;
-      if (estado.includes('FINALIZ')) acc.finalizadas += 1;
-      return acc;
-    }, { ...this.conteoObras });
-  }
-
   private proveedoresDeObra(obra: Obra): Proveedor[] {
     const ids = new Set<number>();
     const proveedoresDirectos = (obra as any)?.proveedores as Proveedor[] | undefined;
@@ -1018,34 +991,6 @@ export class DashboardComponent implements OnInit {
       if (id) ids.add(id);
     });
     return this.proveedores.filter(p => ids.has(Number(p.id)));
-  }
-
-  private construirComparativoObras(obras: Obra[], filtro?: ReportFilter): Array<{ id: number; nombre: string; presupuesto: number; porcentaje: number }> {
-    let filtradas = obras || [];
-
-    if (filtro?.obraId) {
-      filtradas = filtradas.filter(obra => Number(obra.id) === Number(filtro.obraId));
-    }
-
-    if (filtro?.clienteId) {
-      filtradas = filtradas.filter(obra => Number(obra.cliente?.id) === Number(filtro.clienteId));
-    }
-
-    const ordenadas = filtradas
-      .map((obra, index) => ({
-        id: Number(obra.id ?? index),
-        nombre: obra.nombre || 'Obra sin nombre',
-        presupuesto: Number(obra.presupuesto ?? 0)
-      }))
-      .sort((a, b) => b.presupuesto - a.presupuesto)
-      .slice(0, 5);
-
-    const max = ordenadas.reduce((acc, obra) => Math.max(acc, obra.presupuesto), 0);
-
-    return ordenadas.map(obra => ({
-      ...obra,
-      porcentaje: max > 0 ? Math.round((obra.presupuesto / max) * 100) : 0
-    }));
   }
 
   private calcularTotalMovimientos(tipos: string[]): number {
@@ -1429,33 +1374,6 @@ export class DashboardComponent implements OnInit {
     const parsed = new Date(raw);
     if (Number.isNaN(parsed.getTime())) return null;
     return new Date(parsed.getFullYear(), parsed.getMonth(), parsed.getDate());
-  }
-
-  private construirSerieFlujo(movimientos: MovimientoDashboard[]): Array<{ fecha: string; ingresos: number; egresos: number; saldo: number }> {
-    const agrupados = new Map<string, { ingresos: number; egresos: number }>();
-    (movimientos || []).forEach(mov => {
-      const fecha = (mov.fecha || '').toString().split('T')[0] || 'Sin fecha';
-      const actual = agrupados.get(fecha) ?? { ingresos: 0, egresos: 0 };
-      const tipo = (mov.tipo_movimiento || mov.tipo || '').toString().toUpperCase();
-      if (tipo === 'INGRESO' || tipo === 'COBRO') {
-        actual.ingresos += Number(mov.monto ?? 0);
-      } else if (tipo === 'EGRESO' || tipo === 'PAGO') {
-        actual.egresos += Number(mov.monto ?? 0);
-      }
-      agrupados.set(fecha, actual);
-    });
-
-    const ordenadas = Array.from(agrupados.entries())
-      .map(([fecha, data]) => ({ fecha, ingresos: data.ingresos, egresos: data.egresos }))
-      .sort((a, b) => new Date(a.fecha).getTime() - new Date(b.fecha).getTime());
-
-    this.flujoDineroMax = ordenadas.reduce((acc, item) => Math.max(acc, item.ingresos, item.egresos), 0);
-
-    let saldo = 0;
-    return ordenadas.map(item => {
-      saldo += item.ingresos - item.egresos;
-      return { ...item, saldo };
-    });
   }
 
   private construirFiltroDashboard(): ReportFilter {

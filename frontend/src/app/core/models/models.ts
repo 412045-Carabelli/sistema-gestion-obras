@@ -68,9 +68,20 @@ export type EstadoTarea = RecordOption;
 
 export type TipoTransaccion = RecordOption;
 
+export interface GrupoObra {
+  id?: number;
+  id_cliente: number;
+  nombre: string;
+  activo?: boolean;
+  creado_en?: string;
+  ultima_actualizacion?: string;
+  tipo_actualizacion?: string;
+}
+
 export interface Obra {
   id?: number;
   id_cliente?: number;
+  id_grupo?: number;
   cliente: Cliente;
   obra_estado: string;
   nombre: string;
@@ -618,4 +629,52 @@ export interface SaldosProveedorResponse {
   totalPagado: number;
   saldo: number;
   obras: ObraSaldoItem[];
+}
+
+export interface DashboardCuentaCorrienteResponse {
+  cobrado: number;
+  porCobrar: number;
+  pagado: number;
+  porPagar: number;
+  resultado: number;
+}
+
+export interface SaldoGrupoCliente {
+  id_grupo: number;
+  nombre_grupo: string;
+  id_cliente: number;
+  nombre_cliente: string;
+  total_presupuesto: number;
+  total_cobros: number;
+  saldo_pendiente: number;
+}
+
+export interface SaldoGrupoProveedor {
+  id_grupo: number;
+  nombre_grupo: string;
+  id_proveedor: number;
+  nombre_proveedor: string;
+  total_costos: number;
+  total_pagos: number;
+  saldo_pendiente: number;
+}
+
+export interface ResumenObraCliente {
+  id_cliente: number;
+  nombre_cliente: string;
+  id_obra: number;
+  nombre_obra: string;
+  presupuestado: number;
+  cobros_realizados: number;
+  saldo: number;
+}
+
+export interface ResumenObraProveedor {
+  id_proveedor: number;
+  nombre_proveedor: string;
+  id_obra: number;
+  nombre_obra: string;
+  costos: number;
+  pagos_realizados: number;
+  saldo: number;
 }
