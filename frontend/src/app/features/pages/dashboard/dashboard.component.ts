@@ -225,11 +225,6 @@ export class DashboardComponent implements OnInit {
     });
   }
 
-  private cargarOpcionesAdicionales(): void {
-    // Cargar opciones de IVA y catálogos si es necesario
-    // (esto estaba disperso en el código original)
-  }
-
   navigateTo(route: string): void {
     this.router.navigate([route]);
   }
