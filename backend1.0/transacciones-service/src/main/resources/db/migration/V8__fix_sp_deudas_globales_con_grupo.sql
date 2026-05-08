@@ -1,11 +1,7 @@
 -- V8__fix_sp_deudas_globales_con_grupo.sql
 -- Fix: especificar correctamente las BDs en los JOINs
 
-DROP PROCEDURE IF EXISTS sp_deudas_globales_con_grupo;
-DROP PROCEDURE IF EXISTS sp_deudas_proveedores_con_grupo;
-GO
-
-CREATE PROCEDURE sp_deudas_globales_con_grupo
+CREATE OR ALTER PROCEDURE sp_deudas_globales_con_grupo
   @grupoId     BIGINT = NULL,
   @obraId      BIGINT = NULL,
   @clienteId   BIGINT = NULL,
@@ -51,7 +47,7 @@ END;
 GO
 
 -- Versión para proveedores
-CREATE PROCEDURE sp_deudas_proveedores_con_grupo
+CREATE OR ALTER PROCEDURE sp_deudas_proveedores_con_grupo
   @grupoId     BIGINT = NULL,
   @obraId      BIGINT = NULL,
   @proveedorId BIGINT = NULL,
