@@ -225,6 +225,11 @@ export class DashboardComponent implements OnInit {
     });
   }
 
+  private cargarOpcionesAdicionales(): void {
+    this.cargarCondicionesIva();
+    this.cargarCatalogosProveedor();
+  }
+
   navigateTo(route: string): void {
     this.router.navigate([route]);
   }
