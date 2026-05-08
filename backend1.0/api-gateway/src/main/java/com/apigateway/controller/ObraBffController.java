@@ -19,16 +19,16 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class ObraBffController {
 
-    @Value("${services.obras.url}/obras")
+    @Value("${services.obras.url}")
     private String OBRAS_URL;
 
     @Value("${services.clientes.url}")
     private String CLIENTES_URL;
 
-    @Value("${services.obras.url}/obras/costos")
+    @Value("${services.obras.url}/costos")
     private String COSTOS_URL;
 
-    @Value("${services.obras.url}/obras/tareas")
+    @Value("${services.obras.tareas.url}")
     private String TAREAS_URL;
 
     @Value("${services.obras.url}/grupos-obras")
