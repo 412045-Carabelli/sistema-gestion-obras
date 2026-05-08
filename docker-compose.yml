@@ -199,6 +199,7 @@ services:
       - "8084:8084"
     environment:
       - SPRING_PROFILES_ACTIVE=prod
+      - SERVER_PORT=8084
       - DB_HOST=sqlserver
       - DB_USER=sa
       - DB_PASSWORD=${DB_PASSWORD:-SgoAdmin2024!}
@@ -234,23 +235,26 @@ services:
       - SERVICES_DOCUMENTOS_URL=http://documentos-service:8087/api/documentos
       - SERVICES_TRANSACCIONES_URL=http://transacciones-service:8086/api/transacciones
       - SERVICES_AGENDAS_URL=http://agendas-service:8085/api/agendas
-    depends_on:
-      obras-service:
-        condition: service_started
-      clientes-service:
-        condition: service_started
-      proveedores-service:
-        condition: service_started
-      documentos-service:
-        condition: service_started
-      transacciones-service:
-        condition: service_started
-      agendas-service:
-        condition: service_started
-      reportes-service:
-        condition: service_started
-      migrador:
-        condition: service_completed_successfully
+      - SERVICES_OBRAS_TAREAS_URL=http://obras-service:8081/api/obras/tareas
+      - SERVICES_AGENDAS_TAREAS_URL=http://agendas-service:8085/api/agenda/tareas
+      - SERVICES_REPORTES_URL=http://reportes-service:8084/api/reportes
+    # depends_on:
+    #   obras-service:
+    #     condition: service_started
+    #   clientes-service:
+    #     condition: service_started
+    #   proveedores-service:
+    #     condition: service_started
+    #   documentos-service:
+    #     condition: service_started
+    #   transacciones-service:
+    #     condition: service_started
+    #   agendas-service:
+    #     condition: service_started
+    #   reportes-service:
+    #     condition: service_started
+    #   migrador:
+    #     condition: service_completed_successfully
     restart: unless-stopped
     networks:
       - sgo_backend
