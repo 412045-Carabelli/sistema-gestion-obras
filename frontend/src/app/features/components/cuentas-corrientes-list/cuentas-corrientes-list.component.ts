@@ -36,6 +36,7 @@ import { of } from 'rxjs';
 export class CuentasCorrientesListComponent implements OnInit, OnDestroy {
   loading = false;
   datos: DeudasGlobalesResponse | null = null;
+  datosFiltrados: DeudasGlobalesResponse | null = null;
   form!: FormGroup;
   grupos: Array<{ id: number; nombre: string }> = [];
   clientes: Array<{ id: number; nombre: string }> = [];
@@ -107,9 +108,43 @@ export class CuentasCorrientesListComponent implements OnInit, OnDestroy {
         })
       ).subscribe((response) => {
         this.datos = response;
+        this.datosFiltrados = response ? this.filtrarDatosEnFrontend(response) : null;
         this.loading = false;
       })
     );
+  }
+
+  private filtrarDatosEnFrontend(datos: DeudasGlobalesResponse): DeudasGlobalesResponse {
+    const clienteId = this.form.get('clienteId')?.value;
+    const proveedorId = this.form.get('proveedorId')?.value;
+    const obraId = this.form.get('obraId')?.value;
+
+    const resultado: DeudasGlobalesResponse = {
+      deudaClientes: datos.deudaClientes,
+      deudaProveedores: datos.deudaProveedores,
+      detalleDeudaClientes: datos.detalleDeudaClientes || [],
+      detalleDeudaProveedores: datos.detalleDeudaProveedores || []
+    };
+
+    // Filtrar tabla de clientes por obras disponibles
+    if (resultado.detalleDeudaClientes) {
+      const obrasDisponibles = this.obrasFiltradas.map((o) => o.id);
+      resultado.detalleDeudaClientes = resultado.detalleDeudaClientes.filter((item) =>
+        obrasDisponibles.includes(item.obraId)
+      );
+      resultado.deudaClientes = resultado.detalleDeudaClientes.reduce((sum, item) => sum + item.saldo, 0);
+    }
+
+    // Filtrar tabla de proveedores por obras disponibles
+    if (resultado.detalleDeudaProveedores) {
+      const obrasDisponibles = this.obrasFiltradas.map((o) => o.id);
+      resultado.detalleDeudaProveedores = resultado.detalleDeudaProveedores.filter((item) =>
+        obrasDisponibles.includes(item.obraId)
+      );
+      resultado.deudaProveedores = resultado.detalleDeudaProveedores.reduce((sum, item) => sum + item.saldo, 0);
+    }
+
+    return resultado;
   }
 
   private cargarCatalogos(): void {
