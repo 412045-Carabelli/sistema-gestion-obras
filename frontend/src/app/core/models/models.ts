@@ -691,4 +691,8 @@ export interface CatalogoCuentaCorriente {
   obras: Array<{ id: number; nombre: string }>;
   clientes: Array<{ id: number; nombre: string }>;
   proveedores: Array<{ id: number; nombre: string }>;
+  relaciones: {
+    clienteObras: Record<number, number[]>;
+    obraProveedores: Record<number, number[]>;
+  };
 }

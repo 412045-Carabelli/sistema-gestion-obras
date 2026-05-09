@@ -45,15 +45,20 @@ public class ReportesBffController {
     public Mono<ResponseEntity<Map<String, Object>>> getCatalogosFiltroCuentaCorriente() {
         return Mono.zip(
                 fetchGrupos(),
-                fetchObras(),
+                fetchObrasConCliente(),
                 fetchClientes(),
-                fetchProveedores()
+                fetchProveedores(),
+                fetchObraProveedorRelaciones()
         ).map(tuple -> {
             Map<String, Object> result = new java.util.HashMap<>();
             result.put("grupos", tuple.getT1());
             result.put("obras", tuple.getT2());
             result.put("clientes", tuple.getT3());
             result.put("proveedores", tuple.getT4());
+
+            Map<String, Object> relaciones = construirRelaciones(tuple.getT2(), tuple.getT5());
+            result.put("relaciones", relaciones);
+
             return ResponseEntity.ok(result);
         }).onErrorResume(e -> {
             Map<String, Object> errorResult = new java.util.HashMap<>();
@@ -72,14 +77,26 @@ public class ReportesBffController {
                 .onErrorResume(e -> Mono.just(List.of()));
     }
 
-    private Mono<List<Map<String, Object>>> fetchObras() {
+    private Mono<List<Map<String, Object>>> fetchObrasConCliente() {
         return webClientBuilder.build()
                 .get()
-                .uri(obrasServiceUrl + "/obras")
+                .uri(obrasServiceUrl + "?size=1000")
                 .accept(MediaType.APPLICATION_JSON)
                 .retrieve()
                 .bodyToMono(new ParameterizedTypeReference<List<Map<String, Object>>>() {})
-                .onErrorResume(e -> Mono.just(List.of()));
+                .map(list -> list.stream()
+                    .map(obj -> {
+                        Map<String, Object> result = new java.util.HashMap<>();
+                        result.put("id", obj.get("id"));
+                        result.put("nombre", obj.get("nombre"));
+                        result.put("idCliente", obj.get("id_cliente"));
+                        return result;
+                    })
+                    .toList())
+                .onErrorResume(e -> {
+                    System.err.println("Error fetching obras: " + e.getMessage());
+                    return Mono.just(List.of());
+                });
     }
 
     private Mono<List<Map<String, Object>>> fetchClientes() {
@@ -89,7 +106,18 @@ public class ReportesBffController {
                 .accept(MediaType.APPLICATION_JSON)
                 .retrieve()
                 .bodyToMono(new ParameterizedTypeReference<List<Map<String, Object>>>() {})
-                .onErrorResume(e -> Mono.just(List.of()));
+                .map(list -> list.stream()
+                    .map(obj -> {
+                        Map<String, Object> result = new java.util.HashMap<>();
+                        result.put("id", obj.get("id"));
+                        result.put("nombre", obj.get("nombre"));
+                        return result;
+                    })
+                    .toList())
+                .onErrorResume(e -> {
+                    System.err.println("Error fetching clientes: " + e.getMessage());
+                    return Mono.just(List.of());
+                });
     }
 
     private Mono<List<Map<String, Object>>> fetchProveedores() {
@@ -99,7 +127,59 @@ public class ReportesBffController {
                 .accept(MediaType.APPLICATION_JSON)
                 .retrieve()
                 .bodyToMono(new ParameterizedTypeReference<List<Map<String, Object>>>() {})
-                .onErrorResume(e -> Mono.just(List.of()));
+                .map(list -> list.stream()
+                    .map(obj -> {
+                        Map<String, Object> result = new java.util.HashMap<>();
+                        result.put("id", obj.get("id"));
+                        result.put("nombre", obj.get("nombre"));
+                        return result;
+                    })
+                    .toList())
+                .onErrorResume(e -> {
+                    System.err.println("Error fetching proveedores: " + e.getMessage());
+                    return Mono.just(List.of());
+                });
+    }
+
+    private Mono<List<Map<String, Object>>> fetchObraProveedorRelaciones() {
+        return webClientBuilder.build()
+                .get()
+                .uri(obrasServiceUrl + "/obra-proveedor/todas")
+                .accept(MediaType.APPLICATION_JSON)
+                .retrieve()
+                .bodyToMono(new ParameterizedTypeReference<List<Map<String, Object>>>() {})
+                .onErrorResume(e -> {
+                    System.err.println("Error fetching obra-proveedor relaciones: " + e.getMessage());
+                    return Mono.just(List.of());
+                });
+    }
+
+    private Map<String, Object> construirRelaciones(List<Map<String, Object>> obras, List<Map<String, Object>> obraProveedors) {
+        Map<String, Object> relaciones = new java.util.HashMap<>();
+
+        // Construir clienteObras: { clienteId: [obraIds] }
+        Map<Object, List<Object>> clienteObras = new java.util.HashMap<>();
+        for (Map<String, Object> obra : obras) {
+            Object idCliente = obra.get("idCliente");
+            Object idObra = obra.get("id");
+            if (idCliente != null && idObra != null) {
+                clienteObras.computeIfAbsent(idCliente, k -> new java.util.ArrayList<>()).add(idObra);
+            }
+        }
+
+        // Construir obraProveedores: { obraId: [proveedorIds] }
+        Map<Object, List<Object>> obraProveedores = new java.util.HashMap<>();
+        for (Map<String, Object> rel : obraProveedors) {
+            Object idObra = rel.get("idObra");
+            Object idProveedor = rel.get("idProveedor");
+            if (idObra != null && idProveedor != null) {
+                obraProveedores.computeIfAbsent(idObra, k -> new java.util.ArrayList<>()).add(idProveedor);
+            }
+        }
+
+        relaciones.put("clienteObras", clienteObras);
+        relaciones.put("obraProveedores", obraProveedores);
+        return relaciones;
     }
 
     // ---------- FINANCIEROS ----------

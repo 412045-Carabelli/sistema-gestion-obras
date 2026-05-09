@@ -15,6 +15,7 @@ public class ObrasProveedoresController {
     private final ObraProveedorService svc;
 
     @GetMapping("/{idObra}") public List<ObraProveedor> proveedores(@PathVariable("idObra") Long idObra){ return svc.proveedoresDeObra(idObra); }
+    @GetMapping("/todas") public List<ObraProveedor> todasLasRelaciones() { return svc.todasLasRelaciones(); }
     @PostMapping("/{idObra}/link/{idProveedor}") public void vincular(@PathVariable("idObra") Long idObra, @PathVariable("idProveedor") Long idProveedor){ svc.vincularProveedor(idObra,idProveedor); }
     @DeleteMapping("/{idObra}/unlink/{idProveedor}") public void desvincular(@PathVariable("idObra") Long idObra, @PathVariable("idProveedor") Long idProveedor){ svc.desvincularProveedor(idObra,idProveedor); }
 
