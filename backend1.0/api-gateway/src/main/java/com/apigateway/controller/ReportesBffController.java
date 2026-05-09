@@ -158,22 +158,24 @@ public class ReportesBffController {
         Map<String, Object> relaciones = new java.util.HashMap<>();
 
         // Construir clienteObras: { clienteId: [obraIds] }
-        Map<Object, List<Object>> clienteObras = new java.util.HashMap<>();
+        Map<String, List<Object>> clienteObras = new java.util.HashMap<>();
         for (Map<String, Object> obra : obras) {
             Object idCliente = obra.get("idCliente");
             Object idObra = obra.get("id");
             if (idCliente != null && idObra != null) {
-                clienteObras.computeIfAbsent(idCliente, k -> new java.util.ArrayList<>()).add(idObra);
+                String key = String.valueOf(idCliente);
+                clienteObras.computeIfAbsent(key, k -> new java.util.ArrayList<>()).add(idObra);
             }
         }
 
         // Construir obraProveedores: { obraId: [proveedorIds] }
-        Map<Object, List<Object>> obraProveedores = new java.util.HashMap<>();
+        Map<String, List<Object>> obraProveedores = new java.util.HashMap<>();
         for (Map<String, Object> rel : obraProveedors) {
             Object idObra = rel.get("idObra");
             Object idProveedor = rel.get("idProveedor");
             if (idObra != null && idProveedor != null) {
-                obraProveedores.computeIfAbsent(idObra, k -> new java.util.ArrayList<>()).add(idProveedor);
+                String key = String.valueOf(idObra);
+                obraProveedores.computeIfAbsent(key, k -> new java.util.ArrayList<>()).add(idProveedor);
             }
         }
 
