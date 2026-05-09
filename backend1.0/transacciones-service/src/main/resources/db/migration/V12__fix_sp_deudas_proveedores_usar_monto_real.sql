@@ -1,6 +1,7 @@
--- V10__fix_sp_deudas_proveedores_usar_monto_real.sql
--- Actualiza sp_deudas_proveedores_con_grupo para usar monto_real en lugar de total
--- monto_real es el gasto actual del proveedor; si no existe, usar total (presupuestado)
+-- V12__fix_sp_deudas_proveedores_usar_monto_real.sql
+-- Actualiza sp_deudas_proveedores_con_grupo para usar monto_real en lugar de subtotal
+-- monto_real es el gasto actual del proveedor; si no existe, usar subtotal (presupuestado)
+-- Agrupa por obra-proveedor (no por costo individual) para sumar correctamente
 
 CREATE OR ALTER PROCEDURE sp_deudas_proveedores_con_grupo
   @grupoId     BIGINT = NULL,
@@ -16,32 +17,56 @@ BEGIN
   INSERT INTO @estadosValidos VALUES
     ('ADJUDICADA'), ('EN_PROGRESO'), ('COBRADA'), ('FACTURADA'), ('FACTURADA_PARCIAL'), ('FINALIZADA');
 
+  -- CTE: Suma de costos presupuestados por obra y proveedor
+  -- Prioriza monto_real si existe y es > 0, sino usa subtotal
+  WITH costos_presupuestados AS (
+    SELECT
+      oc.id_obra,
+      oc.id_proveedor,
+      SUM(CASE
+        WHEN oc.monto_real IS NOT NULL AND oc.monto_real > 0 THEN CAST(oc.monto_real AS DECIMAL(14,2))
+        ELSE CAST(oc.subtotal AS DECIMAL(14,2))
+      END) AS total_presupuestado
+    FROM [sgo_obras].[dbo].[obra_costo] oc
+    WHERE oc.activo = 1
+    GROUP BY oc.id_obra, oc.id_proveedor
+  ),
+  -- CTE: Suma de pagos realizados por obra y proveedor
+  pagos_realizados AS (
+    SELECT
+      t.id_obra,
+      t.id_asociado AS id_proveedor,
+      SUM(CAST(t.monto AS DECIMAL(14,2))) AS total_pagado
+    FROM [sgo_transacciones].[dbo].[transacciones] t
+    WHERE t.activo = 1
+      AND t.id_tipo_transaccion = 'PAGO'
+      AND t.tipo_asociado = 'PROVEEDOR'
+      AND (@fechaInicio IS NULL OR CAST(t.fecha AS DATE) >= @fechaInicio)
+      AND (@fechaFin IS NULL OR CAST(t.fecha AS DATE) <= @fechaFin)
+    GROUP BY t.id_obra, t.id_asociado
+  )
+  -- Resultado principal
   SELECT
     o.id_grupo AS grupoId,
     g.nombre AS grupoNombre,
     o.id AS obraId,
     o.nombre AS obraNombre,
-    oc.id_proveedor AS proveedorId,
+    cp.id_proveedor AS proveedorId,
     p.nombre AS proveedorNombre,
-    ISNULL(SUM(ISNULL(oc.monto_real, oc.total)), 0) AS presupuestado,
-    ISNULL(SUM(CASE WHEN tt.nombre = 'PAGO' THEN CAST(t.monto AS DECIMAL(14,2)) ELSE 0 END), 0) AS pagado,
-    ISNULL(SUM(ISNULL(oc.monto_real, oc.total)), 0) - ISNULL(SUM(CASE WHEN tt.nombre = 'PAGO' THEN CAST(t.monto AS DECIMAL(14,2)) ELSE 0 END), 0) AS saldo
-  FROM [sgo_obras].[dbo].[obra_costo] oc
-  INNER JOIN [sgo_obras].[dbo].[obras] o ON oc.id_obra = o.id
+    CAST(ISNULL(cp.total_presupuestado, 0) AS DECIMAL(14,2)) AS presupuestado,
+    CAST(ISNULL(pr.total_pagado, 0) AS DECIMAL(14,2)) AS pagado,
+    CAST(ISNULL(cp.total_presupuestado, 0) - ISNULL(pr.total_pagado, 0) AS DECIMAL(14,2)) AS saldo
+  FROM costos_presupuestados cp
+  INNER JOIN [sgo_obras].[dbo].[obras] o ON cp.id_obra = o.id
   LEFT JOIN [sgo_obras].[dbo].[grupos_obras] g ON o.id_grupo = g.id
-  LEFT JOIN [sgo_proveedores].[dbo].[proveedores] p ON oc.id_proveedor = p.id
-  LEFT JOIN [sgo_transacciones].[dbo].[transacciones] t ON o.id = t.id_obra AND oc.id_proveedor = t.id_asociado AND t.activo = 1
-  LEFT JOIN [sgo_transacciones].[dbo].[tipo_transaccion] tt ON CAST(t.id_tipo_transaccion AS BIGINT) = tt.id AND tt.nombre = 'PAGO'
-  WHERE oc.activo = 1
-    AND o.activo = 1
+  LEFT JOIN [sgo_proveedores].[dbo].[proveedores] p ON cp.id_proveedor = p.id
+  LEFT JOIN pagos_realizados pr ON cp.id_obra = pr.id_obra AND cp.id_proveedor = pr.id_proveedor
+  WHERE o.activo = 1
     AND o.estado_obra IN (SELECT estado FROM @estadosValidos)
     AND (@grupoId IS NULL OR o.id_grupo = @grupoId)
-    AND (@obraId IS NULL OR oc.id_obra = @obraId)
-    AND (@proveedorId IS NULL OR oc.id_proveedor = @proveedorId)
-    AND (@fechaInicio IS NULL OR CAST(ISNULL(t.fecha, o.creado_en) AS DATE) >= @fechaInicio)
-    AND (@fechaFin IS NULL OR CAST(ISNULL(t.fecha, o.creado_en) AS DATE) <= @fechaFin)
-  GROUP BY o.id_grupo, g.nombre, o.id, o.nombre, oc.id_proveedor, p.nombre, o.creado_en
-  HAVING ISNULL(SUM(ISNULL(oc.monto_real, oc.total)), 0) - ISNULL(SUM(CASE WHEN tt.nombre = 'PAGO' THEN CAST(t.monto AS DECIMAL(14,2)) ELSE 0 END), 0) > 0
+    AND (@obraId IS NULL OR cp.id_obra = @obraId)
+    AND (@proveedorId IS NULL OR cp.id_proveedor = @proveedorId)
+    AND (ISNULL(cp.total_presupuestado, 0) - ISNULL(pr.total_pagado, 0) > 0)
   ORDER BY o.creado_en DESC, o.nombre;
 
 END;
