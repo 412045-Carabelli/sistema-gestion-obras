@@ -43,8 +43,8 @@ export class CuentasCorrientesListComponent implements OnInit, OnDestroy {
   // Listas de filtrado en cascada
   private obrasTodas: Array<{ id: number; nombre: string }> = [];
   private proveedoresTodos: Array<{ id: number; nombre: string }> = [];
-  private clienteObrasMapa: Record<number, number[]> = {};
-  private obraProveedoresMapa: Record<number, number[]> = {};
+  private clienteObrasMapa: Record<string, number[]> = {};
+  private obraProveedoresMapa: Record<string, number[]> = {};
 
   obrasFiltradas: Array<{ id: number; nombre: string }> = [];
   proveedoresFiltrados: Array<{ id: number; nombre: string }> = [];
@@ -156,14 +156,14 @@ export class CuentasCorrientesListComponent implements OnInit, OnDestroy {
   private onClienteChange(clienteId: number | null): void {
     if (clienteId) {
       // Obtener obras del cliente
-      const obrasDeCliente = this.clienteObrasMapa[clienteId] || [];
+      const obrasDeCliente = this.clienteObrasMapa[String(clienteId)] || [];
       this.obrasFiltradas = this.obrasTodas.filter((o) => obrasDeCliente.includes(o.id));
 
       // Filtrar proveedores que trabajan en las obras del cliente
       const proveedoresDisponibles = new Set<number>();
-      obrasDeCliente.forEach((obraId) => {
-        const proveedoresEnObra = this.obraProveedoresMapa[obraId] || [];
-        proveedoresEnObra.forEach((p) => proveedoresDisponibles.add(p));
+      obrasDeCliente.forEach((obraId: number) => {
+        const proveedoresEnObra = this.obraProveedoresMapa[String(obraId)] || [];
+        proveedoresEnObra.forEach((p: number) => proveedoresDisponibles.add(p));
       });
       this.proveedoresFiltrados = this.proveedoresTodos.filter((p) => proveedoresDisponibles.has(p.id));
     } else {
@@ -188,7 +188,7 @@ export class CuentasCorrientesListComponent implements OnInit, OnDestroy {
 
       if (clienteId) {
         // Intersección: obras del cliente AND obras del proveedor
-        const obrasDeCliente = this.clienteObrasMapa[clienteId] || [];
+        const obrasDeCliente = this.clienteObrasMapa[String(clienteId)] || [];
         this.obrasFiltradas = this.obrasTodas.filter(
           (o) => obrasDeCliente.includes(o.id) && obrasDelProveedor.includes(o.id)
         );
@@ -199,7 +199,7 @@ export class CuentasCorrientesListComponent implements OnInit, OnDestroy {
     } else {
       // Sin proveedor
       if (clienteId) {
-        const obrasDeCliente = this.clienteObrasMapa[clienteId] || [];
+        const obrasDeCliente = this.clienteObrasMapa[String(clienteId)] || [];
         this.obrasFiltradas = this.obrasTodas.filter((o) => obrasDeCliente.includes(o.id));
       } else {
         this.obrasFiltradas = [...this.obrasTodas];
