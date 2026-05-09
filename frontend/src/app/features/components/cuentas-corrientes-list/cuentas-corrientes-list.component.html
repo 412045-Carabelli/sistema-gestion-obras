@@ -1,18 +1,18 @@
 <div class="space-y-5">
   <!-- Filtros -->
   <div class="bg-white rounded-lg shadow p-5">
-    <form [formGroup]="form" class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-3">
+    <form [formGroup]="form" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
       <div>
         <label class="block text-sm font-medium text-gray-700 mb-1">Cliente</label>
-        <p-select formControlName="clienteId" [options]="clientesFiltrados" optionLabel="nombre" optionValue="id" placeholder="Todos" [showClear]="true" [filter]="true" [fluid]="true"></p-select>
+        <p-select formControlName="clienteId" [options]="clientes" optionLabel="nombre" optionValue="id" placeholder="Todos" [showClear]="true" [filter]="true" [fluid]="true"></p-select>
       </div>
       <div>
         <label class="block text-sm font-medium text-gray-700 mb-1">Proveedor</label>
-        <p-select formControlName="proveedorId" [options]="proveedoresFiltrados" optionLabel="nombre" optionValue="id" placeholder="Todos" [showClear]="true" [filter]="true" [fluid]="true"></p-select>
+        <p-select formControlName="proveedorId" [options]="proveedores" optionLabel="nombre" optionValue="id" placeholder="Todos" [showClear]="true" [filter]="true" [fluid]="true"></p-select>
       </div>
       <div>
         <label class="block text-sm font-medium text-gray-700 mb-1">Obra</label>
-        <p-select formControlName="obraId" [options]="obrasFiltradas" optionLabel="nombre" optionValue="id" placeholder="Todas" [showClear]="true" [filter]="true" [fluid]="true"></p-select>
+        <p-select formControlName="obraId" [options]="obras" optionLabel="nombre" optionValue="id" placeholder="Todas" [showClear]="true" [filter]="true" [fluid]="true"></p-select>
       </div>
       <div class="flex items-end">
         <p-button label="Limpiar" icon="pi pi-times" severity="secondary" (onClick)="limpiarFiltros()" [fluid]="true"></p-button>
@@ -21,15 +21,15 @@
   </div>
 
   <!-- Resumen -->
-  @if (datosFiltrados) {
+  @if (datos) {
     <div class="grid grid-cols-2 gap-3">
       <div class="bg-green-50 border border-green-200 rounded-lg p-4">
         <p class="text-green-700 text-sm font-medium">Total por cobrar</p>
-        <p class="text-2xl font-bold text-green-900">{{ datosFiltrados.deudaClientes | currency:'ARS':'symbol-narrow':'1.0-0' }}</p>
+        <p class="text-2xl font-bold text-green-900">{{ datos.deudaClientes | currency:'ARS':'symbol-narrow':'1.0-0' }}</p>
       </div>
       <div class="bg-red-50 border border-red-200 rounded-lg p-4">
         <p class="text-red-700 text-sm font-medium">Total por pagar</p>
-        <p class="text-2xl font-bold text-red-900">{{ datosFiltrados.deudaProveedores | currency:'ARS':'symbol-narrow':'1.0-0' }}</p>
+        <p class="text-2xl font-bold text-red-900">{{ datos.deudaProveedores | currency:'ARS':'symbol-narrow':'1.0-0' }}</p>
       </div>
     </div>
   }
@@ -37,7 +37,7 @@
   <!-- Tablas lado a lado -->
   <div class="grid grid-cols-1 lg:grid-cols-2 gap-5">
     <!-- Tabla Clientes -->
-    @if (datosFiltrados?.detalleDeudaClientes !== undefined) {
+    @if (datos?.detalleDeudaClientes !== undefined) {
       <div class="bg-white rounded-lg shadow p-5">
         <h3 class="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
           <i class="pi pi-users text-green-600"></i>
@@ -55,7 +55,7 @@
               </tr>
             </thead>
             <tbody>
-              @for (item of datosFiltrados?.detalleDeudaClientes ?? []; track item.clienteId) {
+              @for (item of datos?.detalleDeudaClientes ?? []; track item.clienteId) {
                 <tr class="border-t border-gray-100 hover:bg-gray-50 cursor-pointer transition-colors" (click)="onClienteRowClick(item)">
                   <td class="px-4 py-3 font-medium text-gray-900 max-w-[120px] truncate" [pTooltip]="item.obraNombre" tooltipPosition="top">{{ item.obraNombre }}</td>
                   <td class="px-4 py-3 text-gray-700 max-w-[120px] truncate" [pTooltip]="item.clienteNombre" tooltipPosition="top">{{ item.clienteNombre }}</td>
@@ -71,7 +71,7 @@
     }
 
     <!-- Tabla Proveedores -->
-    @if (datosFiltrados?.detalleDeudaProveedores !== undefined) {
+    @if (datos?.detalleDeudaProveedores !== undefined) {
       <div class="bg-white rounded-lg shadow p-5">
         <h3 class="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
           <i class="pi pi-briefcase text-red-600"></i>
@@ -89,7 +89,7 @@
               </tr>
             </thead>
             <tbody>
-              @for (item of datosFiltrados?.detalleDeudaProveedores ?? []; track item.proveedorId) {
+              @for (item of datos?.detalleDeudaProveedores ?? []; track item.proveedorId) {
                 <tr class="border-t border-gray-100 hover:bg-gray-50 cursor-pointer transition-colors" (click)="onProveedorRowClick(item)">
                   <td class="px-4 py-3 font-medium text-gray-900 max-w-[120px] truncate" [pTooltip]="item.obraNombre" tooltipPosition="top">{{ item.obraNombre }}</td>
                   <td class="px-4 py-3 text-gray-700 max-w-[120px] truncate" [pTooltip]="item.proveedorNombre" tooltipPosition="top">{{ item.proveedorNombre }}</td>
@@ -104,5 +104,4 @@
       </div>
     }
   </div>
-
 </div>

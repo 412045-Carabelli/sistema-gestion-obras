@@ -15,7 +15,6 @@ import java.net.URISyntaxException;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
 
 @RestController
 @RequestMapping("/bff/reportes")
@@ -46,20 +45,15 @@ public class ReportesBffController {
     public Mono<ResponseEntity<Map<String, Object>>> getCatalogosFiltroCuentaCorriente() {
         return Mono.zip(
                 fetchGrupos(),
-                fetchObrasConCliente(),
+                fetchObras(),
                 fetchClientes(),
-                fetchProveedores(),
-                fetchObraProveedorRelaciones()
+                fetchProveedores()
         ).map(tuple -> {
             Map<String, Object> result = new java.util.HashMap<>();
             result.put("grupos", tuple.getT1());
             result.put("obras", tuple.getT2());
             result.put("clientes", tuple.getT3());
             result.put("proveedores", tuple.getT4());
-
-            Map<String, Object> relaciones = construirRelaciones(tuple.getT2(), tuple.getT5());
-            result.put("relaciones", relaciones);
-
             return ResponseEntity.ok(result);
         }).onErrorResume(e -> {
             Map<String, Object> errorResult = new java.util.HashMap<>();
@@ -78,7 +72,7 @@ public class ReportesBffController {
                 .onErrorResume(e -> Mono.just(List.of()));
     }
 
-    private Mono<List<Map<String, Object>>> fetchObrasConCliente() {
+    private Mono<List<Map<String, Object>>> fetchObras() {
         return webClientBuilder.build()
                 .get()
                 .uri(obrasServiceUrl + "?size=1000")
@@ -90,7 +84,6 @@ public class ReportesBffController {
                         Map<String, Object> result = new java.util.HashMap<>();
                         result.put("id", obj.get("id"));
                         result.put("nombre", obj.get("nombre"));
-                        result.put("idCliente", obj.get("id_cliente"));
                         return result;
                     })
                     .toList())
@@ -140,76 +133,6 @@ public class ReportesBffController {
                     System.err.println("Error fetching proveedores: " + e.getMessage());
                     return Mono.just(List.of());
                 });
-    }
-
-    private Mono<List<Map<String, Object>>> fetchObraProveedorRelaciones() {
-        return webClientBuilder.build()
-                .get()
-                .uri(obrasServiceUrl + "/obra-proveedor/todas")
-                .accept(MediaType.APPLICATION_JSON)
-                .retrieve()
-                .bodyToMono(new ParameterizedTypeReference<List<Map<String, Object>>>() {})
-                .onErrorResume(e -> {
-                    System.err.println("Error fetching obra-proveedor relaciones: " + e.getMessage());
-                    return Mono.just(List.of());
-                });
-    }
-
-    private Map<String, Object> construirRelaciones(List<Map<String, Object>> obras, List<Map<String, Object>> obraProveedors) {
-        Map<String, Object> relaciones = new java.util.HashMap<>();
-
-        // clienteObras: { clienteId: [obraIds] }
-        Map<String, List<Object>> clienteObras = new java.util.HashMap<>();
-        // obraCliente: { obraId: clienteId }
-        Map<String, Object> obraCliente = new java.util.HashMap<>();
-        for (Map<String, Object> obra : obras) {
-            Object idCliente = obra.get("idCliente");
-            Object idObra = obra.get("id");
-            if (idCliente != null && idObra != null) {
-                String keyCliente = String.valueOf(idCliente);
-                String keyObra = String.valueOf(idObra);
-                clienteObras.computeIfAbsent(keyCliente, k -> new java.util.ArrayList<>()).add(idObra);
-                obraCliente.put(keyObra, idCliente);
-            }
-        }
-
-        // obraProveedores: { obraId: [proveedorIds] }
-        // proveedorObras: { proveedorId: [obraIds] }
-        Map<String, List<Object>> obraProveedores = new java.util.HashMap<>();
-        Map<String, List<Object>> proveedorObras = new java.util.HashMap<>();
-        for (Map<String, Object> rel : obraProveedors) {
-            Object idObra = rel.get("idObra");
-            Object idProveedor = rel.get("idProveedor");
-            if (idObra != null && idProveedor != null) {
-                String keyObra = String.valueOf(idObra);
-                String keyProveedor = String.valueOf(idProveedor);
-                obraProveedores.computeIfAbsent(keyObra, k -> new java.util.ArrayList<>()).add(idProveedor);
-                proveedorObras.computeIfAbsent(keyProveedor, k -> new java.util.ArrayList<>()).add(idObra);
-            }
-        }
-
-        // clienteProveedores: { clienteId: [proveedorIds] } - proveedores que trabajan en obras del cliente
-        Map<String, List<Object>> clienteProveedores = new java.util.HashMap<>();
-        for (Map.Entry<String, List<Object>> entry : clienteObras.entrySet()) {
-            String clienteId = entry.getKey();
-            Set<Object> proveedoresDelCliente = new java.util.HashSet<>();
-            for (Object obraId : entry.getValue()) {
-                List<Object> provs = obraProveedores.get(String.valueOf(obraId));
-                if (provs != null) {
-                    proveedoresDelCliente.addAll(provs);
-                }
-            }
-            if (!proveedoresDelCliente.isEmpty()) {
-                clienteProveedores.put(clienteId, new java.util.ArrayList<>(proveedoresDelCliente));
-            }
-        }
-
-        relaciones.put("clienteObras", clienteObras);
-        relaciones.put("obraCliente", obraCliente);
-        relaciones.put("obraProveedores", obraProveedores);
-        relaciones.put("proveedorObras", proveedorObras);
-        relaciones.put("clienteProveedores", clienteProveedores);
-        return relaciones;
     }
 
     // ---------- FINANCIEROS ----------
