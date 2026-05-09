@@ -692,7 +692,10 @@ export interface CatalogoCuentaCorriente {
   clientes: Array<{ id: number; nombre: string }>;
   proveedores: Array<{ id: number; nombre: string }>;
   relaciones: {
-    clienteObras: Record<number, number[]>;
-    obraProveedores: Record<number, number[]>;
+    clienteObras: Record<string, number[]>;      // clienteId → [obraIds]
+    obraCliente: Record<string, number>;         // obraId → clienteId
+    obraProveedores: Record<string, number[]>;   // obraId → [proveedorIds]
+    proveedorObras: Record<string, number[]>;    // proveedorId → [obraIds]
+    clienteProveedores: Record<string, number[]>; // clienteId → [proveedorIds]
   };
 }

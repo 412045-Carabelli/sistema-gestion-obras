@@ -157,30 +157,57 @@ public class ReportesBffController {
     private Map<String, Object> construirRelaciones(List<Map<String, Object>> obras, List<Map<String, Object>> obraProveedors) {
         Map<String, Object> relaciones = new java.util.HashMap<>();
 
-        // Construir clienteObras: { clienteId: [obraIds] }
+        // clienteObras: { clienteId: [obraIds] }
         Map<String, List<Object>> clienteObras = new java.util.HashMap<>();
+        // obraCliente: { obraId: clienteId }
+        Map<String, Object> obraCliente = new java.util.HashMap<>();
         for (Map<String, Object> obra : obras) {
             Object idCliente = obra.get("idCliente");
             Object idObra = obra.get("id");
             if (idCliente != null && idObra != null) {
-                String key = String.valueOf(idCliente);
-                clienteObras.computeIfAbsent(key, k -> new java.util.ArrayList<>()).add(idObra);
+                String keyCliente = String.valueOf(idCliente);
+                String keyObra = String.valueOf(idObra);
+                clienteObras.computeIfAbsent(keyCliente, k -> new java.util.ArrayList<>()).add(idObra);
+                obraCliente.put(keyObra, idCliente);
             }
         }
 
-        // Construir obraProveedores: { obraId: [proveedorIds] }
+        // obraProveedores: { obraId: [proveedorIds] }
+        // proveedorObras: { proveedorId: [obraIds] }
         Map<String, List<Object>> obraProveedores = new java.util.HashMap<>();
+        Map<String, List<Object>> proveedorObras = new java.util.HashMap<>();
         for (Map<String, Object> rel : obraProveedors) {
             Object idObra = rel.get("idObra");
             Object idProveedor = rel.get("idProveedor");
             if (idObra != null && idProveedor != null) {
-                String key = String.valueOf(idObra);
-                obraProveedores.computeIfAbsent(key, k -> new java.util.ArrayList<>()).add(idProveedor);
+                String keyObra = String.valueOf(idObra);
+                String keyProveedor = String.valueOf(idProveedor);
+                obraProveedores.computeIfAbsent(keyObra, k -> new java.util.ArrayList<>()).add(idProveedor);
+                proveedorObras.computeIfAbsent(keyProveedor, k -> new java.util.ArrayList<>()).add(idObra);
+            }
+        }
+
+        // clienteProveedores: { clienteId: [proveedorIds] } - proveedores que trabajan en obras del cliente
+        Map<String, List<Object>> clienteProveedores = new java.util.HashMap<>();
+        for (Map.Entry<String, List<Object>> entry : clienteObras.entrySet()) {
+            String clienteId = entry.getKey();
+            Set<Object> proveedoresDelCliente = new java.util.HashSet<>();
+            for (Object obraId : entry.getValue()) {
+                List<Object> provs = obraProveedores.get(String.valueOf(obraId));
+                if (provs != null) {
+                    proveedoresDelCliente.addAll(provs);
+                }
+            }
+            if (!proveedoresDelCliente.isEmpty()) {
+                clienteProveedores.put(clienteId, new java.util.ArrayList<>(proveedoresDelCliente));
             }
         }
 
         relaciones.put("clienteObras", clienteObras);
+        relaciones.put("obraCliente", obraCliente);
         relaciones.put("obraProveedores", obraProveedores);
+        relaciones.put("proveedorObras", proveedorObras);
+        relaciones.put("clienteProveedores", clienteProveedores);
         return relaciones;
     }
 
