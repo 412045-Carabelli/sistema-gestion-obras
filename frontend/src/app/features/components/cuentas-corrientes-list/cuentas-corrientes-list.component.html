@@ -1,10 +1,10 @@
 <div class="space-y-5">
   <!-- Filtros -->
   <div class="bg-white rounded-lg shadow p-5">
-    <form [formGroup]="form" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
+    <form [formGroup]="form" class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-3">
       <div>
         <label class="block text-sm font-medium text-gray-700 mb-1">Cliente</label>
-        <p-select formControlName="clienteId" [options]="clientes" optionLabel="nombre" optionValue="id" placeholder="Todos" [showClear]="true" [filter]="true" [fluid]="true"></p-select>
+        <p-select formControlName="clienteId" [options]="clientesFiltrados" optionLabel="nombre" optionValue="id" placeholder="Todos" [showClear]="true" [filter]="true" [fluid]="true"></p-select>
       </div>
       <div>
         <label class="block text-sm font-medium text-gray-700 mb-1">Proveedor</label>

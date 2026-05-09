@@ -40,13 +40,21 @@ export class CuentasCorrientesListComponent implements OnInit, OnDestroy {
   grupos: Array<{ id: number; nombre: string }> = [];
   clientes: Array<{ id: number; nombre: string }> = [];
 
-  // Listas de filtrado en cascada
+  // Listas completas
   private obrasTodas: Array<{ id: number; nombre: string }> = [];
+  private clientesTodos: Array<{ id: number; nombre: string }> = [];
   private proveedoresTodos: Array<{ id: number; nombre: string }> = [];
-  private clienteObrasMapa: Record<string, number[]> = {};
-  private obraProveedoresMapa: Record<string, number[]> = {};
 
+  // Mapas de relaciones
+  private clienteObras: Record<string, number[]> = {};
+  private obraCliente: Record<string, number> = {};
+  private obraProveedores: Record<string, number[]> = {};
+  private proveedorObras: Record<string, number[]> = {};
+  private clienteProveedores: Record<string, number[]> = {};
+
+  // Listas filtradas dinámicamente
   obrasFiltradas: Array<{ id: number; nombre: string }> = [];
+  clientesFiltrados: Array<{ id: number; nombre: string }> = [];
   proveedoresFiltrados: Array<{ id: number; nombre: string }> = [];
 
   @Output() clienteRowClicked = new EventEmitter<DetalleDeudaCliente>();
@@ -109,17 +117,23 @@ export class CuentasCorrientesListComponent implements OnInit, OnDestroy {
       this.http.get<CatalogoCuentaCorriente>(this.catalogoUrl).subscribe({
         next: (response) => {
           this.grupos = response.grupos || [];
-          this.clientes = response.clientes || [];
+          this.clientesTodos = response.clientes || [];
           this.obrasTodas = response.obras || [];
           this.proveedoresTodos = response.proveedores || [];
-          this.clienteObrasMapa = response.relaciones?.clienteObras || {};
-          this.obraProveedoresMapa = response.relaciones?.obraProveedores || {};
+
+          // Guardar mapas de relaciones
+          this.clienteObras = response.relaciones?.clienteObras || {};
+          this.obraCliente = response.relaciones?.obraCliente || {};
+          this.obraProveedores = response.relaciones?.obraProveedores || {};
+          this.proveedorObras = response.relaciones?.proveedorObras || {};
+          this.clienteProveedores = response.relaciones?.clienteProveedores || {};
 
           // Inicializar listas filtradas con todas las opciones
+          this.clientesFiltrados = [...this.clientesTodos];
           this.obrasFiltradas = [...this.obrasTodas];
           this.proveedoresFiltrados = [...this.proveedoresTodos];
 
-          this.setupListenersClienteProveedor();
+          this.setupListeners();
           this.cargar$.next();
         },
         error: (err) => {
@@ -130,86 +144,135 @@ export class CuentasCorrientesListComponent implements OnInit, OnDestroy {
     );
   }
 
-  private setupListenersClienteProveedor(): void {
-    // Escuchar cambios en clienteId
+  private setupListeners(): void {
+    // Escuchar cambios en cualquier filtro y recalcular todos
     this.subs.add(
-      this.form.get('clienteId')!.valueChanges.subscribe((clienteId) => {
-        this.onClienteChange(clienteId);
+      this.form.get('clienteId')!.valueChanges.subscribe(() => {
+        this.recalcularFiltros();
       })
     );
 
-    // Escuchar cambios en proveedorId
     this.subs.add(
-      this.form.get('proveedorId')!.valueChanges.subscribe((proveedorId) => {
-        this.onProveedorChange(proveedorId);
+      this.form.get('proveedorId')!.valueChanges.subscribe(() => {
+        this.recalcularFiltros();
       })
     );
 
-    // Escuchar cambios en obraId
     this.subs.add(
       this.form.get('obraId')!.valueChanges.subscribe(() => {
+        this.recalcularFiltros();
         this.cargar$.next();
       })
     );
   }
 
-  private onClienteChange(clienteId: number | null): void {
-    if (clienteId) {
-      // Obtener obras del cliente
-      const obrasDeCliente = this.clienteObrasMapa[String(clienteId)] || [];
-      this.obrasFiltradas = this.obrasTodas.filter((o) => obrasDeCliente.includes(o.id));
+  private recalcularFiltros(): void {
+    const clienteId = this.form.get('clienteId')?.value;
+    const proveedorId = this.form.get('proveedorId')?.value;
+    const obraId = this.form.get('obraId')?.value;
 
-      // Filtrar proveedores que trabajan en las obras del cliente
-      const proveedoresDisponibles = new Set<number>();
-      obrasDeCliente.forEach((obraId: number) => {
-        const proveedoresEnObra = this.obraProveedoresMapa[String(obraId)] || [];
-        proveedoresEnObra.forEach((p: number) => proveedoresDisponibles.add(p));
-      });
-      this.proveedoresFiltrados = this.proveedoresTodos.filter((p) => proveedoresDisponibles.has(p.id));
-    } else {
-      // Sin cliente, mostrar todas las opciones
-      this.proveedoresFiltrados = [...this.proveedoresTodos];
-      this.obrasFiltradas = [...this.obrasTodas];
-    }
+    // Calcular listas disponibles basándose en filtros actuales
+    this.clientesFiltrados = this.getClientesDisponibles(clienteId, proveedorId, obraId);
+    this.obrasFiltradas = this.getObrasDisponibles(clienteId, proveedorId, obraId);
+    this.proveedoresFiltrados = this.getProveedoresDisponibles(clienteId, proveedorId, obraId);
 
-    // Resetear proveedorId y obraId sin disparar eventos
-    this.form.patchValue({ proveedorId: null, obraId: null }, { emitEvent: false });
     this.cargar$.next();
   }
 
-  private onProveedorChange(proveedorId: number | null): void {
-    const clienteId = this.form.get('clienteId')?.value;
+  private getObrasDisponibles(clienteId: number | null, proveedorId: number | null, obraId: number | null): Array<{ id: number; nombre: string }> {
+    let obrasDisponibles = new Set<number>();
+
+    if (obraId) {
+      // Si obra está seleccionada, solo esa obra
+      obrasDisponibles.add(obraId);
+    } else if (clienteId && proveedorId) {
+      // Intersección: obras del cliente que también tienen ese proveedor
+      const obrasDelCliente = this.clienteObras[String(clienteId)] || [];
+      const obrasDelProveedor = this.proveedorObras[String(proveedorId)] || [];
+      obrasDelCliente.forEach((o) => {
+        if (obrasDelProveedor.includes(o)) {
+          obrasDisponibles.add(o);
+        }
+      });
+    } else if (clienteId) {
+      // Solo obras del cliente
+      (this.clienteObras[String(clienteId)] || []).forEach((o) => obrasDisponibles.add(o));
+    } else if (proveedorId) {
+      // Solo obras del proveedor
+      (this.proveedorObras[String(proveedorId)] || []).forEach((o) => obrasDisponibles.add(o));
+    } else {
+      // Todas las obras
+      this.obrasTodas.forEach((o) => obrasDisponibles.add(o.id));
+    }
+
+    return this.obrasTodas.filter((o) => obrasDisponibles.has(o.id));
+  }
+
+  private getClientesDisponibles(clienteId: number | null, proveedorId: number | null, obraId: number | null): Array<{ id: number; nombre: string }> {
+    let clientesDisponibles = new Set<number>();
+
+    if (clienteId) {
+      // Si cliente está seleccionado, solo ese cliente
+      clientesDisponibles.add(clienteId);
+    } else if (obraId && proveedorId) {
+      // Intersección: cliente de la obra que también tenga ese proveedor
+      const clienteDeObra = this.obraCliente[String(obraId)];
+      if (clienteDeObra) {
+        const proveedoresDelCliente = this.clienteProveedores[String(clienteDeObra)] || [];
+        if (proveedoresDelCliente.includes(proveedorId)) {
+          clientesDisponibles.add(clienteDeObra);
+        }
+      }
+    } else if (obraId) {
+      // Solo cliente de esa obra
+      const clienteDeObra = this.obraCliente[String(obraId)];
+      if (clienteDeObra) {
+        clientesDisponibles.add(clienteDeObra);
+      }
+    } else if (proveedorId) {
+      // Clientes cuyas obras tienen ese proveedor
+      const obrasDelProveedor = this.proveedorObras[String(proveedorId)] || [];
+      obrasDelProveedor.forEach((obraId) => {
+        const clienteDeObra = this.obraCliente[String(obraId)];
+        if (clienteDeObra) {
+          clientesDisponibles.add(clienteDeObra);
+        }
+      });
+    } else {
+      // Todos los clientes
+      this.clientesTodos.forEach((c) => clientesDisponibles.add(c.id));
+    }
+
+    return this.clientesTodos.filter((c) => clientesDisponibles.has(c.id));
+  }
+
+  private getProveedoresDisponibles(clienteId: number | null, proveedorId: number | null, obraId: number | null): Array<{ id: number; nombre: string }> {
+    let proveedoresDisponibles = new Set<number>();
 
     if (proveedorId) {
-      // Obtener obras del proveedor
-      const obrasDelProveedor = Object.entries(this.obraProveedoresMapa)
-        .filter(([_, provIds]) => (provIds as number[]).includes(proveedorId))
-        .map(([obraId]) => Number(obraId));
-
-      if (clienteId) {
-        // Intersección: obras del cliente AND obras del proveedor
-        const obrasDeCliente = this.clienteObrasMapa[String(clienteId)] || [];
-        this.obrasFiltradas = this.obrasTodas.filter(
-          (o) => obrasDeCliente.includes(o.id) && obrasDelProveedor.includes(o.id)
-        );
-      } else {
-        // Solo obras del proveedor
-        this.obrasFiltradas = this.obrasTodas.filter((o) => obrasDelProveedor.includes(o.id));
+      // Si proveedor está seleccionado, solo ese proveedor
+      proveedoresDisponibles.add(proveedorId);
+    } else if (clienteId && obraId) {
+      // Intersección: proveedor de la obra que pertenece al cliente
+      const obrasDelCliente = this.clienteObras[String(clienteId)] || [];
+      if (obrasDelCliente.includes(obraId)) {
+        const proveedoresEnObra = this.obraProveedores[String(obraId)] || [];
+        proveedoresEnObra.forEach((p) => proveedoresDisponibles.add(p));
       }
+    } else if (clienteId) {
+      // Proveedores que trabajan en obras del cliente
+      (this.clienteProveedores[String(clienteId)] || []).forEach((p) => proveedoresDisponibles.add(p));
+    } else if (obraId) {
+      // Solo proveedores de esa obra
+      (this.obraProveedores[String(obraId)] || []).forEach((p) => proveedoresDisponibles.add(p));
     } else {
-      // Sin proveedor
-      if (clienteId) {
-        const obrasDeCliente = this.clienteObrasMapa[String(clienteId)] || [];
-        this.obrasFiltradas = this.obrasTodas.filter((o) => obrasDeCliente.includes(o.id));
-      } else {
-        this.obrasFiltradas = [...this.obrasTodas];
-      }
+      // Todos los proveedores
+      this.proveedoresTodos.forEach((p) => proveedoresDisponibles.add(p.id));
     }
 
-    // Resetear obraId sin disparar evento
-    this.form.patchValue({ obraId: null }, { emitEvent: false });
-    this.cargar$.next();
+    return this.proveedoresTodos.filter((p) => proveedoresDisponibles.has(p.id));
   }
+
 
   private buildFiltro(): ReportFilter {
     return {
@@ -222,6 +285,7 @@ export class CuentasCorrientesListComponent implements OnInit, OnDestroy {
 
   limpiarFiltros(): void {
     this.form.reset(null, { emitEvent: false });
+    this.clientesFiltrados = [...this.clientesTodos];
     this.proveedoresFiltrados = [...this.proveedoresTodos];
     this.obrasFiltradas = [...this.obrasTodas];
     this.cargar$.next();
