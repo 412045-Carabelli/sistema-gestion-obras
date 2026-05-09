@@ -66,7 +66,6 @@ BEGIN
     AND (@grupoId IS NULL OR o.id_grupo = @grupoId)
     AND (@obraId IS NULL OR cp.id_obra = @obraId)
     AND (@proveedorId IS NULL OR cp.id_proveedor = @proveedorId)
-    AND (ISNULL(cp.total_presupuestado, 0) - ISNULL(pr.total_pagado, 0) > 0)
   ORDER BY o.creado_en DESC, o.nombre;
 
 END;
