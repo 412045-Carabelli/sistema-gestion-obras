@@ -4,11 +4,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="136fcb9c-e23f-4df3-a0a1-35500f9899cd" name="Changes" comment="release">
-      <change beforePath="$PROJECT_DIR$/node_modules/.package-lock.json" beforeDir="false" afterPath="$PROJECT_DIR$/node_modules/.package-lock.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/package-lock.json" beforeDir="false" afterPath="$PROJECT_DIR$/package-lock.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/package.json" beforeDir="false" afterPath="$PROJECT_DIR$/package.json" afterDir="false" />
-    </list>
+    <list default="true" id="136fcb9c-e23f-4df3-a0a1-35500f9899cd" name="Changes" comment="release" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -55,67 +51,68 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent">{
-  &quot;keyToString&quot;: {
-    &quot;ASKED_MARK_IGNORED_FILES_AS_EXCLUDED&quot;: &quot;true&quot;,
-    &quot;Docker.Sistema de Gestión de Obras.api-gateway: Compose Deployment.executor&quot;: &quot;Run&quot;,
-    &quot;Docker.Sistema de Gestión de Obras.frontend: Compose Deployment.executor&quot;: &quot;Run&quot;,
-    &quot;Docker.Sistema de Gestión de Obras.minio: Compose Deployment.executor&quot;: &quot;Run&quot;,
-    &quot;Docker.Sistema de Gestión de Obras: Compose Deployment.executor&quot;: &quot;Run&quot;,
-    &quot;Docker.docker-compose.dev.yml: Compose Deployment.executor&quot;: &quot;Run&quot;,
-    &quot;Docker.docker-compose.ghcr.yml.clientes-service: Compose Deployment.executor&quot;: &quot;Run&quot;,
-    &quot;Docker.docker-compose.ghcr.yml.frontend: Compose Deployment.executor&quot;: &quot;Run&quot;,
-    &quot;Docker.docker-compose.ghcr.yml.obras-service: Compose Deployment.executor&quot;: &quot;Run&quot;,
-    &quot;Docker.docker-compose.ghcr.yml.proveedores-service: Compose Deployment.executor&quot;: &quot;Run&quot;,
-    &quot;Docker.docker-compose.ghcr.yml: Compose Deployment.executor&quot;: &quot;Run&quot;,
-    &quot;Docker.docker-compose.yml.api-gateway: Compose Deployment.executor&quot;: &quot;Run&quot;,
-    &quot;Docker.docker-compose.yml.clientes-service: Compose Deployment.executor&quot;: &quot;Run&quot;,
-    &quot;Docker.docker-compose.yml.frontend: Compose Deployment.executor&quot;: &quot;Run&quot;,
-    &quot;Docker.docker-compose.yml.proveedores-service: Compose Deployment.executor&quot;: &quot;Run&quot;,
-    &quot;Docker.docker-compose.yml.sqlserver: Compose Deployment.executor&quot;: &quot;Run&quot;,
-    &quot;Docker.docker-compose.yml: Compose Deployment.executor&quot;: &quot;Run&quot;,
-    &quot;Docker.frontend1.2.obras-service: Compose Deployment.executor&quot;: &quot;Run&quot;,
-    &quot;Docker.frontend1.2/docker-compose.frontend.yml: Compose Deployment.executor&quot;: &quot;Run&quot;,
-    &quot;Docker.frontend1.2: Compose Deployment.executor&quot;: &quot;Run&quot;,
-    &quot;JUnit.All in api-gateway.executor&quot;: &quot;Coverage&quot;,
-    &quot;JUnit.All in clientes-service.executor&quot;: &quot;Coverage&quot;,
-    &quot;JUnit.All in proveedores-service.executor&quot;: &quot;Coverage&quot;,
-    &quot;JUnit.All in reportes-service.executor&quot;: &quot;Coverage&quot;,
-    &quot;JUnit.java in documentos-service.executor&quot;: &quot;Coverage&quot;,
-    &quot;JUnit.java in obras-service.executor&quot;: &quot;Coverage&quot;,
-    &quot;JUnit.java in transacciones-service.executor&quot;: &quot;Coverage&quot;,
-    &quot;Maven.gestion-obras [-q,-DskipTests,package].executor&quot;: &quot;Run&quot;,
-    &quot;Notification.DisplayName-DoNotAsk-DatabaseConfigFileWatcher.found&quot;: &quot;Database connection parameters found&quot;,
-    &quot;Notification.DoNotAsk-DatabaseConfigFileWatcher.found&quot;: &quot;true&quot;,
-    &quot;RequestMappingsPanelOrder0&quot;: &quot;0&quot;,
-    &quot;RequestMappingsPanelOrder1&quot;: &quot;1&quot;,
-    &quot;RequestMappingsPanelWidth0&quot;: &quot;75&quot;,
-    &quot;RequestMappingsPanelWidth1&quot;: &quot;75&quot;,
-    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
-    &quot;Spring Boot.ApiGatewayApplication.executor&quot;: &quot;Run&quot;,
-    &quot;Spring Boot.BackupServiceApplication.executor&quot;: &quot;Run&quot;,
-    &quot;Spring Boot.ClientesServiceApplication.executor&quot;: &quot;Run&quot;,
-    &quot;Spring Boot.DocumentosServiceApplication.executor&quot;: &quot;Run&quot;,
-    &quot;Spring Boot.ObrasServiceApplication.executor&quot;: &quot;Run&quot;,
-    &quot;Spring Boot.ProveedoresServiceApplication.executor&quot;: &quot;Run&quot;,
-    &quot;Spring Boot.ReportesServiceApplication.executor&quot;: &quot;Run&quot;,
-    &quot;Spring Boot.TransaccionesServiceApplication.executor&quot;: &quot;Run&quot;,
-    &quot;git-widget-placeholder&quot;: &quot;feature/migration&quot;,
-    &quot;last_opened_file_path&quot;: &quot;C:/Users/Usuario/Desktop/my-work/sistema-gestion-obras/data&quot;,
-    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
-    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
-    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
-    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
-    &quot;project.structure.last.edited&quot;: &quot;Modules&quot;,
-    &quot;project.structure.proportion&quot;: &quot;0.0&quot;,
-    &quot;project.structure.side.proportion&quot;: &quot;0.0&quot;,
-    &quot;run.configurations.included.in.services&quot;: &quot;true&quot;,
-    &quot;settings.editor.selected.configurable&quot;: &quot;preferences.pluginManager&quot;,
-    &quot;ts.external.directory.path&quot;: &quot;C:\\Users\\Usuario\\Desktop\\my-work\\sistema-gestion-obras\\frontend1.2\\node_modules\\typescript\\lib&quot;,
-    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "ASKED_MARK_IGNORED_FILES_AS_EXCLUDED": "true",
+    "Docker.Sistema de Gestión de Obras.api-gateway: Compose Deployment.executor": "Run",
+    "Docker.Sistema de Gestión de Obras.frontend: Compose Deployment.executor": "Run",
+    "Docker.Sistema de Gestión de Obras.minio: Compose Deployment.executor": "Run",
+    "Docker.Sistema de Gestión de Obras: Compose Deployment.executor": "Run",
+    "Docker.docker-compose.dev.yml: Compose Deployment.executor": "Run",
+    "Docker.docker-compose.ghcr.yml.clientes-service: Compose Deployment.executor": "Run",
+    "Docker.docker-compose.ghcr.yml.frontend: Compose Deployment.executor": "Run",
+    "Docker.docker-compose.ghcr.yml.obras-service: Compose Deployment.executor": "Run",
+    "Docker.docker-compose.ghcr.yml.proveedores-service: Compose Deployment.executor": "Run",
+    "Docker.docker-compose.ghcr.yml: Compose Deployment.executor": "Run",
+    "Docker.docker-compose.yml.api-gateway: Compose Deployment.executor": "Run",
+    "Docker.docker-compose.yml.clientes-service: Compose Deployment.executor": "Run",
+    "Docker.docker-compose.yml.frontend: Compose Deployment.executor": "Run",
+    "Docker.docker-compose.yml.proveedores-service: Compose Deployment.executor": "Run",
+    "Docker.docker-compose.yml.sqlserver: Compose Deployment.executor": "Run",
+    "Docker.docker-compose.yml: Compose Deployment.executor": "Run",
+    "Docker.frontend1.2.obras-service: Compose Deployment.executor": "Run",
+    "Docker.frontend1.2/docker-compose.frontend.yml: Compose Deployment.executor": "Run",
+    "Docker.frontend1.2: Compose Deployment.executor": "Run",
+    "JUnit.All in api-gateway.executor": "Coverage",
+    "JUnit.All in clientes-service.executor": "Coverage",
+    "JUnit.All in proveedores-service.executor": "Coverage",
+    "JUnit.All in reportes-service.executor": "Coverage",
+    "JUnit.java in documentos-service.executor": "Coverage",
+    "JUnit.java in obras-service.executor": "Coverage",
+    "JUnit.java in transacciones-service.executor": "Coverage",
+    "Maven.gestion-obras [-q,-DskipTests,package].executor": "Run",
+    "ModuleVcsDetector.initialDetectionPerformed": "true",
+    "Notification.DisplayName-DoNotAsk-DatabaseConfigFileWatcher.found": "Database connection parameters found",
+    "Notification.DoNotAsk-DatabaseConfigFileWatcher.found": "true",
+    "RequestMappingsPanelOrder0": "0",
+    "RequestMappingsPanelOrder1": "1",
+    "RequestMappingsPanelWidth0": "75",
+    "RequestMappingsPanelWidth1": "75",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "RunOnceActivity.git.unshallow": "true",
+    "Spring Boot.ApiGatewayApplication.executor": "Run",
+    "Spring Boot.BackupServiceApplication.executor": "Run",
+    "Spring Boot.ClientesServiceApplication.executor": "Run",
+    "Spring Boot.DocumentosServiceApplication.executor": "Run",
+    "Spring Boot.ObrasServiceApplication.executor": "Run",
+    "Spring Boot.ProveedoresServiceApplication.executor": "Run",
+    "Spring Boot.ReportesServiceApplication.executor": "Run",
+    "Spring Boot.TransaccionesServiceApplication.executor": "Run",
+    "git-widget-placeholder": "fix/devo-07-05",
+    "last_opened_file_path": "C:/Users/Usuario/Desktop/my-work/sistema-gestion-obras/data",
+    "node.js.detected.package.eslint": "true",
+    "node.js.selected.package.eslint": "(autodetect)",
+    "node.js.selected.package.tslint": "(autodetect)",
+    "nodejs_package_manager_path": "npm",
+    "project.structure.last.edited": "Modules",
+    "project.structure.proportion": "0.0",
+    "project.structure.side.proportion": "0.0",
+    "run.configurations.included.in.services": "true",
+    "settings.editor.selected.configurable": "preferences.pluginManager",
+    "ts.external.directory.path": "C:\\Users\\Usuario\\Desktop\\my-work\\sistema-gestion-obras\\frontend1.2\\node_modules\\typescript\\lib",
+    "vue.rearranger.settings.migration": "true"
   }
-}</component>
+}]]></component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
       <recent name="C:\Users\Usuario\Desktop\my-work\sistema-gestion-obras\data" />
@@ -287,6 +284,10 @@
     </configuration>
     <list>
       <item itemvalue="Database Script.migrate_to_sqlserver.sql" />
+      <item itemvalue="Docker.Sistema de Gestión de Obras: Compose Deployment" />
+      <item itemvalue="Docker.docker-compose.ghcr.yml: Compose Deployment" />
+      <item itemvalue="Docker.docker-compose.yml: Compose Deployment" />
+      <item itemvalue="Docker.docker-compose.yml.sqlserver: Compose Deployment" />
       <item itemvalue="Spring Boot.ApiGatewayApplication" />
       <item itemvalue="Spring Boot.BackupServiceApplication" />
       <item itemvalue="Spring Boot.ClientesServiceApplication" />
@@ -295,10 +296,6 @@
       <item itemvalue="Spring Boot.ProveedoresServiceApplication" />
       <item itemvalue="Spring Boot.ReportesServiceApplication" />
       <item itemvalue="Spring Boot.TransaccionesServiceApplication" />
-      <item itemvalue="Docker.Sistema de Gestión de Obras: Compose Deployment" />
-      <item itemvalue="Docker.docker-compose.ghcr.yml: Compose Deployment" />
-      <item itemvalue="Docker.docker-compose.yml: Compose Deployment" />
-      <item itemvalue="Docker.docker-compose.yml.sqlserver: Compose Deployment" />
     </list>
     <recent_temporary>
       <list>
@@ -390,6 +387,7 @@
       <workItem from="1773946269259" duration="2408000" />
       <workItem from="1774466170073" duration="2364000" />
       <workItem from="1775423772619" duration="6000" />
+      <workItem from="1778335722457" duration="12000" />
     </task>
     <task id="LOCAL-00001" summary="release">
       <option name="closed" value="true" />

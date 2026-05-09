@@ -3,20 +3,16 @@
   <div class="bg-white rounded-lg shadow p-5">
     <form [formGroup]="form" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
       <div>
-        <label class="block text-sm font-medium text-gray-700 mb-1">Grupo</label>
-        <p-select formControlName="grupoId" [options]="grupos" optionLabel="nombre" optionValue="id" placeholder="Todos" [showClear]="true" [filter]="true" [fluid]="true"></p-select>
-      </div>
-      <div>
-        <label class="block text-sm font-medium text-gray-700 mb-1">Obra</label>
-        <p-select formControlName="obraId" [options]="obras" optionLabel="nombre" optionValue="id" placeholder="Todas" [showClear]="true" [filter]="true" [fluid]="true"></p-select>
-      </div>
-      <div>
         <label class="block text-sm font-medium text-gray-700 mb-1">Cliente</label>
         <p-select formControlName="clienteId" [options]="clientes" optionLabel="nombre" optionValue="id" placeholder="Todos" [showClear]="true" [filter]="true" [fluid]="true"></p-select>
       </div>
       <div>
         <label class="block text-sm font-medium text-gray-700 mb-1">Proveedor</label>
-        <p-select formControlName="proveedorId" [options]="proveedores" optionLabel="nombre" optionValue="id" placeholder="Todos" [showClear]="true" [filter]="true" [fluid]="true"></p-select>
+        <p-select formControlName="proveedorId" [options]="proveedoresFiltrados" optionLabel="nombre" optionValue="id" placeholder="Todos" [showClear]="true" [filter]="true" [fluid]="true"></p-select>
+      </div>
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">Obra</label>
+        <p-select formControlName="obraId" [options]="obrasFiltradas" optionLabel="nombre" optionValue="id" placeholder="Todas" [showClear]="true" [filter]="true" [fluid]="true"></p-select>
       </div>
       <div class="flex items-end">
         <p-button label="Limpiar" icon="pi pi-times" severity="secondary" (onClick)="limpiarFiltros()" [fluid]="true"></p-button>
@@ -38,77 +34,76 @@
     </div>
   }
 
-  <!-- Tabla Clientes -->
-  @if (datos?.detalleDeudaClientes && (datos?.detalleDeudaClientes?.length ?? 0) > 0) {
-    <div class="bg-white rounded-lg shadow p-5">
-      <h3 class="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
-        <i class="pi pi-users text-green-600"></i>
-        Cuentas por cobrar
-      </h3>
-      <div class="overflow-x-auto">
-        <table class="w-full text-sm">
-          <thead class="bg-green-50 text-green-800">
-            <tr>
-              <th class="text-left px-4 py-2">Grupo</th>
-              <th class="text-left px-4 py-2">Obra</th>
-              <th class="text-left px-4 py-2">Cliente</th>
-              <th class="text-right px-4 py-2">Presupuesto</th>
-              <th class="text-right px-4 py-2">Cobrado</th>
-              <th class="text-right px-4 py-2">Saldo</th>
-            </tr>
-          </thead>
-          <tbody>
-            @for (item of datos?.detalleDeudaClientes ?? []; track item.clienteId) {
-              <tr class="border-t border-gray-100 hover:bg-gray-50 cursor-pointer transition-colors" (click)="onClienteRowClick(item)">
-                <td class="px-4 py-3 text-gray-700">{{ item.grupoNombre || '—' }}</td>
-                <td class="px-4 py-3 font-medium text-gray-900">{{ item.obraNombre }}</td>
-                <td class="px-4 py-3 text-gray-700">{{ item.clienteNombre }}</td>
-                <td class="px-4 py-3 text-right">{{ item.presupuesto | currency:'ARS':'symbol-narrow':'1.0-0' }}</td>
-                <td class="px-4 py-3 text-right text-green-600 font-medium">{{ item.cobrado | currency:'ARS':'symbol-narrow':'1.0-0' }}</td>
-                <td class="px-4 py-3 text-right font-bold text-red-600">{{ item.saldo | currency:'ARS':'symbol-narrow':'1.0-0' }}</td>
+  <!-- Tablas lado a lado -->
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-5">
+    <!-- Tabla Clientes -->
+    @if (datos?.detalleDeudaClientes && (datos?.detalleDeudaClientes?.length ?? 0) > 0) {
+      <div class="bg-white rounded-lg shadow p-5">
+        <h3 class="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
+          <i class="pi pi-users text-green-600"></i>
+          Cuentas por cobrar
+        </h3>
+        <div class="overflow-x-auto">
+          <table class="w-full text-sm">
+            <thead class="bg-green-50 text-green-800">
+              <tr>
+                <th class="text-left px-4 py-2">Obra</th>
+                <th class="text-left px-4 py-2">Cliente</th>
+                <th class="text-right px-4 py-2">Presupuesto</th>
+                <th class="text-right px-4 py-2">Cobrado</th>
+                <th class="text-right px-4 py-2 whitespace-nowrap">Saldo</th>
               </tr>
-            }
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              @for (item of datos?.detalleDeudaClientes ?? []; track item.clienteId) {
+                <tr class="border-t border-gray-100 hover:bg-gray-50 cursor-pointer transition-colors" (click)="onClienteRowClick(item)">
+                  <td class="px-4 py-3 font-medium text-gray-900 max-w-[120px] truncate" [pTooltip]="item.obraNombre" tooltipPosition="top">{{ item.obraNombre }}</td>
+                  <td class="px-4 py-3 text-gray-700 max-w-[120px] truncate" [pTooltip]="item.clienteNombre" tooltipPosition="top">{{ item.clienteNombre }}</td>
+                  <td class="px-4 py-3 text-right whitespace-nowrap">{{ item.presupuesto | currency:'ARS':'symbol-narrow':'1.0-0' }}</td>
+                  <td class="px-4 py-3 text-right text-green-600 font-medium whitespace-nowrap">{{ item.cobrado | currency:'ARS':'symbol-narrow':'1.0-0' }}</td>
+                  <td class="px-4 py-3 text-right font-bold text-red-600 whitespace-nowrap">{{ item.saldo | currency:'ARS':'symbol-narrow':'1.0-0' }}</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
       </div>
-    </div>
-  }
+    }
 
-  <!-- Tabla Proveedores -->
-  @if (datos?.detalleDeudaProveedores && (datos?.detalleDeudaProveedores?.length ?? 0) > 0) {
-    <div class="bg-white rounded-lg shadow p-5">
-      <h3 class="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
-        <i class="pi pi-briefcase text-red-600"></i>
-        Cuentas por pagar
-      </h3>
-      <div class="overflow-x-auto">
-        <table class="w-full text-sm">
-          <thead class="bg-red-50 text-red-800">
-            <tr>
-              <th class="text-left px-4 py-2">Grupo</th>
-              <th class="text-left px-4 py-2">Obra</th>
-              <th class="text-left px-4 py-2">Proveedor</th>
-              <th class="text-right px-4 py-2">Presupuestado</th>
-              <th class="text-right px-4 py-2">Pagado</th>
-              <th class="text-right px-4 py-2">Saldo</th>
-            </tr>
-          </thead>
-          <tbody>
-            @for (item of datos?.detalleDeudaProveedores ?? []; track item.proveedorId) {
-              <tr class="border-t border-gray-100 hover:bg-gray-50 cursor-pointer transition-colors" (click)="onProveedorRowClick(item)">
-                <td class="px-4 py-3 text-gray-700">{{ item.grupoNombre || '—' }}</td>
-                <td class="px-4 py-3 font-medium text-gray-900">{{ item.obraNombre }}</td>
-                <td class="px-4 py-3 text-gray-700">{{ item.proveedorNombre }}</td>
-                <td class="px-4 py-3 text-right">{{ item.presupuestado | currency:'ARS':'symbol-narrow':'1.0-0' }}</td>
-                <td class="px-4 py-3 text-right text-green-600 font-medium">{{ item.pagado | currency:'ARS':'symbol-narrow':'1.0-0' }}</td>
-                <td class="px-4 py-3 text-right font-bold text-red-600">{{ item.saldo | currency:'ARS':'symbol-narrow':'1.0-0' }}</td>
+    <!-- Tabla Proveedores -->
+    @if (datos?.detalleDeudaProveedores && (datos?.detalleDeudaProveedores?.length ?? 0) > 0) {
+      <div class="bg-white rounded-lg shadow p-5">
+        <h3 class="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
+          <i class="pi pi-briefcase text-red-600"></i>
+          Cuentas por pagar
+        </h3>
+        <div class="overflow-x-auto">
+          <table class="w-full text-sm">
+            <thead class="bg-red-50 text-red-800">
+              <tr>
+                <th class="text-left px-4 py-2">Obra</th>
+                <th class="text-left px-4 py-2">Proveedor</th>
+                <th class="text-right px-4 py-2">Presupuestado</th>
+                <th class="text-right px-4 py-2">Pagado</th>
+                <th class="text-right px-4 py-2 whitespace-nowrap">Saldo</th>
               </tr>
-            }
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              @for (item of datos?.detalleDeudaProveedores ?? []; track item.proveedorId) {
+                <tr class="border-t border-gray-100 hover:bg-gray-50 cursor-pointer transition-colors" (click)="onProveedorRowClick(item)">
+                  <td class="px-4 py-3 font-medium text-gray-900 max-w-[120px] truncate" [pTooltip]="item.obraNombre" tooltipPosition="top">{{ item.obraNombre }}</td>
+                  <td class="px-4 py-3 text-gray-700 max-w-[120px] truncate" [pTooltip]="item.proveedorNombre" tooltipPosition="top">{{ item.proveedorNombre }}</td>
+                  <td class="px-4 py-3 text-right whitespace-nowrap">{{ item.presupuestado | currency:'ARS':'symbol-narrow':'1.0-0' }}</td>
+                  <td class="px-4 py-3 text-right text-green-600 font-medium whitespace-nowrap">{{ item.pagado | currency:'ARS':'symbol-narrow':'1.0-0' }}</td>
+                  <td class="px-4 py-3 text-right font-bold text-red-600 whitespace-nowrap">{{ item.saldo | currency:'ARS':'symbol-narrow':'1.0-0' }}</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
       </div>
-    </div>
-  }
+    }
+  </div>
 
   <!-- Sin datos -->
   @if (datos && (datos?.detalleDeudaClientes?.length ?? 0) === 0 && (datos?.detalleDeudaProveedores?.length ?? 0) === 0) {

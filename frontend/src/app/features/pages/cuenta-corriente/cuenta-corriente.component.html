@@ -5,19 +5,6 @@
   <p-card class="filtros-card">
     <form [formGroup]="form" class="filtros-form">
       <div class="filtro-row">
-        <div class="filtro-col">">
-          <label>Grupo de Obra</label>
-          <p-select
-            formControlName="grupoId"
-            placeholder="Seleccionar grupo"
-            [options]="grupos"
-            optionLabel="nombre"
-            optionValue="id"
-            [showClear]="true"
-            [fluid]="true"
-          ></p-select>
-        </div>
-
         <div class="filtro-col">
           <label>Obra</label>
           <p-select
@@ -102,7 +89,6 @@
     >
       <ng-template pTemplate="header">
         <tr>
-          <th>Grupo de Obra</th>
           <th>Obra</th>
           <th>Cliente</th>
           <th>Presupuestado</th>
@@ -113,7 +99,6 @@
       </ng-template>
       <ng-template let-row="rowData" pTemplate="body">
         <tr>
-          <td>{{ row.grupoNombre }}</td>
           <td>{{ row.obraNombre }}</td>
           <td>{{ row.clienteNombre }}</td>
           <td>{{ row.presupuesto | currency }}</td>
@@ -149,7 +134,6 @@
     >
       <ng-template pTemplate="header">
         <tr>
-          <th>Grupo de Obra</th>
           <th>Obra</th>
           <th>Proveedor</th>
           <th>Presupuestado</th>
@@ -160,7 +144,6 @@
       </ng-template>
       <ng-template let-row="rowData" pTemplate="body">
         <tr>
-          <td>{{ row.grupoNombre }}</td>
           <td>{{ row.obraNombre }}</td>
           <td>{{ row.proveedorNombre }}</td>
           <td>{{ row.presupuestado | currency }}</td>
