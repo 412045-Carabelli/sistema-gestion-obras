@@ -720,8 +720,15 @@ export class ObraMovimientosComponent implements OnInit {
   }
 
   private getMontoBaseCosto(costo: ObraCosto): number {
+    // Primero intentar con monto_real (lo que realmente se gastó)
+    const montoReal = Number((costo as any).monto_real ?? NaN);
+    if (!Number.isNaN(montoReal) && montoReal > 0) return montoReal;
+
+    // Si no tiene monto_real, usar subtotal
     const subtotal = Number(costo.subtotal ?? NaN);
     if (!Number.isNaN(subtotal) && subtotal > 0) return subtotal;
+
+    // Si tampoco, calcular como cantidad * precio
     const cantidad = Number(costo.cantidad ?? NaN);
     const precio = Number(costo.precio_unitario ?? NaN);
     if (!Number.isNaN(cantidad) && !Number.isNaN(precio)) return cantidad * precio;

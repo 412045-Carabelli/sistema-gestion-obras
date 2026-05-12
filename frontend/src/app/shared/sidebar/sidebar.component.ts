@@ -35,5 +35,5 @@ export class SidebarComponent {
     {label: 'Grupos de Obras', icon: 'pi-folder', path: '/grupos'},
   ];
 
-  version: string = 'v1.15.34';
+  version: string = 'v1.15.37';
 }

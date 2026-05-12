@@ -5,6 +5,7 @@
 
 CREATE OR ALTER PROCEDURE sp_deudas_proveedores_con_grupo
   @grupoId     BIGINT = NULL,
+  @clienteId   BIGINT = NULL,
   @obraId      BIGINT = NULL,
   @proveedorId BIGINT = NULL,
   @fechaInicio DATE   = NULL,
@@ -64,6 +65,7 @@ BEGIN
   WHERE o.activo = 1
     AND o.estado_obra IN (SELECT estado FROM @estadosValidos)
     AND (@grupoId IS NULL OR o.id_grupo = @grupoId)
+    AND (@clienteId IS NULL OR o.id_cliente = @clienteId)
     AND (@obraId IS NULL OR cp.id_obra = @obraId)
     AND (@proveedorId IS NULL OR cp.id_proveedor = @proveedorId)
   ORDER BY o.creado_en DESC, o.nombre;
