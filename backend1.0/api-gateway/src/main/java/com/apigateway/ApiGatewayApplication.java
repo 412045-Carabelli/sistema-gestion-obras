@@ -6,7 +6,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 @SpringBootApplication
 public class ApiGatewayApplication {
     public static void main(String[] args) {
-        System.out.println("🚀 SGO - API Gateway v1.15.32");
+        System.out.println("🚀 SGO - API Gateway v1.15.35");
         SpringApplication.run(ApiGatewayApplication.class, args);
     }
 }

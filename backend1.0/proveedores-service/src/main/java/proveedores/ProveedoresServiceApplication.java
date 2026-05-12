@@ -18,7 +18,7 @@ public class ProveedoresServiceApplication {
     private static final Logger log = LoggerFactory.getLogger(ProveedoresServiceApplication.class);
 
     public static void main(String[] args) {
-        System.out.println("🚀 SGO - Proveedores Service v1.15.32");
+        System.out.println("🚀 SGO - Proveedores Service v1.15.35");
         File dbDir = new File("data");
         if (!dbDir.exists()) {
             dbDir.mkdirs();

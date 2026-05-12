@@ -4,7 +4,39 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="136fcb9c-e23f-4df3-a0a1-35500f9899cd" name="Changes" comment="release" />
+    <list default="true" id="136fcb9c-e23f-4df3-a0a1-35500f9899cd" name="Changes" comment="release">
+      <change afterPath="$PROJECT_DIR$/backend1.0/reportes-service/src/main/java/com/reportes/dto/response/FiltroResponse.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/backend1.0/transacciones-service/src/main/resources/db/migration/V13__sp_filtros_cascada_deudas.sql" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/backend1.0/transacciones-service/src/main/resources/db/migration/V14__actualizar_sp_deudas_globales_con_proveedor.sql" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/backend1.0/transacciones-service/src/main/resources/db/migration/V15__sp_deudas_con_correlacion_cliente_proveedor.sql" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend1.0/agendas-service/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/backend1.0/agendas-service/pom.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend1.0/agendas-service/src/main/java/com/agendas/AgendasServiceApplication.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend1.0/agendas-service/src/main/java/com/agendas/AgendasServiceApplication.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend1.0/api-gateway/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/backend1.0/api-gateway/pom.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend1.0/api-gateway/src/main/java/com/apigateway/ApiGatewayApplication.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend1.0/api-gateway/src/main/java/com/apigateway/ApiGatewayApplication.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend1.0/api-gateway/src/main/java/com/apigateway/controller/ReportesBffController.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend1.0/api-gateway/src/main/java/com/apigateway/controller/ReportesBffController.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend1.0/clientes-service/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/backend1.0/clientes-service/pom.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend1.0/clientes-service/src/main/java/com/clientes/ClientesServiceApplication.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend1.0/clientes-service/src/main/java/com/clientes/ClientesServiceApplication.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend1.0/common/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/backend1.0/common/pom.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend1.0/documentos-service/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/backend1.0/documentos-service/pom.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend1.0/documentos-service/src/main/java/com/documentos/DocumentosServiceApplication.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend1.0/documentos-service/src/main/java/com/documentos/DocumentosServiceApplication.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend1.0/obras-service/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/backend1.0/obras-service/pom.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend1.0/obras-service/src/main/java/com/obras/ObrasServiceApplication.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend1.0/obras-service/src/main/java/com/obras/ObrasServiceApplication.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend1.0/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/backend1.0/pom.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend1.0/proveedores-service/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/backend1.0/proveedores-service/pom.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend1.0/proveedores-service/src/main/java/proveedores/ProveedoresServiceApplication.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend1.0/proveedores-service/src/main/java/proveedores/ProveedoresServiceApplication.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend1.0/reportes-service/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/backend1.0/reportes-service/pom.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend1.0/reportes-service/src/main/java/com/reportes/ReportesServiceApplication.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend1.0/reportes-service/src/main/java/com/reportes/ReportesServiceApplication.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend1.0/reportes-service/src/main/java/com/reportes/controller/ReportesController.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend1.0/reportes-service/src/main/java/com/reportes/controller/ReportesController.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend1.0/reportes-service/src/main/java/com/reportes/repository/DeudasGlobalesRepository.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend1.0/reportes-service/src/main/java/com/reportes/repository/DeudasGlobalesRepository.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend1.0/reportes-service/src/main/java/com/reportes/service/ReportesService.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend1.0/reportes-service/src/main/java/com/reportes/service/ReportesService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend1.0/transacciones-service/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/backend1.0/transacciones-service/pom.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend1.0/transacciones-service/src/main/java/com/transacciones/TransaccionesServiceApplication.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend1.0/transacciones-service/src/main/java/com/transacciones/TransaccionesServiceApplication.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend1.0/transacciones-service/src/main/resources/db/migration/V12__fix_sp_deudas_proveedores_usar_monto_real.sql" beforeDir="false" afterPath="$PROJECT_DIR$/backend1.0/transacciones-service/src/main/resources/db/migration/V12__fix_sp_deudas_proveedores_usar_monto_real.sql" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/package.json" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/package.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/src/app/features/components/obra-movimientos/obra-movimientos.component.ts" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/src/app/features/components/obra-movimientos/obra-movimientos.component.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/src/app/shared/sidebar/sidebar.component.ts" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/src/app/shared/sidebar/sidebar.component.ts" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -89,7 +121,9 @@
     "RequestMappingsPanelWidth0": "75",
     "RequestMappingsPanelWidth1": "75",
     "RunOnceActivity.ShowReadmeOnStart": "true",
+    "RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252": "true",
     "RunOnceActivity.git.unshallow": "true",
+    "RunOnceActivity.typescript.service.memoryLimit.init": "true",
     "Spring Boot.ApiGatewayApplication.executor": "Run",
     "Spring Boot.BackupServiceApplication.executor": "Run",
     "Spring Boot.ClientesServiceApplication.executor": "Run",
@@ -98,7 +132,9 @@
     "Spring Boot.ProveedoresServiceApplication.executor": "Run",
     "Spring Boot.ReportesServiceApplication.executor": "Run",
     "Spring Boot.TransaccionesServiceApplication.executor": "Run",
-    "git-widget-placeholder": "fix/devo-07-05",
+    "codeWithMe.voiceChat.enabledByDefault": "false",
+    "git-widget-placeholder": "fix/devo-09-05",
+    "kotlin-language-version-configured": "true",
     "last_opened_file_path": "C:/Users/Usuario/Desktop/my-work/sistema-gestion-obras/data",
     "node.js.detected.package.eslint": "true",
     "node.js.selected.package.eslint": "(autodetect)",
@@ -388,6 +424,7 @@
       <workItem from="1774466170073" duration="2364000" />
       <workItem from="1775423772619" duration="6000" />
       <workItem from="1778335722457" duration="12000" />
+      <workItem from="1778499911518" duration="8000" />
     </task>
     <task id="LOCAL-00001" summary="release">
       <option name="closed" value="true" />

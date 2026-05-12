@@ -82,7 +82,8 @@
       "Bash(\"frontend/src/app/features/components/cuentas-corrientes-list/cuentas-corrientes-list.component.css\":*)",
       "Bash(\"backend1.0/transacciones-service/src/main/resources/db/migration/V9__fix_sp_transacciones_join.sql\":*)",
       "Bash(\"backend1.0/transacciones-service/src/main/resources/db/migration/V10__fix_sp_join_by_nombre.sql\":*)",
-      "WebFetch(domain:github.com)"
+      "WebFetch(domain:github.com)",
+      "Bash(mvn dependency:tree)"
     ]
   }
 }
