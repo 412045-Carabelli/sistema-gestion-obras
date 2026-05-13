@@ -2,6 +2,7 @@ import {Component, OnInit} from '@angular/core';
 import {FormBuilder, FormGroup, ReactiveFormsModule, Validators} from '@angular/forms';
 import {ActivatedRoute, Router, RouterLink} from '@angular/router';
 import {MessageService} from 'primeng/api';
+import {BackButtonDirective} from '../../../shared/directives/back-button.directive';
 import {ToastModule} from 'primeng/toast';
 import {ButtonModule} from 'primeng/button';
 import {InputTextModule} from 'primeng/inputtext';
@@ -14,7 +15,7 @@ import {ProgressSpinner} from 'primeng/progressspinner';
 @Component({
   selector: 'app-clientes-edit',
   standalone: true,
-  imports: [RouterLink, ReactiveFormsModule, ToastModule, ButtonModule, InputTextModule, Select, ProgressSpinner],
+  imports: [RouterLink, ReactiveFormsModule, ToastModule, ButtonModule, InputTextModule, Select, ProgressSpinner, BackButtonDirective],
   providers: [MessageService],
   templateUrl: './clientes-edit.component.html',
   styleUrls: ['./clientes-edit.component.css']

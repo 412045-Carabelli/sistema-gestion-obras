@@ -69,7 +69,6 @@
             <th pSortableColumn="email" class="px-3 py-2 text-left">Email <p-sortIcon field="email"></p-sortIcon></th>
             <th pSortableColumn="direccion" class="px-3 py-2 text-left">Direccion <p-sortIcon field="direccion"></p-sortIcon></th>
             <th pSortableColumn="cuit" class="px-3 py-2 text-left">DNI/CUIT <p-sortIcon field="cuit"></p-sortIcon></th>
-            <th pSortableColumn="saldoCliente" class="px-3 py-2 text-right">Saldo <p-sortIcon field="saldoCliente"></p-sortIcon></th>
           </tr>
         </ng-template>
 
@@ -81,13 +80,12 @@
             <td class="px-3 py-2">{{ c.email || '-' }}</td>
             <td class="px-3 py-2">{{ c.direccion || '-' }}</td>
             <td class="px-3 py-2">{{ c.cuit || '-' }}</td>
-            <td class="px-3 py-2 text-right">{{ (c.saldoCliente ?? 0) | currency:'ARS':'symbol-narrow':'1.0-2' }}</td>
           </tr>
         </ng-template>
 
         <ng-template pTemplate="emptymessage">
           <tr>
-            <td class="text-center py-10" colspan="9">
+            <td class="text-center py-10" colspan="6">
               <div class="flex flex-col items-center justify-center gap-2 text-gray-500">
                 <i class="pi pi-inbox text-3xl"></i>
                 <p class="text-base font-medium">No hay registros para mostrar</p>

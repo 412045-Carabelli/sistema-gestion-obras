@@ -16,6 +16,7 @@ import java.time.LocalDate;
 public class TransaccionConAsociadoDto {
     private Long id;
     private Long id_obra;
+    private String nombre_obra;
     private Long id_asociado;
     private String tipo_asociado;
     private String nombre_asociado;

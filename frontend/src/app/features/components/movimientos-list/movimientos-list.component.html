@@ -83,7 +83,7 @@
         </ng-template>
 
         <ng-template let-mov pTemplate="body">
-          <tr class="hover:bg-gray-100">
+          <tr class="hover:bg-gray-100 cursor-pointer" (click)="onRowClick(mov)">
             <td class="px-3 py-2">{{ mov.id }}</td>
             <td class="px-3 py-2">{{ mov.fecha | date:'dd/MM/yyyy' }}</td>
             <td class="px-3 py-2">{{ getNombreObra(mov.id_obra) }}</td>
@@ -93,13 +93,13 @@
             <td class="px-3 py-2">{{ mov.forma_pago }}</td>
             <td class="px-3 py-2">{{ mov.medio_pago || '-' }}</td>
             <td class="px-3 py-2 text-right">{{ mov.monto | currency:'ARS':'symbol-narrow':'1.0-2' }}</td>
-            <td class="px-3 py-2 text-center flex gap-1 justify-center">
+            <td class="px-3 py-2" (click)="$event.stopPropagation()">
               <p-button
                 icon="pi pi-pencil"
                 [rounded]="true"
                 [text]="true"
                 severity="info"
-                (click)="openEditModal(mov)"
+                (click)="isViewMode = false; isEditMode = true; openEditModal(mov)"
                 styleClass="p-button-sm">
               </p-button>
               <p-button
@@ -129,10 +129,10 @@
     </div>
   </div>
 
-  <!-- Modal crear/editar -->
+  <!-- Modal crear/editar/ver -->
   <p-dialog
     [(visible)]="showModal"
-    [header]="isEditMode ? 'Editar Movimiento' : 'Nuevo Movimiento'"
+    [header]="isViewMode ? 'Ver Movimiento' : (isEditMode ? 'Editar Movimiento' : 'Nuevo Movimiento')"
     [modal]="true"
     [style]="{width: '500px'}"
     [closable]="true">
@@ -147,6 +147,8 @@
           optionLabel="nombre"
           optionValue="id"
           placeholder="Selecciona una obra"
+          [filter]="true"
+          [disabled]="isViewMode"
           styleClass="w-full">
         </p-select>
       </div>
@@ -160,6 +162,7 @@
             [options]="tiposAsociado.slice(1)"
             optionLabel="label"
             optionValue="name"
+            [disabled]="isViewMode"
             styleClass="w-full">
           </p-select>
         </div>
@@ -174,10 +177,11 @@
               optionLabel="nombre"
               optionValue="id"
               placeholder="Cliente"
-              [disabled]="clientesFiltrados.length === 0"
+              [disabled]="isViewMode"
+              [filter]="true"
               styleClass="w-full">
             </p-select>
-            @if (clientesFiltrados.length === 0) {
+            @if (clientesFiltrados.length === 0 && !isViewMode) {
               <small class="text-red-500">Selecciona primero una obra</small>
             }
           } @else {
@@ -188,7 +192,8 @@
               optionLabel="nombre"
               optionValue="id"
               placeholder="Proveedor"
-              [disabled]="proveedoresFiltrados.length === 0"
+              [disabled]="isViewMode"
+              [filter]="true"
               styleClass="w-full">
             </p-select>
             @if (proveedoresFiltrados.length === 0) {
@@ -219,6 +224,7 @@
             ]"
             optionLabel="label"
             optionValue="value"
+            [disabled]="isViewMode"
             styleClass="w-full">
           </p-select>
         </div>
@@ -229,6 +235,7 @@
             formControlName="fecha"
             dateFormat="dd/mm/yy"
             [showIcon]="true"
+            [disabled]="isViewMode"
             styleClass="w-full">
           </p-datepicker>
         </div>
@@ -247,6 +254,7 @@
             ]"
             optionLabel="label"
             optionValue="value"
+            [disabled]="isViewMode"
             styleClass="w-full">
           </p-select>
         </div>
@@ -257,6 +265,7 @@
             formControlName="monto"
             [useGrouping]="false"
             placeholder="0.00"
+            [disabled]="isViewMode"
             styleClass="w-full">
           </p-inputNumber>
         </div>
@@ -270,6 +279,7 @@
           pInputText
           formControlName="medio_pago"
           placeholder="Transferencia, Efectivo, etc."
+          [disabled]="isViewMode"
           class="w-full">
       </div>
 
@@ -280,26 +290,53 @@
           pInputTextarea
           formControlName="concepto"
           placeholder="Detalles adicionales"
+          [disabled]="isViewMode"
           class="w-full"
           rows="3">
         </textarea>
       </div>
 
       <!-- Botones -->
-      <div class="flex gap-2 mt-4">
-        <p-button
-          type="submit"
-          label="Guardar"
-          icon="pi pi-check"
-          styleClass="p-button-sm p-button-success">
-        </p-button>
-        <p-button
-          type="button"
-          label="Cancelar"
-          icon="pi pi-times"
-          (click)="showModal = false"
-          styleClass="p-button-sm p-button-secondary">
-        </p-button>
+      <div class="flex gap-2 mt-4 justify-end">
+        @if (isViewMode) {
+          <p-button
+            type="button"
+            label="Editar"
+            icon="pi pi-pencil"
+            (click)="isViewMode = false; isEditMode = true"
+            severity="info"
+            styleClass="p-button-sm">
+          </p-button>
+          <p-button
+            type="button"
+            label="Eliminar"
+            icon="pi pi-trash"
+            (click)="eliminarMovimiento(movimientoEditando!)"
+            severity="danger"
+            styleClass="p-button-sm">
+          </p-button>
+          <p-button
+            type="button"
+            label="Cerrar"
+            icon="pi pi-times"
+            (click)="showModal = false; isViewMode = false"
+            styleClass="p-button-sm p-button-secondary">
+          </p-button>
+        } @else {
+          <p-button
+            type="submit"
+            label="Guardar"
+            icon="pi pi-check"
+            styleClass="p-button-sm p-button-success">
+          </p-button>
+          <p-button
+            type="button"
+            label="Cancelar"
+            icon="pi pi-times"
+            (click)="showModal = false"
+            styleClass="p-button-sm p-button-secondary">
+          </p-button>
+        }
       </div>
     </form>
   </p-dialog>

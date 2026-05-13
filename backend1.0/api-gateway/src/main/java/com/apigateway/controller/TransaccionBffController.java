@@ -8,6 +8,7 @@ import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.reactive.function.client.WebClient;
+import org.springframework.web.util.UriComponentsBuilder;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -53,12 +54,21 @@ public class TransaccionBffController {
     ) {
         WebClient client = webClientBuilder.build();
 
+        String url = UriComponentsBuilder.fromHttpUrl(TRANSACCIONES_URL + "/con-asociados")
+                .queryParam("page", page)
+                .queryParam("size", size)
+                .build()
+                .toUriString();
+
         return client.get()
-                .uri(TRANSACCIONES_URL + "/con-asociados?page={page}&size={size}", page, size)
+                .uri(url)
                 .retrieve()
                 .bodyToMono(new ParameterizedTypeReference<Map<String, Object>>() {})
                 .map(ResponseEntity::ok)
-                .onErrorResume(ex -> Mono.just(ResponseEntity.badRequest().build()));
+                .onErrorResume(ex -> {
+                    ex.printStackTrace();
+                    return Mono.just(ResponseEntity.badRequest().build());
+                });
     }
 
     // ✅ GET /bff/transacciones/{id}

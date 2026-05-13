@@ -88,11 +88,12 @@
 
       <div class="flex justify-end gap-2 pt-4">
         <p-button
-          [routerLink]="['/clientes']"
-          icon="pi pi-times"
-          label="Cancelar"
+          icon="pi pi-arrow-left"
+          label="Volver"
           severity="secondary"
-          styleClass="p-button-text">
+          styleClass="p-button-text"
+          appBackButton
+          fallback="/clientes">
         </p-button>
         <p-button
           [disabled]="form.invalid"

@@ -103,11 +103,11 @@ public class PdfBuilder {
 
         // Encabezados
         for (String header : encabezados) {
-            PdfPCell cell = new PdfPCell(new Phrase(header, new Font(Font.HELVETICA, 9, Font.BOLD)));
+            PdfPCell cell = new PdfPCell(new Phrase(header, new Font(Font.HELVETICA, 5, Font.BOLD)));
             cell.setBackgroundColor(new Color(243, 244, 246));
             cell.setHorizontalAlignment(Element.ALIGN_CENTER);
             cell.setVerticalAlignment(Element.ALIGN_MIDDLE);
-            cell.setPadding(5);
+            cell.setPadding(1);
             table.addCell(cell);
         }
 
@@ -121,11 +121,11 @@ public class PdfBuilder {
                 String valor = fila.get(i);
                 boolean esNumero = i > 0 && valor != null && valor.matches(".*[0-9].*");
 
-                PdfPCell cell = new PdfPCell(new Phrase(valor != null ? valor : "—", new Font(Font.HELVETICA, 9)));
+                PdfPCell cell = new PdfPCell(new Phrase(valor != null ? valor : "—", new Font(Font.HELVETICA, 5)));
                 cell.setBackgroundColor(bgColor);
                 cell.setHorizontalAlignment(esNumero ? Element.ALIGN_RIGHT : Element.ALIGN_LEFT);
                 cell.setVerticalAlignment(Element.ALIGN_MIDDLE);
-                cell.setPadding(5);
+                cell.setPadding(1);
                 table.addCell(cell);
             }
         }
@@ -143,16 +143,16 @@ public class PdfBuilder {
         table.setSpacingAfter(12);
 
         for (String[] fila : filas) {
-            PdfPCell labelCell = new PdfPCell(new Phrase(fila[0], new Font(Font.HELVETICA, 9)));
+            PdfPCell labelCell = new PdfPCell(new Phrase(fila[0], new Font(Font.HELVETICA, 8)));
             labelCell.setHorizontalAlignment(Element.ALIGN_RIGHT);
             labelCell.setBorder(PdfPCell.NO_BORDER);
-            labelCell.setPadding(5);
+            labelCell.setPadding(3);
 
             PdfPCell valorCell = new PdfPCell(new Phrase(fila[1],
-                new Font(Font.HELVETICA, 9, Font.BOLD)));
+                new Font(Font.HELVETICA, 8, Font.BOLD)));
             valorCell.setHorizontalAlignment(Element.ALIGN_RIGHT);
             valorCell.setBorder(PdfPCell.NO_BORDER);
-            valorCell.setPadding(5);
+            valorCell.setPadding(3);
 
             table.addCell(labelCell);
             table.addCell(valorCell);

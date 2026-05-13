@@ -56,6 +56,7 @@ export class ProveedoresDetailComponent implements OnInit, OnDestroy {
   totalPagos = 0;
   saldoProveedor = 0;
   loading = true;
+  selectedTab = '0';
 
   // Estado selector de obras para exportar
   modoExportacion: 'todas' | 'algunas' | null = null;
@@ -95,6 +96,8 @@ export class ProveedoresDetailComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     const id = Number(this.route.snapshot.paramMap.get('id'));
+    const tabParam = this.route.snapshot.queryParamMap.get('tab');
+    this.selectedTab = tabParam || '0';
     if (id) this.cargarDetalle(id);
   }
 
@@ -416,6 +419,16 @@ export class ProveedoresDetailComponent implements OnInit, OnDestroy {
       (pdfMake as any).vfs = fonts;
       this.pdfMakeReady = true;
     }
+  }
+
+  onTabChange(event: any): void {
+    const newTab = String(event.index ?? event);
+    this.selectedTab = newTab;
+    this.router.navigate([], {
+      relativeTo: this.route,
+      queryParams: { tab: newTab },
+      queryParamsHandling: 'merge'
+    });
   }
 }
 

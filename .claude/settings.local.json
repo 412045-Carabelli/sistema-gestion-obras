@@ -84,7 +84,8 @@
       "Bash(\"backend1.0/transacciones-service/src/main/resources/db/migration/V10__fix_sp_join_by_nombre.sql\":*)",
       "WebFetch(domain:github.com)",
       "Bash(mvn dependency:tree)",
-      "Bash(1)"
+      "Bash(1)",
+      "Bash(docker build:*)"
     ]
   }
 }

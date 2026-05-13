@@ -57,6 +57,7 @@ export class MovimientosListComponent implements OnInit {
   datosCargados = false;
   showModal = false;
   isEditMode = false;
+  isViewMode = false;
   form!: FormGroup;
   movimientoEditando: Movimiento | null = null;
   saldoAsociado: number = 0;
@@ -214,8 +215,10 @@ export class MovimientosListComponent implements OnInit {
       }
     }
 
-    // Auto-rellenar monto si forma_pago es TOTAL
-    this.actualizarMonto();
+    // Auto-rellenar monto si forma_pago es TOTAL (solo en create/view, no en edit)
+    if (!this.isEditMode && !this.isViewMode) {
+      this.actualizarMonto();
+    }
   }
 
   onFormaPagoChange(): void {
@@ -233,12 +236,34 @@ export class MovimientosListComponent implements OnInit {
   }
 
   onRowClick(mov: Movimiento) {
-    this.movimientoClick.emit(mov);
-    this.router.navigate(['/movimientos', mov.id]);
+    this.isViewMode = true;
+    this.isEditMode = false;
+    this.openViewModal(mov);
+  }
+
+  openViewModal(mov: Movimiento) {
+    this.movimientoEditando = mov;
+    this.form.patchValue({
+      id_obra: mov.id_obra,
+      id_asociado: mov.id_asociado,
+      tipo_asociado: mov.tipo_asociado,
+      tipo_transaccion: mov.tipo_transaccion,
+      fecha: new Date(mov.fecha),
+      monto: mov.monto,
+      forma_pago: mov.forma_pago,
+      medio_pago: mov.medio_pago || '',
+      concepto: mov.concepto || ''
+    });
+    this.onObraChange();
+    this.onAsociadoChange();
+    this.form.disable();
+    this.showModal = true;
   }
 
   openCreateModal() {
     this.isEditMode = false;
+    this.isViewMode = false;
+    this.form.enable();
     this.form.reset({
       tipo_asociado: 'CLIENTE',
       tipo_transaccion: 'COBRO',
@@ -269,28 +294,21 @@ export class MovimientosListComponent implements OnInit {
       const clienteObra = this.obraSeleccionada.cliente;
       this.clientesFiltrados = clienteObra ? [clienteObra] : [];
 
-      // Filtrar proveedores: obtener IDs únicos de los costos de la obra
-      const proveedorIds = new Set<number>();
-      if (this.obraSeleccionada.costos && Array.isArray(this.obraSeleccionada.costos)) {
-        this.obraSeleccionada.costos.forEach(costo => {
-          if (costo.id_proveedor) {
-            proveedorIds.add(costo.id_proveedor);
-          }
-        });
-      }
-
-      // Filtrar los proveedores de la lista general basándose en los IDs encontrados
-      this.proveedoresFiltrados = Array.from(proveedorIds).length > 0
-        ? this.proveedoresOptions.filter(p => proveedorIds.has(p.id))
-        : [];
+      // Cargar todos los proveedores disponibles
+      this.proveedoresFiltrados = this.proveedoresOptions;
     }
 
-    this.form.patchValue({ id_asociado: null });
+    // No resetear id_asociado para mantener el valor existente en edición o view
+    if (!this.isEditMode && !this.isViewMode) {
+      this.form.patchValue({ id_asociado: null });
+    }
   }
 
   openEditModal(mov: Movimiento) {
     this.isEditMode = true;
+    this.isViewMode = false;
     this.movimientoEditando = mov;
+    this.form.enable();
     this.form.patchValue({
       id_obra: mov.id_obra,
       id_asociado: mov.id_asociado,
@@ -302,6 +320,10 @@ export class MovimientosListComponent implements OnInit {
       medio_pago: mov.medio_pago || '',
       concepto: mov.concepto || ''
     });
+    // Filtrar clientes/proveedores de la obra seleccionada
+    this.onObraChange();
+    // Cargar saldo del asociado
+    this.onAsociadoChange();
     this.showModal = true;
   }
 
@@ -329,6 +351,7 @@ export class MovimientosListComponent implements OnInit {
         });
         this.showModal = false;
         this.movimientoEditando = null;
+        this.isViewMode = false;
         this.cargarDatos();
       },
       error: (err) => {
@@ -349,6 +372,8 @@ export class MovimientosListComponent implements OnInit {
           summary: 'Éxito',
           detail: 'Movimiento eliminado'
         });
+        this.showModal = false;
+        this.isViewMode = false;
         this.cargarDatos();
       },
       error: (err) => {
