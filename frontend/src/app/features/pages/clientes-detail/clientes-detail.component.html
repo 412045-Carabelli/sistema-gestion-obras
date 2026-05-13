@@ -89,7 +89,7 @@
 
       <!-- ===================== TABS MEJORADOS ===================== -->
       <div class="bg-white rounded-xl shadow-md overflow-hidden">
-        <p-tabs value="0">
+        <p-tabs [value]="selectedTab" (onChange)="onTabChange($event)">
           <p-tablist pStyleClass="border-b border-gray-200 px-6">
             <p-tab value="0" pStyleClass="px-6 py-4">
               <div class="flex items-center gap-2">

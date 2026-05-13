@@ -18,7 +18,8 @@
         <p-button
           label="Volver"
           icon="pi pi-arrow-left"
-          (onClick)="goBack()"
+          appBackButton
+          fallback="/dashboard"
           styleClass="p-button">
         </p-button>
       </div>

@@ -68,6 +68,7 @@ export class ClientesDetailComponent implements OnInit, OnDestroy {
   obras: Obra[] = [];
   transacciones: Transaccion[] = [];
   loading = true;
+  selectedTab = '0';
 
   // Estadísticas desde el backend
   obrasActivas = 0;
@@ -113,6 +114,8 @@ export class ClientesDetailComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     const id = Number(this.route.snapshot.paramMap.get('id'));
+    const tabParam = this.route.snapshot.queryParamMap.get('tab');
+    this.selectedTab = tabParam || '0';
     if (id) this.cargarDetalle(id);
   }
 
@@ -462,6 +465,16 @@ export class ClientesDetailComponent implements OnInit, OnDestroy {
       (pdfMake as any).vfs = fonts;
       this.pdfMakeReady = true;
     }
+  }
+
+  onTabChange(event: any): void {
+    const newTab = String(event.index ?? event);
+    this.selectedTab = newTab;
+    this.router.navigate([], {
+      relativeTo: this.route,
+      queryParams: { tab: newTab },
+      queryParamsHandling: 'merge'
+    });
   }
 }
 

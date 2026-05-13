@@ -140,6 +140,20 @@ public class AgendaBffController {
                 .map(ResponseEntity::ok);
     }
 
+    // ✅ PATCH cambiar estado - DEBE IR ANTES DE /{id}
+    @PatchMapping("/{id}/estado")
+    public Mono<ResponseEntity<Map<String, Object>>> cambiarEstado(
+            @PathVariable("id") Long id,
+            @RequestBody Map<String, String> request) {
+        return webClientBuilder.build()
+                .patch()
+                .uri(AGENDA_TAREAS_URL + "/{id}/estado", id)
+                .bodyValue(request)
+                .retrieve()
+                .bodyToMono(new ParameterizedTypeReference<Map<String, Object>>() {})
+                .map(ResponseEntity::ok);
+    }
+
     // ✅ DELETE borrar
     @DeleteMapping("/{id}")
     public Mono<ResponseEntity<Void>> borrarTarea(@PathVariable("id") Long id) {

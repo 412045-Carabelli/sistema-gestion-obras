@@ -1345,6 +1345,16 @@ export class ObrasDetailComponent implements OnInit, OnDestroy, AfterViewInit {
     );
   }
 
+  onTabChange(event: any): void {
+    const newTab = String(event.index ?? event);
+    this.activeTab = newTab;
+    this.router.navigate([], {
+      relativeTo: this.route,
+      queryParams: { tab: newTab },
+      queryParamsHandling: 'merge'
+    });
+  }
+
 }
 
 

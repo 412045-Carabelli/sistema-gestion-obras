@@ -512,7 +512,7 @@ public class TransaccionService {
     }
 
     /**
-     * Convierte una Transaccion a TransaccionConAsociadoDto enriquecido con nombre del asociado.
+     * Convierte una Transaccion a TransaccionConAsociadoDto enriquecido con nombre del asociado y obra.
      */
     private TransaccionConAsociadoDto toTransaccionConAsociadoDto(Transaccion transaccion) {
         if (transaccion == null) return null;
@@ -520,6 +520,7 @@ public class TransaccionService {
         TransaccionConAsociadoDto dto = TransaccionConAsociadoDto.builder()
                 .id(transaccion.getId())
                 .id_obra(transaccion.getIdObra())
+                .nombre_obra(obtenerNombreObra(transaccion.getIdObra()))
                 .id_asociado(transaccion.getIdAsociado())
                 .tipo_asociado(transaccion.getTipoAsociado())
                 .tipo_transaccion(transaccion.getTipo_transaccion())

@@ -36,9 +36,10 @@
         </div>
 
         <p-button
-          label="Volver al listado"
+          label="Volver"
           icon="pi pi-arrow-left"
-          (onClick)="goBack()"
+          appBackButton
+          fallback="/facturas"
           styleClass="p-button">
         </p-button>
       </div>
@@ -55,9 +56,10 @@
           <p class="text-sky-100">Actualizar datos y adjuntos de la factura</p>
         </div>
         <p-button
-          label="Volver al listado"
+          label="Volver"
           icon="pi pi-arrow-left"
-          (onClick)="goBack()"
+          appBackButton
+          fallback="/facturas"
           styleClass="p-button">
         </p-button>
       </div>
@@ -106,9 +108,10 @@
                 tooltipPosition="top">
               </p-button>
               <p-button
-                label="Volver al listado"
+                label="Volver"
                 icon="pi pi-arrow-left"
-                (onClick)="goBack()"
+                appBackButton
+                fallback="/facturas"
                 styleClass="p-button">
               </p-button>
             </div>

@@ -37,9 +37,10 @@
         </div>
 
         <p-button
-          label="Volver al listado"
+          label="Volver"
           icon="pi pi-arrow-left"
-          (onClick)="goBack()"
+          appBackButton
+          fallback="/proveedores"
           styleClass="p-button">
         </p-button>
       </div>
@@ -56,9 +57,10 @@
           <p class="text-blue-100">Actualizar datos de contacto</p>
         </div>
         <p-button
-          label="Volver al listado"
+          label="Volver"
           icon="pi pi-arrow-left"
-          (onClick)="goBack()"
+          appBackButton
+          fallback="/proveedores"
           styleClass="p-button">
         </p-button>
       </div>
@@ -111,9 +113,10 @@
                 tooltipPosition="top">
               </p-button>
               <p-button
-                label="Volver al listado"
+                label="Volver"
                 icon="pi pi-arrow-left"
-                (onClick)="goBack()"
+                appBackButton
+                fallback="/proveedores"
                 styleClass="p-button">
               </p-button>
             </div>

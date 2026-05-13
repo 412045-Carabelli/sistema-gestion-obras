@@ -379,11 +379,12 @@
         <!-- ========== BOTONES DE ACCIÓN ========== -->
         <div class="flex justify-between items-center bg-white rounded-xl shadow-md p-6">
           <p-button
-            label="Cancelar"
-            icon="pi pi-times"
+            label="Volver"
+            icon="pi pi-arrow-left"
             [outlined]="true"
             severity="secondary"
-            routerLink="/obras"
+            appBackButton
+            fallback="/obras"
             styleClass="p-button-lg"
           ></p-button>
 
