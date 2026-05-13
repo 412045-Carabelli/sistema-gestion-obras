@@ -39,3 +39,8 @@
 .filtros-card {
   margin-bottom: 1rem;
 }
+
+/* Estilos para skeletons */
+:host ::ng-deep p-skeleton {
+  border-radius: 0.5rem;
+}

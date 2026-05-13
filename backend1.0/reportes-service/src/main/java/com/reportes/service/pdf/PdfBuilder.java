@@ -63,7 +63,6 @@ public class PdfBuilder {
         cellLogo.setBorder(PdfPCell.NO_BORDER);
         cellLogo.setHorizontalAlignment(Element.ALIGN_CENTER);
         cellLogo.setPadding(0);
-
         try {
             Image logo = cargarLogo();
             if (logo != null) {
