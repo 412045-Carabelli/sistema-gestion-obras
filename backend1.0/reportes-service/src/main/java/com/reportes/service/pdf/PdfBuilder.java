@@ -50,38 +50,31 @@ public class PdfBuilder {
     }
 
     /**
-     * Agrega el membrete (logo + datos empresa) al inicio del documento.
+     * Agrega el membrete (solo logo 100% ancho).
      */
     private void agregarMembrete(Document doc) throws DocumentException, IOException {
-        // Logo
+        // Tabla de ancho completo: 1 columna
+        PdfPTable membreteTable = new PdfPTable(1);
+        membreteTable.setWidthPercentage(100);
+        membreteTable.setSpacingAfter(12);
+
+        // Celda del logo (100% ancho)
+        PdfPCell cellLogo = new PdfPCell();
+        cellLogo.setBorder(PdfPCell.NO_BORDER);
+        cellLogo.setHorizontalAlignment(Element.ALIGN_CENTER);
+        cellLogo.setPadding(0);
+
         try {
             Image logo = cargarLogo();
             if (logo != null) {
-                logo.scaleToFit(150, 100);
-                doc.add(logo);
+                logo.scaleToFit(550, 150);
+                cellLogo.addElement(logo);
             }
         } catch (Exception e) {
             log.warn("No se pudo cargar logo: {}", e.getMessage());
         }
-
-        // Título empresa
-        Paragraph titulo = new Paragraph(empresaConfig.getNombre());
-        titulo.setFont(new Font(Font.HELVETICA, 14, Font.BOLD));
-        titulo.setAlignment(Element.ALIGN_CENTER);
-        titulo.setSpacingAfter(2);
-        doc.add(titulo);
-
-        // Datos empresa
-        addCenteredParagraph(doc, empresaConfig.getDireccion(), 9, 1);
-        addCenteredParagraph(doc, "Tel: " + empresaConfig.getTelefono(), 9, 1);
-        addCenteredParagraph(doc, "Email: " + empresaConfig.getEmail(), 9, 12);
-
-        // Línea separadora
-        Paragraph linea = new Paragraph("_".repeat(80));
-        linea.setFont(new Font(Font.HELVETICA, 8, Font.NORMAL, new Color(211, 211, 211)));
-        linea.setAlignment(Element.ALIGN_CENTER);
-        linea.setSpacingAfter(12);
-        doc.add(linea);
+        membreteTable.addCell(cellLogo);
+        doc.add(membreteTable);
     }
 
     /**
