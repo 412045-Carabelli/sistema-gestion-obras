@@ -15,6 +15,7 @@ services:
       - MSSQL_PID=Express
     volumes:
       - sqlserver_data:/var/opt/mssql
+      - ./backups:/var/opt/mssql/backup
       - ./db/sqlserver-init:/init
     entrypoint: ["/bin/bash", "/init/entrypoint.sh"]
     healthcheck:
