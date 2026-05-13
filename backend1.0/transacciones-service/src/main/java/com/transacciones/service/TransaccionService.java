@@ -5,6 +5,8 @@ import com.transacciones.dto.ObraResumenDto;
 import com.transacciones.dto.TransaccionDto;
 import com.transacciones.dto.MovimientoRecenteDTO;
 import com.transacciones.dto.ObraNombreDto;
+import com.transacciones.dto.TransaccionConAsociadoDto;
+import com.transacciones.dto.AsociadoNombreDto;
 import com.transacciones.entity.Transaccion;
 import com.transacciones.enums.TipoTransaccionEnum;
 import com.transacciones.repository.TransaccionRepository;
@@ -20,6 +22,8 @@ import org.springframework.web.client.RestTemplate;
 import java.time.LocalDate;
 import java.util.*;
 import java.util.stream.Collectors;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 @Service
 @RequiredArgsConstructor
@@ -33,6 +37,12 @@ public class TransaccionService {
 
     @Value("${services.obras.url}")
     private String obrasServiceUrl;
+
+    @Value("${services.clientes.url}")
+    private String clientesServiceUrl;
+
+    @Value("${services.proveedores.url}")
+    private String proveedoresServiceUrl;
 
     public List<TransaccionDto> listar() {
         return transaccionRepository.findAll()
@@ -476,5 +486,133 @@ public class TransaccionService {
         }
 
         return resultado;
+    }
+
+    /**
+     * Lista transacciones paginadas enriquecidas con nombres de asociados (cliente o proveedor).
+     * Devuelve un Map con contenido paginado compatible con frontend.
+     */
+    @Transactional(readOnly = true)
+    public Map<String, Object> listarConAsociadosPaginado(Pageable pageable) {
+        Page<Transaccion> page = transaccionRepository.findAll(pageable);
+        List<TransaccionConAsociadoDto> content = page.getContent()
+                .stream()
+                .map(this::toTransaccionConAsociadoDto)
+                .collect(Collectors.toList());
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("content", content);
+        response.put("totalElements", page.getTotalElements());
+        response.put("totalPages", page.getTotalPages());
+        response.put("currentPage", page.getNumber());
+        response.put("pageSize", page.getSize());
+        response.put("isFirst", page.isFirst());
+        response.put("isLast", page.isLast());
+        return response;
+    }
+
+    /**
+     * Convierte una Transaccion a TransaccionConAsociadoDto enriquecido con nombre del asociado.
+     */
+    private TransaccionConAsociadoDto toTransaccionConAsociadoDto(Transaccion transaccion) {
+        if (transaccion == null) return null;
+
+        TransaccionConAsociadoDto dto = TransaccionConAsociadoDto.builder()
+                .id(transaccion.getId())
+                .id_obra(transaccion.getIdObra())
+                .id_asociado(transaccion.getIdAsociado())
+                .tipo_asociado(transaccion.getTipoAsociado())
+                .tipo_transaccion(transaccion.getTipo_transaccion())
+                .fecha(transaccion.getFecha())
+                .monto(transaccion.getMonto())
+                .forma_pago(transaccion.getForma_pago())
+                .medio_pago(transaccion.getMedio_pago())
+                .concepto(transaccion.getConcepto())
+                .factura_cobrada(transaccion.getFacturaCobrada())
+                .activo(transaccion.getActivo())
+                .ultima_actualizacion(transaccion.getUltimaActualizacion())
+                .tipo_actualizacion(transaccion.getTipoActualizacion())
+                .build();
+
+        // Enriquecer con nombre del asociado
+        dto.setNombre_asociado(obtenerNombreAsociado(transaccion.getTipoAsociado(), transaccion.getIdAsociado()));
+
+        // Completar pagado/restante
+        completarPagadoRestante(transaccion, dto);
+
+        return dto;
+    }
+
+    /**
+     * Obtiene el nombre del cliente o proveedor según el tipo.
+     */
+    private String obtenerNombreAsociado(String tipo, Long id) {
+        if (tipo == null || id == null) return null;
+        if ("COMISION".equals(tipo)) return "Comisión";
+
+        try {
+            if ("CLIENTE".equals(tipo)) {
+                return obtenerNombreCliente(id);
+            } else if ("PROVEEDOR".equals(tipo)) {
+                return obtenerNombreProveedor(id);
+            }
+        } catch (Exception e) {
+            log.warn("Error obteniendo nombre de asociado tipo {} id {}", tipo, id, e);
+        }
+        return null;
+    }
+
+    /**
+     * Obtiene el nombre del cliente por ID con caché.
+     */
+    @Cacheable(value = "clienteNombres", key = "#id")
+    private String obtenerNombreCliente(Long id) {
+        try {
+            String url = String.format("%s/%d", clientesServiceUrl, id);
+            AsociadoNombreDto cliente = restTemplate.getForObject(url, AsociadoNombreDto.class);
+            return cliente != null ? cliente.getNombre() : null;
+        } catch (Exception e) {
+            log.debug("Error obteniendo nombre de cliente {}", id, e);
+            return null;
+        }
+    }
+
+    /**
+     * Obtiene el nombre del proveedor por ID con caché.
+     */
+    @Cacheable(value = "proveedorNombres", key = "#id")
+    private String obtenerNombreProveedor(Long id) {
+        try {
+            String url = String.format("%s/%d", proveedoresServiceUrl, id);
+            AsociadoNombreDto proveedor = restTemplate.getForObject(url, AsociadoNombreDto.class);
+            return proveedor != null ? proveedor.getNombre() : null;
+        } catch (Exception e) {
+            log.debug("Error obteniendo nombre de proveedor {}", id, e);
+            return null;
+        }
+    }
+
+    /**
+     * Variante de completarPagadoRestante que acepta TransaccionConAsociadoDto.
+     */
+    private void completarPagadoRestante(Transaccion transaccion, TransaccionConAsociadoDto dto) {
+        if (transaccion == null || dto == null) return;
+        if (transaccion.getTipo_transaccion() == null) return;
+
+        String tipoAsociado = transaccion.getTipoAsociado() == null ? "" : transaccion.getTipoAsociado().toUpperCase();
+        if (transaccion.getTipo_transaccion() == TipoTransaccionEnum.COBRO
+                && "CLIENTE".equals(tipoAsociado)
+                && transaccion.getIdObra() != null) {
+            try {
+                ObraResumenDto obra = obraCostoClient.obtenerObra(transaccion.getIdObra());
+                if (obra == null || obra.getPresupuesto() == null) return;
+                Double cobrado = transaccionRepository.sumarCobrosPorObra(transaccion.getIdObra());
+                double cobradoVal = cobrado != null ? cobrado : 0d;
+                dto.setPagado(cobradoVal);
+                dto.setRestante(Math.max(0d, obra.getPresupuesto() - cobradoVal));
+            } catch (Exception ex) {
+                log.debug("No se pudo calcular pagado/restante para obra {}", transaccion.getIdObra(), ex);
+            }
+        }
     }
 }

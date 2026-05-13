@@ -45,6 +45,22 @@ public class TransaccionBffController {
         return transaccionesFlux.collectList().map(ResponseEntity::ok);
     }
 
+    // ✅ GET /bff/transacciones/con-asociados (paginado con nombres de clientes/proveedores)
+    @GetMapping("/con-asociados")
+    public Mono<ResponseEntity<Map<String, Object>>> getAllConAsociados(
+            @RequestParam(name = "page", defaultValue = "0") int page,
+            @RequestParam(name = "size", defaultValue = "50") int size
+    ) {
+        WebClient client = webClientBuilder.build();
+
+        return client.get()
+                .uri(TRANSACCIONES_URL + "/con-asociados?page={page}&size={size}", page, size)
+                .retrieve()
+                .bodyToMono(new ParameterizedTypeReference<Map<String, Object>>() {})
+                .map(ResponseEntity::ok)
+                .onErrorResume(ex -> Mono.just(ResponseEntity.badRequest().build()));
+    }
+
     // ✅ GET /bff/transacciones/{id}
     @GetMapping("/{id}")
     public Mono<ResponseEntity<Map<String, Object>>> getTransaccionById(@PathVariable("id") Long id) {

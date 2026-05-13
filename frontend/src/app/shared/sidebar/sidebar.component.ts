@@ -29,10 +29,10 @@ export class SidebarComponent {
     {label: 'Agendas', icon: 'pi-calendar', path: '/agendas'},
     {label: 'Clientes', icon: 'pi-users', path: '/clientes'},
     {label: 'Proveedores', icon: 'pi-truck', path: '/proveedores'},
+    {label: 'Movimientos', icon: 'pi-arrow-right-arrow-left', path: '/movimientos'},
     {label: 'Facturas', icon: 'pi-receipt', path: '/facturas'},
     {label: 'Reportes', icon: 'pi-chart-bar', path: '/reportes'},
     {label: 'Cuentas Corrientes', icon: 'pi-wallet', path: '/cuentas-corrientes'},
-    {label: 'Grupos de Obras', icon: 'pi-folder', path: '/grupos'},
   ];
 
   version: string = 'v1.15.37';

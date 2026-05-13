@@ -26,6 +26,8 @@ import {GruposLayoutComponent} from './features/grupos-layout/grupos-layout.comp
 import {GruposObrasComponent} from './features/pages/grupos-obras/grupos-obras.component';
 import {CuentaCorrienteLayoutComponent} from './features/cuenta-corriente-layout/cuenta-corriente-layout.component';
 import {CuentaCorrienteComponent} from './features/pages/cuenta-corriente/cuenta-corriente.component';
+import {MovimientosLayoutComponent} from './features/movimientos-layout/movimientos-layout.component';
+import {MovimientosListComponent} from './features/components/movimientos-list/movimientos-list.component';
 
 export const routes: Routes = [
   {
@@ -103,6 +105,13 @@ export const routes: Routes = [
     component: CuentaCorrienteLayoutComponent,
     children: [
       {path: '', component: CuentaCorrienteComponent},
+    ],
+  },
+  {
+    path: 'movimientos',
+    component: MovimientosLayoutComponent,
+    children: [
+      {path: '', component: MovimientosListComponent},
     ],
   },
   {path: '**', redirectTo: 'dashboard'},
