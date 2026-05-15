@@ -26,11 +26,11 @@
       <div class="grid grid-cols-2 gap-3">
         <div class="bg-green-50 border border-green-200 rounded-lg p-4">
           <p class="text-green-700 text-sm font-medium">Total por cobrar</p>
-          <p class="text-2xl font-bold text-green-900">{{ datos?.deudaClientes | currency:'ARS':'symbol-narrow':'1.0-0' }}</p>
+          <p class="text-2xl font-poppins font-bold text-green-900">{{ datos?.deudaClientes | currency:'ARS':'symbol-narrow':'1.0-0' }}</p>
         </div>
         <div class="bg-red-50 border border-red-200 rounded-lg p-4">
           <p class="text-red-700 text-sm font-medium">Total por pagar</p>
-          <p class="text-2xl font-bold text-red-900">{{ datos?.deudaProveedores | currency:'ARS':'symbol-narrow':'1.0-0' }}</p>
+          <p class="text-2xl font-poppins font-bold text-red-900">{{ datos?.deudaProveedores | currency:'ARS':'symbol-narrow':'1.0-0' }}</p>
         </div>
       </div>
       <div class="flex gap-2">
@@ -50,7 +50,7 @@
     <!-- Tabla Clientes -->
     @if (datos?.detalleDeudaClientes !== undefined) {
       <div class="bg-white rounded-lg shadow p-5">
-        <h3 class="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
+        <h3 class="font-poppins text-lg font-poppins font-semibold text-gray-800 mb-4 flex items-center gap-2">
           <i class="pi pi-users text-green-600"></i>
           Cuentas por cobrar
         </h3>
@@ -84,7 +84,7 @@
     <!-- Tabla Proveedores -->
     @if (datos?.detalleDeudaProveedores !== undefined) {
       <div class="bg-white rounded-lg shadow p-5">
-        <h3 class="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
+        <h3 class="font-poppins text-lg font-poppins font-semibold text-gray-800 mb-4 flex items-center gap-2">
           <i class="pi pi-briefcase text-red-600"></i>
           Cuentas por pagar
         </h3>

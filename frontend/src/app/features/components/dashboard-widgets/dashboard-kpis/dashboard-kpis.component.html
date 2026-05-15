@@ -17,7 +17,7 @@
           <i class="pi pi-arrow-up text-green-600"></i>
           <span class="text-sm font-medium text-gray-600">Cobrado</span>
         </div>
-        <div class="text-2xl font-bold text-green-600">
+        <div class="text-2xl font-poppins font-bold text-green-600">
           {{ datos.cobrado | currency:'ARS':'symbol-narrow':'1.0-0' }}
         </div>
       </div>
@@ -28,7 +28,7 @@
           <i class="pi pi-wallet text-emerald-600"></i>
           <span class="text-sm font-medium text-gray-600">Por cobrar</span>
         </div>
-        <div class="text-2xl font-bold text-emerald-700">
+        <div class="text-2xl font-poppins font-bold text-emerald-700">
           {{ datos.porCobrar | currency:'ARS':'symbol-narrow':'1.0-0' }}
         </div>
       </div>
@@ -39,7 +39,7 @@
           <i class="pi pi-arrow-down text-red-600"></i>
           <span class="text-sm font-medium text-gray-600">Pagado</span>
         </div>
-        <div class="text-2xl font-bold text-red-600">
+        <div class="text-2xl font-poppins font-bold text-red-600">
           {{ datos.pagado | currency:'ARS':'symbol-narrow':'1.0-0' }}
         </div>
       </div>
@@ -50,7 +50,7 @@
           <i class="pi pi-chart-line text-amber-600"></i>
           <span class="text-sm font-medium text-gray-600">Por pagar</span>
         </div>
-        <div class="text-2xl font-bold text-amber-700">
+        <div class="text-2xl font-poppins font-bold text-amber-700">
           {{ datos.porPagar | currency:'ARS':'symbol-narrow':'1.0-0' }}
         </div>
       </div>
@@ -74,7 +74,7 @@
           <span class="text-sm font-medium text-gray-600">Resultado</span>
         </div>
         <div
-          class="text-2xl font-bold"
+          class="text-2xl font-poppins font-bold"
           [ngClass]="{
             'text-green-700': datos.resultado > 0,
             'text-red-600': datos.resultado < 0,

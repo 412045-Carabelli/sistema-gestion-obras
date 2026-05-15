@@ -3,7 +3,7 @@
 
 <div class="p-4 space-y-4">
   <div class="flex justify-between items-center mb-3">
-    <h2 class="text-xl font-poppins font-semibold text-gray-800">Documentos</h2>
+    <h2 class="font-poppins text-xl font-poppins font-semibold text-gray-800">Documentos</h2>
     <p-button
       (onClick)="abrirModal()"
       icon="pi pi-plus"
@@ -42,7 +42,7 @@
         (click)="abrirDetalle(d)"
       >
         <td class="max-w-xs">
-          <span class="text-sm text-gray-700 line-clamp-2">{{ previewObservacion(d.observacion) }}</span>
+          <span class="text-sm font-poppins font-normal text-gray-700 line-clamp-2">{{ previewObservacion(d.observacion) }}</span>
         </td>
         <td>{{ d.fecha | date: 'dd/MM/yyyy' }}</td>
         <td>
@@ -91,7 +91,7 @@
 
         @if (documentoDetalle.observacion && documentoDetalle.observacion !== '<p></p>') {
           <div>
-            <p class="text-sm font-poppins font-semibold text-gray-700 mb-1">Nota</p>
+            <p class="text-sm font-poppins font-poppins font-semibold text-gray-700 mb-1">Nota</p>
             <div
               class="prose prose-sm max-w-none border border-gray-200 rounded-lg p-3 bg-gray-50 text-gray-800"
               [innerHTML]="sanitizarHtml(documentoDetalle.observacion)"
@@ -102,7 +102,7 @@
         @if (tieneArchivo(documentoDetalle)) {
           <div class="flex items-center gap-3 p-3 bg-blue-50 border border-blue-200 rounded-lg">
             <i class="pi pi-file text-blue-600 text-xl"></i>
-            <span class="text-sm text-gray-700 flex-1 truncate">{{ documentoDetalle.nombre_archivo }}</span>
+            <span class="text-sm font-poppins font-normal text-gray-700 flex-1 truncate">{{ documentoDetalle.nombre_archivo }}</span>
             <p-button
               (onClick)="descargarDocumento(documentoDetalle)"
               icon="pi pi-external-link"
@@ -230,7 +230,7 @@
             }
           </div>
         }
-        <p class="text-xs text-gray-500 mt-2">Puedes guardar una nota sin adjuntar archivo.</p>
+        <p class="text-xs font-poppins font-normal text-gray-500 mt-2">Puedes guardar una nota sin adjuntar archivo.</p>
       </div>
     </div>
 

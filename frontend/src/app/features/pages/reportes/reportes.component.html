@@ -10,7 +10,7 @@
   </div>
 
   <div class="relative z-10">
-    <h1 class="text-3xl font-bold mb-2">Reportes</h1>
+    <h1 class="font-poppins text-3xl font-poppins font-bold mb-2">Reportes</h1>
     <p class="text-indigo-100">Panel de control y análisis detallado de obras</p>
   </div>
 </div>
@@ -19,7 +19,7 @@
 
   <!-- ===================== FILTROS DE BÚSQUEDA ===================== -->
   <div class="bg-white rounded-xl shadow-md p-6">
-    <h2 class="text-lg font-semibold text-gray-900 mb-5 flex items-center gap-2 pb-3 border-b border-gray-200">
+    <h2 class="font-poppins text-lg font-poppins font-semibold text-gray-900 mb-5 flex items-center gap-2 pb-3 border-b border-gray-200">
       <i class="pi pi-filter text-indigo-600"></i>
       Filtros de búsqueda
     </h2>
@@ -28,7 +28,7 @@
       <div class="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
         <!-- Obra -->
         <div class="flex flex-col">
-          <label class="text-sm font-semibold mb-2 text-gray-700 flex items-center gap-2">
+          <label class="text-sm font-poppins font-semibold mb-2 text-gray-700 flex items-center gap-2">
             <i class="pi pi-building text-gray-400 text-xs"></i>
             Obra
           </label>
@@ -43,7 +43,7 @@
 
         <!-- Cliente -->
         <div class="flex flex-col">
-          <label class="text-sm font-semibold mb-2 text-gray-700 flex items-center gap-2">
+          <label class="text-sm font-poppins font-semibold mb-2 text-gray-700 flex items-center gap-2">
             <i class="pi pi-user text-gray-400 text-xs"></i>
             Cliente
           </label>
@@ -58,7 +58,7 @@
 
         <!-- Proveedor -->
         <div class="flex flex-col">
-          <label class="text-sm font-semibold mb-2 text-gray-700 flex items-center gap-2">
+          <label class="text-sm font-poppins font-semibold mb-2 text-gray-700 flex items-center gap-2">
             <i class="pi pi-users text-gray-400 text-xs"></i>
             Proveedor
           </label>
@@ -73,7 +73,7 @@
 
         <!-- Estados de obra -->
         <div class="flex flex-col">
-          <label class="text-sm font-semibold mb-2 text-gray-700 flex items-center gap-2">
+          <label class="text-sm font-poppins font-semibold mb-2 text-gray-700 flex items-center gap-2">
             <i class="pi pi-flag text-gray-400 text-xs"></i>
             Estados de obra
           </label>
@@ -91,7 +91,7 @@
 
         <!-- Rango de fechas -->
         <div class="flex flex-col">
-          <label class="text-sm font-semibold mb-2 text-gray-700 flex items-center gap-2">
+          <label class="text-sm font-poppins font-semibold mb-2 text-gray-700 flex items-center gap-2">
             <i class="pi pi-calendar text-gray-400 text-xs"></i>
             Rango de fechas
           </label>
@@ -147,7 +147,7 @@
     <!-- ===================== COMISIONES ===================== -->
     <div class="bg-white rounded-xl shadow-md p-6">
         <div class="flex items-center justify-between pb-3 mb-5 border-b border-gray-200">
-          <h2 class="text-lg font-semibold text-gray-900 flex items-center gap-2">
+          <h2 class="font-poppins text-lg font-poppins font-semibold text-gray-900 flex items-center gap-2">
             <i class="pi pi-percentage text-indigo-600"></i>
             Comisiones
           </h2>
@@ -164,11 +164,11 @@
 
         <div class="flex items-center gap-3 mb-4 text-sm">
           <span class="text-gray-600">Total comisiones:</span>
-          <span class="text-xl font-bold text-indigo-700">{{ (comisiones?.totalComision ?? 0) | currency:'ARS':'symbol-narrow':'1.2-2' }}</span>
+          <span class="text-xl font-poppins font-bold text-indigo-700">{{ (comisiones?.totalComision ?? 0) | currency:'ARS':'symbol-narrow':'1.2-2' }}</span>
           <span class="text-gray-500">| Pagado:</span>
           <span class="text-gray-700">{{ (comisiones?.totalPagos ?? 0) | currency:'ARS':'symbol-narrow':'1.2-2' }}</span>
           <span class="text-gray-500">| Saldo:</span>
-          <span class="font-semibold text-slate-800">{{ (comisiones?.saldo ?? 0) | currency:'ARS':'symbol-narrow':'1.2-2' }}</span>
+          <span class="font-poppins font-semibold text-slate-800">{{ (comisiones?.saldo ?? 0) | currency:'ARS':'symbol-narrow':'1.2-2' }}</span>
         </div>
 
         <p-table [value]="comisiones?.detalle || []" [paginator]="true" [rows]="10" responsiveLayout="scroll" styleClass="p-datatable-sm" [sortField]="'fecha'" [sortOrder]="-1">

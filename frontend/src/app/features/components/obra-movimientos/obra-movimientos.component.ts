@@ -45,7 +45,9 @@ export class ObraMovimientosComponent implements OnInit {
   @Input() presupuestoTotal?: number;
   @Output() costosActualizados = new EventEmitter<ObraCosto[]>();
   @Output() movimientosActualizados = new EventEmitter<void>();
+  @Output() loadingChange = new EventEmitter<boolean>();
 
+  loadingMovimientos = true;
   transacciones: Transaccion[] = [];
   tiposTransaccion: { label: string; name: string }[] = [];
 
@@ -229,6 +231,20 @@ export class ObraMovimientosComponent implements OnInit {
   }
 
   cargarDatos() {
+    this.loadingMovimientos = true;
+    this.loadingChange.emit(true);
+
+    let completados = 0;
+    const total = 3; // transacciones, tipos, costos
+
+    const marcarCompleto = () => {
+      completados++;
+      if (completados === total) {
+        this.loadingMovimientos = false;
+        this.loadingChange.emit(false);
+      }
+    };
+
     this.transaccionesService.getByObra(this.obraId).subscribe(transacciones => {
       this.transacciones = (transacciones || [])
         .map(t => this.normalizarTransaccion(t))
@@ -239,13 +255,20 @@ export class ObraMovimientosComponent implements OnInit {
           return Number(b.id ?? 0) - Number(a.id ?? 0);
         });
       this.movimientosActualizados.emit();
+      marcarCompleto();
     });
 
     this.transaccionesService.getTipos().subscribe(tipos => {
       this.tiposTransaccion = tipos;
+      marcarCompleto();
     });
 
-    this.refrescarCostosObra();
+    // Costos
+    this.costosService.getByObra(this.obraId).subscribe(costos => {
+      this.costosObra = costos || [];
+      this.costosActualizados.emit([...this.costosObra]);
+      marcarCompleto();
+    });
   }
 
   recargarMovimientos() {

@@ -5,16 +5,16 @@
   <!-- Header -->
   <div class="flex justify-between items-center flex-wrap gap-3">
     <div>
-      <h2 class="text-2xl font-bold text-gray-900">Presupuesto</h2>
+      <h2 class="font-poppins text-2xl font-poppins font-bold text-gray-900">Presupuesto</h2>
       <p class="text-gray-500 text-sm mt-1">
         Matriz de costos detallada de la obra
       </p>
     </div>
 
     <div class="flex flex-wrap gap-3 items-center">
-      <div class="text-xs text-gray-500">
+      <div class="text-xs font-poppins font-normal text-gray-500">
         Beneficio global:
-        <span class="font-semibold text-gray-700">
+        <span class="font-poppins font-semibold text-gray-700">
           {{ usarBeneficioGlobal ? (beneficioGlobal + '%') : 'No activo' }}
         </span>
       </div>
@@ -43,8 +43,8 @@
             <i class="pi pi-plus text-lg"></i>
           </div>
           <div>
-            <p class="text-sm font-semibold text-gray-900 leading-none">Agregar costo</p>
-            <p class="text-xs text-gray-500 leading-none">Completa los campos y sumalo a la matriz</p>
+            <p class="text-sm font-poppins font-poppins font-semibold text-gray-900 leading-none">Agregar costo</p>
+            <p class="text-xs font-poppins font-normal text-gray-500 leading-none">Completa los campos y sumalo a la matriz</p>
           </div>
         </div>
         <div class="hidden md:flex items-center gap-2 text-xs text-gray-500">
@@ -408,8 +408,8 @@
   <div class="bg-white border border-gray-200 rounded-xl shadow-sm p-5">
     <div class="flex items-center justify-between gap-3 mb-3">
       <div>
-        <h3 class="text-lg font-semibold text-gray-900">Condiciones y observaciones (PDF)</h3>
-        <p class="text-xs text-gray-500">Se muestran al final del presupuesto exportado.</p>
+        <h3 class="font-poppins text-lg font-poppins font-semibold text-gray-900">Condiciones y observaciones (PDF)</h3>
+        <p class="text-xs font-poppins font-normal text-gray-500">Se muestran al final del presupuesto exportado.</p>
       </div>
       @if (!condicionesEditando) {
         <p-button
@@ -686,7 +686,7 @@
               inputStyleClass="w-28 text-center"
               [min]="0"
             ></p-inputNumber>
-            <span class="text-sm text-gray-600 font-semibold">%</span>
+            <span class="text-sm font-poppins font-normal text-gray-600 font-semibold">%</span>
           </div>
         </div>
       </div>
@@ -734,7 +734,7 @@
           placeholder="Selecciona una fecha"
           [maxDate]="maxDateExport"
         ></p-datepicker>
-        <p class="text-xs text-gray-500 mt-1">Por defecto aparece la fecha de hoy</p>
+        <p class="text-xs font-poppins font-normal text-gray-500 mt-1">Por defecto aparece la fecha de hoy</p>
       </div>
 
       <div class="flex justify-end gap-2">
