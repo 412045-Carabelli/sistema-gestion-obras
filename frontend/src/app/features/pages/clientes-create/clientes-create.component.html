@@ -4,7 +4,7 @@
   <form appPreventInvalidSubmit (ngSubmit)="onSubmit()" [formGroup]="form" class="space-y-4">
     <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
       <div class="min-h-[72px] w-full">
-        <label class="block text-sm font-medium text-gray-700">Nombre *</label>
+        <label class="block text-sm font-poppins font-semibold text-gray-700">Nombre *</label>
         <input class="w-full" formControlName="nombre" pInputText type="text"/>
         @if (form.get('nombre')?.invalid && form.get('nombre')?.touched) {
           <small class="text-red-500 text-xs mt-1 h-[16px] block">Campo obligatorio</small>
@@ -12,7 +12,7 @@
       </div>
 
       <div class="min-h-[72px] w-full">
-        <label class="block text-sm font-medium text-gray-700">Contacto *</label>
+        <label class="block text-sm font-poppins font-semibold text-gray-700">Contacto *</label>
         <input class="w-full" formControlName="contacto" pInputText type="text"/>
         @if (form.get('contacto')?.invalid && form.get('contacto')?.touched) {
           <small class="text-red-500 text-xs mt-1 h-[16px] block">Campo obligatorio</small>
@@ -20,7 +20,7 @@
       </div>
 
       <div class="min-h-[72px] w-full">
-        <label class="block text-sm font-medium text-gray-700">Teléfono *</label>
+        <label class="block text-sm font-poppins font-semibold text-gray-700">Teléfono *</label>
         <input class="w-full" formControlName="telefono" pInputText type="number"/>
         @if (form.get('telefono')?.invalid && form.get('telefono')?.touched) {
           <small class="text-red-500 text-xs mt-1 h-[16px] block">
@@ -30,12 +30,12 @@
       </div>
 
       <div class="min-h-[72px] w-full">
-        <label class="block text-sm font-medium text-gray-700">Dirección</label>
+        <label class="block text-sm font-poppins font-semibold text-gray-700">Dirección</label>
         <input class="w-full" formControlName="direccion" pInputText type="text"/>
       </div>
 
       <div class="w-full">
-        <label class="block text-sm font-medium text-gray-700">DNI/CUIT *</label>
+        <label class="block text-sm font-poppins font-semibold text-gray-700">DNI/CUIT *</label>
         <input class="w-full" formControlName="cuit" pInputText type="text"/>
         @if (form.get('cuit')?.invalid && form.get('cuit')?.touched) {
           <small class="text-red-500 text-xs mt-1 h-[16px] block">Campo obligatorio</small>
@@ -43,7 +43,7 @@
       </div>
 
       <div class="min-h-[72px] w-full">
-        <label class="block text-sm font-medium text-gray-700">Condición IVA *</label>
+        <label class="block text-sm font-poppins font-semibold text-gray-700">Condición IVA *</label>
         <p-select
           [options]="ivaOptions"
           appendTo="body"
@@ -59,7 +59,7 @@
       </div>
 
       <div class="min-h-[72px] w-full md:col-span-2">
-        <label class="block text-sm font-medium text-gray-700">Email (opcional)</label>
+        <label class="block text-sm font-poppins font-semibold text-gray-700">Email (opcional)</label>
         <input class="w-full" formControlName="email" pInputText type="email"/>
         @if (form.get('email')?.invalid && form.get('email')?.touched) {
           <small class="text-red-500 text-xs mt-1 h-[16px] block">

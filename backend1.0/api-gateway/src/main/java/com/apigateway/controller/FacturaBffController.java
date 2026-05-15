@@ -31,7 +31,10 @@ public class FacturaBffController {
 
     @GetMapping
     public Mono<ResponseEntity<List<Map<String, Object>>>> getAll(
-            @RequestParam Map<String, String> queryParams
+            @RequestParam(required = false) String estado,
+            @RequestParam(required = false) Long idCliente,
+            @RequestParam(required = false) Integer page,
+            @RequestParam(required = false) Integer size
     ) {
         return webClientBuilder.build()
                 .get()
@@ -46,8 +49,17 @@ public class FacturaBffController {
                     if (base.getPath() != null && !base.getPath().isEmpty()) {
                         builder.path(base.getPath());
                     }
-                    if (queryParams != null && !queryParams.isEmpty()) {
-                        queryParams.forEach(builder::queryParam);
+                    if (estado != null && !estado.isEmpty()) {
+                        builder.queryParam("estado", estado);
+                    }
+                    if (idCliente != null) {
+                        builder.queryParam("idCliente", idCliente);
+                    }
+                    if (page != null) {
+                        builder.queryParam("page", page);
+                    }
+                    if (size != null) {
+                        builder.queryParam("size", size);
                     }
                     return builder.build();
                 })

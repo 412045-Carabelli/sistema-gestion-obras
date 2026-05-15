@@ -29,7 +29,10 @@ public class ClienteBffController {
     // ================================
     @GetMapping
     public Mono<ResponseEntity<List<Map<String, Object>>>> getAllClientes(
-            @RequestParam Map<String, String> queryParams
+            @RequestParam(required = false) String search,
+            @RequestParam(required = false) String sort,
+            @RequestParam(required = false) Integer page,
+            @RequestParam(required = false) Integer size
     ) {
         WebClient client = webClientBuilder.build();
 
@@ -45,8 +48,17 @@ public class ClienteBffController {
                     if (base.getPath() != null && !base.getPath().isEmpty()) {
                         builder.path(base.getPath());
                     }
-                    if (queryParams != null && !queryParams.isEmpty()) {
-                        queryParams.forEach(builder::queryParam);
+                    if (search != null && !search.isEmpty()) {
+                        builder.queryParam("search", search);
+                    }
+                    if (sort != null && !sort.isEmpty()) {
+                        builder.queryParam("sort", sort);
+                    }
+                    if (page != null) {
+                        builder.queryParam("page", page);
+                    }
+                    if (size != null) {
+                        builder.queryParam("size", size);
                     }
                     return builder.build();
                 })

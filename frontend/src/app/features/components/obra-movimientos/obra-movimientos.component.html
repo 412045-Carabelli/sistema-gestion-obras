@@ -5,7 +5,7 @@
   <!-- Titulo y boton -->
   <div class="flex justify-between items-center flex-wrap gap-3">
     <div>
-      <h2 class="font-poppins text-2xl font-poppins font-bold text-gray-900">Movimientos</h2>
+      <h2 class="font-poppins font-bold text-gray-900">Movimientos</h2>
       <p class="text-gray-500 text-sm font-poppins font-normal mt-1">
         Pagos y cobros asociados a la obra
       </p>
@@ -28,14 +28,14 @@
     >
       <ng-template pTemplate="header">
         <tr class="bg-gray-50 text-gray-700">
-          <th>ID</th>
-          <th>Tipo</th>
-          <th>Asociado</th>
-          <th>Fecha</th>
-          <th>Condicion (Parcial/Total)</th>
-          <th>Medio</th>
-          <th>Monto</th>
-          <th class="text-center"></th>
+          <th class="font-poppins font-semibold">ID</th>
+          <th class="font-poppins font-semibold">Tipo</th>
+          <th class="font-poppins font-semibold">Asociado</th>
+          <th class="font-poppins font-semibold">Fecha</th>
+          <th class="font-poppins font-semibold">Condicion (Parcial/Total)</th>
+          <th class="font-poppins font-semibold">Medio</th>
+          <th class="font-poppins font-semibold">Monto</th>
+          <th class="text-center font-poppins font-semibold"></th>
         </tr>
       </ng-template>
 
@@ -47,7 +47,7 @@
           <td>
             <button
               type="button"
-              class="text-indigo-600 underline font-semibold hover:text-indigo-800 hover:bg-indigo-50 px-1 rounded cursor-pointer"
+              class="text-indigo-600 underline font-poppins font-semibold hover:text-indigo-800 hover:bg-indigo-50 px-1 rounded cursor-pointer"
               (click)="abrirDetalleMovimiento(t)"
             >
               {{ t.id }}
@@ -60,18 +60,18 @@
             ></p-tag>
           </td>
 
-          <td>
+          <td class="font-poppins font-normal">
             <div class="flex items-center gap-2">
               <span>{{ proveedorOCliente(t.id_asociado, t.tipo_asociado) }}</span>
             </div>
           </td>
 
           <!-- Fecha -->
-          <td>{{ t.fecha | date: 'dd/MM/yyyy' }}</td>
+          <td class="font-poppins font-normal">{{ t.fecha | date: 'dd/MM/yyyy' }}</td>
 
           <!-- Forma de pago -->
-          <td class="uppercase">{{ t.forma_pago }}</td>
-          <td class="capitalize">{{ t.medio_pago || 'Sin especificar' }}</td>
+          <td class="uppercase font-poppins font-normal">{{ t.forma_pago }}</td>
+          <td class="capitalize font-poppins font-normal">{{ t.medio_pago || 'Sin especificar' }}</td>
 
           <!-- Monto -->
           <td>
@@ -140,7 +140,7 @@
     <div class="p-3 space-y-3">
       <div class="grid grid-cols-5 gap-3">
         <div class="col-span-2">
-          <label class="block text-sm font-medium mb-1 text-gray-700">
+          <label class="block text-sm font-poppins font-semibold mb-1 text-gray-700">
             Asociar documento a
           </label>
           <p-select
@@ -157,7 +157,7 @@
 
         @if (tipoEntidad === 'PROVEEDOR') {
           <div class="col-span-3">
-            <label class="block text-sm font-medium mb-1 text-gray-700">
+            <label class="block text-sm font-poppins font-semibold mb-1 text-gray-700">
               Proveedor
             </label>
             <p-autoComplete
@@ -347,7 +347,7 @@
               type="text"/>
           </div>
           <div class="flex flex-col gap-2">
-            <label class="text-sm font-medium text-gray-700">Condicion</label>
+            <label class="text-sm font-poppins font-semibold text-gray-700">Condicion</label>
             <input
               class="p-inputtext p-component w-full"
               [value]="movimientoDetalle.forma_pago || ''"
@@ -355,7 +355,7 @@
               type="text"/>
           </div>
           <div class="flex flex-col gap-2">
-            <label class="text-sm font-medium text-gray-700">Medio</label>
+            <label class="text-sm font-poppins font-semibold text-gray-700">Medio</label>
             <input
               class="p-inputtext p-component w-full"
               [value]="movimientoDetalle.medio_pago || 'Sin especificar'"
@@ -363,7 +363,7 @@
               type="text"/>
           </div>
           <div class="flex flex-col gap-2">
-            <label class="text-sm font-medium text-gray-700">Monto</label>
+            <label class="text-sm font-poppins font-semibold text-gray-700">Monto</label>
             <input
               class="p-inputtext p-component w-full"
               [value]="(movimientoDetalle.monto | currency:'ARS':'symbol':'1.0-2') || ''"

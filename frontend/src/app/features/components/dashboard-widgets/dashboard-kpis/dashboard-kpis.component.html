@@ -15,7 +15,7 @@
       <div class="bg-white rounded-xl shadow-md p-6 border-l-4 border-green-500">
         <div class="flex items-center gap-2 mb-2">
           <i class="pi pi-arrow-up text-green-600"></i>
-          <span class="text-sm font-medium text-gray-600">Cobrado</span>
+          <span class="text-sm font-poppins font-semibold text-gray-600">Cobrado</span>
         </div>
         <div class="text-2xl font-poppins font-bold text-green-600">
           {{ datos.cobrado | currency:'ARS':'symbol-narrow':'1.0-0' }}
@@ -26,7 +26,7 @@
       <div class="bg-white rounded-xl shadow-md p-6 border-l-4 border-emerald-500">
         <div class="flex items-center gap-2 mb-2">
           <i class="pi pi-wallet text-emerald-600"></i>
-          <span class="text-sm font-medium text-gray-600">Por cobrar</span>
+          <span class="text-sm font-poppins font-semibold text-gray-600">Por cobrar</span>
         </div>
         <div class="text-2xl font-poppins font-bold text-emerald-700">
           {{ datos.porCobrar | currency:'ARS':'symbol-narrow':'1.0-0' }}
@@ -37,7 +37,7 @@
       <div class="bg-white rounded-xl shadow-md p-6 border-l-4 border-red-500">
         <div class="flex items-center gap-2 mb-2">
           <i class="pi pi-arrow-down text-red-600"></i>
-          <span class="text-sm font-medium text-gray-600">Pagado</span>
+          <span class="text-sm font-poppins font-semibold text-gray-600">Pagado</span>
         </div>
         <div class="text-2xl font-poppins font-bold text-red-600">
           {{ datos.pagado | currency:'ARS':'symbol-narrow':'1.0-0' }}
@@ -48,7 +48,7 @@
       <div class="bg-white rounded-xl shadow-md p-6 border-l-4 border-amber-500">
         <div class="flex items-center gap-2 mb-2">
           <i class="pi pi-chart-line text-amber-600"></i>
-          <span class="text-sm font-medium text-gray-600">Por pagar</span>
+          <span class="text-sm font-poppins font-semibold text-gray-600">Por pagar</span>
         </div>
         <div class="text-2xl font-poppins font-bold text-amber-700">
           {{ datos.porPagar | currency:'ARS':'symbol-narrow':'1.0-0' }}
@@ -71,7 +71,7 @@
               'text-red-600': datos.resultado < 0,
               'text-gray-500': datos.resultado === 0
             }"></i>
-          <span class="text-sm font-medium text-gray-600">Resultado</span>
+          <span class="text-sm font-poppins font-semibold text-gray-600">Resultado</span>
         </div>
         <div
           class="text-2xl font-poppins font-bold"

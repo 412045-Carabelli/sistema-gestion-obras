@@ -59,7 +59,7 @@
       <div class="p-6 border-b border-gray-100">
         <div class="flex justify-between items-start">
           <div>
-            <h2 class="font-poppins text-2xl font-poppins font-bold text-gray-900 mb-1">Factura Nro #{{ factura!.id }}</h2>
+            <h2 class="font-poppins font-bold text-gray-900 mb-1">Factura Nro #{{ factura!.id }}</h2>
             <div class="flex gap-2">
               <p-tag
                 [value]="factura?.estado || 'EMITIDA'"
@@ -138,7 +138,7 @@
               <i class="pi pi-file text-indigo-600 text-lg"></i>
             </div>
             <div class="flex-1 min-w-0">
-              <p class="text-sm font-poppins font-medium text-gray-900 truncate">{{ factura?.nombre_archivo || 'Sin archivo' }}</p>
+              <p class="text- font-semibold text-gray-900 truncate">{{ factura?.nombre_archivo || 'Sin archivo' }}</p>
               @if (factura?.nombre_archivo) {
                 <p class="text-xs font-poppins font-normal text-gray-500 mt-1">
                   {{ isImageFile(factura!.nombre_archivo) ? 'Imagen' : 'Documento' }}
@@ -151,7 +151,7 @@
     </div>
 
     <div class="bg-white rounded-xl shadow-sm p-6">
-      <h3 class="font-poppins text-lg font-poppins font-semibold text-gray-900 mb-3">Descripcion</h3>
+      <h3 class="font-poppins font-semibold text-gray-900 mb-3">Descripcion</h3>
       @if (factura?.descripcion?.trim()) {
         <div class="prose prose-sm max-w-none text-gray-800" [innerHTML]="factura?.descripcion"></div>
       } @else {
@@ -162,7 +162,7 @@
     <!-- Vista previa de imagen -->
     @if (previewUrl) {
       <div class="bg-white rounded-xl shadow-sm p-6">
-        <h3 class="font-poppins text-lg font-poppins font-semibold text-gray-900 mb-4">Vista previa del adjunto</h3>
+        <h3 class="font-poppins font-semibold text-gray-900 mb-4">Vista previa del adjunto</h3>
         <div class="flex justify-center">
           <img [src]="previewUrl" alt="Factura adjunta" class="max-w-full max-h-[600px] rounded-lg border border-gray-200 shadow-sm"/>
         </div>

@@ -49,7 +49,7 @@
     <div class="p-4 space-y-8 w-full mx-auto">
       <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
-          <h1 class="font-poppins text-2xl font-poppins font-bold text-gray-900">Resumen de la obra</h1>
+          <h1 class="font-poppins font-bold text-gray-900">Resumen de la obra</h1>
           <p class="text-gray-600 font-poppins font-normal">Datos completos de {{ obra.nombre }}</p>
         </div>
         <p-button
@@ -71,7 +71,7 @@
             </div>
             <span class="text-sm font-poppins font-semibold text-gray-500">Cliente</span>
           </div>
-          <p class="text-sm font-poppins font-poppins font-bold text-gray-900">{{ obra.cliente.nombre }}</p>
+          <p class="text- font-bold text-gray-900">{{ obra.cliente.nombre }}</p>
         </div>
 
         <!-- Tarjeta Presupuesto -->
@@ -82,7 +82,7 @@
             </div>
             <span class="text-sm font-poppins font-semibold text-gray-500">Presupuesto</span>
           </div>
-          <p class="text-sm font-poppins font-poppins font-bold text-gray-900">{{ obra.presupuesto | currency:'ARS' }}</p>
+          <p class="text- font-bold text-gray-900">{{ obra.presupuesto | currency:'ARS' }}</p>
         </div>
 
         <!-- Tarjeta Costos -->
@@ -93,7 +93,7 @@
             </div>
             <span class="text-sm font-poppins font-semibold text-gray-500">Costos</span>
           </div>
-          <p class="text-sm font-poppins font-poppins font-bold text-gray-900">{{ totalCostosBase | currency:'ARS' }}</p>
+          <p class="text- font-bold text-gray-900">{{ totalCostosBase | currency:'ARS' }}</p>
           <p class="text-xs font-poppins font-normal text-gray-600">Subtotal sin beneficio</p>
         </div>
 
@@ -109,7 +109,7 @@
                pTooltip="Suma de los beneficios aplicados a cada costo (global o individual)."
                tooltipPosition="left"></i>
           </div>
-          <p class="text-sm font-poppins font-poppins font-bold" [ngClass]="beneficioNeto >= 0 ? 'text-emerald-700' : 'text-red-600'">
+          <p class="text- font-bold" [ngClass]="beneficioNeto >= 0 ? 'text-emerald-700' : 'text-red-600'">
             {{ beneficioNeto | currency:'ARS' }}
           </p>
           <p class="text-xs font-poppins font-normal text-gray-500">Actualizado con la matriz de costos</p>
@@ -140,7 +140,7 @@
 
         <!-- Fechas -->
         <div class="lg:col-span-2 bg-white rounded-xl shadow-md p-6">
-          <h3 class="font-poppins text-lg font-poppins font-bold text-gray-900 mb-4 flex items-center gap-2">
+          <h3 class="font-poppins font-bold text-gray-900 mb-4 flex items-center gap-2">
             <i class="pi pi-calendar text-blue-600"></i>
             Cronograma
             @if (cronogramaFueraDeRango) {
@@ -223,7 +223,7 @@
 
         <!-- Progreso de la obra -->
         <div class="bg-gradient-to-br from-blue-500 to-blue-700 rounded-xl shadow-md p-6 text-white">
-          <h3 class="font-poppins text-lg font-poppins font-bold mb-4 flex items-center gap-2">
+          <h3 class="font-poppins font-bold mb-4 flex items-center gap-2">
             <i class="pi pi-chart-line"></i>
             Progreso de la obra
           </h3>
@@ -235,7 +235,7 @@
             </p-progressBar>
             <div class="mt-3 text-center">
               <p class="text-4xl font-poppins font-bold">{{ progresoFisico }}%</p>
-              <p class="text-sm font-poppins font-poppins font-normal text-blue-100 mt-1">completado</p>
+              <p class="text- font-normal text-blue-100 mt-1">completado</p>
             </div>
           </div>
         </div>
@@ -370,7 +370,7 @@
                 <div class="p-4 space-y-5">
                   <div class="flex justify-between items-center flex-wrap gap-3">
                     <div>
-                      <h2 class="font-poppins text-2xl font-poppins font-bold text-gray-900">Facturas</h2>
+                      <h2 class="font-poppins font-bold text-gray-900">Facturas</h2>
                       <p class="text-gray-500 text-sm font-poppins font-normal mt-1">
                         Facturas asociadas a la obra
                       </p>
@@ -465,7 +465,7 @@
                 <div class="p-3 space-y-3">
                   <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
                     <div>
-                      <label class="block text-sm font-medium mb-1 text-gray-700">Obra</label>
+                      <label class="block text-sm font-poppins font-semibold mb-1 text-gray-700">Obra</label>
                       <input
                         type="text"
                         class="w-full border rounded-md px-3 py-2 text-sm bg-gray-50"
@@ -474,7 +474,7 @@
                       />
                     </div>
                     <div>
-                      <label class="block text-sm font-medium mb-1 text-gray-700">Cliente</label>
+                      <label class="block text-sm font-poppins font-semibold mb-1 text-gray-700">Cliente</label>
                       <input
                         type="text"
                         class="w-full border rounded-md px-3 py-2 text-sm bg-gray-50"
@@ -486,7 +486,7 @@
 
                   <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
                     <div>
-                      <label class="block text-sm font-medium mb-1 text-gray-700">Fecha</label>
+                      <label class="block text-sm font-poppins font-semibold mb-1 text-gray-700">Fecha</label>
                       <p-datepicker
                         [(ngModel)]="facturaForm.fecha"
                         appendTo="body"
@@ -495,7 +495,7 @@
                       ></p-datepicker>
                     </div>
                     <div>
-                      <label class="block text-sm font-medium mb-1 text-gray-700">Monto</label>
+                      <label class="block text-sm font-poppins font-semibold mb-1 text-gray-700">Monto</label>
                       <p-inputNumber
                         [(ngModel)]="facturaForm.monto"
                         class="w-full"
@@ -510,7 +510,7 @@
 
                   <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
                     <div>
-                      <label class="block text-sm font-medium mb-1 text-gray-700">Estado</label>
+                      <label class="block text-sm font-poppins font-semibold mb-1 text-gray-700">Estado</label>
                       <p-select
                         [(ngModel)]="facturaForm.estado"
                         [options]="[
@@ -526,7 +526,7 @@
                   </div>
 
                   <div>
-                    <label class="block text-sm font-medium mb-1 text-gray-700">Descripcion</label>
+                    <label class="block text-sm font-poppins font-semibold mb-1 text-gray-700">Descripcion</label>
                     <p-editor
                       [(ngModel)]="facturaForm.descripcion"
                       [style]="{ height: '180px' }"
@@ -534,7 +534,7 @@
                   </div>
 
                   <div>
-                    <label class="block text-sm font-medium mb-1 text-gray-700">Adjuntar factura (opcional)</label>
+                    <label class="block text-sm font-poppins font-semibold mb-1 text-gray-700">Adjuntar factura (opcional)</label>
                     <p-fileUpload
                       mode="basic"
                       chooseLabel="Seleccionar archivo"
@@ -563,7 +563,7 @@
                   @if (facturaDetalle) {
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div class="flex flex-col gap-2">
-                        <label class="text-sm font-medium text-gray-700">Fecha</label>
+                        <label class="text-sm font-poppins font-semibold text-gray-700">Fecha</label>
                         <input
                           class="p-inputtext p-component w-full"
                           [value]="(facturaDetalle.fecha | date:'dd/MM/yyyy') || ''"
@@ -571,7 +571,7 @@
                           type="text"/>
                       </div>
                       <div class="flex flex-col gap-2">
-                        <label class="text-sm font-medium text-gray-700">Estado</label>
+                        <label class="text-sm font-poppins font-semibold text-gray-700">Estado</label>
                         <input
                           class="p-inputtext p-component w-full"
                           [value]="facturaDetalle.estado || 'EMITIDA'"
@@ -579,14 +579,14 @@
                           type="text"/>
                       </div>
                       <div class="flex flex-col gap-2 md:col-span-2">
-                        <label class="text-sm font-medium text-gray-700">Descripcion</label>
+                        <label class="text-sm font-poppins font-semibold text-gray-700">Descripcion</label>
                         <textarea
                           class="p-inputtext p-component w-full h-24 resize-none"
                           [value]="stripFacturaDescripcion(facturaDetalle.descripcion) || ''"
                           disabled></textarea>
                       </div>
                       <div class="flex flex-col gap-2">
-                        <label class="text-sm font-medium text-gray-700">Monto</label>
+                        <label class="text-sm font-poppins font-semibold text-gray-700">Monto</label>
                         <input
                           class="p-inputtext p-component w-full"
                           [value]="(facturaDetalle.monto | currency:'ARS':'symbol':'1.0-2') || ''"
@@ -594,7 +594,7 @@
                           type="text"/>
                       </div>
                       <div class="flex flex-col gap-2">
-                        <label class="text-sm font-medium text-gray-700">Archivo</label>
+                        <label class="text-sm font-poppins font-semibold text-gray-700">Archivo</label>
                         <input
                           class="p-inputtext p-component w-full"
                           [value]="facturaDetalle.nombre_archivo || 'Sin archivo'"
@@ -621,7 +621,7 @@
             <p-tabpanel value="4">
               <div class="space-y-6">
                 <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                  <p class="text-sm font-poppins font-poppins font-normal text-blue-700">
+                  <p class="text- font-normal text-blue-700">
                     <i class="pi pi-info-circle mr-2"></i>
                     Documento descriptivo del proyecto y especificaciones técnicas
                   </p>
@@ -635,7 +635,7 @@
                   <div class="text-center py-12">
                     <i class="pi pi-inbox text-4xl text-gray-300 mb-3"></i>
                     <p class="text-gray-500 font-poppins font-semibold">Sin memoria descriptiva</p>
-                    <p class="text-sm font-poppins font-poppins font-normal text-gray-400 mt-1">Agregá la memoria descriptiva en la sección de edición</p>
+                    <p class="text- font-normal text-gray-400 mt-1">Agregá la memoria descriptiva en la sección de edición</p>
                   </div>
                 }
               </div>
@@ -675,11 +675,11 @@
         (closed)="cancelarCambioEstado()"
       >
         <div class="p-3 space-y-4">
-          <p class="text-sm font-poppins font-poppins font-normal text-gray-600">
+          <p class="text- font-normal text-gray-600">
             Selecciona la fecha para confirmar el cambio de estado.
           </p>
           <div class="flex flex-col gap-2">
-            <label class="text-sm font-medium text-gray-700">{{ estadoFechaLabel }}</label>
+            <label class="text-sm font-poppins font-semibold text-gray-700">{{ estadoFechaLabel }}</label>
             <p-datepicker
               [(ngModel)]="fechaEstadoSeleccionada"
               appendTo="body"

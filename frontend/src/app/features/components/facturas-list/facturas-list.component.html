@@ -108,7 +108,7 @@
             inputId="facturasMostrarInactivos"
             (ngModelChange)="applyFilter()">
           </p-checkbox>
-          <label for="facturasMostrarInactivos" class="text-base text-gray-700">
+          <label for="facturasMostrarInactivos" class="text-base font-poppins font-normal text-gray-700">
             Ver inactivos
           </label>
         </div>
@@ -124,26 +124,26 @@
         styleClass="p-datatable-sm">
         <ng-template pTemplate="header">
           <tr>
-            <th pSortableColumn="id" class="bg-gray-50 px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase">ID Obra <p-sortIcon field="id"></p-sortIcon></th>
-            <th pSortableColumn="clienteNombre" class="bg-gray-50 px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Cliente <p-sortIcon field="clienteNombre"></p-sortIcon></th>
-            <th pSortableColumn="nombre" class="bg-gray-50 px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Obra <p-sortIcon field="nombre"></p-sortIcon></th>
-            <th pSortableColumn="estado" class="bg-gray-50 px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Estado <p-sortIcon field="estado"></p-sortIcon></th>
-            <th pSortableColumn="presupuesto" class="bg-gray-50 px-4 py-3 text-right text-xs font-semibold text-gray-500 uppercase">Presupuesto <p-sortIcon field="presupuesto"></p-sortIcon></th>
-            <th pSortableColumn="facturado" class="bg-gray-50 px-4 py-3 text-right text-xs font-semibold text-gray-500 uppercase">Facturado <p-sortIcon field="facturado"></p-sortIcon></th>
-            <th pSortableColumn="porFacturar" class="bg-gray-50 px-4 py-3 text-right text-xs font-semibold text-gray-500 uppercase">Por facturar <p-sortIcon field="porFacturar"></p-sortIcon></th>
-            <th class="bg-gray-50 px-4 py-3 text-right text-xs font-semibold text-gray-500 uppercase">Acciones</th>
+            <th pSortableColumn="id" class="bg-gray-50 px-4 py-3 text-left text-xs font-poppins font-semibold text-gray-500 uppercase">ID Obra <p-sortIcon field="id"></p-sortIcon></th>
+            <th pSortableColumn="clienteNombre" class="bg-gray-50 px-4 py-3 text-left text-xs font-poppins font-semibold text-gray-500 uppercase">Cliente <p-sortIcon field="clienteNombre"></p-sortIcon></th>
+            <th pSortableColumn="nombre" class="bg-gray-50 px-4 py-3 text-left text-xs font-poppins font-semibold text-gray-500 uppercase">Obra <p-sortIcon field="nombre"></p-sortIcon></th>
+            <th pSortableColumn="estado" class="bg-gray-50 px-4 py-3 text-left text-xs font-poppins font-semibold text-gray-500 uppercase">Estado <p-sortIcon field="estado"></p-sortIcon></th>
+            <th pSortableColumn="presupuesto" class="bg-gray-50 px-4 py-3 text-right text-xs font-poppins font-semibold text-gray-500 uppercase">Presupuesto <p-sortIcon field="presupuesto"></p-sortIcon></th>
+            <th pSortableColumn="facturado" class="bg-gray-50 px-4 py-3 text-right text-xs font-poppins font-semibold text-gray-500 uppercase">Facturado <p-sortIcon field="facturado"></p-sortIcon></th>
+            <th pSortableColumn="porFacturar" class="bg-gray-50 px-4 py-3 text-right text-xs font-poppins font-semibold text-gray-500 uppercase">Por facturar <p-sortIcon field="porFacturar"></p-sortIcon></th>
+            <th class="bg-gray-50 px-4 py-3 text-right text-xs font-poppins font-semibold text-gray-500 uppercase">Acciones</th>
           </tr>
         </ng-template>
         <ng-template pTemplate="body" let-o>
           <!-- Fila de la obra -->
           <tr class="bg-white border-b border-gray-100">
-            <td class="px-4 py-3 text-sm font-medium text-blue-600">{{ o.id }}</td>
-            <td class="px-4 py-3 text-sm text-gray-700">{{ o.clienteNombre }}</td>
-            <td class="px-4 py-3 text-sm font-medium text-gray-900">{{ o.nombre }}</td>
-            <td class="px-4 py-3 text-sm text-gray-700">{{ o.estado | estadoFormat }}</td>
-            <td class="px-4 py-3 text-sm text-gray-900 text-right">{{ o.presupuesto | currency:'ARS':'symbol':'1.0-2' }}</td>
-            <td class="px-4 py-3 text-sm text-gray-900 text-right">{{ o.facturado | currency:'ARS':'symbol':'1.0-2' }}</td>
-            <td class="px-4 py-3 text-sm text-right font-medium" [class.text-amber-600]="o.porFacturar > 0" [class.text-gray-400]="o.porFacturar === 0">
+            <td class="px-4 py-3 text-sm font-poppins font-semibold text-blue-600">{{ o.id }}</td>
+            <td class="px-4 py-3 text-sm font-poppins font-normal text-gray-700">{{ o.clienteNombre }}</td>
+            <td class="px-4 py-3 text-sm font-poppins font-semibold text-gray-900">{{ o.nombre }}</td>
+            <td class="px-4 py-3 text-sm font-poppins font-normal text-gray-700">{{ o.estado | estadoFormat }}</td>
+            <td class="px-4 py-3 text-sm font-poppins font-normal text-gray-900 text-right">{{ o.presupuesto | currency:'ARS':'symbol':'1.0-2' }}</td>
+            <td class="px-4 py-3 text-sm font-poppins font-normal text-gray-900 text-right">{{ o.facturado | currency:'ARS':'symbol':'1.0-2' }}</td>
+            <td class="px-4 py-3 text-sm text-right font-poppins font-semibold" [class.text-amber-600]="o.porFacturar > 0" [class.text-gray-400]="o.porFacturar === 0">
               {{ o.porFacturar | currency:'ARS':'symbol':'1.0-2' }}
             </td>
             <td class="px-4 py-3 text-right">
@@ -154,23 +154,23 @@
           <tr>
             <td colspan="8" class="bg-blue-50 px-6 py-3">
               @if (o.facturas.length === 0) {
-                <p class="text-sm text-gray-500 italic">No hay facturas emitidas para esta obra.</p>
+                <p class="text-sm font-poppins font-normal text-gray-500 italic">No hay facturas emitidas para esta obra.</p>
               } @else {
                 <p-table [value]="o.facturas" styleClass="p-datatable-sm">
                   <ng-template pTemplate="header">
                     <tr>
-                      <th class="text-xs font-semibold text-gray-500 uppercase px-3 py-2">ID</th>
-                      <th class="text-xs font-semibold text-gray-500 uppercase px-3 py-2">Fecha</th>
-                      <th class="text-xs font-semibold text-gray-500 uppercase px-3 py-2 text-right">Monto</th>
-                      <th class="text-xs font-semibold text-gray-500 uppercase px-3 py-2 text-center">Estado</th>
-                      <th class="text-xs font-semibold text-gray-500 uppercase px-3 py-2 text-center">Cambiar estado</th>
+                      <th class="text-xs font-poppins font-semibold text-gray-500 uppercase px-3 py-2">ID</th>
+                      <th class="text-xs font-poppins font-semibold text-gray-500 uppercase px-3 py-2">Fecha</th>
+                      <th class="text-xs font-poppins font-semibold text-gray-500 uppercase px-3 py-2 text-right">Monto</th>
+                      <th class="text-xs font-poppins font-semibold text-gray-500 uppercase px-3 py-2 text-center">Estado</th>
+                      <th class="text-xs font-poppins font-semibold text-gray-500 uppercase px-3 py-2 text-center">Cambiar estado</th>
                     </tr>
                   </ng-template>
                   <ng-template pTemplate="body" let-factura>
                     <tr class="hover:bg-blue-100 transition-colors">
-                      <td class="px-3 py-2 text-sm cursor-pointer text-blue-600 underline font-medium" (click)="onRowClick(factura)">{{ factura.id }}</td>
-                      <td class="px-3 py-2 text-sm text-gray-700">{{ factura.fecha | date:'dd/MM/yyyy' }}</td>
-                      <td class="px-3 py-2 text-sm text-gray-900 text-right font-medium">{{ factura.monto | currency:'ARS':'symbol':'1.0-2' }}</td>
+                      <td class="px-3 py-2 text-sm cursor-pointer text-blue-600 underline font-poppins font-semibold" (click)="onRowClick(factura)">{{ factura.id }}</td>
+                      <td class="px-3 py-2 text-sm font-poppins font-normal text-gray-700">{{ factura.fecha | date:'dd/MM/yyyy' }}</td>
+                      <td class="px-3 py-2 text-sm text-gray-900 text-right font-poppins font-semibold">{{ factura.monto | currency:'ARS':'symbol':'1.0-2' }}</td>
                       <td class="px-3 py-2 text-center">
                         <p-tag
                           [value]="factura.estado === 'COBRADA' ? 'Cobrada' : 'Emitida'"
@@ -205,7 +205,7 @@
           <tr>
             <td colspan="8" class="text-center py-10 text-gray-500">
               <i class="pi pi-inbox text-4xl mb-2"></i>
-              <p>No hay obras pendientes de facturacion.</p>
+              <p class="font-poppins font-normal">No hay obras pendientes de facturacion.</p>
             </td>
           </tr>
         </ng-template>
@@ -227,7 +227,7 @@
   <div class="p-3 space-y-3">
     <div class="flex gap-5 justify-between">
       <div>
-        <label class="block text-sm font-medium mb-1 text-gray-700">Cliente</label>
+        <label class="block text-sm font-poppins font-semibold mb-1 text-gray-700">Cliente</label>
         <p-select
           [(ngModel)]="facturaForm.id_cliente"
           [options]="clientes"
@@ -240,7 +240,7 @@
         ></p-select>
       </div>
       <div>
-        <label class="block text-sm font-medium mb-1 text-gray-700">Obra</label>
+        <label class="block text-sm font-poppins font-semibold mb-1 text-gray-700">Obra</label>
         <p-select
           [(ngModel)]="facturaForm.id_obra"
           [options]="facturaObrasFiltradas"
@@ -256,7 +256,7 @@
 
     <div class="flex gap-5">
       <div class="flex flex-col w-1/2">
-        <label class="block text-sm font-medium mb-1 text-gray-700">Fecha</label>
+        <label class="block text-sm font-poppins font-semibold mb-1 text-gray-700">Fecha</label>
         <p-datepicker
           [(ngModel)]="facturaForm.fecha"
           appendTo="body"
@@ -265,7 +265,7 @@
         ></p-datepicker>
       </div>
       <div class="flex flex-col w-1/2">
-        <label class="block text-sm font-medium mb-1 text-gray-700">Monto</label>
+        <label class="block text-sm font-poppins font-semibold mb-1 text-gray-700">Monto</label>
         <p-inputNumber
           [(ngModel)]="facturaForm.monto"
           class="w-full"
@@ -280,7 +280,7 @@
       </div>
     </div>
 
-    <label class="block text-sm font-medium mb-1 text-gray-700">Estado</label>
+    <label class="block text-sm font-poppins font-semibold mb-1 text-gray-700">Estado</label>
     <p-select
       [(ngModel)]="facturaForm.estado"
       [options]="[
@@ -294,13 +294,13 @@
       appendTo="body"
     ></p-select>
 
-    <label class="block text-sm font-medium mb-1 text-gray-700">Descripcion</label>
+    <label class="block text-sm font-poppins font-semibold mb-1 text-gray-700">Descripcion</label>
     <p-editor
       [(ngModel)]="facturaForm.descripcion"
       [style]="{ height: '160px' }"
     ></p-editor>
 
-    <label class="block text-sm font-medium mb-1 text-gray-700">Adjuntar factura (opcional)</label>
+    <label class="block text-sm font-poppins font-semibold mb-1 text-gray-700">Adjuntar factura (opcional)</label>
     <p-fileUpload
       mode="basic"
       chooseLabel="Seleccionar archivo"
