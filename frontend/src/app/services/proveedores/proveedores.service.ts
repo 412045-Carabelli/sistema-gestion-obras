@@ -28,6 +28,11 @@ export class ProveedoresService {
     return this.http.get<any[]>(this.apiUrl).pipe(map(items => items.map(i => this.toFrontProveedor(i))));
   }
 
+  // Obtener proveedores sin cálculos financieros (rápido)
+  getProveedoresSimple(): Observable<Proveedor[]> {
+    return this.http.get<any[]>(`${this.apiUrl}/simple`).pipe(map(items => items.map(i => this.toFrontProveedor(i))));
+  }
+
   // Obtener todos los proveedores (incluye inactivos)
   getProveedoresAll(): Observable<Proveedor[]> {
     return this.http.get<any[]>(`${this.apiUrl}/all`).pipe(map(items => items.map(i => this.toFrontProveedor(i))));
