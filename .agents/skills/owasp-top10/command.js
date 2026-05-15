@@ -8,7 +8,6 @@
 const OWASPScanner = require('./index.js');
 const fs = require('fs');
 const path = require('path');
-const { execSync } = require('child_process');
 
 class OWASPCommand {
   static async execute(args, context) {
@@ -26,18 +25,11 @@ class OWASPCommand {
     // Get files matching patterns
     let files = [];
     patterns.forEach(pattern => {
-      try {
-        const result = execSync(`find . -path "./.git" -prune -o -type f -name "${pattern}" -print 2>/dev/null || true`,
-          { encoding: 'utf8' }).split('\n').filter(f => f && fs.existsSync(f));
-        files = [...files, ...result];
-      } catch (err) {
-        // Fallback: simple glob
-        const baseDir = pattern.split('/')[0];
-        const ext = pattern.split('.').pop();
-        if (fs.existsSync(baseDir)) {
-          const found = this.globFiles(baseDir, ext);
-          files = [...files, ...found];
-        }
+      const baseDir = pattern.split('/')[0];
+      const ext = pattern.split('.').pop();
+      if (fs.existsSync(baseDir)) {
+        const found = this.globFiles(baseDir, ext);
+        files = [...files, ...found];
       }
     });
 

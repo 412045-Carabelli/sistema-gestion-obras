@@ -103,7 +103,7 @@ public class PdfBuilder {
 
         // Encabezados
         for (String header : encabezados) {
-            PdfPCell cell = new PdfPCell(new Phrase(header, new Font(Font.HELVETICA, 5, Font.BOLD)));
+            PdfPCell cell = new PdfPCell(new Phrase(header, new Font(Font.HELVETICA, 8, Font.BOLD)));
             cell.setBackgroundColor(new Color(243, 244, 246));
             cell.setHorizontalAlignment(Element.ALIGN_CENTER);
             cell.setVerticalAlignment(Element.ALIGN_MIDDLE);
@@ -121,7 +121,7 @@ public class PdfBuilder {
                 String valor = fila.get(i);
                 boolean esNumero = i > 0 && valor != null && valor.matches(".*[0-9].*");
 
-                PdfPCell cell = new PdfPCell(new Phrase(valor != null ? valor : "—", new Font(Font.HELVETICA, 5)));
+                PdfPCell cell = new PdfPCell(new Phrase(valor != null ? valor : "—", new Font(Font.HELVETICA, 8)));
                 cell.setBackgroundColor(bgColor);
                 cell.setHorizontalAlignment(esNumero ? Element.ALIGN_RIGHT : Element.ALIGN_LEFT);
                 cell.setVerticalAlignment(Element.ALIGN_MIDDLE);
