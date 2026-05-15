@@ -1,0 +1,23 @@
+{
+  "name": "@sgo/owasp-top10-scanner",
+  "version": "1.0.0",
+  "description": "OWASP Top 10 vulnerability scanner for Angular + Java",
+  "main": "index.js",
+  "bin": {
+    "owasp-scan": "command.js",
+    "owasp-frontend": "owasp-frontend.js",
+    "owasp-backend": "owasp-backend.js"
+  },
+  "scripts": {
+    "scan": "node command.js 'frontend/src/**/*.ts' 'frontend/src/**/*.html' 'backend1.0/**/*.java'",
+    "scan-frontend": "node command.js 'frontend/src/**/*.ts' 'frontend/src/**/*.html'",
+    "scan-backend": "node command.js 'backend1.0/**/*.java'",
+    "install-hook": "node setup/install-hook.js"
+  },
+  "keywords": ["security", "owasp", "vulnerability", "scanner"],
+  "author": "SGO Team",
+  "license": "MIT",
+  "engines": {
+    "node": ">=14.0.0"
+  }
+}

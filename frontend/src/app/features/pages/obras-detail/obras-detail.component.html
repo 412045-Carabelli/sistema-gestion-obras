@@ -2,7 +2,7 @@
 <p-confirmDialog></p-confirmDialog>
 
 @if (loading) {
-  <div class="p-6 md:p-8 space-y-8 w-full max-w-7xl mx-auto animate-pulse">
+  <div class="p-3 md:p-6 space-y-8 w-full max-w-7xl mx-auto animate-pulse">
     <div class="h-10 bg-gray-200 rounded w-1/3"></div>
 
     <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -33,7 +33,7 @@
   </div>
 } @else {
   @defer (when obra) {
-    <div class="p-6 md:p-8 space-y-8 w-full max-w-7xl mx-auto">
+    <div class="p-3 md:p-6 space-y-8 w-full max-w-7xl mx-auto">
       <!-- Header -->
       <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 pb-4 border-b border-gray-200">
         <div>
@@ -52,7 +52,7 @@
       <!-- ===================== MÉTRICAS PRIMARIAS ===================== -->
       <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
         <!-- Cliente -->
-        <div class="bg-white rounded-xl shadow-sm p-6 border-l-4 border-blue-500 hover:shadow-md transition">
+        <div class="bg-white rounded-xl shadow-sm p-6 border-l-4 border-blue-500">
           <div class="flex items-center gap-3 mb-3">
             <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center flex-shrink-0">
               <i class="pi pi-user text-blue-600 text-xl"></i>
@@ -65,7 +65,7 @@
         </div>
 
         <!-- Presupuesto -->
-        <div class="bg-white rounded-xl shadow-sm p-6 border-l-4 border-green-500 hover:shadow-md transition">
+        <div class="bg-white rounded-xl shadow-sm p-6 border-l-4 border-green-500">
           <div class="flex items-center gap-3 mb-3">
             <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center flex-shrink-0">
               <i class="pi pi-dollar text-green-600 text-xl"></i>
@@ -78,7 +78,7 @@
         </div>
 
         <!-- Estado -->
-        <div class="bg-white rounded-xl shadow-sm p-6 border-l-4 border-orange-500 hover:shadow-md transition">
+        <div class="bg-white rounded-xl shadow-sm p-6 border-l-4 border-orange-500">
           <div class="flex items-center gap-3 mb-3">
             <div class="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center flex-shrink-0">
               <i class="pi pi-flag text-orange-600 text-xl"></i>
@@ -103,7 +103,7 @@
       <!-- ===================== MÉTRICAS SECUNDARIAS ===================== -->
       <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
         <!-- Costos -->
-        <div class="bg-white rounded-xl shadow-sm p-6 border-l-4 border-purple-500 hover:shadow-md transition">
+        <div class="bg-white rounded-xl shadow-sm p-6 border-l-4 border-purple-500">
           <div class="flex items-center gap-3 mb-3">
             <div class="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center flex-shrink-0">
               <i class="pi pi-wallet text-purple-600 text-xl"></i>
@@ -117,7 +117,7 @@
         </div>
 
         <!-- Beneficio -->
-        <div class="bg-white rounded-xl shadow-sm p-6 border-l-4 border-emerald-500 hover:shadow-md transition">
+        <div class="bg-white rounded-xl shadow-sm p-6 border-l-4 border-emerald-500">
           <div class="flex items-center justify-between mb-3">
             <div class="flex items-center gap-3 flex-1 min-w-0">
               <div class="w-12 h-12 bg-emerald-100 rounded-lg flex items-center justify-center flex-shrink-0">
@@ -281,6 +281,13 @@
             </p-tab>
             }
             <p-tab value="4" pStyleClass="px-4 py-3 md:px-6">
+              <div class="flex items-center gap-2 md:gap-3 text-sm md:text-base">
+                <i class="pi pi-bookmark flex-shrink-0"></i>
+                <span class="font-semibold hidden md:inline">Memoria</span>
+                <span class="font-semibold md:hidden">Me</span>
+              </div>
+            </p-tab>
+            <p-tab value="5" pStyleClass="px-4 py-3 md:px-6">
               <div class="flex items-center gap-2 md:gap-3 text-sm md:text-base">
                 <i class="pi pi-align-left flex-shrink-0"></i>
                 <span class="font-semibold hidden md:inline">Docs</span>
@@ -577,6 +584,30 @@
             </p-tabpanel>
 
             <p-tabpanel value="4">
+              <div class="space-y-6">
+                <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                  <p class="text-sm text-blue-700">
+                    <i class="pi pi-info-circle mr-2"></i>
+                    Documento descriptivo del proyecto y especificaciones técnicas
+                  </p>
+                </div>
+                @if (obra.memoria_descriptiva) {
+                  <div class="bg-white rounded-lg border border-gray-200 p-6 prose max-w-none">
+                    <div class="text-gray-700 leading-relaxed whitespace-pre-wrap">
+                      {{ obra.memoria_descriptiva }}
+                    </div>
+                  </div>
+                } @else {
+                  <div class="text-center py-12">
+                    <i class="pi pi-inbox text-4xl text-gray-300 mb-3"></i>
+                    <p class="text-gray-500 font-medium">Sin memoria descriptiva</p>
+                    <p class="text-sm text-gray-400 mt-1">Agregá la memoria descriptiva en la sección de edición</p>
+                  </div>
+                }
+              </div>
+            </p-tabpanel>
+
+            <p-tabpanel value="5">
               <div class="flex flex-col gap-6">
                 <app-obra-documentos
                   [obraId]="obra.id!"

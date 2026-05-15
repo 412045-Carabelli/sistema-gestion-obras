@@ -35,10 +35,8 @@
       <p-menu #exportMenu [popup]="true" [model]="exportOptions"></p-menu>
     </div>
   </div>
-  <!-- Memoria descriptiva y formulario rapido -->
-  <div class="grid grid-cols-1 xl:grid-cols-5 gap-5">
-    <!-- Formulario rapido para agregar costos -->
-    <div class="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden xl:col-span-2">
+  <!-- Formulario rapido para agregar costos -->
+  <div class="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden w-full">
       <div class="flex items-center justify-between px-4 py-3 border-b border-gray-100">
         <div class="flex items-center gap-3">
           <div class="w-10 h-10 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center">
@@ -202,10 +200,10 @@
           </p-button>
         </div>
       </div>
-    </div>
+  </div>
 
-    <!-- Memoria descriptiva -->
-    <div class="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden xl:col-span-3">
+  <!-- Memoria descriptiva -->
+  <div class="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden w-full">
       <div class="flex items-center justify-between px-4 py-3 border-b border-gray-100">
         <div class="flex items-center gap-3">
           <div class="w-10 h-10 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center">
@@ -271,7 +269,6 @@
       }
       </div>
     </div>
-  </div>
 
   <!-- Tabla de costos -->
   @if (costosFiltrados.length > 0) {
