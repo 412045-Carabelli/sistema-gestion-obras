@@ -120,13 +120,6 @@ export class ObrasDetailComponent implements OnInit, OnDestroy, AfterViewInit {
   notasOverflow = false;
   activeTab = '0';
 
-  // Flags para lazy-load per tab
-  movimientosLoaded = false;
-  facturasLoaded = false;
-  documentosLoaded = false;
-  proveedoresLoaded = false;
-  movimientosDataLoaded = false; // data terminó de cargar en el hijo
-
   loading = true;
   private subs = new Subscription();
   private pdfMakeInstance?: any;
@@ -246,7 +239,6 @@ export class ObrasDetailComponent implements OnInit, OnDestroy, AfterViewInit {
 
         this.clientes = clientes;
         this.proveedores = proveedores;
-        this.proveedoresLoaded = true;
 
         this.progresoFisico = this.getProgresoFisico();
         this.beneficioCostos = obra.beneficio_costos != null
@@ -259,9 +251,6 @@ export class ObrasDetailComponent implements OnInit, OnDestroy, AfterViewInit {
         this.loading = false;
         this.obraStateService.setObra(this.obra);
         this.scheduleNotasOverflowCheck();
-
-        // Lazy load: cargar según tab visible
-        this.cargarPorTab();
       },
 
       error: () => {
@@ -274,24 +263,6 @@ export class ObrasDetailComponent implements OnInit, OnDestroy, AfterViewInit {
         });
       }
     });
-  }
-
-  private cargarPorTab() {
-    const tab = this.activeTab;
-
-    // Proveedores ya se cargan en cargarDetalle() para tabs 0, 1, 2
-
-    if (tab === '2' && !this.movimientosLoaded) {
-      this.movimientosLoaded = true;
-      this.cargarCuentaCorriente(this.obra.id!);
-      this.refrescarMovimientos();
-    } else if (tab === '3' && !this.facturasLoaded) {
-      this.facturasLoaded = true;
-      this.cargarFacturasObra();
-    } else if (tab === '5' && !this.documentosLoaded) {
-      this.documentosLoaded = true;
-      this.refrescarDocumentos();
-    }
   }
 
   onCostosActualizados(costosActualizados: ObraCosto[]) {
@@ -343,10 +314,6 @@ export class ObrasDetailComponent implements OnInit, OnDestroy, AfterViewInit {
 
   onMovimientosActualizados() {
     this.presupuestoRef?.recargarEstadoComision();
-  }
-
-  onMovimientosLoadingChange(loading: boolean) {
-    this.movimientosDataLoaded = !loading;
   }
 
   getProgresoFisico(): number {
@@ -1381,25 +1348,13 @@ export class ObrasDetailComponent implements OnInit, OnDestroy, AfterViewInit {
       queryParamsHandling: 'merge'
     });
 
-    // Lazy load proveedores si se necesitan (tabs 0, 1, 2)
-    if ((newTab === '0' || newTab === '1' || newTab === '2') && !this.proveedoresLoaded) {
-      this.proveedoresLoaded = true;
-      this.proveedoresService.getProveedores().subscribe({
-        next: (provs) => this.proveedores = provs,
-        error: () => this.proveedores = []
-      });
-    }
-
-    // Lazy load datos según tab (solo primera vez)
-    if (newTab === '2' && !this.movimientosLoaded) {
-      this.movimientosLoaded = true;
+    // Cargar datos según tab
+    if (newTab === '2') {
       this.cargarCuentaCorriente(this.obra.id!);
       this.refrescarMovimientos();
-    } else if (newTab === '3' && !this.facturasLoaded) {
-      this.facturasLoaded = true;
+    } else if (newTab === '3') {
       this.cargarFacturasObra();
-    } else if (newTab === '5' && !this.documentosLoaded) {
-      this.documentosLoaded = true;
+    } else if (newTab === '5') {
       this.refrescarDocumentos();
     }
   }

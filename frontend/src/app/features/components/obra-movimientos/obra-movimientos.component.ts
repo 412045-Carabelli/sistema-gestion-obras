@@ -245,29 +245,47 @@ export class ObraMovimientosComponent implements OnInit {
       }
     };
 
-    this.transaccionesService.getByObra(this.obraId).subscribe(transacciones => {
-      this.transacciones = (transacciones || [])
-        .map(t => this.normalizarTransaccion(t))
-        .sort((a, b) => {
-          const fechaA = a.fecha ? new Date(a.fecha).getTime() : 0;
-          const fechaB = b.fecha ? new Date(b.fecha).getTime() : 0;
-          if (fechaA !== fechaB) return fechaB - fechaA;
-          return Number(b.id ?? 0) - Number(a.id ?? 0);
-        });
-      this.movimientosActualizados.emit();
-      marcarCompleto();
+    this.transaccionesService.getByObra(this.obraId).subscribe({
+      next: (transacciones) => {
+        this.transacciones = (transacciones || [])
+          .map(t => this.normalizarTransaccion(t))
+          .sort((a, b) => {
+            const fechaA = a.fecha ? new Date(a.fecha).getTime() : 0;
+            const fechaB = b.fecha ? new Date(b.fecha).getTime() : 0;
+            if (fechaA !== fechaB) return fechaB - fechaA;
+            return Number(b.id ?? 0) - Number(a.id ?? 0);
+          });
+        this.movimientosActualizados.emit();
+        marcarCompleto();
+      },
+      error: () => {
+        this.transacciones = [];
+        marcarCompleto();
+      }
     });
 
-    this.transaccionesService.getTipos().subscribe(tipos => {
-      this.tiposTransaccion = tipos;
-      marcarCompleto();
+    this.transaccionesService.getTipos().subscribe({
+      next: (tipos) => {
+        this.tiposTransaccion = tipos;
+        marcarCompleto();
+      },
+      error: () => {
+        this.tiposTransaccion = [];
+        marcarCompleto();
+      }
     });
 
     // Costos
-    this.costosService.getByObra(this.obraId).subscribe(costos => {
-      this.costosObra = costos || [];
-      this.costosActualizados.emit([...this.costosObra]);
-      marcarCompleto();
+    this.costosService.getByObra(this.obraId).subscribe({
+      next: (costos) => {
+        this.costosObra = costos || [];
+        this.costosActualizados.emit([...this.costosObra]);
+        marcarCompleto();
+      },
+      error: () => {
+        this.costosObra = [];
+        marcarCompleto();
+      }
     });
   }
 

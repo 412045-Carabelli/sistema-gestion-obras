@@ -341,120 +341,101 @@
             </p-tabpanel>
 
             <p-tabpanel value="2">
-              @defer (when movimientosLoaded && movimientosDataLoaded) {
-                <app-obra-movimientos
-                  #movimientosRef
-                  [clientes]="[obra.cliente]"
-                  [proveedores]="proveedores"
-                  [obraId]="obra.id!"
-                  [obraNombre]="obra.nombre"
-                  [obraEstado]="obra.obra_estado"
-                  [presupuestoTotal]="obra.presupuesto ?? 0"
-                  (costosActualizados)="onCostosActualizados($event)"
-                  (movimientosActualizados)="onMovimientosActualizados()"
-                  (loadingChange)="onMovimientosLoadingChange($event)"
-                >
-                </app-obra-movimientos>
-              } @placeholder {
-                <div class="p-6 space-y-4 animate-pulse">
-                  <div class="h-6 bg-gray-200 rounded w-1/4 mb-6"></div>
-                  @for (item of [1,2,3]; track item) {
-                    <div class="bg-gray-100 h-12 rounded-lg"></div>
-                  }
-                </div>
-              }
+              <app-obra-movimientos
+                #movimientosRef
+                [clientes]="[obra.cliente]"
+                [proveedores]="proveedores"
+                [obraId]="obra.id!"
+                [obraNombre]="obra.nombre"
+                [obraEstado]="obra.obra_estado"
+                [presupuestoTotal]="obra.presupuesto ?? 0"
+                (costosActualizados)="onCostosActualizados($event)"
+                (movimientosActualizados)="onMovimientosActualizados()"
+              >
+              </app-obra-movimientos>
             </p-tabpanel>
 
             <p-tabpanel value="3">
-              @defer (when facturasLoaded) {
-                <div class="p-4 space-y-5">
-                  <div class="flex justify-between items-center flex-wrap gap-3">
-                    <div>
-                      <h2 class="font-poppins font-bold text-gray-900">Facturas</h2>
-                      <p class="text-gray-500 text-sm font-poppins font-normal mt-1">
-                        Facturas asociadas a la obra
-                      </p>
-                    </div>
-
-                    <p-button
-                      (onClick)="abrirFacturaModal()"
-                      icon="pi pi-plus"
-                      label="Nueva Factura"
-                      styleClass="p-button-md p-button-primary"
-                    ></p-button>
+              <div class="p-4 space-y-5">
+                <div class="flex justify-between items-center flex-wrap gap-3">
+                  <div>
+                    <h2 class="font-poppins font-bold text-gray-900">Facturas</h2>
+                    <p class="text-gray-500 text-sm font-poppins font-normal mt-1">
+                      Facturas asociadas a la obra
+                    </p>
                   </div>
 
-                  @if (facturasFiltradas.length > 0) {
-                  <p-table
-                    [value]="facturasFiltradas"
-                    [sortField]="'fecha'"
-                    [sortOrder]="-1"
-                    responsiveLayout="scroll"
-                    class="text-sm p-datatable-sm border border-gray-200 rounded-lg overflow-hidden"
-                  >
-                    <ng-template pTemplate="header">
-                      <tr class="bg-gray-50 text-gray-700">
-                        <th pSortableColumn="fecha">
-                          Fecha
-                          <p-sortIcon field="fecha"></p-sortIcon>
-                        </th>
-                        <th>Descripcion</th>
-                        <th>Estado</th>
-                        <th>Monto</th>
-                        <th>Archivo</th>
-                      </tr>
-                    </ng-template>
+                  <p-button
+                    (onClick)="abrirFacturaModal()"
+                    icon="pi pi-plus"
+                    label="Nueva Factura"
+                    styleClass="p-button-md p-button-primary"
+                  ></p-button>
+                </div>
 
-                    <ng-template pTemplate="body" let-f let-rowIndex="rowIndex">
-                      <tr
-                        class="hover:bg-emerald-50 hover:shadow-sm transition cursor-pointer"
-                        [ngClass]="rowIndex % 2 === 0 ? 'bg-white' : 'bg-gray-50'"
-                        (click)="abrirDetalleFactura(f)"
-                      >
-                        <td>{{ f.fecha | date: 'dd/MM/yyyy' }}</td>
-                        <td class="text-gray-700 font-poppins font-normal">
-                          {{ stripFacturaDescripcion(f.descripcion) || '—' }}
-                        </td>
-                        <td>
-                          <p-tag
-                            [value]="f.estado || 'EMITIDA'"
-                            [severity]="(f.estado || 'EMITIDA') === 'COBRADA' ? 'success' : 'info'">
-                          </p-tag>
-                        </td>
-                        <td class="font-poppins font-bold text-gray-900">
-                          <div class="flex justify-start">{{ f.monto | currency: 'ARS' }}</div>
-                        </td>
-                        <td class="text-gray-600 font-poppins font-normal">{{ f.nombre_archivo || 'Sin archivo' }}</td>
-                      </tr>
-                    </ng-template>
-                  </p-table>
+                @if (facturasFiltradas.length > 0) {
+                <p-table
+                  [value]="facturasFiltradas"
+                  [sortField]="'fecha'"
+                  [sortOrder]="-1"
+                  responsiveLayout="scroll"
+                  class="text-sm p-datatable-sm border border-gray-200 rounded-lg overflow-hidden"
+                >
+                  <ng-template pTemplate="header">
+                    <tr class="bg-gray-50 text-gray-700">
+                      <th pSortableColumn="fecha">
+                        Fecha
+                        <p-sortIcon field="fecha"></p-sortIcon>
+                      </th>
+                      <th>Descripcion</th>
+                      <th>Estado</th>
+                      <th>Monto</th>
+                      <th>Archivo</th>
+                    </tr>
+                  </ng-template>
 
-                  <div class="mt-4 p-4 bg-gray-50 rounded-lg text-sm space-y-1">
-                    <div class="flex justify-between font-poppins font-bold">
-                      <span>Total facturado:</span>
-                      <span class="flex justify-start">{{ totalFacturasMonto | currency: 'ARS' }}</span>
-                    </div>
-                    <div class="flex justify-between text-sm font-poppins font-normal text-gray-700 border-t pt-2">
-                      <span>Cantidad de facturas</span>
-                      <span>{{ facturasFiltradas.length }}</span>
-                    </div>
+                  <ng-template pTemplate="body" let-f let-rowIndex="rowIndex">
+                    <tr
+                      class="hover:bg-emerald-50 hover:shadow-sm transition cursor-pointer"
+                      [ngClass]="rowIndex % 2 === 0 ? 'bg-white' : 'bg-gray-50'"
+                      (click)="abrirDetalleFactura(f)"
+                    >
+                      <td>{{ f.fecha | date: 'dd/MM/yyyy' }}</td>
+                      <td class="text-gray-700 font-poppins font-normal">
+                        {{ stripFacturaDescripcion(f.descripcion) || '—' }}
+                      </td>
+                      <td>
+                        <p-tag
+                          [value]="f.estado || 'EMITIDA'"
+                          [severity]="(f.estado || 'EMITIDA') === 'COBRADA' ? 'success' : 'info'">
+                        </p-tag>
+                      </td>
+                      <td class="font-poppins font-bold text-gray-900">
+                        <div class="flex justify-start">{{ f.monto | currency: 'ARS' }}</div>
+                      </td>
+                      <td class="text-gray-600 font-poppins font-normal">{{ f.nombre_archivo || 'Sin archivo' }}</td>
+                    </tr>
+                  </ng-template>
+                </p-table>
+
+                <div class="mt-4 p-4 bg-gray-50 rounded-lg text-sm space-y-1">
+                  <div class="flex justify-between font-poppins font-bold">
+                    <span>Total facturado:</span>
+                    <span class="flex justify-start">{{ totalFacturasMonto | currency: 'ARS' }}</span>
                   </div>
-                } @else {
-                  <div class="text-center text-gray-500 py-10 flex flex-col items-center gap-2">
-                    <i class="pi pi-inbox text-4xl"></i>
-                    <p class="font-poppins font-normal">No hay facturas registradas para esta obra.</p>
+                  <div class="flex justify-between text-sm font-poppins font-normal text-gray-700 border-t pt-2">
+                    <span>Cantidad de facturas</span>
+                    <span>{{ facturasFiltradas.length }}</span>
                   </div>
-                }
-
-              </div>
-              } @placeholder {
-                <div class="p-6 space-y-4 animate-pulse">
-                  <div class="h-6 bg-gray-200 rounded w-1/4 mb-6"></div>
-                  @for (item of [1,2,3]; track item) {
-                    <div class="bg-gray-100 h-12 rounded-lg"></div>
-                  }
+                </div>
+              } @else {
+                <div class="text-center text-gray-500 py-10 flex flex-col items-center gap-2">
+                  <i class="pi pi-inbox text-4xl"></i>
+                  <p class="font-poppins font-normal">No hay facturas registradas para esta obra.</p>
                 </div>
               }
+
+            </div>
 
               <app-modal
                 (closed)="cerrarFacturaModal()"
@@ -642,26 +623,17 @@
             </p-tabpanel>
 
             <p-tabpanel value="5">
-              @defer (when documentosLoaded) {
-                <div class="flex flex-col gap-6">
-                  <app-obra-documentos
-                    [obraId]="obra.id!"
-                    [proveedores]="proveedores"
-                    [clientes]="[obra.cliente]"
-                  ></app-obra-documentos>
+              <div class="flex flex-col gap-6">
+                <app-obra-documentos
+                  [obraId]="obra.id!"
+                  [proveedores]="proveedores"
+                  [clientes]="[obra.cliente]"
+                ></app-obra-documentos>
 
-                  <div class="text-sm font-poppins font-normal text-gray-600">
-                    Este tab muestra solo documentos adjuntos.
-                  </div>
+                <div class="text-sm font-poppins font-normal text-gray-600">
+                  Este tab muestra solo documentos adjuntos.
                 </div>
-              } @placeholder {
-                <div class="p-6 space-y-4 animate-pulse">
-                  <div class="h-6 bg-gray-200 rounded w-1/4 mb-6"></div>
-                  @for (item of [1,2,3]; track item) {
-                    <div class="bg-gray-100 h-12 rounded-lg"></div>
-                  }
-                </div>
-              }
+              </div>
             </p-tabpanel>
 
           </p-tabpanels>
