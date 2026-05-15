@@ -9,6 +9,7 @@ import {CatalogoOption, ProveedoresService} from '../../../services/proveedores/
 import {InputText} from 'primeng/inputtext';
 import {ModalComponent} from '../../../shared/modal/modal.component';
 import {RouterLink} from '@angular/router';
+import {BackButtonDirective} from '../../../shared/directives/back-button.directive';
 
 @Component({
   selector: 'app-proveedores-form',
@@ -21,7 +22,8 @@ import {RouterLink} from '@angular/router';
     ButtonModule,
     InputText,
     ModalComponent,
-    RouterLink
+    RouterLink,
+    BackButtonDirective
   ],
   templateUrl: './proveedores-form.component.html'
 })

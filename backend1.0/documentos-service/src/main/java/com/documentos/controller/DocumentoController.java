@@ -5,6 +5,7 @@ import com.documentos.enums.TipoDocumentoEnum;
 import com.documentos.service.DocumentoService;
 import org.springframework.core.io.Resource;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -16,6 +17,7 @@ import reactor.core.publisher.Mono;
 @RestController
 @RequestMapping("/api/documentos")
 @RequiredArgsConstructor
+@Slf4j
 public class DocumentoController {
 
     private final DocumentoService documentoService;
@@ -44,7 +46,7 @@ public class DocumentoController {
                         idObra, tipoEnum, observacion, idAsociado, tipoAsociado, filePart)
                 .map(dto -> ResponseEntity.status(HttpStatus.CREATED).body(dto))
                 .onErrorResume(ex -> {
-                    ex.printStackTrace();
+                    log.error("Error en operación de documentos", ex);
                     return Mono.just(ResponseEntity.internalServerError().build());
                 });
     }

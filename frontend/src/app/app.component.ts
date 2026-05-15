@@ -3,6 +3,7 @@ import {CommonModule} from '@angular/common';
 import {RouterOutlet} from '@angular/router';
 import {HeaderComponent} from './shared/header/header.component';
 import {SidebarComponent} from './shared/sidebar/sidebar.component';
+import {NavigationHistoryService} from './core/services/navigation-history.service';
 
 @Component({
   selector: 'app-root',
@@ -18,6 +19,11 @@ import {SidebarComponent} from './shared/sidebar/sidebar.component';
 })
 export class AppComponent implements OnInit{
   sidebarVisible: boolean = true;
+
+  constructor(private navigationHistory: NavigationHistoryService) {
+    // DEBUG: Exponer el servicio en la consola
+    (window as any).navHistoryDebug = this.navigationHistory;
+  }
 
   toggleSidebar() {
     this.sidebarVisible = !this.sidebarVisible;

@@ -38,9 +38,9 @@
             <div class="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
               <i class="pi pi-tag text-purple-600 text-lg"></i>
             </div>
-            <span class="text-sm font-medium text-gray-500">Tipo</span>
+            <span class="text-sm font-poppins font-semibold text-gray-500">Tipo</span>
           </div>
-          <p class="text-lg font-semibold text-gray-900">{{ formatearTipo(proveedor.tipo_proveedor) }}</p>
+          <p class="text-lg font-poppins font-semibold text-gray-900">{{ formatearTipo(proveedor.tipo_proveedor) }}</p>
         </div>
 
         <!-- Tarjeta Contacto -->
@@ -49,9 +49,9 @@
             <div class="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
               <i class="pi pi-user text-blue-600 text-lg"></i>
             </div>
-            <span class="text-sm font-medium text-gray-500">Contacto</span>
+            <span class="text-sm font-poppins font-semibold text-gray-500">Contacto</span>
           </div>
-          <p class="text-lg font-semibold text-gray-900">{{ proveedor.contacto || 'Sin contacto' }}</p>
+          <p class="text-lg font-poppins font-semibold text-gray-900">{{ proveedor.contacto || 'Sin contacto' }}</p>
         </div>
         <!-- Tarjeta Gremio -->
         <div class="bg-white rounded-xl shadow-md p-6 border-l-4 border-green-500">
@@ -59,9 +59,9 @@
             <div class="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
               <i class="pi pi-sitemap text-green-600 text-lg"></i>
             </div>
-            <span class="text-sm font-medium text-gray-500">Gremio</span>
+            <span class="text-sm font-poppins font-semibold text-gray-500">Gremio</span>
           </div>
-          <p class="text-lg font-semibold text-gray-900">{{ proveedor.gremio || 'Sin gremio' }}</p>
+          <p class="text-lg font-poppins font-semibold text-gray-900">{{ proveedor.gremio || 'Sin gremio' }}</p>
         </div>
 
         <!-- Tarjeta CUIT -->
@@ -70,15 +70,15 @@
             <div class="w-10 h-10 bg-amber-100 rounded-lg flex items-center justify-center">
               <i class="pi pi-id-card text-amber-600 text-lg"></i>
             </div>
-            <span class="text-sm font-medium text-gray-500">DNI/CUIT</span>
+            <span class="text-sm font-poppins font-semibold text-gray-500">DNI/CUIT</span>
           </div>
-          <p class="text-lg font-semibold text-gray-900">{{ proveedor.cuit || 'Sin CUIT' }}</p>
+          <p class="text-lg font-poppins font-semibold text-gray-900">{{ proveedor.cuit || 'Sin CUIT' }}</p>
         </div>
       </div>
 
       <!-- ===================== TABS MEJORADOS ===================== -->
       <div class="bg-white rounded-xl shadow-md overflow-hidden">
-        <p-tabs value="0">
+        <p-tabs [value]="selectedTab" (onChange)="onTabChange($event)">
           <p-tablist pStyleClass="border-b border-gray-200 px-6">
             <p-tab value="0" pStyleClass="px-6 py-4">
               <div class="flex items-center gap-2">
@@ -143,15 +143,15 @@
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
                   <div class="bg-slate-50 border border-slate-200 rounded-lg p-4">
                     <p class="text-xs font-semibold uppercase text-slate-600">Total obras proveedor</p>
-                    <p class="text-2xl font-bold text-slate-900">{{ totalObrasProveedor | currency:'ARS':'symbol':'1.0-2' }}</p>
+                    <p class="text-2xl font-poppins font-bold text-slate-900">{{ totalObrasProveedor | currency:'ARS':'symbol':'1.0-2' }}</p>
                   </div>
                   <div class="bg-red-50 border border-red-200 rounded-lg p-4">
                     <p class="text-xs font-semibold uppercase text-red-700">Pagado</p>
-                    <p class="text-2xl font-bold text-red-900">{{ totalPagadoObrasProveedor | currency:'ARS':'symbol':'1.0-2' }}</p>
+                    <p class="text-2xl font-poppins font-bold text-red-900">{{ totalPagadoObrasProveedor | currency:'ARS':'symbol':'1.0-2' }}</p>
                   </div>
                   <div class="bg-emerald-50 border border-emerald-200 rounded-lg p-4">
                     <p class="text-xs font-semibold uppercase text-emerald-700">Saldo total</p>
-                    <p class="text-2xl font-bold text-emerald-900">{{ totalSaldoObrasProveedor | currency:'ARS':'symbol':'1.0-2' }}</p>
+                    <p class="text-2xl font-poppins font-bold text-emerald-900">{{ totalSaldoObrasProveedor | currency:'ARS':'symbol':'1.0-2' }}</p>
                   </div>
                 </div>
                 <div class="overflow-hidden rounded-lg border border-gray-200">
@@ -340,16 +340,16 @@
             <p-tabpanel value="2">
               <div class="flex flex-wrap gap-4 mb-4">
                 <div class="bg-purple-50 border border-purple-100 rounded-lg px-4 py-3 flex-1 min-w-[220px]">
-                  <p class="text-xs text-purple-700 font-semibold uppercase">Total proveedor</p>
-                  <p class="text-xl font-bold text-purple-900">{{ totalCostos | currency:'ARS':'symbol':'1.0-2' }}</p>
+                  <p class="text-xs font-poppins font-normal text-purple-700 font-semibold uppercase">Total proveedor</p>
+                  <p class="text-xl font-poppins font-bold text-purple-900">{{ totalCostos | currency:'ARS':'symbol':'1.0-2' }}</p>
                 </div>
                 <div class="bg-red-50 border border-red-100 rounded-lg px-4 py-3 flex-1 min-w-[220px]">
-                  <p class="text-xs text-red-700 font-semibold uppercase">Pagos realizados</p>
-                  <p class="text-xl font-bold text-red-900">{{ totalPagos | currency:'ARS':'symbol':'1.0-2' }}</p>
+                  <p class="text-xs font-poppins font-normal text-red-700 font-semibold uppercase">Pagos realizados</p>
+                  <p class="text-xl font-poppins font-bold text-red-900">{{ totalPagos | currency:'ARS':'symbol':'1.0-2' }}</p>
                 </div>
                 <div class="bg-amber-50 border border-amber-100 rounded-lg px-4 py-3 flex-1 min-w-[220px]">
-                  <p class="text-xs text-amber-700 font-semibold uppercase">Saldo</p>
-                  <p class="text-xl font-bold text-amber-900">{{ saldoProveedor | currency:'ARS':'symbol':'1.0-2' }}</p>
+                  <p class="text-xs font-poppins font-normal text-amber-700 font-semibold uppercase">Saldo</p>
+                  <p class="text-xl font-poppins font-bold text-amber-900">{{ saldoProveedor | currency:'ARS':'symbol':'1.0-2' }}</p>
                 </div>
               </div>
               @if (transacciones?.length) {

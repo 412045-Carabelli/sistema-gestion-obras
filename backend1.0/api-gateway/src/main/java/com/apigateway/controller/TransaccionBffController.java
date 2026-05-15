@@ -1,6 +1,7 @@
 package com.apigateway.controller;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.core.type.TypeReference;
 import org.springframework.beans.factory.annotation.Value;
@@ -8,6 +9,7 @@ import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.reactive.function.client.WebClient;
+import org.springframework.web.util.UriComponentsBuilder;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -18,6 +20,7 @@ import java.util.Map;
 @RestController
 @RequestMapping("/bff/transacciones")
 @RequiredArgsConstructor
+@Slf4j
 public class TransaccionBffController {
 
     @Value("${services.transacciones.url}/tipo-transaccion")
@@ -43,6 +46,31 @@ public class TransaccionBffController {
                 .bodyToFlux(new ParameterizedTypeReference<Map<String, Object>>() {});
 
         return transaccionesFlux.collectList().map(ResponseEntity::ok);
+    }
+
+    // ✅ GET /bff/transacciones/con-asociados (paginado con nombres de clientes/proveedores)
+    @GetMapping("/con-asociados")
+    public Mono<ResponseEntity<Map<String, Object>>> getAllConAsociados(
+            @RequestParam(name = "page", defaultValue = "0") int page,
+            @RequestParam(name = "size", defaultValue = "50") int size
+    ) {
+        WebClient client = webClientBuilder.build();
+
+        String url = UriComponentsBuilder.fromHttpUrl(TRANSACCIONES_URL + "/con-asociados")
+                .queryParam("page", page)
+                .queryParam("size", size)
+                .build()
+                .toUriString();
+
+        return client.get()
+                .uri(url)
+                .retrieve()
+                .bodyToMono(new ParameterizedTypeReference<Map<String, Object>>() {})
+                .map(ResponseEntity::ok)
+                .onErrorResume(ex -> {
+                    log.error("Error en operación de transacciones", ex);
+                    return Mono.just(ResponseEntity.badRequest().build());
+                });
     }
 
     // ✅ GET /bff/transacciones/{id}

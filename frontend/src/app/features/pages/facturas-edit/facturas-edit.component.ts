@@ -2,6 +2,7 @@ import {Component, OnInit} from '@angular/core';
 import {FormBuilder, FormGroup, ReactiveFormsModule, Validators} from '@angular/forms';
 import {ActivatedRoute, Router, RouterLink} from '@angular/router';
 import {CommonModule} from '@angular/common';
+import {BackButtonDirective} from '../../../shared/directives/back-button.directive';
 import {ToastModule} from 'primeng/toast';
 import {ButtonModule} from 'primeng/button';
 import {Select} from 'primeng/select';
@@ -33,7 +34,8 @@ import {FacturasService} from '../../../services/facturas/facturas.service';
     ProgressSpinnerModule,
     InputNumber,
     EditorModule,
-    CheckboxModule
+    CheckboxModule,
+    BackButtonDirective
   ],
   providers: [MessageService],
   templateUrl: './facturas-edit.component.html',

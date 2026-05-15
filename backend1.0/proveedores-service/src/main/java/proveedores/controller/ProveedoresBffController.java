@@ -32,6 +32,14 @@ public class ProveedoresBffController {
         return ResponseEntity.ok(dtos);
     }
 
+    @GetMapping("/proveedores/simple")
+    public ResponseEntity<List<ProveedorDTO>> getProveedoresSimple() {
+        List<ProveedorDTO> dtos = proveedorService.findAllActivos().stream()
+                .map(this::toDTO)
+                .toList();
+        return ResponseEntity.ok(dtos);
+    }
+
     @GetMapping("/proveedores/{id}")
     public ResponseEntity<ProveedorDTO> getProveedor(@PathVariable("id") Long id) {
         return proveedorService.findById(id)

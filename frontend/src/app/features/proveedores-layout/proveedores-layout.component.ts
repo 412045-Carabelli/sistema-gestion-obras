@@ -1,6 +1,7 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { NavigationEnd, Router, RouterLink, RouterOutlet } from '@angular/router';
 import { ToastModule } from 'primeng/toast';
+import {BackButtonDirective} from '../../shared/directives/back-button.directive';
 import { ProgressSpinnerModule } from 'primeng/progressspinner';
 import { ConfirmationService, MessageService } from 'primeng/api';
 import { Button } from 'primeng/button';
@@ -21,7 +22,8 @@ import {ConfirmDialog} from 'primeng/confirmdialog';
     RouterLink,
     Button,
     Tooltip,
-    ConfirmDialog
+    ConfirmDialog,
+    BackButtonDirective
   ],
   providers: [MessageService, ConfirmationService],
   templateUrl: './proveedores-layout.component.html',

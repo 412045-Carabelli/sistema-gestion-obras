@@ -1,0 +1,38 @@
+<p-toast position="bottom-right"></p-toast>
+<p-confirmDialog></p-confirmDialog>
+
+<div class="flex justify-between items-center">
+  @switch (true) {
+
+    @case (currentRoute === '/movimientos') {
+      <div class="relative flex justify-between items-center w-full bg-gradient-to-r from-purple-600 to-purple-800 p-8 shadow-lg text-white overflow-hidden">
+        <div class="absolute inset-0 opacity-10">
+          <div class="absolute -right-10 -top-10 w-40 h-40 bg-white rounded-full"></div>
+          <div class="absolute -left-10 -bottom-10 w-32 h-32 bg-white rounded-full"></div>
+        </div>
+
+        <div class="relative z-10">
+          <h1 class="font-poppins font-bold mb-2">Movimientos</h1>
+          <p class="text-purple-100">Gestión de cobros y pagos</p>
+        </div>
+
+        <p-button
+          label="Nuevo Movimiento"
+          icon="pi pi-plus"
+          (click)="abrirNuevoMovimiento()"
+          styleClass="p-button">
+        </p-button>
+      </div>
+    }
+
+    @default {
+      <div>
+        <h1 class="font-poppins text-3xl font-semibold text-gray-800 m-0">Movimientos</h1>
+      </div>
+    }
+  }
+</div>
+
+<div class="p-5 bg-gray-50">
+  <router-outlet></router-outlet>
+</div>

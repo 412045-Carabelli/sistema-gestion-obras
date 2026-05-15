@@ -9,11 +9,13 @@ import com.reportes.dto.external.*;
 import com.reportes.dto.request.EstadoObraFilterRequest;
 import com.reportes.dto.request.ReportFilterRequest;
 import com.reportes.dto.response.*;
+import com.reportes.dto.response.FiltroResponse;
 import com.reportes.entity.Comision;
 import com.reportes.entity.MovimientoReporte;
 import com.reportes.repository.ComisionRepository;
 import com.reportes.repository.DeudasGlobalesRepository;
 import com.reportes.repository.MovimientoReporteRepository;
+import com.reportes.service.pdf.PdfBuilder;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -39,6 +41,7 @@ public class ReportesService {
     private final ComisionRepository comisionRepository;
     private final MovimientoReporteRepository movimientoReporteRepository;
     private final DeudasGlobalesRepository deudasGlobalesRepository;
+    private final PdfBuilder pdfBuilder;
 
     public DashboardFinancieroResponse generarDashboardFinanciero(ReportFilterRequest filtro) {
         ReportFilterRequest filtros = filtroSeguro(filtro);
@@ -180,15 +183,22 @@ public class ReportesService {
         ReportFilterRequest filtros = filtroSeguro(filtro);
         DeudasGlobalesResponse response = new DeudasGlobalesResponse();
 
+        // Obtener deudas de clientes (filtrando por proveedor si se especifica)
         List<DeudasGlobalesResponse.DetalleDeudaCliente> detalleClientes = deudasGlobalesRepository.obtenerDeudaClientes(
             filtros.getGrupoId(),
             filtros.getObraId(),
             filtros.getClienteId(),
+            filtros.getProveedorId(),
             filtros.getFechaInicio(),
             filtros.getFechaFin()
         );
+
+        // Obtener deudas de proveedores
+        // Si se filtra por cliente, traerá solo los proveedores de sus obras
+        // Si se filtra por proveedor, traerá solo sus propios costos
         List<DeudasGlobalesResponse.DetalleDeudaProveedor> detalleProveedores = deudasGlobalesRepository.obtenerDeudaProveedores(
             filtros.getGrupoId(),
+            filtros.getClienteId(),
             filtros.getObraId(),
             filtros.getProveedorId(),
             filtros.getFechaInicio(),
@@ -200,6 +210,47 @@ public class ReportesService {
         response.setDeudaClientes(sumarSaldosClientes(detalleClientes));
         response.setDeudaProveedores(sumarSaldosProveedores(detalleProveedores));
         return response;
+    }
+
+    public CuentasCorrientesCombindasResponse generarCuentasCorrientesCombinadas(ReportFilterRequest filtro) {
+        // Obtener deudas globales para extraer clientes y proveedores únicos
+        DeudasGlobalesResponse deudas = generarDeudasGlobales(filtro);
+
+        List<CuentaCorrientePdfResponse> clientes = new ArrayList<>();
+        List<CuentaCorrientePdfResponse> proveedores = new ArrayList<>();
+
+        // Agrupar deudas de clientes por clienteId
+        Map<Long, List<DeudasGlobalesResponse.DetalleDeudaCliente>> clientesAgrupados = deudas
+                .getDetalleDeudaClientes().stream()
+                .collect(Collectors.groupingBy(DeudasGlobalesResponse.DetalleDeudaCliente::getClienteId));
+
+        // Generar PDF para cada cliente
+        for (Long clienteId : clientesAgrupados.keySet()) {
+            List<Long> obraIds = clientesAgrupados.get(clienteId).stream()
+                    .map(DeudasGlobalesResponse.DetalleDeudaCliente::getObraId)
+                    .collect(Collectors.toList());
+            CuentaCorrientePdfResponse ctaCte = generarCuentaCorrienteClientePdf(clienteId, obraIds);
+            clientes.add(ctaCte);
+        }
+
+        // Agrupar deudas de proveedores por proveedorId
+        Map<Long, List<DeudasGlobalesResponse.DetalleDeudaProveedor>> proveedoresAgrupados = deudas
+                .getDetalleDeudaProveedores().stream()
+                .collect(Collectors.groupingBy(DeudasGlobalesResponse.DetalleDeudaProveedor::getProveedorId));
+
+        // Generar PDF para cada proveedor
+        for (Long proveedorId : proveedoresAgrupados.keySet()) {
+            List<Long> obraIds = proveedoresAgrupados.get(proveedorId).stream()
+                    .map(DeudasGlobalesResponse.DetalleDeudaProveedor::getObraId)
+                    .collect(Collectors.toList());
+            CuentaCorrientePdfResponse ctaCte = generarCuentaCorrienteProveedorPdf(proveedorId, obraIds);
+            proveedores.add(ctaCte);
+        }
+
+        return CuentasCorrientesCombindasResponse.builder()
+                .clientes(clientes)
+                .proveedores(proveedores)
+                .build();
     }
 
     public IngresosEgresosResponse generarIngresosEgresos(ReportFilterRequest filtro) {
@@ -2487,5 +2538,192 @@ public class ReportesService {
         return new HashSet<>(Arrays.asList(
                 "ADJUDICADA", "EN_PROGRESO", "FINALIZADA", "COBRADA", "FACTURADA", "FACTURADA_PARCIAL"
         )).contains(normalizado);
+    }
+
+    // Filtros en cascada para deudas globales
+    public List<FiltroResponse> obtenerObrasPorCliente(Long clienteId, Long proveedorId, Long obraId) {
+        return deudasGlobalesRepository.obtenerObrasPorCliente(clienteId, proveedorId, obraId);
+    }
+
+    public List<FiltroResponse> obtenerProveedoresPorCliente(Long clienteId, Long proveedorId, Long obraId) {
+        return deudasGlobalesRepository.obtenerProveedoresPorCliente(clienteId, proveedorId, obraId);
+    }
+
+    public List<FiltroResponse> obtenerObrasPorProveedor(Long proveedorId, Long clienteId, Long obraId) {
+        return deudasGlobalesRepository.obtenerObrasPorProveedor(proveedorId, clienteId, obraId);
+    }
+
+    public List<FiltroResponse> obtenerClientesPorProveedor(Long proveedorId, Long clienteId, Long obraId) {
+        return deudasGlobalesRepository.obtenerClientesPorProveedor(proveedorId, clienteId, obraId);
+    }
+
+    public List<FiltroResponse> obtenerProveedoresPorObra(Long obraId, Long clienteId, Long proveedorId) {
+        return deudasGlobalesRepository.obtenerProveedoresPorObra(obraId, clienteId, proveedorId);
+    }
+
+    public List<FiltroResponse> obtenerClientesPorObra(Long obraId, Long clienteId, Long proveedorId) {
+        return deudasGlobalesRepository.obtenerClientesPorObra(obraId, clienteId, proveedorId);
+    }
+
+    // ===== PDF BINARIOS (iText 7) =====
+
+    /**
+     * Genera PDF binario de cuenta corriente para cliente.
+     */
+    public byte[] generarCuentaCorrienteClientePdfBinario(Long clienteId, List<Long> obraIds) throws Exception {
+        CuentaCorrientePdfResponse datos = generarCuentaCorrienteClientePdf(clienteId, obraIds);
+        return construirPdfCuentaCorriente(datos, "Cliente: " + datos.getAsociadoNombre());
+    }
+
+    /**
+     * Genera PDF binario de cuenta corriente para proveedor.
+     */
+    public byte[] generarCuentaCorrienteProveedorPdfBinario(Long proveedorId, List<Long> obraIds) throws Exception {
+        CuentaCorrientePdfResponse datos = generarCuentaCorrienteProveedorPdf(proveedorId, obraIds);
+        return construirPdfCuentaCorriente(datos, "Proveedor: " + datos.getAsociadoNombre());
+    }
+
+    /**
+     * Genera PDF binario con ambas tablas (clientes y proveedores) lado a lado.
+     */
+    public byte[] generarCuentasCorrientesCombinaidasPdfBinario(ReportFilterRequest filtro) throws Exception {
+        CuentasCorrientesCombindasResponse datos = generarCuentasCorrientesCombinadas(filtro);
+        return construirPdfCuentasCombinadas(datos);
+    }
+
+    /**
+     * Construye PDF de cuenta corriente genérico (cliente o proveedor).
+     */
+    private byte[] construirPdfCuentaCorriente(CuentaCorrientePdfResponse datos, String titulo) throws Exception {
+        java.io.ByteArrayOutputStream baos = new java.io.ByteArrayOutputStream();
+        com.lowagie.text.Document doc = pdfBuilder.crearDocumento(baos);
+
+        // Título
+        doc.add(pdfBuilder.crearTituloSeccion(titulo));
+        com.lowagie.text.Paragraph generado = new com.lowagie.text.Paragraph("Generado: " + pdfBuilder.getFechaHoy());
+        generado.setFont(new com.lowagie.text.Font(com.lowagie.text.Font.HELVETICA, 9));
+        generado.setSpacingAfter(12);
+        doc.add(generado);
+
+        // Tabla de movimientos
+        List<String> encabezados = new java.util.ArrayList<>();
+        encabezados.add("Obra");
+        for (LocalDate fecha : datos.getFechasUnicas()) {
+            encabezados.add(new java.text.SimpleDateFormat("dd/MM/yyyy").format(
+                java.sql.Date.valueOf(fecha)));
+        }
+
+        List<List<String>> filas = new java.util.ArrayList<>();
+        for (CuentaCorrientePdfResponse.FilaObra fila : datos.getFilas()) {
+            List<String> row = new java.util.ArrayList<>();
+            row.add(fila.getObraNombre());
+            for (LocalDate fecha : datos.getFechasUnicas()) {
+                BigDecimal monto = fila.getMovimientosPorFecha().get(fecha.toString());
+                row.add(monto != null ? pdfBuilder.formatMoneda(monto) : "—");
+            }
+            filas.add(row);
+        }
+
+        float[] widths = new float[encabezados.size()];
+        widths[0] = 3;
+        java.util.Arrays.fill(widths, 1, widths.length, 1.5f);
+
+        com.lowagie.text.pdf.PdfPTable tabla = pdfBuilder.crearTabla(widths, encabezados, filas);
+        doc.add(tabla);
+
+        // Saldo final
+        com.lowagie.text.Paragraph espacio = new com.lowagie.text.Paragraph(" ");
+        espacio.setSpacingAfter(8);
+        doc.add(espacio);
+
+        List<String[]> filasTotal = java.util.List.of(
+            new String[]{"Total costos/ingresos:", pdfBuilder.formatMoneda(datos.getTotalCostos())},
+            new String[]{"Total pagos/cobros:", pdfBuilder.formatMoneda(datos.getTotalPagos())},
+            new String[]{"SALDO FINAL:", pdfBuilder.formatMoneda(datos.getSaldoFinal())}
+        );
+        doc.add(pdfBuilder.crearTablaTotales(filasTotal));
+
+        doc.close();
+        return baos.toByteArray();
+    }
+
+    /**
+     * Construye PDF con ambas tablas (clientes y proveedores).
+     */
+    private byte[] construirPdfCuentasCombinadas(CuentasCorrientesCombindasResponse datos) throws Exception {
+        java.io.ByteArrayOutputStream baos = new java.io.ByteArrayOutputStream();
+        com.lowagie.text.Document doc = pdfBuilder.crearDocumento(baos);
+
+        // Título principal
+        com.lowagie.text.Paragraph titulo = new com.lowagie.text.Paragraph("Cuentas Corrientes Combinadas");
+        titulo.setFont(new com.lowagie.text.Font(com.lowagie.text.Font.HELVETICA, 14, com.lowagie.text.Font.BOLD));
+        titulo.setAlignment(com.lowagie.text.Element.ALIGN_CENTER);
+        titulo.setSpacingAfter(2);
+        doc.add(titulo);
+
+        com.lowagie.text.Paragraph generado = new com.lowagie.text.Paragraph("Generado: " + pdfBuilder.getFechaHoy());
+        generado.setFont(new com.lowagie.text.Font(com.lowagie.text.Font.HELVETICA, 9));
+        generado.setAlignment(com.lowagie.text.Element.ALIGN_CENTER);
+        generado.setSpacingAfter(16);
+        doc.add(generado);
+
+        // Tabla CLIENTES
+        if (!datos.getClientes().isEmpty()) {
+            doc.add(pdfBuilder.crearTituloSeccion("Clientes"));
+            doc.add(construirTablaResumenCtaCte(datos.getClientes()));
+        }
+
+        // Tabla PROVEEDORES
+        if (!datos.getProveedores().isEmpty()) {
+            doc.add(pdfBuilder.crearTituloSeccion("Proveedores"));
+            doc.add(construirTablaResumenCtaCte(datos.getProveedores()));
+        }
+
+        doc.close();
+        return baos.toByteArray();
+    }
+
+    /**
+     * Construye una tabla resumida para múltiples cuentas corrientes.
+     */
+    private com.lowagie.text.pdf.PdfPTable construirTablaResumenCtaCte(
+            List<CuentaCorrientePdfResponse> listaCuentas) {
+
+        List<String> encabezados = new java.util.ArrayList<>();
+        encabezados.add("Asociado");
+
+        // Recolectar todas las fechas únicas
+        java.util.Set<LocalDate> todasLasFechas = new java.util.TreeSet<>();
+        for (CuentaCorrientePdfResponse cc : listaCuentas) {
+            todasLasFechas.addAll(cc.getFechasUnicas());
+        }
+
+        for (LocalDate fecha : todasLasFechas) {
+            encabezados.add(new java.text.SimpleDateFormat("dd/MM/yyyy").format(
+                java.sql.Date.valueOf(fecha)));
+        }
+        encabezados.add("Saldo");
+
+        List<List<String>> filas = new java.util.ArrayList<>();
+        for (CuentaCorrientePdfResponse cc : listaCuentas) {
+            List<String> row = new java.util.ArrayList<>();
+            row.add(cc.getAsociadoNombre());
+            for (LocalDate fecha : todasLasFechas) {
+                BigDecimal monto = cc.getFilas().stream()
+                    .flatMap(f -> f.getMovimientosPorFecha().entrySet().stream())
+                    .filter(e -> e.getKey().equals(fecha.toString()))
+                    .map(Map.Entry::getValue)
+                    .reduce(BigDecimal.ZERO, BigDecimal::add);
+                row.add(monto.compareTo(BigDecimal.ZERO) != 0 ? pdfBuilder.formatMoneda(monto) : "—");
+            }
+            row.add(pdfBuilder.formatMoneda(cc.getSaldoFinal()));
+            filas.add(row);
+        }
+
+        float[] widths = new float[encabezados.size()];
+        widths[0] = 2;
+        java.util.Arrays.fill(widths, 1, widths.length, 1f);
+
+        return pdfBuilder.crearTabla(widths, encabezados, filas);
     }
 }

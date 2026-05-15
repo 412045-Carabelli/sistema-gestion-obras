@@ -15,7 +15,6 @@ public class TransaccionesServiceApplication {
     private static final Logger log = LoggerFactory.getLogger(TransaccionesServiceApplication.class);
 
     public static void main(String[] args) {
-        System.out.println("🚀 SGO - Transacciones Service v1.15.32");
         java.io.File dbDir = new java.io.File("data");
         if (!dbDir.exists()) {
             dbDir.mkdirs();

@@ -12,7 +12,7 @@
         </div>
 
         <div class="relative z-10">
-          <h1 class="text-3xl font-bold mb-2">Obras</h1>
+          <h1 class="font-poppins font-bold mb-2">Obras</h1>
           <p class="text-green-100">Resumen y gestión de todas las obras</p>
         </div>
 
@@ -32,14 +32,15 @@
         </div>
 
         <div class="relative z-10">
-          <h1 class="text-3xl font-bold mb-2">Nueva Obra</h1>
+          <h1 class="font-poppins font-bold mb-2">Nueva Obra</h1>
           <p class="text-green-100">Registrar un nuevo proyecto en el sistema</p>
         </div>
 
         <p-button
-          label="Volver al listado"
+          label="Volver"
           icon="pi pi-arrow-left"
-          (onClick)="goBack()"
+          appBackButton
+          fallback="/obras"
           styleClass="p-button">
         </p-button>
       </div>
@@ -52,13 +53,14 @@
         </div>
 
         <div class="relative z-10">
-          <h1 class="text-3xl font-bold mb-2">Editar Obra</h1>
+          <h1 class="font-poppins font-bold mb-2">Editar Obra</h1>
           <p class="text-blue-100">Actualizar datos y costos del proyecto</p>
         </div>
         <p-button
-          label="Volver al listado"
+          label="Volver"
           icon="pi pi-arrow-left"
-          (onClick)="goBack()"
+          appBackButton
+          fallback="/obras"
           styleClass="p-button">
         </p-button>
       </div>
@@ -76,7 +78,7 @@
           <div class="relative z-10 flex justify-between items-center flex-wrap gap-4">
             <div class="space-y-2">
               <div class="flex items-center gap-3 flex-wrap">
-                <h1 class="text-3xl font-bold">{{ obra.nombre }}</h1>
+                <h1 class="font-poppins font-bold">{{ obra.nombre }}</h1>
                 @if (getEstadoFacturacion(); as ef) {
                   <p-tag [value]="ef.label" [severity]="ef.severity"></p-tag>
                 }
@@ -109,9 +111,10 @@
                 tooltipPosition="top">
               </p-button>
               <p-button
-                label="Volver al listado"
+                label="Volver"
                 icon="pi pi-arrow-left"
-                (onClick)="goBack()"
+                appBackButton
+                fallback="/obras"
                 styleClass="p-button">
               </p-button>
             </div>
@@ -129,7 +132,7 @@
     }
     @default {
       <div>
-        <h1 class="text-3xl font-semibold text-gray-800 m-0">Gestión de Obras</h1>
+        <h1 class="font-poppins text-3xl font-semibold text-gray-800 m-0">Gestión de Obras</h1>
       </div>
     }
   }

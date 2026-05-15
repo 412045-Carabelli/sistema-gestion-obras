@@ -34,4 +34,10 @@ public class ObraProveedorServiceImpl implements ObraProveedorService {
     public List<ObraProveedor> proveedoresDeObra(Long idObra) {
         return obraProveedorRepository.findByIdObra(idObra);
     }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<ObraProveedor> todasLasRelaciones() {
+        return obraProveedorRepository.findAll();
+    }
 }

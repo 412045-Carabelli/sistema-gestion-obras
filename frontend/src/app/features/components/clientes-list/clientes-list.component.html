@@ -41,7 +41,7 @@
             inputId="clientesMostrarInactivos"
             (ngModelChange)="onMostrarInactivosChange()">
           </p-checkbox>
-          <label for="clientesMostrarInactivos" class="text-base text-gray-700">
+          <label for="clientesMostrarInactivos" class="text-base font-poppins font-normal text-gray-700">
             Ver inactivos
           </label>
         </div>
@@ -63,35 +63,33 @@
         styleClass="p-datatable-sm">
         <ng-template pTemplate="header">
           <tr>
-            <th pSortableColumn="nombre" class="px-3 py-2 text-left">Nombre <p-sortIcon field="nombre"></p-sortIcon></th>
-            <th pSortableColumn="contacto" class="px-3 py-2 text-left">Contacto <p-sortIcon field="contacto"></p-sortIcon></th>
-            <th pSortableColumn="telefono" class="px-3 py-2 text-left">Telefono <p-sortIcon field="telefono"></p-sortIcon></th>
-            <th pSortableColumn="email" class="px-3 py-2 text-left">Email <p-sortIcon field="email"></p-sortIcon></th>
-            <th pSortableColumn="direccion" class="px-3 py-2 text-left">Direccion <p-sortIcon field="direccion"></p-sortIcon></th>
-            <th pSortableColumn="cuit" class="px-3 py-2 text-left">DNI/CUIT <p-sortIcon field="cuit"></p-sortIcon></th>
-            <th pSortableColumn="saldoCliente" class="px-3 py-2 text-right">Saldo <p-sortIcon field="saldoCliente"></p-sortIcon></th>
+            <th pSortableColumn="nombre" class="px-3 py-2 text-left font-poppins font-semibold">Nombre <p-sortIcon field="nombre"></p-sortIcon></th>
+            <th pSortableColumn="contacto" class="px-3 py-2 text-left font-poppins font-semibold">Contacto <p-sortIcon field="contacto"></p-sortIcon></th>
+            <th pSortableColumn="telefono" class="px-3 py-2 text-left font-poppins font-semibold">Telefono <p-sortIcon field="telefono"></p-sortIcon></th>
+            <th pSortableColumn="email" class="px-3 py-2 text-left font-poppins font-semibold">Email <p-sortIcon field="email"></p-sortIcon></th>
+            <th pSortableColumn="direccion" class="px-3 py-2 text-left font-poppins font-semibold">Direccion <p-sortIcon field="direccion"></p-sortIcon></th>
+            <th pSortableColumn="cuit" class="px-3 py-2 text-left font-poppins font-semibold">DNI/CUIT <p-sortIcon field="cuit"></p-sortIcon></th>
           </tr>
         </ng-template>
 
         <ng-template let-c pTemplate="body">
           <tr (click)="onRowClick(c)" class="hover:bg-gray-100 cursor-pointer">
-            <td class="px-3 py-2">{{ c.nombre }}</td>
-            <td class="px-3 py-2">{{ c.contacto || '-' }}</td>
-            <td class="px-3 py-2">{{ c.telefono || '-' }}</td>
-            <td class="px-3 py-2">{{ c.email || '-' }}</td>
-            <td class="px-3 py-2">{{ c.direccion || '-' }}</td>
-            <td class="px-3 py-2">{{ c.cuit || '-' }}</td>
-            <td class="px-3 py-2 text-right">{{ (c.saldoCliente ?? 0) | currency:'ARS':'symbol-narrow':'1.0-2' }}</td>
+            <td class="px-3 py-2 font-poppins font-normal">{{ c.nombre }}</td>
+            <td class="px-3 py-2 font-poppins font-normal">{{ c.contacto || '-' }}</td>
+            <td class="px-3 py-2 font-poppins font-normal">{{ c.telefono || '-' }}</td>
+            <td class="px-3 py-2 font-poppins font-normal">{{ c.email || '-' }}</td>
+            <td class="px-3 py-2 font-poppins font-normal">{{ c.direccion || '-' }}</td>
+            <td class="px-3 py-2 font-poppins font-normal">{{ c.cuit || '-' }}</td>
           </tr>
         </ng-template>
 
         <ng-template pTemplate="emptymessage">
           <tr>
-            <td class="text-center py-10" colspan="9">
+            <td class="text-center py-10" colspan="6">
               <div class="flex flex-col items-center justify-center gap-2 text-gray-500">
                 <i class="pi pi-inbox text-3xl"></i>
-                <p class="text-base font-medium">No hay registros para mostrar</p>
-                <p class="text-sm">Ajusta los filtros o crea un nuevo registro.</p>
+                <p class="text-base font-poppins font-semibold">No hay registros para mostrar</p>
+                <p class="text-sm font-poppins font-normal">Ajusta los filtros o crea un nuevo registro.</p>
               </div>
             </td>
           </tr>

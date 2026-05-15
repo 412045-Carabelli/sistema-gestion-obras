@@ -692,3 +692,23 @@ export interface CatalogoCuentaCorriente {
   clientes: Array<{ id: number; nombre: string }>;
   proveedores: Array<{ id: number; nombre: string }>;
 }
+
+export interface Movimiento {
+  id: number;
+  id_obra: number;
+  id_asociado: number;
+  tipo_asociado: string; // CLIENTE, PROVEEDOR
+  nombre_asociado?: string;
+  tipo_transaccion: string; // COBRO, PAGO
+  fecha: string;
+  monto: number;
+  forma_pago: string; // PARCIAL, TOTAL
+  medio_pago?: string; // Transferencia, Efectivo, Cheque, etc.
+  concepto?: string;
+  factura_cobrada?: boolean;
+  activo?: boolean;
+  ultima_actualizacion?: string;
+  tipo_actualizacion?: string;
+  pagado?: number;
+  restante?: number;
+}

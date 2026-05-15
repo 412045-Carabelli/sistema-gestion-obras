@@ -221,11 +221,11 @@ export class ObrasDetailComponent implements OnInit, OnDestroy, AfterViewInit {
     forkJoin({
       obra: this.obraService.getObraById(idObra),
       estados: this.estadoObraService.getEstados(),
-      proveedores: this.proveedoresService.getProveedores(),
       clientes: this.clientesService.getClientes(),
+      proveedores: this.proveedoresService.getProveedoresSimple()
     }).subscribe({
 
-      next: ({ obra, estados, proveedores, clientes }) => {
+      next: ({ obra, estados, clientes, proveedores }) => {
         console.log(obra)
         this.obra = { ...obra, id: Number(obra.id) };
         if (this.activeTab === '3' && !obra.requiere_factura) {
@@ -238,8 +238,6 @@ export class ObrasDetailComponent implements OnInit, OnDestroy, AfterViewInit {
         this.estadoSeleccionado = obra.obra_estado;
 
         this.clientes = clientes;
-
-        // Mantener todos los proveedores disponibles para permitir sumar costos nuevos
         this.proveedores = proveedores;
 
         this.progresoFisico = this.getProgresoFisico();
@@ -250,12 +248,8 @@ export class ObrasDetailComponent implements OnInit, OnDestroy, AfterViewInit {
           ? Number(obra.beneficio_neto)
           : this.calcularBeneficioNeto();
         this.cronogramaFueraDeRango = this.esCronogramaInvalido();
-        this.cargarCuentaCorriente(this.obra.id!);
-        this.cargarFacturasObra();
         this.loading = false;
         this.obraStateService.setObra(this.obra);
-        this.refrescarMovimientos();
-        this.refrescarDocumentos();
         this.scheduleNotasOverflowCheck();
       },
 
@@ -1343,6 +1337,26 @@ export class ObrasDetailComponent implements OnInit, OnDestroy, AfterViewInit {
       this.obra?.fecha_adjudicada ||
       this.obra?.fecha_perdida
     );
+  }
+
+  onTabChange(event: any): void {
+    const newTab = String(event.index ?? event);
+    this.activeTab = newTab;
+    this.router.navigate([], {
+      relativeTo: this.route,
+      queryParams: { tab: newTab },
+      queryParamsHandling: 'merge'
+    });
+
+    // Cargar datos según tab
+    if (newTab === '2') {
+      this.cargarCuentaCorriente(this.obra.id!);
+      this.refrescarMovimientos();
+    } else if (newTab === '3') {
+      this.cargarFacturasObra();
+    } else if (newTab === '5') {
+      this.refrescarDocumentos();
+    }
   }
 
 }

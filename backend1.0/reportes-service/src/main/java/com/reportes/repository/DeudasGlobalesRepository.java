@@ -1,6 +1,7 @@
 package com.reportes.repository;
 
 import com.reportes.dto.response.DeudasGlobalesResponse;
+import com.reportes.dto.response.FiltroResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -23,6 +24,7 @@ public class DeudasGlobalesRepository {
             Long grupoId,
             Long obraId,
             Long clienteId,
+            Long proveedorId,
             LocalDate fechaInicio,
             LocalDate fechaFin) {
 
@@ -30,8 +32,8 @@ public class DeudasGlobalesRepository {
         List<DeudasGlobalesResponse.DetalleDeudaCliente> resultados = new ArrayList<>();
 
         try {
-            log.info("Ejecutando sp_deudas_globales_con_grupo con parámetros: grupoId={}, obraId={}, clienteId={}, fechaInicio={}, fechaFin={}",
-                grupoId, obraId, clienteId, fechaInicio, fechaFin);
+            log.info("Ejecutando sp_deudas_globales_con_grupo con parámetros: grupoId={}, obraId={}, clienteId={}, proveedorId={}, fechaInicio={}, fechaFin={}",
+                grupoId, obraId, clienteId, proveedorId, fechaInicio, fechaFin);
             jdbcTemplate.query(sql, (rs, rowNum) -> {
                 DeudasGlobalesResponse.DetalleDeudaCliente detalle = new DeudasGlobalesResponse.DetalleDeudaCliente();
                 detalle.setGrupoId(rs.getObject("grupoId") != null ? rs.getLong("grupoId") : null);
@@ -49,7 +51,7 @@ public class DeudasGlobalesRepository {
                     grupoId,
                     obraId,
                     clienteId,
-                    null, // proveedorId - no usado en este SP
+                    proveedorId,
                     fechaInicio != null ? Date.valueOf(fechaInicio) : null,
                     fechaFin != null ? Date.valueOf(fechaFin) : null
             );
@@ -64,17 +66,18 @@ public class DeudasGlobalesRepository {
 
     public List<DeudasGlobalesResponse.DetalleDeudaProveedor> obtenerDeudaProveedores(
             Long grupoId,
+            Long clienteId,
             Long obraId,
             Long proveedorId,
             LocalDate fechaInicio,
             LocalDate fechaFin) {
 
-        String sql = "EXEC [sgo_transacciones].[dbo].[sp_deudas_proveedores_con_grupo] ?, ?, ?, ?, ?";
+        String sql = "EXEC [sgo_transacciones].[dbo].[sp_deudas_proveedores_con_grupo] ?, ?, ?, ?, ?, ?";
         List<DeudasGlobalesResponse.DetalleDeudaProveedor> resultados = new ArrayList<>();
 
         try {
-            log.info("Ejecutando sp_deudas_proveedores_con_grupo con parámetros: grupoId={}, obraId={}, proveedorId={}, fechaInicio={}, fechaFin={}",
-                grupoId, obraId, proveedorId, fechaInicio, fechaFin);
+            log.info("Ejecutando sp_deudas_proveedores_con_grupo con parámetros: grupoId={}, clienteId={}, obraId={}, proveedorId={}, fechaInicio={}, fechaFin={}",
+                grupoId, clienteId, obraId, proveedorId, fechaInicio, fechaFin);
             jdbcTemplate.query(sql, (rs, rowNum) -> {
                 DeudasGlobalesResponse.DetalleDeudaProveedor detalle = new DeudasGlobalesResponse.DetalleDeudaProveedor();
                 detalle.setGrupoId(rs.getObject("grupoId") != null ? rs.getLong("grupoId") : null);
@@ -91,6 +94,7 @@ public class DeudasGlobalesRepository {
             },
                     grupoId,
                     obraId,
+                    clienteId,
                     proveedorId,
                     fechaInicio != null ? Date.valueOf(fechaInicio) : null,
                     fechaFin != null ? Date.valueOf(fechaFin) : null
@@ -103,4 +107,127 @@ public class DeudasGlobalesRepository {
 
         return resultados;
     }
+
+    // Filtros en cascada para deudas
+
+    public List<FiltroResponse> obtenerObrasPorCliente(Long clienteId, Long proveedorId, Long obraId) {
+        String sql = "EXEC [sgo_transacciones].[dbo].[sp_obtener_obras_por_cliente] ?, ?, ?";
+        List<FiltroResponse> resultados = new ArrayList<>();
+
+        try {
+            log.info("Ejecutando sp_obtener_obras_por_cliente: clienteId={}, proveedorId={}, obraId={}", clienteId, proveedorId, obraId);
+            jdbcTemplate.query(sql, (rs, rowNum) -> {
+                FiltroResponse resp = new FiltroResponse(rs.getLong("id"), rs.getString("nombre"));
+                resultados.add(resp);
+                return null;
+            }, clienteId, proveedorId, obraId);
+            log.info("sp_obtener_obras_por_cliente retornó {} registros", resultados.size());
+        } catch (Exception e) {
+            log.error("Error ejecutando sp_obtener_obras_por_cliente", e);
+            throw e;
+        }
+
+        return resultados;
+    }
+
+    public List<FiltroResponse> obtenerProveedoresPorCliente(Long clienteId, Long proveedorId, Long obraId) {
+        String sql = "EXEC [sgo_transacciones].[dbo].[sp_obtener_proveedores_por_cliente] ?, ?, ?";
+        List<FiltroResponse> resultados = new ArrayList<>();
+
+        try {
+            log.info("Ejecutando sp_obtener_proveedores_por_cliente: clienteId={}, proveedorId={}, obraId={}", clienteId, proveedorId, obraId);
+            jdbcTemplate.query(sql, (rs, rowNum) -> {
+                FiltroResponse resp = new FiltroResponse(rs.getLong("id"), rs.getString("nombre"));
+                resultados.add(resp);
+                return null;
+            }, clienteId, proveedorId, obraId);
+            log.info("sp_obtener_proveedores_por_cliente retornó {} registros", resultados.size());
+        } catch (Exception e) {
+            log.error("Error ejecutando sp_obtener_proveedores_por_cliente", e);
+            throw e;
+        }
+
+        return resultados;
+    }
+
+    public List<FiltroResponse> obtenerObrasPorProveedor(Long proveedorId, Long clienteId, Long obraId) {
+        String sql = "EXEC [sgo_transacciones].[dbo].[sp_obtener_obras_por_proveedor] ?, ?, ?";
+        List<FiltroResponse> resultados = new ArrayList<>();
+
+        try {
+            log.info("Ejecutando sp_obtener_obras_por_proveedor: proveedorId={}, clienteId={}, obraId={}", proveedorId, clienteId, obraId);
+            jdbcTemplate.query(sql, (rs, rowNum) -> {
+                FiltroResponse resp = new FiltroResponse(rs.getLong("id"), rs.getString("nombre"));
+                resultados.add(resp);
+                return null;
+            }, proveedorId, clienteId, obraId);
+            log.info("sp_obtener_obras_por_proveedor retornó {} registros", resultados.size());
+        } catch (Exception e) {
+            log.error("Error ejecutando sp_obtener_obras_por_proveedor", e);
+            throw e;
+        }
+
+        return resultados;
+    }
+
+    public List<FiltroResponse> obtenerClientesPorProveedor(Long proveedorId, Long clienteId, Long obraId) {
+        String sql = "EXEC [sgo_transacciones].[dbo].[sp_obtener_clientes_por_proveedor] ?, ?, ?";
+        List<FiltroResponse> resultados = new ArrayList<>();
+
+        try {
+            log.info("Ejecutando sp_obtener_clientes_por_proveedor: proveedorId={}, clienteId={}, obraId={}", proveedorId, clienteId, obraId);
+            jdbcTemplate.query(sql, (rs, rowNum) -> {
+                FiltroResponse resp = new FiltroResponse(rs.getLong("id"), rs.getString("nombre"));
+                resultados.add(resp);
+                return null;
+            }, proveedorId, clienteId, obraId);
+            log.info("sp_obtener_clientes_por_proveedor retornó {} registros", resultados.size());
+        } catch (Exception e) {
+            log.error("Error ejecutando sp_obtener_clientes_por_proveedor", e);
+            throw e;
+        }
+
+        return resultados;
+    }
+
+    public List<FiltroResponse> obtenerProveedoresPorObra(Long obraId, Long clienteId, Long proveedorId) {
+        String sql = "EXEC [sgo_transacciones].[dbo].[sp_obtener_proveedores_por_obra] ?, ?, ?";
+        List<FiltroResponse> resultados = new ArrayList<>();
+
+        try {
+            log.info("Ejecutando sp_obtener_proveedores_por_obra: obraId={}, clienteId={}, proveedorId={}", obraId, clienteId, proveedorId);
+            jdbcTemplate.query(sql, (rs, rowNum) -> {
+                FiltroResponse resp = new FiltroResponse(rs.getLong("id"), rs.getString("nombre"));
+                resultados.add(resp);
+                return null;
+            }, obraId, clienteId, proveedorId);
+            log.info("sp_obtener_proveedores_por_obra retornó {} registros", resultados.size());
+        } catch (Exception e) {
+            log.error("Error ejecutando sp_obtener_proveedores_por_obra", e);
+            throw e;
+        }
+
+        return resultados;
+    }
+
+    public List<FiltroResponse> obtenerClientesPorObra(Long obraId, Long clienteId, Long proveedorId) {
+        String sql = "EXEC [sgo_transacciones].[dbo].[sp_obtener_clientes_por_obra] ?, ?, ?";
+        List<FiltroResponse> resultados = new ArrayList<>();
+
+        try {
+            log.info("Ejecutando sp_obtener_clientes_por_obra: obraId={}, clienteId={}, proveedorId={}", obraId, clienteId, proveedorId);
+            jdbcTemplate.query(sql, (rs, rowNum) -> {
+                FiltroResponse resp = new FiltroResponse(rs.getLong("id"), rs.getString("nombre"));
+                resultados.add(resp);
+                return null;
+            }, obraId, clienteId, proveedorId);
+            log.info("sp_obtener_clientes_por_obra retornó {} registros", resultados.size());
+        } catch (Exception e) {
+            log.error("Error ejecutando sp_obtener_clientes_por_obra", e);
+            throw e;
+        }
+
+        return resultados;
+    }
+
 }

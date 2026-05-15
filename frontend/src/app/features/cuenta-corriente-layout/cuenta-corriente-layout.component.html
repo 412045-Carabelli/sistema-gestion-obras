@@ -11,21 +11,22 @@
         </div>
 
         <div class="relative z-10">
-          <h1 class="text-3xl font-bold mb-2">Cuentas Corrientes</h1>
+          <h1 class="font-poppins font-bold mb-2">Cuentas Corrientes</h1>
           <p class="text-purple-100">Seguimiento de deudas con clientes y proveedores</p>
         </div>
 
         <p-button
           label="Volver"
           icon="pi pi-arrow-left"
-          (onClick)="goBack()"
+          appBackButton
+          fallback="/dashboard"
           styleClass="p-button">
         </p-button>
       </div>
     }
     @default {
       <div>
-        <h1 class="text-3xl font-semibold text-gray-800 m-0">Cuentas Corrientes</h1>
+        <h1 class="font-poppins text-3xl font-semibold text-gray-800 m-0">Cuentas Corrientes</h1>
       </div>
     }
   }

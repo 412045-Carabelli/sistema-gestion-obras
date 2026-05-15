@@ -9,5 +9,6 @@ public interface ObraProveedorService {
     void vincularProveedor(Long idObra, Long idProveedor);
     void desvincularProveedor(Long idObra, Long idProveedor);
     List<ObraProveedor> proveedoresDeObra(Long idObra);
+    List<ObraProveedor> todasLasRelaciones();
 }
 

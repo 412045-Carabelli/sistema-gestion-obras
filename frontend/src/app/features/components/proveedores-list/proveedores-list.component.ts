@@ -8,11 +8,10 @@ import {InputText} from 'primeng/inputtext';
 import {Select} from 'primeng/select';
 import {ButtonModule} from 'primeng/button';
 import {CheckboxModule} from 'primeng/checkbox';
-import {catchError, forkJoin, of} from 'rxjs';
+import {forkJoin} from 'rxjs';
 import {Proveedor} from '../../../core/models/models';
 import {ProveedoresService} from '../../../services/proveedores/proveedores.service';
 import {Router} from '@angular/router';
-import {ReportesService} from '../../../services/reportes/reportes.service';
 
 interface TipoOption { label: string; name: string | 'todos'; }
 interface SaldoOption { label: string; value: 'todos' | 'con_saldo' | 'saldo_cero_o_menor'; }
@@ -58,7 +57,6 @@ export class ProveedoresListComponent implements OnInit {
 
   constructor(
     private service: ProveedoresService,
-    private reportesService: ReportesService,
     private router: Router
   ) {
   }
@@ -66,14 +64,12 @@ export class ProveedoresListComponent implements OnInit {
   ngOnInit() {
     forkJoin({
       proveedores: this.service.getProveedoresAll(),
-      tipos: this.service.getTipos(),
-      cuentas: this.reportesService.getCuentaCorrienteProveedores().pipe(catchError(() => of([])))
+      tipos: this.service.getTipos()
     }).subscribe({
-      next: ({proveedores, tipos, cuentas}) => {
+      next: ({proveedores, tipos}) => {
         this.proveedores = proveedores;
         this.tiposRecords = tipos;
         this.tipoOptions = [ {label: 'Todos', name: 'todos'}, ...this.tiposRecords.map(r => ({label: r.label, name: r.name})) ];
-        this.aplicarCuentasProveedor(cuentas as any[]);
         this.applyFilter();
         this.loading = false;
       },

@@ -82,7 +82,24 @@
       "Bash(\"frontend/src/app/features/components/cuentas-corrientes-list/cuentas-corrientes-list.component.css\":*)",
       "Bash(\"backend1.0/transacciones-service/src/main/resources/db/migration/V9__fix_sp_transacciones_join.sql\":*)",
       "Bash(\"backend1.0/transacciones-service/src/main/resources/db/migration/V10__fix_sp_join_by_nombre.sql\":*)",
-      "WebFetch(domain:github.com)"
+      "WebFetch(domain:github.com)",
+      "Bash(mvn dependency:tree)",
+      "Bash(1)",
+      "Bash(docker build:*)",
+      "Read(//c/Users/Usuario/.claude/agents/caveman/**)",
+      "Bash(bash install.sh)",
+      "Bash(cp ~/.claude/agents/caveman/.agents/skills/caveman/SKILL.md ~/.claude/skills/caveman.md)",
+      "Read(//c/Users/Usuario/.claude/skills/**)",
+      "Bash(for skill:*)",
+      "Bash(do)",
+      "Bash(cp ~/.claude/agents/caveman/.agents/skills/$skill/SKILL.md ~/.claude/skills/$skill.md)",
+      "Bash(done)",
+      "Bash(ls ~/.claude/skills/caveman*.md)",
+      "Bash(npx skills:*)",
+      "Bash(node .agents/skills/owasp-top10/owasp-backend.js)",
+      "Bash(for file:*)",
+      "Bash(echo \"Processing $file\")",
+      "Bash(__NEW_LINE_61a829bfd4c73566__ done:*)"
     ]
   }
 }

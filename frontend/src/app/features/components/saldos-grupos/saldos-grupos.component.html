@@ -7,23 +7,23 @@
 } @else {
   <!-- TABLA PROVEEDORES -->
   <div class="bg-white rounded-xl shadow-md p-6 mb-6">
-    <h3 class="text-lg font-semibold text-gray-900 mb-5 flex items-center gap-2 pb-3 border-b border-gray-200">
+    <h3 class="font-poppins font-semibold text-gray-900 mb-5 flex items-center gap-2 pb-3 border-b border-gray-200">
       <i class="pi pi-truck text-indigo-600"></i>
       Deuda a Proveedores por Grupo
     </h3>
 
     <div class="grid grid-cols-3 gap-4 mb-6">
       <div class="bg-amber-50 border border-amber-200 rounded-lg p-4">
-        <p class="text-xs text-gray-600 uppercase tracking-wide font-semibold">Total Costos</p>
-        <p class="text-2xl font-bold text-amber-700 mt-1">{{ totalPresupuestadoProveedores | currency:'ARS':'symbol-narrow':'1.2-2' }}</p>
+        <p class="text-xs font-poppins font-normal text-gray-600 uppercase tracking-wide font-semibold">Total Costos</p>
+        <p class="text-2xl font-poppins font-bold text-amber-700 mt-1">{{ totalPresupuestadoProveedores | currency:'ARS':'symbol-narrow':'1.2-2' }}</p>
       </div>
       <div class="bg-green-50 border border-green-200 rounded-lg p-4">
-        <p class="text-xs text-gray-600 uppercase tracking-wide font-semibold">Total Pagado</p>
-        <p class="text-2xl font-bold text-green-700 mt-1">{{ totalPagosProveedores | currency:'ARS':'symbol-narrow':'1.2-2' }}</p>
+        <p class="text-xs font-poppins font-normal text-gray-600 uppercase tracking-wide font-semibold">Total Pagado</p>
+        <p class="text-2xl font-poppins font-bold text-green-700 mt-1">{{ totalPagosProveedores | currency:'ARS':'symbol-narrow':'1.2-2' }}</p>
       </div>
       <div class="bg-red-50 border border-red-200 rounded-lg p-4">
-        <p class="text-xs text-gray-600 uppercase tracking-wide font-semibold">Saldo Pendiente</p>
-        <p class="text-2xl font-bold text-red-700 mt-1">{{ totalSaldoProveedores | currency:'ARS':'symbol-narrow':'1.2-2' }}</p>
+        <p class="text-xs font-poppins font-normal text-gray-600 uppercase tracking-wide font-semibold">Saldo Pendiente</p>
+        <p class="text-2xl font-poppins font-bold text-red-700 mt-1">{{ totalSaldoProveedores | currency:'ARS':'symbol-narrow':'1.2-2' }}</p>
       </div>
     </div>
 
@@ -38,27 +38,27 @@
     >
       <ng-template pTemplate="header">
         <tr>
-          <th pSortableColumn="nombre_grupo" class="text-left">Grupo <p-sortIcon field="nombre_grupo"></p-sortIcon></th>
-          <th pSortableColumn="nombre_proveedor" class="text-left">Proveedor <p-sortIcon field="nombre_proveedor"></p-sortIcon></th>
-          <th pSortableColumn="total_costos" class="text-right">Costos <p-sortIcon field="total_costos"></p-sortIcon></th>
-          <th pSortableColumn="total_pagos" class="text-right">Pagado <p-sortIcon field="total_pagos"></p-sortIcon></th>
-          <th pSortableColumn="saldo_pendiente" class="text-right">Saldo <p-sortIcon field="saldo_pendiente"></p-sortIcon></th>
+          <th pSortableColumn="nombre_grupo" class="text-left font-poppins font-semibold">Grupo <p-sortIcon field="nombre_grupo"></p-sortIcon></th>
+          <th pSortableColumn="nombre_proveedor" class="text-left font-poppins font-semibold">Proveedor <p-sortIcon field="nombre_proveedor"></p-sortIcon></th>
+          <th pSortableColumn="total_costos" class="text-right font-poppins font-semibold">Costos <p-sortIcon field="total_costos"></p-sortIcon></th>
+          <th pSortableColumn="total_pagos" class="text-right font-poppins font-semibold">Pagado <p-sortIcon field="total_pagos"></p-sortIcon></th>
+          <th pSortableColumn="saldo_pendiente" class="text-right font-poppins font-semibold">Saldo <p-sortIcon field="saldo_pendiente"></p-sortIcon></th>
         </tr>
       </ng-template>
       <ng-template pTemplate="body" let-item>
         <tr class="hover:bg-gray-50 transition-colors">
-          <td class="font-medium text-gray-700">{{ item.nombre_grupo }}</td>
-          <td>{{ item.nombre_proveedor }}</td>
-          <td class="text-right">{{ item.total_costos | currency:'ARS':'symbol-narrow':'1.2-2' }}</td>
-          <td class="text-right text-green-700 font-medium">{{ item.total_pagos | currency:'ARS':'symbol-narrow':'1.2-2' }}</td>
-          <td class="text-right font-semibold" [ngClass]="{ 'text-red-700': item.saldo_pendiente > 0, 'text-gray-500': item.saldo_pendiente <= 0 }">
+          <td class="font-poppins font-semibold text-gray-700">{{ item.nombre_grupo }}</td>
+          <td class="font-poppins font-normal">{{ item.nombre_proveedor }}</td>
+          <td class="text-right font-poppins font-normal">{{ item.total_costos | currency:'ARS':'symbol-narrow':'1.2-2' }}</td>
+          <td class="text-right text-green-700 font-poppins font-semibold">{{ item.total_pagos | currency:'ARS':'symbol-narrow':'1.2-2' }}</td>
+          <td class="text-right font-poppins font-semibold" [ngClass]="{ 'text-red-700': item.saldo_pendiente > 0, 'text-gray-500': item.saldo_pendiente <= 0 }">
             {{ item.saldo_pendiente | currency:'ARS':'symbol-narrow':'1.2-2' }}
           </td>
         </tr>
       </ng-template>
       <ng-template pTemplate="emptymessage">
         <tr>
-          <td colspan="5" class="text-center text-gray-500 py-4">Sin datos de deuda a proveedores.</td>
+          <td colspan="5" class="text-center text-gray-500 py-4 font-poppins font-normal">Sin datos de deuda a proveedores.</td>
         </tr>
       </ng-template>
     </p-table>
@@ -66,23 +66,23 @@
 
   <!-- TABLA CLIENTES -->
   <div class="bg-white rounded-xl shadow-md p-6">
-    <h3 class="text-lg font-semibold text-gray-900 mb-5 flex items-center gap-2 pb-3 border-b border-gray-200">
+    <h3 class="font-poppins font-semibold text-gray-900 mb-5 flex items-center gap-2 pb-3 border-b border-gray-200">
       <i class="pi pi-users text-indigo-600"></i>
       Deuda de Clientes por Grupo
     </h3>
 
     <div class="grid grid-cols-3 gap-4 mb-6">
       <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
-        <p class="text-xs text-gray-600 uppercase tracking-wide font-semibold">Total Presupuesto</p>
-        <p class="text-2xl font-bold text-blue-700 mt-1">{{ totalPresupuestadoClientes | currency:'ARS':'symbol-narrow':'1.2-2' }}</p>
+        <p class="text-xs font-poppins font-normal text-gray-600 uppercase tracking-wide font-semibold">Total Presupuesto</p>
+        <p class="text-2xl font-poppins font-bold text-blue-700 mt-1">{{ totalPresupuestadoClientes | currency:'ARS':'symbol-narrow':'1.2-2' }}</p>
       </div>
       <div class="bg-green-50 border border-green-200 rounded-lg p-4">
-        <p class="text-xs text-gray-600 uppercase tracking-wide font-semibold">Total Cobrado</p>
-        <p class="text-2xl font-bold text-green-700 mt-1">{{ totalCobrosClientes | currency:'ARS':'symbol-narrow':'1.2-2' }}</p>
+        <p class="text-xs font-poppins font-normal text-gray-600 uppercase tracking-wide font-semibold">Total Cobrado</p>
+        <p class="text-2xl font-poppins font-bold text-green-700 mt-1">{{ totalCobrosClientes | currency:'ARS':'symbol-narrow':'1.2-2' }}</p>
       </div>
       <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
-        <p class="text-xs text-gray-600 uppercase tracking-wide font-semibold">Saldo Pendiente</p>
-        <p class="text-2xl font-bold text-blue-700 mt-1">{{ totalSaldoClientes | currency:'ARS':'symbol-narrow':'1.2-2' }}</p>
+        <p class="text-xs font-poppins font-normal text-gray-600 uppercase tracking-wide font-semibold">Saldo Pendiente</p>
+        <p class="text-2xl font-poppins font-bold text-blue-700 mt-1">{{ totalSaldoClientes | currency:'ARS':'symbol-narrow':'1.2-2' }}</p>
       </div>
     </div>
 

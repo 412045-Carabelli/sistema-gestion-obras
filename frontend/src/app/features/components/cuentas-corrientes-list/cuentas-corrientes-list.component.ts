@@ -10,6 +10,7 @@ import { InputTextModule } from 'primeng/inputtext';
 import { SelectModule } from 'primeng/select';
 import { DatePickerModule } from 'primeng/datepicker';
 import { CardModule } from 'primeng/card';
+import { TooltipModule } from 'primeng/tooltip';
 import { Subscription } from 'rxjs';
 
 @Component({
@@ -24,13 +25,15 @@ import { Subscription } from 'rxjs';
     InputTextModule,
     SelectModule,
     DatePickerModule,
-    CardModule
+    CardModule,
+    TooltipModule
   ],
   templateUrl: './cuentas-corrientes-list.component.html',
   styleUrls: ['./cuentas-corrientes-list.component.css']
 })
 export class CuentasCorrientesListComponent implements OnInit, OnDestroy {
   loading = false;
+  generandoPdf = false;
   datos: DeudasGlobalesResponse | null = null;
   form!: FormGroup;
   grupos: Array<{ id: number; nombre: string }> = [];
@@ -44,6 +47,7 @@ export class CuentasCorrientesListComponent implements OnInit, OnDestroy {
   private subs = new Subscription();
   private catalogoUrl = `${environment.apiGateway}/bff/reportes/catalogos/filtros-cuenta-corriente`;
   private deudasUrl = `${environment.apiGateway}/bff/reportes/financieros/deudas-globales`;
+  private pdfUrl = `${environment.apiGateway}/bff/reportes/financieros/cuentas-corrientes-combinadas-pdf`;
 
   constructor(
     private http: HttpClient,
@@ -135,5 +139,35 @@ export class CuentasCorrientesListComponent implements OnInit, OnDestroy {
 
   onProveedorRowClick(item: DetalleDeudaProveedor): void {
     this.proveedorRowClicked.emit(item);
+  }
+
+  exportarPdf(): void {
+    if (this.generandoPdf) return;
+
+    this.generandoPdf = true;
+    const filtro: ReportFilter = {
+      grupoId: this.form.get('grupoId')?.value,
+      obraId: this.form.get('obraId')?.value,
+      clienteId: this.form.get('clienteId')?.value,
+      proveedorId: this.form.get('proveedorId')?.value
+    };
+
+    this.subs.add(
+      this.http.post(this.pdfUrl, filtro, { responseType: 'blob' }).subscribe({
+        next: (blob: Blob) => {
+          const url = window.URL.createObjectURL(blob);
+          const link = document.createElement('a');
+          link.href = url;
+          link.download = `CuentasCorrientesCombinadas_${new Date().toISOString().split('T')[0]}.pdf`;
+          link.click();
+          window.URL.revokeObjectURL(url);
+          this.generandoPdf = false;
+        },
+        error: (err) => {
+          console.error('Error al exportar PDF', err);
+          this.generandoPdf = false;
+        }
+      })
+    );
   }
 }

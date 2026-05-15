@@ -1,0 +1,361 @@
+@defer (when datosCargados) {
+  <div class="flex flex-col gap-4">
+    <!-- Barra de filtros -->
+    <div class="bg-white p-4 rounded-lg border border-gray-200">
+      <div class="grid grid-cols-1 md:grid-cols-12 gap-4">
+        <!-- Búsqueda por Asociado -->
+        <div class="md:col-span-4">
+          <p-iconfield iconPosition="left" styleClass="w-full">
+            <p-inputicon styleClass="pi pi-search"/>
+            <input
+              (input)="onFilterChange()"
+              [(ngModel)]="searchValue"
+              class="w-full p-inputtext-sm h-12"
+              pInputText
+              placeholder="Buscar por asociado"
+              type="text"/>
+          </p-iconfield>
+        </div>
+
+        <!-- Tipo Transacción -->
+        <div class="md:col-span-3">
+          <p-select
+            (onChange)="onFilterChange()"
+            [(ngModel)]="tipoTransaccionFiltro"
+            [options]="tiposTransaccion"
+            optionLabel="label"
+            optionValue="name"
+            placeholder="Tipo Transacción"
+            styleClass="w-full p-inputtext-sm h-12">
+          </p-select>
+        </div>
+
+        <!-- Fecha Inicio -->
+        <div class="md:col-span-2">
+          <p-datepicker
+            [(ngModel)]="fechaInicio"
+            (onChange)="onFilterChange()"
+            placeholder="Desde"
+            dateFormat="dd/mm/yy"
+            [showIcon]="true"
+            styleClass="w-full p-inputtext-sm h-12">
+          </p-datepicker>
+        </div>
+
+        <!-- Fecha Fin -->
+        <div class="md:col-span-3">
+          <p-datepicker
+            [(ngModel)]="fechaFin"
+            (onChange)="onFilterChange()"
+            placeholder="Hasta"
+            dateFormat="dd/mm/yy"
+            [showIcon]="true"
+            styleClass="w-full p-inputtext-sm h-12">
+          </p-datepicker>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tabla -->
+    <div class="bg-white rounded-lg border border-gray-200 overflow-hidden">
+      <p-table
+        [rowHover]="true"
+        [tableStyle]="{ 'min-width': '100%' }"
+        [value]="movimientosFiltrados"
+        [paginator]="true"
+        [rows]="8"
+        responsiveLayout="scroll"
+        class="w-full"
+        styleClass="p-datatable-sm">
+        <ng-template pTemplate="header">
+          <tr>
+            <th class="px-3 py-2 text-left font-poppins font-semibold">ID</th>
+            <th class="px-3 py-2 text-left font-poppins font-semibold">Fecha</th>
+            <th class="px-3 py-2 text-left font-poppins font-semibold">Obra</th>
+            <th class="px-3 py-2 text-left font-poppins font-semibold">Tipo Asociado</th>
+            <th class="px-3 py-2 text-left font-poppins font-semibold">Asociado</th>
+            <th class="px-3 py-2 text-left font-poppins font-semibold">Tipo Transacción</th>
+            <th class="px-3 py-2 text-left font-poppins font-semibold">Forma Pago</th>
+            <th class="px-3 py-2 text-left font-poppins font-semibold">Medio Pago</th>
+            <th class="px-3 py-2 text-right font-poppins font-semibold">Monto</th>
+            <th class="px-3 py-2 text-center font-poppins font-semibold">Acciones</th>
+          </tr>
+        </ng-template>
+
+        <ng-template let-mov pTemplate="body">
+          <tr class="hover:bg-gray-100 cursor-pointer" (click)="onRowClick(mov)">
+            <td class="px-3 py-2 font-poppins font-normal">{{ mov.id }}</td>
+            <td class="px-3 py-2 font-poppins font-normal">{{ mov.fecha | date:'dd/MM/yyyy' }}</td>
+            <td class="px-3 py-2 font-poppins font-normal">{{ getNombreObra(mov.id_obra) }}</td>
+            <td class="px-3 py-2 font-poppins font-normal">{{ mov.tipo_asociado }}</td>
+            <td class="px-3 py-2 font-poppins font-normal">{{ getNombreAsociado(mov) }}</td>
+            <td class="px-3 py-2 font-poppins font-normal">{{ mov.tipo_transaccion }}</td>
+            <td class="px-3 py-2 font-poppins font-normal">{{ mov.forma_pago }}</td>
+            <td class="px-3 py-2 font-poppins font-normal">{{ mov.medio_pago || '-' }}</td>
+            <td class="px-3 py-2 text-right font-poppins font-semibold">{{ mov.monto | currency:'ARS':'symbol-narrow':'1.0-2' }}</td>
+            <td class="px-3 py-2" (click)="$event.stopPropagation()">
+              <p-button
+                icon="pi pi-pencil"
+                [rounded]="true"
+                [text]="true"
+                severity="info"
+                (click)="isViewMode = false; isEditMode = true; openEditModal(mov)"
+                styleClass="p-button-sm">
+              </p-button>
+              <p-button
+                icon="pi pi-trash"
+                [rounded]="true"
+                [text]="true"
+                severity="danger"
+                (click)="eliminarMovimiento(mov)"
+                styleClass="p-button-sm">
+              </p-button>
+            </td>
+          </tr>
+        </ng-template>
+
+        <ng-template pTemplate="emptymessage">
+          <tr>
+            <td class="text-center py-10" colspan="10">
+              <div class="flex flex-col items-center justify-center gap-2 text-gray-500">
+                <i class="pi pi-inbox text-3xl"></i>
+                <p class="text-base font-medium">No hay movimientos para mostrar</p>
+                <p class="text-sm">Ajusta los filtros o crea un nuevo movimiento.</p>
+              </div>
+            </td>
+          </tr>
+        </ng-template>
+      </p-table>
+    </div>
+  </div>
+
+  <!-- Modal crear/editar/ver -->
+  <p-dialog
+    [(visible)]="showModal"
+    [header]="isViewMode ? 'Ver Movimiento' : (isEditMode ? 'Editar Movimiento' : 'Nuevo Movimiento')"
+    [modal]="true"
+    [style]="{width: '500px'}"
+    [closable]="true">
+    <form [formGroup]="form" (ngSubmit)="guardarMovimiento()" class="flex flex-col gap-4">
+      <!-- Obra -->
+      <div>
+        <label class="block text-sm font-poppins font-semibold mb-1">Obra</label>
+        <p-select
+          formControlName="id_obra"
+          (onChange)="onObraChange()"
+          [options]="obrasOptions"
+          optionLabel="nombre"
+          optionValue="id"
+          placeholder="Selecciona una obra"
+          [filter]="true"
+          [disabled]="isViewMode"
+          styleClass="w-full">
+        </p-select>
+      </div>
+
+      <!-- Tipo Asociado y Asociado (misma fila) -->
+      <div class="grid grid-cols-2 gap-4">
+        <div>
+          <label class="block text-sm font-poppins font-semibold mb-1">Tipo Asociado</label>
+          <p-select
+            formControlName="tipo_asociado"
+            [options]="tiposAsociado.slice(1)"
+            optionLabel="label"
+            optionValue="name"
+            [disabled]="isViewMode"
+            styleClass="w-full">
+          </p-select>
+        </div>
+
+        <div>
+          <label class="block text-sm font-poppins font-semibold mb-1">Asociado</label>
+          @if (form.get('tipo_asociado')?.value === 'CLIENTE') {
+            <p-select
+              formControlName="id_asociado"
+              (onChange)="onAsociadoChange()"
+              [options]="clientesFiltrados"
+              optionLabel="nombre"
+              optionValue="id"
+              placeholder="Cliente"
+              [disabled]="isViewMode"
+              [filter]="true"
+              styleClass="w-full">
+            </p-select>
+            @if (clientesFiltrados.length === 0 && !isViewMode) {
+              <small class="text-red-500">Selecciona primero una obra</small>
+            }
+          } @else {
+            <p-select
+              formControlName="id_asociado"
+              (onChange)="onAsociadoChange()"
+              [options]="proveedoresFiltrados"
+              optionLabel="nombre"
+              optionValue="id"
+              placeholder="Proveedor"
+              [disabled]="isViewMode"
+              [filter]="true"
+              styleClass="w-full">
+            </p-select>
+            @if (proveedoresFiltrados.length === 0) {
+              <small class="text-red-500">Sin proveedores</small>
+            }
+          }
+        </div>
+      </div>
+
+      <!-- Saldo del Asociado -->
+      @if (saldoAsociado !== 0) {
+        <div class="bg-blue-50 p-3 rounded border border-blue-200">
+          <p class="text-sm text-blue-700">
+            <strong>Saldo:</strong> {{ saldoAsociado | currency:'ARS':'symbol-narrow':'1.0-2' }}
+          </p>
+        </div>
+      }
+
+      <!-- Tipo Transacción y Fecha (misma fila) -->
+      <div class="grid grid-cols-2 gap-4">
+        <div>
+          <label class="block text-sm font-poppins font-semibold mb-1">Tipo Transacción</label>
+          <p-select
+            formControlName="tipo_transaccion"
+            [options]="[
+              {label: 'Cobro', value: 'COBRO'},
+              {label: 'Pago', value: 'PAGO'}
+            ]"
+            optionLabel="label"
+            optionValue="value"
+            [disabled]="isViewMode"
+            styleClass="w-full">
+          </p-select>
+        </div>
+
+        <div>
+          <label class="block text-sm font-poppins font-semibold mb-1">Fecha</label>
+          <p-datepicker
+            formControlName="fecha"
+            dateFormat="dd/mm/yy"
+            [showIcon]="true"
+            [disabled]="isViewMode"
+            styleClass="w-full">
+          </p-datepicker>
+        </div>
+      </div>
+
+      <!-- Forma Pago y Monto (misma fila) -->
+      <div class="grid grid-cols-2 gap-4">
+        <div>
+          <label class="block text-sm font-poppins font-semibold mb-1">Forma Pago</label>
+          <p-select
+            formControlName="forma_pago"
+            (onChange)="onFormaPagoChange()"
+            [options]="[
+              {label: 'Parcial', value: 'PARCIAL'},
+              {label: 'Total', value: 'TOTAL'}
+            ]"
+            optionLabel="label"
+            optionValue="value"
+            [disabled]="isViewMode"
+            styleClass="w-full">
+          </p-select>
+        </div>
+
+        <div>
+          <label class="block text-sm font-poppins font-semibold mb-1">Monto</label>
+          <p-inputNumber
+            formControlName="monto"
+            [useGrouping]="false"
+            placeholder="0.00"
+            [disabled]="isViewMode"
+            styleClass="w-full">
+          </p-inputNumber>
+        </div>
+      </div>
+
+      <!-- Medio Pago -->
+      <div>
+        <label class="block text-sm font-poppins font-semibold mb-1">Medio Pago</label>
+        <input
+          type="text"
+          pInputText
+          formControlName="medio_pago"
+          placeholder="Transferencia, Efectivo, etc."
+          [disabled]="isViewMode"
+          class="w-full">
+      </div>
+
+      <!-- Concepto -->
+      <div>
+        <label class="block text-sm font-poppins font-semibold mb-1">Concepto</label>
+        <textarea
+          pInputTextarea
+          formControlName="concepto"
+          placeholder="Detalles adicionales"
+          [disabled]="isViewMode"
+          class="w-full"
+          rows="3">
+        </textarea>
+      </div>
+
+      <!-- Botones -->
+      <div class="flex gap-2 mt-4 justify-end">
+        @if (isViewMode) {
+          <p-button
+            type="button"
+            label="Editar"
+            icon="pi pi-pencil"
+            (click)="isViewMode = false; isEditMode = true"
+            severity="info"
+            styleClass="p-button-sm">
+          </p-button>
+          <p-button
+            type="button"
+            label="Eliminar"
+            icon="pi pi-trash"
+            (click)="eliminarMovimiento(movimientoEditando!)"
+            severity="danger"
+            styleClass="p-button-sm">
+          </p-button>
+          <p-button
+            type="button"
+            label="Cerrar"
+            icon="pi pi-times"
+            (click)="showModal = false; isViewMode = false"
+            styleClass="p-button-sm p-button-secondary">
+          </p-button>
+        } @else {
+          <p-button
+            type="submit"
+            label="Guardar"
+            icon="pi pi-check"
+            styleClass="p-button-sm p-button-success">
+          </p-button>
+          <p-button
+            type="button"
+            label="Cancelar"
+            icon="pi pi-times"
+            (click)="showModal = false"
+            styleClass="p-button-sm p-button-secondary">
+          </p-button>
+        }
+      </div>
+    </form>
+  </p-dialog>
+} @placeholder {
+  <div class="flex flex-col gap-4 animate-pulse">
+    <div class="bg-white p-4 rounded-lg border border-gray-200">
+      <div class="grid grid-cols-1 md:grid-cols-12 gap-4">
+        <div class="md:col-span-8 h-10 bg-gray-200 rounded"></div>
+        <div class="md:col-span-4 h-10 bg-gray-200 rounded"></div>
+      </div>
+    </div>
+    <div class="bg-white rounded-lg border border-gray-200 p-4">
+      <div class="space-y-3">
+        <div class="h-5 bg-gray-200 rounded w-full"></div>
+        <div class="h-5 bg-gray-200 rounded w-11/12"></div>
+        <div class="h-5 bg-gray-200 rounded w-10/12"></div>
+        <div class="h-5 bg-gray-200 rounded w-9/12"></div>
+        <div class="h-5 bg-gray-200 rounded w-8/12"></div>
+      </div>
+    </div>
+  </div>
+}

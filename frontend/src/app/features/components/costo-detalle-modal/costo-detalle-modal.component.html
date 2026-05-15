@@ -11,7 +11,7 @@
     <!-- Fila 1: Descripción, Cantidad, Precio -->
     <div class="grid grid-cols-3 gap-4">
       <div>
-        <label class="text-sm font-medium block mb-1">Descripción</label>
+        <label class="text-sm font-poppins font-semibold block mb-1">Descripción</label>
         <input
           type="text"
           [(ngModel)]="costoEditando.descripcion"
@@ -19,7 +19,7 @@
           disabled>
       </div>
       <div>
-        <label class="text-sm font-medium block mb-1">Cantidad</label>
+        <label class="text-sm font-poppins font-semibold block mb-1">Cantidad</label>
         <input
           type="number"
           [(ngModel)]="costoEditando.cantidad"
@@ -27,7 +27,7 @@
           disabled>
       </div>
       <div>
-        <label class="text-sm font-medium block mb-1">Precio Unit.</label>
+        <label class="text-sm font-poppins font-semibold block mb-1">Precio Unit.</label>
         <div class="text-sm px-2 py-1 border rounded bg-gray-50 text-right">
           {{ costoEditando.precio_unitario | currency:'ARS' }}
         </div>
@@ -37,7 +37,7 @@
     <!-- Fila 2: Beneficio, Subtotal -->
     <div class="grid grid-cols-2 gap-4">
       <div>
-        <label class="text-sm font-medium block mb-1">Beneficio (%)</label>
+        <label class="text-sm font-poppins font-semibold block mb-1">Beneficio (%)</label>
         <input
           type="number"
           [(ngModel)]="costoEditando.beneficio"
@@ -45,7 +45,7 @@
           disabled>
       </div>
       <div>
-        <label class="text-sm font-medium block mb-1">Subtotal</label>
+        <label class="text-sm font-poppins font-semibold block mb-1">Subtotal</label>
         <div class="text-sm px-2 py-1 border rounded bg-gray-50 text-right font-semibold">
           {{ costoEditando.subtotal | currency:'ARS' }}
         </div>
@@ -55,7 +55,7 @@
     <!-- Fila 3: Gasto Real, Desvío -->
     <div class="grid grid-cols-2 gap-4">
       <div>
-        <label class="text-sm font-medium block mb-1">Gasto Real</label>
+        <label class="text-sm font-poppins font-semibold block mb-1">Gasto Real</label>
         @if (modoEdicion) {
           <p-inputNumber
             [(ngModel)]="costoEditando.monto_real"
@@ -76,7 +76,7 @@
         }
       </div>
       <div>
-        <label class="text-sm font-medium block mb-1">Desvío</label>
+        <label class="text-sm font-poppins font-semibold block mb-1">Desvío</label>
         <div
           class="text-sm px-2 py-1 border rounded text-right font-semibold"
           [ngClass]="{

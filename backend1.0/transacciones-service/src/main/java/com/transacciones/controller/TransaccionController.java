@@ -3,15 +3,20 @@ package com.transacciones.controller;
 import com.transacciones.dto.ComisionPagoRequest;
 import com.transacciones.dto.TransaccionDto;
 import com.transacciones.dto.MovimientoRecenteDTO;
+import com.transacciones.dto.TransaccionConAsociadoDto;
 import com.transacciones.entity.Transaccion;
 import com.transacciones.enums.TipoTransaccionEnum;
 import com.transacciones.service.TransaccionService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @RestController
@@ -28,6 +33,15 @@ public class TransaccionController {
         return ResponseEntity.ok(lista);
     }
 
+    @GetMapping("/con-asociados")
+    public ResponseEntity<Map<String, Object>> getAllConAsociados(
+            @RequestParam(name = "page", defaultValue = "0") int page,
+            @RequestParam(name = "size", defaultValue = "50") int size
+    ) {
+        Pageable pageable = PageRequest.of(page, size, Sort.by("id").descending());
+        Map<String, Object> result = transaccionService.listarConAsociadosPaginado(pageable);
+        return ResponseEntity.ok(result);
+    }
 
     @GetMapping("/asociado/{tipo}/{id}")
     public ResponseEntity<List<TransaccionDto>> getDocumentosPorAsociado(

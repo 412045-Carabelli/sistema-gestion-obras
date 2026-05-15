@@ -1,6 +1,7 @@
 package com.apigateway.controller;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpHeaders;
@@ -20,6 +21,7 @@ import java.util.Map;
 @RestController
 @RequestMapping("/bff/documentos")
 @RequiredArgsConstructor
+@Slf4j
 @CrossOrigin(origins = "http://localhost:4200")
 public class DocumentoBffController {
 
@@ -70,7 +72,7 @@ public class DocumentoBffController {
                 .bodyToMono(new ParameterizedTypeReference<Map<String, Object>>() {})
                 .map(ResponseEntity::ok)
                 .onErrorResume(ex -> {
-                    ex.printStackTrace();
+                    log.error("Error creando documento", ex);
                     Map<String, Object> err = Map.of(
                             "error", "No se pudo crear el documento",
                             "detalle", ex.getMessage()
@@ -92,7 +94,7 @@ public class DocumentoBffController {
                 .bodyToMono(new ParameterizedTypeReference<List<Map<String, Object>>>() {})
                 .map(ResponseEntity::ok)
                 .onErrorResume(ex -> {
-                    ex.printStackTrace();
+                    log.error("Error obteniendo documentos por obra: {}", ex.getMessage());
                     return Mono.just(ResponseEntity.internalServerError().body(List.of()));
                 });
     }
@@ -108,7 +110,7 @@ public class DocumentoBffController {
                 .retrieve()
                 .toBodilessEntity()
                 .onErrorResume(ex -> {
-                    ex.printStackTrace();
+                    log.error("Error eliminando documento id: {}", id, ex);
                     return Mono.just(ResponseEntity.internalServerError().build());
                 });
     }

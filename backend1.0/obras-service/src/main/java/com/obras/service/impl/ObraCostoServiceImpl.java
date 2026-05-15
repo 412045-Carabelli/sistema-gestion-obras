@@ -55,7 +55,6 @@ public class ObraCostoServiceImpl implements ObraCostoService {
     public ObraCostoDTO actualizar(Long idCosto, ObraCostoDTO dto) {
         ObraCosto entity = costoRepo.findByIdAndActivoTrue(idCosto)
                 .orElseThrow(() -> new RuntimeException("Costo no encontrado"));
-        validarOperacionOriginalEnProgreso(entity, dto.getTipo_costo(), "actualizar");
         entity.setIdProveedor(dto.getId_proveedor());
         entity.setItemNumero(normalizarItemNumero(dto.getItem_numero()));
         entity.setDescripcion(dto.getDescripcion());
@@ -79,7 +78,6 @@ public class ObraCostoServiceImpl implements ObraCostoService {
     @Override
     public void eliminar(Long id) {
         costoRepo.findByIdAndActivoTrue(id).ifPresent(costo -> {
-            validarOperacionOriginalEnProgreso(costo, "eliminar");
             costo.setActivo(false);
             costo.setBajaObra(Boolean.FALSE);
             costoRepo.save(costo);

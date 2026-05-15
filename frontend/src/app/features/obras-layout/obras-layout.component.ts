@@ -1,6 +1,7 @@
 import {Component, OnDestroy, OnInit} from '@angular/core';
 import {NavigationEnd, Router, RouterLink, RouterOutlet} from '@angular/router';
 import {ToastModule} from 'primeng/toast';
+import {BackButtonDirective} from '../../shared/directives/back-button.directive';
 import {ProgressSpinnerModule} from 'primeng/progressspinner';
 import {ConfirmationService, MessageService} from 'primeng/api';
 import {Button} from 'primeng/button';
@@ -15,7 +16,7 @@ import {ObrasService} from '../../services/obras/obras.service';
 @Component({
   selector: 'app-obras-layout',
   standalone: true,
-  imports: [RouterOutlet, ToastModule, ProgressSpinnerModule, RouterLink, Button, Tooltip, ConfirmDialog, TagModule],
+  imports: [RouterOutlet, ToastModule, ProgressSpinnerModule, RouterLink, Button, Tooltip, ConfirmDialog, TagModule, BackButtonDirective],
   providers: [MessageService, ConfirmationService],
   templateUrl: './obras-layout.component.html',
   styleUrls: ['./obras-layout.component.css']

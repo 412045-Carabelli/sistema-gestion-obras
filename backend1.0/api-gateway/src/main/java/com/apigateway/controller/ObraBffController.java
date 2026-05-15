@@ -1,10 +1,12 @@
 package com.apigateway.controller;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Flux;
@@ -17,6 +19,7 @@ import java.util.Map;
 @RestController
 @RequestMapping("/bff/obras")
 @RequiredArgsConstructor
+@Slf4j
 public class ObraBffController {
 
     @Value("${services.obras.url}")
@@ -46,6 +49,7 @@ public class ObraBffController {
     // 📥 POST - Crear Obra
     // ================================
     @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
+    @PreAuthorize("permitAll()")  // TODO: cambiar a hasRole('ADMIN') o hasRole('OBRAS') cuando JWT esté listo
     public Mono<ResponseEntity<Map<String, Object>>> crearObra(@RequestBody Map<String, Object> obraDto) {
         WebClient client = webClientBuilder.build();
 
@@ -57,7 +61,7 @@ public class ObraBffController {
                 .bodyToMono(new ParameterizedTypeReference<Map<String, Object>>() {})
                 .map(ResponseEntity::ok)
                 .onErrorResume(ex -> {
-                    ex.printStackTrace();
+                    log.error("Error en operación de obra", ex);
                     Map<String, Object> err = Map.of(
                             "error", "No se pudo crear la obra",
                             "detalle", ex.getMessage()
@@ -70,6 +74,7 @@ public class ObraBffController {
     // ✏️ PUT - Actualizar Obra
     // ================================
     @PutMapping(value = "/{id}", consumes = MediaType.APPLICATION_JSON_VALUE)
+    @PreAuthorize("permitAll()")  // TODO: cambiar a hasRole('ADMIN') o hasRole('OBRAS') cuando JWT esté listo
     public Mono<ResponseEntity<Map<String, Object>>> actualizarObra(
             @PathVariable("id") Long id,
             @RequestBody Map<String, Object> obraDto
@@ -84,7 +89,7 @@ public class ObraBffController {
                 .bodyToMono(new ParameterizedTypeReference<Map<String, Object>>() {})
                 .map(ResponseEntity::ok)
                 .onErrorResume(ex -> {
-                    ex.printStackTrace();
+                    log.error("Error en operación de obra", ex);
                     Map<String, Object> err = Map.of(
                             "error", "No se pudo actualizar la obra",
                             "detalle", ex.getMessage()
@@ -97,6 +102,7 @@ public class ObraBffController {
 // 🌀 PATCH - Cambiar estado de la Obra
 // ================================
     @PatchMapping("/{id}/estado/{estado}")
+    @PreAuthorize("permitAll()")  // TODO: cambiar a hasRole('ADMIN') o hasRole('OBRAS') cuando JWT esté listo
     public Mono<ResponseEntity<Object>> cambiarEstadoObra(
             @PathVariable("id") Long idObra,
             @PathVariable("estado") String estado
@@ -109,7 +115,7 @@ public class ObraBffController {
                 .toBodilessEntity()
                 .map(response -> ResponseEntity.noContent().build())
                 .onErrorResume(ex -> {
-                    ex.printStackTrace();
+                    log.error("Error en operación de obra", ex);
                     return Mono.just(ResponseEntity.internalServerError().build());
                 });
     }
@@ -159,7 +165,10 @@ public class ObraBffController {
     // ================================
     @GetMapping
     public Mono<ResponseEntity<List<Map<String, Object>>>> getTodasLasObras(
-            @RequestParam Map<String, String> queryParams
+            @RequestParam(required = false) String estado,
+            @RequestParam(required = false) Long idCliente,
+            @RequestParam(required = false) Integer page,
+            @RequestParam(required = false) Integer size
     ) {
         WebClient client = webClientBuilder.build();
 
@@ -175,8 +184,17 @@ public class ObraBffController {
                     if (base.getPath() != null && !base.getPath().isEmpty()) {
                         builder.path(base.getPath());
                     }
-                    if (queryParams != null && !queryParams.isEmpty()) {
-                        queryParams.forEach(builder::queryParam);
+                    if (estado != null && !estado.isEmpty()) {
+                        builder.queryParam("estado", estado);
+                    }
+                    if (idCliente != null) {
+                        builder.queryParam("idCliente", idCliente);
+                    }
+                    if (page != null) {
+                        builder.queryParam("page", page);
+                    }
+                    if (size != null) {
+                        builder.queryParam("size", size);
                     }
                     return builder.build();
                 })

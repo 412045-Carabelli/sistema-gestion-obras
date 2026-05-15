@@ -1,6 +1,7 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { Button } from "primeng/button";
 import { NavigationEnd, Router, RouterLink, RouterOutlet } from "@angular/router";
+import {BackButtonDirective} from '../../shared/directives/back-button.directive';
 import { Toast } from "primeng/toast";
 import { filter, Subscription } from 'rxjs';
 import { ConfirmationService, MessageService } from 'primeng/api';
@@ -18,7 +19,8 @@ import {ConfirmDialog} from 'primeng/confirmdialog';
     RouterOutlet,
     Toast,
     Tooltip,
-    ConfirmDialog
+    ConfirmDialog,
+    BackButtonDirective
   ],
   templateUrl: './clientes-layout.component.html',
   styleUrl: './clientes-layout.component.css',

@@ -1,6 +1,7 @@
 package com.apigateway.controller;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.ResponseEntity;
@@ -16,6 +17,7 @@ import java.util.Map;
 @RestController
 @RequestMapping("/bff/proveedores")
 @RequiredArgsConstructor
+@Slf4j
 public class ProveedorBffController {
 
     @Value("${services.proveedores.url}")
@@ -28,7 +30,10 @@ public class ProveedorBffController {
     // ===============================
     @GetMapping
     public Mono<ResponseEntity<List<Map<String, Object>>>> getAllProveedores(
-            @RequestParam Map<String, String> queryParams
+            @RequestParam(required = false) String nombre,
+            @RequestParam(required = false) String rubro,
+            @RequestParam(required = false) Integer page,
+            @RequestParam(required = false) Integer size
     ) {
         WebClient client = webClientBuilder.build();
 
@@ -44,8 +49,17 @@ public class ProveedorBffController {
                     if (base.getPath() != null && !base.getPath().isEmpty()) {
                         builder.path(base.getPath());
                     }
-                    if (queryParams != null && !queryParams.isEmpty()) {
-                        queryParams.forEach(builder::queryParam);
+                    if (nombre != null && !nombre.isEmpty()) {
+                        builder.queryParam("nombre", nombre);
+                    }
+                    if (rubro != null && !rubro.isEmpty()) {
+                        builder.queryParam("rubro", rubro);
+                    }
+                    if (page != null) {
+                        builder.queryParam("page", page);
+                    }
+                    if (size != null) {
+                        builder.queryParam("size", size);
                     }
                     return builder.build();
                 })
@@ -53,6 +67,20 @@ public class ProveedorBffController {
                 .bodyToFlux(new ParameterizedTypeReference<Map<String, Object>>() {});
 
         return proveedoresFlux.collectList().map(ResponseEntity::ok);
+    }
+
+    // ===============================
+    // 📥 GET /bff/proveedores/simple
+    // ===============================
+    @GetMapping("/simple")
+    public Mono<ResponseEntity<List<Map<String, Object>>>> getProveedoresSimple() {
+        WebClient client = webClientBuilder.build();
+
+        return client.get()
+                .uri(PROVEEDORES_URL + "/simple")
+                .retrieve()
+                .bodyToMono(new ParameterizedTypeReference<List<Map<String, Object>>>() {})
+                .map(ResponseEntity::ok);
     }
 
     // ===============================
@@ -100,7 +128,7 @@ public class ProveedorBffController {
                 .bodyToMono(new ParameterizedTypeReference<Map<String, Object>>() {})
                 .map(ResponseEntity::ok)
                 .onErrorResume(ex -> {
-                    ex.printStackTrace();
+                    log.error("Error en operación de proveedor", ex);
                     return Mono.just(ResponseEntity.badRequest().build());
                 });
     }
@@ -121,7 +149,7 @@ public class ProveedorBffController {
                 .bodyToMono(new ParameterizedTypeReference<Map<String, Object>>() {})
                 .map(ResponseEntity::ok)
                 .onErrorResume(ex -> {
-                    ex.printStackTrace();
+                    log.error("Error en operación de proveedor", ex);
                     return Mono.just(ResponseEntity.notFound().build());
                 });
     }
@@ -138,7 +166,7 @@ public class ProveedorBffController {
                 .bodyToMono(Void.class)
                 .map(ResponseEntity::ok)
                 .onErrorResume(ex -> {
-                    ex.printStackTrace();
+                    log.error("Error en operación de proveedor", ex);
                     return Mono.just(ResponseEntity.notFound().build());
                 });
     }

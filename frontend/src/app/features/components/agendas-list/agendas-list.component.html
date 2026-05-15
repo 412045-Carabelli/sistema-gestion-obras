@@ -46,29 +46,29 @@
 
         <ng-template pTemplate="header">
           <tr>
-            <th pSortableColumn="id" class="text-left font-semibold w-20">N° <p-sortIcon field="id"></p-sortIcon></th>
-            <th pSortableColumn="titulo" class="text-left font-semibold">Título <p-sortIcon field="titulo"></p-sortIcon></th>
-            <th pSortableColumn="obraId" class="text-left font-semibold">Obra <p-sortIcon field="obraId"></p-sortIcon></th>
-            <th pSortableColumn="clienteId" class="text-left font-semibold">Cliente <p-sortIcon field="clienteId"></p-sortIcon></th>
-            <th pSortableColumn="proveedorId" class="text-left font-semibold">Proveedor <p-sortIcon field="proveedorId"></p-sortIcon></th>
-            <th pSortableColumn="estado" class="text-left font-semibold">Estado <p-sortIcon field="estado"></p-sortIcon></th>
-            <th pSortableColumn="fechaVencimiento" class="text-left font-semibold">Vencimiento <p-sortIcon field="fechaVencimiento"></p-sortIcon></th>
-            <th pSortableColumn="creadoEn" class="text-left font-semibold">Fecha Alta <p-sortIcon field="creadoEn"></p-sortIcon></th>
-            <th class="text-center font-semibold w-20">Acciones</th>
+            <th pSortableColumn="id" class="text-left font-poppins font-semibold w-20">N° <p-sortIcon field="id"></p-sortIcon></th>
+            <th pSortableColumn="titulo" class="text-left font-poppins font-semibold">Título <p-sortIcon field="titulo"></p-sortIcon></th>
+            <th pSortableColumn="obraId" class="text-left font-poppins font-semibold">Obra <p-sortIcon field="obraId"></p-sortIcon></th>
+            <th pSortableColumn="clienteId" class="text-left font-poppins font-semibold">Cliente <p-sortIcon field="clienteId"></p-sortIcon></th>
+            <th pSortableColumn="proveedorId" class="text-left font-poppins font-semibold">Proveedor <p-sortIcon field="proveedorId"></p-sortIcon></th>
+            <th pSortableColumn="estado" class="text-left font-poppins font-semibold">Estado <p-sortIcon field="estado"></p-sortIcon></th>
+            <th pSortableColumn="fechaVencimiento" class="text-left font-poppins font-semibold">Vencimiento <p-sortIcon field="fechaVencimiento"></p-sortIcon></th>
+            <th pSortableColumn="creadoEn" class="text-left font-poppins font-semibold">Fecha Alta <p-sortIcon field="creadoEn"></p-sortIcon></th>
+            <th class="text-center font-poppins font-semibold w-20">Acciones</th>
           </tr>
         </ng-template>
 
         <ng-template let-agenda pTemplate="body">
           <tr class="hover:bg-gray-50 transition-colors">
-            <td class="font-semibold">
+            <td class="font-poppins font-semibold">
               <span (click)="abrirModalDetalle(agenda)" class="text-blue-600 underline cursor-pointer hover:text-blue-800">{{ agenda.id }}</span>
             </td>
             <td>
-              <span class="font-semibold text-gray-900 text-sm">{{ agenda.titulo }}</span>
+              <span class="font-poppins font-semibold text-gray-900 text-sm">{{ agenda.titulo }}</span>
             </td>
-            <td class="text-gray-600 text-sm">{{ getNombreObra(agenda.obraId) }}</td>
-            <td class="text-gray-600 text-sm">{{ getNombreCliente(agenda.clienteId) }}</td>
-            <td class="text-gray-600 text-sm">{{ getNombreProveedor(agenda.proveedorId) }}</td>
+            <td class="text-gray-600 text-sm font-poppins font-normal">{{ getNombreObra(agenda.obraId) }}</td>
+            <td class="text-gray-600 text-sm font-poppins font-normal">{{ getNombreCliente(agenda.clienteId) }}</td>
+            <td class="text-gray-600 text-sm font-poppins font-normal">{{ getNombreProveedor(agenda.proveedorId) }}</td>
             <td>
               <p-tag
                 [severity]="getEstadoSeverity(agenda.estado)"

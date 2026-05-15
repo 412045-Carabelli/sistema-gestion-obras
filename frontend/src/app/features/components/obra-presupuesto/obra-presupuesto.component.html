@@ -5,16 +5,16 @@
   <!-- Header -->
   <div class="flex justify-between items-center flex-wrap gap-3">
     <div>
-      <h2 class="text-2xl font-bold text-gray-900">Presupuesto</h2>
-      <p class="text-gray-500 text-sm mt-1">
+      <h2 class="font-poppins font-bold text-gray-900">Presupuesto</h2>
+      <p class="text-gray-500 text-sm mt-1 font-poppins font-normal">
         Matriz de costos detallada de la obra
       </p>
     </div>
 
     <div class="flex flex-wrap gap-3 items-center">
-      <div class="text-xs text-gray-500">
+      <div class="text-xs font-poppins font-normal text-gray-500">
         Beneficio global:
-        <span class="font-semibold text-gray-700">
+        <span class="font-poppins font-semibold text-gray-700">
           {{ usarBeneficioGlobal ? (beneficioGlobal + '%') : 'No activo' }}
         </span>
       </div>
@@ -35,21 +35,19 @@
       <p-menu #exportMenu [popup]="true" [model]="exportOptions"></p-menu>
     </div>
   </div>
-  <!-- Memoria descriptiva y formulario rapido -->
-  <div class="grid grid-cols-1 xl:grid-cols-5 gap-5">
-    <!-- Formulario rapido para agregar costos -->
-    <div class="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden xl:col-span-2">
+  <!-- Formulario rapido para agregar costos -->
+  <div class="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden w-full">
       <div class="flex items-center justify-between px-4 py-3 border-b border-gray-100">
         <div class="flex items-center gap-3">
           <div class="w-10 h-10 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center">
             <i class="pi pi-plus text-lg"></i>
           </div>
           <div>
-            <p class="text-sm font-semibold text-gray-900 leading-none">Agregar costo</p>
-            <p class="text-xs text-gray-500 leading-none">Completa los campos y sumalo a la matriz</p>
+            <p class="text-base font-poppins font-semibold text-gray-900 leading-none">Agregar costo</p>
+            <p class="text-xs font-poppins font-normal text-gray-500 leading-none">Completa los campos y sumalo a la matriz</p>
           </div>
         </div>
-        <div class="hidden md:flex items-center gap-2 text-xs text-gray-500">
+        <div class="hidden md:flex items-center gap-2 text-xs text-gray-500 font-poppins font-normal">
           <i class="pi pi-info-circle text-gray-400"></i>
           <span>Usa el beneficio global si esta habilitado.</span>
         </div>
@@ -59,7 +57,7 @@
         <div class="flex flex-col gap-1">
           <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
             <div class="flex flex-col gap-1">
-              <label class="text-xs font-medium text-gray-600 min-h-[16px]">Item</label>
+              <label class="text-xs font-poppins font-semibold text-gray-600 min-h-[16px]">Item</label>
               <input
                 [(ngModel)]="nuevoCosto.item_numero"
                 class="w-full"
@@ -69,7 +67,7 @@
               />
             </div>
             <div class="flex flex-col gap-1 sm:col-span-2">
-              <label class="text-xs font-medium text-gray-600 min-h-[16px]">Proveedor</label>
+              <label class="text-xs font-poppins font-semibold text-gray-600 min-h-[16px]">Proveedor</label>
               <p-autoComplete
                 [(ngModel)]="nuevoCostoProveedor"
                 [suggestions]="filteredProveedores"
@@ -92,7 +90,7 @@
         </div>
 
         <div class="flex flex-col gap-1 md:col-start-2 md:row-start-1">
-          <label class="text-xs font-medium text-gray-600 min-h-[16px]">Descripcion</label>
+          <label class="text-xs font-poppins font-semibold text-gray-600 min-h-[16px]">Descripcion</label>
           <input
             [(ngModel)]="nuevoCosto.descripcion"
             class="w-full"
@@ -103,7 +101,7 @@
         </div>
 
         <div class="flex flex-col gap-1">
-          <label class="text-xs font-medium text-gray-600 min-h-[16px]">Cantidad y unidad</label>
+          <label class="text-xs font-poppins font-semibold text-gray-600 min-h-[16px]">Cantidad y unidad</label>
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <input
               [(ngModel)]="nuevoCosto.cantidad"
@@ -124,7 +122,7 @@
         </div>
 
         <div class="flex flex-col gap-1 md:col-start-2 md:row-start-2">
-          <label class="text-xs font-medium text-gray-600 min-h-[16px]">Precio unitario</label>
+          <label class="text-xs font-poppins font-semibold text-gray-600 min-h-[16px]">Precio unitario</label>
           <p-inputNumber
             [(ngModel)]="nuevoCosto.precio_unitario"
             mode="decimal"
@@ -141,7 +139,7 @@
         <div class="flex flex-col gap-1 md:col-span-2">
           <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
             <div class="flex flex-col gap-1">
-              <label class="text-xs font-medium text-gray-600 min-h-[16px]">Tipo de costo</label>
+              <label class="text-xs font-poppins font-semibold text-gray-600 min-h-[16px]">Tipo de costo</label>
               <p-select
                 [(ngModel)]="nuevoCosto.tipo_costo"
                 [options]="getTipoCostoOptions()"
@@ -154,7 +152,7 @@
               ></p-select>
             </div>
             <div class="flex flex-col gap-1">
-              <label class="text-xs font-medium text-gray-600 min-h-[16px]">Beneficio (%)</label>
+              <label class="text-xs font-poppins font-semibold text-gray-600 min-h-[16px]">Beneficio (%)</label>
               <input
                 [(ngModel)]="nuevoCosto.beneficio"
                 [disabled]="usarBeneficioGlobal && nuevoCosto.tipo_costo === 'ORIGINAL'"
@@ -170,10 +168,10 @@
 
         <div class="md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-3 items-end">
           <div class="flex flex-col gap-1">
-            <label class="text-xs font-medium text-gray-600 min-h-[16px]">Subtotal</label>
+            <label class="text-xs font-poppins font-semibold text-gray-600 min-h-[16px]">Subtotal</label>
             <input
               [ngModel]="calcularNuevoCostoSubtotal() | currency:'ARS'"
-              class="w-full text-right font-medium text-gray-700"
+              class="w-full text-right font-poppins font-semibold text-gray-700"
               pInputText
               type="text"
               disabled
@@ -181,7 +179,7 @@
           </div>
 
           <div class="flex flex-col gap-1">
-            <label class="text-xs font-medium text-gray-600 min-h-[16px]">Total con beneficio</label>
+            <label class="text-xs font-poppins font-semibold text-gray-600 min-h-[16px]">Total con beneficio</label>
             <input
               [ngModel]="calcularNuevoCostoTotal() | currency:'ARS'"
               class="w-full text-right font-semibold text-emerald-700"
@@ -202,78 +200,9 @@
           </p-button>
         </div>
       </div>
-    </div>
-
-    <!-- Memoria descriptiva -->
-    <div class="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden xl:col-span-3">
-      <div class="flex items-center justify-between px-4 py-3 border-b border-gray-100">
-        <div class="flex items-center gap-3">
-          <div class="w-10 h-10 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center">
-            <i class="pi pi-align-left text-lg"></i>
-          </div>
-          <div class="flex flex-col gap-1">
-            <h3 class="text-sm font-semibold text-gray-900 leading-none">Memoria descriptiva</h3>
-            <p class="text-xs text-gray-500 leading-none">Resume el alcance y los detalles clave de la obra</p>
-          </div>
-        </div>
-        @if (!memoriaEditando) {
-          <p-button
-            label="Editar"
-            icon="pi pi-pencil"
-            styleClass="p-button-text p-button-sm"
-            (onClick)="iniciarEdicionMemoria()"
-          ></p-button>
-        }
-      </div>
-      <div class="p-6">
-      @if (memoriaEditando) {
-        <div class="space-y-3">
-          <p-editor [(ngModel)]="memoriaDraft" styleClass="w-full"></p-editor>
-          <div class="flex justify-end gap-2">
-            <p-button
-              label="Cancelar"
-              icon="pi pi-times"
-              styleClass="p-button-text p-button-sm"
-              (onClick)="cancelarEdicionMemoria()"
-              [disabled]="guardandoMemoria"
-            ></p-button>
-            <p-button
-              label="Guardar"
-              icon="pi pi-check"
-              styleClass="p-button-primary p-button-sm"
-              (onClick)="guardarMemoriaDescriptiva()"
-              [loading]="guardandoMemoria"
-            ></p-button>
-          </div>
-        </div>
-      } @else if (obra?.memoria_descriptiva?.trim()) {
-        <div class="p-4 rounded-lg bg-blue-50 border border-blue-200 text-gray-800 memoria-view">
-          <div
-            #memoriaBody
-            class="memoria-body"
-            [ngClass]="{ 'memoria-collapsed': !memoriaExpandida }"
-            [innerHTML]="obra.memoria_descriptiva"
-          ></div>
-          @if (memoriaOverflow) {
-            <button
-              type="button"
-              class="text-sm text-blue-700 font-semibold mt-3 cursor-pointer"
-              (click)="toggleMemoria()"
-            >
-              {{ memoriaExpandida ? 'Ver menos' : 'Ver mas' }}
-            </button>
-          }
-        </div>
-      } @else {
-        <div class="p-4 rounded-lg bg-blue-50 border border-blue-200 text-gray-700">
-          Sin memoria descriptiva registrada
-        </div>
-      }
-      </div>
-    </div>
   </div>
 
-  <!-- Tabla de costos -->
+<!-- Tabla de costos -->
   @if (costosFiltrados.length > 0) {
     <p-table
       [value]="costosFiltrados"
@@ -307,134 +236,37 @@
           class="transition-colors"
         >
           <td class="px-3 py-2">
-            @if (c.enEdicion) {
-              <input
-                [(ngModel)]="c.item_numero"
-                class="w-full"
-                pInputText
-                type="text"
-                (click)="$event.stopPropagation()"
-              />
-            } @else {
-              <button
-                type="button"
-                class="text-indigo-600 underline font-semibold hover:text-indigo-800 hover:bg-indigo-50 px-1 rounded cursor-pointer"
-                (click)="$event.stopPropagation(); abrirDetalleCosto(c, true)"
-              >
-                {{ getItemNumeroDisplay(c, rowIndex) }}
-              </button>
-            }
+            <button
+              type="button"
+              class="text-indigo-600 underline font-semibold hover:text-indigo-800 hover:bg-indigo-50 px-1 rounded cursor-pointer"
+              (click)="$event.stopPropagation(); abrirDetalleCosto(c, true)"
+            >
+              {{ getItemNumeroDisplay(c, rowIndex) }}
+            </button>
           </td>
             <td class="px-3 py-2">
-              <p-autoComplete
-                [(ngModel)]="c.proveedor"
-                [disabled]="!c.enEdicion"
-                [suggestions]="filteredProveedores"
-                [dropdown]="true"
-                [showClear]="true"
-                optionLabel="nombre"
-                optionValue="id"
-                field="nombre"
-                placeholder="Proveedor"
-                class="w-full"
-                inputStyleClass="w-full"
-                appendTo="body"
-                (completeMethod)="filtrarProveedores($event)"
-                (onSelect)="seleccionarProveedorFila(c, $event.value ?? $event)"
-                (onClear)="limpiarProveedorFila(c)"
-                (onDropdownClick)="filtrarProveedores({ query: '' })"
-                (click)="$event.stopPropagation()"
-              ></p-autoComplete>
+              <span class="text-gray-900">{{ c.proveedor?.nombre || '—' }}</span>
             </td>
           <td class="px-3 py-2">
-            <input
-              [(ngModel)]="c.descripcion"
-              [disabled]="!c.enEdicion"
-              class="w-full"
-              pInputText
-              type="text"
-              (click)="$event.stopPropagation()"
-            />
+            <span class="text-gray-900">{{ c.descripcion || '—' }}</span>
           </td>
           <td class="px-3 py-2">
             <div class="flex gap-2 items-center">
-              <div class="flex flex-col gap-1 w-20">
-                <input
-                  [(ngModel)]="c.cantidad"
-                  (input)="recalcularEnEdicion(c)"
-                  [disabled]="!c.enEdicion"
-                  class="w-full"
-                  min="0"
-                  pInputText
-                  type="number"
-                  (click)="$event.stopPropagation()"
-                />
-              </div>
-              <div class="flex flex-col gap-1 w-16">
-                <input
-                  [(ngModel)]="c.unidad"
-                  [disabled]="!c.enEdicion"
-                  class="w-full"
-                  pInputText
-                  placeholder="Unidad"
-                  type="text"
-                  (click)="$event.stopPropagation()"
-                />
-              </div>
+              <span class="text-gray-900">{{ c.cantidad || '—' }}</span>
+              <span class="text-gray-600">{{ c.unidad || '' }}</span>
             </div>
           </td>
           <td class="px-3 py-2">
-            <div class="flex justify-start">
-              <p-inputNumber
-                [(ngModel)]="c.precio_unitario"
-                (onInput)="recalcularEnEdicion(c)"
-                [disabled]="!c.enEdicion"
-                mode="decimal"
-                locale="es-AR"
-                [useGrouping]="true"
-                [minFractionDigits]="2"
-                [maxFractionDigits]="2"
-                inputStyleClass="w-full text-left"
-                [min]="0"
-                (onClick)="$event.stopPropagation()">
-              </p-inputNumber>
-            </div>
+            <span class="text-gray-900">{{ c.precio_unitario | currency:'ARS' }}</span>
           </td>
 
           <td class="px-3 py-2 text-right">
             @if (esAdicional(c)) {
-              @if (c.enEdicion) {
-                <div class="flex items-center justify-end gap-2 text-xs text-gray-700">
-                  <span>Individual (</span>
-                  <input
-                    [(ngModel)]="c.beneficio"
-                    (input)="recalcularEnEdicion(c)"
-                    class="w-16 text-right"
-                    pInputText
-                    type="number"
-                    (click)="$event.stopPropagation()"
-                  />
-                  <span>%)</span>
-                </div>
-              } @else {
-                <span class="text-gray-500 text-xs">
-                  Individual ({{ c.beneficio ?? 0 }}%)
-                </span>
-              }
+              <span class="text-gray-700 text-sm">Individual ({{ c.beneficio ?? 0 }}%)</span>
             } @else if (usarBeneficioGlobal) {
-              <span class="text-gray-500 text-xs">
-                Global ({{ beneficioGlobal }}%)
-              </span>
+              <span class="text-gray-700 text-sm">Global ({{ beneficioGlobal }}%)</span>
             } @else {
-              <input
-                [(ngModel)]="c.beneficio"
-                (input)="recalcularEnEdicion(c)"
-                [disabled]="!c.enEdicion"
-                class="w-16 text-right"
-                pInputText
-                type="number"
-                (click)="$event.stopPropagation()"
-              />
+              <span class="text-gray-700 text-sm">{{ c.beneficio ?? 0 }}%</span>
             }
           </td>
 
@@ -576,8 +408,8 @@
   <div class="bg-white border border-gray-200 rounded-xl shadow-sm p-5">
     <div class="flex items-center justify-between gap-3 mb-3">
       <div>
-        <h3 class="text-lg font-semibold text-gray-900">Condiciones y observaciones (PDF)</h3>
-        <p class="text-xs text-gray-500">Se muestran al final del presupuesto exportado.</p>
+        <h3 class="font-poppins font-semibold text-gray-900">Condiciones y observaciones (PDF)</h3>
+        <p class="text-xs font-poppins font-normal text-gray-500">Se muestran al final del presupuesto exportado.</p>
       </div>
       @if (!condicionesEditando) {
         <p-button
@@ -592,7 +424,7 @@
     @if (condicionesEditando) {
       <div class="grid grid-cols-1 gap-4">
         <div class="flex flex-col gap-2">
-          <label class="text-sm font-medium text-gray-700">Condiciones (una por línea)</label>
+          <label class="text-sm font-poppins font-semibold text-gray-700">Condiciones (una por línea)</label>
           <textarea
             [(ngModel)]="condicionesDraft"
             class="p-inputtext p-component w-full min-h-[140px]"
@@ -600,7 +432,7 @@
           ></textarea>
         </div>
         <div class="flex flex-col gap-2">
-          <label class="text-sm font-medium text-gray-700">Observaciones</label>
+          <label class="text-sm font-poppins font-semibold text-gray-700">Observaciones</label>
           <textarea
             [(ngModel)]="observacionesDraft"
             class="p-inputtext p-component w-full min-h-[120px]"
@@ -667,7 +499,7 @@
         <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
           <div class="md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-4">
             <div class="flex flex-col gap-2">
-              <label class="text-sm font-medium text-gray-700">Item</label>
+              <label class="text-sm font-poppins font-semibold text-gray-700">Item</label>
               <input
                 class="p-inputtext p-component w-full max-w-[220px] text-sm py-1"
                 [(ngModel)]="costoDetalleDraft.item_numero"
@@ -675,7 +507,7 @@
                 type="text"/>
             </div>
             <div class="flex flex-col gap-2">
-              <label class="text-sm font-medium text-gray-700">Proveedor</label>
+              <label class="text-sm font-poppins font-semibold text-gray-700">Proveedor</label>
               @if (costoDetalleEditando) {
                 <p-autoComplete
                   [(ngModel)]="costoDetalleDraft.proveedor"
@@ -697,7 +529,7 @@
             }
             </div>
             <div class="flex flex-col gap-2">
-              <label class="text-sm font-medium text-gray-700">Cantidad</label>
+              <label class="text-sm font-poppins font-semibold text-gray-700">Cantidad</label>
               <input
                 class="p-inputtext p-component w-full max-w-[220px] text-sm py-1"
                 [(ngModel)]="costoDetalleDraft.cantidad"
@@ -706,7 +538,7 @@
                 type="text"/>
             </div>
             <div class="flex flex-col gap-2">
-              <label class="text-sm font-medium text-gray-700">Unidad</label>
+              <label class="text-sm font-poppins font-semibold text-gray-700">Unidad</label>
               <input
                 class="p-inputtext p-component w-full max-w-[220px] text-sm py-1"
                 [(ngModel)]="costoDetalleDraft.unidad"
@@ -714,7 +546,7 @@
                 type="text"/>
             </div>
             <div class="flex flex-col gap-2">
-              <label class="text-sm font-medium text-gray-700">Precio unitario</label>
+              <label class="text-sm font-poppins font-semibold text-gray-700">Precio unitario</label>
               @if (costoDetalleEditando) {
                 <p-inputNumber
                   [(ngModel)]="costoDetalleDraft.precio_unitario"
@@ -736,7 +568,7 @@
             }
             </div>
             <div class="flex flex-col gap-2">
-              <label class="text-sm font-medium text-gray-700">Beneficio (%)</label>
+              <label class="text-sm font-poppins font-semibold text-gray-700">Beneficio (%)</label>
               <input
                 class="p-inputtext p-component w-full max-w-[220px] text-sm py-1"
                 [(ngModel)]="costoDetalleDraft.beneficio"
@@ -745,7 +577,7 @@
                 type="text"/>
             </div>
             <div class="flex flex-col gap-2">
-              <label class="text-sm font-medium text-gray-700">Gasto Real</label>
+              <label class="text-sm font-poppins font-semibold text-gray-700">Gasto Real</label>
               @if (costoDetalleEditando) {
                 <p-inputNumber
                   [(ngModel)]="costoDetalleDraft.monto_real"
@@ -768,7 +600,7 @@
               }
             </div>
             <div class="flex flex-col gap-2">
-              <label class="text-sm font-medium text-gray-700">Desvío</label>
+              <label class="text-sm font-poppins font-semibold text-gray-700">Desvío</label>
               <input
                 class="p-inputtext p-component w-full max-w-[220px] text-sm py-1 text-right font-semibold"
                 [value]="calcularDesvio(costoDetalleDraft) !== null ? (calcularDesvio(costoDetalleDraft) | currency:'ARS':'symbol':'1.0-2') : '—'"
@@ -780,7 +612,7 @@
                 type="text"/>
             </div>
             <div class="flex flex-col gap-2">
-              <label class="text-sm font-medium text-gray-700">Subtotal</label>
+              <label class="text-sm font-poppins font-semibold text-gray-700">Subtotal</label>
               <input
                 class="p-inputtext p-component w-full max-w-[220px] text-sm py-1"
                 [value]="(costoDetalleDraft.subtotal | currency:'ARS':'symbol':'1.0-2') || ''"
@@ -788,7 +620,7 @@
                 type="text"/>
             </div>
             <div class="flex flex-col gap-2">
-              <label class="text-sm font-medium text-gray-700">Total</label>
+              <label class="text-sm font-poppins font-semibold text-gray-700">Total</label>
               <input
                 class="p-inputtext p-component w-full max-w-[220px] text-sm py-1"
                 [value]="(costoDetalleDraft.total | currency:'ARS':'symbol':'1.0-2') || ''"
@@ -797,7 +629,7 @@
             </div>
           </div>
           <div class="md:col-span-2 flex flex-col gap-2">
-            <label class="text-sm font-medium text-gray-700">Descripcion</label>
+            <label class="text-sm font-poppins font-semibold text-gray-700">Descripcion</label>
             <p-editor
               [(ngModel)]="costoDetalleDraft.descripcion"
               [readonly]="!costoDetalleEditando"
@@ -828,7 +660,7 @@
     <div class="p-3 space-y-4">
       <div class="flex items-center gap-4 flex-wrap">
         <div class="inline-flex flex-col gap-2 px-3 py-2">
-          <span class="text-sm font-medium text-gray-700 opacity-0 select-none">Porcentaje</span>
+          <span class="text-sm font-poppins font-semibold text-gray-700 opacity-0 select-none">Porcentaje</span>
           <div class="flex items-center gap-3">
             <p-checkbox
               binary="true"
@@ -842,7 +674,7 @@
         </div>
 
         <div class="flex flex-col gap-2">
-          <label class="text-sm font-medium text-gray-700">Porcentaje</label>
+          <label class="text-sm font-poppins font-semibold text-gray-700">Porcentaje</label>
           <div class="flex items-center gap-2">
             <p-inputNumber
               [(ngModel)]="beneficioGlobalDraft"
@@ -854,7 +686,7 @@
               inputStyleClass="w-28 text-center"
               [min]="0"
             ></p-inputNumber>
-            <span class="text-sm text-gray-600 font-semibold">%</span>
+            <span class="text-sm font-poppins font-normal text-gray-600 font-semibold">%</span>
           </div>
         </div>
       </div>
@@ -892,7 +724,7 @@
   >
     <div class="p-4 space-y-4">
       <div class="flex flex-col gap-2">
-        <label class="text-sm font-medium text-gray-700">Fecha de la cotización</label>
+        <label class="text-sm font-poppins font-semibold text-gray-700">Fecha de la cotización</label>
         <p-datepicker
           [(ngModel)]="fechaExportSeleccionada"
           [showIcon]="true"
@@ -902,7 +734,7 @@
           placeholder="Selecciona una fecha"
           [maxDate]="maxDateExport"
         ></p-datepicker>
-        <p class="text-xs text-gray-500 mt-1">Por defecto aparece la fecha de hoy</p>
+        <p class="text-xs font-poppins font-normal text-gray-500 mt-1">Por defecto aparece la fecha de hoy</p>
       </div>
 
       <div class="flex justify-end gap-2">

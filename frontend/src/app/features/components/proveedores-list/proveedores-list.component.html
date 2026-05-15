@@ -15,7 +15,7 @@
           </p-iconfield>
         </div>
 
-        <div class="md:col-span-3">
+        <div class="md:col-span-5">
           <p-select
             (onChange)="onTipoChange()"
             [(ngModel)]="tipoFiltro"
@@ -32,17 +32,6 @@
             </ng-template>
           </p-select>
         </div>
-        <div class="md:col-span-2">
-          <p-select
-            (onChange)="onSaldoChange()"
-            [(ngModel)]="saldoFiltro"
-            [options]="saldoOptions"
-            optionLabel="label"
-            optionValue="value"
-            placeholder="Filtrar por saldo"
-            styleClass="w-full p-inputtext-sm h-12">
-          </p-select>
-        </div>
         <div class="md:col-span-1 flex items-center gap-2 h-12">
           <p-checkbox
             [(ngModel)]="mostrarInactivos"
@@ -50,7 +39,7 @@
             inputId="proveedoresMostrarInactivos"
             (ngModelChange)="onMostrarInactivosChange()">
           </p-checkbox>
-          <label for="proveedoresMostrarInactivos" class="text-base text-gray-700">
+          <label for="proveedoresMostrarInactivos" class="text-base font-poppins font-normal text-gray-700">
             Ver inactivos
           </label>
         </div>
@@ -70,36 +59,32 @@
       >
         <ng-template pTemplate="header">
           <tr>
-            <th pSortableColumn="nombre">Nombre <p-sortIcon field="nombre"></p-sortIcon></th>
-            <th pSortableColumn="contacto">Contacto <p-sortIcon field="contacto"></p-sortIcon></th>
-            <th pSortableColumn="telefono">Telefono <p-sortIcon field="telefono"></p-sortIcon></th>
-            <th pSortableColumn="email">Email <p-sortIcon field="email"></p-sortIcon></th>
-            <th pSortableColumn="tipo_proveedor">Tipo <p-sortIcon field="tipo_proveedor"></p-sortIcon></th>
-            <th pSortableColumn="totalProveedor" class="text-right">Total <p-sortIcon field="totalProveedor"></p-sortIcon></th>
-            <th pSortableColumn="saldoProveedor" class="text-right">Saldo <p-sortIcon field="saldoProveedor"></p-sortIcon></th>
+            <th pSortableColumn="nombre" class="font-poppins font-semibold">Nombre <p-sortIcon field="nombre"></p-sortIcon></th>
+            <th pSortableColumn="contacto" class="font-poppins font-semibold">Contacto <p-sortIcon field="contacto"></p-sortIcon></th>
+            <th pSortableColumn="telefono" class="font-poppins font-semibold">Telefono <p-sortIcon field="telefono"></p-sortIcon></th>
+            <th pSortableColumn="email" class="font-poppins font-semibold">Email <p-sortIcon field="email"></p-sortIcon></th>
+            <th pSortableColumn="tipo_proveedor" class="font-poppins font-semibold">Tipo <p-sortIcon field="tipo_proveedor"></p-sortIcon></th>
           </tr>
         </ng-template>
 
         <ng-template let-row pTemplate="body">
           <tr (click)="irAlDetalle(row)"
               class="cursor-pointer hover:bg-gray-200 transition">
-            <td>{{ row.nombre }}</td>
-            <td>{{ row.contacto || '-' }}</td>
-            <td class="whitespace-nowrap max-w-[160px] overflow-hidden text-ellipsis">{{ row.telefono || '-' }}</td>
-            <td>{{ row.email || '-' }}</td>
-            <td>{{ formatearTipo(row.tipo_proveedor) || '-' }}</td>
-            <td class="text-right font-semibold">{{ obtenerTotalProveedor(row.id) | currency:'ARS':'symbol':'1.0-2' }}</td>
-            <td class="text-right font-semibold">{{ obtenerSaldoProveedor(row.id) | currency:'ARS':'symbol':'1.0-2' }}</td>
+            <td class="font-poppins font-normal">{{ row.nombre }}</td>
+            <td class="font-poppins font-normal">{{ row.contacto || '-' }}</td>
+            <td class="whitespace-nowrap max-w-[160px] overflow-hidden text-ellipsis font-poppins font-normal">{{ row.telefono || '-' }}</td>
+            <td class="font-poppins font-normal">{{ row.email || '-' }}</td>
+            <td class="font-poppins font-normal">{{ formatearTipo(row.tipo_proveedor) || '-' }}</td>
           </tr>
         </ng-template>
 
         <ng-template pTemplate="emptymessage">
           <tr>
-            <td class="text-center py-10" colspan="7">
+            <td class="text-center py-10" colspan="5">
               <div class="flex flex-col items-center justify-center gap-2 text-gray-500">
                 <i class="pi pi-inbox text-3xl"></i>
-                <p class="text-base font-medium">No hay registros para mostrar</p>
-                <p class="text-sm">Ajusta los filtros o crea un nuevo registro.</p>
+                <p class="text-base font-poppins font-semibold">No hay registros para mostrar</p>
+                <p class="text-sm font-poppins font-normal">Ajusta los filtros o crea un nuevo registro.</p>
               </div>
             </td>
           </tr>

@@ -2,6 +2,7 @@ import {Component, Input, OnInit} from '@angular/core';
 import {FormArray, FormBuilder, FormGroup, ReactiveFormsModule, Validators, FormsModule} from '@angular/forms';
 import {ActivatedRoute, Router, RouterLink} from '@angular/router';
 import {CommonModule} from '@angular/common';
+import {BackButtonDirective} from '../../../shared/directives/back-button.directive';
 import {forkJoin} from 'rxjs';
 
 import {InputTextModule} from 'primeng/inputtext';
@@ -47,6 +48,7 @@ import {EditorModule} from 'primeng/editor';
     RouterLink,
     ModalComponent,
     EditorModule,
+    BackButtonDirective,
   ],
   providers: [MessageService],
 })
