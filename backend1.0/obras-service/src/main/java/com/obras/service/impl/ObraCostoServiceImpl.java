@@ -78,7 +78,6 @@ public class ObraCostoServiceImpl implements ObraCostoService {
     @Override
     public void eliminar(Long id) {
         costoRepo.findByIdAndActivoTrue(id).ifPresent(costo -> {
-            validarOperacionOriginalEnProgreso(costo, "eliminar");
             costo.setActivo(false);
             costo.setBajaObra(Boolean.FALSE);
             costoRepo.save(costo);

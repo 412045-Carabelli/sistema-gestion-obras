@@ -2,301 +2,308 @@
 <p-confirmDialog></p-confirmDialog>
 
 @if (loading) {
-  <div class="p-3 md:p-6 space-y-8 w-full max-w-7xl mx-auto animate-pulse">
-    <div class="h-10 bg-gray-200 rounded w-1/3"></div>
-
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-      @for (item of [1,2,3]; track item) {
-        <div class="bg-white rounded-xl shadow-sm p-6 border-l-4 border-gray-300">
-          <div class="h-4 bg-gray-200 rounded w-16 mb-3"></div>
-          <div class="h-7 bg-gray-200 rounded w-2/3"></div>
+  <div class="p-4 space-y-8 w-full mx-auto animate-pulse">
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      @for (item of [1,2,3,4]; track item) {
+        <div class="bg-white rounded-xl shadow-md p-6">
+          <div class="flex items-center gap-3 mb-2">
+            <div class="w-10 h-10 bg-gray-200 rounded-lg"></div>
+            <div class="h-4 bg-gray-200 rounded w-16"></div>
+          </div>
+          <div class="h-6 bg-gray-200 rounded w-3/4"></div>
         </div>
       }
     </div>
 
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-      @for (item of [1,2]; track item) {
-        <div class="bg-white rounded-xl shadow-sm p-6">
-          <div class="h-4 bg-gray-200 rounded w-20 mb-3"></div>
-          <div class="h-6 bg-gray-200 rounded w-1/2"></div>
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div class="lg:col-span-2 bg-white rounded-xl shadow-md p-6">
+        <div class="h-6 bg-gray-200 rounded w-1/4 mb-4"></div>
+        <div class="grid grid-cols-2 gap-4">
+          <div class="h-20 bg-gray-100 rounded-lg"></div>
+          <div class="h-20 bg-gray-100 rounded-lg"></div>
         </div>
-      }
+      </div>
+      <div class="bg-gradient-to-br from-gray-300 to-gray-400 rounded-xl shadow-md p-6">
+        <div class="h-6 bg-white/30 rounded w-1/2 mb-4"></div>
+        <div class="h-16 bg-white/30 rounded"></div>
+      </div>
     </div>
 
-    <div class="bg-white rounded-xl shadow-sm p-6">
-      <div class="h-6 bg-gray-200 rounded w-1/4 mb-4"></div>
-      <div class="space-y-3">
-        <div class="h-10 bg-gray-100 rounded"></div>
-        <div class="h-10 bg-gray-100 rounded"></div>
+    <div class="bg-white rounded-xl shadow-md overflow-hidden">
+      <div class="border-b border-gray-200 px-6 py-4">
+        <div class="flex gap-4">
+          <div class="h-6 bg-gray-200 rounded w-24"></div>
+          <div class="h-6 bg-gray-200 rounded w-24"></div>
+          <div class="h-6 bg-gray-200 rounded w-24"></div>
+        </div>
+      </div>
+      <div class="p-6 space-y-3">
+        <div class="h-12 bg-gray-100 rounded"></div>
+        <div class="h-12 bg-gray-100 rounded"></div>
+        <div class="h-12 bg-gray-100 rounded"></div>
       </div>
     </div>
   </div>
 } @else {
   @defer (when obra) {
-    <div class="p-3 md:p-6 space-y-8 w-full max-w-7xl mx-auto">
-      <!-- Header -->
-      <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 pb-4 border-b border-gray-200">
+    <div class="p-4 space-y-8 w-full mx-auto">
+      <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
-          <h1 class="text-3xl md:text-4xl font-bold text-gray-900">{{ obra.nombre }}</h1>
-          <p class="text-gray-600 text-sm md:text-base mt-1">Resumen integral de la obra</p>
+          <h1 class="text-2xl font-poppins font-bold text-gray-900">Resumen de la obra</h1>
+          <p class="text-gray-600 font-poppins font-normal">Datos completos de {{ obra.nombre }}</p>
         </div>
         <p-button
           icon="pi pi-file-pdf"
           label="Exportar PDF"
-          severity="secondary"
-          styleClass="p-button-outlined"
+          severity="danger"
           (onClick)="exportarResumenPdf()">
         </p-button>
       </div>
 
-      <!-- ===================== MÉTRICAS PRIMARIAS ===================== -->
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <!-- Cliente -->
-        <div class="bg-white rounded-xl shadow-sm p-6 border-l-4 border-blue-500">
-          <div class="flex items-center gap-3 mb-3">
-            <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center flex-shrink-0">
-              <i class="pi pi-user text-blue-600 text-xl"></i>
+      <!-- ===================== TARJETAS DE INFO PRINCIPAL ===================== -->
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
+
+        <!-- Tarjeta Cliente -->
+        <div class="bg-white rounded-xl shadow-md p-6 border-l-4 border-blue-500">
+          <div class="flex items-center gap-3 mb-2">
+            <div class="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+              <i class="pi pi-user text-blue-600 text-lg"></i>
             </div>
-            <div class="min-w-0 flex-1">
-              <p class="text-xs font-semibold text-blue-600 uppercase tracking-wide">Cliente</p>
-              <p class="text-lg md:text-xl font-bold text-gray-900 truncate">{{ obra.cliente.nombre }}</p>
-            </div>
+            <span class="text-sm font-poppins font-semibold text-gray-500">Cliente</span>
           </div>
+          <p class="text-sm font-poppins font-bold text-gray-900">{{ obra.cliente.nombre }}</p>
         </div>
 
-        <!-- Presupuesto -->
-        <div class="bg-white rounded-xl shadow-sm p-6 border-l-4 border-green-500">
-          <div class="flex items-center gap-3 mb-3">
-            <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center flex-shrink-0">
-              <i class="pi pi-dollar text-green-600 text-xl"></i>
+        <!-- Tarjeta Presupuesto -->
+        <div class="bg-white rounded-xl shadow-md p-6 border-l-4 border-green-500">
+          <div class="flex items-center gap-3 mb-2">
+            <div class="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
+              <i class="pi pi-dollar text-green-600 text-lg"></i>
             </div>
-            <div class="min-w-0 flex-1">
-              <p class="text-xs font-semibold text-green-600 uppercase tracking-wide">Presupuesto</p>
-              <p class="text-lg md:text-xl font-bold text-gray-900">{{ obra.presupuesto | currency:'ARS' }}</p>
-            </div>
+            <span class="text-sm font-medium text-gray-500">Presupuesto</span>
           </div>
+          <p class="text-sm font-semibold text-gray-900">{{ obra.presupuesto | currency:'ARS' }}</p>
         </div>
 
-        <!-- Estado -->
-        <div class="bg-white rounded-xl shadow-sm p-6 border-l-4 border-orange-500">
-          <div class="flex items-center gap-3 mb-3">
-            <div class="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center flex-shrink-0">
-              <i class="pi pi-flag text-orange-600 text-xl"></i>
+        <!-- Tarjeta Costos -->
+        <div class="bg-white rounded-xl shadow-md p-6 border-l-4 border-purple-500">
+          <div class="flex items-center gap-3 mb-2">
+            <div class="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
+              <i class="pi pi-wallet text-purple-600 text-lg"></i>
             </div>
-            <div class="min-w-0 flex-1">
-              <p class="text-xs font-semibold text-orange-600 uppercase tracking-wide">Estado</p>
-            </div>
+            <span class="text-sm font-medium text-gray-500">Costos</span>
           </div>
-          <p-select
-            [options]="estadosObra"
-            [(ngModel)]="estadoSeleccionado"
-            (onChange)="actualizarEstadoObra($event.value)"
-            appendTo="body"
-            optionLabel="label"
-            optionValue="name"
-            styleClass="w-full"
-            [style]="{'--p-select-padding-y': '0.5rem'}">
-          </p-select>
-        </div>
-      </div>
-
-      <!-- ===================== MÉTRICAS SECUNDARIAS ===================== -->
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <!-- Costos -->
-        <div class="bg-white rounded-xl shadow-sm p-6 border-l-4 border-purple-500">
-          <div class="flex items-center gap-3 mb-3">
-            <div class="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center flex-shrink-0">
-              <i class="pi pi-wallet text-purple-600 text-xl"></i>
-            </div>
-            <div class="min-w-0 flex-1">
-              <p class="text-xs font-semibold text-purple-600 uppercase tracking-wide">Costo Base</p>
-              <p class="text-lg md:text-xl font-bold text-gray-900">{{ totalCostosBase | currency:'ARS' }}</p>
-            </div>
-          </div>
-          <p class="text-xs text-gray-500 ml-15">Sin beneficio aplicado</p>
+          <p class="text-sm font-semibold text-gray-900">{{ totalCostosBase | currency:'ARS' }}</p>
+          <p class="text-xs text-gray-600">Subtotal sin beneficio</p>
         </div>
 
-        <!-- Beneficio -->
-        <div class="bg-white rounded-xl shadow-sm p-6 border-l-4 border-emerald-500">
-          <div class="flex items-center justify-between mb-3">
-            <div class="flex items-center gap-3 flex-1 min-w-0">
-              <div class="w-12 h-12 bg-emerald-100 rounded-lg flex items-center justify-center flex-shrink-0">
-                <i class="pi pi-chart-line text-emerald-600 text-xl"></i>
+        <div class="bg-white rounded-xl shadow-md p-6 border-l-4 border-emerald-500">
+          <div class="flex items-center justify-between mb-2">
+            <div class="flex items-center gap-3">
+              <div class="w-10 h-10 bg-emerald-100 rounded-lg flex items-center justify-center">
+                <i class="pi pi-chart-line text-emerald-600 text-lg"></i>
               </div>
-              <div class="min-w-0 flex-1">
-                <p class="text-xs font-semibold text-emerald-600 uppercase tracking-wide">Beneficio Neto</p>
-                <p class="text-lg md:text-xl font-bold" [ngClass]="beneficioNeto >= 0 ? 'text-emerald-700' : 'text-red-600'">
-                  {{ beneficioNeto | currency:'ARS' }}
-                </p>
-              </div>
+            <span class="text-sm font-medium text-gray-500">Beneficio</span>
             </div>
-            <i class="pi pi-info-circle text-gray-400 cursor-pointer flex-shrink-0"
-               pTooltip="Beneficio bruto menos comisión aplicada"
+            <i class="pi pi-info-circle text-gray-400 cursor-pointer"
+               pTooltip="Suma de los beneficios aplicados a cada costo (global o individual)."
                tooltipPosition="left"></i>
           </div>
-          <p class="text-xs text-gray-500 ml-15">Matriz de costos actualizada</p>
+          <p class="text-sm font-semibold" [ngClass]="beneficioNeto >= 0 ? 'text-emerald-700' : 'text-red-600'">
+            {{ beneficioNeto | currency:'ARS' }}
+          </p>
+          <p class="text-xs text-gray-500">Actualizado con la matriz de costos</p>
         </div>
+        <div class="bg-white rounded-xl shadow-md p-6 border-l-4 border-orange-500">
+          <div class="flex items-center gap-3 mb-2">
+            <div class="w-10 h-10 bg-orange-100 rounded-lg flex items-center justify-center">
+              <i class="pi pi-flag text-orange-600 text-lg"></i>
+            </div>
+            <span class="text-sm font-medium text-gray-500">Estado</span>
+          </div>
+            <p-select
+              [options]="estadosObra"
+              [(ngModel)]="estadoSeleccionado"
+              (onChange)="actualizarEstadoObra($event.value)"
+              appendTo="body"
+              optionLabel="label"
+              optionValue="name"
+              styleClass="w-full text-sm">
+            </p-select>
+          </div>
+
       </div>
 
 
-      <!-- ===================== CRONOGRAMA Y PROGRESO ===================== -->
+      <!-- ===================== FECHAS Y PROGRESO ===================== -->
       <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <!-- Cronograma -->
-        <div class="lg:col-span-2 bg-white rounded-xl shadow-sm p-6 md:p-8">
-          <div class="flex items-center gap-3 mb-6 pb-4 border-b border-gray-200">
-            <i class="pi pi-calendar text-blue-600 text-xl"></i>
-            <div class="flex-1">
-              <h3 class="text-xl font-bold text-gray-900">Cronograma</h3>
-              <p class="text-sm text-gray-500">Fechas clave del proyecto</p>
-            </div>
-            @if (cronogramaFueraDeRango) {
-              <span class="px-3 py-1 text-xs font-semibold text-white bg-red-500 rounded-full whitespace-nowrap">Fuera de rango</span>
-            }
-          </div>
 
-          @if (tieneAlgunaFechaCronograma) {
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-4">
+        <!-- Fechas -->
+        <div class="lg:col-span-2 bg-white rounded-xl shadow-md p-6">
+          <h3 class="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+            <i class="pi pi-calendar text-blue-600"></i>
+            Cronograma
+            @if (cronogramaFueraDeRango) {
+              <span class="ml-2 px-2 py-1 text-xs font-semibold text-white bg-red-500 rounded-full">Fuera de rango</span>
+            }
+          </h3>
+          <div class="grid grid-cols-1 md:grid-cols-5 gap-4">
+            @if (tieneAlgunaFechaCronograma) {
               @if (tieneFechaCronograma(obra.fecha_inicio)) {
-                <div class="flex gap-4 p-4 bg-blue-50 rounded-lg border border-blue-100">
-                  <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center flex-shrink-0">
-                    <i class="pi pi-calendar-plus text-blue-600 text-lg"></i>
+                <div class="flex items-center gap-3 p-4 bg-gray-50 rounded-lg">
+                  <div class="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0">
+                    <i class="pi pi-calendar-plus text-blue-600"></i>
                   </div>
-                  <div class="min-w-0 flex-1">
-                    <p class="text-xs font-semibold text-blue-600 uppercase">Inicio</p>
-                    <p class="text-base md:text-lg font-bold text-gray-900">{{ obra.fecha_inicio | date:'dd/MM/yyyy' }}</p>
+                  <div>
+                    <p class="text-xs text-gray-500 mb-1">Fecha de inicio</p>
+                    <p class="font-semibold text-gray-900">{{ obra.fecha_inicio | date:'dd/MM/yyyy' }}</p>
                   </div>
                 </div>
               }
               @if (tieneFechaCronograma(obra.fecha_fin)) {
-                <div class="flex gap-4 p-4 bg-red-50 rounded-lg border border-red-100">
-                  <div class="w-12 h-12 bg-red-100 rounded-lg flex items-center justify-center flex-shrink-0">
-                    <i class="pi pi-calendar-times text-red-600 text-lg"></i>
+                <div class="flex items-center gap-3 p-4 bg-gray-50 rounded-lg">
+                  <div class="w-10 h-10 bg-red-100 rounded-full flex items-center justify-center flex-shrink-0">
+                    <i class="pi pi-calendar-times text-red-600"></i>
                   </div>
-                  <div class="min-w-0 flex-1">
-                    <p class="text-xs font-semibold text-red-600 uppercase">Fin Previsto</p>
-                    <p class="text-base md:text-lg font-bold text-gray-900">{{ obra.fecha_fin | date:'dd/MM/yyyy' }}</p>
+                  <div>
+                    <p class="text-xs text-gray-500 mb-1">Fecha de fin</p>
+                    <p class="font-semibold text-gray-900">{{ obra.fecha_fin | date:'dd/MM/yyyy' }}</p>
                     @if (cronogramaFueraDeRango) {
-                      <p class="text-xs text-red-600 font-semibold mt-1">⚠️ Anterior al inicio</p>
+                      <p class="text-xs text-red-600 font-semibold">La fecha fin es anterior al inicio.</p>
                     }
                   </div>
                 </div>
               }
               @if (tieneFechaCronograma(obra.fecha_presupuesto)) {
-                <div class="flex gap-4 p-4 bg-amber-50 rounded-lg border border-amber-100">
-                  <div class="w-12 h-12 bg-amber-100 rounded-lg flex items-center justify-center flex-shrink-0">
-                    <i class="pi pi-clock text-amber-600 text-lg"></i>
+                <div class="flex items-center gap-3 p-4 bg-gray-50 rounded-lg">
+                  <div class="w-10 h-10 bg-amber-100 rounded-full flex items-center justify-center flex-shrink-0">
+                    <i class="pi pi-clock text-amber-600"></i>
                   </div>
-                  <div class="min-w-0 flex-1">
-                    <p class="text-xs font-semibold text-amber-600 uppercase">Presupuestado</p>
-                    <p class="text-base md:text-lg font-bold text-gray-900">{{ obra.fecha_presupuesto | date:'dd/MM/yyyy' }}</p>
+                  <div>
+                    <p class="text-xs text-gray-500 mb-1">Fecha presupuestado</p>
+                    <p class="font-semibold text-gray-900">{{ obra.fecha_presupuesto | date:'dd/MM/yyyy' }}</p>
                   </div>
                 </div>
               }
               @if (tieneFechaCronograma(obra.fecha_adjudicada)) {
-                <div class="flex gap-4 p-4 bg-emerald-50 rounded-lg border border-emerald-100">
-                  <div class="w-12 h-12 bg-emerald-100 rounded-lg flex items-center justify-center flex-shrink-0">
-                    <i class="pi pi-verified text-emerald-600 text-lg"></i>
+                <div class="flex items-center gap-3 p-4 bg-gray-50 rounded-lg">
+                  <div class="w-10 h-10 bg-emerald-100 rounded-full flex items-center justify-center flex-shrink-0">
+                    <i class="pi pi-verified text-emerald-600"></i>
                   </div>
-                  <div class="min-w-0 flex-1">
-                    <p class="text-xs font-semibold text-emerald-600 uppercase">Adjudicada</p>
-                    <p class="text-base md:text-lg font-bold text-gray-900">{{ obra.fecha_adjudicada | date:'dd/MM/yyyy' }}</p>
+                  <div>
+                    <p class="text-xs text-gray-500 mb-1">Fecha adjudicada</p>
+                    <p class="font-semibold text-gray-900">{{ obra.fecha_adjudicada | date:'dd/MM/yyyy' }}</p>
                   </div>
                 </div>
               }
               @if (tieneFechaCronograma(obra.fecha_perdida)) {
-                <div class="flex gap-4 p-4 bg-pink-50 rounded-lg border border-pink-100">
-                  <div class="w-12 h-12 bg-pink-100 rounded-lg flex items-center justify-center flex-shrink-0">
-                    <i class="pi pi-times text-pink-600 text-lg"></i>
+                <div class="flex items-center gap-3 p-4 bg-gray-50 rounded-lg">
+                  <div class="w-10 h-10 bg-red-100 rounded-full flex items-center justify-center flex-shrink-0">
+                    <i class="pi pi-times text-red-600"></i>
                   </div>
-                  <div class="min-w-0 flex-1">
-                    <p class="text-xs font-semibold text-pink-600 uppercase">Perdida</p>
-                    <p class="text-base md:text-lg font-bold text-gray-900">{{ obra.fecha_perdida | date:'dd/MM/yyyy' }}</p>
+                  <div>
+                    <p class="text-xs text-gray-500 mb-1">Fecha perdida</p>
+                    <p class="font-semibold text-gray-900">{{ obra.fecha_perdida | date:'dd/MM/yyyy' }}</p>
                   </div>
                 </div>
               }
-            </div>
-          } @else {
-            <div class="p-6 bg-gray-50 rounded-lg border border-gray-200 text-center">
-              <i class="pi pi-inbox text-3xl text-gray-300 mb-2"></i>
-              <p class="text-gray-500 font-medium">Sin fechas definidas</p>
-              <p class="text-sm text-gray-400 mt-1">Agrega fechas del cronograma en la sección de edición</p>
-            </div>
-          }
+            } @else {
+              <div class="flex items-center gap-3 p-4 bg-gray-50 rounded-lg md:col-span-5">
+                <div class="w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center flex-shrink-0">
+                  <i class="pi pi-calendar text-gray-500"></i>
+                </div>
+                <div>
+                <p class="text-xs text-gray-500 mb-1">Cronograma</p>
+                <p class="font-semibold text-gray-900">Sin definir</p>
+                </div>
+              </div>
+            }
+          </div>
         </div>
 
         <!-- Progreso de la obra -->
-        <div class="bg-gradient-to-br from-blue-500 to-blue-700 rounded-xl shadow-sm p-6 md:p-8 text-white">
-          <h3 class="text-xl font-bold mb-6 flex items-center gap-2">
+        <div class="bg-gradient-to-br from-blue-500 to-blue-700 rounded-xl shadow-md p-6 text-white">
+          <h3 class="text-lg font-semibold mb-4 flex items-center gap-2">
             <i class="pi pi-chart-line"></i>
-            Avance Físico
+            Progreso de la obra
           </h3>
-          <div class="space-y-6">
-            <div>
-              <p-progressBar
-                [value]="progresoFisico"
-                [showValue]="false"
-                styleClass="h-3">
-              </p-progressBar>
-            </div>
-            <div class="text-center">
-              <p class="text-5xl md:text-6xl font-bold">{{ progresoFisico }}%</p>
-              <p class="text-blue-100 text-sm mt-2">de tareas completadas</p>
+          <div class="relative">
+            <p-progressBar
+              [value]="progresoFisico"
+              [showValue]="false"
+              styleClass="h-3">
+            </p-progressBar>
+            <div class="mt-3 text-center">
+              <p class="text-4xl font-bold">{{ progresoFisico }}%</p>
+              <p class="text-sm text-blue-100 mt-1">completado</p>
             </div>
           </div>
         </div>
       </div>
 
-      <!-- ===================== TABS ===================== -->
-      <div class="bg-white rounded-xl shadow-sm overflow-hidden">
+      <!-- ===================== TABS MEJORADOS ===================== -->
+      <div class="bg-white rounded-xl shadow-md overflow-hidden">
         <p-tabs [value]="activeTab" (onChange)="onTabChange($event)">
-          <p-tablist pStyleClass="border-b border-gray-200 px-4 md:px-6">
-            <p-tab value="0" pStyleClass="px-4 py-3 md:px-6">
-              <div class="flex items-center gap-2 md:gap-3 text-sm md:text-base">
-                <i class="pi pi-calculator flex-shrink-0"></i>
-                <span class="font-semibold hidden md:inline">Presupuesto</span>
-                <span class="font-semibold md:hidden">P</span>
+          <p-tablist pStyleClass="border-b border-gray-200 px-6">
+            <p-tab value="0" pStyleClass="px-6 py-4">
+              <div class="flex items-center gap-3">
+                <i class="pi pi-calculator"></i>
+                <div class="flex flex-col leading-tight">
+                  <span class="font-semibold text-sm">Presupuesto</span>
+                  <span class="text-xs text-gray-500">Costos y beneficios</span>
+                </div>
               </div>
             </p-tab>
-            <p-tab value="1" pStyleClass="px-4 py-3 md:px-6">
-              <div class="flex items-center gap-2 md:gap-3 text-sm md:text-base">
-                <i class="pi pi-list-check flex-shrink-0"></i>
-                <span class="font-semibold hidden md:inline">Tareas</span>
-                <span class="font-semibold md:hidden">T</span>
+            <p-tab value="1" pStyleClass="px-6 py-4">
+              <div class="flex items-center gap-3">
+                <i class="pi pi-list-check"></i>
+                <div class="flex flex-col leading-tight">
+                  <span class="font-semibold text-sm">Tareas</span>
+                  <span class="text-xs text-gray-500">Planificacion y avance</span>
+                </div>
               </div>
             </p-tab>
-            <p-tab value="2" pStyleClass="px-4 py-3 md:px-6">
-              <div class="flex items-center gap-2 md:gap-3 text-sm md:text-base">
-                <i class="pi pi-arrow-right-arrow-left flex-shrink-0"></i>
-                <span class="font-semibold hidden md:inline">Movimientos</span>
-                <span class="font-semibold md:hidden">M</span>
+            <p-tab value="2" pStyleClass="px-6 py-4">
+              <div class="flex items-center gap-3">
+                <i class="pi pi-arrow-right-arrow-left"></i>
+                <div class="flex flex-col leading-tight">
+                  <span class="font-semibold text-sm">Movimientos</span>
+                  <span class="text-xs text-gray-500">Cobros y pagos</span>
+                </div>
               </div>
             </p-tab>
             @if (obra.requiere_factura) {
-            <p-tab value="3" pStyleClass="px-4 py-3 md:px-6">
-              <div class="flex items-center gap-2 md:gap-3 text-sm md:text-base">
-                <i class="pi pi-file flex-shrink-0"></i>
-                <span class="font-semibold hidden md:inline">Facturas</span>
-                <span class="font-semibold md:hidden">F</span>
+            <p-tab value="3" pStyleClass="px-6 py-4">
+              <div class="flex items-center gap-3">
+                <i class="pi pi-file"></i>
+                <div class="flex flex-col leading-tight">
+                  <span class="font-semibold text-sm">Facturas</span>
+                  <span class="text-xs text-gray-500">Documentos de la obra</span>
+                </div>
               </div>
             </p-tab>
             }
-            <p-tab value="4" pStyleClass="px-4 py-3 md:px-6">
-              <div class="flex items-center gap-2 md:gap-3 text-sm md:text-base">
-                <i class="pi pi-bookmark flex-shrink-0"></i>
-                <span class="font-semibold hidden md:inline">Memoria</span>
-                <span class="font-semibold md:hidden">Me</span>
+            <p-tab value="4" pStyleClass="px-6 py-4">
+              <div class="flex items-center gap-3">
+                <i class="pi pi-bookmark"></i>
+                <div class="flex flex-col leading-tight">
+                  <span class="font-semibold text-sm">Memoria</span>
+                  <span class="text-xs text-gray-500">Descripción del proyecto</span>
+                </div>
               </div>
             </p-tab>
-            <p-tab value="5" pStyleClass="px-4 py-3 md:px-6">
-              <div class="flex items-center gap-2 md:gap-3 text-sm md:text-base">
-                <i class="pi pi-align-left flex-shrink-0"></i>
-                <span class="font-semibold hidden md:inline">Docs</span>
-                <span class="font-semibold md:hidden">D</span>
+            <p-tab value="5" pStyleClass="px-6 py-4">
+              <div class="flex items-center gap-3">
+                <i class="pi pi-align-left"></i>
+                <div class="flex flex-col leading-tight">
+                  <span class="font-semibold text-sm">Documentos</span>
+                  <span class="text-xs text-gray-500">Archivos adjuntos</span>
+                </div>
               </div>
             </p-tab>
           </p-tablist>
 
-          <p-tabpanels pStyleClass="p-4 md:p-6">
+          <p-tabpanels pStyleClass="p-6">
             <p-tabpanel value="1">
               <app-obra-tareas
                 [obraId]="obra.id!"
@@ -593,8 +600,7 @@
                 </div>
                 @if (obra.memoria_descriptiva) {
                   <div class="bg-white rounded-lg border border-gray-200 p-6 prose max-w-none">
-                    <div class="text-gray-700 leading-relaxed whitespace-pre-wrap">
-                      {{ obra.memoria_descriptiva }}
+                    <div class="text-gray-700 leading-relaxed" [innerHTML]="obra.memoria_descriptiva">
                     </div>
                   </div>
                 } @else {
@@ -652,20 +658,20 @@
         </div>
       </app-modal>
 
-      <!-- ===================== ESTADO GENERAL ===================== -->
-      <div class="bg-gradient-to-r from-gray-50 to-gray-100 rounded-xl shadow-sm p-6 md:p-8 border border-gray-200">
-        <div class="flex items-center justify-between gap-4">
+      <!-- ===================== GESTIÓN DE ESTADO ===================== -->
+      <div class="bg-white rounded-xl shadow-md p-6 mt-5 w-full">
+        <div class="flex items-center justify-between">
           <div class="flex items-center gap-4">
-            <div class="w-16 h-16 rounded-xl flex items-center justify-center flex-shrink-0"
+            <div class="w-12 h-12 rounded-lg flex items-center justify-center"
                  [ngClass]="obra.activo ? 'bg-green-100' : 'bg-red-100'">
-              <i class="text-3xl"
+              <i class="text-xl"
                  [ngClass]="obra.activo ? 'pi pi-check-circle text-green-600' : 'pi pi-times-circle text-red-600'">
               </i>
             </div>
             <div>
-              <h3 class="text-lg font-bold text-gray-900">{{ obra.activo ? 'Obra Activa' : 'Obra Inactiva' }}</h3>
-              <p class="text-sm text-gray-600 mt-1">
-                {{ obra.activo ? 'Esta obra está siendo ejecutada' : 'Esta obra está desactivada en el sistema' }}
+              <p class="text-sm font-medium text-gray-500 mb-1">Estado de la Obra</p>
+              <p class="text-sm text-gray-600">
+                {{ obra.activo ? 'Obra activa en el sistema' : 'Obra desactivado' }}
               </p>
             </div>
           </div>
@@ -673,23 +679,42 @@
       </div>
     </div>
   } @placeholder {
-    <div class="p-6 md:p-8 space-y-8 w-full max-w-7xl mx-auto">
-      <div class="h-10 bg-gray-200 rounded w-1/2 animate-pulse"></div>
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-        @for (item of [1,2,3]; track item) {
-          <div class="bg-white rounded-xl shadow-sm p-6 animate-pulse border-l-4 border-gray-300">
-            <div class="h-4 bg-gray-200 rounded w-1/4 mb-4"></div>
-            <div class="h-8 bg-gray-200 rounded w-2/3"></div>
+    <!-- 🦴 Skeleton Mejorado -->
+    <div class="p-8 space-y-8 max-w-6xl mx-auto">
+      <!-- Header skeleton -->
+      <div class="bg-gradient-to-r from-gray-300 to-gray-400 rounded-2xl p-8 animate-pulse">
+        <div class="space-y-3">
+          <div class="h-8 bg-white/30 rounded w-1/3"></div>
+          <div class="h-4 bg-white/30 rounded w-1/4"></div>
+        </div>
+      </div>
+
+      <!-- Tarjetas skeleton -->
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        @for (item of [1,2,3,4]; track item) {
+          <div class="bg-white rounded-xl shadow-md p-6 animate-pulse">
+            <div class="flex items-center gap-3 mb-2">
+              <div class="w-10 h-10 bg-gray-200 rounded-lg"></div>
+              <div class="h-4 bg-gray-200 rounded w-16"></div>
+            </div>
+            <div class="h-6 bg-gray-200 rounded w-3/4"></div>
           </div>
         }
       </div>
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-        @for (item of [1,2]; track item) {
-          <div class="bg-white rounded-xl shadow-sm p-6 animate-pulse">
-            <div class="h-4 bg-gray-200 rounded w-1/3 mb-4"></div>
-            <div class="h-7 bg-gray-200 rounded w-1/2"></div>
+
+      <!-- Fechas y progreso skeleton -->
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div class="lg:col-span-2 bg-white rounded-xl shadow-md p-6 animate-pulse">
+          <div class="h-6 bg-gray-200 rounded w-1/4 mb-4"></div>
+          <div class="grid grid-cols-2 gap-4">
+            <div class="h-20 bg-gray-100 rounded-lg"></div>
+            <div class="h-20 bg-gray-100 rounded-lg"></div>
           </div>
-        }
+        </div>
+        <div class="bg-gradient-to-br from-gray-300 to-gray-400 rounded-xl shadow-md p-6 animate-pulse">
+          <div class="h-6 bg-white/30 rounded w-1/2 mb-4"></div>
+          <div class="h-16 bg-white/30 rounded"></div>
+        </div>
       </div>
     </div>
   }

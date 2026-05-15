@@ -1,6 +1,7 @@
 package com.apigateway.controller;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.ResponseEntity;
@@ -15,6 +16,7 @@ import java.util.Map;
 @RestController
 @RequestMapping("/bff/estados-obras")
 @RequiredArgsConstructor
+@Slf4j
 public class EstadosObraBffController {
 
     @Value("${services.obras.url}/estados")
@@ -34,7 +36,7 @@ public class EstadosObraBffController {
         return estadosFlux.collectList()
                 .map(ResponseEntity::ok)
                 .onErrorResume(ex -> {
-                    ex.printStackTrace();
+                    log.error("Error obteniendo estados de obras", ex);
                     Map<String, Object> err = Map.of(
                             "error", "No se pudieron obtener los estados de obra",
                             "detalle", ex.getMessage()

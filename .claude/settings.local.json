@@ -96,7 +96,10 @@
       "Bash(done)",
       "Bash(ls ~/.claude/skills/caveman*.md)",
       "Bash(npx skills:*)",
-      "Bash(node .agents/skills/owasp-top10/owasp-backend.js)"
+      "Bash(node .agents/skills/owasp-top10/owasp-backend.js)",
+      "Bash(for file:*)",
+      "Bash(echo \"Processing $file\")",
+      "Bash(__NEW_LINE_61a829bfd4c73566__ done:*)"
     ]
   }
 }
