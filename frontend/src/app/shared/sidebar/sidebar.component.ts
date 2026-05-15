@@ -35,5 +35,5 @@ export class SidebarComponent {
     {label: 'Cuentas Corrientes', icon: 'pi-wallet', path: '/cuentas-corrientes'},
   ];
 
-  version: string = 'v1.15.46';
+  version: string = 'v1.15.44';
 }
