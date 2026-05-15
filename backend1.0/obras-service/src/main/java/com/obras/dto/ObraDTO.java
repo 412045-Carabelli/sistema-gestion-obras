@@ -2,6 +2,7 @@ package com.obras.dto;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.obras.enums.EstadoObraEnum;
+import jakarta.validation.constraints.*;
 import lombok.Data;
 
 import java.math.BigDecimal;
@@ -13,17 +14,29 @@ import java.util.List;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class ObraDTO {
     private Long id;
+
+    @NotNull(message = "Cliente requerido")
     private Long id_cliente;
+
+    @NotNull(message = "Grupo requerido")
     private Long id_grupo;
+
     private GrupoObraDTO grupo;
     private EstadoObraEnum obra_estado;
+
+    @NotBlank(message = "Nombre requerido")
+    @Size(min = 3, max = 255, message = "Nombre debe tener entre 3 y 255 caracteres")
     private String nombre;
+
     private String direccion;
     private LocalDateTime fecha_presupuesto;
     private LocalDateTime fecha_inicio;
     private LocalDateTime fecha_fin;
     private LocalDateTime fecha_adjudicada;
     private LocalDateTime fecha_perdida;
+
+    @NotNull(message = "Presupuesto requerido")
+    @DecimalMin(value = "0", message = "Presupuesto no puede ser negativo")
     private BigDecimal presupuesto;
     private Boolean beneficio_global;
     private Boolean tiene_comision;

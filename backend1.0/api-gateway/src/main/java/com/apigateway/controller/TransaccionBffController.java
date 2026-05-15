@@ -1,6 +1,7 @@
 package com.apigateway.controller;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.core.type.TypeReference;
 import org.springframework.beans.factory.annotation.Value;
@@ -19,6 +20,7 @@ import java.util.Map;
 @RestController
 @RequestMapping("/bff/transacciones")
 @RequiredArgsConstructor
+@Slf4j
 public class TransaccionBffController {
 
     @Value("${services.transacciones.url}/tipo-transaccion")
@@ -66,7 +68,7 @@ public class TransaccionBffController {
                 .bodyToMono(new ParameterizedTypeReference<Map<String, Object>>() {})
                 .map(ResponseEntity::ok)
                 .onErrorResume(ex -> {
-                    ex.printStackTrace();
+                    log.error("Error en operación de transacciones", ex);
                     return Mono.just(ResponseEntity.badRequest().build());
                 });
     }

@@ -1,6 +1,7 @@
 package com.apigateway.controller;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.MediaType;
@@ -17,6 +18,7 @@ import java.util.Map;
 @RestController
 @RequestMapping("/bff/obras")
 @RequiredArgsConstructor
+@Slf4j
 public class ObraBffController {
 
     @Value("${services.obras.url}")
@@ -57,7 +59,7 @@ public class ObraBffController {
                 .bodyToMono(new ParameterizedTypeReference<Map<String, Object>>() {})
                 .map(ResponseEntity::ok)
                 .onErrorResume(ex -> {
-                    ex.printStackTrace();
+                    log.error("Error en operación de obra", ex);
                     Map<String, Object> err = Map.of(
                             "error", "No se pudo crear la obra",
                             "detalle", ex.getMessage()
@@ -84,7 +86,7 @@ public class ObraBffController {
                 .bodyToMono(new ParameterizedTypeReference<Map<String, Object>>() {})
                 .map(ResponseEntity::ok)
                 .onErrorResume(ex -> {
-                    ex.printStackTrace();
+                    log.error("Error en operación de obra", ex);
                     Map<String, Object> err = Map.of(
                             "error", "No se pudo actualizar la obra",
                             "detalle", ex.getMessage()
@@ -109,7 +111,7 @@ public class ObraBffController {
                 .toBodilessEntity()
                 .map(response -> ResponseEntity.noContent().build())
                 .onErrorResume(ex -> {
-                    ex.printStackTrace();
+                    log.error("Error en operación de obra", ex);
                     return Mono.just(ResponseEntity.internalServerError().build());
                 });
     }

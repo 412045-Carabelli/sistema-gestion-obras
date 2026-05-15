@@ -1405,8 +1405,7 @@ export class ObraPresupuestoComponent implements OnInit, OnChanges, AfterViewIni
   }
 
   puedeEditarCosto(costo?: ObraCosto | null): boolean {
-    if (!costo) return false;
-    return !this.estaSelladaCotizacion() || this.esAdicional(costo);
+    return !!costo;
   }
 
   getItemNumeroDisplay(costo: ObraCosto, index: number): string {

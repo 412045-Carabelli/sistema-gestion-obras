@@ -1,6 +1,7 @@
 package com.apigateway.controller;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.ResponseEntity;
@@ -16,6 +17,7 @@ import java.util.Map;
 @RestController
 @RequestMapping("/bff/proveedores")
 @RequiredArgsConstructor
+@Slf4j
 public class ProveedorBffController {
 
     @Value("${services.proveedores.url}")
@@ -100,7 +102,7 @@ public class ProveedorBffController {
                 .bodyToMono(new ParameterizedTypeReference<Map<String, Object>>() {})
                 .map(ResponseEntity::ok)
                 .onErrorResume(ex -> {
-                    ex.printStackTrace();
+                    log.error("Error en operación de proveedor", ex);
                     return Mono.just(ResponseEntity.badRequest().build());
                 });
     }
@@ -121,7 +123,7 @@ public class ProveedorBffController {
                 .bodyToMono(new ParameterizedTypeReference<Map<String, Object>>() {})
                 .map(ResponseEntity::ok)
                 .onErrorResume(ex -> {
-                    ex.printStackTrace();
+                    log.error("Error en operación de proveedor", ex);
                     return Mono.just(ResponseEntity.notFound().build());
                 });
     }
@@ -138,7 +140,7 @@ public class ProveedorBffController {
                 .bodyToMono(Void.class)
                 .map(ResponseEntity::ok)
                 .onErrorResume(ex -> {
-                    ex.printStackTrace();
+                    log.error("Error en operación de proveedor", ex);
                     return Mono.just(ResponseEntity.notFound().build());
                 });
     }
