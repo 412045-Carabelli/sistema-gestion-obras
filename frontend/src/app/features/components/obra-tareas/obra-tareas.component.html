@@ -18,25 +18,25 @@
         <table class="w-full text-sm">
           <thead class="bg-gray-50 text-gray-600">
             <tr>
-              <th class="text-left px-3 py-2">Proveedor</th>
-              <th class="text-right px-3 py-2">Costo total</th>
-              <th class="text-right px-3 py-2">Avance</th>
-              <th class="text-right px-3 py-2">Pago habilitado</th>
-              <th class="text-right px-3 py-2">Pagado</th>
-              <th class="text-right px-3 py-2">Saldo</th>
-              <th class="text-center px-3 py-2">Estado</th>
+              <th class="text-left px-3 py-2 font-poppins font-semibold">Proveedor</th>
+              <th class="text-right px-3 py-2 font-poppins font-semibold">Costo total</th>
+              <th class="text-right px-3 py-2 font-poppins font-semibold">Avance</th>
+              <th class="text-right px-3 py-2 font-poppins font-semibold">Pago habilitado</th>
+              <th class="text-right px-3 py-2 font-poppins font-semibold">Pagado</th>
+              <th class="text-right px-3 py-2 font-poppins font-semibold">Saldo</th>
+              <th class="text-center px-3 py-2 font-poppins font-semibold">Estado</th>
             </tr>
           </thead>
           <tbody>
             @for (row of avancePagos.items; track row.proveedorId) {
               <tr class="border-t border-gray-100">
-                <td class="px-3 py-2">{{ row.proveedorNombre }}</td>
-                <td class="px-3 py-2 text-right">{{ row.costoTotal | currency:'ARS':'symbol-narrow':'1.0-0' }}</td>
-                <td class="px-3 py-2 text-right">{{ row.avancePorcentaje | number:'1.0-1' }}%</td>
-                <td class="px-3 py-2 text-right font-semibold">{{ row.pagoHabilitado | currency:'ARS':'symbol-narrow':'1.0-0' }}</td>
-                <td class="px-3 py-2 text-right text-blue-700 font-semibold">{{ row.pagado | currency:'ARS':'symbol-narrow':'1.0-0' }}</td>
-                <td class="px-3 py-2 text-right"
-                  [ngClass]="row.saldo > 1 ? 'text-red-600 font-semibold' : row.saldo < -1 ? 'text-green-600 font-semibold' : 'text-gray-500'">
+                <td class="px-3 py-2 font-poppins font-normal">{{ row.proveedorNombre }}</td>
+                <td class="px-3 py-2 text-right font-poppins font-normal">{{ row.costoTotal | currency:'ARS':'symbol-narrow':'1.0-0' }}</td>
+                <td class="px-3 py-2 text-right font-poppins font-normal">{{ row.avancePorcentaje | number:'1.0-1' }}%</td>
+                <td class="px-3 py-2 text-right font-poppins font-semibold">{{ row.pagoHabilitado | currency:'ARS':'symbol-narrow':'1.0-0' }}</td>
+                <td class="px-3 py-2 text-right text-blue-700 font-poppins font-semibold">{{ row.pagado | currency:'ARS':'symbol-narrow':'1.0-0' }}</td>
+                <td class="px-3 py-2 text-right font-poppins"
+                  [ngClass]="row.saldo > 1 ? 'text-red-600 font-semibold' : row.saldo < -1 ? 'text-green-600 font-semibold' : 'text-gray-500 font-normal'">
                   {{ row.saldo | currency:'ARS':'symbol-narrow':'1.0-0' }}
                 </td>
                 <td class="px-3 py-2 text-center">
@@ -75,13 +75,13 @@
     [tableStyle]="{'min-width':'720px'}">
     <ng-template pTemplate="header">
       <tr>
-        <th pSortableColumn="numero_orden">Orden <p-sortIcon field="numero_orden"></p-sortIcon></th>
-        <th pSortableColumn="nombre" class="w-[260px]">Tarea <p-sortIcon field="nombre"></p-sortIcon></th>
-        <th pSortableColumn="proveedor.nombre">Proveedor <p-sortIcon field="proveedor.nombre"></p-sortIcon></th>
-        <th pSortableColumn="estado_tarea">Estado <p-sortIcon field="estado_tarea"></p-sortIcon></th>
-        <th pSortableColumn="fecha_inicio">Fecha inicio <p-sortIcon field="fecha_inicio"></p-sortIcon></th>
-        <th pSortableColumn="porcentaje">% Avance <p-sortIcon field="porcentaje"></p-sortIcon></th>
-        <th class="text-right">Acciones</th>
+        <th pSortableColumn="numero_orden" class="font-poppins font-semibold">Orden <p-sortIcon field="numero_orden"></p-sortIcon></th>
+        <th pSortableColumn="nombre" class="w-[260px] font-poppins font-semibold">Tarea <p-sortIcon field="nombre"></p-sortIcon></th>
+        <th pSortableColumn="proveedor.nombre" class="font-poppins font-semibold">Proveedor <p-sortIcon field="proveedor.nombre"></p-sortIcon></th>
+        <th pSortableColumn="estado_tarea" class="font-poppins font-semibold">Estado <p-sortIcon field="estado_tarea"></p-sortIcon></th>
+        <th pSortableColumn="fecha_inicio" class="font-poppins font-semibold">Fecha inicio <p-sortIcon field="fecha_inicio"></p-sortIcon></th>
+        <th pSortableColumn="porcentaje" class="font-poppins font-semibold">% Avance <p-sortIcon field="porcentaje"></p-sortIcon></th>
+        <th class="text-right font-poppins font-semibold">Acciones</th>
       </tr>
     </ng-template>
     <ng-template pTemplate="body" let-tarea>
@@ -90,9 +90,9 @@
         class="cursor-pointer hover:bg-gray-100 transition-colors"
         (click)="verTarea(tarea)"
       >
-        <td class="font-semibold text-gray-700">{{ tarea.numero_orden ?? '—' }}</td>
-        <td class="font-medium text-gray-900 w-[260px]">{{ tarea.nombre }}</td>
-        <td>{{ tarea.proveedor?.nombre || ('Proveedor #' + tarea.id_proveedor) }}</td>
+        <td class="font-poppins font-semibold text-gray-700">{{ tarea.numero_orden ?? '—' }}</td>
+        <td class="font-poppins font-semibold text-gray-900 w-[260px]">{{ tarea.nombre }}</td>
+        <td class="font-poppins font-normal">{{ tarea.proveedor?.nombre || ('Proveedor #' + tarea.id_proveedor) }}</td>
         <td>
           <p-tag
             [value]="tarea.estado_tarea | estadoFormat"

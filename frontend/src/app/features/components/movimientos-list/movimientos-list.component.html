@@ -69,30 +69,30 @@
         styleClass="p-datatable-sm">
         <ng-template pTemplate="header">
           <tr>
-            <th class="px-3 py-2 text-left">ID</th>
-            <th class="px-3 py-2 text-left">Fecha</th>
-            <th class="px-3 py-2 text-left">Obra</th>
-            <th class="px-3 py-2 text-left">Tipo Asociado</th>
-            <th class="px-3 py-2 text-left">Asociado</th>
-            <th class="px-3 py-2 text-left">Tipo Transacción</th>
-            <th class="px-3 py-2 text-left">Forma Pago</th>
-            <th class="px-3 py-2 text-left">Medio Pago</th>
-            <th class="px-3 py-2 text-right">Monto</th>
-            <th class="px-3 py-2 text-center">Acciones</th>
+            <th class="px-3 py-2 text-left font-poppins font-semibold">ID</th>
+            <th class="px-3 py-2 text-left font-poppins font-semibold">Fecha</th>
+            <th class="px-3 py-2 text-left font-poppins font-semibold">Obra</th>
+            <th class="px-3 py-2 text-left font-poppins font-semibold">Tipo Asociado</th>
+            <th class="px-3 py-2 text-left font-poppins font-semibold">Asociado</th>
+            <th class="px-3 py-2 text-left font-poppins font-semibold">Tipo Transacción</th>
+            <th class="px-3 py-2 text-left font-poppins font-semibold">Forma Pago</th>
+            <th class="px-3 py-2 text-left font-poppins font-semibold">Medio Pago</th>
+            <th class="px-3 py-2 text-right font-poppins font-semibold">Monto</th>
+            <th class="px-3 py-2 text-center font-poppins font-semibold">Acciones</th>
           </tr>
         </ng-template>
 
         <ng-template let-mov pTemplate="body">
           <tr class="hover:bg-gray-100 cursor-pointer" (click)="onRowClick(mov)">
-            <td class="px-3 py-2">{{ mov.id }}</td>
-            <td class="px-3 py-2">{{ mov.fecha | date:'dd/MM/yyyy' }}</td>
-            <td class="px-3 py-2">{{ getNombreObra(mov.id_obra) }}</td>
-            <td class="px-3 py-2">{{ mov.tipo_asociado }}</td>
-            <td class="px-3 py-2">{{ getNombreAsociado(mov) }}</td>
-            <td class="px-3 py-2">{{ mov.tipo_transaccion }}</td>
-            <td class="px-3 py-2">{{ mov.forma_pago }}</td>
-            <td class="px-3 py-2">{{ mov.medio_pago || '-' }}</td>
-            <td class="px-3 py-2 text-right">{{ mov.monto | currency:'ARS':'symbol-narrow':'1.0-2' }}</td>
+            <td class="px-3 py-2 font-poppins font-normal">{{ mov.id }}</td>
+            <td class="px-3 py-2 font-poppins font-normal">{{ mov.fecha | date:'dd/MM/yyyy' }}</td>
+            <td class="px-3 py-2 font-poppins font-normal">{{ getNombreObra(mov.id_obra) }}</td>
+            <td class="px-3 py-2 font-poppins font-normal">{{ mov.tipo_asociado }}</td>
+            <td class="px-3 py-2 font-poppins font-normal">{{ getNombreAsociado(mov) }}</td>
+            <td class="px-3 py-2 font-poppins font-normal">{{ mov.tipo_transaccion }}</td>
+            <td class="px-3 py-2 font-poppins font-normal">{{ mov.forma_pago }}</td>
+            <td class="px-3 py-2 font-poppins font-normal">{{ mov.medio_pago || '-' }}</td>
+            <td class="px-3 py-2 text-right font-poppins font-semibold">{{ mov.monto | currency:'ARS':'symbol-narrow':'1.0-2' }}</td>
             <td class="px-3 py-2" (click)="$event.stopPropagation()">
               <p-button
                 icon="pi pi-pencil"
@@ -139,7 +139,7 @@
     <form [formGroup]="form" (ngSubmit)="guardarMovimiento()" class="flex flex-col gap-4">
       <!-- Obra -->
       <div>
-        <label class="block text-sm font-medium mb-1">Obra</label>
+        <label class="block text-sm font-poppins font-semibold mb-1">Obra</label>
         <p-select
           formControlName="id_obra"
           (onChange)="onObraChange()"
@@ -156,7 +156,7 @@
       <!-- Tipo Asociado y Asociado (misma fila) -->
       <div class="grid grid-cols-2 gap-4">
         <div>
-          <label class="block text-sm font-medium mb-1">Tipo Asociado</label>
+          <label class="block text-sm font-poppins font-semibold mb-1">Tipo Asociado</label>
           <p-select
             formControlName="tipo_asociado"
             [options]="tiposAsociado.slice(1)"
@@ -168,7 +168,7 @@
         </div>
 
         <div>
-          <label class="block text-sm font-medium mb-1">Asociado</label>
+          <label class="block text-sm font-poppins font-semibold mb-1">Asociado</label>
           @if (form.get('tipo_asociado')?.value === 'CLIENTE') {
             <p-select
               formControlName="id_asociado"
@@ -215,7 +215,7 @@
       <!-- Tipo Transacción y Fecha (misma fila) -->
       <div class="grid grid-cols-2 gap-4">
         <div>
-          <label class="block text-sm font-medium mb-1">Tipo Transacción</label>
+          <label class="block text-sm font-poppins font-semibold mb-1">Tipo Transacción</label>
           <p-select
             formControlName="tipo_transaccion"
             [options]="[
@@ -230,7 +230,7 @@
         </div>
 
         <div>
-          <label class="block text-sm font-medium mb-1">Fecha</label>
+          <label class="block text-sm font-poppins font-semibold mb-1">Fecha</label>
           <p-datepicker
             formControlName="fecha"
             dateFormat="dd/mm/yy"
@@ -244,7 +244,7 @@
       <!-- Forma Pago y Monto (misma fila) -->
       <div class="grid grid-cols-2 gap-4">
         <div>
-          <label class="block text-sm font-medium mb-1">Forma Pago</label>
+          <label class="block text-sm font-poppins font-semibold mb-1">Forma Pago</label>
           <p-select
             formControlName="forma_pago"
             (onChange)="onFormaPagoChange()"
@@ -260,7 +260,7 @@
         </div>
 
         <div>
-          <label class="block text-sm font-medium mb-1">Monto</label>
+          <label class="block text-sm font-poppins font-semibold mb-1">Monto</label>
           <p-inputNumber
             formControlName="monto"
             [useGrouping]="false"
@@ -273,7 +273,7 @@
 
       <!-- Medio Pago -->
       <div>
-        <label class="block text-sm font-medium mb-1">Medio Pago</label>
+        <label class="block text-sm font-poppins font-semibold mb-1">Medio Pago</label>
         <input
           type="text"
           pInputText
@@ -285,7 +285,7 @@
 
       <!-- Concepto -->
       <div>
-        <label class="block text-sm font-medium mb-1">Concepto</label>
+        <label class="block text-sm font-poppins font-semibold mb-1">Concepto</label>
         <textarea
           pInputTextarea
           formControlName="concepto"

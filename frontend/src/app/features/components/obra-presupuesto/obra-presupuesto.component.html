@@ -5,7 +5,7 @@
   <!-- Header -->
   <div class="flex justify-between items-center flex-wrap gap-3">
     <div>
-      <h2 class="font-poppins text-2xl font-poppins font-bold text-gray-900">Presupuesto</h2>
+      <h2 class="font-poppins font-bold text-gray-900">Presupuesto</h2>
       <p class="text-gray-500 text-sm mt-1">
         Matriz de costos detallada de la obra
       </p>
@@ -43,7 +43,7 @@
             <i class="pi pi-plus text-lg"></i>
           </div>
           <div>
-            <p class="text-sm font-poppins font-poppins font-semibold text-gray-900 leading-none">Agregar costo</p>
+            <p class="text- font-semibold text-gray-900 leading-none">Agregar costo</p>
             <p class="text-xs font-poppins font-normal text-gray-500 leading-none">Completa los campos y sumalo a la matriz</p>
           </div>
         </div>
@@ -57,7 +57,7 @@
         <div class="flex flex-col gap-1">
           <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
             <div class="flex flex-col gap-1">
-              <label class="text-xs font-medium text-gray-600 min-h-[16px]">Item</label>
+              <label class="text-xs font-poppins font-semibold text-gray-600 min-h-[16px]">Item</label>
               <input
                 [(ngModel)]="nuevoCosto.item_numero"
                 class="w-full"
@@ -67,7 +67,7 @@
               />
             </div>
             <div class="flex flex-col gap-1 sm:col-span-2">
-              <label class="text-xs font-medium text-gray-600 min-h-[16px]">Proveedor</label>
+              <label class="text-xs font-poppins font-semibold text-gray-600 min-h-[16px]">Proveedor</label>
               <p-autoComplete
                 [(ngModel)]="nuevoCostoProveedor"
                 [suggestions]="filteredProveedores"
@@ -90,7 +90,7 @@
         </div>
 
         <div class="flex flex-col gap-1 md:col-start-2 md:row-start-1">
-          <label class="text-xs font-medium text-gray-600 min-h-[16px]">Descripcion</label>
+          <label class="text-xs font-poppins font-semibold text-gray-600 min-h-[16px]">Descripcion</label>
           <input
             [(ngModel)]="nuevoCosto.descripcion"
             class="w-full"
@@ -101,7 +101,7 @@
         </div>
 
         <div class="flex flex-col gap-1">
-          <label class="text-xs font-medium text-gray-600 min-h-[16px]">Cantidad y unidad</label>
+          <label class="text-xs font-poppins font-semibold text-gray-600 min-h-[16px]">Cantidad y unidad</label>
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <input
               [(ngModel)]="nuevoCosto.cantidad"
@@ -122,7 +122,7 @@
         </div>
 
         <div class="flex flex-col gap-1 md:col-start-2 md:row-start-2">
-          <label class="text-xs font-medium text-gray-600 min-h-[16px]">Precio unitario</label>
+          <label class="text-xs font-poppins font-semibold text-gray-600 min-h-[16px]">Precio unitario</label>
           <p-inputNumber
             [(ngModel)]="nuevoCosto.precio_unitario"
             mode="decimal"
@@ -139,7 +139,7 @@
         <div class="flex flex-col gap-1 md:col-span-2">
           <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
             <div class="flex flex-col gap-1">
-              <label class="text-xs font-medium text-gray-600 min-h-[16px]">Tipo de costo</label>
+              <label class="text-xs font-poppins font-semibold text-gray-600 min-h-[16px]">Tipo de costo</label>
               <p-select
                 [(ngModel)]="nuevoCosto.tipo_costo"
                 [options]="getTipoCostoOptions()"
@@ -152,7 +152,7 @@
               ></p-select>
             </div>
             <div class="flex flex-col gap-1">
-              <label class="text-xs font-medium text-gray-600 min-h-[16px]">Beneficio (%)</label>
+              <label class="text-xs font-poppins font-semibold text-gray-600 min-h-[16px]">Beneficio (%)</label>
               <input
                 [(ngModel)]="nuevoCosto.beneficio"
                 [disabled]="usarBeneficioGlobal && nuevoCosto.tipo_costo === 'ORIGINAL'"
@@ -168,10 +168,10 @@
 
         <div class="md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-3 items-end">
           <div class="flex flex-col gap-1">
-            <label class="text-xs font-medium text-gray-600 min-h-[16px]">Subtotal</label>
+            <label class="text-xs font-poppins font-semibold text-gray-600 min-h-[16px]">Subtotal</label>
             <input
               [ngModel]="calcularNuevoCostoSubtotal() | currency:'ARS'"
-              class="w-full text-right font-medium text-gray-700"
+              class="w-full text-right font-poppins font-semibold text-gray-700"
               pInputText
               type="text"
               disabled
@@ -179,7 +179,7 @@
           </div>
 
           <div class="flex flex-col gap-1">
-            <label class="text-xs font-medium text-gray-600 min-h-[16px]">Total con beneficio</label>
+            <label class="text-xs font-poppins font-semibold text-gray-600 min-h-[16px]">Total con beneficio</label>
             <input
               [ngModel]="calcularNuevoCostoTotal() | currency:'ARS'"
               class="w-full text-right font-semibold text-emerald-700"
@@ -408,7 +408,7 @@
   <div class="bg-white border border-gray-200 rounded-xl shadow-sm p-5">
     <div class="flex items-center justify-between gap-3 mb-3">
       <div>
-        <h3 class="font-poppins text-lg font-poppins font-semibold text-gray-900">Condiciones y observaciones (PDF)</h3>
+        <h3 class="font-poppins font-semibold text-gray-900">Condiciones y observaciones (PDF)</h3>
         <p class="text-xs font-poppins font-normal text-gray-500">Se muestran al final del presupuesto exportado.</p>
       </div>
       @if (!condicionesEditando) {
@@ -424,7 +424,7 @@
     @if (condicionesEditando) {
       <div class="grid grid-cols-1 gap-4">
         <div class="flex flex-col gap-2">
-          <label class="text-sm font-medium text-gray-700">Condiciones (una por línea)</label>
+          <label class="text-sm font-poppins font-semibold text-gray-700">Condiciones (una por línea)</label>
           <textarea
             [(ngModel)]="condicionesDraft"
             class="p-inputtext p-component w-full min-h-[140px]"
@@ -432,7 +432,7 @@
           ></textarea>
         </div>
         <div class="flex flex-col gap-2">
-          <label class="text-sm font-medium text-gray-700">Observaciones</label>
+          <label class="text-sm font-poppins font-semibold text-gray-700">Observaciones</label>
           <textarea
             [(ngModel)]="observacionesDraft"
             class="p-inputtext p-component w-full min-h-[120px]"
@@ -499,7 +499,7 @@
         <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
           <div class="md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-4">
             <div class="flex flex-col gap-2">
-              <label class="text-sm font-medium text-gray-700">Item</label>
+              <label class="text-sm font-poppins font-semibold text-gray-700">Item</label>
               <input
                 class="p-inputtext p-component w-full max-w-[220px] text-sm py-1"
                 [(ngModel)]="costoDetalleDraft.item_numero"
@@ -507,7 +507,7 @@
                 type="text"/>
             </div>
             <div class="flex flex-col gap-2">
-              <label class="text-sm font-medium text-gray-700">Proveedor</label>
+              <label class="text-sm font-poppins font-semibold text-gray-700">Proveedor</label>
               @if (costoDetalleEditando) {
                 <p-autoComplete
                   [(ngModel)]="costoDetalleDraft.proveedor"
@@ -529,7 +529,7 @@
             }
             </div>
             <div class="flex flex-col gap-2">
-              <label class="text-sm font-medium text-gray-700">Cantidad</label>
+              <label class="text-sm font-poppins font-semibold text-gray-700">Cantidad</label>
               <input
                 class="p-inputtext p-component w-full max-w-[220px] text-sm py-1"
                 [(ngModel)]="costoDetalleDraft.cantidad"
@@ -538,7 +538,7 @@
                 type="text"/>
             </div>
             <div class="flex flex-col gap-2">
-              <label class="text-sm font-medium text-gray-700">Unidad</label>
+              <label class="text-sm font-poppins font-semibold text-gray-700">Unidad</label>
               <input
                 class="p-inputtext p-component w-full max-w-[220px] text-sm py-1"
                 [(ngModel)]="costoDetalleDraft.unidad"
@@ -546,7 +546,7 @@
                 type="text"/>
             </div>
             <div class="flex flex-col gap-2">
-              <label class="text-sm font-medium text-gray-700">Precio unitario</label>
+              <label class="text-sm font-poppins font-semibold text-gray-700">Precio unitario</label>
               @if (costoDetalleEditando) {
                 <p-inputNumber
                   [(ngModel)]="costoDetalleDraft.precio_unitario"
@@ -568,7 +568,7 @@
             }
             </div>
             <div class="flex flex-col gap-2">
-              <label class="text-sm font-medium text-gray-700">Beneficio (%)</label>
+              <label class="text-sm font-poppins font-semibold text-gray-700">Beneficio (%)</label>
               <input
                 class="p-inputtext p-component w-full max-w-[220px] text-sm py-1"
                 [(ngModel)]="costoDetalleDraft.beneficio"
@@ -577,7 +577,7 @@
                 type="text"/>
             </div>
             <div class="flex flex-col gap-2">
-              <label class="text-sm font-medium text-gray-700">Gasto Real</label>
+              <label class="text-sm font-poppins font-semibold text-gray-700">Gasto Real</label>
               @if (costoDetalleEditando) {
                 <p-inputNumber
                   [(ngModel)]="costoDetalleDraft.monto_real"
@@ -600,7 +600,7 @@
               }
             </div>
             <div class="flex flex-col gap-2">
-              <label class="text-sm font-medium text-gray-700">Desvío</label>
+              <label class="text-sm font-poppins font-semibold text-gray-700">Desvío</label>
               <input
                 class="p-inputtext p-component w-full max-w-[220px] text-sm py-1 text-right font-semibold"
                 [value]="calcularDesvio(costoDetalleDraft) !== null ? (calcularDesvio(costoDetalleDraft) | currency:'ARS':'symbol':'1.0-2') : '—'"
@@ -612,7 +612,7 @@
                 type="text"/>
             </div>
             <div class="flex flex-col gap-2">
-              <label class="text-sm font-medium text-gray-700">Subtotal</label>
+              <label class="text-sm font-poppins font-semibold text-gray-700">Subtotal</label>
               <input
                 class="p-inputtext p-component w-full max-w-[220px] text-sm py-1"
                 [value]="(costoDetalleDraft.subtotal | currency:'ARS':'symbol':'1.0-2') || ''"
@@ -620,7 +620,7 @@
                 type="text"/>
             </div>
             <div class="flex flex-col gap-2">
-              <label class="text-sm font-medium text-gray-700">Total</label>
+              <label class="text-sm font-poppins font-semibold text-gray-700">Total</label>
               <input
                 class="p-inputtext p-component w-full max-w-[220px] text-sm py-1"
                 [value]="(costoDetalleDraft.total | currency:'ARS':'symbol':'1.0-2') || ''"
@@ -629,7 +629,7 @@
             </div>
           </div>
           <div class="md:col-span-2 flex flex-col gap-2">
-            <label class="text-sm font-medium text-gray-700">Descripcion</label>
+            <label class="text-sm font-poppins font-semibold text-gray-700">Descripcion</label>
             <p-editor
               [(ngModel)]="costoDetalleDraft.descripcion"
               [readonly]="!costoDetalleEditando"
@@ -660,7 +660,7 @@
     <div class="p-3 space-y-4">
       <div class="flex items-center gap-4 flex-wrap">
         <div class="inline-flex flex-col gap-2 px-3 py-2">
-          <span class="text-sm font-medium text-gray-700 opacity-0 select-none">Porcentaje</span>
+          <span class="text-sm font-poppins font-semibold text-gray-700 opacity-0 select-none">Porcentaje</span>
           <div class="flex items-center gap-3">
             <p-checkbox
               binary="true"
@@ -674,7 +674,7 @@
         </div>
 
         <div class="flex flex-col gap-2">
-          <label class="text-sm font-medium text-gray-700">Porcentaje</label>
+          <label class="text-sm font-poppins font-semibold text-gray-700">Porcentaje</label>
           <div class="flex items-center gap-2">
             <p-inputNumber
               [(ngModel)]="beneficioGlobalDraft"
@@ -724,7 +724,7 @@
   >
     <div class="p-4 space-y-4">
       <div class="flex flex-col gap-2">
-        <label class="text-sm font-medium text-gray-700">Fecha de la cotización</label>
+        <label class="text-sm font-poppins font-semibold text-gray-700">Fecha de la cotización</label>
         <p-datepicker
           [(ngModel)]="fechaExportSeleccionada"
           [showIcon]="true"

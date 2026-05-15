@@ -165,7 +165,10 @@ public class ObraBffController {
     // ================================
     @GetMapping
     public Mono<ResponseEntity<List<Map<String, Object>>>> getTodasLasObras(
-            @RequestParam Map<String, String> queryParams
+            @RequestParam(required = false) String estado,
+            @RequestParam(required = false) Long idCliente,
+            @RequestParam(required = false) Integer page,
+            @RequestParam(required = false) Integer size
     ) {
         WebClient client = webClientBuilder.build();
 
@@ -181,8 +184,17 @@ public class ObraBffController {
                     if (base.getPath() != null && !base.getPath().isEmpty()) {
                         builder.path(base.getPath());
                     }
-                    if (queryParams != null && !queryParams.isEmpty()) {
-                        queryParams.forEach(builder::queryParam);
+                    if (estado != null && !estado.isEmpty()) {
+                        builder.queryParam("estado", estado);
+                    }
+                    if (idCliente != null) {
+                        builder.queryParam("idCliente", idCliente);
+                    }
+                    if (page != null) {
+                        builder.queryParam("page", page);
+                    }
+                    if (size != null) {
+                        builder.queryParam("size", size);
                     }
                     return builder.build();
                 })

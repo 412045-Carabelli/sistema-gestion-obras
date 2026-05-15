@@ -30,7 +30,10 @@ public class ProveedorBffController {
     // ===============================
     @GetMapping
     public Mono<ResponseEntity<List<Map<String, Object>>>> getAllProveedores(
-            @RequestParam Map<String, String> queryParams
+            @RequestParam(required = false) String nombre,
+            @RequestParam(required = false) String rubro,
+            @RequestParam(required = false) Integer page,
+            @RequestParam(required = false) Integer size
     ) {
         WebClient client = webClientBuilder.build();
 
@@ -46,8 +49,17 @@ public class ProveedorBffController {
                     if (base.getPath() != null && !base.getPath().isEmpty()) {
                         builder.path(base.getPath());
                     }
-                    if (queryParams != null && !queryParams.isEmpty()) {
-                        queryParams.forEach(builder::queryParam);
+                    if (nombre != null && !nombre.isEmpty()) {
+                        builder.queryParam("nombre", nombre);
+                    }
+                    if (rubro != null && !rubro.isEmpty()) {
+                        builder.queryParam("rubro", rubro);
+                    }
+                    if (page != null) {
+                        builder.queryParam("page", page);
+                    }
+                    if (size != null) {
+                        builder.queryParam("size", size);
                     }
                     return builder.build();
                 })

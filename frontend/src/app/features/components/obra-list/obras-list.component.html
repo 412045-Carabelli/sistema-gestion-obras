@@ -51,7 +51,7 @@
             inputId="obrasMostrarInactivos"
             (ngModelChange)="onMostrarInactivosChange()">
           </p-checkbox>
-          <label for="obrasMostrarInactivos" class="text-base text-gray-700">
+          <label for="obrasMostrarInactivos" class="text-base font-poppins font-normal text-gray-700">
             Ver inactivos
           </label>
         </div>
@@ -70,26 +70,26 @@
 
         <ng-template pTemplate="header">
           <tr>
-            <th pSortableColumn="id" class="text-left font-semibold w-20">N° <p-sortIcon field="id"></p-sortIcon></th>
-            <th pSortableColumn="nombre" class="text-left font-semibold">Obra <p-sortIcon field="nombre"></p-sortIcon></th>
-            <th pSortableColumn="cliente.nombre" class="text-left font-semibold">Cliente <p-sortIcon field="cliente.nombre"></p-sortIcon></th>
-            <th pSortableColumn="obra_estado" class="text-left font-semibold">Estado <p-sortIcon field="obra_estado"></p-sortIcon></th>
-            <th pSortableColumn="requiere_factura" class="text-left font-semibold">Facturacion <p-sortIcon field="requiere_factura"></p-sortIcon></th>
-            <th pSortableColumn="fecha_inicio" class="text-left font-semibold">Fecha inicio <p-sortIcon field="fecha_inicio"></p-sortIcon></th>
-            <th pSortableColumn="presupuesto" class="text-right font-semibold">Presupuesto <p-sortIcon field="presupuesto"></p-sortIcon></th>
+            <th pSortableColumn="id" class="text-left font-poppins font-semibold w-20">N° <p-sortIcon field="id"></p-sortIcon></th>
+            <th pSortableColumn="nombre" class="text-left font-poppins font-semibold">Obra <p-sortIcon field="nombre"></p-sortIcon></th>
+            <th pSortableColumn="cliente.nombre" class="text-left font-poppins font-semibold">Cliente <p-sortIcon field="cliente.nombre"></p-sortIcon></th>
+            <th pSortableColumn="obra_estado" class="text-left font-poppins font-semibold">Estado <p-sortIcon field="obra_estado"></p-sortIcon></th>
+            <th pSortableColumn="requiere_factura" class="text-left font-poppins font-semibold">Facturacion <p-sortIcon field="requiere_factura"></p-sortIcon></th>
+            <th pSortableColumn="fecha_inicio" class="text-left font-poppins font-semibold">Fecha inicio <p-sortIcon field="fecha_inicio"></p-sortIcon></th>
+            <th pSortableColumn="presupuesto" class="text-right font-poppins font-semibold">Presupuesto <p-sortIcon field="presupuesto"></p-sortIcon></th>
           </tr>
         </ng-template>
 
         <ng-template let-obra pTemplate="body">
           <tr (click)="onRowClick(obra)" class="cursor-pointer hover:bg-gray-50 transition-colors">
-            <td class="font-semibold text-gray-600">{{ getNumeroOrden(obra) }}</td>
+            <td class="font-poppins font-semibold text-gray-600">{{ getNumeroOrden(obra) }}</td>
             <td>
               <div class="flex flex-col gap-1">
                 <span class="font-poppins font-semibold text-gray-900 text-sm">{{ obra.nombre }}</span>
                 <span class="text-xs font-poppins font-normal text-gray-500">{{ obra.direccion }}</span>
               </div>
             </td>
-            <td class="text-gray-700">{{ obra.cliente.nombre }}</td>
+            <td class="text-gray-700 font-poppins font-normal">{{ obra.cliente.nombre }}</td>
             <td>
               <p-tag
                 [severity]="getEstadoSeverity(obra.id_estado_obra)"
@@ -105,16 +105,16 @@
             <td>
               @if (obra.fecha_inicio) {
                 <div class="flex flex-col gap-1 text-xs text-gray-600">
-                  <span>Desde: {{ obra.fecha_inicio | date:'dd/MM/yy' }}</span>
+                  <span class="font-poppins font-normal">Desde: {{ obra.fecha_inicio | date:'dd/MM/yy' }}</span>
                   @if (obra.fecha_fin) {
-                    <span>Hasta: {{ obra.fecha_fin | date:'dd/MM/yy' }}</span>
+                    <span class="font-poppins font-normal">Hasta: {{ obra.fecha_fin | date:'dd/MM/yy' }}</span>
                   }
                 </div>
               } @else {
-                <span class="text-gray-400 text-sm">-</span>
+                <span class="text-gray-400 text-sm font-poppins font-normal">-</span>
               }
             </td>
-            <td class="text-right font-medium text-gray-900">
+            <td class="text-right font-poppins font-semibold text-gray-900">
               {{ obra.presupuesto | currency:'ARS':'symbol-narrow':'1.0-0' }}
             </td>
           </tr>
@@ -125,8 +125,8 @@
             <td class="text-center py-10" colspan="7">
               <div class="flex flex-col items-center justify-center gap-2 text-gray-500">
                 <i class="pi pi-inbox text-3xl"></i>
-                <p class="text-base font-medium">No hay registros para mostrar</p>
-                <p class="text-sm">Ajusta los filtros o crea un nuevo registro.</p>
+                <p class="text-base font-poppins font-semibold">No hay registros para mostrar</p>
+                <p class="text-sm font-poppins font-normal">Ajusta los filtros o crea un nuevo registro.</p>
               </div>
             </td>
           </tr>
