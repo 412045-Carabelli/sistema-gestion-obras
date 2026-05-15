@@ -229,7 +229,7 @@ export class ObrasDetailComponent implements OnInit, OnDestroy, AfterViewInit {
       obra: this.obraService.getObraById(idObra),
       estados: this.estadoObraService.getEstados(),
       clientes: this.clientesService.getClientes(),
-      proveedores: this.proveedoresService.getProveedores()
+      proveedores: this.proveedoresService.getProveedoresSimple()
     }).subscribe({
 
       next: ({ obra, estados, clientes, proveedores }) => {
