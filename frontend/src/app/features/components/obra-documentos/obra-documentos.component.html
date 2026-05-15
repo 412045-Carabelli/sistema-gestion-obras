@@ -3,7 +3,7 @@
 
 <div class="p-4 space-y-4">
   <div class="flex justify-between items-center mb-3">
-    <h2 class="text-xl font-semibold text-gray-800">Documentos</h2>
+    <h2 class="text-xl font-poppins font-semibold text-gray-800">Documentos</h2>
     <p-button
       (onClick)="abrirModal()"
       icon="pi pi-plus"
@@ -91,7 +91,7 @@
 
         @if (documentoDetalle.observacion && documentoDetalle.observacion !== '<p></p>') {
           <div>
-            <p class="text-sm font-medium text-gray-700 mb-1">Nota</p>
+            <p class="text-sm font-poppins font-semibold text-gray-700 mb-1">Nota</p>
             <div
               class="prose prose-sm max-w-none border border-gray-200 rounded-lg p-3 bg-gray-50 text-gray-800"
               [innerHTML]="sanitizarHtml(documentoDetalle.observacion)"

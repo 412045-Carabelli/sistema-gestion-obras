@@ -8,8 +8,8 @@
   </div>
 
   <div class="relative z-10">
-    <h1 class="text-3xl font-bold mb-2">Dashboard General</h1>
-    <p class="text-indigo-100">Vista general del sistema - Resumen de actividades</p>
+    <h1 class="text-3xl font-poppins font-bold mb-2">Dashboard General</h1>
+    <p class="font-poppins font-normal text-indigo-100">Vista general del sistema - Resumen de actividades</p>
   </div>
 </div>
 
@@ -17,7 +17,7 @@
 
   <!-- ===================== ACCESOS RÁPIDOS ===================== -->
   <div class="bg-white rounded-xl shadow-md p-6">
-    <h2 class="text-lg font-semibold text-gray-900 mb-5 flex items-center gap-2 pb-3 border-b border-gray-200">
+    <h2 class="text-lg font-poppins font-semibold text-gray-900 mb-5 flex items-center gap-2 pb-3 border-b border-gray-200">
       <i class="pi pi-bolt text-indigo-600"></i>
       Accesos Rápidos
     </h2>
@@ -29,7 +29,7 @@
         <div class="w-12 h-12 bg-green-500 rounded-full flex items-center justify-center">
           <i class="pi pi-arrow-right-arrow-left text-white text-xl"></i>
         </div>
-        <span class="text-sm font-semibold text-gray-700 text-center">Nuevo movimiento</span>
+        <span class="text-sm font-poppins font-semibold text-gray-700 text-center">Nuevo movimiento</span>
       </button>
 
       <button
@@ -38,7 +38,7 @@
         <div class="w-12 h-12 bg-teal-500 rounded-full flex items-center justify-center">
           <i class="pi pi-file text-white text-xl"></i>
         </div>
-        <span class="text-sm font-semibold text-gray-700 text-center">Nueva factura</span>
+        <span class="text-sm font-poppins font-semibold text-gray-700 text-center">Nueva factura</span>
       </button>
 
       <button
@@ -47,7 +47,7 @@
         <div class="w-12 h-12 bg-blue-500 rounded-full flex items-center justify-center">
           <i class="pi pi-user-plus text-white text-xl"></i>
         </div>
-        <span class="text-sm font-semibold text-gray-700 text-center">Nuevo cliente</span>
+        <span class="text-sm font-poppins font-semibold text-gray-700 text-center">Nuevo cliente</span>
       </button>
 
       <button
@@ -56,7 +56,7 @@
         <div class="w-12 h-12 bg-purple-500 rounded-full flex items-center justify-center">
           <i class="pi pi-truck text-white text-xl"></i>
         </div>
-        <span class="text-sm font-semibold text-gray-700 text-center">Nuevo proveedor</span>
+        <span class="text-sm font-poppins font-semibold text-gray-700 text-center">Nuevo proveedor</span>
       </button>
 
       <button
@@ -65,7 +65,7 @@
         <div class="w-12 h-12 bg-orange-500 rounded-full flex items-center justify-center">
           <i class="pi pi-list-check text-white text-xl"></i>
         </div>
-        <span class="text-sm font-semibold text-gray-700 text-center">Nueva tarea</span>
+        <span class="text-sm font-poppins font-semibold text-gray-700 text-center">Nueva tarea</span>
       </button>
     </div>
   </div>
@@ -73,7 +73,7 @@
   <!-- ===================== FILTROS DEL DASHBOARD ===================== -->
   <div class="bg-white rounded-xl shadow-md p-6">
     <div class="flex items-center justify-between mb-5 pb-3 border-b border-gray-200">
-      <h2 class="text-lg font-semibold text-gray-900 flex items-center gap-2">
+      <h2 class="text-lg font-poppins font-semibold text-gray-900 flex items-center gap-2">
         <i class="pi pi-filter text-indigo-600"></i>
         Filtros del dashboard
       </h2>
@@ -81,7 +81,7 @@
 
     <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-5 gap-4">
       <div>
-        <label class="block text-sm font-medium mb-1 text-gray-700">Obra</label>
+        <label class="block text-sm font-poppins font-semibold mb-1 text-gray-700">Obra</label>
         <p-autoComplete
           [(ngModel)]="filtrosDashboard.obra"
           [suggestions]="filteredObras"
@@ -95,7 +95,7 @@
       </div>
 
       <div>
-        <label class="block text-sm font-medium mb-1 text-gray-700">Cliente</label>
+        <label class="block text-sm font-poppins font-semibold mb-1 text-gray-700">Cliente</label>
         <p-autoComplete
           [(ngModel)]="filtrosDashboard.cliente"
           [suggestions]="filteredClientes"
@@ -109,7 +109,7 @@
       </div>
 
       <div>
-        <label class="block text-sm font-medium mb-1 text-gray-700">Proveedor</label>
+        <label class="block text-sm font-poppins font-semibold mb-1 text-gray-700">Proveedor</label>
         <p-autoComplete
           [(ngModel)]="filtrosDashboard.proveedor"
           [suggestions]="filteredProveedores"
@@ -123,7 +123,7 @@
       </div>
 
       <div>
-        <label class="block text-sm font-medium mb-1 text-gray-700">Rango de fechas</label>
+        <label class="block text-sm font-poppins font-semibold mb-1 text-gray-700">Rango de fechas</label>
         <p-datePicker
           fluid
           [(ngModel)]="filtrosDashboard.rangoFechas"
@@ -185,7 +185,7 @@
       (onSelect)="onMovimientoObraSelect($event.value ?? $event)"
     ></p-autoComplete>
 
-    <label class="block text-sm font-medium mb-1 text-gray-700">Tipo de asociado</label>
+    <label class="block text-sm font-poppins font-semibold mb-1 text-gray-700">Tipo de asociado</label>
     <p-select
       [(ngModel)]="movimientoTipoEntidad"
       [options]="[
@@ -225,7 +225,7 @@
       ></p-autoComplete>
     }
 
-    <label class="block text-sm font-medium mb-1 text-gray-700">Condicion de pago/cobro</label>
+    <label class="block text-sm font-poppins font-semibold mb-1 text-gray-700">Condicion de pago/cobro</label>
     <div class="flex items-center gap-6">
       <div class="flex items-center gap-2">
         <p-radiobutton
@@ -249,7 +249,7 @@
       </div>
     </div>
 
-    <label class="block text-sm font-medium mb-1 text-gray-700">Medio</label>
+    <label class="block text-sm font-poppins font-semibold mb-1 text-gray-700">Medio</label>
     <input
       type="text"
       pInputText
@@ -260,7 +260,7 @@
 
     <div class="flex gap-5">
       <div class="flex flex-col w-1/2">
-        <label class="block text-sm font-medium mb-1 text-gray-700">Monto</label>
+        <label class="block text-sm font-poppins font-semibold mb-1 text-gray-700">Monto</label>
         <p-inputNumber
           [(ngModel)]="movimientoForm.monto"
           class="w-full"
@@ -270,7 +270,7 @@
         ></p-inputNumber>
       </div>
       <div class="flex flex-col w-1/2">
-        <label class="block text-sm font-medium mb-1 text-gray-700">Fecha</label>
+        <label class="block text-sm font-poppins font-semibold mb-1 text-gray-700">Fecha</label>
         <p-datepicker
           [(ngModel)]="movimientoForm.fecha"
           appendTo="body"
@@ -417,7 +417,7 @@
 
     <div class="flex gap-5">
       <div class="flex flex-col w-1/2">
-        <label class="block text-sm font-medium mb-1 text-gray-700">Fecha</label>
+        <label class="block text-sm font-poppins font-semibold mb-1 text-gray-700">Fecha</label>
         <p-datepicker
           [(ngModel)]="facturaForm.fecha"
           appendTo="body"
@@ -426,7 +426,7 @@
         ></p-datepicker>
       </div>
       <div class="flex flex-col w-1/2">
-        <label class="block text-sm font-medium mb-1 text-gray-700">Monto</label>
+        <label class="block text-sm font-poppins font-semibold mb-1 text-gray-700">Monto</label>
         <p-inputNumber
           [(ngModel)]="facturaForm.monto"
           class="w-full"

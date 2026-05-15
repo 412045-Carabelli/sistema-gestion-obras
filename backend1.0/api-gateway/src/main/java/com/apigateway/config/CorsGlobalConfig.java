@@ -16,8 +16,11 @@ public class CorsGlobalConfig {
         CorsConfiguration corsConfig = new CorsConfiguration();
         corsConfig.setAllowedOrigins(List.of("http://localhost:4200"));
         corsConfig.setMaxAge(8000L);
-        corsConfig.addAllowedMethod("*");
-        corsConfig.addAllowedHeader("*");
+        // Especificar métodos permitidos en lugar de "*"
+        corsConfig.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
+        // Especificar headers permitidos en lugar de "*"
+        corsConfig.setAllowedHeaders(List.of("Content-Type", "Authorization", "X-Requested-With"));
+        corsConfig.setExposedHeaders(List.of("Content-Type"));
         corsConfig.setAllowCredentials(true);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
