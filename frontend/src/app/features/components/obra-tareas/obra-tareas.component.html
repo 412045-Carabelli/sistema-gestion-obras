@@ -3,7 +3,7 @@
   <!-- Header -->
   <div class="flex w-full justify-between items-center">
     <div class="p-5">
-      <h1 class="text-2xl font-semibold text-black">Gestión de tareas</h1>
+      <h1 class="font-poppins text-2xl font-semibold text-black">Gestión de tareas</h1>
     </div>
     <p-button (onClick)="abrirModal()" icon="pi pi-plus" label="Nueva Tarea"></p-button>
   </div>
@@ -11,7 +11,7 @@
   @if (avancePagos && avancePagos.items.length > 0) {
     <div class="bg-white border border-gray-200 rounded-lg p-4">
       <div class="flex flex-wrap items-center justify-between gap-3 mb-3">
-        <div class="text-sm font-semibold text-gray-800">Avance y pagos habilitados</div>
+        <div class="text-sm font-poppins font-semibold text-gray-800">Avance y pagos habilitados</div>
       </div>
 
       <div class="overflow-x-auto">
@@ -53,7 +53,7 @@
                       <i class="pi pi-arrow-up-right text-xs"></i> Adelantado
                     </span>
                   } @else {
-                    <span class="text-xs text-gray-400">—</span>
+                    <span class="text-xs font-poppins font-normal text-gray-400">—</span>
                   }
                 </td>
               </tr>
