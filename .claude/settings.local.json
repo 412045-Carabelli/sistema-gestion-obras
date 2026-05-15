@@ -85,7 +85,18 @@
       "WebFetch(domain:github.com)",
       "Bash(mvn dependency:tree)",
       "Bash(1)",
-      "Bash(docker build:*)"
+      "Bash(docker build:*)",
+      "Read(//c/Users/Usuario/.claude/agents/caveman/**)",
+      "Bash(bash install.sh)",
+      "Bash(cp ~/.claude/agents/caveman/.agents/skills/caveman/SKILL.md ~/.claude/skills/caveman.md)",
+      "Read(//c/Users/Usuario/.claude/skills/**)",
+      "Bash(for skill:*)",
+      "Bash(do)",
+      "Bash(cp ~/.claude/agents/caveman/.agents/skills/$skill/SKILL.md ~/.claude/skills/$skill.md)",
+      "Bash(done)",
+      "Bash(ls ~/.claude/skills/caveman*.md)",
+      "Bash(npx skills:*)",
+      "Bash(node .agents/skills/owasp-top10/owasp-backend.js)"
     ]
   }
 }
