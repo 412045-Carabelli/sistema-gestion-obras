@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Flux;
@@ -48,6 +49,7 @@ public class ObraBffController {
     // 📥 POST - Crear Obra
     // ================================
     @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
+    @PreAuthorize("permitAll()")  // TODO: cambiar a hasRole('ADMIN') o hasRole('OBRAS') cuando JWT esté listo
     public Mono<ResponseEntity<Map<String, Object>>> crearObra(@RequestBody Map<String, Object> obraDto) {
         WebClient client = webClientBuilder.build();
 
@@ -72,6 +74,7 @@ public class ObraBffController {
     // ✏️ PUT - Actualizar Obra
     // ================================
     @PutMapping(value = "/{id}", consumes = MediaType.APPLICATION_JSON_VALUE)
+    @PreAuthorize("permitAll()")  // TODO: cambiar a hasRole('ADMIN') o hasRole('OBRAS') cuando JWT esté listo
     public Mono<ResponseEntity<Map<String, Object>>> actualizarObra(
             @PathVariable("id") Long id,
             @RequestBody Map<String, Object> obraDto
@@ -99,6 +102,7 @@ public class ObraBffController {
 // 🌀 PATCH - Cambiar estado de la Obra
 // ================================
     @PatchMapping("/{id}/estado/{estado}")
+    @PreAuthorize("permitAll()")  // TODO: cambiar a hasRole('ADMIN') o hasRole('OBRAS') cuando JWT esté listo
     public Mono<ResponseEntity<Object>> cambiarEstadoObra(
             @PathVariable("id") Long idObra,
             @PathVariable("estado") String estado

@@ -5,8 +5,8 @@
   <!-- Titulo y boton -->
   <div class="flex justify-between items-center flex-wrap gap-3">
     <div>
-      <h2 class="text-2xl font-bold text-gray-900">Movimientos</h2>
-      <p class="text-gray-500 text-sm mt-1">
+      <h2 class="text-2xl font-poppins font-bold text-gray-900">Movimientos</h2>
+      <p class="text-gray-500 text-sm font-poppins font-normal mt-1">
         Pagos y cobros asociados a la obra
       </p>
     </div>
@@ -175,7 +175,7 @@
 
         @if (tipoEntidad === 'CLIENTE') {
           <div class="col-span-3">
-            <label class="block text-sm font-medium mb-1 text-gray-700">
+            <label class="block text-sm font-poppins font-semibold mb-1 text-gray-700">
               Cliente
             </label>
             <p-autoComplete
@@ -209,7 +209,7 @@
       }
 
       @if (getTiposTransaccionDisponibles().length === 1) {
-        <label class="block text-sm font-medium mb-1 text-gray-700">
+        <label class="block text-sm font-poppins font-semibold mb-1 text-gray-700">
           Tipo de movimiento
         </label>
         <p-tag
@@ -219,7 +219,7 @@
       }
 
       <!-- Forma de pago -->
-      <label class="block text-sm font-medium mb-1 text-gray-700">
+      <label class="block text-sm font-poppins font-semibold mb-1 text-gray-700">
         Condicion de pago/cobro (Total/Parcial)
       </label>
       <div class="flex items-center gap-6">
@@ -247,7 +247,7 @@
         </div>
       </div>
       @if (getTiposTransaccionDisponibles().length > 1) {
-        <label class="block text-sm font-medium mb-1 text-gray-700">
+        <label class="block text-sm font-poppins font-semibold mb-1 text-gray-700">
           Tipo de movimiento
         </label>
         <p-select
@@ -260,7 +260,7 @@
         ></p-select>
       }
 
-      <label class="block text-sm font-medium mb-1 text-gray-700">
+      <label class="block text-sm font-poppins font-semibold mb-1 text-gray-700">
         Medio de pago/cobro
       </label>
       <input
@@ -271,7 +271,7 @@
         placeholder="Ej: Transferencia, Efectivo, Cheque"
       />
 
-      <label class="block text-sm font-medium mb-1 text-gray-700">
+      <label class="block text-sm font-poppins font-semibold mb-1 text-gray-700">
         Concepto <span class="text-gray-500 text-xs">(opcional)</span>
       </label>
       <input
@@ -285,7 +285,7 @@
       <!-- Monto y Fecha -->
       <div class="flex gap-5">
         <div class="flex flex-col w-1/2">
-          <label class="block text-sm font-medium mb-1 text-gray-700">Monto</label>
+          <label class="block text-sm font-poppins font-semibold mb-1 text-gray-700">Monto</label>
           <p-inputNumber
             [(ngModel)]="nuevoMovimiento.monto"
             (ngModelChange)="onMontoChange($event)"
@@ -301,7 +301,7 @@
         </div>
 
         <div class="flex flex-col w-1/2">
-          <label class="block text-sm font-medium mb-1 text-gray-700">Fecha</label>
+          <label class="block text-sm font-poppins font-semibold mb-1 text-gray-700">Fecha</label>
           <p-datepicker
             [(ngModel)]="nuevoMovimiento.fecha"
             appendTo="body"
@@ -323,7 +323,7 @@
       @if (movimientoDetalle) {
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div class="flex flex-col gap-2">
-            <label class="text-sm font-medium text-gray-700">Tipo</label>
+            <label class="text-sm font-poppins font-semibold text-gray-700">Tipo</label>
             <input
               class="p-inputtext p-component w-full"
               [value]="tipoMovimiento(movimientoDetalle)"
@@ -331,7 +331,7 @@
               type="text"/>
           </div>
           <div class="flex flex-col gap-2">
-            <label class="text-sm font-medium text-gray-700">Asociado</label>
+            <label class="text-sm font-poppins font-semibold text-gray-700">Asociado</label>
             <input
               class="p-inputtext p-component w-full"
               [value]="proveedorOCliente(movimientoDetalle.id_asociado || 0, movimientoDetalle.tipo_asociado || '')"
@@ -339,7 +339,7 @@
               type="text"/>
           </div>
           <div class="flex flex-col gap-2">
-            <label class="text-sm font-medium text-gray-700">Fecha</label>
+            <label class="text-sm font-poppins font-semibold text-gray-700">Fecha</label>
             <input
               class="p-inputtext p-component w-full"
               [value]="(movimientoDetalle.fecha | date:'dd/MM/yyyy') || ''"
