@@ -71,7 +71,7 @@
             </div>
             <span class="text-sm font-poppins font-semibold text-gray-500">Cliente</span>
           </div>
-          <p class="text-sm font-poppins font-bold text-gray-900">{{ obra.cliente.nombre }}</p>
+          <p class="text-sm font-poppins font-poppins font-bold text-gray-900">{{ obra.cliente.nombre }}</p>
         </div>
 
         <!-- Tarjeta Presupuesto -->
@@ -82,7 +82,7 @@
             </div>
             <span class="text-sm font-poppins font-semibold text-gray-500">Presupuesto</span>
           </div>
-          <p class="text-sm font-poppins font-bold text-gray-900">{{ obra.presupuesto | currency:'ARS' }}</p>
+          <p class="text-sm font-poppins font-poppins font-bold text-gray-900">{{ obra.presupuesto | currency:'ARS' }}</p>
         </div>
 
         <!-- Tarjeta Costos -->
@@ -93,7 +93,7 @@
             </div>
             <span class="text-sm font-poppins font-semibold text-gray-500">Costos</span>
           </div>
-          <p class="text-sm font-poppins font-bold text-gray-900">{{ totalCostosBase | currency:'ARS' }}</p>
+          <p class="text-sm font-poppins font-poppins font-bold text-gray-900">{{ totalCostosBase | currency:'ARS' }}</p>
           <p class="text-xs font-poppins font-normal text-gray-600">Subtotal sin beneficio</p>
         </div>
 
@@ -109,7 +109,7 @@
                pTooltip="Suma de los beneficios aplicados a cada costo (global o individual)."
                tooltipPosition="left"></i>
           </div>
-          <p class="text-sm font-poppins font-bold" [ngClass]="beneficioNeto >= 0 ? 'text-emerald-700' : 'text-red-600'">
+          <p class="text-sm font-poppins font-poppins font-bold" [ngClass]="beneficioNeto >= 0 ? 'text-emerald-700' : 'text-red-600'">
             {{ beneficioNeto | currency:'ARS' }}
           </p>
           <p class="text-xs font-poppins font-normal text-gray-500">Actualizado con la matriz de costos</p>
@@ -235,7 +235,7 @@
             </p-progressBar>
             <div class="mt-3 text-center">
               <p class="text-4xl font-poppins font-bold">{{ progresoFisico }}%</p>
-              <p class="text-sm font-poppins font-normal text-blue-100 mt-1">completado</p>
+              <p class="text-sm font-poppins font-poppins font-normal text-blue-100 mt-1">completado</p>
             </div>
           </div>
         </div>
@@ -305,14 +305,23 @@
 
           <p-tabpanels pStyleClass="p-6">
             <p-tabpanel value="1">
-              <app-obra-tareas
-                [obraId]="obra.id!"
-                [obraNombre]="obra.nombre"
-                [proveedores]="proveedores"
-                [tareas]="tareas"
-                [costos]="costos"
-                (tareasActualizadas)="onTareasActualizadas($event)">
-              </app-obra-tareas>
+              @defer (when obra) {
+                <app-obra-tareas
+                  [obraId]="obra.id!"
+                  [obraNombre]="obra.nombre"
+                  [proveedores]="proveedores"
+                  [tareas]="tareas"
+                  [costos]="costos"
+                  (tareasActualizadas)="onTareasActualizadas($event)">
+                </app-obra-tareas>
+              } @placeholder {
+                <div class="p-6 space-y-4 animate-pulse">
+                  <div class="h-6 bg-gray-200 rounded w-1/4 mb-6"></div>
+                  @for (item of [1,2,3]; track item) {
+                    <div class="bg-gray-100 h-12 rounded-lg"></div>
+                  }
+                </div>
+              }
             </p-tabpanel>
 
             <p-tabpanel value="0">
@@ -332,39 +341,50 @@
             </p-tabpanel>
 
             <p-tabpanel value="2">
-              <app-obra-movimientos
-                #movimientosRef
-                [clientes]="[obra.cliente]"
-                [proveedores]="proveedores"
-                [obraId]="obra.id!"
-                [obraNombre]="obra.nombre"
-                [obraEstado]="obra.obra_estado"
-                [presupuestoTotal]="obra.presupuesto ?? 0"
-                (costosActualizados)="onCostosActualizados($event)"
-                (movimientosActualizados)="onMovimientosActualizados()"
-              >
-              </app-obra-movimientos>
+              @defer (when movimientosLoaded && movimientosDataLoaded) {
+                <app-obra-movimientos
+                  #movimientosRef
+                  [clientes]="[obra.cliente]"
+                  [proveedores]="proveedores"
+                  [obraId]="obra.id!"
+                  [obraNombre]="obra.nombre"
+                  [obraEstado]="obra.obra_estado"
+                  [presupuestoTotal]="obra.presupuesto ?? 0"
+                  (costosActualizados)="onCostosActualizados($event)"
+                  (movimientosActualizados)="onMovimientosActualizados()"
+                  (loadingChange)="onMovimientosLoadingChange($event)"
+                >
+                </app-obra-movimientos>
+              } @placeholder {
+                <div class="p-6 space-y-4 animate-pulse">
+                  <div class="h-6 bg-gray-200 rounded w-1/4 mb-6"></div>
+                  @for (item of [1,2,3]; track item) {
+                    <div class="bg-gray-100 h-12 rounded-lg"></div>
+                  }
+                </div>
+              }
             </p-tabpanel>
 
             <p-tabpanel value="3">
-              <div class="p-4 space-y-5">
-                <div class="flex justify-between items-center flex-wrap gap-3">
-                  <div>
-                    <h2 class="text-2xl font-poppins font-bold text-gray-900">Facturas</h2>
-                    <p class="text-gray-500 text-sm font-poppins font-normal mt-1">
-                      Facturas asociadas a la obra
-                    </p>
+              @defer (when facturasLoaded) {
+                <div class="p-4 space-y-5">
+                  <div class="flex justify-between items-center flex-wrap gap-3">
+                    <div>
+                      <h2 class="text-2xl font-poppins font-bold text-gray-900">Facturas</h2>
+                      <p class="text-gray-500 text-sm font-poppins font-normal mt-1">
+                        Facturas asociadas a la obra
+                      </p>
+                    </div>
+
+                    <p-button
+                      (onClick)="abrirFacturaModal()"
+                      icon="pi pi-plus"
+                      label="Nueva Factura"
+                      styleClass="p-button-md p-button-primary"
+                    ></p-button>
                   </div>
 
-                  <p-button
-                    (onClick)="abrirFacturaModal()"
-                    icon="pi pi-plus"
-                    label="Nueva Factura"
-                    styleClass="p-button-md p-button-primary"
-                  ></p-button>
-                </div>
-
-                @if (facturasFiltradas.length > 0) {
+                  @if (facturasFiltradas.length > 0) {
                   <p-table
                     [value]="facturasFiltradas"
                     [sortField]="'fecha'"
@@ -427,6 +447,14 @@
                 }
 
               </div>
+              } @placeholder {
+                <div class="p-6 space-y-4 animate-pulse">
+                  <div class="h-6 bg-gray-200 rounded w-1/4 mb-6"></div>
+                  @for (item of [1,2,3]; track item) {
+                    <div class="bg-gray-100 h-12 rounded-lg"></div>
+                  }
+                </div>
+              }
 
               <app-modal
                 (closed)="cerrarFacturaModal()"
@@ -593,7 +621,7 @@
             <p-tabpanel value="4">
               <div class="space-y-6">
                 <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                  <p class="text-sm font-poppins font-normal text-blue-700">
+                  <p class="text-sm font-poppins font-poppins font-normal text-blue-700">
                     <i class="pi pi-info-circle mr-2"></i>
                     Documento descriptivo del proyecto y especificaciones técnicas
                   </p>
@@ -607,24 +635,33 @@
                   <div class="text-center py-12">
                     <i class="pi pi-inbox text-4xl text-gray-300 mb-3"></i>
                     <p class="text-gray-500 font-poppins font-semibold">Sin memoria descriptiva</p>
-                    <p class="text-sm font-poppins font-normal text-gray-400 mt-1">Agregá la memoria descriptiva en la sección de edición</p>
+                    <p class="text-sm font-poppins font-poppins font-normal text-gray-400 mt-1">Agregá la memoria descriptiva en la sección de edición</p>
                   </div>
                 }
               </div>
             </p-tabpanel>
 
             <p-tabpanel value="5">
-              <div class="flex flex-col gap-6">
-                <app-obra-documentos
-                  [obraId]="obra.id!"
-                  [proveedores]="proveedores"
-                  [clientes]="[obra.cliente]"
-                ></app-obra-documentos>
+              @defer (when documentosLoaded) {
+                <div class="flex flex-col gap-6">
+                  <app-obra-documentos
+                    [obraId]="obra.id!"
+                    [proveedores]="proveedores"
+                    [clientes]="[obra.cliente]"
+                  ></app-obra-documentos>
 
-                <div class="text-sm font-poppins font-normal text-gray-600">
-                  Este tab muestra solo documentos adjuntos.
+                  <div class="text-sm font-poppins font-normal text-gray-600">
+                    Este tab muestra solo documentos adjuntos.
+                  </div>
                 </div>
-            </div>
+              } @placeholder {
+                <div class="p-6 space-y-4 animate-pulse">
+                  <div class="h-6 bg-gray-200 rounded w-1/4 mb-6"></div>
+                  @for (item of [1,2,3]; track item) {
+                    <div class="bg-gray-100 h-12 rounded-lg"></div>
+                  }
+                </div>
+              }
             </p-tabpanel>
 
           </p-tabpanels>
@@ -638,7 +675,7 @@
         (closed)="cancelarCambioEstado()"
       >
         <div class="p-3 space-y-4">
-          <p class="text-sm font-poppins font-normal text-gray-600">
+          <p class="text-sm font-poppins font-poppins font-normal text-gray-600">
             Selecciona la fecha para confirmar el cambio de estado.
           </p>
           <div class="flex flex-col gap-2">
@@ -657,26 +694,6 @@
           </div>
         </div>
       </app-modal>
-
-      <!-- ===================== GESTIÓN DE ESTADO ===================== -->
-      <div class="bg-white rounded-xl shadow-md p-6 mt-5 w-full">
-        <div class="flex items-center justify-between">
-          <div class="flex items-center gap-4">
-            <div class="w-12 h-12 rounded-lg flex items-center justify-center"
-                 [ngClass]="obra.activo ? 'bg-green-100' : 'bg-red-100'">
-              <i class="text-xl"
-                 [ngClass]="obra.activo ? 'pi pi-check-circle text-green-600' : 'pi pi-times-circle text-red-600'">
-              </i>
-            </div>
-            <div>
-              <p class="text-sm font-poppins font-semibold text-gray-500 mb-1">Estado de la Obra</p>
-              <p class="text-sm font-poppins font-normal text-gray-600">
-                {{ obra.activo ? 'Obra activa en el sistema' : 'Obra desactivado' }}
-              </p>
-            </div>
-          </div>
-        </div>
-      </div>
     </div>
   } @placeholder {
     <!-- 🦴 Skeleton Mejorado -->
