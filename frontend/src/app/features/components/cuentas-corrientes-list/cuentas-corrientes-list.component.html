@@ -1,49 +1,27 @@
 <div class="space-y-5">
-  <!-- Filtros con defer -->
-  @defer (when catalogosLoaded) {
-    <div class="bg-white rounded-lg shadow p-5">
-      <form [formGroup]="form" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
-        <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">Cliente</label>
-          <p-select formControlName="clienteId" [options]="clientes" optionLabel="nombre" optionValue="id" placeholder="Todos" [showClear]="true" [filter]="true" [fluid]="true"></p-select>
-        </div>
-        <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">Proveedor</label>
-          <p-select formControlName="proveedorId" [options]="proveedores" optionLabel="nombre" optionValue="id" placeholder="Todos" [showClear]="true" [filter]="true" [fluid]="true"></p-select>
-        </div>
-        <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">Obra</label>
-          <p-select formControlName="obraId" [options]="obras" optionLabel="nombre" optionValue="id" placeholder="Todas" [showClear]="true" [filter]="true" [fluid]="true"></p-select>
-        </div>
-        <div class="flex items-end">
-          <p-button label="Limpiar" icon="pi pi-times" severity="secondary" (onClick)="limpiarFiltros()" [fluid]="true"></p-button>
-        </div>
-      </form>
-    </div>
-  } @placeholder {
-    <div class="bg-white rounded-lg shadow p-5">
-      <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
-        <div>
-          <p-skeleton height="1.5rem" class="mb-2"></p-skeleton>
-          <p-skeleton height="2.5rem"></p-skeleton>
-        </div>
-        <div>
-          <p-skeleton height="1.5rem" class="mb-2"></p-skeleton>
-          <p-skeleton height="2.5rem"></p-skeleton>
-        </div>
-        <div>
-          <p-skeleton height="1.5rem" class="mb-2"></p-skeleton>
-          <p-skeleton height="2.5rem"></p-skeleton>
-        </div>
-        <div class="flex items-end">
-          <p-skeleton height="2.5rem" class="w-full"></p-skeleton>
-        </div>
+  <!-- Filtros -->
+  <div class="bg-white rounded-lg shadow p-5">
+    <form [formGroup]="form" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">Cliente</label>
+        <p-select formControlName="clienteId" [options]="clientes" optionLabel="nombre" optionValue="id" placeholder="Todos" [showClear]="true" [filter]="true" [fluid]="true"></p-select>
       </div>
-    </div>
-  }
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">Proveedor</label>
+        <p-select formControlName="proveedorId" [options]="proveedores" optionLabel="nombre" optionValue="id" placeholder="Todos" [showClear]="true" [filter]="true" [fluid]="true"></p-select>
+      </div>
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">Obra</label>
+        <p-select formControlName="obraId" [options]="obras" optionLabel="nombre" optionValue="id" placeholder="Todas" [showClear]="true" [filter]="true" [fluid]="true"></p-select>
+      </div>
+      <div class="flex items-end">
+        <p-button label="Limpiar" icon="pi pi-times" severity="secondary" (onClick)="limpiarFiltros()" [fluid]="true"></p-button>
+      </div>
+    </form>
+  </div>
 
-  <!-- Resumen con defer -->
-  @defer (when catalogosLoaded && datos) {
+  <!-- Resumen -->
+  @if (datos) {
     <div class="space-y-4">
       <div class="grid grid-cols-2 gap-3">
         <div class="bg-green-50 border border-green-200 rounded-lg p-4">
@@ -63,22 +41,6 @@
           (onClick)="exportarPdf()"
           [loading]="generandoPdf">
         </p-button>
-      </div>
-    </div>
-  } @placeholder {
-    <div class="space-y-4">
-      <div class="grid grid-cols-2 gap-3">
-        <div class="bg-green-50 border border-green-200 rounded-lg p-4">
-          <p-skeleton height="1.2rem" class="mb-3 w-1/2"></p-skeleton>
-          <p-skeleton height="2rem" class="w-3/4"></p-skeleton>
-        </div>
-        <div class="bg-red-50 border border-red-200 rounded-lg p-4">
-          <p-skeleton height="1.2rem" class="mb-3 w-1/2"></p-skeleton>
-          <p-skeleton height="2rem" class="w-3/4"></p-skeleton>
-        </div>
-      </div>
-      <div class="flex gap-2">
-        <p-skeleton height="2.5rem" class="w-32"></p-skeleton>
       </div>
     </div>
   }

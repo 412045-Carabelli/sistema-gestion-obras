@@ -11,7 +11,6 @@ import { SelectModule } from 'primeng/select';
 import { DatePickerModule } from 'primeng/datepicker';
 import { CardModule } from 'primeng/card';
 import { TooltipModule } from 'primeng/tooltip';
-import { SkeletonModule } from 'primeng/skeleton';
 import { Subscription } from 'rxjs';
 
 @Component({
@@ -27,8 +26,7 @@ import { Subscription } from 'rxjs';
     SelectModule,
     DatePickerModule,
     CardModule,
-    TooltipModule,
-    SkeletonModule
+    TooltipModule
   ],
   templateUrl: './cuentas-corrientes-list.component.html',
   styleUrls: ['./cuentas-corrientes-list.component.css']
@@ -36,7 +34,6 @@ import { Subscription } from 'rxjs';
 export class CuentasCorrientesListComponent implements OnInit, OnDestroy {
   loading = false;
   generandoPdf = false;
-  catalogosLoaded = false;
   datos: DeudasGlobalesResponse | null = null;
   form!: FormGroup;
   grupos: Array<{ id: number; nombre: string }> = [];
@@ -89,12 +86,10 @@ export class CuentasCorrientesListComponent implements OnInit, OnDestroy {
           this.obras = response.obras || [];
           this.clientes = response.clientes || [];
           this.proveedores = response.proveedores || [];
-          this.catalogosLoaded = true;
           this.cargar();
         },
         error: (err) => {
           console.error('Error al cargar catálogos', err);
-          this.catalogosLoaded = true;
           this.cargar();
         }
       })
