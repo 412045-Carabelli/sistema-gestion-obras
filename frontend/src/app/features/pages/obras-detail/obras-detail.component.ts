@@ -229,9 +229,10 @@ export class ObrasDetailComponent implements OnInit, OnDestroy, AfterViewInit {
       obra: this.obraService.getObraById(idObra),
       estados: this.estadoObraService.getEstados(),
       clientes: this.clientesService.getClientes(),
+      proveedores: this.proveedoresService.getProveedores()
     }).subscribe({
 
-      next: ({ obra, estados, clientes }) => {
+      next: ({ obra, estados, clientes, proveedores }) => {
         console.log(obra)
         this.obra = { ...obra, id: Number(obra.id) };
         if (this.activeTab === '3' && !obra.requiere_factura) {
@@ -244,8 +245,8 @@ export class ObrasDetailComponent implements OnInit, OnDestroy, AfterViewInit {
         this.estadoSeleccionado = obra.obra_estado;
 
         this.clientes = clientes;
-
-        // Proveedores se cargan lazy por tab (ver cargarPorTab)
+        this.proveedores = proveedores;
+        this.proveedoresLoaded = true;
 
         this.progresoFisico = this.getProgresoFisico();
         this.beneficioCostos = obra.beneficio_costos != null
@@ -278,14 +279,7 @@ export class ObrasDetailComponent implements OnInit, OnDestroy, AfterViewInit {
   private cargarPorTab() {
     const tab = this.activeTab;
 
-    // Cargar proveedores si se necesitan (tabs 0, 1, 2)
-    if ((tab === '0' || tab === '1' || tab === '2') && !this.proveedoresLoaded) {
-      this.proveedoresLoaded = true;
-      this.proveedoresService.getProveedores().subscribe({
-        next: (provs) => this.proveedores = provs,
-        error: () => this.proveedores = []
-      });
-    }
+    // Proveedores ya se cargan en cargarDetalle() para tabs 0, 1, 2
 
     if (tab === '2' && !this.movimientosLoaded) {
       this.movimientosLoaded = true;
