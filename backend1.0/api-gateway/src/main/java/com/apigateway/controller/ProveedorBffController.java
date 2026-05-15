@@ -76,12 +76,11 @@ public class ProveedorBffController {
     public Mono<ResponseEntity<List<Map<String, Object>>>> getProveedoresSimple() {
         WebClient client = webClientBuilder.build();
 
-        Flux<Map<String, Object>> proveedoresFlux = client.get()
+        return client.get()
                 .uri(PROVEEDORES_URL + "/simple")
                 .retrieve()
-                .bodyToFlux(new ParameterizedTypeReference<Map<String, Object>>() {});
-
-        return proveedoresFlux.collectList().map(ResponseEntity::ok);
+                .bodyToMono(new ParameterizedTypeReference<List<Map<String, Object>>>() {})
+                .map(ResponseEntity::ok);
     }
 
     // ===============================
