@@ -433,7 +433,7 @@ public class TransaccionService {
      * Útil cuando se necesita el nombre de forma individual.
      */
     @Cacheable(value = "obraNombres", key = "#obraId")
-    private String obtenerNombreObra(Long obraId) {
+    public String obtenerNombreObra(Long obraId) {
         try {
             String url = String.format("%s/%s", obrasServiceUrl, obraId);
             ObraNombreDto obra = restTemplate.getForObject(url, ObraNombreDto.class);
@@ -495,8 +495,21 @@ public class TransaccionService {
     @Transactional(readOnly = true)
     public Map<String, Object> listarConAsociadosPaginado(Pageable pageable) {
         Page<Transaccion> page = transaccionRepository.findAll(pageable);
-        List<TransaccionConAsociadoDto> content = page.getContent()
-                .stream()
+        List<Transaccion> txList = page.getContent();
+
+        // Pre-warm cache: fetch unique IDs first, then map uses cached values (no N+1)
+        txList.stream().map(Transaccion::getIdObra).filter(Objects::nonNull).distinct()
+                .forEach(this::obtenerNombreObra);
+        txList.stream()
+                .filter(t -> "CLIENTE".equals(t.getTipoAsociado()) && t.getIdAsociado() != null)
+                .map(Transaccion::getIdAsociado).distinct()
+                .forEach(this::obtenerNombreCliente);
+        txList.stream()
+                .filter(t -> "PROVEEDOR".equals(t.getTipoAsociado()) && t.getIdAsociado() != null)
+                .map(Transaccion::getIdAsociado).distinct()
+                .forEach(this::obtenerNombreProveedor);
+
+        List<TransaccionConAsociadoDto> content = txList.stream()
                 .map(this::toTransaccionConAsociadoDto)
                 .collect(Collectors.toList());
 
@@ -567,7 +580,7 @@ public class TransaccionService {
      * Obtiene el nombre del cliente por ID con caché.
      */
     @Cacheable(value = "clienteNombres", key = "#id")
-    private String obtenerNombreCliente(Long id) {
+    public String obtenerNombreCliente(Long id) {
         try {
             String url = String.format("%s/%d", clientesServiceUrl, id);
             AsociadoNombreDto cliente = restTemplate.getForObject(url, AsociadoNombreDto.class);
@@ -582,7 +595,7 @@ public class TransaccionService {
      * Obtiene el nombre del proveedor por ID con caché.
      */
     @Cacheable(value = "proveedorNombres", key = "#id")
-    private String obtenerNombreProveedor(Long id) {
+    public String obtenerNombreProveedor(Long id) {
         try {
             String url = String.format("%s/%d", proveedoresServiceUrl, id);
             AsociadoNombreDto proveedor = restTemplate.getForObject(url, AsociadoNombreDto.class);

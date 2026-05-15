@@ -335,7 +335,7 @@ export class MovimientosListComponent implements OnInit {
 
     const payload = {
       ...this.form.getRawValue(),
-      fecha: this.form.get('fecha')?.value?.toISOString().split('T')[0]
+      fecha: (() => { const d = this.form.get('fecha')?.value; return d ? `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}` : null; })()
     };
 
     const accion = this.isEditMode && this.movimientoEditando
