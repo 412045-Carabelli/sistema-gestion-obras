@@ -1,7 +1,1 @@
-:host ::ng-deep .p-datatable tbody > tr {
-  cursor: pointer;
-}
-
-:host ::ng-deep .p-datatable tbody > tr:hover {
-  background-color: #f3f4f6;
-}
+/* Estilos movidos a styles.css en Fase 2 */

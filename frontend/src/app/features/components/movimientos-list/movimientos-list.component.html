@@ -64,26 +64,28 @@
         [value]="movimientosFiltrados"
         [paginator]="true"
         [rows]="8"
+        [sortField]="'fecha'"
+        [sortOrder]="-1"
         responsiveLayout="scroll"
         class="w-full"
         styleClass="p-datatable-sm">
         <ng-template pTemplate="header">
           <tr>
-            <th class="px-3 py-2 text-left font-poppins font-semibold">ID</th>
-            <th class="px-3 py-2 text-left font-poppins font-semibold">Fecha</th>
-            <th class="px-3 py-2 text-left font-poppins font-semibold">Obra</th>
-            <th class="px-3 py-2 text-left font-poppins font-semibold">Tipo Asociado</th>
-            <th class="px-3 py-2 text-left font-poppins font-semibold">Asociado</th>
-            <th class="px-3 py-2 text-left font-poppins font-semibold">Tipo Transacción</th>
-            <th class="px-3 py-2 text-left font-poppins font-semibold">Forma Pago</th>
-            <th class="px-3 py-2 text-left font-poppins font-semibold">Medio Pago</th>
-            <th class="px-3 py-2 text-right font-poppins font-semibold">Monto</th>
-            <th class="px-3 py-2 text-center font-poppins font-semibold">Acciones</th>
+            <th pSortableColumn="id" class="text-left font-poppins font-semibold">ID <p-sortIcon field="id"></p-sortIcon></th>
+            <th pSortableColumn="fecha" class="text-left font-poppins font-semibold">Fecha <p-sortIcon field="fecha"></p-sortIcon></th>
+            <th pSortableColumn="id_obra" class="text-left font-poppins font-semibold">Obra <p-sortIcon field="id_obra"></p-sortIcon></th>
+            <th pSortableColumn="tipo_asociado" class="text-left font-poppins font-semibold">Tipo Asociado <p-sortIcon field="tipo_asociado"></p-sortIcon></th>
+            <th class="text-left font-poppins font-semibold">Asociado</th>
+            <th pSortableColumn="tipo_transaccion" class="text-left font-poppins font-semibold">Tipo Transacción <p-sortIcon field="tipo_transaccion"></p-sortIcon></th>
+            <th pSortableColumn="forma_pago" class="text-left font-poppins font-semibold">Forma Pago <p-sortIcon field="forma_pago"></p-sortIcon></th>
+            <th pSortableColumn="medio_pago" class="text-left font-poppins font-semibold">Medio Pago <p-sortIcon field="medio_pago"></p-sortIcon></th>
+            <th pSortableColumn="monto" class="text-right font-poppins font-semibold">Monto <p-sortIcon field="monto"></p-sortIcon></th>
+            <th class="text-center font-poppins font-semibold">Acciones</th>
           </tr>
         </ng-template>
 
         <ng-template let-mov pTemplate="body">
-          <tr class="hover:bg-gray-100 cursor-pointer" (click)="onRowClick(mov)">
+          <tr class="cursor-pointer transition-colors" (click)="onRowClick(mov)">
             <td class="px-3 py-2 font-poppins font-normal">{{ mov.id }}</td>
             <td class="px-3 py-2 font-poppins font-normal">{{ mov.fecha | date:'dd/MM/yyyy' }}</td>
             <td class="px-3 py-2 font-poppins font-normal">{{ getNombreObra(mov.id_obra) }}</td>

@@ -1,23 +1,4 @@
-@if (!datosCargados) {
-  <div class="flex flex-col gap-4 animate-pulse">
-    <div class="bg-white p-4 rounded-lg border border-gray-200">
-      <div class="grid grid-cols-1 md:grid-cols-12 gap-4">
-        <div class="md:col-span-8 h-10 bg-gray-200 rounded"></div>
-        <div class="md:col-span-4 h-10 bg-gray-200 rounded"></div>
-      </div>
-    </div>
-
-    <div class="bg-white rounded-lg border border-gray-200 p-4">
-      <div class="space-y-3">
-        <div class="h-5 bg-gray-200 rounded w-full"></div>
-        <div class="h-5 bg-gray-200 rounded w-11/12"></div>
-        <div class="h-5 bg-gray-200 rounded w-10/12"></div>
-        <div class="h-5 bg-gray-200 rounded w-9/12"></div>
-        <div class="h-5 bg-gray-200 rounded w-8/12"></div>
-      </div>
-    </div>
-  </div>
-} @else {
+@defer (when datosCargados) {
   <div class="space-y-6">
     <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
       <div
@@ -75,12 +56,6 @@
             optionValue="value"
             appendTo="body"
             styleClass="w-full p-inputtext-sm h-12">
-            <ng-template let-option pTemplate="selectedItem">
-              <div class="flex items-center gap-2">
-                <i class="pi pi-filter text-sm"></i>
-                <span>{{ option?.label || 'Todos los clientes' }}</span>
-              </div>
-            </ng-template>
           </p-select>
         </div>
         <div class="flex flex-col gap-2 md:col-span-3">
@@ -93,12 +68,6 @@
             optionValue="value"
             appendTo="body"
             styleClass="w-full p-inputtext-sm h-12">
-            <ng-template let-option pTemplate="selectedItem">
-              <div class="flex items-center gap-2">
-                <i class="pi pi-filter text-sm"></i>
-                <span>{{ option?.label || 'Todas las obras' }}</span>
-              </div>
-            </ng-template>
           </p-select>
         </div>
         <div class="flex items-center gap-2 md:col-span-2 h-12">
@@ -120,6 +89,8 @@
         [value]="obrasFacturacionFiltradas"
         [paginator]="true"
         [rows]="8"
+        [sortField]="'id'"
+        [sortOrder]="1"
         responsiveLayout="scroll"
         styleClass="p-datatable-sm">
         <ng-template pTemplate="header">
@@ -167,7 +138,7 @@
                     </tr>
                   </ng-template>
                   <ng-template pTemplate="body" let-factura>
-                    <tr class="hover:bg-blue-100 transition-colors">
+                    <tr class="transition-colors">
                       <td class="px-3 py-2 text-sm cursor-pointer text-blue-600 underline font-poppins font-semibold" (click)="onRowClick(factura)">{{ factura.id }}</td>
                       <td class="px-3 py-2 text-sm font-poppins font-normal text-gray-700">{{ factura.fecha | date:'dd/MM/yyyy' }}</td>
                       <td class="px-3 py-2 text-sm text-gray-900 text-right font-poppins font-semibold">{{ factura.monto | currency:'ARS':'symbol':'1.0-2' }}</td>
@@ -210,6 +181,25 @@
           </tr>
         </ng-template>
       </p-table>
+    </div>
+  </div>
+} @placeholder {
+  <div class="flex flex-col gap-4 animate-pulse">
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div class="bg-white rounded-xl shadow-md p-5"></div>
+      <div class="bg-white rounded-xl shadow-md p-5"></div>
+      <div class="bg-white rounded-xl shadow-md p-5"></div>
+      <div class="bg-white rounded-xl shadow-md p-5"></div>
+    </div>
+
+    <div class="bg-white rounded-lg border border-gray-200 p-4">
+      <div class="space-y-3">
+        <div class="h-5 bg-gray-200 rounded w-full"></div>
+        <div class="h-5 bg-gray-200 rounded w-11/12"></div>
+        <div class="h-5 bg-gray-200 rounded w-10/12"></div>
+        <div class="h-5 bg-gray-200 rounded w-9/12"></div>
+        <div class="h-5 bg-gray-200 rounded w-8/12"></div>
+      </div>
     </div>
   </div>
 }

@@ -25,12 +25,6 @@
             optionValue="name"
             placeholder="Condicion IVA"
             styleClass="w-full p-inputtext-sm h-12">
-            <ng-template let-option pTemplate="selectedItem">
-              <div class="flex items-center gap-2">
-                <i class="pi pi-filter text-sm"></i>
-                <span>{{ option?.label || 'Todas' }}</span>
-              </div>
-            </ng-template>
           </p-select>
         </div>
 
@@ -63,23 +57,23 @@
         styleClass="p-datatable-sm">
         <ng-template pTemplate="header">
           <tr>
-            <th pSortableColumn="nombre" class="px-3 py-2 text-left font-poppins font-semibold">Nombre <p-sortIcon field="nombre"></p-sortIcon></th>
-            <th pSortableColumn="contacto" class="px-3 py-2 text-left font-poppins font-semibold">Contacto <p-sortIcon field="contacto"></p-sortIcon></th>
-            <th pSortableColumn="telefono" class="px-3 py-2 text-left font-poppins font-semibold">Telefono <p-sortIcon field="telefono"></p-sortIcon></th>
-            <th pSortableColumn="email" class="px-3 py-2 text-left font-poppins font-semibold">Email <p-sortIcon field="email"></p-sortIcon></th>
-            <th pSortableColumn="direccion" class="px-3 py-2 text-left font-poppins font-semibold">Direccion <p-sortIcon field="direccion"></p-sortIcon></th>
-            <th pSortableColumn="cuit" class="px-3 py-2 text-left font-poppins font-semibold">DNI/CUIT <p-sortIcon field="cuit"></p-sortIcon></th>
+            <th pSortableColumn="nombre" class="text-left font-poppins font-semibold">Nombre <p-sortIcon field="nombre"></p-sortIcon></th>
+            <th pSortableColumn="contacto" class="text-left font-poppins font-semibold">Contacto <p-sortIcon field="contacto"></p-sortIcon></th>
+            <th pSortableColumn="telefono" class="text-left font-poppins font-semibold">Telefono <p-sortIcon field="telefono"></p-sortIcon></th>
+            <th pSortableColumn="email" class="text-left font-poppins font-semibold">Email <p-sortIcon field="email"></p-sortIcon></th>
+            <th pSortableColumn="direccion" class="text-left font-poppins font-semibold">Direccion <p-sortIcon field="direccion"></p-sortIcon></th>
+            <th pSortableColumn="cuit" class="text-left font-poppins font-semibold">DNI/CUIT <p-sortIcon field="cuit"></p-sortIcon></th>
           </tr>
         </ng-template>
 
         <ng-template let-c pTemplate="body">
-          <tr (click)="onRowClick(c)" class="hover:bg-gray-100 cursor-pointer">
-            <td class="px-3 py-2 font-poppins font-normal">{{ c.nombre }}</td>
-            <td class="px-3 py-2 font-poppins font-normal">{{ c.contacto || '-' }}</td>
-            <td class="px-3 py-2 font-poppins font-normal">{{ c.telefono || '-' }}</td>
-            <td class="px-3 py-2 font-poppins font-normal">{{ c.email || '-' }}</td>
-            <td class="px-3 py-2 font-poppins font-normal">{{ c.direccion || '-' }}</td>
-            <td class="px-3 py-2 font-poppins font-normal">{{ c.cuit || '-' }}</td>
+          <tr (click)="onRowClick(c)" class="cursor-pointer transition-colors">
+            <td class="font-poppins font-normal">{{ c.nombre }}</td>
+            <td class="font-poppins font-normal">{{ c.contacto || '-' }}</td>
+            <td class="font-poppins font-normal">{{ c.telefono || '-' }}</td>
+            <td class="font-poppins font-normal">{{ c.email || '-' }}</td>
+            <td class="font-poppins font-normal">{{ c.direccion || '-' }}</td>
+            <td class="font-poppins font-normal">{{ c.cuit || '-' }}</td>
           </tr>
         </ng-template>
 

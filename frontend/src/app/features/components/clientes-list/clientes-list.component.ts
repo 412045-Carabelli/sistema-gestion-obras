@@ -79,21 +79,6 @@ export class ClientesListComponent implements OnInit {
     });
   }
 
-  loadNextPage(): void {
-    if ((this.currentPage + 1) * this.pageSize < this.totalElements) {
-      this.currentPage++;
-      this.clientesService.getClientesConDetalles(this.currentPage, this.pageSize).subscribe({
-        next: (page) => {
-          this.clientes = [
-            ...this.clientes,
-            ...(page.content || []).map((c: Cliente) => ({...c, id: Number(c.id)}))
-          ];
-          this.applyFilter();
-        }
-      });
-    }
-  }
-
   // 🔍 Filtrado por búsqueda y activo
   applyFilter() {
     this.clientesFiltrados = this.clientes

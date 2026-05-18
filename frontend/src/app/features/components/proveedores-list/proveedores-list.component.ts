@@ -51,7 +51,7 @@ export class ProveedoresListComponent implements OnInit {
   saldoFiltro: 'todos' | 'con_saldo' | 'saldo_cero_o_menor' = 'todos';
   mostrarInactivos = false;
 
-  loading = true;
+  datosCargados = false;
 
   @Output() proveedorClick = new EventEmitter<Proveedor>();
 
@@ -71,9 +71,9 @@ export class ProveedoresListComponent implements OnInit {
         this.tiposRecords = tipos;
         this.tipoOptions = [ {label: 'Todos', name: 'todos'}, ...this.tiposRecords.map(r => ({label: r.label, name: r.name})) ];
         this.applyFilter();
-        this.loading = false;
+        this.datosCargados = true;
       },
-      error: () => (this.loading = false)
+      error: () => (this.datosCargados = true)
     });
   }
 
@@ -138,38 +138,6 @@ export class ProveedoresListComponent implements OnInit {
 
   onSaldoChange() {
     this.applyFilter();
-  }
-
-  private aplicarCuentasProveedor(results: any[]) {
-    if (!this.proveedores.length || !results?.length) {
-      this.saldosProveedor = {};
-      this.totalesProveedor = {};
-      this.ultimoMovimientoProveedor = {};
-      return;
-    }
-    const cuentas = (results || []).map(item => {
-      const id = Number((item as any)?.proveedorId ?? (item as any)?.id ?? 0);
-      const saldo = (item as any)?.saldoFinal ?? (item as any)?.saldo ?? 0;
-      const total = (item as any)?.totalCostos ?? (item as any)?.costos ?? 0;
-      const movimientos: any[] = (item as any)?.movimientos ?? [];
-      const ultimoMs = movimientos.reduce((max, mov) => {
-        const t = mov?.fecha ? new Date(mov.fecha).getTime() : Number.NEGATIVE_INFINITY;
-        return Number.isFinite(t) && t > max ? t : max;
-      }, Number.NEGATIVE_INFINITY);
-      return {id, saldo, total, ultimoMs};
-    });
-    this.saldosProveedor = cuentas.reduce((acc, item) => {
-      if (item.id) acc[item.id] = item.saldo;
-      return acc;
-    }, {} as Record<number, number>);
-    this.totalesProveedor = cuentas.reduce((acc, item) => {
-      if (item.id) acc[item.id] = item.total;
-      return acc;
-    }, {} as Record<number, number>);
-    this.ultimoMovimientoProveedor = cuentas.reduce((acc, item) => {
-      if (item.id && Number.isFinite(item.ultimoMs)) acc[item.id] = item.ultimoMs;
-      return acc;
-    }, {} as Record<number, number>);
   }
 
   obtenerSaldoProveedor(id?: number): number {
