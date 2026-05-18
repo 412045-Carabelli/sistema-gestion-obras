@@ -80,7 +80,11 @@ public class ProveedorBffController {
                 .uri(PROVEEDORES_URL + "/simple")
                 .retrieve()
                 .bodyToMono(new ParameterizedTypeReference<List<Map<String, Object>>>() {})
-                .map(ResponseEntity::ok);
+                .map(ResponseEntity::ok)
+                .onErrorResume(ex -> {
+                    log.error("Error fetching simple proveedores: {}", ex.getMessage(), ex);
+                    return Mono.just(ResponseEntity.status(500).build());
+                });
     }
 
     // ===============================

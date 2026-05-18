@@ -99,7 +99,11 @@
       "Bash(node .agents/skills/owasp-top10/owasp-backend.js)",
       "Bash(for file:*)",
       "Bash(echo \"Processing $file\")",
-      "Bash(__NEW_LINE_61a829bfd4c73566__ done:*)"
+      "Bash(__NEW_LINE_61a829bfd4c73566__ done:*)",
+      "Bash(find C:UsersUsuarioDesktopmy-worksistema-gestion-obrasbackend1.0 -name *.java -type f -exec grep -l \"printStackTrace\\\\|System.out.println\" {})",
+      "Bash(2)",
+      "Bash(find backend1.0/proveedores-service -name *Controller.java -type f)",
+      "Bash(find backend1.0/api-gateway -name \"*.java\" -exec grep -l \"addMixIn\\\\|@JsonSerialize\\\\|@JsonDeserialize\\\\|ObjectMapper\" {})"
     ]
   }
 }
