@@ -48,9 +48,17 @@
   @defer (when obra) {
     <div class="p-4 space-y-8 w-full mx-auto">
       <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-        <div>
+        <div class="flex flex-col gap-2">
           <h1 class="font-poppins font-bold text-gray-900">Resumen de la obra</h1>
           <p class="text-gray-600 font-poppins font-normal">Datos completos de {{ obra.nombre }}</p>
+          <div class="flex flex-wrap gap-2">
+            @if (getEstadoFacturacionDetalle(); as estado) {
+              <p-tag [value]="estado.label" [severity]="estado.severity"></p-tag>
+            }
+            @if (obra.grupo?.nombre) {
+              <p-tag [value]="obra.grupo?.nombre || ''" severity="info"></p-tag>
+            }
+          </div>
         </div>
         <p-button
           icon="pi pi-file-pdf"
