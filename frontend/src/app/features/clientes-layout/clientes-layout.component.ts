@@ -10,6 +10,7 @@ import { Cliente } from '../../core/models/models';
 import {ClienteStateService} from '../../services/clientes/clientes-state.service';
 import {ClientesService} from '../../services/clientes/clientes.service';
 import {ConfirmDialog} from 'primeng/confirmdialog';
+import { LayoutHeaderComponent } from '../../shared/layout-header/layout-header.component';
 
 @Component({
   selector: 'app-clientes-layout',
@@ -20,7 +21,8 @@ import {ConfirmDialog} from 'primeng/confirmdialog';
     Toast,
     Tooltip,
     ConfirmDialog,
-    BackButtonDirective
+    BackButtonDirective,
+    LayoutHeaderComponent
   ],
   templateUrl: './clientes-layout.component.html',
   styleUrl: './clientes-layout.component.css',

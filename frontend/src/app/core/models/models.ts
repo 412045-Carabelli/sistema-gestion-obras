@@ -1,3 +1,43 @@
+// ===== AUTH TYPES & INTERFACES =====
+export interface LoginRequest {
+  email: string;
+  password: string;
+}
+
+export interface RegisterRequest {
+  email: string;
+  username: string;
+  password: string;
+  confirmPassword: string;
+}
+
+export interface ChangePasswordRequest {
+  currentPassword: string;
+  newPassword: string;
+  confirmPassword: string;
+}
+
+export interface AuthResponse {
+  access_token: string;
+  refresh_token: string;
+  token_type: string;
+  expires_in: number;
+  user_id: number;
+  email: string;
+  username: string;
+  rol: string;
+  organizacion_id: number | null;
+}
+
+export interface UserInfo {
+  userId: number;
+  email: string;
+  username: string;
+  rol: string;
+  organizacionId: number | null;
+}
+
+// ===== BUSINESS TYPES & INTERFACES =====
 export type RecordOption = { label: string; name: string };
 
 export type CondicionIva =

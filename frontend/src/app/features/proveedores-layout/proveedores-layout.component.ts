@@ -11,6 +11,7 @@ import {ProveedoresStateService} from '../../services/proveedores/proveedores-st
 import {ProveedoresService} from '../../services/proveedores/proveedores.service';
 import {Proveedor} from '../../core/models/models';
 import {ConfirmDialog} from 'primeng/confirmdialog';
+import { LayoutHeaderComponent } from '../../shared/layout-header/layout-header.component';
 
 @Component({
   selector: 'app-proveedores-layout',
@@ -23,7 +24,8 @@ import {ConfirmDialog} from 'primeng/confirmdialog';
     Button,
     Tooltip,
     ConfirmDialog,
-    BackButtonDirective
+    BackButtonDirective,
+    LayoutHeaderComponent
   ],
   providers: [MessageService, ConfirmationService],
   templateUrl: './proveedores-layout.component.html',

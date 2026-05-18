@@ -79,11 +79,15 @@ public class ProveedorBffController {
         return client.get()
                 .uri(PROVEEDORES_URL + "/simple")
                 .retrieve()
+                .onStatus(status -> !status.is2xxSuccessful(), response -> {
+                    log.error("Error fetching simple proveedores: status={}", response.getStatusCode());
+                    return Mono.error(new RuntimeException("Proveedor service error: " + response.getStatusCode()));
+                })
                 .bodyToMono(new ParameterizedTypeReference<List<Map<String, Object>>>() {})
                 .map(ResponseEntity::ok)
                 .onErrorResume(ex -> {
                     log.error("Error fetching simple proveedores: {}", ex.getMessage(), ex);
-                    return Mono.just(ResponseEntity.status(500).build());
+                    return Mono.just(ResponseEntity.status(500).body(List.of()));
                 });
     }
 
@@ -112,9 +116,13 @@ public class ProveedorBffController {
         return client.get()
                 .uri(PROVEEDORES_URL + "/{id}", id)
                 .retrieve()
+                .onStatus(status -> !status.is2xxSuccessful(), response -> {
+                    log.error("Error fetching proveedor {}: status={}", id, response.getStatusCode());
+                    return Mono.error(new RuntimeException("Proveedor " + id + " not found"));
+                })
                 .bodyToMono(new ParameterizedTypeReference<Map<String, Object>>() {})
                 .map(ResponseEntity::ok)
-                .onErrorResume(ex -> Mono.just(ResponseEntity.notFound().build()));
+                .onErrorResume(ex -> Mono.just(ResponseEntity.notFound().body(Map.of())));
     }
 
     // ===============================
@@ -167,6 +175,10 @@ public class ProveedorBffController {
                 .delete()
                 .uri(PROVEEDORES_URL + "/{id}", id)
                 .retrieve()
+                .onStatus(status -> !status.is2xxSuccessful(), response -> {
+                    log.error("Error deleting proveedor {}: status={}", id, response.getStatusCode());
+                    return Mono.error(new RuntimeException("Error deleting proveedor"));
+                })
                 .bodyToMono(Void.class)
                 .map(ResponseEntity::ok)
                 .onErrorResume(ex -> {

@@ -1,4 +1,5 @@
 import {Routes} from '@angular/router';
+// import {authGuard} from './core/guards/auth.guard'; // TODO: Descomentar cuando auth esté activado
 import {ObrasCreateComponent} from './features/pages/obras-create/obras-create.component';
 import {ObrasLayoutComponent} from './features/obras-layout/obras-layout.component';
 import {ObrasDetailComponent} from './features/pages/obras-detail/obras-detail.component';
@@ -30,6 +31,24 @@ import {MovimientosLayoutComponent} from './features/movimientos-layout/movimien
 import {MovimientosListComponent} from './features/components/movimientos-list/movimientos-list.component';
 
 export const routes: Routes = [
+  // TODO: Auth routes (descomentar cuando auth esté activado)
+  // {
+  //   path: 'login',
+  //   loadComponent: () => import('./features/pages/login/login.component')
+  //     .then(m => m.LoginComponent)
+  // },
+  // {
+  //   path: 'register',
+  //   loadComponent: () => import('./features/pages/register/register.component')
+  //     .then(m => m.RegisterComponent)
+  // },
+  // {
+  //   path: 'change-password',
+  //   loadComponent: () => import('./features/pages/change-password/change-password.component')
+  //     .then(m => m.ChangePasswordComponent),
+  //   canActivate: [authGuard]
+  // },
+
   {
     path: '',
     redirectTo: '/dashboard',

@@ -12,11 +12,12 @@ import {TagModule} from 'primeng/tag';
 import {Obra} from '../../core/models/models';
 import {ObrasStateService} from '../../services/obras/obras-state.service';
 import {ObrasService} from '../../services/obras/obras.service';
+import {LayoutHeaderComponent} from '../../shared/layout-header/layout-header.component';
 
 @Component({
   selector: 'app-obras-layout',
   standalone: true,
-  imports: [RouterOutlet, ToastModule, ProgressSpinnerModule, RouterLink, Button, Tooltip, ConfirmDialog, TagModule, BackButtonDirective],
+  imports: [RouterOutlet, ToastModule, ProgressSpinnerModule, RouterLink, Button, Tooltip, ConfirmDialog, TagModule, BackButtonDirective, LayoutHeaderComponent],
   providers: [MessageService, ConfirmationService],
   templateUrl: './obras-layout.component.html',
   styleUrls: ['./obras-layout.component.css']

@@ -6,6 +6,7 @@ import { ToastModule } from 'primeng/toast';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { MessageService, ConfirmationService } from 'primeng/api';
 import { GruposModalService } from '../../services/grupos-obras/grupos-modal.service';
+import { LayoutHeaderComponent } from '../../shared/layout-header/layout-header.component';
 
 @Component({
   selector: 'app-grupos-layout',
@@ -17,7 +18,8 @@ import { GruposModalService } from '../../services/grupos-obras/grupos-modal.ser
     RouterModule,
     ButtonModule,
     ToastModule,
-    ConfirmDialogModule
+    ConfirmDialogModule,
+    LayoutHeaderComponent
   ],
   providers: [MessageService, ConfirmationService]
 })

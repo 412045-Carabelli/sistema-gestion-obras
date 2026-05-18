@@ -1,36 +1,25 @@
 <p-toast position="bottom-right"></p-toast>
 <p-confirmDialog></p-confirmDialog>
 
-<div class="flex justify-between items-center">
-  @switch (true) {
-    @case (currentRoute === '/grupos') {
-      <div class="relative flex justify-between items-center w-full bg-gradient-to-r from-indigo-600 to-purple-800 p-8 shadow-lg text-white overflow-hidden">
-        <div class="absolute inset-0 opacity-10">
-          <div class="absolute -right-10 -top-10 w-40 h-40 bg-white rounded-full"></div>
-          <div class="absolute -left-10 -bottom-10 w-32 h-32 bg-white rounded-full"></div>
-        </div>
-
-        <div class="relative z-10">
-          <h1 class="font-poppins font-bold mb-2">Grupos de Obras</h1>
-          <p class="text-indigo-100">Organiza tus obras por grupo para mejor seguimiento</p>
-        </div>
-
-        <p-button
-          label="Crear grupo"
-          icon="pi pi-plus"
-          severity="success"
-          (onClick)="openNewGrupo()"
-          styleClass="p-button">
-        </p-button>
-      </div>
-    }
-    @default {
-      <div>
-        <h1 class="font-poppins text-3xl font-semibold text-gray-800 m-0">Gestión de Grupos</h1>
-      </div>
-    }
+@switch (true) {
+  @case (currentRoute === '/grupos') {
+    <app-layout-header type="list" title="Grupos de Obras" subtitle="Organiza tus obras por grupo para mejor seguimiento">
+      <p-button
+        header-actions
+        label="Crear grupo"
+        icon="pi pi-plus"
+        severity="success"
+        (onClick)="openNewGrupo()"
+        styleClass="p-button">
+      </p-button>
+    </app-layout-header>
   }
-</div>
+  @default {
+    <div class="p-4">
+      <h1 class="font-poppins text-3xl font-semibold text-gray-800 m-0">Gestión de Grupos</h1>
+    </div>
+  }
+}
 
 <div class="p-5 bg-gray-50">
   <router-outlet></router-outlet>

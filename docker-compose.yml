@@ -220,6 +220,29 @@ services:
     networks:
       - sgo_backend
 
+  auth-service:
+    build: ./backend1.0/auth-service
+    container_name: auth_service_local_v2
+    ports:
+      - "8089:8089"
+    environment:
+      - SPRING_PROFILES_ACTIVE=prod
+      - DB_HOST=sqlserver
+      - DB_USER=sa
+      - DB_PASSWORD=${DB_PASSWORD:-SgoAdmin2024!}
+      - SPRING_DATASOURCE_URL=jdbc:sqlserver://sqlserver:1433;databaseName=sgo_auth;encrypt=false;trustServerCertificate=true
+      - SPRING_DATASOURCE_USERNAME=sa
+      - SPRING_DATASOURCE_PASSWORD=${DB_PASSWORD:-SgoAdmin2024!}
+      - SPRING_JPA_PROPERTIES_HIBERNATE_DIALECT=org.hibernate.dialect.SQLServerDialect
+      - SPRING_FLYWAY_ENABLED=true
+      - JWT_SECRET=${JWT_SECRET:-your-super-secret-key-min-32-chars-long-for-hs256-algorithm}
+    depends_on:
+      sqlserver:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - sgo_backend
+
   api-gateway:
     build:
       context: ./backend1.0/api-gateway
@@ -229,6 +252,7 @@ services:
       - "8080:8080"
     environment:
       - SPRING_PROFILES_ACTIVE=prod
+      - JWT_SECRET=${JWT_SECRET:-your-super-secret-key-min-32-chars-long-for-hs256-algorithm}
       - SERVICES_OBRAS_URL=http://obras-service:8081/api/obras
       - SERVICES_CLIENTES_URL=http://clientes-service:8082/api/clientes
       - SERVICES_PROVEEDORES_URL=http://proveedores-service:8083/api/proveedores
@@ -238,6 +262,9 @@ services:
       - SERVICES_OBRAS_TAREAS_URL=http://obras-service:8081/api/obras/tareas
       - SERVICES_AGENDAS_TAREAS_URL=http://agendas-service:8085/api/agenda/tareas
       - SERVICES_REPORTES_URL=http://reportes-service:8084/api/reportes
+    depends_on:
+      auth-service:
+        condition: service_started
     # depends_on:
     #   obras-service:
     #     condition: service_started

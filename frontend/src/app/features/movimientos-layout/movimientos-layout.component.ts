@@ -8,6 +8,7 @@ import { Movimiento } from '../../core/models/models';
 import { MovimientosStateService } from '../../services/movimientos/movimientos-state.service';
 import { MovimientosModalService } from '../../services/movimientos/movimientos-modal.service';
 import { ConfirmDialog } from 'primeng/confirmdialog';
+import { LayoutHeaderComponent } from '../../shared/layout-header/layout-header.component';
 
 @Component({
   selector: 'app-movimientos-layout',
@@ -16,7 +17,8 @@ import { ConfirmDialog } from 'primeng/confirmdialog';
     RouterLink,
     RouterOutlet,
     Toast,
-    ConfirmDialog
+    ConfirmDialog,
+    LayoutHeaderComponent
   ],
   templateUrl: './movimientos-layout.component.html',
   styleUrl: './movimientos-layout.component.css',

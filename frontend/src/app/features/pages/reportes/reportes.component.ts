@@ -56,6 +56,7 @@ import {ConfirmationService, MessageService} from 'primeng/api';
 import {ProveedoresService} from '../../../services/proveedores/proveedores.service';
 import {Router} from '@angular/router';
 import {ResumenObrasComponent} from '../../components/resumen-obras/resumen-obras.component';
+import { LayoutHeaderComponent } from '../../../shared/layout-header/layout-header.component';
 
 interface SelectOption<T> {
   label: string;
@@ -81,7 +82,8 @@ interface SelectOption<T> {
     DatePicker,
     Toast,
     ConfirmDialog,
-    ResumenObrasComponent
+    ResumenObrasComponent,
+    LayoutHeaderComponent
   ],
   providers: [MessageService, ConfirmationService],
   templateUrl: './reportes.component.html',

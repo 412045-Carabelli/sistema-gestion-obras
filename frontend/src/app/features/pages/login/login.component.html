@@ -1,0 +1,71 @@
+<p-toast></p-toast>
+
+<div class="flex justify-center items-center min-h-screen bg-gray-100">
+  <p-card [style]="{ width: '400px' }" class="shadow-lg">
+    <ng-template pTemplate="header">
+      <div class="text-center py-4">
+        <h1 class="text-2xl font-bold">SGO</h1>
+        <p class="text-gray-600">Sistema de Gestión de Obras</p>
+      </div>
+    </ng-template>
+
+    <h2 class="text-xl font-semibold mb-6 text-center">Iniciar Sesión</h2>
+
+    <form [formGroup]="form" (ngSubmit)="login()" class="space-y-4">
+      <!-- Email -->
+      <div class="field">
+        <label for="email" class="block text-sm font-medium mb-2">Email</label>
+        <input
+          pInputText
+          id="email"
+          formControlName="email"
+          type="email"
+          placeholder="tu@email.com"
+          class="w-full"
+          [ngClass]="{ 'ng-invalid ng-touched': form.get('email')?.invalid && form.get('email')?.touched }"
+        />
+        <small class="text-red-600" *ngIf="form.get('email')?.invalid && form.get('email')?.touched">
+          Ingresa un email válido
+        </small>
+      </div>
+
+      <!-- Password -->
+      <div class="field">
+        <label for="password" class="block text-sm font-medium mb-2">Contraseña</label>
+        <input
+          pInputText
+          id="password"
+          formControlName="password"
+          type="password"
+          placeholder="Mínimo 8 caracteres"
+          class="w-full"
+          [ngClass]="{ 'ng-invalid ng-touched': form.get('password')?.invalid && form.get('password')?.touched }"
+        />
+        <small class="text-red-600" *ngIf="form.get('password')?.invalid && form.get('password')?.touched">
+          La contraseña debe tener al menos 8 caracteres
+        </small>
+      </div>
+
+      <!-- Submit button -->
+      <p-button
+        label="Iniciar Sesión"
+        [loading]="loading"
+        [disabled]="form.invalid || loading"
+        (onClick)="login()"
+        [style]="{ width: '100%' }"
+        icon="pi pi-sign-in"
+      ></p-button>
+    </form>
+
+    <ng-template pTemplate="footer">
+      <div class="text-center pt-4 border-t">
+        <p class="text-sm text-gray-600">
+          ¿No tienes cuenta?
+          <a (click)="goToRegister()" class="text-blue-600 cursor-pointer font-semibold hover:underline">
+            Registrate aquí
+          </a>
+        </p>
+      </div>
+    </ng-template>
+  </p-card>
+</div>

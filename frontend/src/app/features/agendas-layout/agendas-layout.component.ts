@@ -4,6 +4,7 @@ import {ToastModule} from 'primeng/toast';
 import {ConfirmationService, MessageService} from 'primeng/api';
 import {ConfirmDialog} from 'primeng/confirmdialog';
 import {Button} from 'primeng/button';
+import {LayoutHeaderComponent} from '../../shared/layout-header/layout-header.component';
 import {filter, Subscription} from 'rxjs';
 import {Tooltip} from 'primeng/tooltip';
 import {CommonModule} from '@angular/common';
@@ -12,7 +13,7 @@ import {AgendasService} from '../../services/agendas/agendas.service';
 @Component({
   selector: 'app-agendas-layout',
   standalone: true,
-  imports: [RouterOutlet, ToastModule, ConfirmDialog, Button, RouterLink, Tooltip, CommonModule],
+  imports: [RouterOutlet, ToastModule, ConfirmDialog, Button, RouterLink, Tooltip, CommonModule, LayoutHeaderComponent],
   providers: [MessageService, ConfirmationService],
   templateUrl: './agendas-layout.component.html',
   styleUrls: ['./agendas-layout.component.css']

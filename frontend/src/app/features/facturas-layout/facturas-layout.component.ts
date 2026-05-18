@@ -11,11 +11,12 @@ import {FacturasStateService} from '../../services/facturas/facturas-state.servi
 import {FacturasService} from '../../services/facturas/facturas.service';
 import {ConfirmDialog} from 'primeng/confirmdialog';
 import {BackButtonDirective} from '../../shared/directives/back-button.directive';
+import {LayoutHeaderComponent} from '../../shared/layout-header/layout-header.component';
 
 @Component({
   selector: 'app-facturas-layout',
   standalone: true,
-  imports: [RouterOutlet, ToastModule, RouterLink, Button, Tooltip, DatePipe, ConfirmDialog, BackButtonDirective],
+  imports: [RouterOutlet, ToastModule, RouterLink, Button, Tooltip, DatePipe, ConfirmDialog, BackButtonDirective, LayoutHeaderComponent],
   providers: [MessageService, ConfirmationService],
   templateUrl: './facturas-layout.component.html',
   styleUrls: ['./facturas-layout.component.css']

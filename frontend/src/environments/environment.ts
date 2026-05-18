@@ -3,6 +3,7 @@ export const environment = {
   production: false,
   apiGateway: 'http://localhost:8080',
   endpoints: {
+    auth: '/auth',
     obras: '/bff/obras',
     estado_pago: '/bff/estado-pago',
     clientes: '/bff/clientes',

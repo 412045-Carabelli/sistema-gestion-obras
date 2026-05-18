@@ -31,6 +31,7 @@ import {DashboardKpisComponent} from '../../components/dashboard-widgets/dashboa
 import {DashboardDeudasComponent} from '../../components/dashboard-widgets/dashboard-deudas/dashboard-deudas.component';
 import {DashboardTareasComponent} from '../../components/dashboard-widgets/dashboard-tareas/dashboard-tareas.component';
 import {DashboardMovimientosComponent} from '../../components/dashboard-widgets/dashboard-movimientos/dashboard-movimientos.component';
+import { LayoutHeaderComponent } from '../../../shared/layout-header/layout-header.component';
 
 @Component({
   selector: 'app-dashboard',
@@ -53,7 +54,8 @@ import {DashboardMovimientosComponent} from '../../components/dashboard-widgets/
     DashboardKpisComponent,
     DashboardDeudasComponent,
     DashboardTareasComponent,
-    DashboardMovimientosComponent
+    DashboardMovimientosComponent,
+    LayoutHeaderComponent
   ],
   providers: [MessageService],
   templateUrl: './dashboard.component.html',
