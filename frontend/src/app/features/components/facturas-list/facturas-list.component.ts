@@ -122,8 +122,14 @@ export class FacturasListComponent implements OnInit, OnDestroy {
   clienteFiltro: number | 'todos' = 'todos';
   obraFiltro: number | 'todos' = 'todos';
   mostrarInactivos = false;
+  estadoFiltro: string | 'todos' = 'todos';
   clientesOptions: SelectOption<number | 'todos'>[] = [];
   obrasOptions: SelectOption<number | 'todos'>[] = [];
+  estadosOptions = [
+    { label: 'Todos', value: 'todos' },
+    { label: 'Emitida', value: 'EMITIDA' },
+    { label: 'Cobrada', value: 'COBRADA' }
+  ];
   datosCargados = false;
   kpiFacturas: FacturasKpiResponse | null = null;
 
@@ -264,11 +270,16 @@ export class FacturasListComponent implements OnInit, OnDestroy {
           ? true
           : Number(factura.id_obra) === Number(this.obraFiltro);
 
+      const matchesEstado =
+        this.estadoFiltro === 'todos'
+          ? true
+          : (factura.estado || '').toUpperCase() === this.estadoFiltro;
+
       const matchesActivo = this.mostrarInactivos
         ? true
         : Boolean(factura.activo ?? true);
 
-      return matchesSearch && matchesCliente && matchesObra && matchesActivo;
+      return matchesSearch && matchesCliente && matchesObra && matchesEstado && matchesActivo;
     })
       .sort((a, b) => Number(b.id ?? 0) - Number(a.id ?? 0));
 
