@@ -7,36 +7,32 @@
       (clearFilters)="onClearFilters()"
     ></app-generic-filter-bar>
 
-        <!-- KPIs -->
+    <!-- KPIs -->
     <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-      <div
-        class="bg-white rounded-xl shadow-md p-5 border-l-4 border-emerald-500"
-        pTooltip="Total facturado de las obras que requieren factura."
-        tooltipPosition="top">
-        <p class="text-xs font-poppins font-semibold text-emerald-700 uppercase">Facturado</p>
-        <p class="text-2xl font-poppins font-bold text-gray-900">{{ totalFacturado | currency:'ARS':'symbol':'1.0-2' }}</p>
-      </div>
-      <div
-        class="bg-white rounded-xl shadow-md p-5 border-l-4 border-blue-500"
-        pTooltip="Cobros de obras facturadas que requieren factura."
-        tooltipPosition="top">
-        <p class="text-xs font-poppins font-semibold text-blue-700 uppercase">Cobrado</p>
-        <p class="text-2xl font-poppins font-bold text-gray-900">{{ totalCobrado | currency:'ARS':'symbol':'1.0-2' }}</p>
-      </div>
-      <div
-        class="bg-white rounded-xl shadow-md p-5 border-l-4 border-rose-500"
-        pTooltip="Facturado menos cobrado en obras facturadas."
-        tooltipPosition="top">
-        <p class="text-xs font-poppins font-semibold text-rose-700 uppercase">Por cobrar</p>
-        <p class="text-2xl font-poppins font-bold text-gray-900">{{ totalPorCobrar | currency:'ARS':'symbol':'1.0-2' }}</p>
-      </div>
-      <div
-        class="bg-white rounded-xl shadow-md p-5 border-l-4 border-amber-500"
-        pTooltip="Obras con requiere factura sin facturas emitidas."
-        tooltipPosition="top">
-        <p class="text-xs font-poppins font-semibold text-amber-700 uppercase">Por facturar</p>
-        <p class="text-2xl font-poppins font-bold text-gray-900">{{ totalPorFacturar | currency:'ARS':'symbol':'1.0-2' }}</p>
-      </div>
+      <app-kpi-card
+        [title]="'Facturado'"
+        [color]="'emerald'"
+        [value]="totalFacturado | currency:'ARS':'symbol':'1.0-2'"
+        [tooltip]="'Total facturado de las obras que requieren factura.'"
+      ></app-kpi-card>
+      <app-kpi-card
+        [title]="'Cobrado'"
+        [color]="'blue'"
+        [value]="totalCobrado | currency:'ARS':'symbol':'1.0-2'"
+        [tooltip]="'Cobros de obras facturadas que requieren factura.'"
+      ></app-kpi-card>
+      <app-kpi-card
+        [title]="'Por cobrar'"
+        [color]="'rose'"
+        [value]="totalPorCobrar | currency:'ARS':'symbol':'1.0-2'"
+        [tooltip]="'Facturado menos cobrado en obras facturadas.'"
+      ></app-kpi-card>
+      <app-kpi-card
+        [title]="'Por facturar'"
+        [color]="'amber'"
+        [value]="totalPorFacturar | currency:'ARS':'symbol':'1.0-2'"
+        [tooltip]="'Obras con requiere factura sin facturas emitidas.'"
+      ></app-kpi-card>
     </div>
 
     <div class="bg-white rounded-xl shadow-md overflow-hidden">
@@ -159,10 +155,10 @@
       </div>
     </div>
 
-        <!-- KPIs skeleton -->
+    <!-- KPIs skeleton -->
     <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
       @for (i of [1, 2, 3, 4]; track i) {
-        <div class="bg-white rounded-xl shadow-md p-5" [style.animation-delay]="(i * 100) + 'ms'">
+        <div class="bg-white rounded-xl shadow-md p-5 border-l-4 border-gray-200" [style.animation-delay]="(i * 100) + 'ms'">
           <div class="h-4 bg-gray-200 rounded w-24 mb-2"></div>
           <div class="h-8 bg-gray-300 rounded w-32"></div>
         </div>

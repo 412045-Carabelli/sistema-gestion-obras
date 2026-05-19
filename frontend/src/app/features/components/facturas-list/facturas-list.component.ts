@@ -31,6 +31,7 @@ import {EstadoFormatPipe} from '../../../shared/pipes/estado-format.pipe';
 import {ModalComponent} from '../../../shared/modal/modal.component';
 import {FacturasStateService} from '../../../services/facturas/facturas-state.service';
 import {GenericFilterBarComponent, FilterDefinition} from '../generic-filter-bar/generic-filter-bar.component';
+import {KpiCardComponent} from '../../../shared/kpi-card/kpi-card.component';
 
 interface FacturaView extends Factura {
   clienteNombre?: string;
@@ -71,7 +72,8 @@ interface SelectOption<T> {
     FileUploadModule,
     ModalComponent,
     ConfirmDialog,
-    GenericFilterBarComponent
+    GenericFilterBarComponent,
+    KpiCardComponent
   ],
   providers: [MessageService, ConfirmationService],
   templateUrl: './facturas-list.component.html',

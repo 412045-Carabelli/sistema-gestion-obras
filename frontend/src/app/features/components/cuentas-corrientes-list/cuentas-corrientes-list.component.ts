@@ -1,5 +1,5 @@
 import { Component, OnInit, OnDestroy, Output, EventEmitter } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { CommonModule, CurrencyPipe } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '../../../../environments/environment';
 import { ReportFilter, DeudasGlobalesResponse, CatalogoCuentaCorriente, DetalleDeudaCliente, DetalleDeudaProveedor } from '../../../core/models/models';
@@ -12,17 +12,20 @@ import { CardModule } from 'primeng/card';
 import { TooltipModule } from 'primeng/tooltip';
 import { Subscription } from 'rxjs';
 import { GenericFilterBarComponent, FilterDefinition, FilterAction } from '../generic-filter-bar/generic-filter-bar.component';
+import { KpiCardComponent } from '../../../shared/kpi-card/kpi-card.component';
 
 @Component({
   selector: 'app-cuentas-corrientes-list',
   standalone: true,
   imports: [
     CommonModule,
+    CurrencyPipe,
     TableModule,
     ButtonModule,
     CardModule,
     TooltipModule,
-    GenericFilterBarComponent
+    GenericFilterBarComponent,
+    KpiCardComponent
   ],
   templateUrl: './cuentas-corrientes-list.component.html',
   styleUrls: ['./cuentas-corrientes-list.component.css']
