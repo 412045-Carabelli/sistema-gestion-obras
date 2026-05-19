@@ -70,14 +70,34 @@
 
   <!-- ===================== KPIS DE DEUDAS GLOBALES ===================== -->
   @if (deudasGlobales) {
-    <div class="grid grid-cols-2 gap-3">
-      <div class="bg-green-50 border border-green-200 rounded-lg p-4">
-        <p class="text-green-700 text-sm font-poppins font-normal">Total por cobrar</p>
-        <p class="text-2xl font-poppins font-bold text-green-900">{{ deudasGlobales?.deudaClientes | currency:'ARS':'symbol-narrow':'1.0-0' }}</p>
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div
+        class="bg-white rounded-xl shadow-md p-5 border-l-4 border-emerald-500"
+        pTooltip="Total cobrado de clientes."
+        tooltipPosition="top">
+        <p class="text-xs font-poppins font-semibold text-emerald-700 uppercase">Cobrado Clientes</p>
+        <p class="text-2xl font-poppins font-bold text-gray-900">{{ deudasGlobales?.deudaClientes | currency:'ARS':'symbol':'1.0-0' }}</p>
       </div>
-      <div class="bg-red-50 border border-red-200 rounded-lg p-4">
-        <p class="text-red-700 text-sm font-poppins font-normal">Total por pagar</p>
-        <p class="text-2xl font-poppins font-bold text-red-900">{{ deudasGlobales?.deudaProveedores | currency:'ARS':'symbol-narrow':'1.0-0' }}</p>
+      <div
+        class="bg-white rounded-xl shadow-md p-5 border-l-4 border-blue-500"
+        pTooltip="Total pagado a proveedores."
+        tooltipPosition="top">
+        <p class="text-xs font-poppins font-semibold text-blue-700 uppercase">Pagado Proveedores</p>
+        <p class="text-2xl font-poppins font-bold text-gray-900">{{ deudasGlobales?.deudaProveedores | currency:'ARS':'symbol':'1.0-0' }}</p>
+      </div>
+      <div
+        class="bg-white rounded-xl shadow-md p-5 border-l-4 border-rose-500"
+        pTooltip="Total pendiente de cobrar."
+        tooltipPosition="top">
+        <p class="text-xs font-poppins font-semibold text-rose-700 uppercase">Por Cobrar</p>
+        <p class="text-2xl font-poppins font-bold text-gray-900">{{ (deudasGlobales?.totalDeudaClientes || 0) - (deudasGlobales?.deudaClientes || 0) | currency:'ARS':'symbol':'1.0-0' }}</p>
+      </div>
+      <div
+        class="bg-white rounded-xl shadow-md p-5 border-l-4 border-amber-500"
+        pTooltip="Total pendiente de pagar."
+        tooltipPosition="top">
+        <p class="text-xs font-poppins font-semibold text-amber-700 uppercase">Por Pagar</p>
+        <p class="text-2xl font-poppins font-bold text-gray-900">{{ (deudasGlobales?.totalDeudaProveedor || 0) - (deudasGlobales?.deudaProveedores || 0) | currency:'ARS':'symbol':'1.0-0' }}</p>
       </div>
     </div>
   }

@@ -30,6 +30,7 @@ import {TransaccionesService} from '../../../services/transacciones/transaccione
 import {EstadoFormatPipe} from '../../../shared/pipes/estado-format.pipe';
 import {ModalComponent} from '../../../shared/modal/modal.component';
 import {FacturasStateService} from '../../../services/facturas/facturas-state.service';
+import {GenericFilterBarComponent, FilterDefinition} from '../generic-filter-bar/generic-filter-bar.component';
 
 interface FacturaView extends Factura {
   clienteNombre?: string;
@@ -69,7 +70,8 @@ interface SelectOption<T> {
     EditorModule,
     FileUploadModule,
     ModalComponent,
-    ConfirmDialog
+    ConfirmDialog,
+    GenericFilterBarComponent
   ],
   providers: [MessageService, ConfirmationService],
   templateUrl: './facturas-list.component.html',
@@ -154,6 +156,10 @@ export class FacturasListComponent implements OnInit, OnDestroy {
   facturaFile: File | null = null;
   facturaRestanteObra: number | null = null;
 
+  // Filter Bar
+  filterDefinitions: FilterDefinition[] = [];
+  currentFilters: Record<string, any> = {};
+
   private subscription = new Subscription();
 
   constructor(
@@ -170,6 +176,7 @@ export class FacturasListComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit() {
+    this.setupFilterDefinitions();
     this.subscription.add(
       this.facturasStateService.openCreateModal$.subscribe(() => this.abrirFacturaModal())
     );
@@ -178,6 +185,56 @@ export class FacturasListComponent implements OnInit, OnDestroy {
 
   ngOnDestroy() {
     this.subscription.unsubscribe();
+  }
+
+  private setupFilterDefinitions(): void {
+    this.filterDefinitions = [
+      {
+        key: 'search',
+        label: 'Buscar',
+        type: 'input',
+        placeholder: 'Por cliente, obra o nro. de factura'
+      },
+      {
+        key: 'cliente',
+        label: 'Cliente',
+        type: 'select',
+        placeholder: 'Todos',
+        options: this.clientes.map((c) => ({ label: c.nombre, value: c.id }))
+      },
+      {
+        key: 'obra',
+        label: 'Obra',
+        type: 'select',
+        placeholder: 'Todas',
+        options: this.obras.map((o) => ({ label: o.nombre, value: o.id }))
+      },
+      {
+        key: 'estado',
+        label: 'Estado',
+        type: 'select',
+        placeholder: 'Todos',
+        options: this.estadosOptions
+      }
+    ];
+  }
+
+  onFilterChange(filters: Record<string, any>): void {
+    this.currentFilters = filters;
+    this.searchValue = filters['search'] || '';
+    this.clienteFiltro = filters['cliente'] || 'todos';
+    this.obraFiltro = filters['obra'] || 'todos';
+    this.estadoFiltro = filters['estado'] || 'todos';
+    this.applyFilter();
+  }
+
+  onClearFilters(): void {
+    this.currentFilters = {};
+    this.searchValue = '';
+    this.clienteFiltro = 'todos';
+    this.obraFiltro = 'todos';
+    this.estadoFiltro = 'todos';
+    this.applyFilter();
   }
 
   private cargarDatos() {
@@ -239,6 +296,9 @@ export class FacturasListComponent implements OnInit, OnDestroy {
           ...this.clientes.map(c => ({label: c.nombre, value: Number(c.id)}))
         ];
         this.updateObrasOptions();
+
+        // Setup filter definitions after loading data
+        this.setupFilterDefinitions();
 
         this.applyFilter();
         this.construirListadoObras();

@@ -7,6 +7,7 @@ import { HttpErrorResponse, HttpClient } from '@angular/common/http';
 import { Toast } from 'primeng/toast';
 import { ProgressSpinnerModule } from 'primeng/progressspinner';
 import { Button } from 'primeng/button';
+import { TooltipModule } from 'primeng/tooltip';
 import {FlujoCajaResponse, MovimientoDashboard, ResumenGeneralResponse, Tarea, Obra, Cliente, Proveedor, Transaccion, ObraCosto, ReportFilter, DashboardFinancieroResponse, DashboardConsolidadoResponse, TareaAntiguaAgenda, MovimientoRecenteDTO} from '../../../core/models/models';
 import {TareasService} from '../../../services/tareas/tareas.service';
 import {ReportesService} from '../../../services/reportes/reportes.service';
@@ -58,7 +59,8 @@ import { environment } from '../../../../environments/environment';
     DashboardTareasComponent,
     DashboardMovimientosComponent,
     LayoutHeaderComponent,
-    GenericFilterBarComponent
+    GenericFilterBarComponent,
+    TooltipModule
   ],
   providers: [MessageService],
   templateUrl: './dashboard.component.html',
