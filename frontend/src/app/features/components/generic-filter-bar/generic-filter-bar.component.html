@@ -39,11 +39,14 @@
               ></p-datepicker>
             }
             @case ('checkbox') {
-              <p-checkbox
-                [formControlName]="filterDef.key"
-                [binary]="true"
-                [inputId]="'filter-' + filterDef.key"
-              ></p-checkbox>
+              <div class="flex items-center justify-center h-10">
+                <p-checkbox
+                  [formControlName]="filterDef.key"
+                  [binary]="true"
+                  [inputId]="'filter-' + filterDef.key"
+                  class="scale-150"
+                ></p-checkbox>
+              </div>
             }
           }
         </div>
