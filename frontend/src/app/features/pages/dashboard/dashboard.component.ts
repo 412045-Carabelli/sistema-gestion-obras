@@ -3,7 +3,7 @@ import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { forkJoin } from 'rxjs';
 import { MessageService } from 'primeng/api';
-import { HttpErrorResponse } from '@angular/common/http';
+import { HttpErrorResponse, HttpClient } from '@angular/common/http';
 import { Toast } from 'primeng/toast';
 import { ProgressSpinnerModule } from 'primeng/progressspinner';
 import { Button } from 'primeng/button';
@@ -32,6 +32,8 @@ import {DashboardDeudasComponent} from '../../components/dashboard-widgets/dashb
 import {DashboardTareasComponent} from '../../components/dashboard-widgets/dashboard-tareas/dashboard-tareas.component';
 import {DashboardMovimientosComponent} from '../../components/dashboard-widgets/dashboard-movimientos/dashboard-movimientos.component';
 import { LayoutHeaderComponent } from '../../../shared/layout-header/layout-header.component';
+import { GenericFilterBarComponent, FilterDefinition } from '../../components/generic-filter-bar/generic-filter-bar.component';
+import { environment } from '../../../../environments/environment';
 
 @Component({
   selector: 'app-dashboard',
@@ -55,7 +57,8 @@ import { LayoutHeaderComponent } from '../../../shared/layout-header/layout-head
     DashboardDeudasComponent,
     DashboardTareasComponent,
     DashboardMovimientosComponent,
-    LayoutHeaderComponent
+    LayoutHeaderComponent,
+    GenericFilterBarComponent
   ],
   providers: [MessageService],
   templateUrl: './dashboard.component.html',
@@ -73,6 +76,7 @@ export class DashboardComponent implements OnInit {
   filteredObras: Obra[] = [];
   proveedores: Proveedor[] = [];
   clientes: Cliente[] = [];
+  filterDefinitions: FilterDefinition[] = [];
   filtrosDashboard = {
     obra: null as Obra | null,
     cliente: null as Cliente | null,
@@ -84,6 +88,7 @@ export class DashboardComponent implements OnInit {
 
   // Filtros activos para pasar a los componentes hijos
   filtrosActivos: ReportFilter = {};
+  deudasGlobales: any = null;
   ivaOptions: { label: string; name: string }[] = [];
   tiposProveedor: CatalogoOption[] = [];
   gremiosProveedor: CatalogoOption[] = [];
@@ -184,7 +189,8 @@ export class DashboardComponent implements OnInit {
     private clientesService: ClientesService,
     private proveedoresService: ProveedoresService,
     private facturasService: FacturasService,
-    private messageService: MessageService
+    private messageService: MessageService,
+    private http: HttpClient
   ) {}
 
   ngOnInit(): void {
@@ -210,6 +216,12 @@ export class DashboardComponent implements OnInit {
         this.filteredClientes = [...this.clientes];
         this.filteredProveedores = [...this.proveedores];
 
+        // Setup filter definitions
+        this.setupFilterDefinitions();
+
+        // Cargar KPIs iniciales
+        this.cargarDeudasGlobales();
+
         // Cargar opciones de IVA y catálogos de proveedores
         this.cargarOpcionesAdicionales();
 
@@ -225,6 +237,42 @@ export class DashboardComponent implements OnInit {
         });
       }
     });
+  }
+
+  private setupFilterDefinitions(): void {
+    this.filterDefinitions = [
+      {
+        key: 'cliente',
+        label: 'Cliente',
+        type: 'select',
+        placeholder: 'Todos',
+        options: this.clientes.map((c) => ({ label: c.nombre, value: c.id }))
+      },
+      {
+        key: 'proveedor',
+        label: 'Proveedor',
+        type: 'select',
+        placeholder: 'Todos',
+        options: this.proveedores.map((p) => ({ label: p.nombre, value: p.id }))
+      },
+      {
+        key: 'obra',
+        label: 'Obra',
+        type: 'select',
+        placeholder: 'Todos',
+        options: this.obras.map((o) => ({ label: o.nombre, value: o.id }))
+      },
+      {
+        key: 'fechaInicio',
+        label: 'Fecha Inicio',
+        type: 'date'
+      },
+      {
+        key: 'fechaFin',
+        label: 'Fecha Fin',
+        type: 'date'
+      }
+    ];
   }
 
   private cargarOpcionesAdicionales(): void {
@@ -275,6 +323,40 @@ export class DashboardComponent implements OnInit {
     this.onFiltroChange();
   }
 
+  onFilterChange(filters: Record<string, any>): void {
+    // Map generic filter bar values to filtrosDashboard
+    const clienteId = filters['cliente'];
+    const proveedorId = filters['proveedor'];
+    const obraId = filters['obra'];
+    const fechaInicio = filters['fechaInicio'];
+    const fechaFin = filters['fechaFin'];
+
+    this.filtrosDashboard.cliente = clienteId
+      ? this.clientes.find(c => Number(c.id) === Number(clienteId)) || null
+      : null;
+    this.filtrosDashboard.proveedor = proveedorId
+      ? this.proveedores.find(p => Number(p.id) === Number(proveedorId)) || null
+      : null;
+    this.filtrosDashboard.obra = obraId
+      ? this.obras.find(o => Number(o.id) === Number(obraId)) || null
+      : null;
+
+    // Handle date range
+    if (fechaInicio || fechaFin) {
+      const inicio = fechaInicio ? new Date(fechaInicio) : null;
+      const fin = fechaFin ? new Date(fechaFin) : null;
+      this.filtrosDashboard.rangoFechas = [inicio, fin].filter((d) => d !== null) as Date[];
+    } else {
+      this.filtrosDashboard.rangoFechas = null;
+    }
+
+    this.onFiltroChange();
+  }
+
+  onClearFilters(): void {
+    this.limpiarFiltrosDashboard();
+  }
+
   /**
    * Reconstruye los filtros activos para pasar a los componentes hijos.
    * Se ejecuta cuando cambian los filtros del dashboard.
@@ -287,6 +369,28 @@ export class DashboardComponent implements OnInit {
       fechaInicio: this.filtrosDashboard.rangoFechas?.[0] ? new Date(this.filtrosDashboard.rangoFechas[0]).toISOString().split('T')[0] : undefined,
       fechaFin: this.filtrosDashboard.rangoFechas?.[1] ? new Date(this.filtrosDashboard.rangoFechas[1]).toISOString().split('T')[0] : undefined
     };
+    this.cargarDeudasGlobales();
+  }
+
+  private cargarDeudasGlobales(): void {
+    const deudasUrl = `${environment.apiGateway}/bff/reportes/financieros/deudas-globales`;
+    const filtro: ReportFilter = {
+      obraId: this.filtrosDashboard.obra?.id,
+      clienteId: this.filtrosDashboard.cliente?.id,
+      proveedorId: this.filtrosDashboard.proveedor?.id,
+      fechaInicio: this.filtrosActivos.fechaInicio,
+      fechaFin: this.filtrosActivos.fechaFin
+    };
+
+    this.http.post<any>(deudasUrl, filtro).subscribe({
+      next: (response) => {
+        this.deudasGlobales = response;
+      },
+      error: (err) => {
+        console.error('Error cargando deudas globales:', err);
+        this.deudasGlobales = null;
+      }
+    });
   }
 
   abrirMovimientoModal() {

@@ -1203,7 +1203,7 @@ export class ObrasDetailComponent implements OnInit, OnDestroy, AfterViewInit {
 
   getEstadoFacturacionDetalle(): { label: string; severity: string } | undefined {
     if (this.obra?.requiere_factura) {
-      return {label: 'Para facturar', severity: 'success'};
+      return {label: 'Obra marcada para facturar', severity: 'success'};
     }
     return undefined;
   }

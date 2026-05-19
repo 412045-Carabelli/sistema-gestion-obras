@@ -1,0 +1,72 @@
+<div class="bg-white rounded-lg shadow-sm border border-gray-100 p-5">
+  <form [formGroup]="form" class="flex flex-col lg:flex-row lg:items-end gap-4 justify-between">
+    <!-- Filters Section -->
+    <div class="flex flex-col sm:flex-row gap-3 flex-wrap flex-1">
+      @for (filterDef of filterDefinitions; track filterDef.key) {
+        <div class="flex flex-col gap-1">
+          <label class="block text-xs font-poppins font-semibold text-gray-600 uppercase tracking-wide">
+            {{ filterDef.label }}
+          </label>
+
+          @switch (filterDef.type) {
+            @case ('select') {
+              <p-select
+                [formControlName]="filterDef.key"
+                [options]="getFilterOptions(filterDef.key)"
+                [placeholder]="filterDef.placeholder || 'Todos'"
+                [showClear]="true"
+                [filter]="true"
+                [fluid]="true"
+                class="w-full sm:w-48"
+              ></p-select>
+            }
+            @case ('input') {
+              <input
+                pInputText
+                [formControlName]="filterDef.key"
+                [placeholder]="filterDef.placeholder || 'Buscar...'"
+                class="w-full sm:w-48 py-2 px-3 text-sm"
+              />
+            }
+            @case ('date') {
+              <p-datepicker
+                [formControlName]="filterDef.key"
+                [placeholder]="filterDef.placeholder || 'Seleccionar fecha'"
+                [showIcon]="true"
+                [fluid]="true"
+                dateFormat="dd/mm/yy"
+                class="w-full sm:w-48"
+              ></p-datepicker>
+            }
+          }
+        </div>
+      }
+    </div>
+
+    <!-- Actions Section -->
+    <div class="flex flex-col sm:flex-row gap-2 lg:justify-end">
+      <!-- Clear Filters Button -->
+      <p-button
+        label="Limpiar"
+        icon="pi pi-times"
+        severity="secondary"
+        (onClick)="onLimpiar()"
+        [fluid]="true"
+        class="!min-w-[120px]"
+      ></p-button>
+
+      <!-- Custom Actions -->
+      @for (action of actions; track action.label) {
+        <p-button
+          [label]="action.label"
+          [icon]="action.icon"
+          [severity]="action.severity || 'primary'"
+          [loading]="action.loading || false"
+          (onClick)="executeAction(action)"
+          [fluid]="true"
+          class="!min-w-[140px]"
+        ></p-button>
+      }
+    </div>
+  </form>
+</div>

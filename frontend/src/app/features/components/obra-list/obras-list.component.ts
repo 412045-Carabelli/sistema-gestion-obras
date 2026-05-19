@@ -20,6 +20,7 @@ import {EstadoObraService} from '../../../services/estado-obra/estado-obra.servi
 import {FacturasService} from '../../../services/facturas/facturas.service';
 import {Select} from 'primeng/select';
 import {EstadoFormatPipe} from '../../../shared/pipes/estado-format.pipe';
+import {GenericFilterBarComponent, FilterDefinition} from '../generic-filter-bar/generic-filter-bar.component';
 
 interface EstadoOption {
   label: string;
@@ -43,7 +44,8 @@ interface EstadoOption {
     ButtonModule,
     CheckboxModule,
     MultiSelectModule,
-    EstadoFormatPipe
+    EstadoFormatPipe,
+    GenericFilterBarComponent
   ],
   templateUrl: './obras-list.component.html',
   styleUrls: ['./obras-list.component.css']
@@ -67,6 +69,11 @@ export class ObrasListComponent implements OnInit {
     { label: 'Parcial',   value: 'Parcial' },
     { label: 'Total',     value: 'Total' },
   ];
+
+  // Filter Bar
+  filterDefinitions: FilterDefinition[] = [];
+  currentFilters: Record<string, any> = {};
+
   private estadoInicialDesdeRuta: string[] = [];
   private facturasPorObra: Record<number, Factura[]> = {};
   private readonly ESTADOS_CON_FACTURACION = ['ADJUDICADA', 'EN_PROGRESO', 'FINALIZADA'];
@@ -114,6 +121,9 @@ export class ObrasListComponent implements OnInit {
       this.obrasFiltradas = [...this.obras];
 
       this.estadosOptions = this.estados.map(r => ({ label: r.label || r.name, value: r.name }));
+
+      // Setup filter definitions after loading datos
+      this.setupFilterDefinitions();
 
       // Aplicar filtro inicial si vino por query param
       if (this.estadoInicialDesdeRuta) {
@@ -229,13 +239,6 @@ export class ObrasListComponent implements OnInit {
     });
   }
 
-  onEstadoChange() {
-    this.applyFilter();
-  }
-
-  onFacturacionChange() {
-    this.applyFilter();
-  }
 
   private parseEstadoFiltro(raw: string | string[] | null): string[] {
     if (!raw) return [];
@@ -246,6 +249,47 @@ export class ObrasListComponent implements OnInit {
   }
 
   onMostrarInactivosChange() {
+    this.applyFilter();
+  }
+
+  private setupFilterDefinitions(): void {
+    this.filterDefinitions = [
+      {
+        key: 'search',
+        label: 'Buscar',
+        type: 'input',
+        placeholder: 'Por nombre, dirección o cliente'
+      },
+      {
+        key: 'estado',
+        label: 'Estado',
+        type: 'select',
+        placeholder: 'Todos',
+        options: this.estadosOptions
+      },
+      {
+        key: 'facturacion',
+        label: 'Facturación',
+        type: 'select',
+        placeholder: 'Todos',
+        options: this.estadosFacturacionOptions
+      }
+    ];
+  }
+
+  onFilterChange(filters: Record<string, any>): void {
+    this.currentFilters = filters;
+    this.searchValue = filters['search'] || '';
+    this.estadoFiltro = filters['estado'] ? (Array.isArray(filters['estado']) ? filters['estado'] : [filters['estado']]) : [];
+    this.estadoFacturacionFiltro = filters['facturacion'] ? (Array.isArray(filters['facturacion']) ? filters['facturacion'] : [filters['facturacion']]) : [];
+    this.applyFilter();
+  }
+
+  onClearFilters(): void {
+    this.currentFilters = {};
+    this.searchValue = '';
+    this.estadoFiltro = [];
+    this.estadoFacturacionFiltro = [];
     this.applyFilter();
   }
 

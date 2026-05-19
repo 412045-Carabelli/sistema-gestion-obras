@@ -12,6 +12,7 @@ import {forkJoin} from 'rxjs';
 import {Proveedor} from '../../../core/models/models';
 import {ProveedoresService} from '../../../services/proveedores/proveedores.service';
 import {Router} from '@angular/router';
+import {GenericFilterBarComponent, FilterDefinition} from '../generic-filter-bar/generic-filter-bar.component';
 
 interface TipoOption { label: string; name: string | 'todos'; }
 interface SaldoOption { label: string; value: 'todos' | 'con_saldo' | 'saldo_cero_o_menor'; }
@@ -29,6 +30,7 @@ interface SaldoOption { label: string; value: 'todos' | 'con_saldo' | 'saldo_cer
     Select,
     ButtonModule,
     CheckboxModule,
+    GenericFilterBarComponent
   ],
   templateUrl: './proveedores-list.component.html'
 })
@@ -45,6 +47,7 @@ export class ProveedoresListComponent implements OnInit {
   saldosProveedor: Record<number, number> = {};
   totalesProveedor: Record<number, number> = {};
   ultimoMovimientoProveedor: Record<number, number> = {};
+  filterDefinitions: FilterDefinition[] = [];
 
   searchValue: string = '';
   tipoFiltro: number | 'todos' = 'todos';
@@ -70,11 +73,55 @@ export class ProveedoresListComponent implements OnInit {
         this.proveedores = proveedores;
         this.tiposRecords = tipos;
         this.tipoOptions = [ {label: 'Todos', name: 'todos'}, ...this.tiposRecords.map(r => ({label: r.label, name: r.name})) ];
+        this.setupFilterDefinitions(tipos);
         this.applyFilter();
         this.datosCargados = true;
       },
       error: () => (this.datosCargados = true)
     });
+  }
+
+  private setupFilterDefinitions(tipos: { label: string; name: string }[]): void {
+    this.filterDefinitions = [
+      {
+        key: 'search',
+        label: 'Buscar',
+        type: 'input',
+        placeholder: 'Nombre, contacto, email...'
+      },
+      {
+        key: 'tipo',
+        label: 'Tipo Proveedor',
+        type: 'select',
+        placeholder: 'Todos',
+        options: [
+          { label: 'Todos', value: 'todos' },
+          ...tipos.map((t) => ({ label: t.label, value: t.name }))
+        ]
+      },
+      {
+        key: 'saldo',
+        label: 'Saldo',
+        type: 'select',
+        placeholder: 'Todos',
+        options: this.saldoOptions.map((s) => ({ label: s.label, value: s.value }))
+      }
+    ];
+  }
+
+  onFilterChange(filters: Record<string, any>): void {
+    this.searchValue = filters['search'] || '';
+    this.tipoFiltro = filters['tipo'] || 'todos';
+    this.saldoFiltro = filters['saldo'] || 'todos';
+    this.applyFilter();
+  }
+
+  onClearFilters(): void {
+    this.searchValue = '';
+    this.tipoFiltro = 'todos';
+    this.saldoFiltro = 'todos';
+    this.mostrarInactivos = false;
+    this.applyFilter();
   }
 
 

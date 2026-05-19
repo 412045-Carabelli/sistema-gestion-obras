@@ -1,60 +1,12 @@
-@defer (when datosCargados) {
+@defer (when datosCargados; on interaction; prefetch on timer(2s)) {
   <div class="flex flex-col gap-4">
-    <!-- Barra de filtros -->
-    <div class="bg-white p-4 rounded-lg border border-gray-200">
-      <div class="grid grid-cols-1 md:grid-cols-12 gap-4">
-        <!-- Búsqueda por Asociado -->
-        <div class="md:col-span-4">
-          <p-iconfield iconPosition="left" styleClass="w-full">
-            <p-inputicon styleClass="pi pi-search"/>
-            <input
-              (input)="onFilterChange()"
-              [(ngModel)]="searchValue"
-              class="w-full p-inputtext-sm h-12"
-              pInputText
-              placeholder="Buscar por asociado"
-              type="text"/>
-          </p-iconfield>
-        </div>
-
-        <!-- Tipo Transacción -->
-        <div class="md:col-span-3">
-          <p-select
-            (onChange)="onFilterChange()"
-            [(ngModel)]="tipoTransaccionFiltro"
-            [options]="tiposTransaccion"
-            optionLabel="label"
-            optionValue="name"
-            placeholder="Tipo Transacción"
-            styleClass="w-full p-inputtext-sm h-12">
-          </p-select>
-        </div>
-
-        <!-- Fecha Inicio -->
-        <div class="md:col-span-2">
-          <p-datepicker
-            [(ngModel)]="fechaInicio"
-            (onChange)="onFilterChange()"
-            placeholder="Desde"
-            dateFormat="dd/mm/yy"
-            [showIcon]="true"
-            styleClass="w-full p-inputtext-sm h-12">
-          </p-datepicker>
-        </div>
-
-        <!-- Fecha Fin -->
-        <div class="md:col-span-3">
-          <p-datepicker
-            [(ngModel)]="fechaFin"
-            (onChange)="onFilterChange()"
-            placeholder="Hasta"
-            dateFormat="dd/mm/yy"
-            [showIcon]="true"
-            styleClass="w-full p-inputtext-sm h-12">
-          </p-datepicker>
-        </div>
-      </div>
-    </div>
+    <!-- Barra de filtros genérica -->
+    <app-generic-filter-bar
+      [filterDefinitions]="filterDefinitions"
+      [actions]="[]"
+      (filterChange)="onFilterChange($event)"
+      (clearFilters)="onClearFilters()"
+    ></app-generic-filter-bar>
 
     <!-- Tabla -->
     <div class="bg-white rounded-lg border border-gray-200 overflow-hidden">

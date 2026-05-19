@@ -23,6 +23,7 @@ import { MovimientosModalService } from '../../../services/movimientos/movimient
 import { ObrasService } from '../../../services/obras/obras.service';
 import { ClientesService } from '../../../services/clientes/clientes.service';
 import { ProveedoresService } from '../../../services/proveedores/proveedores.service';
+import { GenericFilterBarComponent, FilterDefinition } from '../generic-filter-bar/generic-filter-bar.component';
 
 @Component({
   selector: 'app-movimientos-list',
@@ -43,7 +44,8 @@ import { ProveedoresService } from '../../../services/proveedores/proveedores.se
     DatePickerModule,
     ToastModule,
     DialogModule,
-    InputTextarea
+    InputTextarea,
+    GenericFilterBarComponent
   ],
   templateUrl: './movimientos-list.component.html',
   styleUrls: ['./movimientos-list.component.css'],
@@ -61,6 +63,7 @@ export class MovimientosListComponent implements OnInit {
   form!: FormGroup;
   movimientoEditando: Movimiento | null = null;
   saldoAsociado: number = 0;
+  filterDefinitions: FilterDefinition[] = [];
 
   // Opciones para filtros y modal
   obraNombresMap: { [key: number]: string } = {};
@@ -129,6 +132,34 @@ export class MovimientosListComponent implements OnInit {
     });
   }
 
+  private setupFilterDefinitions(): void {
+    this.filterDefinitions = [
+      {
+        key: 'search',
+        label: 'Buscar',
+        type: 'input',
+        placeholder: 'Nombre asociado...'
+      },
+      {
+        key: 'tipoTransaccion',
+        label: 'Tipo Transacción',
+        type: 'select',
+        placeholder: 'Todos',
+        options: this.tiposTransaccion.map((t) => ({ label: t.label, value: t.name }))
+      },
+      {
+        key: 'fechaInicio',
+        label: 'Fecha Inicio',
+        type: 'date'
+      },
+      {
+        key: 'fechaFin',
+        label: 'Fecha Fin',
+        type: 'date'
+      }
+    ];
+  }
+
   private cargarDatos(): void {
     forkJoin({
       movimientosPage: this.movimientosService.listarConAsociados(this.currentPage, this.pageSize),
@@ -148,6 +179,7 @@ export class MovimientosListComponent implements OnInit {
           this.obraNombresMap[o.id!] = o.nombre;
         });
 
+        this.setupFilterDefinitions();
         this.applyFilter();
         this.datosCargados = true;
       },
@@ -161,6 +193,22 @@ export class MovimientosListComponent implements OnInit {
         this.datosCargados = true;
       }
     });
+  }
+
+  onFilterChange(filters: Record<string, any>): void {
+    this.searchValue = filters['search'] || '';
+    this.tipoTransaccionFiltro = filters['tipoTransaccion'] || 'todos';
+    this.fechaInicio = filters['fechaInicio'] ? new Date(filters['fechaInicio']) : null;
+    this.fechaFin = filters['fechaFin'] ? new Date(filters['fechaFin']) : null;
+    this.applyFilter();
+  }
+
+  onClearFilters(): void {
+    this.searchValue = '';
+    this.tipoTransaccionFiltro = 'todos';
+    this.fechaInicio = null;
+    this.fechaFin = null;
+    this.applyFilter();
   }
 
   applyFilter() {
@@ -189,10 +237,6 @@ export class MovimientosListComponent implements OnInit {
 
   getNombreAsociado(mov: Movimiento): string {
     return mov.nombre_asociado || `${mov.tipo_asociado} ${mov.id_asociado}`;
-  }
-
-  onFilterChange() {
-    this.applyFilter();
   }
 
   onAsociadoChange(): void {

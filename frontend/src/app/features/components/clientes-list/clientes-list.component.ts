@@ -14,6 +14,7 @@ import {forkJoin} from 'rxjs';
 
 import {Cliente, CondicionIva, CONDICION_IVA_LABELS} from '../../../core/models/models';
 import {ClientesService} from '../../../services/clientes/clientes.service';
+import {GenericFilterBarComponent, FilterDefinition} from '../generic-filter-bar/generic-filter-bar.component';
 
 @Component({
   selector: 'app-clientes-list',
@@ -29,7 +30,8 @@ import {ClientesService} from '../../../services/clientes/clientes.service';
     InputIconModule,
     ButtonModule,
     CheckboxModule,
-    Select
+    Select,
+    GenericFilterBarComponent
   ],
   templateUrl: './clientes-list.component.html',
   styleUrls: ['./clientes-list.component.css']
@@ -41,6 +43,7 @@ export class ClientesListComponent implements OnInit {
   clientesFiltrados: Cliente[] = [];
   datosCargados = false;
   ivaOptions: { label: string; name: string }[] = [];
+  filterDefinitions: FilterDefinition[] = [];
 
   searchValue: string = '';
   condicionIvaFiltro: string | 'todos' = 'todos';
@@ -69,6 +72,7 @@ export class ClientesListComponent implements OnInit {
           ...condicionesIva
         ];
 
+        this.setupFilterDefinitions(condicionesIva);
         this.applyFilter();
         this.datosCargados = true;
       },
@@ -77,6 +81,42 @@ export class ClientesListComponent implements OnInit {
         this.datosCargados = true;
       }
     });
+
+    // Defer will auto-prefetch after 2s and load on interaction
+  }
+
+  private setupFilterDefinitions(condicionesIva: { label: string; name: string }[]): void {
+    this.filterDefinitions = [
+      {
+        key: 'search',
+        label: 'Buscar',
+        type: 'input',
+        placeholder: 'Nombre, contacto, email...'
+      },
+      {
+        key: 'condicionIva',
+        label: 'Condición IVA',
+        type: 'select',
+        placeholder: 'Todas',
+        options: [
+          { label: 'Todas', value: 'todos' },
+          ...condicionesIva.map((c) => ({ label: c.label, value: c.name }))
+        ]
+      }
+    ];
+  }
+
+  onFilterChange(filters: Record<string, any>): void {
+    this.searchValue = filters['search'] || '';
+    this.condicionIvaFiltro = filters['condicionIva'] || 'todos';
+    this.applyFilter();
+  }
+
+  onClearFilters(): void {
+    this.searchValue = '';
+    this.condicionIvaFiltro = 'todos';
+    this.mostrarInactivos = false;
+    this.applyFilter();
   }
 
   // 🔍 Filtrado por búsqueda y activo

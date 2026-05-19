@@ -25,6 +25,7 @@ import {ObrasService} from '../../../services/obras/obras.service';
 import {ClientesService} from '../../../services/clientes/clientes.service';
 import {ProveedoresService} from '../../../services/proveedores/proveedores.service';
 import {AgendaModalComponent} from './agenda-modal/agenda-modal.component';
+import {GenericFilterBarComponent, FilterDefinition} from '../generic-filter-bar/generic-filter-bar.component';
 
 interface EstadoOption {
   label: string;
@@ -50,7 +51,8 @@ interface EstadoOption {
     InputTextarea,
     DropdownModule,
     TooltipModule,
-    AgendaModalComponent
+    AgendaModalComponent,
+    GenericFilterBarComponent
   ],
   providers: [MessageService],
   templateUrl: './agendas-list.component.html',
@@ -77,6 +79,10 @@ export class AgendasListComponent implements OnInit, OnDestroy {
   clientes = signal<Cliente[]>([]);
   proveedores = signal<Proveedor[]>([]);
 
+  // Filter Bar
+  filterDefinitions: FilterDefinition[] = [];
+  currentFilters: Record<string, any> = {};
+
   // Computed
   agendasFiltradas = computed(() => {
     const agendas = this.agendas();
@@ -102,6 +108,7 @@ export class AgendasListComponent implements OnInit, OnDestroy {
   estadosOptions: EstadoOption[] = ESTADOS_AGENDA_OPCIONES;
 
   ngOnInit() {
+    this.setupFilterDefinitions();
     this.cargarDatos();
     this.subscription.add(
       this.agendasService.crearNuevaAgenda$.subscribe(() => {
@@ -112,6 +119,36 @@ export class AgendasListComponent implements OnInit, OnDestroy {
 
   ngOnDestroy() {
     this.subscription.unsubscribe();
+  }
+
+  private setupFilterDefinitions(): void {
+    this.filterDefinitions = [
+      {
+        key: 'search',
+        label: 'Buscar',
+        type: 'input',
+        placeholder: 'Por título o descripción'
+      },
+      {
+        key: 'estado',
+        label: 'Estado',
+        type: 'select',
+        placeholder: 'Todos',
+        options: ESTADOS_AGENDA_OPCIONES.map(e => ({ label: e.label, value: e.name }))
+      }
+    ];
+  }
+
+  onFilterChange(filters: Record<string, any>): void {
+    this.currentFilters = filters;
+    this.searchValue.set(filters['search'] || '');
+    this.estadoFiltro.set(filters['estado'] ? (Array.isArray(filters['estado']) ? filters['estado'] : [filters['estado']]) : []);
+  }
+
+  onClearFilters(): void {
+    this.currentFilters = {};
+    this.searchValue.set('');
+    this.estadoFiltro.set([]);
   }
 
   private cargarDatos() {
@@ -189,9 +226,6 @@ export class AgendasListComponent implements OnInit, OnDestroy {
     });
   }
 
-  onEstadoChange() {
-    // El computed se actualiza automáticamente
-  }
 
   getEstadoSeverity(estado: string): string {
     const severities: Record<string, string> = {

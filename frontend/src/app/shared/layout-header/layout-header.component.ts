@@ -12,7 +12,7 @@ export type LayoutHeaderType = 'list' | 'detail' | 'create' | 'edit';
 export class LayoutHeaderComponent {
   @Input({ required: true }) type: LayoutHeaderType = 'list';
   @Input({ required: true }) title: string = '';
-  @Input() subtitle: string = '';
+  @Input() subtitle?: string;
 
   get gradientClass(): string {
     const map: Record<LayoutHeaderType, string> = {

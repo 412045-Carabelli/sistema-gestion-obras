@@ -1,38 +1,13 @@
 <p-toast position="bottom-right"></p-toast>
 
-@defer (when datosCargados()) {
+@defer (when datosCargados(); on interaction; prefetch on timer(2s)) {
   <div class="flex flex-col gap-4">
-    <!-- Filtros -->
-    <div class="bg-white p-4 rounded-lg border border-gray-200">
-      <div class="grid grid-cols-1 md:grid-cols-12 gap-4">
-        <div class="md:col-span-7">
-          <p-iconfield iconPosition="left" styleClass="w-full">
-            <p-inputicon styleClass="pi pi-search"/>
-            <input
-              (input)="onEstadoChange()"
-              [(ngModel)]="searchValue"
-              class="w-full p-inputtext-sm h-12"
-              pInputText
-              placeholder="Buscar por título o descripción"
-              type="text"/>
-          </p-iconfield>
-        </div>
-
-        <div class="md:col-span-5">
-          <p-multiSelect
-            (onChange)="onEstadoChange()"
-            [(ngModel)]="estadoFiltro"
-            [options]="estadosOptions"
-            optionLabel="label"
-            optionValue="name"
-            placeholder="Filtrar por estado"
-            styleClass="w-full"
-            [display]="'chip'"
-            [showClear]="true">
-          </p-multiSelect>
-        </div>
-      </div>
-    </div>
+    <!-- Filtros - Generic Filter Bar -->
+    <app-generic-filter-bar
+      [filterDefinitions]="filterDefinitions"
+      (filterChange)="onFilterChange($event)"
+      (clearFilters)="onClearFilters()"
+    ></app-generic-filter-bar>
 
     <!-- Tabla -->
     <div class="bg-white rounded-lg border border-gray-200 overflow-hidden">

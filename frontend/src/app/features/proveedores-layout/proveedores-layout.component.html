@@ -1,8 +1,7 @@
 <p-toast position="bottom-right"></p-toast>
 <p-confirmDialog></p-confirmDialog>
 
-<div class="flex justify-between items-center">
-  @switch (true) {
+@switch (true) {
 
     @case (currentRoute === '/proveedores') {
       <app-layout-header
@@ -111,7 +110,6 @@
       </div>
     }
   }
-</div>
 
 <div class="p-5 bg-gray-50">
   <router-outlet></router-outlet>

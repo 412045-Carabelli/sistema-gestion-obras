@@ -61,90 +61,28 @@
   </div>
 
   <!-- ===================== FILTROS DEL DASHBOARD ===================== -->
-  <div class="bg-white rounded-xl shadow-md p-6">
-    <div class="flex items-center justify-between mb-5 pb-3 border-b border-gray-200">
-      <h2 class="font-poppins font-semibold text-gray-900 flex items-center gap-2">
-        <i class="pi pi-filter text-indigo-600"></i>
-        Filtros del dashboard
-      </h2>
-    </div>
+  <app-generic-filter-bar
+    [filterDefinitions]="filterDefinitions"
+    [actions]="[]"
+    (filterChange)="onFilterChange($event)"
+    (clearFilters)="onClearFilters()"
+  ></app-generic-filter-bar>
 
-    <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-5 gap-4">
-      <div>
-        <label class="block text-sm font-poppins font-semibold mb-1 text-gray-700">Obra</label>
-        <p-autoComplete
-          [(ngModel)]="filtrosDashboard.obra"
-          [suggestions]="filteredObras"
-          (completeMethod)="filtrarObras($event)"
-          field="nombre"
-          [dropdown]="true"
-          placeholder="Buscar obra"
-          styleClass="w-full"
-          (onSelect)="onFiltroChange()"
-        ></p-autoComplete>
+  <!-- ===================== KPIS DE DEUDAS GLOBALES ===================== -->
+  @if (deudasGlobales) {
+    <div class="grid grid-cols-2 gap-3">
+      <div class="bg-green-50 border border-green-200 rounded-lg p-4">
+        <p class="text-green-700 text-sm font-poppins font-normal">Total por cobrar</p>
+        <p class="text-2xl font-poppins font-bold text-green-900">{{ deudasGlobales?.deudaClientes | currency:'ARS':'symbol-narrow':'1.0-0' }}</p>
       </div>
-
-      <div>
-        <label class="block text-sm font-poppins font-semibold mb-1 text-gray-700">Cliente</label>
-        <p-autoComplete
-          [(ngModel)]="filtrosDashboard.cliente"
-          [suggestions]="filteredClientes"
-          (completeMethod)="filtrarClientes($event)"
-          field="nombre"
-          [dropdown]="true"
-          placeholder="Buscar cliente"
-          styleClass="w-full"
-          (onSelect)="onFiltroChange()"
-        ></p-autoComplete>
-      </div>
-
-      <div>
-        <label class="block text-sm font-poppins font-semibold mb-1 text-gray-700">Proveedor</label>
-        <p-autoComplete
-          [(ngModel)]="filtrosDashboard.proveedor"
-          [suggestions]="filteredProveedores"
-          (completeMethod)="filtrarProveedores($event)"
-          field="nombre"
-          [dropdown]="true"
-          placeholder="Buscar proveedor"
-          styleClass="w-full"
-          (onSelect)="onFiltroChange()"
-        ></p-autoComplete>
-      </div>
-
-      <div>
-        <label class="block text-sm font-poppins font-semibold mb-1 text-gray-700">Rango de fechas</label>
-        <p-datePicker
-          fluid
-          [(ngModel)]="filtrosDashboard.rangoFechas"
-          selectionMode="range"
-          appendTo="body"
-          class="w-full"
-          dateFormat="dd/mm/yy"
-          placeholder="Seleccionar rango"
-          (onSelect)="onFiltroChange()"
-        ></p-datePicker>
-      </div>
-
-      <div class="flex flex-wrap gap-3 mt-4 justify-end">
-        <button
-          class="w-auto cursor-pointer px-4 py-2 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50"
-          type="button"
-          (click)="limpiarFiltrosDashboard()"
-        >
-          Limpiar
-        </button>
+      <div class="bg-red-50 border border-red-200 rounded-lg p-4">
+        <p class="text-red-700 text-sm font-poppins font-normal">Total por pagar</p>
+        <p class="text-2xl font-poppins font-bold text-red-900">{{ deudasGlobales?.deudaProveedores | currency:'ARS':'symbol-narrow':'1.0-0' }}</p>
       </div>
     </div>
-  </div>
+  }
 
   <!-- ===================== WIDGETS DEL DASHBOARD ===================== -->
-
-  <!-- KPIs de Cuenta Corriente (DEPRECATED: endpoint no disponible) -->
-  <!-- <app-dashboard-kpis [filtros]="filtrosActivos"></app-dashboard-kpis> -->
-
-  <!-- Tabla de Deudas (Clientes y Proveedores) -->
-  <app-dashboard-deudas [filtros]="filtrosActivos"></app-dashboard-deudas>
 
   <!-- Tareas Antiguas y Movimientos Recientes (2 columnas) -->
   <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">

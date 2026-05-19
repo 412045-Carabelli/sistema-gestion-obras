@@ -1,46 +1,12 @@
-@defer (when datosCargados) {
+@defer (when datosCargados; on interaction; prefetch on timer(2s)) {
   <div class="flex flex-col gap-4">
-    <!-- Barra de filtros -->
-    <div class="bg-white p-4 rounded-lg border border-gray-200">
-      <div class="grid grid-cols-1 md:grid-cols-12 gap-4">
-        <div class="md:col-span-6">
-          <p-iconfield iconPosition="left" styleClass="w-full">
-            <p-inputicon styleClass="pi pi-search"/>
-            <input
-              (input)="applyFilter()"
-              [(ngModel)]="searchValue"
-              class="w-full p-inputtext-sm h-12"
-              pInputText
-              placeholder="Buscar por nombre, direccion o cliente"
-              type="text"/>
-          </p-iconfield>
-        </div>
-
-        <div class="md:col-span-3">
-          <p-select
-            (onChange)="onCondicionIvaChange()"
-            [(ngModel)]="condicionIvaFiltro"
-            [options]="ivaOptions"
-            optionLabel="label"
-            optionValue="name"
-            placeholder="Condicion IVA"
-            styleClass="w-full p-inputtext-sm h-12">
-          </p-select>
-        </div>
-
-        <div class="md:col-span-3 flex items-center gap-2 h-12">
-          <p-checkbox
-            [(ngModel)]="mostrarInactivos"
-            [binary]="true"
-            inputId="clientesMostrarInactivos"
-            (ngModelChange)="onMostrarInactivosChange()">
-          </p-checkbox>
-          <label for="clientesMostrarInactivos" class="text-base font-poppins font-normal text-gray-700">
-            Ver inactivos
-          </label>
-        </div>
-      </div>
-    </div>
+    <!-- Barra de filtros genérica -->
+    <app-generic-filter-bar
+      [filterDefinitions]="filterDefinitions"
+      [actions]="[]"
+      (filterChange)="onFilterChange($event)"
+      (clearFilters)="onClearFilters()"
+    ></app-generic-filter-bar>
 
     <!-- Tabla -->
     <div class="bg-white rounded-lg border border-gray-200 overflow-hidden">

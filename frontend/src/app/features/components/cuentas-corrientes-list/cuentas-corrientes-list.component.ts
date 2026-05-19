@@ -1,6 +1,5 @@
 import { Component, OnInit, OnDestroy, Output, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule, FormBuilder, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '../../../../environments/environment';
 import { ReportFilter, DeudasGlobalesResponse, CatalogoCuentaCorriente, DetalleDeudaCliente, DetalleDeudaProveedor } from '../../../core/models/models';
@@ -12,21 +11,18 @@ import { DatePickerModule } from 'primeng/datepicker';
 import { CardModule } from 'primeng/card';
 import { TooltipModule } from 'primeng/tooltip';
 import { Subscription } from 'rxjs';
+import { GenericFilterBarComponent, FilterDefinition, FilterAction } from '../generic-filter-bar/generic-filter-bar.component';
 
 @Component({
   selector: 'app-cuentas-corrientes-list',
   standalone: true,
   imports: [
     CommonModule,
-    FormsModule,
-    ReactiveFormsModule,
     TableModule,
     ButtonModule,
-    InputTextModule,
-    SelectModule,
-    DatePickerModule,
     CardModule,
-    TooltipModule
+    TooltipModule,
+    GenericFilterBarComponent
   ],
   templateUrl: './cuentas-corrientes-list.component.html',
   styleUrls: ['./cuentas-corrientes-list.component.css']
@@ -34,8 +30,11 @@ import { Subscription } from 'rxjs';
 export class CuentasCorrientesListComponent implements OnInit, OnDestroy {
   loading = false;
   generandoPdf = false;
+  datosCargados = false;
   datos: DeudasGlobalesResponse | null = null;
-  form!: FormGroup;
+  filterDefinitions: FilterDefinition[] = [];
+  filterActions: FilterAction[] = [];
+  currentFilters: Record<string, any> = {};
   grupos: Array<{ id: number; nombre: string }> = [];
   obras: Array<{ id: number; nombre: string }> = [];
   clientes: Array<{ id: number; nombre: string }> = [];
@@ -49,14 +48,10 @@ export class CuentasCorrientesListComponent implements OnInit, OnDestroy {
   private deudasUrl = `${environment.apiGateway}/bff/reportes/financieros/deudas-globales`;
   private pdfUrl = `${environment.apiGateway}/bff/reportes/financieros/cuentas-corrientes-combinadas-pdf`;
 
-  constructor(
-    private http: HttpClient,
-    private fb: FormBuilder
-  ) {
-    this.initForm();
-  }
+  constructor(private http: HttpClient) {}
 
   ngOnInit(): void {
+    this.setupFilterActions();
     this.cargarCatalogos();
   }
 
@@ -64,18 +59,25 @@ export class CuentasCorrientesListComponent implements OnInit, OnDestroy {
     this.subs.unsubscribe();
   }
 
-  private initForm(): void {
-    this.form = this.fb.group({
-      grupoId: [null],
-      obraId: [null],
-      clienteId: [null],
-      proveedorId: [null]
-    });
+  private setupFilterActions(): void {
+    this.filterActions = [
+      {
+        label: 'Exportar PDF',
+        icon: 'pi pi-file-pdf',
+        severity: 'info',
+        callback: () => this.exportarPdf()
+      }
+    ];
+  }
 
-    // Listener para cambios en los controles
-    this.subs.add(
-      this.form.valueChanges.subscribe(() => this.cargar())
-    );
+  onFilterChange(filters: Record<string, any>): void {
+    this.currentFilters = filters;
+    this.cargar();
+  }
+
+  onClearFilters(): void {
+    this.currentFilters = {};
+    this.cargar();
   }
 
   private cargarCatalogos(): void {
@@ -86,23 +88,51 @@ export class CuentasCorrientesListComponent implements OnInit, OnDestroy {
           this.obras = response.obras || [];
           this.clientes = response.clientes || [];
           this.proveedores = response.proveedores || [];
+          this.setupFilterDefinitions();
           this.cargar();
         },
         error: (err) => {
           console.error('Error al cargar catálogos', err);
+          this.setupFilterDefinitions();
           this.cargar();
         }
       })
     );
   }
 
+  private setupFilterDefinitions(): void {
+    this.filterDefinitions = [
+      {
+        key: 'clienteId',
+        label: 'Cliente',
+        type: 'select',
+        placeholder: 'Todos',
+        options: this.clientes.map((c) => ({ label: c.nombre, value: c.id }))
+      },
+      {
+        key: 'proveedorId',
+        label: 'Proveedor',
+        type: 'select',
+        placeholder: 'Todos',
+        options: this.proveedores.map((p) => ({ label: p.nombre, value: p.id }))
+      },
+      {
+        key: 'obraId',
+        label: 'Obra',
+        type: 'select',
+        placeholder: 'Todas',
+        options: this.obras.map((o) => ({ label: o.nombre, value: o.id }))
+      }
+    ];
+  }
+
   private cargar(): void {
     this.loading = true;
     const filtro: ReportFilter = {
-      grupoId: this.form.get('grupoId')?.value,
-      obraId: this.form.get('obraId')?.value,
-      clienteId: this.form.get('clienteId')?.value,
-      proveedorId: this.form.get('proveedorId')?.value
+      grupoId: this.currentFilters['grupoId'],
+      obraId: this.currentFilters['obraId'],
+      clienteId: this.currentFilters['clienteId'],
+      proveedorId: this.currentFilters['proveedorId']
     };
 
     this.subs.add(
@@ -110,17 +140,15 @@ export class CuentasCorrientesListComponent implements OnInit, OnDestroy {
         next: (response) => {
           this.datos = response;
           this.loading = false;
+          this.datosCargados = true;
         },
         error: (err) => {
           console.error('Error al cargar cuentas corrientes', err);
           this.loading = false;
+          this.datosCargados = true;
         }
       })
     );
-  }
-
-  limpiarFiltros(): void {
-    this.form.reset();
   }
 
   getRangeClientes(): number[] {
@@ -141,15 +169,18 @@ export class CuentasCorrientesListComponent implements OnInit, OnDestroy {
     this.proveedorRowClicked.emit(item);
   }
 
-  exportarPdf(): void {
+  private exportarPdf(): void {
     if (this.generandoPdf) return;
 
     this.generandoPdf = true;
+    const pdfAction = this.filterActions.find((a) => a.label === 'Exportar PDF');
+    if (pdfAction) pdfAction.loading = true;
+
     const filtro: ReportFilter = {
-      grupoId: this.form.get('grupoId')?.value,
-      obraId: this.form.get('obraId')?.value,
-      clienteId: this.form.get('clienteId')?.value,
-      proveedorId: this.form.get('proveedorId')?.value
+      grupoId: this.currentFilters['grupoId'],
+      obraId: this.currentFilters['obraId'],
+      clienteId: this.currentFilters['clienteId'],
+      proveedorId: this.currentFilters['proveedorId']
     };
 
     this.subs.add(
@@ -162,10 +193,12 @@ export class CuentasCorrientesListComponent implements OnInit, OnDestroy {
           link.click();
           window.URL.revokeObjectURL(url);
           this.generandoPdf = false;
+          if (pdfAction) pdfAction.loading = false;
         },
         error: (err) => {
           console.error('Error al exportar PDF', err);
           this.generandoPdf = false;
+          if (pdfAction) pdfAction.loading = false;
         }
       })
     );

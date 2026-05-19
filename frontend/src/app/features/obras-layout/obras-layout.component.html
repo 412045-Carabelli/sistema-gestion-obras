@@ -43,32 +43,22 @@
   @case (isDetail()) {
     @if (obra) {
       <app-layout-header type="detail" [title]="obra.nombre" [subtitle]="obra.direccion">
-        <div header-meta class="flex items-center gap-3 flex-wrap">
-          @if (getEstadoFacturacion(); as ef) {
-            <p-tag [value]="ef.label" [severity]="ef.severity"></p-tag>
-          }
-          @if (getGrupoObra(); as grupo) {
-            <p-tag [value]="grupo" [severity]="'info'"></p-tag>
-          }
-        </div>
-        <div header-actions class="flex items-center gap-5">
+        <div header-actions class="flex items-center gap-3">
           <p-button
             icon="pi pi-pencil"
-            severity="secondary"
-            [outlined]="true"
-            styleClass="p-button-rounded bg-white/20 hover:bg-white/30 border-white/30 text-white"
+            styleClass="header-action-edit"
             [routerLink]="['/obras/editar', obra.id]"
             pTooltip="Editar obra"
-            tooltipPosition="top">
+            tooltipPosition="top"
+            [text]="true">
           </p-button>
           <p-button
             [icon]="obra.activo ? 'pi pi-ban' : 'pi pi-check'"
-            [severity]="obra.activo ? 'danger' : 'success'"
-            [outlined]="true"
-            styleClass="p-button-rounded bg-white/20 hover:bg-white/30 border-white/30 text-white"
+            [styleClass]="obra.activo ? 'header-action-toggle active' : 'header-action-toggle inactive'"
             (onClick)="toggleActivo()"
             [pTooltip]="obra.activo ? 'Desactivar obra' : 'Activar obra'"
-            tooltipPosition="top">
+            tooltipPosition="top"
+            [text]="true">
           </p-button>
           <p-button
             label="Volver"
