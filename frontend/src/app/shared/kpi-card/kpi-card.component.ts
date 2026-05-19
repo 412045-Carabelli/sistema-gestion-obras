@@ -20,7 +20,7 @@ export class KpiCardComponent {
   @Input() color: 'emerald' | 'blue' | 'rose' | 'amber' | 'green' | 'red' = 'emerald';
   @Input() value: string | number = '';
   @Input() tooltip?: string;
-  @Input() minHeight: number = 120;
+  @Input() minHeight: number = 0;
   @Input() valueFontSize: number = 28;
 
   private colorMap: Record<string, ColorMap> = {

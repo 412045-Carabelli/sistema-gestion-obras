@@ -14,24 +14,28 @@
         [color]="'emerald'"
         [value]="(totalFacturado | currency:'ARS':'symbol':'1.0-2') ?? ''"
         [tooltip]="'Total facturado de las obras que requieren factura.'"
+        [valueFontSize]="18"
       ></app-kpi-card>
       <app-kpi-card
         [title]="'Cobrado'"
         [color]="'blue'"
         [value]="(totalCobrado | currency:'ARS':'symbol':'1.0-2') ?? ''"
         [tooltip]="'Cobros de obras facturadas que requieren factura.'"
+        [valueFontSize]="18"
       ></app-kpi-card>
       <app-kpi-card
         [title]="'Por cobrar'"
         [color]="'rose'"
         [value]="(totalPorCobrar | currency:'ARS':'symbol':'1.0-2') ?? ''"
         [tooltip]="'Facturado menos cobrado en obras facturadas.'"
+        [valueFontSize]="18"
       ></app-kpi-card>
       <app-kpi-card
         [title]="'Por facturar'"
         [color]="'amber'"
         [value]="(totalPorFacturar | currency:'ARS':'symbol':'1.0-2') ?? ''"
         [tooltip]="'Obras con requiere factura sin facturas emitidas.'"
+        [valueFontSize]="18"
       ></app-kpi-card>
     </div>
 

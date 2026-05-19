@@ -39,6 +39,7 @@ import {CuentaCorrienteObraResponse, ReportFilter} from '../../../core/models/mo
 import {FacturasService} from '../../../services/facturas/facturas.service';
 import {ModalComponent} from '../../../shared/modal/modal.component';
 import {ConfirmDialog} from 'primeng/confirmdialog';
+import {KpiCardComponent} from '../../../shared/kpi-card/kpi-card.component';
 
 @Component({
   selector: 'app-obra-detail',
@@ -75,6 +76,7 @@ import {ConfirmDialog} from 'primeng/confirmdialog';
     EditorModule,
     TagModule,
     ConfirmDialog,
+    KpiCardComponent,
   ],
   providers: [MessageService, ConfirmationService],
   templateUrl: './obras-detail.component.html',

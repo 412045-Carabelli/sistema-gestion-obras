@@ -248,10 +248,6 @@ export class ObrasListComponent implements OnInit {
       .filter(Boolean);
   }
 
-  onMostrarInactivosChange() {
-    this.applyFilter();
-  }
-
   private setupFilterDefinitions(): void {
     this.filterDefinitions = [
       {
@@ -273,6 +269,11 @@ export class ObrasListComponent implements OnInit {
         type: 'select',
         placeholder: 'Todos',
         options: this.estadosFacturacionOptions
+      },
+      {
+        key: 'mostrarInactivos',
+        label: 'Ver inactivos',
+        type: 'checkbox'
       }
     ];
   }
@@ -282,6 +283,7 @@ export class ObrasListComponent implements OnInit {
     this.searchValue = filters['search'] || '';
     this.estadoFiltro = filters['estado'] ? (Array.isArray(filters['estado']) ? filters['estado'] : [filters['estado']]) : [];
     this.estadoFacturacionFiltro = filters['facturacion'] ? (Array.isArray(filters['facturacion']) ? filters['facturacion'] : [filters['facturacion']]) : [];
+    this.mostrarInactivos = filters['mostrarInactivos'] || false;
     this.applyFilter();
   }
 
@@ -290,6 +292,7 @@ export class ObrasListComponent implements OnInit {
     this.searchValue = '';
     this.estadoFiltro = [];
     this.estadoFacturacionFiltro = [];
+    this.mostrarInactivos = false;
     this.applyFilter();
   }
 

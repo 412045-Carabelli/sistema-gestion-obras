@@ -16,12 +16,14 @@
           [color]="'green'"
           [value]="(datos?.deudaClientes | currency:'ARS':'symbol':'1.0-0') ?? ''"
           [tooltip]="'Total por cobrar a clientes'"
+          [valueFontSize]="18"
         ></app-kpi-card>
         <app-kpi-card
           [title]="'Por pagar'"
           [color]="'red'"
           [value]="(datos?.deudaProveedores | currency:'ARS':'symbol':'1.0-0') ?? ''"
           [tooltip]="'Total por pagar a proveedores'"
+          [valueFontSize]="18"
         ></app-kpi-card>
       </div>
     }

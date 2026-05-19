@@ -59,3 +59,31 @@
 .memoria-view :is(strong, b) {
   font-weight: 600;
 }
+
+/* Cronograma Cards Compactas */
+.cronograma-card {
+  animation: fadeInUp 0.4s ease-out both;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.cronograma-card:nth-child(1) { animation-delay: 0.05s; }
+.cronograma-card:nth-child(2) { animation-delay: 0.1s; }
+.cronograma-card:nth-child(3) { animation-delay: 0.15s; }
+.cronograma-card:nth-child(4) { animation-delay: 0.2s; }
+.cronograma-card:nth-child(5) { animation-delay: 0.25s; }
+
+.cronograma-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.08);
+}

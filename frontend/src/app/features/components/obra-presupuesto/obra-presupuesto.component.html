@@ -29,7 +29,7 @@
         (onClick)="exportMenu.toggle($event)"
         icon="pi pi-file-pdf"
         label="Exportar PDF"
-        styleClass="p-button-md p-button-primary"
+        severity="primary"
         [disabled]="exportandoPdf"
       ></p-button>
       <p-menu #exportMenu [popup]="true" [model]="exportOptions"></p-menu>
