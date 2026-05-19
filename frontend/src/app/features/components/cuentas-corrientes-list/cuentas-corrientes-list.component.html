@@ -10,18 +10,20 @@
 
     <!-- KPIs -->
     @if (datos) {
-      <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
         <app-kpi-card
           [title]="'Por cobrar'"
           [color]="'green'"
           [value]="(datos?.deudaClientes | currency:'ARS':'symbol':'1.0-0') ?? ''"
           [tooltip]="'Total por cobrar a clientes'"
+          [minHeight]="140"
         ></app-kpi-card>
         <app-kpi-card
           [title]="'Por pagar'"
           [color]="'red'"
           [value]="(datos?.deudaProveedores | currency:'ARS':'symbol':'1.0-0') ?? ''"
           [tooltip]="'Total por pagar a proveedores'"
+          [minHeight]="140"
         ></app-kpi-card>
       </div>
     }
