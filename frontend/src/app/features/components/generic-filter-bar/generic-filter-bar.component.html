@@ -38,6 +38,13 @@
                 class="w-full sm:w-48"
               ></p-datepicker>
             }
+            @case ('checkbox') {
+              <p-checkbox
+                [formControlName]="filterDef.key"
+                [binary]="true"
+                [inputId]="'filter-' + filterDef.key"
+              ></p-checkbox>
+            }
           }
         </div>
       }

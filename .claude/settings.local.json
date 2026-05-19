@@ -104,7 +104,8 @@
       "Bash(2)",
       "Bash(find backend1.0/proveedores-service -name *Controller.java -type f)",
       "Bash(find backend1.0/api-gateway -name \"*.java\" -exec grep -l \"addMixIn\\\\|@JsonSerialize\\\\|@JsonDeserialize\\\\|ObjectMapper\" {})",
-      "Bash(find backend1.0/api-gateway -name application*.yml -o -name application*.yaml)"
+      "Bash(find backend1.0/api-gateway -name application*.yml -o -name application*.yaml)",
+      "Bash(ls:*)"
     ]
   }
 }

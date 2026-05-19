@@ -5,12 +5,13 @@ import { ButtonModule } from 'primeng/button';
 import { SelectModule } from 'primeng/select';
 import { InputTextModule } from 'primeng/inputtext';
 import { DatePickerModule } from 'primeng/datepicker';
+import { CheckboxModule } from 'primeng/checkbox';
 import { Subscription } from 'rxjs';
 
 export interface FilterDefinition {
   key: string;
   label: string;
-  type: 'select' | 'input' | 'date';
+  type: 'select' | 'input' | 'date' | 'checkbox';
   placeholder?: string;
   options?: Array<{ label: string; value: any }>;
   validators?: any[];
@@ -33,7 +34,8 @@ export interface FilterAction {
     ButtonModule,
     SelectModule,
     InputTextModule,
-    DatePickerModule
+    DatePickerModule,
+    CheckboxModule
   ],
   templateUrl: './generic-filter-bar.component.html',
   styleUrls: ['./generic-filter-bar.component.css']
@@ -68,7 +70,9 @@ export class GenericFilterBarComponent implements OnInit, OnDestroy, OnChanges {
 
     this.filterDefinitions.forEach((filter) => {
       const validators = filter.validators || [];
-      formConfig[filter.key] = [null, validators];
+      // Checkboxes initialize to false, others to null
+      const defaultValue = filter.type === 'checkbox' ? false : null;
+      formConfig[filter.key] = [defaultValue, validators];
     });
 
     this.form = this.fb.group(formConfig);
@@ -77,7 +81,12 @@ export class GenericFilterBarComponent implements OnInit, OnDestroy, OnChanges {
     this.subs.add(
       this.form.valueChanges.subscribe((values) => {
         const filteredValues = Object.entries(values)
-          .filter(([, value]) => value !== null && value !== '')
+          .filter(([, value]) => {
+            // Include checkboxes that are true, exclude null/empty strings
+            if (value === true) return true;
+            if (value === false) return false;
+            return value !== null && value !== '';
+          })
           .reduce((acc, [key, value]) => {
             acc[key] = value;
             return acc;

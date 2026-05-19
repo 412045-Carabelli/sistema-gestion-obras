@@ -1,6 +1,13 @@
 @defer (when datosCargados; on interaction; prefetch on timer(2s)) {
   <div class="space-y-6">
-    <!-- KPIs -->
+    <!-- Filtros - Generic Filter Bar -->
+    <app-generic-filter-bar
+      [filterDefinitions]="filterDefinitions"
+      (filterChange)="onFilterChange($event)"
+      (clearFilters)="onClearFilters()"
+    ></app-generic-filter-bar>
+
+        <!-- KPIs -->
     <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
       <div
         class="bg-white rounded-xl shadow-md p-5 border-l-4 border-emerald-500"
@@ -30,26 +37,6 @@
         <p class="text-xs font-poppins font-semibold text-amber-700 uppercase">Por facturar</p>
         <p class="text-2xl font-poppins font-bold text-gray-900">{{ totalPorFacturar | currency:'ARS':'symbol':'1.0-2' }}</p>
       </div>
-    </div>
-
-    <!-- Filtros - Generic Filter Bar -->
-    <app-generic-filter-bar
-      [filterDefinitions]="filterDefinitions"
-      (filterChange)="onFilterChange($event)"
-      (clearFilters)="onClearFilters()"
-    ></app-generic-filter-bar>
-
-    <!-- Mostrar inactivos checkbox -->
-    <div class="bg-white p-4 rounded-lg border border-gray-200 flex items-center gap-2">
-      <p-checkbox
-        [(ngModel)]="mostrarInactivos"
-        [binary]="true"
-        inputId="facturasMostrarInactivos"
-        (ngModelChange)="applyFilter()">
-      </p-checkbox>
-      <label for="facturasMostrarInactivos" class="text-base font-poppins font-normal text-gray-700 cursor-pointer">
-        Ver inactivos
-      </label>
     </div>
 
     <div class="bg-white rounded-xl shadow-md overflow-hidden">
@@ -167,8 +154,8 @@
     <div class="bg-white rounded-lg shadow-sm border border-gray-100 p-5">
       <div class="flex flex-col lg:flex-row lg:items-end gap-4 justify-between">
         <div class="flex flex-col sm:flex-row gap-3 flex-wrap flex-1">
-          <!-- 4 Filter inputs skeleton -->
-          @for (i of [1, 2, 3, 4]; track i) {
+          <!-- 5 Filter inputs skeleton (including checkbox) -->
+          @for (i of [1, 2, 3, 4, 5]; track i) {
             <div class="flex flex-col gap-1" [style.animation-delay]="(i * 100) + 'ms'">
               <div class="h-3 bg-gray-200 rounded w-20"></div>
               <div class="h-10 bg-gray-200 rounded sm:w-48 w-full"></div>
@@ -177,16 +164,8 @@
         </div>
         <!-- Button skeleton -->
         <div class="flex gap-2">
-          <div class="h-10 bg-gray-200 rounded w-24" style="animation-delay: 400ms"></div>
+          <div class="h-10 bg-gray-200 rounded w-24" style="animation-delay: 500ms"></div>
         </div>
-      </div>
-    </div>
-
-    <!-- Checkbox skeleton -->
-    <div class="bg-white p-4 rounded-lg border border-gray-200">
-      <div class="flex items-center gap-2">
-        <div class="w-5 h-5 bg-gray-200 rounded"></div>
-        <div class="h-4 bg-gray-200 rounded w-32"></div>
       </div>
     </div>
 

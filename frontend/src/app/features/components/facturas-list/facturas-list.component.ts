@@ -215,6 +215,11 @@ export class FacturasListComponent implements OnInit, OnDestroy {
         type: 'select',
         placeholder: 'Todos',
         options: this.estadosOptions
+      },
+      {
+        key: 'mostrarInactivos',
+        label: 'Ver inactivos',
+        type: 'checkbox'
       }
     ];
   }
@@ -225,6 +230,7 @@ export class FacturasListComponent implements OnInit, OnDestroy {
     this.clienteFiltro = filters['cliente'] || 'todos';
     this.obraFiltro = filters['obra'] || 'todos';
     this.estadoFiltro = filters['estado'] || 'todos';
+    this.mostrarInactivos = filters['mostrarInactivos'] || false;
     this.applyFilter();
   }
 
@@ -234,6 +240,7 @@ export class FacturasListComponent implements OnInit, OnDestroy {
     this.clienteFiltro = 'todos';
     this.obraFiltro = 'todos';
     this.estadoFiltro = 'todos';
+    this.mostrarInactivos = false;
     this.applyFilter();
   }
 
