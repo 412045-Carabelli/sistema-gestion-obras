@@ -18,7 +18,7 @@ export class KpiCardComponent {
   @Input() title: string = '';
   @Input() description?: string;
   @Input() color: 'emerald' | 'blue' | 'rose' | 'amber' | 'green' | 'red' = 'emerald';
-  @Input() value: string | number | null = null;
+  @Input() value: string | number = '';
   @Input() tooltip?: string;
 
   private colorMap: Record<string, ColorMap> = {
