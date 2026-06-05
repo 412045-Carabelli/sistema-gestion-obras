@@ -23,7 +23,18 @@ export class ProveedoresCreateComponent {
   ) {
   }
 
+  private normalizarTelefono(tel: string | undefined): string {
+    if (!tel) return '';
+    let solo = String(tel).replace(/[^0-9]/g, '');
+    if (solo.startsWith('549')) solo = '54' + solo.substring(3);
+    else if (solo.startsWith('54')) return solo;
+    else if (solo.startsWith('9')) solo = '54' + solo.substring(1);
+    else solo = '54' + solo;
+    return solo;
+  }
+
   onFormSubmit(proveedor: Proveedor) {
+    if (proveedor.telefono) proveedor.telefono = this.normalizarTelefono(proveedor.telefono);
     this.proveedoresService.createProveedor(proveedor).subscribe({
       next: () => {
         this.messageService.add({

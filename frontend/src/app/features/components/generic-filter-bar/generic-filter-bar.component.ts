@@ -6,12 +6,13 @@ import { SelectModule } from 'primeng/select';
 import { InputTextModule } from 'primeng/inputtext';
 import { DatePickerModule } from 'primeng/datepicker';
 import { CheckboxModule } from 'primeng/checkbox';
+import { MultiSelectModule } from 'primeng/multiselect';
 import { Subscription } from 'rxjs';
 
 export interface FilterDefinition {
   key: string;
   label: string;
-  type: 'select' | 'input' | 'date' | 'checkbox';
+  type: 'select' | 'input' | 'date' | 'checkbox' | 'multiselect';
   placeholder?: string;
   options?: Array<{ label: string; value: any }>;
   validators?: any[];
@@ -35,7 +36,8 @@ export interface FilterAction {
     SelectModule,
     InputTextModule,
     DatePickerModule,
-    CheckboxModule
+    CheckboxModule,
+    MultiSelectModule
   ],
   templateUrl: './generic-filter-bar.component.html',
   styleUrls: ['./generic-filter-bar.component.css']
@@ -70,8 +72,8 @@ export class GenericFilterBarComponent implements OnInit, OnDestroy, OnChanges {
 
     this.filterDefinitions.forEach((filter) => {
       const validators = filter.validators || [];
-      // Checkboxes initialize to false, others to null
-      const defaultValue = filter.type === 'checkbox' ? false : null;
+      // Checkboxes initialize to false, multiselect to [], others to null
+      const defaultValue = filter.type === 'checkbox' ? false : filter.type === 'multiselect' ? [] : null;
       formConfig[filter.key] = [defaultValue, validators];
     });
 

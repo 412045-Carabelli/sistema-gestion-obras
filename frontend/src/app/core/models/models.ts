@@ -142,6 +142,7 @@ export interface Obra {
   condiciones_presupuesto?: string;
   observaciones_presupuesto?: string;
   requiere_factura?: boolean;
+  estado_financiero?: string;
   subtotal_costos?: number;
   beneficio_costos?: number;
   total_con_beneficio?: number;
@@ -305,6 +306,27 @@ export interface DashboardFinancieroResponse {
     ingresos: number;
     egresos: number;
     saldo: number;
+  };
+}
+
+export interface DashboardGraficosResponse {
+  distribucionEstados: {
+    estado: string;
+    cantidad: number;
+    porcentaje: number;
+  }[];
+  topObras: {
+    obraId: number;
+    obraNombre: string;
+    presupuesto: number;
+    totalCobros: number;
+    totalPagos: number;
+  }[];
+  kpis: {
+    totalObras: number;
+    obrasActivas: number;
+    presupuestoTotal: number;
+    porcentajeCobroGlobal: number;
   };
 }
 

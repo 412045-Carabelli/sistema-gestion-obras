@@ -38,4 +38,16 @@ public class ObraCostoClient {
         String url = String.format("%s/%s/estado/%s", obrasServiceUrl, idObra, estado);
         restTemplate.patchForObject(url, null, Void.class);
     }
+
+    public void actualizarEstadoFinancieroObra(Long idObra, String estadoFinanciero) {
+        if (idObra == null || estadoFinanciero == null || estadoFinanciero.isBlank()) return;
+        String url = String.format("%s/%s/estado-financiero/%s", obrasServiceUrl, idObra, estadoFinanciero);
+        restTemplate.patchForObject(url, null, Void.class);
+    }
+
+    public void limpiarEstadoFinancieroObra(Long idObra) {
+        if (idObra == null) return;
+        String url = String.format("%s/%s/estado-financiero", obrasServiceUrl, idObra);
+        restTemplate.delete(url);
+    }
 }

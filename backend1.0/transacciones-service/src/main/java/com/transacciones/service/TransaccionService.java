@@ -74,6 +74,7 @@ public class TransaccionService {
                 .build();
 
         Transaccion guardado = transaccionRepository.save(entity);
+        recalcularEstadoFinanciero(guardado);
         return toDto(guardado);
     }
 
@@ -109,14 +110,20 @@ public class TransaccionService {
         }
 
         Transaccion guardado = transaccionRepository.save(entity);
+        recalcularEstadoFinanciero(guardado);
         return toDto(guardado);
     }
 
     public void eliminar(Long id) {
-        if (!transaccionRepository.existsById(id)) {
-            throw new RuntimeException("La transaccion no existe");
-        }
+        Transaccion entity = transaccionRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("La transaccion no existe"));
+        Long idObra = entity.getIdObra();
+        String tipoAsociado = entity.getTipoAsociado();
         transaccionRepository.deleteById(id);
+        // Recalcular después de eliminar usando un objeto temporal
+        if (idObra != null && "CLIENTE".equalsIgnoreCase(tipoAsociado)) {
+            recalcularEstadoFinancieroPorObra(idObra);
+        }
     }
 
     @Transactional
@@ -373,6 +380,34 @@ public class TransaccionService {
         double cantidad = costo.getCantidad() != null ? costo.getCantidad() : 0d;
         double precio = costo.getPrecio_unitario() != null ? costo.getPrecio_unitario() : 0d;
         return cantidad * precio;
+    }
+
+    private void recalcularEstadoFinanciero(Transaccion transaccion) {
+        if (transaccion == null || transaccion.getIdObra() == null) return;
+        if (transaccion.getTipo_transaccion() != TipoTransaccionEnum.COBRO) return;
+        if (!"CLIENTE".equalsIgnoreCase(transaccion.getTipoAsociado())) return;
+        recalcularEstadoFinancieroPorObra(transaccion.getIdObra());
+    }
+
+    private void recalcularEstadoFinancieroPorObra(Long idObra) {
+        try {
+            ObraResumenDto obra = obraCostoClient.obtenerObra(idObra);
+            if (obra == null || obra.getPresupuesto() == null) return;
+            if (Boolean.TRUE.equals(obra.getRequiere_factura())) return;
+
+            double presupuesto = obra.getPresupuesto();
+            Double cobradoRaw = transaccionRepository.sumarCobrosPorObra(idObra);
+            double totalCobrado = cobradoRaw != null ? cobradoRaw : 0d;
+
+            if (totalCobrado <= 0.01d) {
+                obraCostoClient.limpiarEstadoFinancieroObra(idObra);
+            } else {
+                String nuevoEstado = totalCobrado + 0.01 >= presupuesto ? "COBRADA" : "COBRADA_PARCIAL";
+                obraCostoClient.actualizarEstadoFinancieroObra(idObra, nuevoEstado);
+            }
+        } catch (Exception e) {
+            log.warn("No se pudo recalcular estado financiero para obra {}", idObra, e);
+        }
     }
 
     private void validarEstadoObra(ObraResumenDto obra) {

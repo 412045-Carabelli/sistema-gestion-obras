@@ -3,7 +3,7 @@
     <!-- Barra de filtros genérica -->
     <app-generic-filter-bar
       [filterDefinitions]="filterDefinitions"
-      [actions]="[]"
+      [actions]="filterActions"
       (filterChange)="onFilterChange($event)"
       (clearFilters)="onClearFilters()"
     ></app-generic-filter-bar>
@@ -91,28 +91,13 @@
     [style]="{width: '500px'}"
     [closable]="true">
     <form [formGroup]="form" (ngSubmit)="guardarMovimiento()" class="flex flex-col gap-4">
-      <!-- Obra -->
-      <div>
-        <label class="block text-sm font-poppins font-semibold mb-1">Obra</label>
-        <p-select
-          formControlName="id_obra"
-          (onChange)="onObraChange()"
-          [options]="obrasOptions"
-          optionLabel="nombre"
-          optionValue="id"
-          placeholder="Selecciona una obra"
-          [filter]="true"
-          [disabled]="isViewMode"
-          styleClass="w-full">
-        </p-select>
-      </div>
-
-      <!-- Tipo Asociado y Asociado (misma fila) -->
+      <!-- Tipo Asociado y Asociado (misma fila) — primero seleccionar tipo/asociado -->
       <div class="grid grid-cols-2 gap-4">
         <div>
           <label class="block text-sm font-poppins font-semibold mb-1">Tipo Asociado</label>
           <p-select
             formControlName="tipo_asociado"
+            (onChange)="onTipoAsociadoChange()"
             [options]="tiposAsociado.slice(1)"
             optionLabel="label"
             optionValue="name"
@@ -135,9 +120,6 @@
               [filter]="true"
               styleClass="w-full">
             </p-select>
-            @if (clientesFiltrados.length === 0 && !isViewMode) {
-              <small class="text-red-500">Selecciona primero una obra</small>
-            }
           } @else {
             <p-select
               formControlName="id_asociado"
@@ -150,11 +132,29 @@
               [filter]="true"
               styleClass="w-full">
             </p-select>
-            @if (proveedoresFiltrados.length === 0) {
-              <small class="text-red-500">Sin proveedores</small>
-            }
           }
         </div>
+      </div>
+
+      <!-- Obra — filtrada según asociado seleccionado -->
+      <div>
+        <label class="block text-sm font-poppins font-semibold mb-1">Obra</label>
+        <p-select
+          formControlName="id_obra"
+          [options]="obrasFiltradas"
+          optionLabel="nombre"
+          optionValue="id"
+          placeholder="Selecciona una obra"
+          [filter]="true"
+          [disabled]="isViewMode"
+          styleClass="w-full">
+        </p-select>
+        @if (obrasFiltradas.length === 0 && !isViewMode && form.get('id_asociado')?.value) {
+          <small class="text-amber-500">No hay obras activas para este asociado</small>
+        }
+        @if (!form.get('id_asociado')?.value && !isViewMode) {
+          <small class="text-gray-400">Selecciona primero un asociado</small>
+        }
       </div>
 
       <!-- Saldo del Asociado -->
@@ -251,47 +251,51 @@
       </div>
 
       <!-- Botones -->
-      <div class="flex gap-2 mt-4 justify-end">
-        @if (isViewMode) {
-          <p-button
-            type="button"
-            label="Editar"
-            icon="pi pi-pencil"
-            (click)="isViewMode = false; isEditMode = true"
-            severity="info"
-            styleClass="p-button-sm">
-          </p-button>
+      @if (isViewMode) {
+        <div class="flex justify-between items-center gap-2 mt-4">
           <p-button
             type="button"
             label="Eliminar"
             icon="pi pi-trash"
             (click)="eliminarMovimiento(movimientoEditando!)"
             severity="danger"
-            styleClass="p-button-sm">
+            [text]="true">
           </p-button>
-          <p-button
-            type="button"
-            label="Cerrar"
-            icon="pi pi-times"
-            (click)="showModal = false; isViewMode = false"
-            styleClass="p-button-sm p-button-secondary">
-          </p-button>
-        } @else {
-          <p-button
-            type="submit"
-            label="Guardar"
-            icon="pi pi-check"
-            styleClass="p-button-sm p-button-success">
-          </p-button>
+          <div class="flex gap-2">
+            <p-button
+              type="button"
+              label="Cerrar"
+              icon="pi pi-times"
+              (click)="showModal = false; isViewMode = false"
+              severity="secondary">
+            </p-button>
+            <p-button
+              type="button"
+              label="Editar"
+              icon="pi pi-pencil"
+              (click)="isViewMode = false; isEditMode = true"
+              severity="info">
+            </p-button>
+          </div>
+        </div>
+      } @else {
+        <div class="flex justify-end gap-2 mt-4">
           <p-button
             type="button"
             label="Cancelar"
             icon="pi pi-times"
             (click)="showModal = false"
-            styleClass="p-button-sm p-button-secondary">
+            severity="secondary">
           </p-button>
-        }
-      </div>
+          <p-button
+            type="submit"
+            label="Guardar"
+            icon="pi pi-check"
+            severity="success"
+            [disabled]="form.invalid">
+          </p-button>
+        </div>
+      }
     </form>
   </p-dialog>
 } @placeholder {

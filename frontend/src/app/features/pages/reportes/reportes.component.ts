@@ -57,6 +57,7 @@ import {ProveedoresService} from '../../../services/proveedores/proveedores.serv
 import {Router} from '@angular/router';
 import {ResumenObrasComponent} from '../../components/resumen-obras/resumen-obras.component';
 import { LayoutHeaderComponent } from '../../../shared/layout-header/layout-header.component';
+import { GenericFilterBarComponent, FilterDefinition } from '../../components/generic-filter-bar/generic-filter-bar.component';
 
 interface SelectOption<T> {
   label: string;
@@ -83,7 +84,8 @@ interface SelectOption<T> {
     Toast,
     ConfirmDialog,
     ResumenObrasComponent,
-    LayoutHeaderComponent
+    LayoutHeaderComponent,
+    GenericFilterBarComponent
   ],
   providers: [MessageService, ConfirmationService],
   templateUrl: './reportes.component.html',
@@ -91,7 +93,8 @@ interface SelectOption<T> {
 })
 export class ReportesComponent implements OnInit, OnDestroy {
 
-  filtrosForm!: FormGroup;
+  filterDefinitions: FilterDefinition[] = [];
+  currentFilters: Record<string, any> = {};
 
   obrasOptions: SelectOption<number>[] = [];
   clientesOptions: SelectOption<number>[] = [];
@@ -141,13 +144,6 @@ export class ReportesComponent implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit(): void {
-    this.initForm();
-    this.filtrosSub = this.filtrosForm.valueChanges
-      .pipe(
-        debounceTime(300),
-        switchMap(() => this.loadReportes$())
-      )
-      .subscribe();
     this.loadCatalogos();
     this.loadReportes();
   }
@@ -155,14 +151,58 @@ export class ReportesComponent implements OnInit, OnDestroy {
   ngOnDestroy(): void {
     this.filtrosSub?.unsubscribe();
   }
-  initForm(): void {
-    this.filtrosForm = this.fb.group({
-      obraId: [null],
-      clienteId: [null],
-      proveedorId: [null],
-      estadosObra: [[]],
-      rangoFechas: [null]
-    });
+
+  private setupFilterDefinitions(): void {
+    this.filterDefinitions = [
+      {
+        key: 'obraId',
+        label: 'Obra',
+        type: 'select',
+        placeholder: 'Todas las obras',
+        options: this.obrasOptions
+      },
+      {
+        key: 'clienteId',
+        label: 'Cliente',
+        type: 'select',
+        placeholder: 'Todos los clientes',
+        options: this.clientesOptions
+      },
+      {
+        key: 'proveedorId',
+        label: 'Proveedor',
+        type: 'select',
+        placeholder: 'Todos los proveedores',
+        options: this.proveedoresOptions
+      },
+      {
+        key: 'estadosObra',
+        label: 'Estados de obra',
+        type: 'multiselect',
+        placeholder: 'Todos los estados',
+        options: this.estadosObraOptions.map(e => ({ label: e.label, value: e.name }))
+      },
+      {
+        key: 'fechaInicio',
+        label: 'Fecha desde',
+        type: 'date'
+      },
+      {
+        key: 'fechaFin',
+        label: 'Fecha hasta',
+        type: 'date'
+      }
+    ];
+  }
+
+  onFilterChange(filters: Record<string, any>): void {
+    this.currentFilters = filters;
+    this.loadReportes$().subscribe();
+  }
+
+  onClearFilters(): void {
+    this.currentFilters = {};
+    this.loadReportes();
   }
 
   loadCatalogos(): void {
@@ -190,9 +230,7 @@ export class ReportesComponent implements OnInit, OnDestroy {
         this.proveedoresOptions = proveedores.map((proveedor) => ({label: proveedor.nombre, value: proveedor.id}));
         this.proveedoresIndex = Object.fromEntries(proveedores.map(p => [Number(p.id), p.nombre]));
         this.actualizarResumenCtas(this.buildReportFilter());
-        if (!this.filtrosForm?.value?.proveedorId) {
-          this.loadReportes();
-        }
+        this.setupFilterDefinitions();
       },
       error: () => this.showToast('error', 'Error', 'No se pudieron cargar los proveedores')
     });
@@ -200,6 +238,7 @@ export class ReportesComponent implements OnInit, OnDestroy {
     this.estadoObraService.getEstados().subscribe({
       next: (records) => {
         this.estadosObraOptions = this.ordenarEstadosObra(records);
+        this.setupFilterDefinitions();
       },
       error: () => this.showToast('error', 'Error', 'No se pudieron cargar los estados de obra')
     });
@@ -209,16 +248,6 @@ export class ReportesComponent implements OnInit, OnDestroy {
     this.loadReportes();
   }
 
-  clearFilters(): void {
-    this.filtrosForm.reset({
-      obraId: null,
-      clienteId: null,
-      proveedorId: null,
-      estadosObra: [],
-      rangoFechas: null
-    }, { emitEvent: false });
-    this.loadReportes();
-  }
 
   private loadReportes(): void {
     this.loadReportes$().subscribe();
@@ -447,32 +476,26 @@ export class ReportesComponent implements OnInit, OnDestroy {
   }
 
   private buildReportFilter(): ReportFilter | undefined {
-    const {obraId, clienteId, proveedorId, rangoFechas} = this.filtrosForm.value;
+    const {obraId, clienteId, proveedorId, fechaInicio, fechaFin} = this.currentFilters;
     const filtro: ReportFilter = {};
 
     if (obraId) filtro.obraId = obraId;
     if (clienteId) filtro.clienteId = clienteId;
     if (proveedorId) filtro.proveedorId = proveedorId;
-    if (rangoFechas && Array.isArray(rangoFechas)) {
-      const [inicio, fin] = rangoFechas;
-      if (inicio) filtro.fechaInicio = this.formatDateValue(inicio);
-      if (fin) filtro.fechaFin = this.formatDateValue(fin);
-    }
+    if (fechaInicio) filtro.fechaInicio = this.formatDateValue(fechaInicio);
+    if (fechaFin) filtro.fechaFin = this.formatDateValue(fechaFin);
 
     return Object.keys(filtro).length > 0 ? filtro : undefined;
   }
 
   private buildEstadoObraFilter(): EstadoObrasFilter | undefined {
-    const {estadosObra, clienteId, rangoFechas} = this.filtrosForm.value;
+    const {estadosObra, clienteId, fechaInicio, fechaFin} = this.currentFilters;
     const filtro: EstadoObrasFilter = {};
 
     if (estadosObra?.length) filtro.estados = estadosObra;
     if (clienteId) filtro.clienteId = clienteId;
-    if (rangoFechas?.length) {
-      const [inicio, fin] = rangoFechas;
-      if (inicio) filtro.fechaInicio = this.formatDateValue(inicio);
-      if (fin) filtro.fechaFin = this.formatDateValue(fin);
-    }
+    if (fechaInicio) filtro.fechaInicio = this.formatDateValue(fechaInicio);
+    if (fechaFin) filtro.fechaFin = this.formatDateValue(fechaFin);
 
     return Object.keys(filtro).length > 0 ? filtro : undefined;
   }

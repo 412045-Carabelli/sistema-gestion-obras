@@ -20,7 +20,7 @@ import {MessageService} from 'primeng/api';
 import {ToastModule} from 'primeng/toast';
 import {Select} from 'primeng/select';
 import {AutoCompleteModule} from 'primeng/autocomplete';
-import {RouterLink} from '@angular/router';
+import {Router, RouterLink} from '@angular/router';
 import {PreventInvalidSubmitDirective} from '../../../shared/directives/prevent-invalid-submit.directive';
 import {ModalComponent} from '../../../shared/modal/modal.component';
 import {EditorModule} from 'primeng/editor';
@@ -79,13 +79,14 @@ export class ObrasCreateComponent implements OnInit {
     private estadoObraService: EstadoObraService,
     private proveedoresService: ProveedoresService,
     private grupoObrasService: GrupoObrasService,
-    private messageService: MessageService
+    private messageService: MessageService,
+    private router: Router
   ) {
     this.form = this.fb.group({
       nombre: ['', [Validators.required, Validators.minLength(3)]],
       cliente: [null, Validators.required],
       id_grupo: [null],
-      obra_estado: [null, Validators.required],
+      obra_estado: ['PRESUPUESTADA'],
       direccion: ['', [Validators.required, Validators.minLength(5)]],
       fecha_presupuesto: [new Date(), Validators.required],
       fecha_inicio: [new Date(), Validators.required],
@@ -317,24 +318,8 @@ export class ObrasCreateComponent implements OnInit {
 
 
     this.obrasService.createObra(payload).subscribe({
-      next: () => {
-        this.messageService.add({
-          severity: 'success',
-          summary: 'Obra creada',
-          detail: 'La obra se creó correctamente ✅',
-          life: 3000
-        });
-
-        this.form.reset();
-        this.form.patchValue({
-          fecha_presupuesto: new Date(),
-          fecha_inicio: new Date(),
-          tiene_comision: false,
-          beneficio_global: false,
-        });
-        this.form.get('beneficio')?.disable({emitEvent: false});
-        this.form.get('comision')?.disable({emitEvent: false});
-        this.costos.clear();
+      next: (obraCreada) => {
+        this.router.navigate(['/obras', obraCreada.id]);
       },
       error: (err) => {
         console.error('❌ Error al crear obra', err);

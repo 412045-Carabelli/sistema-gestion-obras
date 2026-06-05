@@ -1,4 +1,6 @@
 import {Component, OnInit, OnDestroy, signal, computed, inject} from '@angular/core';
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
 import {CommonModule} from '@angular/common';
 import {FormsModule} from '@angular/forms';
 import {ActivatedRoute} from '@angular/router';
@@ -25,7 +27,7 @@ import {ObrasService} from '../../../services/obras/obras.service';
 import {ClientesService} from '../../../services/clientes/clientes.service';
 import {ProveedoresService} from '../../../services/proveedores/proveedores.service';
 import {AgendaModalComponent} from './agenda-modal/agenda-modal.component';
-import {GenericFilterBarComponent, FilterDefinition} from '../generic-filter-bar/generic-filter-bar.component';
+import {GenericFilterBarComponent, FilterDefinition, FilterAction} from '../generic-filter-bar/generic-filter-bar.component';
 
 interface EstadoOption {
   label: string;
@@ -81,6 +83,7 @@ export class AgendasListComponent implements OnInit, OnDestroy {
 
   // Filter Bar
   filterDefinitions: FilterDefinition[] = [];
+  filterActions: FilterAction[] = [];
   currentFilters: Record<string, any> = {};
 
   // Computed
@@ -122,6 +125,15 @@ export class AgendasListComponent implements OnInit, OnDestroy {
   }
 
   private setupFilterDefinitions(): void {
+    this.filterActions = [
+      {
+        label: 'Exportar PDF',
+        icon: 'pi pi-file-pdf',
+        severity: 'danger',
+        callback: () => this.exportarPDF()
+      }
+    ];
+
     this.filterDefinitions = [
       {
         key: 'search',
@@ -283,5 +295,36 @@ export class AgendasListComponent implements OnInit, OnDestroy {
     if (!proveedorId) return 'N/A';
     const proveedor = this.proveedores().find(p => p.id === proveedorId);
     return proveedor?.nombre || 'N/A';
+  }
+
+  exportarPDF() {
+    const doc = new jsPDF({ orientation: 'landscape' });
+    const fecha = new Date().toLocaleDateString('es-AR');
+
+    doc.setFontSize(14);
+    doc.text('Agenda de Eventos', 14, 15);
+    doc.setFontSize(10);
+    doc.text(`Exportado: ${fecha}`, 14, 22);
+
+    const rows = this.agendasFiltradas().map(a => [
+      a.id ?? '',
+      a.titulo,
+      this.getNombreObra(a.obraId),
+      this.getNombreCliente(a.clienteId),
+      this.getNombreProveedor(a.proveedorId),
+      this.getEstadoLabel(a.estado),
+      a.fechaVencimiento ? new Date(a.fechaVencimiento).toLocaleDateString('es-AR') : '-',
+      a.creadoEn ? new Date(a.creadoEn).toLocaleDateString('es-AR') : '-'
+    ]);
+
+    autoTable(doc, {
+      startY: 28,
+      head: [['N°', 'Título', 'Obra', 'Cliente', 'Proveedor', 'Estado', 'Vencimiento', 'Fecha Alta']],
+      body: rows,
+      styles: { fontSize: 8 },
+      headStyles: { fillColor: [59, 130, 246] }
+    });
+
+    doc.save(`agenda-eventos-${fecha.replace(/\//g, '-')}.pdf`);
   }
 }

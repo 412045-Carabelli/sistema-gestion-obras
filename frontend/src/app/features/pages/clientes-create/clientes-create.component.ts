@@ -61,10 +61,21 @@ export class ClientesCreateComponent implements OnInit {
     });
   }
 
+  private normalizarTelefono(tel: string | undefined): string {
+    if (!tel) return '';
+    let solo = String(tel).replace(/[^0-9]/g, '');
+    if (solo.startsWith('549')) solo = '54' + solo.substring(3);
+    else if (solo.startsWith('54')) return solo;
+    else if (solo.startsWith('9')) solo = '54' + solo.substring(1);
+    else solo = '54' + solo;
+    return solo;
+  }
+
   onSubmit() {
     if (this.form.invalid) return;
 
     const data: Cliente = this.form.value;
+    if (data.telefono) data.telefono = this.normalizarTelefono(data.telefono);
 
     if (this.editing) {
       this.clientesService.updateCliente(this.clienteId, data).subscribe({

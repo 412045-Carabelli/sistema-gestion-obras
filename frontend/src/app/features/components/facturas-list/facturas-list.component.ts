@@ -16,7 +16,6 @@ import {InputIconModule} from 'primeng/inputicon';
 import {ToastModule} from 'primeng/toast';
 import {InputNumber} from 'primeng/inputnumber';
 import {DatePicker} from 'primeng/datepicker';
-import {EditorModule} from 'primeng/editor';
 import {FileUploadModule} from 'primeng/fileupload';
 import {ConfirmationService, MessageService} from 'primeng/api';
 import {ConfirmDialog} from 'primeng/confirmdialog';
@@ -68,7 +67,6 @@ interface SelectOption<T> {
     ToastModule,
     InputNumber,
     DatePicker,
-    EditorModule,
     FileUploadModule,
     ModalComponent,
     ConfirmDialog,
@@ -427,6 +425,10 @@ export class FacturasListComponent implements OnInit, OnDestroy {
 
   get totalPorCobrar(): number {
     return Number(this.kpiFacturas?.totalPorCobrar ?? 0);
+  }
+
+  get facturaFormInvalid(): boolean {
+    return !this.facturaForm.id_cliente || !this.facturaForm.id_obra || !this.facturaForm.monto;
   }
 
   private get facturasScope(): FacturaView[] {

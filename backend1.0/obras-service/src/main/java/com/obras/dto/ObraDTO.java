@@ -57,6 +57,7 @@ public class ObraDTO {
     private String condiciones_presupuesto;
     private String observaciones_presupuesto;
     private Boolean requiere_factura;
+    private String estado_financiero;
     private Boolean activo;
     private Instant creado_en;
     private Instant ultima_actualizacion;

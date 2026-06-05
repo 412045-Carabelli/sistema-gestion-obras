@@ -12,14 +12,14 @@
     @if (datos) {
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
         <app-kpi-card
-          [title]="'Por cobrar'"
+          [title]="'Clientes - Por cobrar'"
           [color]="'green'"
           [value]="(datos?.deudaClientes | currency:'ARS':'symbol':'1.0-0') ?? ''"
           [tooltip]="'Total por cobrar a clientes'"
           [valueFontSize]="18"
         ></app-kpi-card>
         <app-kpi-card
-          [title]="'Por pagar'"
+          [title]="'Proveedores - Por pagar'"
           [color]="'red'"
           [value]="(datos?.deudaProveedores | currency:'ARS':'symbol':'1.0-0') ?? ''"
           [tooltip]="'Total por pagar a proveedores'"
@@ -33,10 +33,21 @@
     <!-- Tabla Clientes -->
     @if (datos?.detalleDeudaClientes !== undefined) {
       <div class="bg-white rounded-lg shadow p-5">
-        <h3 class="font-poppins font-semibold text-gray-800 mb-4 flex items-center gap-2">
-          <i class="pi pi-users text-green-600"></i>
-          Cuentas por cobrar
-        </h3>
+        <div class="flex items-center justify-between mb-4">
+          <h3 class="font-poppins font-semibold text-gray-800 flex items-center gap-2">
+            <i class="pi pi-users text-green-600"></i>
+            Clientes - Cuentas por cobrar
+          </h3>
+          <p-button
+            icon="pi pi-file-pdf"
+            label="Exportar PDF"
+            severity="success"
+            size="small"
+            [outlined]="true"
+            [loading]="generandoPdf"
+            (onClick)="exportarPdfSolo('clientes')"
+          ></p-button>
+        </div>
         <div class="overflow-x-auto">
           <table class="w-full text-sm">
             <thead class="bg-green-50 text-green-800">
@@ -53,9 +64,9 @@
                 <tr class="border-t border-gray-100 hover:bg-gray-50 cursor-pointer transition-colors" (click)="onClienteRowClick(item)">
                   <td class="px-4 py-3 font-poppins font-semibold text-gray-900 max-w-[120px] truncate" [pTooltip]="item.obraNombre" tooltipPosition="top">{{ item.obraNombre }}</td>
                   <td class="px-4 py-3 font-poppins font-normal text-gray-700 max-w-[120px] truncate" [pTooltip]="item.clienteNombre" tooltipPosition="top">{{ item.clienteNombre }}</td>
-                  <td class="px-4 py-3 text-right font-poppins font-normal whitespace-nowrap">{{ item.presupuesto | currency:'ARS':'symbol-narrow':'1.0-0' }}</td>
-                  <td class="px-4 py-3 text-right text-green-600 font-poppins font-semibold whitespace-nowrap">{{ item.cobrado | currency:'ARS':'symbol-narrow':'1.0-0' }}</td>
-                  <td class="px-4 py-3 text-right font-poppins font-bold text-red-600 whitespace-nowrap">{{ item.saldo | currency:'ARS':'symbol-narrow':'1.0-0' }}</td>
+                  <td class="px-4 py-3 text-right font-poppins font-semibold text-gray-800 whitespace-nowrap">{{ item.presupuesto | currency:'ARS':'symbol-narrow':'1.0-0' }}</td>
+                  <td class="px-4 py-3 text-right text-green-800 font-poppins font-bold whitespace-nowrap">{{ item.cobrado | currency:'ARS':'symbol-narrow':'1.0-0' }}</td>
+                  <td class="px-4 py-3 text-right font-poppins font-bold text-red-800 whitespace-nowrap">{{ item.saldo | currency:'ARS':'symbol-narrow':'1.0-0' }}</td>
                 </tr>
               }
             </tbody>
@@ -67,10 +78,21 @@
     <!-- Tabla Proveedores -->
     @if (datos?.detalleDeudaProveedores !== undefined) {
       <div class="bg-white rounded-lg shadow p-5">
-        <h3 class="font-poppins font-semibold text-gray-800 mb-4 flex items-center gap-2">
-          <i class="pi pi-briefcase text-red-600"></i>
-          Cuentas por pagar
-        </h3>
+        <div class="flex items-center justify-between mb-4">
+          <h3 class="font-poppins font-semibold text-gray-800 flex items-center gap-2">
+            <i class="pi pi-briefcase text-red-600"></i>
+            Proveedores - Cuentas por pagar
+          </h3>
+          <p-button
+            icon="pi pi-file-pdf"
+            label="Exportar PDF"
+            severity="danger"
+            size="small"
+            [outlined]="true"
+            [loading]="generandoPdf"
+            (onClick)="exportarPdfSolo('proveedores')"
+          ></p-button>
+        </div>
         <div class="overflow-x-auto">
           <table class="w-full text-sm">
             <thead class="bg-red-50 text-red-800">
@@ -87,9 +109,9 @@
                 <tr class="border-t border-gray-100 hover:bg-gray-50 cursor-pointer transition-colors" (click)="onProveedorRowClick(item)">
                   <td class="px-4 py-3 font-poppins font-semibold text-gray-900 max-w-[120px] truncate" [pTooltip]="item.obraNombre" tooltipPosition="top">{{ item.obraNombre }}</td>
                   <td class="px-4 py-3 font-poppins font-normal text-gray-700 max-w-[120px] truncate" [pTooltip]="item.proveedorNombre" tooltipPosition="top">{{ item.proveedorNombre }}</td>
-                  <td class="px-4 py-3 text-right font-poppins font-normal whitespace-nowrap">{{ item.presupuestado | currency:'ARS':'symbol-narrow':'1.0-0' }}</td>
-                  <td class="px-4 py-3 text-right text-green-600 font-poppins font-semibold whitespace-nowrap">{{ item.pagado | currency:'ARS':'symbol-narrow':'1.0-0' }}</td>
-                  <td class="px-4 py-3 text-right font-poppins font-bold text-red-600 whitespace-nowrap">{{ item.saldo | currency:'ARS':'symbol-narrow':'1.0-0' }}</td>
+                  <td class="px-4 py-3 text-right font-poppins font-semibold text-gray-800 whitespace-nowrap">{{ item.presupuestado | currency:'ARS':'symbol-narrow':'1.0-0' }}</td>
+                  <td class="px-4 py-3 text-right text-green-800 font-poppins font-bold whitespace-nowrap">{{ item.pagado | currency:'ARS':'symbol-narrow':'1.0-0' }}</td>
+                  <td class="px-4 py-3 text-right font-poppins font-bold text-red-800 whitespace-nowrap">{{ item.saldo | currency:'ARS':'symbol-narrow':'1.0-0' }}</td>
                 </tr>
               }
             </tbody>

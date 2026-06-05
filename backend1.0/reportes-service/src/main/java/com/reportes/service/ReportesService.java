@@ -634,6 +634,71 @@ public class ReportesService {
         return response;
     }
 
+    public DashboardGraficosResponse generarDashboardGraficos() {
+        List<ObraExternalDto> obras = obrasClient.obtenerObras();
+        List<ObraExternalDto> obrasActivas = obras.stream()
+                .filter(o -> Boolean.TRUE.equals(o.getActivo()))
+                .filter(o -> o.getObraEstado() == null
+                        || (!o.getObraEstado().equals("PERDIDA") && !o.getObraEstado().equals("CANCELADA")))
+                .collect(Collectors.toList());
+
+        // Distribución por estado
+        Map<String, Long> conteoEstados = obrasActivas.stream()
+                .collect(Collectors.groupingBy(
+                        o -> o.getObraEstado() != null ? o.getObraEstado() : "SIN_ESTADO",
+                        Collectors.counting()
+                ));
+
+        int totalActivas = obrasActivas.size();
+        List<DashboardGraficosResponse.EstadoConteoDto> distribucionEstados = conteoEstados.entrySet().stream()
+                .map(e -> DashboardGraficosResponse.EstadoConteoDto.builder()
+                        .estado(e.getKey())
+                        .cantidad(e.getValue().intValue())
+                        .porcentaje(totalActivas > 0 ? (e.getValue() * 100.0 / totalActivas) : 0)
+                        .build())
+                .sorted(Comparator.comparingInt(DashboardGraficosResponse.EstadoConteoDto::getCantidad).reversed())
+                .collect(Collectors.toList());
+
+        // Top 5 obras por volumen financiero (via SP en transacciones-service)
+        List<TopObraFinancieroExternalDto> topRaw = transaccionesClient.obtenerTopObras(5);
+        List<DashboardGraficosResponse.TopObraDto> topObras = topRaw.stream()
+                .map(t -> DashboardGraficosResponse.TopObraDto.builder()
+                        .obraId(t.getObraId())
+                        .obraNombre(t.getObraNombre())
+                        .presupuesto(t.getPresupuesto() != null ? t.getPresupuesto() : BigDecimal.ZERO)
+                        .totalCobros(t.getTotalCobros() != null ? t.getTotalCobros() : BigDecimal.ZERO)
+                        .totalPagos(t.getTotalPagos() != null ? t.getTotalPagos() : BigDecimal.ZERO)
+                        .build())
+                .collect(Collectors.toList());
+
+        // KPIs globales
+        BigDecimal presupuestoTotal = obrasActivas.stream()
+                .map(o -> o.getPresupuesto() != null ? o.getPresupuesto() : BigDecimal.ZERO)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        BigDecimal totalCobros = topObras.stream()
+                .map(DashboardGraficosResponse.TopObraDto::getTotalCobros)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        double porcentajeCobro = presupuestoTotal.compareTo(BigDecimal.ZERO) > 0
+                ? totalCobros.multiply(BigDecimal.valueOf(100))
+                    .divide(presupuestoTotal, 2, java.math.RoundingMode.HALF_UP).doubleValue()
+                : 0.0;
+
+        DashboardGraficosResponse.KpisGraficosDto kpis = DashboardGraficosResponse.KpisGraficosDto.builder()
+                .totalObras(obras.stream().filter(o -> Boolean.TRUE.equals(o.getActivo())).mapToInt(o -> 1).sum())
+                .obrasActivas(totalActivas)
+                .presupuestoTotal(presupuestoTotal)
+                .porcentajeCobroGlobal(BigDecimal.valueOf(porcentajeCobro))
+                .build();
+
+        return DashboardGraficosResponse.builder()
+                .distribucionEstados(distribucionEstados)
+                .topObras(topObras)
+                .kpis(kpis)
+                .build();
+    }
+
     public CuentaCorrienteObraResponse generarCuentaCorrientePorObra(Long obraId) {
         ObraExternalDto obra = obrasClient.obtenerObra(obraId)
                 .orElseThrow(() -> new NoSuchElementException("Obra no encontrada: " + obraId));

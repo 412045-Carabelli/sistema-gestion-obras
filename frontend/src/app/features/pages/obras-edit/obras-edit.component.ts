@@ -74,6 +74,7 @@ export class ObrasEditComponent implements OnInit {
   showGrupoModal = false;
   form!: FormGroup;
   loading = true;
+  editorListo = false;
   private obraId: number | null = null;
   private initialSnapshot = '';
   tieneCambios = false;
@@ -212,10 +213,14 @@ export class ObrasEditComponent implements OnInit {
     }).subscribe({
       next: ({clientes, estados, proveedores, obra}) => {
         this.clientes = clientes.map(c => ({...c, id: Number(c.id)}));
-        this.estadosRecords = this.ordenarEstadosObra(estados as any);
+        const ESTADOS_ADMIN = ['FACTURADA_PARCIAL', 'FACTURADA', 'COBRADA_PARCIAL', 'COBRADA'];
+        this.estadosRecords = this.ordenarEstadosObra(estados as any)
+          .filter(e => !ESTADOS_ADMIN.includes((e.name || '').toUpperCase()));
         this.proveedores = proveedores;
         this.obra = {...obra, costos: obra.costos ?? []} as Obra;
+        this.editorListo = false;
         this.inicializarFormulario();
+        setTimeout(() => { this.editorListo = true; }, 0);
         this.loading = false;
       },
       error: () => {

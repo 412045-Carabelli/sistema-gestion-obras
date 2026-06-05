@@ -12,27 +12,37 @@
     </div>
 
     <div class="flex flex-wrap gap-3 items-center">
-      <div class="text-xs font-poppins font-normal text-gray-500">
-        Beneficio global:
-        <span class="font-poppins font-semibold text-gray-700">
-          {{ usarBeneficioGlobal ? (beneficioGlobal + '%') : 'No activo' }}
-        </span>
+      <span
+        class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-poppins font-semibold cursor-pointer select-none transition-colors"
+        [ngClass]="usarBeneficioGlobal
+          ? 'bg-green-100 text-green-700 hover:bg-green-200'
+          : 'bg-gray-100 text-gray-400'"
+        (click)="permiteBeneficioGlobal() && abrirBeneficioGlobalModal()"
+        [title]="permiteBeneficioGlobal() ? 'Editar beneficio global' : ''"
+      >
+        <i class="pi pi-percentage text-[11px]"></i>
+        Beneficio global {{ usarBeneficioGlobal ? beneficioGlobal + '%' : '—' }}
+      </span>
+      <div class="relative">
+        <p-button
+          (onClick)="exportMenu.toggle($event)"
+          icon="pi pi-file-pdf"
+          label="Exportar PDF"
+          severity="primary"
+          [disabled]="exportandoPdf"
+        ></p-button>
+        <p-menu #exportMenu [popup]="true" [model]="exportOptions"></p-menu>
       </div>
       <p-button
-        (onClick)="abrirBeneficioGlobalModal()"
-        icon="pi pi-percentage"
-        label="Beneficio global"
-        styleClass="p-button-md p-button-outlined"
-        [disabled]="!permiteBeneficioGlobal()"
+        (onClick)="enviarPresupuestoWhatsApp()"
+        icon="pi pi-whatsapp"
+        label="Enviar por WhatsApp"
+        severity="success"
+        [loading]="enviandoWhatsApp"
+        [disabled]="!obra?.cliente?.telefono"
+        [pTooltip]="obra?.cliente?.telefono ? 'Enviar presupuesto a ' + obra.cliente!.telefono : 'El cliente no tiene teléfono registrado'"
+        tooltipPosition="bottom"
       ></p-button>
-      <p-button
-        (onClick)="exportMenu.toggle($event)"
-        icon="pi pi-file-pdf"
-        label="Exportar PDF"
-        severity="primary"
-        [disabled]="exportandoPdf"
-      ></p-button>
-      <p-menu #exportMenu [popup]="true" [model]="exportOptions"></p-menu>
     </div>
   </div>
   <!-- Formulario rapido para agregar costos -->
@@ -44,7 +54,7 @@
           </div>
           <div>
             <p class="text-base font-poppins font-semibold text-gray-900 leading-none">Agregar costo</p>
-            <p class="text-xs font-poppins font-normal text-gray-500 leading-none">Completa los campos y sumalo a la matriz</p>
+            <p class="text-xs font-poppins font-normal text-gray-500 leading-none mt-1">Completa los campos y sumalo a la matriz</p>
           </div>
         </div>
         <div class="hidden md:flex items-center gap-2 text-xs text-gray-500 font-poppins font-normal">

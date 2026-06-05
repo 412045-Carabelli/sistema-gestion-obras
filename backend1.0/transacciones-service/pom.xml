@@ -30,6 +30,12 @@
             <artifactId>spring-boot-starter-web</artifactId>
         </dependency>
 
+        <!-- Apache HttpClient 5 para soporte de PATCH en RestTemplate -->
+        <dependency>
+            <groupId>org.apache.httpcomponents.client5</groupId>
+            <artifactId>httpclient5</artifactId>
+        </dependency>
+
         <!-- 🧭 Validaciones (Bean Validation / Jakarta Validation) -->
         <dependency>
             <groupId>org.springframework.boot</groupId>

@@ -23,7 +23,9 @@ import { MovimientosModalService } from '../../../services/movimientos/movimient
 import { ObrasService } from '../../../services/obras/obras.service';
 import { ClientesService } from '../../../services/clientes/clientes.service';
 import { ProveedoresService } from '../../../services/proveedores/proveedores.service';
-import { GenericFilterBarComponent, FilterDefinition } from '../generic-filter-bar/generic-filter-bar.component';
+import { GenericFilterBarComponent, FilterDefinition, FilterAction } from '../generic-filter-bar/generic-filter-bar.component';
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
 
 @Component({
   selector: 'app-movimientos-list',
@@ -64,16 +66,17 @@ export class MovimientosListComponent implements OnInit {
   movimientoEditando: Movimiento | null = null;
   saldoAsociado: number = 0;
   filterDefinitions: FilterDefinition[] = [];
+  filterActions: FilterAction[] = [];
 
   // Opciones para filtros y modal
   obraNombresMap: { [key: number]: string } = {};
   asociadoNombresMap: { [key: string]: string } = {};
   obrasOptions: Obra[] = [];
+  obrasFiltradas: Obra[] = [];
   clientesOptions: Cliente[] = [];
   clientesFiltrados: Cliente[] = [];
   proveedoresOptions: Proveedor[] = [];
   proveedoresFiltrados: Proveedor[] = [];
-  obraSeleccionada: Obra | null = null;
 
   tiposTransaccion: { label: string; name: string }[] = [
     { label: 'Todos', name: 'todos' },
@@ -133,6 +136,15 @@ export class MovimientosListComponent implements OnInit {
   }
 
   private setupFilterDefinitions(): void {
+    this.filterActions = [
+      {
+        label: 'Exportar PDF',
+        icon: 'pi pi-file-pdf',
+        severity: 'danger',
+        callback: () => this.exportarPDF()
+      }
+    ];
+
     this.filterDefinitions = [
       {
         key: 'search',
@@ -163,14 +175,14 @@ export class MovimientosListComponent implements OnInit {
   private cargarDatos(): void {
     forkJoin({
       movimientosPage: this.movimientosService.listarConAsociados(this.currentPage, this.pageSize),
-      obras: this.obrasService.getObras(),
+      obras: this.obrasService.getObrasAll(),
       clientes: this.clientesService.getClientes(),
       proveedores: this.proveedoresService.getProveedores()
     }).subscribe({
       next: ({ movimientosPage, obras, clientes, proveedores }) => {
         this.movimientos = movimientosPage.content || [];
         this.totalElements = movimientosPage.totalElements || 0;
-        this.obrasOptions = obras;
+        this.obrasOptions = obras.filter(o => o.activo !== false);
         this.clientesOptions = clientes;
         this.proveedoresOptions = proveedores;
 
@@ -236,7 +248,22 @@ export class MovimientosListComponent implements OnInit {
   }
 
   getNombreAsociado(mov: Movimiento): string {
-    return mov.nombre_asociado || `${mov.tipo_asociado} ${mov.id_asociado}`;
+    if (mov.nombre_asociado) return mov.nombre_asociado;
+    if (mov.tipo_asociado === 'CLIENTE') {
+      const c = this.clientesOptions.find(x => x.id === mov.id_asociado);
+      if (c) return c.nombre;
+    } else if (mov.tipo_asociado === 'PROVEEDOR') {
+      const p = this.proveedoresOptions.find(x => x.id === mov.id_asociado);
+      if (p) return p.nombre;
+    }
+    return `${mov.tipo_asociado} ${mov.id_asociado}`;
+  }
+
+  onTipoAsociadoChange(): void {
+    if (this.isEditMode || this.isViewMode) return;
+    this.form.patchValue({ id_asociado: null, id_obra: null });
+    this.obrasFiltradas = [];
+    this.saldoAsociado = 0;
   }
 
   onAsociadoChange(): void {
@@ -245,21 +272,38 @@ export class MovimientosListComponent implements OnInit {
 
     this.saldoAsociado = 0;
 
-    if (!idAsociado) return;
+    if (!idAsociado) {
+      if (!this.isEditMode && !this.isViewMode) {
+        this.obrasFiltradas = [];
+      }
+      return;
+    }
 
     if (tipoAsociado === 'CLIENTE') {
-      const cliente = this.clientesFiltrados.find(c => c.id === idAsociado);
+      const cliente = this.clientesOptions.find(c => c.id === idAsociado);
       if (cliente) {
         this.saldoAsociado = cliente.saldoCliente || 0;
       }
+      // Filtrar obras por cliente
+      if (!this.isEditMode && !this.isViewMode) {
+        this.obrasFiltradas = this.obrasOptions.filter(
+          o => o.id_cliente === idAsociado || o.cliente?.id === idAsociado
+        );
+        this.form.patchValue({ id_obra: null });
+      }
     } else if (tipoAsociado === 'PROVEEDOR') {
-      const proveedor = this.proveedoresFiltrados.find(p => p.id === idAsociado);
+      const proveedor = this.proveedoresOptions.find(p => p.id === idAsociado);
       if (proveedor) {
         this.saldoAsociado = proveedor.saldoProveedor || 0;
       }
+      // Mostrar todas las obras activas para proveedor
+      if (!this.isEditMode && !this.isViewMode) {
+        this.obrasFiltradas = this.obrasOptions;
+        this.form.patchValue({ id_obra: null });
+      }
     }
 
-    // Auto-rellenar monto si forma_pago es TOTAL (solo en create/view, no en edit)
+    // Auto-rellenar monto si forma_pago es TOTAL (solo en create, no en edit/view)
     if (!this.isEditMode && !this.isViewMode) {
       this.actualizarMonto();
     }
@@ -287,6 +331,9 @@ export class MovimientosListComponent implements OnInit {
 
   openViewModal(mov: Movimiento) {
     this.movimientoEditando = mov;
+    this.clientesFiltrados = this.clientesOptions;
+    this.proveedoresFiltrados = this.proveedoresOptions;
+    this.obrasFiltradas = this.obrasOptions;
     this.form.patchValue({
       id_obra: mov.id_obra,
       id_asociado: mov.id_asociado,
@@ -298,7 +345,6 @@ export class MovimientosListComponent implements OnInit {
       medio_pago: mov.medio_pago || '',
       concepto: mov.concepto || ''
     });
-    this.onObraChange();
     this.onAsociadoChange();
     this.form.disable();
     this.showModal = true;
@@ -314,44 +360,20 @@ export class MovimientosListComponent implements OnInit {
       forma_pago: 'TOTAL',
       fecha: new Date()
     });
-    this.clientesFiltrados = [];
-    this.proveedoresFiltrados = [];
-    this.obraSeleccionada = null;
+    this.clientesFiltrados = this.clientesOptions;
+    this.proveedoresFiltrados = this.proveedoresOptions;
+    this.obrasFiltradas = [];
     this.saldoAsociado = 0;
     this.showModal = true;
-  }
-
-  onObraChange(): void {
-    const obraId = this.form.get('id_obra')?.value;
-    if (!obraId) {
-      this.clientesFiltrados = [];
-      this.proveedoresFiltrados = [];
-      this.obraSeleccionada = null;
-      this.form.patchValue({ id_asociado: null });
-      return;
-    }
-
-    this.obraSeleccionada = this.obrasOptions.find(o => o.id === obraId) || null;
-
-    if (this.obraSeleccionada) {
-      // Filtrar cliente de la obra
-      const clienteObra = this.obraSeleccionada.cliente;
-      this.clientesFiltrados = clienteObra ? [clienteObra] : [];
-
-      // Cargar todos los proveedores disponibles
-      this.proveedoresFiltrados = this.proveedoresOptions;
-    }
-
-    // No resetear id_asociado para mantener el valor existente en edición o view
-    if (!this.isEditMode && !this.isViewMode) {
-      this.form.patchValue({ id_asociado: null });
-    }
   }
 
   openEditModal(mov: Movimiento) {
     this.isEditMode = true;
     this.isViewMode = false;
     this.movimientoEditando = mov;
+    this.clientesFiltrados = this.clientesOptions;
+    this.proveedoresFiltrados = this.proveedoresOptions;
+    this.obrasFiltradas = this.obrasOptions;
     this.form.enable();
     this.form.patchValue({
       id_obra: mov.id_obra,
@@ -364,9 +386,6 @@ export class MovimientosListComponent implements OnInit {
       medio_pago: mov.medio_pago || '',
       concepto: mov.concepto || ''
     });
-    // Filtrar clientes/proveedores de la obra seleccionada
-    this.onObraChange();
-    // Cargar saldo del asociado
     this.onAsociadoChange();
     this.showModal = true;
   }
@@ -406,6 +425,38 @@ export class MovimientosListComponent implements OnInit {
         });
       }
     });
+  }
+
+  exportarPDF() {
+    const doc = new jsPDF({ orientation: 'landscape' });
+    const fecha = new Date().toLocaleDateString('es-AR');
+
+    doc.setFontSize(14);
+    doc.text('Listado de Movimientos', 14, 15);
+    doc.setFontSize(10);
+    doc.text(`Exportado: ${fecha}`, 14, 22);
+
+    const rows = this.movimientosFiltrados.map(mov => [
+      mov.id,
+      new Date(mov.fecha).toLocaleDateString('es-AR'),
+      this.getNombreObra(mov.id_obra),
+      mov.tipo_asociado,
+      this.getNombreAsociado(mov),
+      mov.tipo_transaccion,
+      mov.forma_pago,
+      mov.medio_pago || '-',
+      `$${(mov.monto ?? 0).toLocaleString('es-AR', { minimumFractionDigits: 2 })}`
+    ]);
+
+    autoTable(doc, {
+      startY: 28,
+      head: [['ID', 'Fecha', 'Obra', 'Tipo Asoc.', 'Asociado', 'Transacción', 'Forma Pago', 'Medio Pago', 'Monto']],
+      body: rows,
+      styles: { fontSize: 7 },
+      headStyles: { fillColor: [59, 130, 246] }
+    });
+
+    doc.save(`movimientos-${fecha.replace(/\//g, '-')}.pdf`);
   }
 
   eliminarMovimiento(mov: Movimiento) {

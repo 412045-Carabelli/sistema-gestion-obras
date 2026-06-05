@@ -7,6 +7,7 @@ import org.springframework.security.config.annotation.method.configuration.Enabl
 import org.springframework.security.config.annotation.web.reactive.EnableWebFluxSecurity;
 import org.springframework.security.config.web.server.ServerHttpSecurity;
 import org.springframework.security.web.server.SecurityWebFilterChain;
+import org.springframework.security.config.web.server.SecurityWebFiltersOrder;
 import org.springframework.security.web.server.context.NoOpServerSecurityContextRepository;
 
 /**
@@ -32,16 +33,13 @@ public class SecurityConfig {
     public SecurityWebFilterChain filterChain(ServerHttpSecurity http, JwtAuthenticationFilter jwtAuthenticationFilter) {
         http
             .securityContextRepository(NoOpServerSecurityContextRepository.getInstance())
-            .authorizeExchange()
-                .pathMatchers("/auth/**").permitAll()  // Rutas de autenticación públicas
-                .pathMatchers("/api-docs/**", "/swagger-ui/**").permitAll()  // Documentación
-                .pathMatchers("/bff/**").authenticated()  // Rutas protegidas
+            .authorizeExchange(exchanges -> exchanges
                 .anyExchange().permitAll()
-            .and()
-            .addFilterBefore(jwtAuthenticationFilter, org.springframework.security.web.server.WebFilter.class)
-            .csrf().disable()  // REST API + CORS: CSRF no aplica
-            .httpBasic().disable()
-            .formLogin().disable();
+            )
+            .addFilterBefore(jwtAuthenticationFilter, SecurityWebFiltersOrder.AUTHENTICATION)
+            .csrf(csrf -> csrf.disable())
+            .httpBasic(httpBasic -> httpBasic.disable())
+            .formLogin(formLogin -> formLogin.disable());
 
         return http.build();
     }

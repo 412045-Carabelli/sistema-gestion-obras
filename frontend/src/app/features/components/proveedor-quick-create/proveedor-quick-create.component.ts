@@ -67,6 +67,12 @@ export class ProveedorQuickCreateComponent implements OnChanges {
     }
     if (this.creandoProveedor) return;
     this.creandoProveedor = true;
+    if (this.proveedorForm.telefono) {
+      let solo = String(this.proveedorForm.telefono).replace(/[^0-9]/g, '');
+      if (solo.startsWith('549')) solo = '54' + solo.substring(3);
+      else if (!solo.startsWith('54')) solo = solo.startsWith('9') ? '54' + solo.substring(1) : '54' + solo;
+      this.proveedorForm.telefono = solo;
+    }
     const payload = this.proveedorForm as any;
     this.proveedoresService.createProveedor(payload).subscribe({
       next: (nuevo) => {

@@ -3,7 +3,9 @@ package com.transacciones.service.impl;
 import com.transacciones.service.DashboardService;
 import com.transacciones.dto.DashboardCuentaCorrienteResponse;
 import com.transacciones.dto.DashboardFilterRequest;
+import com.transacciones.dto.TopObraFinancieroDto;
 import com.transacciones.repository.DashboardRepository;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -40,7 +42,6 @@ public class DashboardServiceImpl implements DashboardService {
 
     } catch (Exception ex) {
       log.error("Error al obtener cuenta corriente del dashboard", ex);
-      // Devolver valores por defecto en caso de error
       return DashboardCuentaCorrienteResponse.builder()
           .cobrado(BigDecimal.ZERO)
           .porCobrar(BigDecimal.ZERO)
@@ -48,6 +49,17 @@ public class DashboardServiceImpl implements DashboardService {
           .porPagar(BigDecimal.ZERO)
           .resultado(BigDecimal.ZERO)
           .build();
+    }
+  }
+
+  @Override
+  public List<TopObraFinancieroDto> obtenerTopObras(int topN) {
+    try {
+      log.debug("Obteniendo top {} obras financiero", topN);
+      return dashboardRepository.obtenerTopObras(topN);
+    } catch (Exception ex) {
+      log.error("Error al obtener top obras financiero", ex);
+      return List.of();
     }
   }
 }

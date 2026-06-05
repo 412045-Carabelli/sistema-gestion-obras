@@ -19,6 +19,10 @@ export class AgendasService {
     return this.http.get<Agenda[]>(this.apiUrl);
   }
 
+  getAgendasByObra(obraId: number): Observable<Agenda[]> {
+    return this.http.get<Agenda[]>(`${this.apiUrl}/${obraId}`);
+  }
+
   getAgenda(id: number): Observable<Agenda> {
     return this.http.get<Agenda>(`${this.apiUrl}/${id}`);
   }

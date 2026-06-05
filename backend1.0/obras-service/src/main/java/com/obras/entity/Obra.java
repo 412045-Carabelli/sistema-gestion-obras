@@ -71,6 +71,9 @@ public class Obra {
     @Column(name = "requiere_factura")
     private Boolean requiereFactura;
 
+    @Column(name = "estado_financiero", length = 50)
+    private String estadoFinanciero;
+
     @Column(name = "ultima_actualizacion")
     private Instant ultimaActualizacion;
 

@@ -3,9 +3,11 @@ package com.transacciones.controller;
 import com.transacciones.service.DashboardService;
 import com.transacciones.dto.DashboardCuentaCorrienteResponse;
 import com.transacciones.dto.DashboardFilterRequest;
+import com.transacciones.dto.TopObraFinancieroDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import java.util.List;
 
 /**
  * Controller para los KPIs del dashboard.
@@ -54,5 +56,18 @@ public class DashboardController {
 
     DashboardCuentaCorrienteResponse response = dashboardService.obtenerCuentaCorriente(filtro);
     return ResponseEntity.ok(response);
+  }
+
+  /**
+   * Obtiene top N obras por volumen financiero (cobros + pagos).
+   * Ejecuta sp_dashboard_top_obras_financiero.
+   *
+   * @param topN cantidad máxima de obras (default 5)
+   * @return lista de TopObraFinancieroDto
+   */
+  @GetMapping("/graficos")
+  public ResponseEntity<List<TopObraFinancieroDto>> obtenerGraficos(
+      @RequestParam(defaultValue = "5") int topN) {
+    return ResponseEntity.ok(dashboardService.obtenerTopObras(topN));
   }
 }

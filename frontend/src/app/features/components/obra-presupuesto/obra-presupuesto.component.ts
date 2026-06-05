@@ -39,11 +39,13 @@ import {ProveedorQuickCreateComponent} from '../proveedor-quick-create/proveedor
 import { DocumentosService } from '../../../services/documentos/documentos.service';
 import { TransaccionesService } from '../../../services/transacciones/transacciones.service';
 import { DatePicker } from 'primeng/datepicker';
+import { TooltipModule } from 'primeng/tooltip';
 
 // PDFMAKE
 import pdfMake from 'pdfmake/build/pdfmake';
 import pdfFonts from 'pdfmake/build/vfs_fonts';
 import { ObrasService } from '../../../services/obras/obras.service';
+import { WhatsAppService } from '../../../services/whatsapp/whatsapp.service';
 
 (pdfMake as any).vfs = (pdfFonts as any).pdfMake?.vfs ?? (pdfFonts as any).vfs;
 
@@ -70,7 +72,8 @@ import { ObrasService } from '../../../services/obras/obras.service';
     EditorModule,
     ConfirmDialog,
     ProveedorQuickCreateComponent,
-    DatePicker
+    DatePicker,
+    TooltipModule
   ],
   providers: [MessageService, ConfirmationService],
   templateUrl: './obra-presupuesto.component.html',
@@ -134,6 +137,7 @@ export class ObraPresupuestoComponent implements OnInit, OnChanges, AfterViewIni
   beneficioGlobalActivoDraft = false;
   guardandoBeneficioGlobal = false;
   exportandoPdf = false;
+  enviandoWhatsApp = false;
   showFechaExportModal = false;
   fechaExportSeleccionada: Date = new Date();
   modoExportPendiente: 'DETALLADO' | 'MEMORIA' | 'AMBOS' | null = null;
@@ -146,7 +150,8 @@ export class ObraPresupuestoComponent implements OnInit, OnChanges, AfterViewIni
     private obrasService: ObrasService,
     private confirmationService: ConfirmationService,
     private documentosService: DocumentosService,
-    private transaccionesService: TransaccionesService
+    private transaccionesService: TransaccionesService,
+    private whatsAppService: WhatsAppService
   ) {}
 
   pagandoComision = false;
@@ -814,6 +819,65 @@ export class ObraPresupuestoComponent implements OnInit, OnChanges, AfterViewIni
   }
 
   // ----------------------------------------------------------
+  // ------------------- WHATSAPP ------------------------------
+  // ----------------------------------------------------------
+  enviarPresupuestoWhatsApp(): void {
+    const telefono = this.obra.cliente?.telefono;
+    if (!telefono) {
+      this.messageService.add({
+        severity: 'warn',
+        summary: 'Sin teléfono',
+        detail: 'El cliente no tiene teléfono registrado. Agregalo en el perfil del cliente.'
+      });
+      return;
+    }
+
+    const presupuestoTotal = this.calcularPresupuestoTotal();
+    const totalFormateado = new Intl.NumberFormat('es-AR', {
+      style: 'currency',
+      currency: 'ARS',
+      minimumFractionDigits: 2
+    }).format(presupuestoTotal);
+
+    const fechaPresupuesto = this.obra.fecha_presupuesto
+      ? new Date(this.obra.fecha_presupuesto).toLocaleDateString('es-AR')
+      : new Date().toLocaleDateString('es-AR');
+
+    this.enviandoWhatsApp = true;
+    this.whatsAppService.enviarPresupuesto({
+      telefono,
+      clienteNombre: this.obra.cliente?.nombre ?? 'Cliente',
+      obraNombre: this.obra.nombre,
+      presupuestoTotal: totalFormateado,
+      fechaPresupuesto
+    }).subscribe({
+      next: (res) => {
+        this.enviandoWhatsApp = false;
+        if (res.success) {
+          this.messageService.add({
+            severity: 'success',
+            summary: 'WhatsApp enviado',
+            detail: `Presupuesto enviado a ${this.obra.cliente?.nombre} (${telefono})`
+          });
+        } else {
+          this.messageService.add({
+            severity: 'error',
+            summary: 'Error al enviar',
+            detail: res.error ?? 'Error desconocido al enviar por WhatsApp'
+          });
+        }
+      },
+      error: () => {
+        this.enviandoWhatsApp = false;
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Error de conexión',
+          detail: 'No se pudo conectar con el servidor para enviar el WhatsApp'
+        });
+      }
+    });
+  }
+
   // ------------------- EXPORTAR PDF --------------------------
   // ----------------------------------------------------------
   exportarPDF(modo: 'DETALLADO' | 'MEMORIA' | 'AMBOS' = 'DETALLADO') {

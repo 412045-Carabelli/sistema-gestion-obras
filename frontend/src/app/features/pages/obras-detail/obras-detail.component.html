@@ -16,20 +16,37 @@
             }
           </div>
         </div>
-        <div class="flex flex-col sm:flex-row gap-3 items-start sm:items-center">
+        <div class="flex flex-col sm:flex-row gap-3 items-end">
           <div class="flex flex-col gap-1 min-w-max">
-            <label class="text-xs font-poppins font-semibold uppercase text-gray-700">Estado de la Obra</label>
-            <p-select
-              [options]="estadosObra"
-              [(ngModel)]="estadoSeleccionado"
-              (onChange)="actualizarEstadoObra($event.value)"
-              appendTo="body"
-              optionLabel="label"
-              optionValue="name"
-              styleClass="w-full !text-sm"
-              [style]="{'width': '200px'}">
-            </p-select>
+            <label class="text-xs font-poppins font-semibold uppercase text-gray-700">Estado Operativo</label>
+            <div class="flex items-center gap-2">
+              <p-tag
+                [value]="getLabelEstadoActual()"
+                severity="secondary"
+                styleClass="text-sm">
+              </p-tag>
+              @if (!esEstadoAdministrativo() && getLabelSiguienteEstado()) {
+                <p-button
+                  [label]="getLabelSiguienteEstado()!"
+                  icon="pi pi-arrow-right"
+                  iconPos="right"
+                  severity="secondary"
+                  size="small"
+                  (onClick)="avanzarEstadoOperativo()">
+                </p-button>
+              }
+            </div>
           </div>
+          @if (esEstadoAdministrativo()) {
+            <div class="flex flex-col gap-1 min-w-max">
+              <label class="text-xs font-poppins font-semibold uppercase text-gray-700">Estado Financiero</label>
+              <p-tag
+                [value]="getLabelEstadoFinanciero()"
+                [severity]="getSeveridadEstadoAdministrativo()"
+                styleClass="text-sm px-3 py-2">
+              </p-tag>
+            </div>
+          }
           <div class="flex flex-col gap-1">
             <label class="text-xs font-poppins font-semibold uppercase text-gray-700 invisible">PDF</label>
             <p-button
@@ -168,7 +185,7 @@
 
       <!-- ===================== TABS MEJORADOS ===================== -->
       <div class="bg-white rounded-xl shadow-md overflow-hidden">
-        <p-tabs [value]="activeTab" (onChange)="onTabChange($event)">
+        <p-tabs [value]="activeTab" (onChange)="onTabChange($event)" [scrollable]="true">
           <p-tablist pStyleClass="border-b border-gray-200 px-6">
             <p-tab value="0" pStyleClass="px-6 py-4">
               <div class="flex items-center gap-3">
@@ -223,6 +240,15 @@
                 <div class="flex flex-col leading-tight">
                   <span class="font-poppins font-semibold text-sm">Documentos</span>
                   <span class="text-xs font-poppins font-normal text-gray-500">Archivos adjuntos</span>
+                </div>
+              </div>
+            </p-tab>
+            <p-tab value="6" pStyleClass="px-6 py-4">
+              <div class="flex items-center gap-3">
+                <i class="pi pi-calendar"></i>
+                <div class="flex flex-col leading-tight">
+                  <span class="font-poppins font-semibold text-sm">Agenda</span>
+                  <span class="text-xs font-poppins font-normal text-gray-500">Tareas y recordatorios</span>
                 </div>
               </div>
             </p-tab>
@@ -308,14 +334,14 @@
                 >
                   <ng-template pTemplate="header">
                     <tr class="bg-gray-50 text-gray-700">
-                      <th pSortableColumn="fecha">
+                      <th pSortableColumn="fecha" class="text-sm font-poppins font-semibold">
                         Fecha
                         <p-sortIcon field="fecha"></p-sortIcon>
                       </th>
-                      <th>Descripcion</th>
-                      <th>Estado</th>
-                      <th>Monto</th>
-                      <th>Archivo</th>
+                      <th class="text-sm font-poppins font-semibold">Descripcion</th>
+                      <th class="text-sm font-poppins font-semibold">Estado</th>
+                      <th class="text-sm font-poppins font-semibold">Monto</th>
+                      <th class="text-sm font-poppins font-semibold">Archivo</th>
                     </tr>
                   </ng-template>
 
@@ -325,9 +351,11 @@
                       [ngClass]="rowIndex % 2 === 0 ? 'bg-white' : 'bg-gray-50'"
                       (click)="abrirDetalleFactura(f)"
                     >
-                      <td>{{ f.fecha | date: 'dd/MM/yyyy' }}</td>
-                      <td class="text-gray-700 font-poppins font-normal">
-                        {{ stripFacturaDescripcion(f.descripcion) || '—' }}
+                      <td class="text-base font-poppins font-normal text-gray-700">{{ f.fecha | date: 'dd/MM/yyyy' }}</td>
+                      <td class="text-base text-gray-700 font-poppins font-normal max-w-[220px]">
+                        <span class="block truncate" [pTooltip]="stripFacturaDescripcion(f.descripcion)" tooltipPosition="top">
+                          {{ stripFacturaDescripcion(f.descripcion) || '—' }}
+                        </span>
                       </td>
                       <td>
                         <p-tag
@@ -335,10 +363,14 @@
                           [severity]="(f.estado || 'EMITIDA') === 'COBRADA' ? 'success' : 'info'">
                         </p-tag>
                       </td>
-                      <td class="font-poppins font-bold text-gray-900">
+                      <td class="text-base font-poppins font-bold text-gray-900">
                         <div class="flex justify-start">{{ f.monto | currency: 'ARS' }}</div>
                       </td>
-                      <td class="text-gray-600 font-poppins font-normal">{{ f.nombre_archivo || 'Sin archivo' }}</td>
+                      <td class="text-base text-gray-600 font-poppins font-normal max-w-[160px]">
+                        <span class="block truncate" [pTooltip]="f.nombre_archivo || 'Sin archivo'" tooltipPosition="top">
+                          {{ f.nombre_archivo || 'Sin archivo' }}
+                        </span>
+                      </td>
                     </tr>
                   </ng-template>
                 </p-table>
@@ -414,29 +446,14 @@
                     </div>
                   </div>
 
-                  <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-                    <div>
-                      <label class="block text-sm font-poppins font-semibold mb-1 text-gray-700">Estado</label>
-                      <p-select
-                        [(ngModel)]="facturaForm.estado"
-                        [options]="[
-                          { label: 'Emitida', value: 'EMITIDA' },
-                          { label: 'Cobrada', value: 'COBRADA' }
-                        ]"
-                        optionLabel="label"
-                        optionValue="value"
-                        appendTo="body"
-                        class="w-full"
-                      ></p-select>
-                    </div>
-                  </div>
-
                   <div>
                     <label class="block text-sm font-poppins font-semibold mb-1 text-gray-700">Descripcion</label>
-                    <p-editor
+                    <input
+                      type="text"
+                      class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm font-poppins focus:outline-none focus:ring-2 focus:ring-blue-500"
                       [(ngModel)]="facturaForm.descripcion"
-                      [style]="{ height: '180px' }"
-                    ></p-editor>
+                      placeholder="Descripción de la factura"
+                    />
                   </div>
 
                   <div>
@@ -558,6 +575,79 @@
                 <div class="text-sm font-poppins font-normal text-gray-600">
                   Este tab muestra solo documentos adjuntos.
                 </div>
+              </div>
+            </p-tabpanel>
+
+            <p-tabpanel value="6">
+              <div class="p-4 space-y-5">
+                <div class="flex justify-between items-center flex-wrap gap-3">
+                  <div>
+                    <h2 class="font-poppins font-bold text-gray-900">Agenda</h2>
+                    <p class="text-gray-500 text-sm font-poppins font-normal mt-1">
+                      Tareas y recordatorios de la obra
+                    </p>
+                  </div>
+                  <p-button
+                    (onClick)="abrirModalNuevaAgenda()"
+                    icon="pi pi-plus"
+                    label="Nueva Tarea"
+                    styleClass="p-button-md p-button-primary"
+                  ></p-button>
+                </div>
+
+                @if (agendasObra.length > 0) {
+                <p-table
+                  [value]="agendasObra"
+                  responsiveLayout="scroll"
+                  class="text-sm p-datatable-sm border border-gray-200 rounded-lg overflow-hidden"
+                >
+                  <ng-template pTemplate="header">
+                    <tr class="bg-gray-50 text-gray-700">
+                      <th class="text-sm font-poppins font-semibold">Título</th>
+                      <th class="text-sm font-poppins font-semibold">Estado</th>
+                      <th class="text-sm font-poppins font-semibold">Vencimiento</th>
+                      <th class="text-sm font-poppins font-semibold">Descripción</th>
+                    </tr>
+                  </ng-template>
+
+                  <ng-template pTemplate="body" let-ag let-rowIndex="rowIndex">
+                    <tr
+                      class="hover:bg-emerald-50 hover:shadow-sm transition cursor-pointer"
+                      [ngClass]="rowIndex % 2 === 0 ? 'bg-white' : 'bg-gray-50'"
+                      (click)="abrirModalDetalleAgenda(ag)"
+                    >
+                      <td class="text-base font-poppins font-semibold text-gray-800">{{ ag.titulo }}</td>
+                      <td>
+                        <p-tag
+                          [value]="ag.estado"
+                          [severity]="ag.estado === 'COMPLETADA' ? 'success' : ag.estado === 'EN_PROGRESO' ? 'warn' : 'info'">
+                        </p-tag>
+                      </td>
+                      <td class="text-base font-poppins font-normal text-gray-700">
+                        {{ ag.fechaVencimiento ? (ag.fechaVencimiento | date: 'dd/MM/yyyy') : '—' }}
+                      </td>
+                      <td class="text-base text-gray-600 font-poppins font-normal max-w-[260px]">
+                        <span class="block truncate" [pTooltip]="ag.descripcion || ''" tooltipPosition="top">
+                          {{ ag.descripcion || '—' }}
+                        </span>
+                      </td>
+                    </tr>
+                  </ng-template>
+                </p-table>
+                } @else {
+                <div class="flex flex-col items-center justify-center py-12 text-gray-400">
+                  <i class="pi pi-calendar text-4xl mb-3"></i>
+                  <p class="font-poppins font-normal text-sm">No hay tareas registradas para esta obra</p>
+                </div>
+                }
+
+                <app-agenda-modal
+                  [visible]="showAgendaModal"
+                  [agenda]="agendaSeleccionadaObra"
+                  (onClose)="cerrarModalAgenda()"
+                  (onGuardada)="onAgendaGuardadaObra($event)"
+                  (onEliminada)="onAgendaEliminadaObra($event)"
+                ></app-agenda-modal>
               </div>
             </p-tabpanel>
 

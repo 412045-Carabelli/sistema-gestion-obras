@@ -1,7 +1,7 @@
 ﻿import {AfterViewInit, Component, ElementRef, OnDestroy, OnInit, ViewChild} from '@angular/core';
 import {ActivatedRoute, Router} from '@angular/router';
 import {CommonModule, CurrencyPipe, DatePipe, NgClass} from '@angular/common';
-import {forkJoin, Subscription} from 'rxjs';
+import {forkJoin, Subscription, tap} from 'rxjs';
 
 import {ButtonModule} from 'primeng/button';
 import {CardModule} from 'primeng/card';
@@ -17,10 +17,9 @@ import {FileUploadModule} from 'primeng/fileupload';
 import {TableModule} from 'primeng/table';
 import {ConfirmationService, MessageService} from 'primeng/api';
 import {ToastModule} from 'primeng/toast';
-import {EditorModule} from 'primeng/editor';
 import {TagModule} from 'primeng/tag';
 
-import {Cliente, EstadoObra, Obra, ObraCosto, Proveedor, Tarea, CuentaCorrienteMovimiento, Factura} from '../../../core/models/models';
+import {Cliente, EstadoObra, Obra, ObraCosto, Proveedor, Tarea, CuentaCorrienteMovimiento, Factura, Agenda} from '../../../core/models/models';
 import {ObraMovimientosComponent} from '../../components/obra-movimientos/obra-movimientos.component';
 import {ObraTareasComponent} from '../../components/obra-tareas/obra-tareas.component';
 
@@ -40,6 +39,8 @@ import {FacturasService} from '../../../services/facturas/facturas.service';
 import {ModalComponent} from '../../../shared/modal/modal.component';
 import {ConfirmDialog} from 'primeng/confirmdialog';
 import {KpiCardComponent} from '../../../shared/kpi-card/kpi-card.component';
+import {AgendasService} from '../../../services/agendas/agendas.service';
+import {AgendaModalComponent} from '../../components/agendas-list/agenda-modal/agenda-modal.component';
 
 @Component({
   selector: 'app-obra-detail',
@@ -73,10 +74,10 @@ import {KpiCardComponent} from '../../../shared/kpi-card/kpi-card.component';
     StyleClassModule,
     NgClass,
     ModalComponent,
-    EditorModule,
     TagModule,
     ConfirmDialog,
     KpiCardComponent,
+    AgendaModalComponent,
   ],
   providers: [MessageService, ConfirmationService],
   templateUrl: './obras-detail.component.html',
@@ -97,6 +98,9 @@ export class ObrasDetailComponent implements OnInit, OnDestroy, AfterViewInit {
   cuentaCorrienteObra: CuentaCorrienteObraResponse | null = null;
   facturasObra: Factura[] = [];
   facturasFiltradas: Factura[] = [];
+  agendasObra: Agenda[] = [];
+  showAgendaModal = false;
+  agendaSeleccionadaObra: Agenda | null = null;
   showFacturaModal = false;
   showFacturaDetalleModal = false;
   facturaDetalle?: Factura;
@@ -138,7 +142,8 @@ export class ObrasDetailComponent implements OnInit, OnDestroy, AfterViewInit {
     private obraStateService: ObrasStateService,
     private reportesService: ReportesService,
     private facturasService: FacturasService,
-    private confirmationService: ConfirmationService
+    private confirmationService: ConfirmationService,
+    private agendasService: AgendasService
   ) {}
 
   ngOnInit(): void {
@@ -169,6 +174,57 @@ export class ObrasDetailComponent implements OnInit, OnDestroy, AfterViewInit {
     return this.tipoFechaEstado === 'PERDIDA'
       ? 'Fecha de perdida'
       : 'Fecha de adjudicacion';
+  }
+
+  private readonly ESTADOS_ADMINISTRATIVOS = ['FACTURADA_PARCIAL', 'FACTURADA', 'COBRADA_PARCIAL', 'COBRADA'];
+  private readonly SECUENCIA_OPERATIVA: Record<string, string> = {
+    'PRESUPUESTADA': 'ADJUDICADA',
+    'COTIZADA': 'ADJUDICADA',
+    'ADJUDICADA': 'EN_PROGRESO',
+    'EN_PROGRESO': 'FINALIZADA'
+  };
+  private readonly LABELS_ESTADO_SIGUIENTE: Record<string, string> = {
+    'PRESUPUESTADA': 'Adjudicar',
+    'COTIZADA': 'Adjudicar',
+    'ADJUDICADA': 'Iniciar',
+    'EN_PROGRESO': 'Finalizar'
+  };
+
+  esEstadoAdministrativo(): boolean {
+    return !!this.obra?.estado_financiero;
+  }
+
+  getLabelEstadoActual(): string {
+    const estado = this.obra?.obra_estado ?? '';
+    return estado.replace(/_/g, ' ').toLowerCase().replace(/\b\w/g, (c: string) => c.toUpperCase());
+  }
+
+  getLabelEstadoFinanciero(): string {
+    const estado = this.obra?.estado_financiero ?? '';
+    return estado.replace(/_/g, ' ').toLowerCase().replace(/\b\w/g, (c: string) => c.toUpperCase());
+  }
+
+  getSeveridadEstadoAdministrativo(): string {
+    const estado = this.obra?.estado_financiero ?? '';
+    if (estado === 'COBRADA') return 'success';
+    if (estado === 'COBRADA_PARCIAL') return 'warn';
+    if (estado === 'FACTURADA') return 'info';
+    return 'warn';
+  }
+
+  getSiguienteEstadoOperativo(): string | null {
+    return this.SECUENCIA_OPERATIVA[this.obra?.obra_estado ?? ''] ?? null;
+  }
+
+  getLabelSiguienteEstado(): string | null {
+    return this.LABELS_ESTADO_SIGUIENTE[this.obra?.obra_estado ?? ''] ?? null;
+  }
+
+  avanzarEstadoOperativo(): void {
+    const siguiente = this.getSiguienteEstadoOperativo();
+    if (siguiente) {
+      this.actualizarEstadoObra(siguiente);
+    }
   }
 
   actualizarEstadoObra(nuevoEstado: string) {
@@ -217,6 +273,16 @@ export class ObrasDetailComponent implements OnInit, OnDestroy, AfterViewInit {
     this.confirmarCambioEstado(this.estadoPendiente, this.fechaEstadoSeleccionada);
   }
 
+  private recargarObra() {
+    const id = this.obra?.id;
+    if (!id) return;
+    this.obraService.getObraById(id).subscribe({
+      next: (obra) => {
+        this.obra = { ...this.obra, ...obra, id: Number(obra.id) };
+      }
+    });
+  }
+
   private cargarDetalle(idObra: number) {
     this.loading = true;
 
@@ -224,11 +290,11 @@ export class ObrasDetailComponent implements OnInit, OnDestroy, AfterViewInit {
       obra: this.obraService.getObraById(idObra),
       estados: this.estadoObraService.getEstados(),
       clientes: this.clientesService.getClientes(),
-      proveedores: this.proveedoresService.getProveedoresSimple()
+      proveedores: this.proveedoresService.getProveedoresSimple(),
+      facturas: this.facturasService.getFacturasByObra(idObra)
     }).subscribe({
 
-      next: ({ obra, estados, clientes, proveedores }) => {
-        console.log(obra)
+      next: ({ obra, estados, clientes, proveedores, facturas }) => {
         this.obra = { ...obra, id: Number(obra.id) };
         if (this.activeTab === '3' && !obra.requiere_factura) {
           this.activeTab = '0';
@@ -241,6 +307,9 @@ export class ObrasDetailComponent implements OnInit, OnDestroy, AfterViewInit {
 
         this.clientes = clientes;
         this.proveedores = proveedores;
+
+        this.facturasObra = facturas || [];
+        this.facturasFiltradas = [...this.facturasObra].sort((a, b) => Number(b.id ?? 0) - Number(a.id ?? 0));
 
         this.progresoFisico = this.getProgresoFisico();
         this.beneficioCostos = obra.beneficio_costos != null
@@ -316,6 +385,7 @@ export class ObrasDetailComponent implements OnInit, OnDestroy, AfterViewInit {
 
   onMovimientosActualizados() {
     this.presupuestoRef?.recargarEstadoComision();
+    this.recargarObra();
   }
 
   getProgresoFisico(): number {
@@ -510,7 +580,9 @@ export class ObrasDetailComponent implements OnInit, OnDestroy, AfterViewInit {
       estado: this.facturaForm.estado || 'EMITIDA'
     };
 
-    this.facturasService.createFactura(payload, this.facturaFile).subscribe({
+    this.facturasService.createFactura(payload, this.facturaFile).pipe(
+      tap(() => this.recargarObra())
+    ).subscribe({
       next: () => {
         this.showFacturaModal = false;
         this.messageService.add({
@@ -869,6 +941,39 @@ export class ObrasDetailComponent implements OnInit, OnDestroy, AfterViewInit {
 
   get totalFacturasMonto(): number {
     return (this.facturasFiltradas || []).reduce((acc, factura) => acc + Number(factura.monto ?? 0), 0);
+  }
+
+  cargarAgendasObra() {
+    if (!this.obra?.id) return;
+    this.agendasService.getAgendasByObra(this.obra.id).subscribe({
+      next: (agendas) => this.agendasObra = agendas,
+      error: () => this.agendasObra = []
+    });
+  }
+
+  abrirModalNuevaAgenda() {
+    this.agendaSeleccionadaObra = null;
+    this.showAgendaModal = true;
+  }
+
+  abrirModalDetalleAgenda(agenda: Agenda) {
+    this.agendaSeleccionadaObra = agenda;
+    this.showAgendaModal = true;
+  }
+
+  cerrarModalAgenda() {
+    this.showAgendaModal = false;
+    this.agendaSeleccionadaObra = null;
+  }
+
+  onAgendaGuardadaObra(agenda: Agenda) {
+    this.cerrarModalAgenda();
+    this.cargarAgendasObra();
+  }
+
+  onAgendaEliminadaObra(id: number) {
+    this.cerrarModalAgenda();
+    this.cargarAgendasObra();
   }
 
   async exportarResumenPdf() {
@@ -1342,7 +1447,7 @@ export class ObrasDetailComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   onTabChange(event: any): void {
-    const newTab = String(event.index ?? event);
+    const newTab = String(event?.value ?? event?.index ?? event);
     this.activeTab = newTab;
     this.router.navigate([], {
       relativeTo: this.route,
@@ -1358,6 +1463,8 @@ export class ObrasDetailComponent implements OnInit, OnDestroy, AfterViewInit {
       this.cargarFacturasObra();
     } else if (newTab === '5') {
       this.refrescarDocumentos();
+    } else if (newTab === '6') {
+      this.cargarAgendasObra();
     }
   }
 

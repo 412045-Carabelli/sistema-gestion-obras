@@ -38,6 +38,19 @@
                 class="w-full sm:w-48"
               ></p-datepicker>
             }
+            @case ('multiselect') {
+              <p-multiselect
+                [formControlName]="filterDef.key"
+                [options]="getFilterOptions(filterDef.key)"
+                optionLabel="label"
+                optionValue="value"
+                [placeholder]="filterDef.placeholder || 'Todos'"
+                [filter]="true"
+                [showClear]="true"
+                [fluid]="true"
+                class="w-full sm:w-48"
+              ></p-multiselect>
+            }
             @case ('checkbox') {
               <div class="flex items-center justify-center h-10">
                 <p-checkbox

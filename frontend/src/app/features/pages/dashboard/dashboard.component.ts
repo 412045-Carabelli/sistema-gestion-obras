@@ -32,6 +32,7 @@ import {DashboardKpisComponent} from '../../components/dashboard-widgets/dashboa
 import {DashboardDeudasComponent} from '../../components/dashboard-widgets/dashboard-deudas/dashboard-deudas.component';
 import {DashboardTareasComponent} from '../../components/dashboard-widgets/dashboard-tareas/dashboard-tareas.component';
 import {DashboardMovimientosComponent} from '../../components/dashboard-widgets/dashboard-movimientos/dashboard-movimientos.component';
+import {DashboardGraficosComponent} from '../../components/dashboard-widgets/dashboard-graficos/dashboard-graficos.component';
 import { LayoutHeaderComponent } from '../../../shared/layout-header/layout-header.component';
 import { GenericFilterBarComponent, FilterDefinition } from '../../components/generic-filter-bar/generic-filter-bar.component';
 import { environment } from '../../../../environments/environment';
@@ -58,6 +59,7 @@ import { environment } from '../../../../environments/environment';
     DashboardDeudasComponent,
     DashboardTareasComponent,
     DashboardMovimientosComponent,
+    DashboardGraficosComponent,
     LayoutHeaderComponent,
     GenericFilterBarComponent,
     TooltipModule

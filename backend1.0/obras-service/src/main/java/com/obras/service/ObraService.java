@@ -15,5 +15,6 @@ public interface ObraService {
     ObraDTO actualizar(Long id, ObraDTO dto);
     Optional<ObraDTO> obtenerUltimaCondicion();
     void cambiarEstado(Long idObra, com.obras.enums.EstadoObraEnum estado);
+    void cambiarEstadoFinanciero(Long idObra, String estadoFinanciero);
     void activar(Long idObra);
 }

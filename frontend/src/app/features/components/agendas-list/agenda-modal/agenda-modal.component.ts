@@ -1,13 +1,12 @@
 import {Component, Input, Output, EventEmitter, signal, effect, inject, input, computed} from '@angular/core';
 import {CommonModule} from '@angular/common';
 import {FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators, AbstractControl, ValidationErrors} from '@angular/forms';
-import {DialogModule} from 'primeng/dialog';
 import {ButtonModule} from 'primeng/button';
 import {InputTextModule} from 'primeng/inputtext';
 import {InputTextarea} from 'primeng/inputtextarea';
 import {DropdownModule} from 'primeng/dropdown';
-import {DividerModule} from 'primeng/divider';
 import {MessageService, ConfirmationService} from 'primeng/api';
+import {ModalComponent} from '../../../../shared/modal/modal.component';
 
 import {Agenda, ESTADOS_AGENDA_OPCIONES, Obra, Cliente, Proveedor} from '../../../../core/models/models';
 import {AgendasService} from '../../../../services/agendas/agendas.service';
@@ -22,12 +21,11 @@ import {ProveedoresService} from '../../../../services/proveedores/proveedores.s
     CommonModule,
     FormsModule,
     ReactiveFormsModule,
-    DialogModule,
     ButtonModule,
     InputTextModule,
     InputTextarea,
     DropdownModule,
-    DividerModule
+    ModalComponent
   ],
   templateUrl: './agenda-modal.component.html',
   styleUrls: ['./agenda-modal.component.css']
@@ -145,6 +143,13 @@ export class AgendaModalComponent {
     if (agenda?.fechaInicio) {
       const fecha = new Date(agenda.fechaInicio);
       fechaInicioFormato = fecha.toISOString().split('T')[0];
+    } else if (!agenda?.id) {
+      // Alta nueva: default hoy (fecha local, no UTC)
+      const hoy = new Date();
+      const y = hoy.getFullYear();
+      const m = String(hoy.getMonth() + 1).padStart(2, '0');
+      const d = String(hoy.getDate()).padStart(2, '0');
+      fechaInicioFormato = `${y}-${m}-${d}`;
     }
 
     if (agenda?.fechaVencimiento) {

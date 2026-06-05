@@ -11,4 +11,5 @@ public class ObraResumenDto {
     private String obra_estado;
     private Boolean tiene_comision;
     private Double comision_monto;
+    private Boolean requiere_factura;
 }

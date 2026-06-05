@@ -40,6 +40,15 @@ public class ObrasController {
     public void changeEstado(@PathVariable("id") Long id, @PathVariable("estado") com.obras.enums.EstadoObraEnum estado) {
         svc.cambiarEstado(id, estado);
     }
+    @PatchMapping("/{id}/estado-financiero/{estado}")
+    public void changeEstadoFinanciero(@PathVariable("id") Long id, @PathVariable("estado") String estado) {
+        svc.cambiarEstadoFinanciero(id, estado);
+    }
+
+    @DeleteMapping("/{id}/estado-financiero")
+    public void limpiarEstadoFinanciero(@PathVariable("id") Long id) {
+        svc.cambiarEstadoFinanciero(id, null);
+    }
     @PatchMapping("/{id}/activo") public void activar(@PathVariable("id") Long id){ svc.activar(id); }
 
 }

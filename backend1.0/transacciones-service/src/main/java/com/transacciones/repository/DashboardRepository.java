@@ -2,6 +2,7 @@ package com.transacciones.repository;
 
 import com.transacciones.dto.DashboardCuentaCorrienteResponse;
 import com.transacciones.dto.DashboardFilterRequest;
+import com.transacciones.dto.TopObraFinancieroDto;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.Query;
@@ -9,6 +10,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Repository;
 import java.math.BigDecimal;
 import java.sql.Date;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Repository que ejecuta SPs del dashboard contra sp_dashboard_cuenta_corriente.
@@ -76,6 +79,46 @@ public class DashboardRepository {
   }
 
   /**
+   * Obtiene top N obras por volumen financiero (cobros + pagos).
+   * Ejecuta sp_dashboard_top_obras_financiero.
+   *
+   * @param topN cantidad máxima de obras a devolver
+   * @return lista de TopObraFinancieroDto
+   */
+  public List<TopObraFinancieroDto> obtenerTopObras(int topN) {
+    try {
+      log.debug("Ejecutando sp_dashboard_top_obras_financiero con topN={}", topN);
+
+      Query query = entityManager.createNativeQuery(
+          "DECLARE @topN INT = ?; " +
+          "EXEC sp_dashboard_top_obras_financiero @topN"
+      );
+      query.setParameter(1, topN);
+
+      @SuppressWarnings("unchecked")
+      List<Object[]> rows = query.getResultList();
+
+      List<TopObraFinancieroDto> resultado = new ArrayList<>();
+      for (Object[] row : rows) {
+        resultado.add(TopObraFinancieroDto.builder()
+            .obraId(toLong(row[0]))
+            .obraNombre(row[1] != null ? row[1].toString() : "")
+            .presupuesto(toBigDecimal(row[2]))
+            .totalCobros(toBigDecimal(row[3]))
+            .totalPagos(toBigDecimal(row[4]))
+            .build());
+      }
+
+      log.info("Top obras financiero: {} obras devueltas", resultado.size());
+      return resultado;
+
+    } catch (Exception e) {
+      log.error("Error al ejecutar sp_dashboard_top_obras_financiero", e);
+      return new ArrayList<>();
+    }
+  }
+
+  /**
    * Convierte valores del SP a BigDecimal.
    */
   private BigDecimal toBigDecimal(Object value) {
@@ -95,5 +138,13 @@ public class DashboardRepository {
       return BigDecimal.valueOf((Long) value);
     }
     return BigDecimal.ZERO;
+  }
+
+  private Long toLong(Object value) {
+    if (value == null) return null;
+    if (value instanceof Long) return (Long) value;
+    if (value instanceof Integer) return ((Integer) value).longValue();
+    if (value instanceof BigDecimal) return ((BigDecimal) value).longValue();
+    return null;
   }
 }

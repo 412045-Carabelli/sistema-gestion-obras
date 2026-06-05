@@ -114,17 +114,19 @@
       </div>
     }
     <ng-template pTemplate="footer">
-      <p-button
-        (onClick)="eliminarDocumento(documentoDetalle!); detalleVisible = false"
-        icon="pi pi-trash"
-        label="Eliminar"
-        styleClass="p-button-danger p-button-text p-button-sm"
-      ></p-button>
-      <p-button
-        (onClick)="detalleVisible = false"
-        label="Cerrar"
-        styleClass="p-button-text"
-      ></p-button>
+      <div class="flex justify-between items-center w-full">
+        <p-button
+          (onClick)="eliminarDocumento(documentoDetalle!); detalleVisible = false"
+          icon="pi pi-trash"
+          label="Eliminar"
+          styleClass="p-button-danger p-button-text p-button-sm"
+        ></p-button>
+        <p-button
+          (onClick)="detalleVisible = false"
+          label="Cerrar"
+          severity="secondary"
+        ></p-button>
+      </div>
     </ng-template>
   </p-dialog>
 
@@ -239,7 +241,7 @@
         (onClick)="modalVisible = false"
         icon="pi pi-times"
         label="Cancelar"
-        styleClass="p-button-text"
+        severity="secondary"
       ></p-button>
       <p-button
         (onClick)="guardarDocumento()"

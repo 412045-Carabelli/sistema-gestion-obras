@@ -5,6 +5,7 @@ import {
   AvanceTareasResponse,
   CostosPorCategoriaResponse,
   DashboardConsolidadoResponse,
+  DashboardGraficosResponse,
   EstadoFinancieroObraResponse,
   EstadoObrasFilter,
   EstadoObrasResponse,
@@ -168,6 +169,10 @@ export class ReportesService {
 
   getSaldosProveedor(proveedorId: number): Observable<SaldosProveedorResponse> {
     return this.http.get<SaldosProveedorResponse>(`${this.apiUrl}/financieros/saldos/proveedor/${proveedorId}`);
+  }
+
+  getDashboardGraficos(): Observable<DashboardGraficosResponse> {
+    return this.http.get<DashboardGraficosResponse>(`${this.apiUrl}/dashboard/graficos`);
   }
 
 }
