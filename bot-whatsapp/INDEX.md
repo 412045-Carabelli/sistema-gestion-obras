@@ -11,27 +11,16 @@
 
 ```
 bot-whatsapp/
-├── INDEX.md                                        # Este archivo
-├── README-N8N.md                                   # Guía completa (ver primero)
-│
-├── ⭐ NUEVOS (v2.0 - AI Agent Conversacional)
-├── n8n-workflow-ai-agent-sgo.json                 # ← IMPORTAR ESTE (recomendado)
-├── docs-ai-agent-workflow.md                      # Manual completo del AI Agent
-├── MIGRATION-v2.md                                # Cómo migrar de v1.0 a v2.0
-│
-├── 🔴 ANTIGUOS (v1.0 - Workflow Lineal - Deprecado)
-├── n8n-workflow-whatsapp-transacciones.json       # Versión anterior (deprecada)
-├── docs-n8n-workflow.md                           # Docs v1.0
-├── n8n-workflow-diagram.md                        # Diagramas v1.0
-├── n8n-disparadores-adicionales.md                # Extensiones v1.0
-│
-├── 📋 COMÚN
-├── N8N-RESUMEN-EJECUTIVO.txt                      # Resumen 30 seg (actualizando)
-├── N8N-CHECKLIST.md                               # Checklist implementación
-├── docker-compose.n8n.yml                         # Docker Compose
-├── n8n-setup.sh                                   # Script setup
-├── .env.n8n                                       # Variables de entorno
-└── test-webhook.sh                                # Script testing
+├── INDEX.md                                    # Este archivo
+├── N8N-RESUMEN-EJECUTIVO.txt                  # Resumen 30 segundos (EMPEZAR AQUÍ)
+├── N8N-CHECKLIST.md                           # Checklist de implementación
+├── README-N8N.md                              # Guía completa de inicio
+├── docs-n8n-workflow.md                       # Manual detallado del workflow
+├── n8n-workflow-diagram.md                    # Diagramas Mermaid y arquitectura
+├── n8n-disparadores-adicionales.md            # Cómo agregar Email, Slack, etc.
+├── n8n-workflow-whatsapp-transacciones.json   # Workflow JSON (importar en n8n)
+├── docker-compose.n8n.yml                     # Docker Compose para n8n
+└── n8n-setup.sh                               # Script de setup automático
 ```
 
 ---

@@ -1,0 +1,129 @@
+<p-toast position="bottom-right"></p-toast>
+
+<div class="max-w-2xl mx-auto py-8 px-4">
+
+  <!-- Header -->
+  <div class="mb-8">
+    <h1 class="text-2xl font-poppins font-semibold text-gray-900">Configuración</h1>
+    <p class="text-gray-500 text-sm mt-1 font-poppins">Ajustes generales de la aplicación</p>
+  </div>
+
+  <form [formGroup]="form" (ngSubmit)="guardar()" class="space-y-8">
+
+    <!-- Empresa -->
+    <div class="bg-white rounded-xl border border-gray-200 p-6">
+      <h2 class="text-base font-poppins font-semibold text-gray-800 mb-4 flex items-center gap-2">
+        <i class="pi pi-building text-gray-500"></i>
+        Empresa
+      </h2>
+      <div class="space-y-4">
+        <div>
+          <label class="block text-sm font-poppins font-semibold mb-1 text-gray-700">
+            Nombre de la empresa <span class="text-red-500">*</span>
+          </label>
+          <input
+            pInputText
+            formControlName="empresa_nombre"
+            class="w-full"
+            placeholder="Ej: Meliquina Construcciones">
+        </div>
+
+        <div>
+          <label class="block text-sm font-poppins font-semibold mb-1 text-gray-700">
+            Logo (URL o ruta)
+          </label>
+          <input
+            pInputText
+            formControlName="logo_url"
+            class="w-full"
+            placeholder="Ej: /logo-meliquina.png">
+          <p class="text-xs text-gray-400 mt-1">
+            Ruta relativa a <code>/assets/</code> o URL completa. Requiere reiniciar la app para ver el cambio.
+          </p>
+          @if (form.get('logo_url')?.value) {
+            <div class="mt-2 flex items-center gap-3">
+              <span class="text-xs text-gray-500">Vista previa:</span>
+              <img
+                [src]="form.get('logo_url')?.value"
+                alt="Logo"
+                class="h-8 object-contain border border-gray-200 rounded px-2 bg-gray-50"
+                onerror="this.style.display='none'">
+            </div>
+          }
+        </div>
+      </div>
+    </div>
+
+    <!-- Usuario -->
+    <div class="bg-white rounded-xl border border-gray-200 p-6">
+      <h2 class="text-base font-poppins font-semibold text-gray-800 mb-4 flex items-center gap-2">
+        <i class="pi pi-user text-gray-500"></i>
+        Usuario principal
+      </h2>
+      <div>
+        <label class="block text-sm font-poppins font-semibold mb-1 text-gray-700">
+          Nombre del propietario <span class="text-red-500">*</span>
+        </label>
+        <input
+          pInputText
+          formControlName="propietario_nombre"
+          class="w-full"
+          placeholder="Ej: Pablo Pezzini">
+        <p class="text-xs text-gray-400 mt-1">Aparece en el header como "Bienvenido, [nombre]".</p>
+      </div>
+    </div>
+
+    <!-- WhatsApp -->
+    <div class="bg-white rounded-xl border border-gray-200 p-6">
+      <h2 class="text-base font-poppins font-semibold text-gray-800 mb-4 flex items-center gap-2">
+        <i class="pi pi-comment text-gray-500"></i>
+        Notificaciones WhatsApp
+      </h2>
+      <div>
+        <label class="block text-sm font-poppins font-semibold mb-1 text-gray-700">
+          Teléfono responsable
+        </label>
+        <input
+          pInputText
+          formControlName="whatsapp_owner_phone"
+          class="w-full"
+          placeholder="549XXXXXXXXXX (sin + ni espacios)">
+        <p class="text-xs text-gray-400 mt-1">
+          Formato internacional Argentina: <strong>549</strong> + código de área (sin 0) + número (sin 15).
+          Ej: <strong>5491123456789</strong>
+        </p>
+
+        @if (phoneVacio) {
+          <div class="mt-3 flex items-start gap-2 bg-amber-50 border border-amber-200 rounded-lg p-3">
+            <i class="pi pi-exclamation-triangle text-amber-500 mt-0.5 flex-shrink-0"></i>
+            <div>
+              <p class="text-sm font-poppins font-semibold text-amber-800">Sin teléfono configurado</p>
+              <p class="text-xs text-amber-700 mt-0.5">
+                No se enviarán notificaciones de agenda por WhatsApp hasta que configures un número de teléfono.
+              </p>
+            </div>
+          </div>
+        } @else {
+          <div class="mt-3 flex items-center gap-2 bg-green-50 border border-green-200 rounded-lg p-3">
+            <i class="pi pi-check-circle text-green-500 flex-shrink-0"></i>
+            <p class="text-sm font-poppins text-green-800">
+              Las notificaciones se enviarán al número configurado.
+            </p>
+          </div>
+        }
+      </div>
+    </div>
+
+    <!-- Acciones -->
+    <div class="flex justify-end">
+      <p-button
+        type="submit"
+        label="Guardar cambios"
+        icon="pi pi-save"
+        [loading]="guardando"
+        [disabled]="form.invalid || guardando">
+      </p-button>
+    </div>
+
+  </form>
+</div>

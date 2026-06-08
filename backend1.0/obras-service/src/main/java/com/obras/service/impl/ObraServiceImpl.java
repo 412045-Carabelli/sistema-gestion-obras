@@ -151,14 +151,6 @@ public class ObraServiceImpl implements ObraService {
        ============================================================ */
 
     @Override
-    public void cambiarEstadoFinanciero(Long idObra, String estadoFinanciero) {
-        Obra obra = obraRepo.findById(idObra)
-                .orElseThrow(() -> new EntityNotFoundException("Obra no encontrada"));
-        obra.setEstadoFinanciero(estadoFinanciero);
-        obraRepo.save(obra);
-    }
-
-    @Override
     public void activar(Long idObra) {
         obraRepo.findById(idObra).ifPresent(obra -> {
             boolean activoActual = Boolean.TRUE.equals(obra.getActivo());
@@ -246,7 +238,6 @@ public class ObraServiceImpl implements ObraService {
         dto.setCondiciones_presupuesto(entity.getCondicionesPresupuesto());
         dto.setObservaciones_presupuesto(entity.getObservacionesPresupuesto());
         dto.setRequiere_factura(entity.getRequiereFactura());
-        dto.setEstado_financiero(entity.getEstadoFinanciero());
         dto.setActivo(entity.getActivo());
         dto.setCreado_en(entity.getCreadoEn());
         dto.setUltima_actualizacion(entity.getUltimaActualizacion());

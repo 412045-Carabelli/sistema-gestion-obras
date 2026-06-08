@@ -431,11 +431,6 @@ public class ReportesBffController {
 
     // ---------- GENERALES ----------
 
-    @GetMapping("/dashboard/graficos")
-    public Mono<ResponseEntity<Object>> dashboardGraficos() {
-        return proxyGet("/dashboard/graficos", new ParameterizedTypeReference<>() {});
-    }
-
     @GetMapping("/generales/resumen")
     public Mono<ResponseEntity<Object>> resumenGeneral() {
         return proxyGet("/generales/resumen", new ParameterizedTypeReference<>() {});

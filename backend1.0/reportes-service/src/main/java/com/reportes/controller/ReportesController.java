@@ -101,11 +101,6 @@ public class ReportesController {
         return ResponseEntity.ok(reportesService.generarComisiones(filtro));
     }
 
-    @GetMapping("/dashboard/graficos")
-    public ResponseEntity<DashboardGraficosResponse> dashboardGraficos() {
-        return ResponseEntity.ok(reportesService.generarDashboardGraficos());
-    }
-
     @GetMapping("/generales/resumen")
     public ResponseEntity<ResumenGeneralResponse> resumenGeneral() {
         return ResponseEntity.ok(reportesService.generarResumenGeneral());

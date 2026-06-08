@@ -1,0 +1,285 @@
+{
+  "name": "SGO WhatsApp Bot - v1 (Consultas)",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "GET",
+        "path": "whatsapp",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "wh-verify",
+      "name": "Webhook Verify (GET)",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [-160, 300],
+      "webhookId": "sgo-whatsapp-verify"
+    },
+    {
+      "parameters": {
+        "respondWith": "text",
+        "responseBody": "={{ $json.query['hub.challenge'] }}",
+        "options": { "responseCode": 200 }
+      },
+      "id": "resp-verify",
+      "name": "Respond Verify",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [80, 300]
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "whatsapp",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "wh-msg",
+      "name": "Webhook Mensajes (POST)",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [-160, 600],
+      "webhookId": "sgo-whatsapp-msg"
+    },
+    {
+      "parameters": {
+        "respondWith": "text",
+        "responseBody": "EVENT_RECEIVED",
+        "options": { "responseCode": 200 }
+      },
+      "id": "resp-200",
+      "name": "Respond 200 OK",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [80, 600]
+    },
+    {
+      "parameters": {
+        "language": "javaScript",
+        "jsCode": "const body = $input.first().json.body || $input.first().json;\ntry {\n  const message = body.entry?.[0]?.changes?.[0]?.value?.messages?.[0];\n  if (!message) return [];\n  const from = message.from;\n  const type = message.type;\n  if (type === 'text') {\n    return [{ json: { from, type, textContent: message.text?.body, audioId: null, audioMime: null } }];\n  } else if (type === 'audio') {\n    return [{ json: { from, type, textContent: null, audioId: message.audio?.id, audioMime: message.audio?.mime_type || 'audio/ogg' } }];\n  } else {\n    return [{ json: { from, type, textContent: `[Mensaje de tipo ${type} no soportado. Usá texto o audio.]`, audioId: null, audioMime: null } }];\n  }\n} catch (e) {\n  return [];\n}"
+      },
+      "id": "code-parse",
+      "name": "Parse Meta Payload",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [320, 600]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": { "caseSensitive": true, "leftValue": "", "typeValidation": "loose" },
+          "conditions": [{ "id": "is-audio", "leftValue": "={{ $json.type }}", "rightValue": "audio", "operator": { "type": "string", "operation": "equals" } }],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "if-audio",
+      "name": "¿Es audio?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [560, 600]
+    },
+    {
+      "parameters": {
+        "url": "=https://graph.facebook.com/v20.0/{{ $json.audioId }}",
+        "sendHeaders": true,
+        "headerParameters": { "parameters": [{ "name": "Authorization", "value": "=Bearer {{ $env.WHATSAPP_ACCESS_TOKEN }}" }] },
+        "options": {}
+      },
+      "id": "http-audio-url",
+      "name": "Obtener URL audio",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [780, 460]
+    },
+    {
+      "parameters": {
+        "url": "={{ $json.url }}",
+        "sendHeaders": true,
+        "headerParameters": { "parameters": [{ "name": "Authorization", "value": "=Bearer {{ $env.WHATSAPP_ACCESS_TOKEN }}" }] },
+        "options": { "response": { "response": { "responseFormat": "file" } } }
+      },
+      "id": "http-audio-dl",
+      "name": "Descargar audio",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1020, 460]
+    },
+    {
+      "parameters": {
+        "language": "javaScript",
+        "jsCode": "const from = $('Parse Meta Payload').first().json.from;\nconst audioMime = $('Parse Meta Payload').first().json.audioMime || 'audio/ogg';\nconst binary = $input.first().binary?.data;\nif (!binary) return [{ json: { from, userMessage: '[No pude descargar el audio]' } }];\nconst geminiBody = {\n  contents: [{ role: 'user', parts: [\n    { text: 'Transcribí este audio en español rioplatense y devolvé solo el texto transcripto, sin explicaciones:' },\n    { inlineData: { mimeType: audioMime, data: binary.data } }\n  ]}],\n  generationConfig: { temperature: 0.1, maxOutputTokens: 300 }\n};\nreturn [{ json: { from, geminiBody } }];"
+      },
+      "id": "code-prep-audio",
+      "name": "Preparar transcripción",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1260, 460]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent",
+        "sendQuery": true,
+        "queryParameters": { "parameters": [{ "name": "key", "value": "={{ $env.GEMINI_API_KEY }}" }] },
+        "sendHeaders": true,
+        "headerParameters": { "parameters": [{ "name": "Content-Type", "value": "application/json" }] },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json.geminiBody) }}",
+        "options": { "timeout": 30000 }
+      },
+      "id": "http-gemini-transcribe",
+      "name": "Gemini: transcribir audio",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1500, 460]
+    },
+    {
+      "parameters": {
+        "language": "javaScript",
+        "jsCode": "const source = $input.first().json;\nlet from, userMessage;\n\nif (source.candidates) {\n  from = $('Preparar transcripción').first().json.from;\n  userMessage = source.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || '[Audio ininteligible]';\n} else {\n  from = source.from;\n  userMessage = source.textContent || '';\n}\n\nreturn [{ json: { from, userMessage } }];"
+      },
+      "id": "code-merge",
+      "name": "Extraer mensaje",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1740, 600]
+    },
+    {
+      "parameters": {
+        "language": "javaScript",
+        "jsCode": "const from = $input.first().json.from;\nconst userMessage = $input.first().json.userMessage || '';\nconst msg = userMessage.toLowerCase();\n\nconst API_BASE = 'http://host.docker.internal:8080';\nconst headers = {\n  'Accept': 'application/json',\n  'X-User-Name': 'whatsapp-bot',\n  'X-Bot-Token': 'sgo-bot-internal-token-2024'\n};\n\nasync function get(path) {\n  return await this.helpers.httpRequest({ method: 'GET', url: `${API_BASE}${path}`, headers, json: true, timeout: 15000 });\n}\n\nfunction findByName(items, term) {\n  const lower = term.toLowerCase().trim();\n  return items.find(i => (i.nombre || '').toLowerCase() === lower)\n    || items.find(i => (i.nombre || '').toLowerCase().includes(lower))\n    || null;\n}\n\nlet contexto = '';\n\ntry {\n  // Detectar si pregunta por saldo/cuenta corriente de nombre específico\n  const saldoCliente = msg.match(/saldo.{0,20}cliente[:\\s]+([a-záéíóúñ\\s]+)/i) || msg.match(/cuenta.{0,20}cliente[:\\s]+([a-záéíóúñ\\s]+)/i);\n  const saldoProveedor = msg.match(/saldo.{0,20}proveedor[:\\s]+([a-záéíóúñ\\s]+)/i) || msg.match(/cuenta.{0,20}proveedor[:\\s]+([a-záéíóúñ\\s]+)/i);\n  const ccObra = msg.match(/cuenta.{0,20}obra[:\\s]+([a-záéíóúñ\\s]+)/i) || msg.match(/cc.{0,20}obra[:\\s]+([a-záéíóúñ\\s]+)/i);\n\n  if (saldoCliente) {\n    const nombre = saldoCliente[1].trim();\n    const clientes = await get.call(this, '/api/clientes');\n    const c = findByName(clientes, nombre);\n    if (!c) {\n      contexto = `No encontré cliente \"${nombre}\" en el sistema.`;\n    } else {\n      const saldo = await get.call(this, `/api/reportes/financieros/saldos/cliente/${c.id}`);\n      contexto = `SALDO CLIENTE ${c.nombre}: ${JSON.stringify(saldo)}`;\n    }\n  } else if (saldoProveedor) {\n    const nombre = saldoProveedor[1].trim();\n    const provs = await get.call(this, '/api/proveedores/simple');\n    const p = findByName(provs, nombre);\n    if (!p) {\n      contexto = `No encontré proveedor \"${nombre}\" en el sistema.`;\n    } else {\n      const saldo = await get.call(this, `/api/reportes/financieros/saldos/proveedor/${p.id}`);\n      contexto = `SALDO PROVEEDOR ${p.nombre}: ${JSON.stringify(saldo)}`;\n    }\n  } else if (ccObra) {\n    const nombre = ccObra[1].trim();\n    const obras = await get.call(this, '/api/obras');\n    const o = findByName(obras, nombre);\n    if (!o) {\n      contexto = `No encontré obra \"${nombre}\" en el sistema.`;\n    } else {\n      const cc = await get.call(this, `/api/reportes/cuenta-corriente/obra/${o.id}`);\n      contexto = `CUENTA CORRIENTE OBRA ${o.nombre}: ${JSON.stringify(cc)}`;\n    }\n  } else if (msg.includes('resumen') || msg.includes('dashboard') || msg.includes('estado general') || msg.includes('ayuda') || msg.includes('hola')) {\n    const data = await get.call(this, '/api/reportes/generales/resumen');\n    contexto = `RESUMEN FINANCIERO SGO: ${JSON.stringify(data)}`;\n  } else if (msg.includes('flujo') || msg.includes('caja')) {\n    const data = await get.call(this, '/api/flujo-caja/principal');\n    contexto = `FLUJO DE CAJA: ${JSON.stringify(data)}`;\n  } else if (msg.includes('movimiento') || msg.includes('transacci')) {\n    const data = await get.call(this, '/api/transacciones/recientes');\n    contexto = `MOVIMIENTOS RECIENTES: ${JSON.stringify(data)}`;\n  } else if (msg.includes('obra')) {\n    const data = await get.call(this, '/api/obras');\n    contexto = `OBRAS DEL SISTEMA: ${JSON.stringify(data)}`;\n  } else if (msg.includes('cliente')) {\n    const data = await get.call(this, '/api/clientes');\n    contexto = `CLIENTES DEL SISTEMA: ${JSON.stringify(data)}`;\n  } else if (msg.includes('proveedor')) {\n    const data = await get.call(this, '/api/proveedores/simple');\n    contexto = `PROVEEDORES DEL SISTEMA: ${JSON.stringify(data)}`;\n  } else {\n    contexto = '';\n  }\n} catch(e) {\n  contexto = `Error al consultar datos: ${e.message}`;\n}\n\nreturn [{ json: { from, userMessage, contexto } }];"
+      },
+      "id": "code-datos",
+      "name": "Obtener Datos SGO",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1980, 600]
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Mensaje del usuario: {{ $json.userMessage }}\n\n{{ $json.contexto ? 'Datos del sistema:\\n' + $json.contexto : '' }}",
+        "options": {
+          "systemMessage": "Sos el asistente del SGO por WhatsApp. Tu única función es mostrar datos en formato reporte. PROHIBIDO: análisis, conclusiones, interpretaciones, consejos, posibles mejoras, comparaciones.\n\nFORMATO EXACTO:\n- Línea 1: emoji + título\n- Cada dato: emoji + label + valor, uno por línea\n- Montos: $85.156.099,80 (punto miles, coma decimal)\n- Sin asteriscos. Sin negritas. Sin markdown. Sin secciones de análisis. Sin secciones de mejora.\n- Máximo 12 líneas\n- Español rioplatense\n\nEMOJIS: 🏗️ obras, 👤 clientes, 🏭 proveedores, 💰 ingresos, 💸 egresos, 📊 saldo, 📅 fechas, ✅ activo, ⚠️ pendiente, 📋 listas\n\nEJEMPLO CORRECTO:\n📊 Resumen Financiero SGO\n🏗️ Obras: 55\n👤 Clientes: 19\n🏭 Proveedores: 28\n💰 Ingresos: $85.156.099,80\n💸 Egresos: $40.583.701,08\n📊 Saldo: $44.572.398,72\n\nSi no hay datos: listá qué podés consultar.\nSi piden modificar/crear/eliminar: solo podés consultar."
+        }
+      },
+      "id": "chain-groq",
+      "name": "Groq: Formatear Respuesta",
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.4,
+      "position": [2220, 600]
+    },
+    {
+      "parameters": {
+        "model": "llama-3.3-70b-versatile",
+        "options": {}
+      },
+      "id": "llm-groq",
+      "name": "Groq Chat Model",
+      "type": "@n8n/n8n-nodes-langchain.lmChatGroq",
+      "typeVersion": 1,
+      "position": [2000, 780],
+      "credentials": {
+        "groqApi": {
+          "id": "GROQ_CREDENTIAL_ID",
+          "name": "Groq account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "language": "javaScript",
+        "jsCode": "const from = $('Obtener Datos SGO').first().json.from;\nconst text = ($input.first().json.text || '').trim();\n\nif (!from || !text) return [];\n\n// Argentina: Meta envía 5493XXXXXXXX pero sandbox acepta 543XXXXXXXX (sin el 9 móvil)\nconst toNormalized = from.startsWith('549') ? '54' + from.slice(3) : from;\n\nconst waBody = {\n  messaging_product: 'whatsapp',\n  recipient_type: 'individual',\n  to: toNormalized,\n  type: 'text',\n  text: { body: text.length > 3500 ? text.substring(0, 3500) + '...' : text, preview_url: false }\n};\n\nreturn [{ json: waBody }];"
+      },
+      "id": "code-build-wa",
+      "name": "Armar reply WhatsApp",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [2460, 600]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://graph.facebook.com/v20.0/1183172114871525/messages",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "Authorization", "value": "=Bearer {{ $env.WHATSAPP_ACCESS_TOKEN }}" },
+            { "name": "Content-Type", "value": "application/json" }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json) }}",
+        "options": { "timeout": 15000 }
+      },
+      "id": "http-send-wa",
+      "name": "Enviar respuesta WhatsApp",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [2700, 600]
+    }
+  ],
+  "connections": {
+    "Webhook Verify (GET)": {
+      "main": [[{ "node": "Respond Verify", "type": "main", "index": 0 }]]
+    },
+    "Webhook Mensajes (POST)": {
+      "main": [[
+        { "node": "Respond 200 OK", "type": "main", "index": 0 },
+        { "node": "Parse Meta Payload", "type": "main", "index": 0 }
+      ]]
+    },
+    "Parse Meta Payload": {
+      "main": [[{ "node": "¿Es audio?", "type": "main", "index": 0 }]]
+    },
+    "¿Es audio?": {
+      "main": [
+        [{ "node": "Obtener URL audio", "type": "main", "index": 0 }],
+        [{ "node": "Extraer mensaje", "type": "main", "index": 0 }]
+      ]
+    },
+    "Obtener URL audio": {
+      "main": [[{ "node": "Descargar audio", "type": "main", "index": 0 }]]
+    },
+    "Descargar audio": {
+      "main": [[{ "node": "Preparar transcripción", "type": "main", "index": 0 }]]
+    },
+    "Preparar transcripción": {
+      "main": [[{ "node": "Gemini: transcribir audio", "type": "main", "index": 0 }]]
+    },
+    "Gemini: transcribir audio": {
+      "main": [[{ "node": "Extraer mensaje", "type": "main", "index": 0 }]]
+    },
+    "Extraer mensaje": {
+      "main": [[{ "node": "Obtener Datos SGO", "type": "main", "index": 0 }]]
+    },
+    "Obtener Datos SGO": {
+      "main": [[{ "node": "Groq: Formatear Respuesta", "type": "main", "index": 0 }]]
+    },
+    "Groq: Formatear Respuesta": {
+      "main": [[{ "node": "Armar reply WhatsApp", "type": "main", "index": 0 }]]
+    },
+    "Armar reply WhatsApp": {
+      "main": [[{ "node": "Enviar respuesta WhatsApp", "type": "main", "index": 0 }]]
+    },
+    "Groq Chat Model": {
+      "ai_languageModel": [[{ "node": "Groq: Formatear Respuesta", "type": "ai_languageModel", "index": 0 }]]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "saveDataSuccessExecution": "all",
+    "saveExecutionProgress": true,
+    "saveManualExecutions": true,
+    "timezone": "America/Argentina/Cordoba"
+  },
+  "versionId": "6",
+  "tags": [
+    { "name": "SGO", "id": "sgo-tag" },
+    { "name": "WhatsApp", "id": "whatsapp-tag" }
+  ]
+}

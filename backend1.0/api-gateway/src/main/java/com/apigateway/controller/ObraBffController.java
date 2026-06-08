@@ -359,13 +359,7 @@ public class ObraBffController {
             List<Map<String, Object>> costos = tuple.getT4();
             List<Map<String, Object>> tareas = tuple.getT5();
 
-            if (!cliente.isEmpty()) {
-                Map<String, Object> clienteSlim = new java.util.HashMap<>(cliente);
-                clienteSlim.remove("obras");
-                obra.put("cliente", clienteSlim);
-            } else {
-                obra.put("cliente", null);
-            }
+            obra.put("cliente", cliente.isEmpty() ? null : cliente);
             obra.put("grupo", grupo.isEmpty() ? null : grupo);
             obra.put("costos", costos);
             obra.put("tareas", tareas);

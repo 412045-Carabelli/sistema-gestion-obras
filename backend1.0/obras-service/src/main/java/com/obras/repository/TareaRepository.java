@@ -8,19 +8,10 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 @Repository
 public interface TareaRepository extends JpaRepository<Tarea, Long> {
-
-    @Query("SELECT t FROM Tarea t WHERE t.fechaFin BETWEEN :desde AND :hasta AND t.estadoTarea <> :estadoExcluir AND t.activo = true")
-    List<Tarea> findVencimientosProximos(
-        @Param("desde") LocalDateTime desde,
-        @Param("hasta") LocalDateTime hasta,
-        @Param("estadoExcluir") EstadoTareaEnum estadoExcluir
-    );
-
     List<Tarea> findByIdObraAndActivoTrueOrderByNumeroOrdenAscFechaInicioAscCreadoEnAsc(Long idObra);
 
     Optional<Tarea> findByIdAndActivoTrue(Long id);

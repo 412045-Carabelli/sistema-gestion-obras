@@ -4,7 +4,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.ParameterizedTypeReference;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -80,16 +79,8 @@ public class ProveedorBffController {
         return client.get()
                 .uri(PROVEEDORES_URL + "/simple")
                 .retrieve()
-                .onStatus(status -> !status.is2xxSuccessful(), response -> {
-                    log.error("Error fetching simple proveedores: status={}", response.statusCode());
-                    return Mono.error(new RuntimeException("Proveedor service error: " + response.statusCode()));
-                })
                 .bodyToMono(new ParameterizedTypeReference<List<Map<String, Object>>>() {})
-                .map(ResponseEntity::ok)
-                .onErrorResume(ex -> {
-                    log.error("Error fetching simple proveedores: {}", ex.getMessage(), ex);
-                    return Mono.just(ResponseEntity.status(500).body(List.of()));
-                });
+                .map(ResponseEntity::ok);
     }
 
     // ===============================
@@ -117,13 +108,9 @@ public class ProveedorBffController {
         return client.get()
                 .uri(PROVEEDORES_URL + "/{id}", id)
                 .retrieve()
-                .onStatus(status -> !status.is2xxSuccessful(), response -> {
-                    log.error("Error fetching proveedor {}: status={}", id, response.statusCode());
-                    return Mono.error(new RuntimeException("Proveedor " + id + " not found"));
-                })
                 .bodyToMono(new ParameterizedTypeReference<Map<String, Object>>() {})
                 .map(ResponseEntity::ok)
-                .onErrorResume(ex -> Mono.just(ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of())));
+                .onErrorResume(ex -> Mono.just(ResponseEntity.notFound().build()));
     }
 
     // ===============================
@@ -176,10 +163,6 @@ public class ProveedorBffController {
                 .delete()
                 .uri(PROVEEDORES_URL + "/{id}", id)
                 .retrieve()
-                .onStatus(status -> !status.is2xxSuccessful(), response -> {
-                    log.error("Error deleting proveedor {}: status={}", id, response.statusCode());
-                    return Mono.error(new RuntimeException("Error deleting proveedor"));
-                })
                 .bodyToMono(Void.class)
                 .map(ResponseEntity::ok)
                 .onErrorResume(ex -> {

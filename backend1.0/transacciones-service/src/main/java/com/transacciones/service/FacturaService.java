@@ -372,7 +372,6 @@ public class FacturaService {
         if (obra == null || obra.getPresupuesto() == null) return;
 
         double presupuesto = obra.getPresupuesto();
-        boolean requiereFactura = Boolean.TRUE.equals(obra.getRequiere_factura());
         List<Factura> facturas = facturaRepository.findByIdObra(idObra);
         double facturado = facturas.stream()
                 .mapToDouble(f -> f.getMonto() != null ? f.getMonto() : 0d)
@@ -383,21 +382,17 @@ public class FacturaService {
         boolean todasCobradas = !facturas.isEmpty() && facturas.stream()
                 .allMatch(f -> "COBRADA".equalsIgnoreCase(f.getEstado()));
         String nuevoEstado;
-        if (requiereFactura) {
-            if (!totalFacturado) {
-                nuevoEstado = "FACTURADA_PARCIAL";
-            } else if (todasCobradas) {
-                nuevoEstado = "COBRADA";
-            } else {
-                nuevoEstado = "FACTURADA";
-            }
+        if (!totalFacturado) {
+            nuevoEstado = "FACTURADA_PARCIAL";
+        } else if (todasCobradas) {
+            nuevoEstado = "COBRADA";
         } else {
-            nuevoEstado = todasCobradas ? "COBRADA" : "COBRADA_PARCIAL";
+            nuevoEstado = "FACTURADA";
         }
         try {
-            obraCostoClient.actualizarEstadoFinancieroObra(idObra, nuevoEstado);
+            obraCostoClient.actualizarEstadoObra(idObra, nuevoEstado);
         } catch (Exception ignored) {
-            // no interrumpir si falla el cambio de estado financiero de obra
+            // no interrumpir si falla el cambio de estado de obra
         }
     }
 }
