@@ -221,7 +221,10 @@ public class ObraBffController {
                     .bodyToMono(new ParameterizedTypeReference<Map<String, Object>>() {})
                     .onErrorResume(ex -> Mono.just(Map.of()));
 
-            return Mono.zip(clienteMono2, grupoMono2)
+            return Mono.zip(
+                    clienteMono2.switchIfEmpty(Mono.just(Map.of())),
+                    grupoMono2.switchIfEmpty(Mono.just(Map.of()))
+            )
                     .map(tuple -> {
                         obra.put("cliente", tuple.getT1().isEmpty() ? null : tuple.getT1());
                         obra.put("grupo", tuple.getT2().isEmpty() ? null : tuple.getT2());
