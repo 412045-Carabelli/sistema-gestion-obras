@@ -1,0 +1,83 @@
+<p-dialog
+  [(visible)]="visible"
+  [modal]="true"
+  [closable]="false"
+  [draggable]="false"
+  [resizable]="false"
+  [style]="{ width: '680px', maxHeight: '88vh' }"
+  styleClass="changelog-dialog"
+>
+  <!-- Header -->
+  <ng-template pTemplate="header">
+    <div class="flex items-center justify-between w-full">
+      <div class="flex items-center gap-3">
+        <div class="w-9 h-9 rounded-lg bg-indigo-600 flex items-center justify-center">
+          <i class="pi pi-list text-white text-base"></i>
+        </div>
+        <div>
+          <p class="text-base font-poppins font-bold text-gray-900 leading-none">Novedades</p>
+          <p class="text-xs font-poppins font-normal text-gray-500 leading-none mt-0.5">{{ version }}</p>
+        </div>
+      </div>
+      <div class="flex items-center gap-2 mr-2">
+        <span class="text-xs font-poppins font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-full px-2.5 py-0.5">
+          {{ totalDone }} / {{ totalItems }} completados
+        </span>
+      </div>
+    </div>
+  </ng-template>
+
+  <!-- Body -->
+  <div class="overflow-y-auto space-y-4 pr-1" style="max-height: 60vh;">
+    @for (grupo of grupos; track grupo.modulo) {
+      <div class="border border-gray-200 rounded-xl overflow-hidden">
+        <!-- Módulo header -->
+        <div class="flex items-center gap-2 px-4 py-2.5 bg-gray-50 border-b border-gray-200">
+          <i [class]="grupo.icon + ' text-indigo-500 text-sm'"></i>
+          <span class="text-sm font-poppins font-semibold text-gray-800">{{ grupo.modulo }}</span>
+          <span class="ml-auto text-xs text-gray-400 font-poppins font-normal">
+            {{ contarDone(grupo.items) }} / {{ grupo.items.length }}
+          </span>
+        </div>
+        <!-- Items -->
+        <ul class="divide-y divide-gray-100">
+          @for (item of grupo.items; track item.texto) {
+            <li class="flex items-start gap-3 px-4 py-2.5"
+                [ngClass]="item.estado === 'done' ? 'bg-white' : 'bg-amber-50/40'">
+              @if (item.estado === 'done') {
+                <span class="mt-0.5 flex-shrink-0 w-5 h-5 rounded-full bg-emerald-100 flex items-center justify-center">
+                  <i class="pi pi-check text-emerald-600" style="font-size: 10px;"></i>
+                </span>
+              } @else {
+                <span class="mt-0.5 flex-shrink-0 w-5 h-5 rounded-full bg-amber-100 flex items-center justify-center">
+                  <i class="pi pi-clock text-amber-500" style="font-size: 10px;"></i>
+                </span>
+              }
+              <span class="text-sm font-poppins font-normal leading-snug"
+                    [ngClass]="item.estado === 'done' ? 'text-gray-700' : 'text-gray-500'">
+                {{ item.texto }}
+              </span>
+              @if (item.estado === 'pending') {
+                <span class="ml-auto flex-shrink-0 text-[10px] font-poppins font-semibold text-amber-600 bg-amber-100 rounded px-1.5 py-0.5 leading-none self-center">
+                  Pendiente
+                </span>
+              }
+            </li>
+          }
+        </ul>
+      </div>
+    }
+  </div>
+
+  <!-- Footer -->
+  <ng-template pTemplate="footer">
+    <div class="flex justify-end pt-1">
+      <p-button
+        label="Entendido"
+        icon="pi pi-check"
+        (onClick)="cerrar()"
+        styleClass="p-button-primary"
+      ></p-button>
+    </div>
+  </ng-template>
+</p-dialog>

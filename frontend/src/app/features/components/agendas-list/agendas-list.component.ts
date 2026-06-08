@@ -26,6 +26,7 @@ import {TareasService} from '../../../services/tareas/tareas.service';
 import {ObrasService} from '../../../services/obras/obras.service';
 import {ClientesService} from '../../../services/clientes/clientes.service';
 import {ProveedoresService} from '../../../services/proveedores/proveedores.service';
+import {WhatsAppService} from '../../../services/whatsapp/whatsapp.service';
 import {AgendaModalComponent} from './agenda-modal/agenda-modal.component';
 import {GenericFilterBarComponent, FilterDefinition, FilterAction} from '../generic-filter-bar/generic-filter-bar.component';
 
@@ -67,7 +68,10 @@ export class AgendasListComponent implements OnInit, OnDestroy {
   private obrasService = inject(ObrasService);
   private clientesService = inject(ClientesService);
   private proveedoresService = inject(ProveedoresService);
+  private whatsAppService = inject(WhatsAppService);
   private route = inject(ActivatedRoute);
+
+  enviandoWhatsApp = false;
   private subscription = new Subscription();
 
   // Signals
@@ -131,7 +135,20 @@ export class AgendasListComponent implements OnInit, OnDestroy {
         icon: 'pi pi-file-pdf',
         severity: 'danger',
         callback: () => this.exportarPDF()
-      }
+      },
+      // TODO: WhatsApp deshabilitado temporalmente
+      // {
+      //   label: 'WhatsApp (24h)',
+      //   icon: 'pi pi-whatsapp',
+      //   severity: 'success',
+      //   callback: () => this.triggerWhatsApp24h()
+      // },
+      // {
+      //   label: 'Resumen semanal',
+      //   icon: 'pi pi-calendar',
+      //   severity: 'info',
+      //   callback: () => this.triggerResumenSemanal()
+      // }
     ];
 
     this.filterDefinitions = [
@@ -326,5 +343,53 @@ export class AgendasListComponent implements OnInit, OnDestroy {
     });
 
     doc.save(`agenda-eventos-${fecha.replace(/\//g, '-')}.pdf`);
+  }
+
+  triggerWhatsApp24h() {
+    if (this.enviandoWhatsApp) return;
+    this.enviandoWhatsApp = true;
+    this.whatsAppService.triggerAgendaNotificaciones().subscribe({
+      next: (res) => {
+        this.enviandoWhatsApp = false;
+        this.messageService.add({
+          severity: res.ok ? 'success' : 'error',
+          summary: res.ok ? 'WhatsApp enviado' : 'Error',
+          detail: res.mensaje || (res.ok ? 'Notificaciones enviadas' : res.error || 'Error desconocido'),
+          life: 5000
+        });
+      },
+      error: () => {
+        this.enviandoWhatsApp = false;
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Error de conexión',
+          detail: 'No se pudo contactar al servidor de notificaciones'
+        });
+      }
+    });
+  }
+
+  triggerResumenSemanal() {
+    if (this.enviandoWhatsApp) return;
+    this.enviandoWhatsApp = true;
+    this.whatsAppService.triggerResumenSemanal().subscribe({
+      next: (res) => {
+        this.enviandoWhatsApp = false;
+        this.messageService.add({
+          severity: res.ok ? 'success' : 'error',
+          summary: res.ok ? 'Resumen semanal enviado' : 'Error',
+          detail: res.mensaje || (res.ok ? 'Resumen enviado' : res.error || 'Error desconocido'),
+          life: 5000
+        });
+      },
+      error: () => {
+        this.enviandoWhatsApp = false;
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Error de conexión',
+          detail: 'No se pudo contactar al servidor de notificaciones'
+        });
+      }
+    });
   }
 }

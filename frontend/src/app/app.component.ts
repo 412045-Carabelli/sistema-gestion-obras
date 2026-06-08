@@ -4,6 +4,7 @@ import {RouterOutlet} from '@angular/router';
 import {HeaderComponent} from './shared/header/header.component';
 import {SidebarComponent} from './shared/sidebar/sidebar.component';
 import {NavigationHistoryService} from './core/services/navigation-history.service';
+import {ChangelogModalComponent} from './shared/changelog-modal/changelog-modal.component';
 
 @Component({
   selector: 'app-root',
@@ -13,6 +14,7 @@ import {NavigationHistoryService} from './core/services/navigation-history.servi
     RouterOutlet,
     HeaderComponent,
     SidebarComponent,
+    ChangelogModalComponent,
   ],
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.css']

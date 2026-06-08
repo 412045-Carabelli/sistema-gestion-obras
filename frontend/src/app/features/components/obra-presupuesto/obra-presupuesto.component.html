@@ -33,6 +33,7 @@
         ></p-button>
         <p-menu #exportMenu [popup]="true" [model]="exportOptions"></p-menu>
       </div>
+      <!-- TODO: WhatsApp deshabilitado temporalmente
       <p-button
         (onClick)="enviarPresupuestoWhatsApp()"
         icon="pi pi-whatsapp"
@@ -43,6 +44,7 @@
         [pTooltip]="obra?.cliente?.telefono ? 'Enviar presupuesto a ' + obra.cliente!.telefono : 'El cliente no tiene teléfono registrado'"
         tooltipPosition="bottom"
       ></p-button>
+      -->
     </div>
   </div>
   <!-- Formulario rapido para agregar costos -->
