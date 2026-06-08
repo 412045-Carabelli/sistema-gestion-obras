@@ -23,6 +23,7 @@ public class TareaAntiguaAgendaResponse {
     private Long proveedorId;
     private String proveedorNombre;
     private String estado;
+    private String prioridad;
     private String descripcion;
     private Instant fechaVencimiento;
     private Instant creadoEn;

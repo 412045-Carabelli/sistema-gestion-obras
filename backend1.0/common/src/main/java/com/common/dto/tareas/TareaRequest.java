@@ -13,4 +13,5 @@ public class TareaRequest {
     private String descripcion;
     private Instant fechaInicio;
     private Instant fechaVencimiento;
+    private String prioridad = "MEDIA"; // ALTA, MEDIA, BAJA
 }

@@ -28,6 +28,9 @@ public class Tarea {
     @Column(nullable = false)
     private EstadoTarea estado = EstadoTarea.PENDIENTE;
 
+    @Column(nullable = false, length = 10)
+    private String prioridad = "MEDIA"; // ALTA, MEDIA, BAJA
+
     @Column(columnDefinition = "NVARCHAR(MAX)")
     private String descripcion;
 

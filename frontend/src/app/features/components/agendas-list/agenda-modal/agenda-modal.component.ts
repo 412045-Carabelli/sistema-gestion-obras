@@ -8,7 +8,7 @@ import {DropdownModule} from 'primeng/dropdown';
 import {MessageService, ConfirmationService} from 'primeng/api';
 import {ModalComponent} from '../../../../shared/modal/modal.component';
 
-import {Agenda, ESTADOS_AGENDA_OPCIONES, Obra, Cliente, Proveedor} from '../../../../core/models/models';
+import {Agenda, ESTADOS_AGENDA_OPCIONES, PRIORIDADES_AGENDA, Obra, Cliente, Proveedor} from '../../../../core/models/models';
 import {AgendasService} from '../../../../services/agendas/agendas.service';
 import {ObrasService} from '../../../../services/obras/obras.service';
 import {ClientesService} from '../../../../services/clientes/clientes.service';
@@ -49,6 +49,7 @@ export class AgendaModalComponent {
   guardando = signal(false);
   esEdicion = signal(false);
   estadosOptions = ESTADOS_AGENDA_OPCIONES;
+  prioridadesOptions = PRIORIDADES_AGENDA;
   obrasOptions = signal<Array<{label: string; value: number}>>([]);
   obrasMap = signal<Map<number, Obra>>(new Map());
   clientesOptions = signal<Array<{label: string; value: number}>>([]);
@@ -142,7 +143,10 @@ export class AgendaModalComponent {
 
     if (agenda?.fechaInicio) {
       const fecha = new Date(agenda.fechaInicio);
-      fechaInicioFormato = fecha.toISOString().split('T')[0];
+      const y = fecha.getFullYear();
+      const m = String(fecha.getMonth() + 1).padStart(2, '0');
+      const d = String(fecha.getDate()).padStart(2, '0');
+      fechaInicioFormato = `${y}-${m}-${d}`;
     } else if (!agenda?.id) {
       // Alta nueva: default hoy (fecha local, no UTC)
       const hoy = new Date();
@@ -154,12 +158,16 @@ export class AgendaModalComponent {
 
     if (agenda?.fechaVencimiento) {
       const fecha = new Date(agenda.fechaVencimiento);
-      fechaVencimientoFormato = fecha.toISOString().split('T')[0];
+      const y = fecha.getFullYear();
+      const m = String(fecha.getMonth() + 1).padStart(2, '0');
+      const d = String(fecha.getDate()).padStart(2, '0');
+      fechaVencimientoFormato = `${y}-${m}-${d}`;
     }
 
     this.form = this.fb.group({
       titulo: [agenda?.titulo || '', Validators.required],
       estado: [agenda?.estado || 'PENDIENTE'],
+      prioridad: [agenda?.prioridad || 'MEDIA'],
       obraId: [agenda?.obraId || null],
       clienteId: [agenda?.clienteId || null],
       proveedorId: [agenda?.proveedorId || null],
@@ -222,13 +230,13 @@ export class AgendaModalComponent {
     const formValue = this.form.value;
 
     if (formValue.fechaInicio) {
-      const fecha = new Date(formValue.fechaInicio);
-      formValue.fechaInicio = fecha.toISOString();
+      const [y, mo, d] = formValue.fechaInicio.split('-').map(Number);
+      formValue.fechaInicio = new Date(y, mo - 1, d, 12, 0, 0).toISOString();
     }
 
     if (formValue.fechaVencimiento) {
-      const fecha = new Date(formValue.fechaVencimiento);
-      formValue.fechaVencimiento = fecha.toISOString();
+      const [y, mo, d] = formValue.fechaVencimiento.split('-').map(Number);
+      formValue.fechaVencimiento = new Date(y, mo - 1, d, 12, 0, 0).toISOString();
     }
 
     const agenda: Agenda = {

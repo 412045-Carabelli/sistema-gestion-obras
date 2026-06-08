@@ -128,6 +128,7 @@ public class TareaServiceImpl implements TareaService {
         tarea.setEstado(ESTADOS_VALIDOS.get(request.getEstado().toUpperCase()));
         tarea.setDescripcion(request.getDescripcion());
         tarea.setFechaVencimiento(request.getFechaVencimiento());
+        tarea.setPrioridad(request.getPrioridad() != null ? request.getPrioridad().toUpperCase() : "MEDIA");
         return tarea;
     }
 
@@ -139,6 +140,7 @@ public class TareaServiceImpl implements TareaService {
         tarea.setEstado(ESTADOS_VALIDOS.get(request.getEstado().toUpperCase()));
         tarea.setDescripcion(request.getDescripcion());
         tarea.setFechaVencimiento(request.getFechaVencimiento());
+        tarea.setPrioridad(request.getPrioridad() != null ? request.getPrioridad().toUpperCase() : "MEDIA");
     }
 
     private TareaResponse mapearRespuesta(Tarea tarea) {
@@ -153,6 +155,7 @@ public class TareaServiceImpl implements TareaService {
         response.setFechaVencimiento(tarea.getFechaVencimiento());
         response.setCreadoEn(tarea.getCreadoEn());
         response.setUltimaActualizacion(tarea.getUltimaActualizacion());
+        response.setPrioridad(tarea.getPrioridad());
         return response;
     }
 
@@ -174,6 +177,7 @@ public class TareaServiceImpl implements TareaService {
         response.setFechaVencimiento(tarea.getFechaVencimiento());
         response.setCreadoEn(tarea.getCreadoEn());
         response.setUltimaActualizacion(tarea.getUltimaActualizacion());
+        response.setPrioridad(tarea.getPrioridad());
 
         // Enriquecer con nombres
         if (tarea.getObraId() != null) {

@@ -16,4 +16,5 @@ public class TareaResponse {
     private Instant fechaVencimiento;
     private Instant creadoEn;
     private Instant ultimaActualizacion;
+    private String prioridad;
 }

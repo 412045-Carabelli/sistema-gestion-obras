@@ -133,5 +133,10 @@ export const routes: Routes = [
       {path: '', component: MovimientosListComponent},
     ],
   },
+  {
+    path: 'configuracion',
+    loadComponent: () => import('./features/pages/configuracion/configuracion.component')
+      .then(m => m.ConfiguracionComponent)
+  },
   {path: '**', redirectTo: 'dashboard'},
 ];

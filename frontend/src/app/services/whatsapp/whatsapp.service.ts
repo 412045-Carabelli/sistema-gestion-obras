@@ -25,4 +25,12 @@ export class WhatsAppService {
   enviarPresupuesto(data: EnviarPresupuestoRequest): Observable<WhatsAppResponse> {
     return this.http.post<WhatsAppResponse>(`${this.apiUrl}/presupuesto`, data);
   }
+
+  triggerAgendaNotificaciones(): Observable<{ ok: boolean; enviados?: number; mensaje?: string; error?: string }> {
+    return this.http.post<{ ok: boolean; enviados?: number; mensaje?: string; error?: string }>(`${this.apiUrl}/agenda/trigger`, {});
+  }
+
+  triggerResumenSemanal(): Observable<{ ok: boolean; enviados?: number; mensaje?: string; error?: string }> {
+    return this.http.post<{ ok: boolean; enviados?: number; mensaje?: string; error?: string }>(`${this.apiUrl}/agenda/resumen-semanal`, {});
+  }
 }

@@ -54,6 +54,7 @@ export class AgendasService {
       clienteId: agenda.clienteId || null,
       proveedorId: agenda.proveedorId || null,
       estado: agenda.estado,
+      prioridad: agenda.prioridad || 'MEDIA',
       descripcion: agenda.descripcion || '',
       fechaInicio: agenda.fechaInicio || null,
       fechaVencimiento: agenda.fechaVencimiento || null

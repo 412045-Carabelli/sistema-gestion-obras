@@ -648,12 +648,19 @@ export interface Agenda {
   clienteId?: number;
   proveedorId?: number;
   estado: EstadoAgenda;
+  prioridad?: 'ALTA' | 'MEDIA' | 'BAJA';
   descripcion?: string;
   fechaInicio?: string;
   fechaVencimiento?: string;
   creadoEn?: string;
   ultimaActualizacion?: string;
 }
+
+export const PRIORIDADES_AGENDA: { label: string; value: string }[] = [
+  { label: 'Alta', value: 'ALTA' },
+  { label: 'Media', value: 'MEDIA' },
+  { label: 'Baja', value: 'BAJA' }
+];
 
 export interface MovimientoRecenteDTO {
   id: number;
