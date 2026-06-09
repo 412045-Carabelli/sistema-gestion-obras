@@ -100,37 +100,37 @@
       <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
         <!-- Cronograma Cards -->
-        <div class="lg:col-span-2 bg-white rounded-xl shadow-md p-6">
+        <div class="lg:col-span-2 bg-white rounded-xl border border-gray-100 p-6">
           <h3 class="font-poppins font-bold text-gray-900 mb-4 flex items-center gap-2">
             <i class="pi pi-calendar text-blue-600"></i>
             Cronograma
             @if (cronogramaFueraDeRango) {
-              <span class="ml-2 px-2 py-1 text-xs font-poppins font-bold text-white bg-red-500 rounded-full">Fuera de rango</span>
+              <span class="ml-2 px-2 py-0.5 text-xs font-medium text-red-600 bg-red-50 border border-red-100 rounded-full">Fuera de rango</span>
             }
           </h3>
 
           @if (tieneAlgunaFechaCronograma) {
             <div class="grid grid-flow-col auto-cols-fr gap-2">
               @if (tieneFechaCronograma(obra.fecha_inicio)) {
-                <div class="cronograma-card bg-gradient-to-br from-blue-50 to-blue-100 border-l-3 border-blue-500 rounded-md px-3 py-2">
+                <div class="cronograma-card bg-blue-50/70 border-l-2 border-l-blue-400 rounded-lg px-3 py-2.5">
                   <p class="text-xs font-poppins font-semibold text-blue-700 uppercase tracking-wide mb-0.5">Inicio</p>
                   <p class="font-poppins font-bold text-gray-900 text-xs whitespace-nowrap">{{ obra.fecha_inicio | date:'dd/MM/yy' }}</p>
                 </div>
               }
               @if (tieneFechaCronograma(obra.fecha_presupuesto)) {
-                <div class="cronograma-card bg-gradient-to-br from-amber-50 to-amber-100 border-l-3 border-amber-500 rounded-md px-3 py-2">
+                <div class="cronograma-card bg-amber-50/70 border-l-2 border-l-amber-400 rounded-lg px-3 py-2.5">
                   <p class="text-xs font-poppins font-semibold text-amber-700 uppercase tracking-wide mb-0.5">Presupuestado</p>
                   <p class="font-poppins font-bold text-gray-900 text-xs whitespace-nowrap">{{ obra.fecha_presupuesto | date:'dd/MM' }}</p>
                 </div>
               }
               @if (tieneFechaCronograma(obra.fecha_adjudicada)) {
-                <div class="cronograma-card bg-gradient-to-br from-emerald-50 to-emerald-100 border-l-3 border-emerald-500 rounded-md px-3 py-2">
+                <div class="cronograma-card bg-emerald-50/70 border-l-2 border-l-emerald-400 rounded-lg px-3 py-2.5">
                   <p class="text-xs font-poppins font-semibold text-emerald-700 uppercase tracking-wide mb-0.5">Adjudicado</p>
                   <p class="font-poppins font-bold text-gray-900 text-xs whitespace-nowrap">{{ obra.fecha_adjudicada | date:'dd/MM' }}</p>
                 </div>
               }
               @if (tieneFechaCronograma(obra.fecha_fin)) {
-                <div class="cronograma-card bg-gradient-to-br from-red-50 to-red-100 border-l-3 border-red-500 rounded-md px-3 py-2">
+                <div class="cronograma-card bg-red-50/70 border-l-2 border-l-red-400 rounded-lg px-3 py-2.5">
                   <p class="text-xs font-poppins font-semibold text-red-700 uppercase tracking-wide mb-0.5">Fin</p>
                   <p class="font-poppins font-bold text-gray-900 text-xs whitespace-nowrap">{{ obra.fecha_fin | date:'dd/MM' }}</p>
                   @if (cronogramaFueraDeRango) {
@@ -139,14 +139,14 @@
                 </div>
               }
               @if (tieneFechaCronograma(obra.fecha_perdida)) {
-                <div class="cronograma-card bg-gradient-to-br from-rose-50 to-rose-100 border-l-3 border-rose-500 rounded-md px-3 py-2">
+                <div class="cronograma-card bg-rose-50/70 border-l-2 border-l-rose-400 rounded-lg px-3 py-2.5">
                   <p class="text-xs font-poppins font-semibold text-rose-700 uppercase tracking-wide mb-0.5">Perdida</p>
                   <p class="font-poppins font-bold text-gray-900 text-xs whitespace-nowrap">{{ obra.fecha_perdida | date:'dd/MM' }}</p>
                 </div>
               }
             </div>
           } @else {
-            <div class="flex items-center justify-center py-8 px-4 bg-gray-50 rounded-lg border border-gray-200">
+            <div class="flex items-center justify-center py-8 px-4 rounded-lg border border-gray-100">
               <div class="text-center">
                 <i class="pi pi-inbox text-3xl text-gray-300 mb-2"></i>
                 <p class="text-sm font-poppins font-semibold text-gray-600">Sin cronograma definido</p>
@@ -156,27 +156,27 @@
         </div>
 
         <!-- Progreso de la obra -->
-        <div class="bg-gradient-to-br from-blue-500 to-blue-700 rounded-xl shadow-md p-6 text-white">
-          <h3 class="font-poppins font-bold mb-4 flex items-center gap-2">
-            <i class="pi pi-chart-line"></i>
+        <div class="bg-white rounded-xl border border-gray-100 p-6">
+          <h3 class="font-poppins font-bold text-gray-900 mb-4 flex items-center gap-2">
+            <i class="pi pi-chart-line text-blue-500"></i>
             Progreso de la obra
           </h3>
           <div class="relative">
             <p-progressBar
               [value]="progresoFisico"
               [showValue]="false"
-              styleClass="h-3">
+              styleClass="h-2">
             </p-progressBar>
-            <div class="mt-3 flex items-center justify-center gap-2">
-              <p class="text-2xl font-poppins font-bold">{{ progresoFisico }}%</p>
-              <p class="font-normal text-blue-100">completado</p>
+            <div class="mt-4 flex items-baseline justify-center gap-1.5">
+              <p class="text-3xl font-poppins font-bold text-gray-900 tabular-nums">{{ progresoFisico }}%</p>
+              <p class="text-sm font-normal text-gray-400">completado</p>
             </div>
           </div>
         </div>
       </div>
 
       <!-- ===================== TABS MEJORADOS ===================== -->
-      <div class="bg-white rounded-xl shadow-md overflow-hidden">
+      <div class="bg-white rounded-xl border border-gray-100 overflow-hidden">
         <p-tabs [value]="activeTab" (onChange)="onTabChange($event)" [scrollable]="true">
           <p-tablist pStyleClass="border-b border-gray-200 px-6">
             <p-tab value="0" pStyleClass="px-6 py-4">
@@ -535,8 +535,8 @@
 
             <p-tabpanel value="4">
               <div class="space-y-6">
-                <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                  <p class="text- font-normal text-blue-700">
+                <div class="bg-gray-50 border border-gray-100 rounded-lg p-4">
+                  <p class="text-sm font-normal text-gray-500">
                     <i class="pi pi-info-circle mr-2"></i>
                     Documento descriptivo del proyecto y especificaciones técnicas
                   </p>
@@ -703,7 +703,7 @@
       <!-- KPI Cards skeleton (4 columns) -->
       <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
         @for (item of [1,2,3,4]; track item) {
-          <div class="bg-white rounded-xl shadow-md p-6">
+          <div class="bg-white rounded-xl border border-gray-100 p-6">
             <div class="h-3 bg-gray-200 rounded w-16 mb-3"></div>
             <div class="h-8 bg-gray-200 rounded w-3/4 mb-2"></div>
             <div class="h-3 bg-gray-200 rounded w-2/3"></div>
@@ -721,14 +721,14 @@
             }
           </div>
         </div>
-        <div class="bg-gradient-to-br from-blue-100 to-blue-200 rounded-xl shadow-md p-6">
-          <div class="h-5 bg-blue-300 rounded w-2/3 mb-4"></div>
-          <div class="h-20 bg-blue-300 rounded"></div>
+        <div class="bg-white rounded-xl border border-gray-100 p-6">
+          <div class="h-5 bg-gray-200 rounded w-2/3 mb-4"></div>
+          <div class="h-20 bg-gray-100 rounded"></div>
         </div>
       </div>
 
       <!-- Tabs skeleton -->
-      <div class="bg-white rounded-xl shadow-md overflow-hidden">
+      <div class="bg-white rounded-xl border border-gray-100 overflow-hidden">
         <div class="border-b border-gray-200 px-6 py-4 flex gap-6">
           @for (i of [1,2,3,4]; track i) {
             <div class="h-5 bg-gray-200 rounded w-20"></div>

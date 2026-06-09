@@ -313,6 +313,50 @@ services:
       - n8n_network
     restart: unless-stopped
 
+  waha:
+    image: devlikeapro/waha
+    container_name: sgo_waha
+    ports:
+      - "3000:3000"
+    volumes:
+      - waha_data:/app/.waha/sessions
+    environment:
+      - WHATSAPP_DEFAULT_ENGINE=WEBJS
+      - WAHA_DASHBOARD_ENABLED=true
+      - WAHA_DASHBOARD_USERNAME=${WAHA_USER:-admin}
+      - WAHA_DASHBOARD_PASSWORD=${WAHA_PASSWORD:-admin123}
+      - WHATSAPP_API_KEY=${WAHA_API_KEY:-sgo2026}
+      - WHATSAPP_HOOK_URL=http://bot-whatsapp:4000/webhook
+      - WHATSAPP_HOOK_EVENTS=message
+    restart: unless-stopped
+    networks:
+      - sgo_backend
+
+  bot-whatsapp:
+    build: ../bot-whatsapp
+    container_name: sgo_bot_whatsapp
+    ports:
+      - "4000:4000"
+    environment:
+      - WAHA_URL=http://waha:3000
+      - WAHA_API_KEY=${WAHA_API_KEY:-sgo2026}
+      - API_GATEWAY_URL=http://host.docker.internal:8080
+      - WAHA_SESSION=default
+      - PORT=4000
+      # Números autorizados separados por coma (sin +, ej: 5491112345678)
+      - NUMEROS_AUTORIZADOS=${BOT_NUMEROS_AUTORIZADOS:-}
+      # Números que reciben notificaciones diarias
+      - NUMEROS_NOTIFICACIONES=${BOT_NUMEROS_NOTIFICACIONES:-}
+      - DIAS_VENCIMIENTO=${BOT_DIAS_VENCIMIENTO:-7}
+      # Cron: default 8am Argentina (UTC-3 = 11:00 UTC)
+      - CRON_NOTIFICACIONES=${BOT_CRON_NOTIFICACIONES:-0 11 * * *}
+    depends_on:
+      - waha
+      - api-gateway
+    restart: unless-stopped
+    networks:
+      - sgo_backend
+
 networks:
   sgo_backend:
     driver: bridge
@@ -323,3 +367,4 @@ volumes:
   sqlserver_data:
   migration_flags:
   n8n_data:
+  waha_data:

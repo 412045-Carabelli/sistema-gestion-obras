@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(pip install:*)",
+      "Bash(python -m pip install git-filter-repo)",
+      "Read(//c/Users/Usuario/Desktop/my-work/sistema-gestion-obras/**)",
+      "Bash(GIT_TRACE=1 git push origin fix/devo-15-05 --force)"
+    ]
+  }
+}

@@ -1,6 +1,7 @@
 import {Component, Input} from '@angular/core';
 import {CommonModule} from '@angular/common';
 import {RouterModule} from '@angular/router';
+import {ChangelogService} from '../../services/changelog/changelog.service';
 
 interface MenuItem {
   label: string;
@@ -25,6 +26,12 @@ interface MenuGroup {
 })
 export class SidebarComponent {
   @Input() visible: boolean = true;
+
+  constructor(private changelogService: ChangelogService) {}
+
+  abrirChangelog(): void {
+    this.changelogService.abrir();
+  }
 
   menuGroups: MenuGroup[] = [
     {
@@ -64,5 +71,5 @@ export class SidebarComponent {
     }
   ];
 
-  version: string = 'v1.15.55';
+  version: string = 'v1.15.72';
 }

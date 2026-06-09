@@ -99,7 +99,13 @@
       "Bash(node .agents/skills/owasp-top10/owasp-backend.js)",
       "Bash(for file:*)",
       "Bash(echo \"Processing $file\")",
-      "Bash(__NEW_LINE_61a829bfd4c73566__ done:*)"
+      "Bash(__NEW_LINE_61a829bfd4c73566__ done:*)",
+      "Bash(gh pr:*)",
+      "Bash(gh.exe pr:*)",
+      "Bash(where gh:*)",
+      "Read(//mnt/c/Users/Usuario/AppData/Local/**)",
+      "Read(//mnt/c/**)",
+      "Read(//mnt/c/Users/Usuario/scoop/**)"
     ]
   }
 }
