@@ -41,6 +41,7 @@ import {ConfirmDialog} from 'primeng/confirmdialog';
 import {KpiCardComponent} from '../../../shared/kpi-card/kpi-card.component';
 import {AgendasService} from '../../../services/agendas/agendas.service';
 import {AgendaModalComponent} from '../../components/agendas-list/agenda-modal/agenda-modal.component';
+import {EstadoFormatPipe} from '../../../shared/pipes/estado-format.pipe';
 
 @Component({
   selector: 'app-obra-detail',
@@ -78,6 +79,7 @@ import {AgendaModalComponent} from '../../components/agendas-list/agenda-modal/a
     ConfirmDialog,
     KpiCardComponent,
     AgendaModalComponent,
+    EstadoFormatPipe,
   ],
   providers: [MessageService, ConfirmationService],
   templateUrl: './obras-detail.component.html',
@@ -206,10 +208,11 @@ export class ObrasDetailComponent implements OnInit, OnDestroy, AfterViewInit {
 
   getSeveridadEstadoAdministrativo(): string {
     const estado = this.obra?.estado_financiero ?? '';
-    if (estado === 'COBRADA') return 'success';
-    if (estado === 'COBRADA_PARCIAL') return 'warn';
+    if (estado === 'COBRADA' || estado === 'LIQUIDADA') return 'success';
+    if (estado === 'COBRADA_PARCIAL' || estado === 'PARCIAL') return 'warn';
     if (estado === 'FACTURADA') return 'info';
-    return 'warn';
+    if (estado === 'FACTURADA_PARCIAL') return 'secondary';
+    return 'secondary';
   }
 
   getSiguienteEstadoOperativo(): string | null {

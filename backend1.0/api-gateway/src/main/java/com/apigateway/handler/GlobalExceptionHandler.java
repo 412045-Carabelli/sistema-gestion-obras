@@ -60,7 +60,7 @@ public class GlobalExceptionHandler {
         Map<String, Object> response = new HashMap<>();
         response.put("error", "Error interno del servidor");
         response.put("timestamp", Instant.now());
-        response.put("path", exchange.getRequest().getPath());
+        response.put("path", exchange.getRequest().getPath().value());
 
         return ResponseEntity
                 .status(HttpStatus.INTERNAL_SERVER_ERROR)

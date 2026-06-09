@@ -574,7 +574,7 @@ export class FacturasListComponent implements OnInit, OnDestroy {
       fecha: this.formatDate(factura.fecha),
       descripcion: factura.descripcion || '',
       estado: nuevoEstado,
-      impacta_cta_cte: true
+      // impacta_cta_cte: factura.impacta_cta_cte ?? false
     };
 
     this.facturasService.updateFactura(Number(factura.id), payload).subscribe({
@@ -592,11 +592,11 @@ export class FacturasListComponent implements OnInit, OnDestroy {
           detail: `Factura marcada como ${nuevoEstado === 'COBRADA' ? 'cobrada' : 'emitida'}.`
         });
       },
-      error: () => {
+      error: (err: any) => {
         this.messageService.add({
           severity: 'error',
           summary: 'Error',
-          detail: 'No se pudo actualizar el estado de la factura.'
+          detail: err?.error?.message || 'No se pudo actualizar el estado de la factura.'
         });
       }
     });

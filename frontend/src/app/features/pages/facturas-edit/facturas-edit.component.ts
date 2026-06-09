@@ -211,11 +211,11 @@ export class FacturasEditComponent implements OnInit {
         });
         this.router.navigate(['/facturas', this.facturaId]);
       },
-      error: () => {
+      error: (err: any) => {
         this.messageService.add({
           severity: 'error',
           summary: 'Error',
-          detail: 'No se pudo actualizar la factura.'
+          detail: err?.error?.message || 'No se pudo actualizar la factura.'
         });
       }
     });

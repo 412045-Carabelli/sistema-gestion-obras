@@ -1,10 +1,12 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { DialogModule } from 'primeng/dialog';
 import { ButtonModule } from 'primeng/button';
 import { TagModule } from 'primeng/tag';
+import { Subscription } from 'rxjs';
+import { ChangelogService } from '../../services/changelog/changelog.service';
 
-const VERSION = 'v1.2.4';
+const VERSION = 'v1.15.73';
 const STORAGE_KEY = `sgo-changelog-seen-${VERSION}`;
 
 interface ChangeItem {
@@ -24,11 +26,29 @@ interface ChangeGroup {
   imports: [CommonModule, DialogModule, ButtonModule, TagModule],
   templateUrl: './changelog-modal.component.html',
 })
-export class ChangelogModalComponent implements OnInit {
+export class ChangelogModalComponent implements OnInit, OnDestroy {
   visible = false;
   version = VERSION;
+  private sub = new Subscription();
 
   grupos: ChangeGroup[] = [
+    {
+      modulo: 'Bot WhatsApp',
+      icon: 'pi pi-whatsapp',
+      items: [
+        { texto: 'Consulta de cuenta corriente por obra, cliente y proveedor vía WhatsApp', estado: 'done' },
+        { texto: 'Notificaciones automáticas diarias de tareas por vencer (obras y agenda)', estado: 'done' },
+        { texto: 'Menú interactivo con sesiones por usuario', estado: 'done' },
+      ]
+    },
+    {
+      modulo: 'Reportes / Cuentas corrientes',
+      icon: 'pi pi-chart-bar',
+      items: [
+        { texto: 'Deudas globales ahora refleja saldos negativos (cliente pagó de más)', estado: 'done' },
+        { texto: 'SP usa presupuesto efectivo con beneficio, igual que el cálculo Java', estado: 'done' },
+      ]
+    },
     {
       modulo: 'Cuentas corrientes',
       icon: 'pi pi-book',
@@ -50,13 +70,15 @@ export class ChangelogModalComponent implements OnInit {
         { texto: 'Factura visible en página de facturas y en pantalla de la obra', estado: 'done' },
         { texto: 'Al crear, se genera directamente como "Emitida" (sin select de estado)', estado: 'done' },
         { texto: 'Sin scroll en el modal de alta de factura', estado: 'done' },
+        { texto: 'Se puede cambiar el estado de la factura (emitida ↔ cobrada) desde el listado de facturas', estado: 'done' },
       ]
     },
     {
       modulo: 'Obras',
       icon: 'pi pi-building',
       items: [
-        { texto: '2 estados: Administrativo (automático) y Operativo (manual)', estado: 'done' },
+        { texto: '2 estados: Operativo (manual) y Financiero (automático por cobros y facturas)', estado: 'done' },
+        { texto: 'Estado financiero: Cobrada, Cobrada parcial, Facturada, Facturada parcial, Parcial, Liquidada', estado: 'done' },
         { texto: 'Al crear una obra, redirigir directo al detalle', estado: 'done' },
         { texto: 'Obra se crea directamente en "Presupuestada" y se quita select de estado y grupo', estado: 'done' },
         { texto: 'Tab de agendas en el detalle de obra con listado y creación', estado: 'done' },
@@ -97,15 +119,24 @@ export class ChangelogModalComponent implements OnInit {
     return items.filter(i => i.estado === 'done').length;
   }
 
+  constructor(private changelogService: ChangelogService) {}
+
   ngOnInit(): void {
     const seen = localStorage.getItem(STORAGE_KEY);
     if (!seen) {
       this.visible = true;
     }
+    this.sub.add(
+      this.changelogService.abrir$.subscribe(() => this.visible = true)
+    );
   }
 
   cerrar(): void {
     localStorage.setItem(STORAGE_KEY, '1');
     this.visible = false;
+  }
+
+  ngOnDestroy(): void {
+    this.sub.unsubscribe();
   }
 }

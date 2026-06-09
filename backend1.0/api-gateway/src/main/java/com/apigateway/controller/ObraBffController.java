@@ -43,6 +43,9 @@ public class ObraBffController {
     @Value("${services.transacciones.url}")
     private String TRANSACCIONES_URL;
 
+    @Value("${services.facturas.url}")
+    private String FACTURAS_URL;
+
     private final WebClient.Builder webClientBuilder;
 
     // ================================
@@ -57,9 +60,14 @@ public class ObraBffController {
                 .uri(OBRAS_URL)
                 .contentType(MediaType.APPLICATION_JSON)
                 .bodyValue(obraDto)
-                .retrieve()
-                .bodyToMono(new ParameterizedTypeReference<Map<String, Object>>() {})
-                .map(ResponseEntity::ok)
+                .exchangeToMono(response -> {
+                    if (response.statusCode().is2xxSuccessful()) {
+                        return response.bodyToMono(new ParameterizedTypeReference<Map<String, Object>>() {})
+                                .map(ResponseEntity::ok);
+                    }
+                    return response.bodyToMono(new ParameterizedTypeReference<Map<String, Object>>() {})
+                            .map(body -> ResponseEntity.status(response.statusCode()).body(body));
+                })
                 .onErrorResume(ex -> {
                     log.error("Error en operación de obra", ex);
                     Map<String, Object> err = Map.of(
@@ -85,9 +93,14 @@ public class ObraBffController {
                 .uri(OBRAS_URL + "/{id}", id)
                 .contentType(MediaType.APPLICATION_JSON)
                 .bodyValue(obraDto)
-                .retrieve()
-                .bodyToMono(new ParameterizedTypeReference<Map<String, Object>>() {})
-                .map(ResponseEntity::ok)
+                .exchangeToMono(response -> {
+                    if (response.statusCode().is2xxSuccessful()) {
+                        return response.bodyToMono(new ParameterizedTypeReference<Map<String, Object>>() {})
+                                .map(ResponseEntity::ok);
+                    }
+                    return response.bodyToMono(new ParameterizedTypeReference<Map<String, Object>>() {})
+                            .map(body -> ResponseEntity.status(response.statusCode()).body(body));
+                })
                 .onErrorResume(ex -> {
                     log.error("Error en operación de obra", ex);
                     Map<String, Object> err = Map.of(
@@ -349,18 +362,36 @@ public class ObraBffController {
                 .collectList()
                 .onErrorResume(ex -> Mono.just(List.of()));
 
+        Mono<List<Map<String, Object>>> transaccionesMono = client.get()
+                .uri(TRANSACCIONES_URL + "/obra/{id}", id)
+                .retrieve()
+                .bodyToFlux(new ParameterizedTypeReference<Map<String, Object>>() {})
+                .collectList()
+                .onErrorResume(ex -> Mono.just(List.of()));
+
+        Mono<List<Map<String, Object>>> facturasMono = client.get()
+                .uri(FACTURAS_URL + "/obra/{id}", id)
+                .retrieve()
+                .bodyToFlux(new ParameterizedTypeReference<Map<String, Object>>() {})
+                .collectList()
+                .onErrorResume(ex -> Mono.just(List.of()));
+
         return Mono.zip(
                 obraMono,
                 clienteMono.switchIfEmpty(Mono.just(Map.of())),
                 grupoMono.switchIfEmpty(Mono.just(Map.of())),
                 costosMono,
-                tareasMono
+                tareasMono,
+                transaccionesMono,
+                facturasMono
         ).map(tuple -> {
             Map<String, Object> obra = tuple.getT1();
             Map<String, Object> cliente = tuple.getT2();
             Map<String, Object> grupo = tuple.getT3();
             List<Map<String, Object>> costos = tuple.getT4();
             List<Map<String, Object>> tareas = tuple.getT5();
+            List<Map<String, Object>> transacciones = tuple.getT6();
+            List<Map<String, Object>> facturas = tuple.getT7();
 
             obra.put("cliente", cliente.isEmpty() ? null : cliente);
             obra.put("grupo", grupo.isEmpty() ? null : grupo);
@@ -368,6 +399,11 @@ public class ObraBffController {
             obra.put("tareas", tareas);
             obra.remove("id_cliente");
             obra.remove("id_grupo");
+
+            String estadoFinanciero = calcularEstadoFinanciero(obra, transacciones, facturas);
+            if (estadoFinanciero != null) {
+                obra.put("estado_financiero", estadoFinanciero);
+            }
 
             return ResponseEntity.ok(obra);
         }).onErrorResume(ex -> {
@@ -377,6 +413,48 @@ public class ObraBffController {
             );
             return Mono.just(ResponseEntity.internalServerError().body(err));
         });
+    }
+
+    private String calcularEstadoFinanciero(
+            Map<String, Object> obra,
+            List<Map<String, Object>> transacciones,
+            List<Map<String, Object>> facturas) {
+
+        Object presupuestoObj = obra.get("presupuesto");
+        if (presupuestoObj == null) return null;
+        double presupuesto = ((Number) presupuestoObj).doubleValue();
+        if (presupuesto <= 0) return null;
+
+        Object requiereFacturaObj = obra.get("requiere_factura");
+        boolean requiereFactura = Boolean.TRUE.equals(requiereFacturaObj);
+
+        double totalCobros = transacciones.stream()
+                .filter(t -> "COBRO".equalsIgnoreCase(String.valueOf(t.get("tipo_transaccion"))))
+                .mapToDouble(t -> t.get("monto") instanceof Number ? ((Number) t.get("monto")).doubleValue() : 0.0)
+                .sum();
+
+        double totalFacturas = requiereFactura
+                ? facturas.stream()
+                    .mapToDouble(f -> f.get("monto") instanceof Number ? ((Number) f.get("monto")).doubleValue() : 0.0)
+                    .sum()
+                : 0.0;
+
+        boolean tieneCobros = totalCobros > 0;
+        boolean tieneFacturas = requiereFactura && totalFacturas > 0;
+
+        boolean cobradaTotal   = tieneCobros && totalCobros >= presupuesto;
+        boolean cobradaParcial = tieneCobros && totalCobros < presupuesto;
+        boolean facturadaTotal   = tieneFacturas && totalFacturas >= presupuesto;
+        boolean facturadaParcial = tieneFacturas && totalFacturas < presupuesto;
+
+        if (cobradaTotal && facturadaTotal)   return "LIQUIDADA";
+        if (cobradaParcial && facturadaParcial) return "PARCIAL";
+        if (cobradaTotal)   return "COBRADA";
+        if (facturadaTotal) return "FACTURADA";
+        if (cobradaParcial)   return "COBRADA_PARCIAL";
+        if (facturadaParcial) return "FACTURADA_PARCIAL";
+
+        return null;
     }
 }
 

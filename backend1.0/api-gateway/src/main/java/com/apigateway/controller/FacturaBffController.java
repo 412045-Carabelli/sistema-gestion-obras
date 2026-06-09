@@ -119,9 +119,9 @@ public class FacturaBffController {
                 .uri(FACTURAS_URL)
                 .contentType(MediaType.MULTIPART_FORM_DATA)
                 .body(BodyInserters.fromMultipartData(builder.build()))
-                .retrieve()
-                .bodyToMono(new ParameterizedTypeReference<Map<String, Object>>() {})
-                .map(ResponseEntity::ok);
+                .exchangeToMono(response -> response
+                        .bodyToMono(new ParameterizedTypeReference<Map<String, Object>>() {})
+                        .map(body -> ResponseEntity.status(response.statusCode()).body(body)));
     }
 
     @PutMapping(value = "/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
@@ -143,9 +143,9 @@ public class FacturaBffController {
                 .uri(FACTURAS_URL + "/{id}", id)
                 .contentType(MediaType.MULTIPART_FORM_DATA)
                 .body(BodyInserters.fromMultipartData(builder.build()))
-                .retrieve()
-                .bodyToMono(new ParameterizedTypeReference<Map<String, Object>>() {})
-                .map(ResponseEntity::ok);
+                .exchangeToMono(response -> response
+                        .bodyToMono(new ParameterizedTypeReference<Map<String, Object>>() {})
+                        .map(body -> ResponseEntity.status(response.statusCode()).body(body)));
     }
 
     @DeleteMapping("/{id}")
