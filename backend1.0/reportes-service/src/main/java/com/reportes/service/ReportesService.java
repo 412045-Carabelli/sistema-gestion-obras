@@ -2726,4 +2726,68 @@ public class ReportesService {
 
         return pdfBuilder.crearTabla(widths, encabezados, filas);
     }
+
+    public DashboardGraficosResponse generarDashboardGraficos(int topN) {
+        List<ObraExternalDto> obras = obrasClient.obtenerObras();
+        if (obras == null) obras = java.util.Collections.emptyList();
+
+        // distribucion de estados
+        Map<String, Long> cuentaPorEstado = obras.stream()
+                .collect(java.util.stream.Collectors.groupingBy(
+                        o -> o.getObraEstado() != null ? o.getObraEstado() : "SIN_ESTADO",
+                        java.util.stream.Collectors.counting()
+                ));
+        int totalObras = obras.size();
+        List<DashboardGraficosResponse.EstadoConteoDto> distribucion = cuentaPorEstado.entrySet().stream()
+                .map(e -> DashboardGraficosResponse.EstadoConteoDto.builder()
+                        .estado(e.getKey())
+                        .cantidad(e.getValue().intValue())
+                        .porcentaje(totalObras > 0 ? (e.getValue() * 100.0 / totalObras) : 0)
+                        .build())
+                .sorted((a, b) -> Integer.compare(b.getCantidad(), a.getCantidad()))
+                .collect(java.util.stream.Collectors.toList());
+
+        // top obras financiero desde transacciones-service
+        List<TopObraFinancieroExternalDto> topRaw = transaccionesClient.obtenerTopObras(topN);
+        Map<Long, ObraExternalDto> obrasPorId = obras.stream()
+                .collect(java.util.stream.Collectors.toMap(ObraExternalDto::getId, o -> o, (a, b) -> a));
+        List<DashboardGraficosResponse.TopObraDto> topObras = topRaw.stream()
+                .map(t -> {
+                    ObraExternalDto obra = t.getObraId() != null ? obrasPorId.get(t.getObraId()) : null;
+                    return DashboardGraficosResponse.TopObraDto.builder()
+                            .obraId(t.getObraId())
+                            .obraNombre(obra != null ? obra.getNombre() : "Obra #" + t.getObraId())
+                            .presupuesto(obra != null && obra.getPresupuesto() != null ? obra.getPresupuesto() : BigDecimal.ZERO)
+                            .totalCobros(t.getTotalCobros() != null ? t.getTotalCobros() : BigDecimal.ZERO)
+                            .totalPagos(t.getTotalPagos() != null ? t.getTotalPagos() : BigDecimal.ZERO)
+                            .build();
+                })
+                .collect(java.util.stream.Collectors.toList());
+
+        // kpis
+        java.util.Set<String> ESTADOS_ACTIVOS = java.util.Set.of("PENDIENTE", "ADJUDICADA", "EN_PROGRESO");
+        int obrasActivas = (int) obras.stream()
+                .filter(o -> ESTADOS_ACTIVOS.contains(o.getObraEstado()))
+                .count();
+        BigDecimal presupuestoTotal = obras.stream()
+                .map(o -> o.getPresupuesto() != null ? o.getPresupuesto() : BigDecimal.ZERO)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+        BigDecimal totalCobros = topRaw.stream()
+                .map(t -> t.getTotalCobros() != null ? t.getTotalCobros() : BigDecimal.ZERO)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+        BigDecimal pctCobro = presupuestoTotal.compareTo(BigDecimal.ZERO) > 0
+                ? totalCobros.multiply(BigDecimal.valueOf(100)).divide(presupuestoTotal, 2, java.math.RoundingMode.HALF_UP)
+                : BigDecimal.ZERO;
+
+        return DashboardGraficosResponse.builder()
+                .distribucionEstados(distribucion)
+                .topObras(topObras)
+                .kpis(DashboardGraficosResponse.KpisGraficosDto.builder()
+                        .totalObras(totalObras)
+                        .obrasActivas(obrasActivas)
+                        .presupuestoTotal(presupuestoTotal)
+                        .porcentajeCobroGlobal(pctCobro)
+                        .build())
+                .build();
+    }
 }

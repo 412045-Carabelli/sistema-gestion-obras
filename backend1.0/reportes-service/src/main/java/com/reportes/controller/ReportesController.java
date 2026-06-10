@@ -263,4 +263,10 @@ public class ReportesController {
     public ResponseEntity<List<ProveedorSaldoResponse>> saldosProveedores() {
         return ResponseEntity.ok(proveedoresService.obtenerSaldosProveedores());
     }
+
+    @GetMapping("/dashboard/graficos")
+    public ResponseEntity<DashboardGraficosResponse> dashboardGraficos(
+            @RequestParam(defaultValue = "10") int topN) {
+        return ResponseEntity.ok(reportesService.generarDashboardGraficos(topN));
+    }
 }

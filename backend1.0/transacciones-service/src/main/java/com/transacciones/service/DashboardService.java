@@ -2,6 +2,8 @@ package com.transacciones.service;
 
 import com.transacciones.dto.DashboardCuentaCorrienteResponse;
 import com.transacciones.dto.DashboardFilterRequest;
+import com.transacciones.dto.TopObraFinancieroDto;
+import java.util.List;
 
 /**
  * Servicio para KPIs del dashboard.
@@ -16,4 +18,6 @@ public interface DashboardService {
    * @return DashboardCuentaCorrienteResponse con: cobrado, porCobrar, pagado, porPagar, resultado
    */
   DashboardCuentaCorrienteResponse obtenerCuentaCorriente(DashboardFilterRequest filtro);
+
+  List<TopObraFinancieroDto> obtenerTopObras(int topN);
 }

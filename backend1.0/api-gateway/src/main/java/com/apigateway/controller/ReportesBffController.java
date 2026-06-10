@@ -206,6 +206,12 @@ public class ReportesBffController {
         return proxyPost("/financieros/deudas-globales", filtro, new ParameterizedTypeReference<>() {});
     }
 
+    @GetMapping("/dashboard/graficos")
+    public Mono<ResponseEntity<Object>> dashboardGraficos(
+            @RequestParam(defaultValue = "10") int topN) {
+        return proxyGet("/dashboard/graficos?topN=" + topN, new ParameterizedTypeReference<>() {});
+    }
+
     @PostMapping("/financieros/cuentas-corrientes-combinadas")
     public Mono<ResponseEntity<Object>> cuentasCorrientesCombinadas(@RequestBody(required = false) Object filtro) {
         return proxyPost("/financieros/cuentas-corrientes-combinadas", filtro, new ParameterizedTypeReference<>() {});

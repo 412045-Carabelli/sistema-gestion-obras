@@ -76,28 +76,28 @@
         pTooltip="Total cobrado de clientes."
         tooltipPosition="top">
         <p class="text-xs font-poppins font-semibold text-emerald-700 uppercase">Cobrado Clientes</p>
-        <p class="text-2xl font-poppins font-bold text-gray-900">{{ deudasGlobales?.deudaClientes | currency:'ARS':'symbol':'1.0-0' }}</p>
+        <p class="text-2xl font-poppins font-bold text-gray-900">{{ cobradoClientesGlobal | currency:'ARS':'symbol':'1.0-0' }}</p>
       </div>
       <div
         class="bg-white rounded-xl shadow-md p-5 border-l-4 border-blue-500"
         pTooltip="Total pagado a proveedores."
         tooltipPosition="top">
         <p class="text-xs font-poppins font-semibold text-blue-700 uppercase">Pagado Proveedores</p>
-        <p class="text-2xl font-poppins font-bold text-gray-900">{{ deudasGlobales?.deudaProveedores | currency:'ARS':'symbol':'1.0-0' }}</p>
+        <p class="text-2xl font-poppins font-bold text-gray-900">{{ pagadoProveedoresGlobal | currency:'ARS':'symbol':'1.0-0' }}</p>
       </div>
       <div
         class="bg-white rounded-xl shadow-md p-5 border-l-4 border-rose-500"
         pTooltip="Total pendiente de cobrar."
         tooltipPosition="top">
         <p class="text-xs font-poppins font-semibold text-rose-700 uppercase">Por Cobrar</p>
-        <p class="text-2xl font-poppins font-bold text-gray-900">{{ (deudasGlobales?.totalDeudaClientes || 0) - (deudasGlobales?.deudaClientes || 0) | currency:'ARS':'symbol':'1.0-0' }}</p>
+        <p class="text-2xl font-poppins font-bold text-gray-900">{{ deudasGlobales?.deudaClientes | currency:'ARS':'symbol':'1.0-0' }}</p>
       </div>
       <div
         class="bg-white rounded-xl shadow-md p-5 border-l-4 border-amber-500"
         pTooltip="Total pendiente de pagar."
         tooltipPosition="top">
         <p class="text-xs font-poppins font-semibold text-amber-700 uppercase">Por Pagar</p>
-        <p class="text-2xl font-poppins font-bold text-gray-900">{{ (deudasGlobales?.totalDeudaProveedor || 0) - (deudasGlobales?.deudaProveedores || 0) | currency:'ARS':'symbol':'1.0-0' }}</p>
+        <p class="text-2xl font-poppins font-bold text-gray-900">{{ deudasGlobales?.deudaProveedores | currency:'ARS':'symbol':'1.0-0' }}</p>
       </div>
     </div>
   }
@@ -125,16 +125,18 @@
 >
   <div class="p-3 space-y-3">
     <label class="block text-sm font-poppins font-semibold mb-1 text-gray-700">Obra</label>
-    <p-autoComplete
+    <p-select
       [(ngModel)]="movimientoObra"
-      [suggestions]="filteredObras"
-      (completeMethod)="filtrarObras($event)"
-      field="nombre"
-      [dropdown]="true"
+      [options]="obras"
+      optionLabel="nombre"
       placeholder="Buscar obra"
+      [filter]="true"
+      filterBy="nombre"
+      [showClear]="true"
+      appendTo="body"
       styleClass="w-full"
-      (onSelect)="onMovimientoObraSelect($event.value ?? $event)"
-    ></p-autoComplete>
+      (onChange)="onMovimientoObraSelect($event.value)"
+    ></p-select>
 
     <label class="block text-sm font-poppins font-semibold mb-1 text-gray-700">Tipo de asociado</label>
     <p-select
@@ -150,30 +152,34 @@
 
     @if (movimientoTipoEntidad === 'CLIENTE') {
       <label class="block text-sm font-poppins font-semibold mb-1 text-gray-700">Cliente</label>
-      <p-autoComplete
+      <p-select
         [(ngModel)]="movimientoCliente"
-        [suggestions]="filteredMovimientoClientes"
-        (completeMethod)="filtrarMovimientoClientes($event)"
-        field="nombre"
-        [dropdown]="true"
+        [options]="movimientoClientesObra"
+        optionLabel="nombre"
         placeholder="Cliente de la obra"
+        [filter]="true"
+        filterBy="nombre"
+        [showClear]="true"
+        appendTo="body"
         styleClass="w-full"
-        (onSelect)="onMovimientoClienteSelect($event.value ?? $event)"
-      ></p-autoComplete>
+        (onChange)="onMovimientoClienteSelect($event.value)"
+      ></p-select>
     }
 
     @if (movimientoTipoEntidad === 'PROVEEDOR') {
       <label class="block text-sm font-poppins font-semibold mb-1 text-gray-700">Proveedor</label>
-      <p-autoComplete
+      <p-select
         [(ngModel)]="movimientoProveedor"
-        [suggestions]="filteredMovimientoProveedores"
-        (completeMethod)="filtrarMovimientoProveedores($event)"
-        field="nombre"
-        [dropdown]="true"
+        [options]="movimientoProveedoresObra"
+        optionLabel="nombre"
         placeholder="Proveedor de la obra"
+        [filter]="true"
+        filterBy="nombre"
+        [showClear]="true"
+        appendTo="body"
         styleClass="w-full"
-        (onSelect)="onMovimientoProveedorSelect($event.value ?? $event)"
-      ></p-autoComplete>
+        (onChange)="onMovimientoProveedorSelect($event.value)"
+      ></p-select>
     }
 
     <label class="block text-sm font-poppins font-semibold mb-1 text-gray-700">Condicion de pago/cobro</label>
@@ -241,16 +247,18 @@
 >
   <div class="p-3 space-y-3">
     <label class="block text-sm font-poppins font-semibold mb-1 text-gray-700">Obra</label>
-    <p-autoComplete
+    <p-select
       [(ngModel)]="tareaObra"
-      [suggestions]="filteredObras"
-      (completeMethod)="filtrarObras($event)"
-      field="nombre"
-      [dropdown]="true"
+      [options]="obras"
+      optionLabel="nombre"
       placeholder="Buscar obra"
+      [filter]="true"
+      filterBy="nombre"
+      [showClear]="true"
+      appendTo="body"
       styleClass="w-full"
-      (onSelect)="onTareaObraSelect($event.value ?? $event)"
-    ></p-autoComplete>
+      (onChange)="onTareaObraSelect($event.value)"
+    ></p-select>
 
     <label class="block text-sm font-poppins font-semibold mb-1 text-gray-700">Proveedor</label>
     <p-select

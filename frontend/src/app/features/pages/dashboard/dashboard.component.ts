@@ -15,7 +15,6 @@ import {TransaccionesService} from '../../../services/transacciones/transaccione
 import {ObrasService} from '../../../services/obras/obras.service';
 import {EstadoFormatPipe} from '../../../shared/pipes/estado-format.pipe';
 import {FormsModule} from '@angular/forms';
-import {AutoComplete} from 'primeng/autocomplete';
 import {Select} from 'primeng/select';
 import {InputText} from 'primeng/inputtext';
 import {InputNumber} from 'primeng/inputnumber';
@@ -45,7 +44,6 @@ import { environment } from '../../../../environments/environment';
     Toast,
     ProgressSpinnerModule,
     FormsModule,
-    AutoComplete,
     Select,
     InputText,
     InputNumber,
@@ -855,6 +853,16 @@ export class DashboardComponent implements OnInit {
     } else {
       this.router.navigate(['/obras']);
     }
+  }
+
+  get cobradoClientesGlobal(): number {
+    const detalle: any[] = this.deudasGlobales?.detalleDeudaClientes ?? [];
+    return detalle.reduce((sum: number, d: any) => sum + Number(d.cobrado ?? 0), 0);
+  }
+
+  get pagadoProveedoresGlobal(): number {
+    const detalle: any[] = this.deudasGlobales?.detalleDeudaProveedores ?? [];
+    return detalle.reduce((sum: number, d: any) => sum + Number(d.pagado ?? 0), 0);
   }
 
   get totalCobrosDashboard(): number {

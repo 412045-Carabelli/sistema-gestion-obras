@@ -2,6 +2,7 @@ package com.transacciones.repository;
 
 import com.transacciones.dto.DashboardCuentaCorrienteResponse;
 import com.transacciones.dto.DashboardFilterRequest;
+import com.transacciones.dto.TopObraFinancieroDto;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.Query;
@@ -9,6 +10,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Repository;
 import java.math.BigDecimal;
 import java.sql.Date;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 /**
  * Repository que ejecuta SPs del dashboard contra sp_dashboard_cuenta_corriente.
@@ -72,6 +76,49 @@ public class DashboardRepository {
           .porPagar(BigDecimal.ZERO)
           .resultado(BigDecimal.ZERO)
           .build();
+    }
+  }
+
+  /**
+   * Obtiene top N obras ordenadas por actividad financiera (cobros + pagos).
+   * Calcula directamente desde la tabla transacciones.
+   *
+   * @param topN cantidad máxima de resultados
+   * @return lista de TopObraFinancieroDto
+   */
+  @SuppressWarnings("unchecked")
+  public List<TopObraFinancieroDto> obtenerTopObras(int topN) {
+    try {
+      Query query = entityManager.createNativeQuery(
+          "SELECT TOP (:topN) " +
+          "  t.id_obra AS obraId, " +
+          "  NULL AS obraNombre, " +
+          "  NULL AS presupuesto, " +
+          "  SUM(CASE WHEN UPPER(t.id_tipo_transaccion) = 'COBRO' THEN t.monto ELSE 0 END) AS totalCobros, " +
+          "  SUM(CASE WHEN UPPER(t.id_tipo_transaccion) = 'PAGO' THEN t.monto ELSE 0 END) AS totalPagos " +
+          "FROM transacciones t " +
+          "WHERE t.activo = 1 " +
+          "GROUP BY t.id_obra " +
+          "ORDER BY (SUM(CASE WHEN UPPER(t.id_tipo_transaccion) = 'COBRO' THEN t.monto ELSE 0 END) + " +
+          "          SUM(CASE WHEN UPPER(t.id_tipo_transaccion) = 'PAGO' THEN t.monto ELSE 0 END)) DESC"
+      );
+      query.setParameter("topN", topN);
+
+      List<Object[]> rows = query.getResultList();
+      List<TopObraFinancieroDto> result = new ArrayList<>();
+      for (Object[] row : rows) {
+        result.add(TopObraFinancieroDto.builder()
+            .obraId(((Number) row[0]).longValue())
+            .obraNombre(null)
+            .presupuesto(null)
+            .totalCobros(toBigDecimal(row[3]))
+            .totalPagos(toBigDecimal(row[4]))
+            .build());
+      }
+      return result;
+    } catch (Exception e) {
+      log.error("Error al obtener top obras financiero", e);
+      return Collections.emptyList();
     }
   }
 
