@@ -5,6 +5,7 @@ import org.springframework.stereotype.Service;
 import proveedores.integration.ObrasClient;
 import proveedores.integration.TransaccionesClient;
 
+import jakarta.annotation.PreDestroy;
 import java.math.BigDecimal;
 import java.util.*;
 import java.util.concurrent.*;
@@ -16,6 +17,14 @@ public class ProveedorFinanzasService {
 
     private final ObrasClient obrasClient;
     private final TransaccionesClient transaccionesClient;
+
+    private final ExecutorService ioExecutor = Executors.newFixedThreadPool(
+            Math.max(4, Runtime.getRuntime().availableProcessors() * 2));
+
+    @PreDestroy
+    public void shutdown() {
+        ioExecutor.shutdown();
+    }
 
     /**
      * Calcula totales para un único proveedor. Usar solo en GET /{id}.
@@ -64,6 +73,8 @@ public class ProveedorFinanzasService {
         Map<Long, BigDecimal> pagosByProveedor = new ConcurrentHashMap<>();
         List<CompletableFuture<Void>> futures = proveedorIds.stream()
                 .map(proveedorId -> CompletableFuture.runAsync(() -> {
+
+
                     List<TransaccionesClient.TransaccionResponse> txs =
                             transaccionesClient.obtenerTransaccionesProveedor(proveedorId);
                     BigDecimal pagos = BigDecimal.ZERO;
@@ -76,7 +87,7 @@ public class ProveedorFinanzasService {
                         pagos = pagos.add(BigDecimal.valueOf(tx.monto()));
                     }
                     pagosByProveedor.put(proveedorId, pagos);
-                }))
+                }, ioExecutor))
                 .toList();
         CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
 

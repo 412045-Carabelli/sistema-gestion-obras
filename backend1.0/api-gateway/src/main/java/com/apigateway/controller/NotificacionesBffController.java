@@ -1,6 +1,5 @@
 package com.apigateway.controller;
 
-import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.ResponseEntity;
@@ -14,7 +13,6 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/bff/notificaciones")
-@RequiredArgsConstructor
 public class NotificacionesBffController {
 
     @Value("${services.obras.tareas.url}")
@@ -23,7 +21,11 @@ public class NotificacionesBffController {
     @Value("${services.agendas.tareas.url}")
     private String agendasTareasUrl;
 
-    private final WebClient.Builder webClientBuilder;
+    private final WebClient webClient;
+
+    public NotificacionesBffController(WebClient.Builder webClientBuilder) {
+        this.webClient = webClientBuilder.build();
+    }
 
     /**
      * Retorna tareas próximas a vencer de obras-service y agendas-service combinadas.
@@ -33,7 +35,7 @@ public class NotificacionesBffController {
     public Mono<ResponseEntity<Map<String, Object>>> tareasProximas(
             @RequestParam(name = "dias", defaultValue = "7") int dias) {
 
-        Mono<List<Map<String, Object>>> tareasObras = webClientBuilder.build()
+        Mono<List<Map<String, Object>>> tareasObras = webClient
                 .get()
                 .uri(obrasTareasUrl + "/proximas?dias=" + dias)
                 .retrieve()
@@ -41,7 +43,7 @@ public class NotificacionesBffController {
                 .collectList()
                 .onErrorReturn(List.of());
 
-        Mono<List<Map<String, Object>>> tareasAgendas = webClientBuilder.build()
+        Mono<List<Map<String, Object>>> tareasAgendas = webClient
                 .get()
                 .uri(agendasTareasUrl + "/proximas?dias=" + dias)
                 .retrieve()
