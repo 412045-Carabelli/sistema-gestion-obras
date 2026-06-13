@@ -902,7 +902,10 @@ export class ObraPresupuestoComponent implements OnInit, OnChanges, AfterViewIni
     }
 
     // Abrir modal para seleccionar fecha
-    this.fechaExportSeleccionada = new Date();
+    const hoy = new Date();
+    hoy.setHours(0, 0, 0, 0);
+    this.fechaExportSeleccionada = hoy;
+    this.maxDateExport = new Date();
     this.modoExportPendiente = modo;
     this.showFechaExportModal = true;
   }

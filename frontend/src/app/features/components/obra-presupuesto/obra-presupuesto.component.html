@@ -31,7 +31,7 @@
           severity="primary"
           [disabled]="exportandoPdf"
         ></p-button>
-        <p-menu #exportMenu [popup]="true" [model]="exportOptions"></p-menu>
+        <p-menu #exportMenu [popup]="true" [model]="exportOptions" appendTo="body"></p-menu>
       </div>
       <!-- TODO: WhatsApp deshabilitado temporalmente
       <p-button
@@ -743,10 +743,9 @@
           dateFormat="dd/mm/yy"
           appendTo="body"
           fluid
-          placeholder="Selecciona una fecha"
+          [showButtonBar]="true"
           [maxDate]="maxDateExport"
         ></p-datepicker>
-        <p class="text-xs font-poppins font-normal text-gray-500 mt-1">Por defecto aparece la fecha de hoy</p>
       </div>
 
       <div class="flex justify-end gap-2">
