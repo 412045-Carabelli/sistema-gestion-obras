@@ -19,3 +19,6 @@ GO
 IF NOT EXISTS (SELECT name FROM sys.databases WHERE name = 'sgo_agendas')
     CREATE DATABASE sgo_agendas;
 GO
+IF NOT EXISTS (SELECT name FROM sys.databases WHERE name = 'sgo_auth')
+    CREATE DATABASE sgo_auth;
+GO

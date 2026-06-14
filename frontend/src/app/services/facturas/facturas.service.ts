@@ -2,7 +2,29 @@ import {Injectable} from '@angular/core';
 import {HttpClient, HttpResponse} from '@angular/common/http';
 import {Observable} from 'rxjs';
 import {environment} from '../../../environments/environment';
-import {Factura} from '../../core/models/models';
+import {Cliente, Factura, Obra} from '../../core/models/models';
+
+export interface FacturasResumenResponse {
+  facturas: (Factura & { nombre_cliente?: string; nombre_obra?: string })[];
+  obrasFacturacion: Array<{
+    id: number;
+    nombre: string;
+    clienteNombre: string;
+    estado: string;
+    presupuesto: number;
+    facturado: number;
+    porFacturar: number;
+    facturas: Factura[];
+  }>;
+  kpis: {
+    totalFacturado: number;
+    totalCobrado: number;
+    totalPorCobrar: number;
+    totalPorFacturar: number;
+  };
+  clientes: Pick<Cliente, 'id' | 'nombre'>[];
+  obras: Pick<Obra, 'id' | 'nombre' | 'id_cliente' | 'obra_estado' | 'requiere_factura' | 'activo' | 'presupuesto'>[];
+}
 
 export interface FacturaPayload {
   id_cliente: number;
@@ -26,6 +48,10 @@ export class FacturasService {
 
   getFacturas(): Observable<Factura[]> {
     return this.http.get<Factura[]>(this.apiUrl);
+  }
+
+  getResumen(): Observable<FacturasResumenResponse> {
+    return this.http.get<FacturasResumenResponse>(`${this.apiUrl}/resumen`);
   }
 
   getFacturaById(id: number): Observable<Factura> {

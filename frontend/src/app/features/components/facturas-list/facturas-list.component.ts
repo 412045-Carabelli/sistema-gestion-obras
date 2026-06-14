@@ -9,7 +9,7 @@ import {Select} from 'primeng/select';
 import {ProgressSpinnerModule} from 'primeng/progressspinner';
 import {TooltipModule} from 'primeng/tooltip';
 import {TagModule} from 'primeng/tag';
-import {forkJoin, Observable, Subscription} from 'rxjs';
+import {Subscription} from 'rxjs';
 import {CheckboxModule} from 'primeng/checkbox';
 import {IconFieldModule} from 'primeng/iconfield';
 import {InputIconModule} from 'primeng/inputicon';
@@ -20,12 +20,8 @@ import {FileUploadModule} from 'primeng/fileupload';
 import {ConfirmationService, MessageService} from 'primeng/api';
 import {ConfirmDialog} from 'primeng/confirmdialog';
 
-import {Cliente, Factura, FacturasKpiResponse, Obra, Transaccion} from '../../../core/models/models';
-import {FacturasService} from '../../../services/facturas/facturas.service';
-import {ClientesService} from '../../../services/clientes/clientes.service';
-import {ObrasService} from '../../../services/obras/obras.service';
-import {ReportesService} from '../../../services/reportes/reportes.service';
-import {TransaccionesService} from '../../../services/transacciones/transacciones.service';
+import {Cliente, Factura, Obra} from '../../../core/models/models';
+import {FacturasService, FacturasResumenResponse} from '../../../services/facturas/facturas.service';
 import {EstadoFormatPipe} from '../../../shared/pipes/estado-format.pipe';
 import {ModalComponent} from '../../../shared/modal/modal.component';
 import {FacturasStateService} from '../../../services/facturas/facturas-state.service';
@@ -115,10 +111,10 @@ export class FacturasListComponent implements OnInit, OnDestroy {
   }> = [];
   clientes: Cliente[] = [];
   obras: Obra[] = [];
-  cobrosPorObra: Record<number, number> = {};
   facturadoPorObra: Record<number, number> = {};
   presupuestoPorObra: Record<number, number> = {};
   private obrasById = new Map<number, Obra>();
+  private clientesIndex = new Map<number, string>();
 
   searchValue: string = '';
   clienteFiltro: number | 'todos' = 'todos';
@@ -133,7 +129,7 @@ export class FacturasListComponent implements OnInit, OnDestroy {
     { label: 'Cobrada', value: 'COBRADA' }
   ];
   datosCargados = false;
-  kpiFacturas: FacturasKpiResponse | null = null;
+  kpis: FacturasResumenResponse['kpis'] = { totalFacturado: 0, totalCobrado: 0, totalPorCobrar: 0, totalPorFacturar: 0 };
 
   // Modal nueva factura
   showFacturaModal = false;
@@ -165,10 +161,6 @@ export class FacturasListComponent implements OnInit, OnDestroy {
   constructor(
     private router: Router,
     private facturasService: FacturasService,
-    private clientesService: ClientesService,
-    private obrasService: ObrasService,
-    private reportesService: ReportesService,
-    private transaccionesService: TransaccionesService,
     private messageService: MessageService,
     private confirmationService: ConfirmationService,
     private facturasStateService: FacturasStateService
@@ -246,70 +238,54 @@ export class FacturasListComponent implements OnInit, OnDestroy {
 
   private cargarDatos() {
     this.datosCargados = false;
-    forkJoin({
-      facturas: this.facturasService.getFacturas(),
-      clientes: this.clientesService.getClientes(),
-      obras: this.obrasService.getObrasAll()
-    }).subscribe({
-      next: ({facturas, clientes, obras}) => {
-        this.clientes = clientes.map(c => ({...c, id: Number(c.id)}));
-        this.obras = obras;
+    this.facturasService.getResumen().subscribe({
+      next: (resumen) => {
+        this.kpis = resumen.kpis;
+        this.clientes = resumen.clientes.map(c => ({...c, id: Number(c.id)}) as Cliente);
+        this.obras = resumen.obras as unknown as Obra[];
 
-        const clientesIndex = new Map<number, string>(
+        this.clientesIndex = new Map<number, string>(
           this.clientes.map(c => [Number(c.id), c.nombre])
         );
-        const obrasIndex = new Map<number, string>(
-          this.obras.filter(o => o.id !== undefined).map(o => [Number(o.id), o.nombre])
-        );
-
-        this.facturadoPorObra = (facturas || []).reduce((acc, f) => {
-          const key = Number(f.id_obra || 0);
-          acc[key] = (acc[key] ?? 0) + Number(f.monto || 0);
-          return acc;
-        }, {} as Record<number, number>);
-
-        this.presupuestoPorObra = this.obras.reduce((acc, o) => {
-          const key = Number(o.id || 0);
-          acc[key] = this.calcularPresupuestoObra(o);
-          return acc;
-        }, {} as Record<number, number>);
-
         this.obrasById = new Map<number, Obra>(
           this.obras.filter(o => o.id !== undefined).map(o => [Number(o.id), o])
         );
+        this.facturadoPorObra = resumen.obrasFacturacion.reduce((acc, o) => {
+          acc[o.id] = o.facturado;
+          return acc;
+        }, {} as Record<number, number>);
+        this.presupuestoPorObra = resumen.obrasFacturacion.reduce((acc, o) => {
+          acc[o.id] = o.presupuesto;
+          return acc;
+        }, {} as Record<number, number>);
 
-        this.facturas = (facturas || []).map(f => {
-          const obraId = f.id_obra != null ? Number(f.id_obra) : null;
-          const presupuesto = obraId != null ? (this.presupuestoPorObra[obraId] ?? 0) : 0;
-          const facturado = obraId != null ? (this.facturadoPorObra[obraId] ?? 0) : 0;
-          const porFacturar = obraId != null && this.obraEsFacturable(obraId)
-            ? Math.max(0, presupuesto - facturado)
-            : undefined;
-          const porCobrar = this.obtenerPorCobrarFactura(f);
-          return {
+        this.facturas = (resumen.facturas || []).map(f => ({
+          ...f,
+          clienteNombre: (f as any).nombre_cliente || 'Sin cliente',
+          obraNombre: (f as any).nombre_obra || 'Sin obra',
+          porCobrarObra: this.obtenerPorCobrarFactura(f),
+          descripcionTexto: this.stripHtml(f.descripcion)
+        }));
+
+        this.obrasFacturacion = resumen.obrasFacturacion.map(o => ({
+          ...o,
+          facturas: (o.facturas || []).map(f => ({
             ...f,
-            clienteNombre: clientesIndex.get(Number(f.id_cliente)) || 'Sin cliente',
-            obraNombre: obraId != null
-              ? (obrasIndex.get(obraId) || `Obra #${obraId}`)
-              : 'Sin obra',
-            porCobrarObra: porCobrar,
-            porFacturarObra: porFacturar,
+            clienteNombre: (f as any).nombre_cliente || o.clienteNombre,
+            obraNombre: (f as any).nombre_obra || o.nombre,
+            porCobrarObra: this.obtenerPorCobrarFactura(f),
             descripcionTexto: this.stripHtml(f.descripcion)
-          };
-        });
+          })) as FacturaView[]
+        }));
 
         this.clientesOptions = [
           {label: 'Todos', value: 'todos'},
           ...this.clientes.map(c => ({label: c.nombre, value: Number(c.id)}))
         ];
         this.updateObrasOptions();
-
-        // Setup filter definitions after loading data
         this.setupFilterDefinitions();
-
         this.applyFilter();
-        this.construirListadoObras();
-        this.cargarCobrosPorObra();
+        this.datosCargados = true;
       },
       error: () => {
         this.datosCargados = true;
@@ -361,7 +337,7 @@ export class FacturasListComponent implements OnInit, OnDestroy {
         const matchesCliente =
           this.clienteFiltro === 'todos'
             ? true
-            : Number(this.obrasById.get(obra.id)?.cliente?.id) === Number(this.clienteFiltro);
+            : Number(this.obrasById.get(obra.id)?.id_cliente || this.obrasById.get(obra.id)?.cliente?.id) === Number(this.clienteFiltro);
         const matchesObra =
           this.obraFiltro === 'todos'
             ? true
@@ -380,7 +356,7 @@ export class FacturasListComponent implements OnInit, OnDestroy {
     const obrasFuente =
       this.clienteFiltro === 'todos'
         ? this.obras
-        : this.obras.filter(o => Number(o.cliente?.id) === Number(this.clienteFiltro));
+        : this.obras.filter(o => Number(o.id_cliente || o.cliente?.id) === Number(this.clienteFiltro));
 
     this.obrasOptions = [
       {label: 'Todas', value: 'todos'},
@@ -407,24 +383,20 @@ export class FacturasListComponent implements OnInit, OnDestroy {
   }
 
 
-  get totalPresupuesto(): number {
-    return this.obrasScopeRequiereFactura.reduce((sum, o) => sum + this.calcularPresupuestoObra(o), 0);
-  }
-
   get totalFacturado(): number {
-    return Number(this.kpiFacturas?.totalFacturado ?? 0);
+    return Number(this.kpis.totalFacturado ?? 0);
   }
 
   get totalPorFacturar(): number {
-    return Number(this.kpiFacturas?.totalPorFacturar ?? 0);
+    return Number(this.kpis.totalPorFacturar ?? 0);
   }
 
   get totalCobrado(): number {
-    return Number(this.kpiFacturas?.totalCobrado ?? 0);
+    return Number(this.kpis.totalCobrado ?? 0);
   }
 
   get totalPorCobrar(): number {
-    return Number(this.kpiFacturas?.totalPorCobrar ?? 0);
+    return Number(this.kpis.totalPorCobrar ?? 0);
   }
 
   get facturaFormInvalid(): boolean {
@@ -441,20 +413,12 @@ export class FacturasListComponent implements OnInit, OnDestroy {
     return this.facturas;
   }
 
-  private get facturasScopeRequiereFactura(): FacturaView[] {
-    return this.facturasScope.filter(f => this.obraEsFacturable(f.id_obra));
-  }
-
-  private get obrasScopeRequiereFactura(): Obra[] {
-    return this.obrasScope.filter(o => this.obraEsFacturable(o.id));
-  }
-
   private get obrasScope(): Obra[] {
     if (this.obraFiltro !== 'todos') {
       return this.obras.filter(o => Number(o.id) === Number(this.obraFiltro));
     }
     if (this.clienteFiltro !== 'todos') {
-      return this.obras.filter(o => Number(o.cliente?.id) === Number(this.clienteFiltro));
+      return this.obras.filter(o => Number(o.id_cliente || o.cliente?.id) === Number(this.clienteFiltro));
     }
     return this.obras;
   }
@@ -469,58 +433,6 @@ export class FacturasListComponent implements OnInit, OnDestroy {
     // Verificar que el estado esté en los permitidos
     const estadoNormalizado = this.sanitizarEstado(String(obra.obra_estado || ''));
     return this.ESTADOS_PERMITIDOS.includes(estadoNormalizado);
-  }
-
-  private cargarCobrosPorObra() {
-    const obraIds = this.obras
-      .map(o => Number(o.id || 0))
-      .filter(id => id > 0);
-    if (obraIds.length === 0) {
-      this.cobrosPorObra = {};
-      this.datosCargados = true;
-      return;
-    }
-
-    const requests: Record<number, Observable<Transaccion[]>> = {};
-    obraIds.forEach(id => {
-      requests[id] = this.transaccionesService.getByObra(id);
-    });
-
-    forkJoin(requests).subscribe({
-      next: (result) => {
-        const cobros: Record<number, number> = {};
-        Object.keys(result).forEach(key => {
-          const id = Number(key);
-          const movimientos = result[id] || [];
-          cobros[id] = movimientos
-            .filter(m => this.esCobro(m))
-            .reduce((sum, m) => sum + Number(m.monto || 0), 0);
-        });
-        this.cobrosPorObra = cobros;
-        this.facturas = this.facturas.map(f => ({
-          ...f,
-          porCobrarObra: this.obtenerPorCobrarFactura(f)
-        }));
-        this.construirListadoObras();
-        this.applyFilter();
-        this.cargarKpis();
-      },
-      error: () => {
-        this.datosCargados = true;
-      }
-    });
-  }
-
-  private cargarKpis() {
-    this.reportesService.getKpiFacturas().subscribe({
-      next: (kpi) => {
-        this.kpiFacturas = kpi;
-        this.datosCargados = true;
-      },
-      error: () => {
-        this.datosCargados = true;
-      }
-    });
   }
 
   verAdjunto(factura: FacturaView, event: Event) {
@@ -584,7 +496,6 @@ export class FacturasListComponent implements OnInit, OnDestroy {
           const porCobrar = this.obtenerPorCobrarFactura({...f, ...updated});
           return {...f, ...updated, porCobrarObra: porCobrar};
         });
-        this.construirListadoObras();
         this.applyFilter();
         this.messageService.add({
           severity: 'success',
@@ -610,75 +521,6 @@ export class FacturasListComponent implements OnInit, OnDestroy {
     return Number(factura.monto ?? 0);
   }
 
-  private esCobro(mov: Transaccion): boolean {
-    const raw: any = (mov as any).tipo_transaccion ?? (mov as any).tipo_movimiento ?? (mov as any).tipo;
-    if (typeof raw === 'string') return raw.toUpperCase().includes('COBRO');
-    if (raw && typeof raw.id === 'number') return raw.id === 1;
-    const nombre = (raw?.nombre || '').toString().toUpperCase();
-    return nombre.includes('COBRO');
-  }
-
-  private calcularPresupuestoObra(obra: Obra): number {
-    if (!obra) return 0;
-    const costos = obra.costos ?? [];
-    if (!costos.length) {
-      return Number(obra.presupuesto ?? 0);
-    }
-
-    const beneficioGlobal = obra.beneficio_global ? Number(obra.beneficio ?? 0) : null;
-    const subtotalCostos = costos.reduce((acc, c) => {
-      const base = Number(
-        c.subtotal ??
-        (Number(c.cantidad ?? 0) * Number(c.precio_unitario ?? 0))
-      );
-      return acc + base;
-    }, 0);
-
-    const beneficioCostos = costos.reduce((acc, c) => {
-      const esAdicional = (c.tipo_costo || '').toString().toUpperCase() === 'ADICIONAL';
-      const porc = esAdicional
-        ? Number(c.beneficio ?? 0)
-        : (beneficioGlobal !== null ? beneficioGlobal : Number(c.beneficio ?? 0));
-      const base = Number(
-        c.subtotal ??
-        (Number(c.cantidad ?? 0) * Number(c.precio_unitario ?? 0))
-      );
-      return acc + (base * (porc / 100));
-    }, 0);
-
-    return subtotalCostos + beneficioCostos;
-  }
-
-  private construirListadoObras() {
-    const facturasPorObra = new Map<number, FacturaView[]>();
-    this.facturas.forEach(f => {
-      const obraId = Number(f.id_obra ?? 0);
-      if (!obraId) return;
-      if (!facturasPorObra.has(obraId)) facturasPorObra.set(obraId, []);
-      facturasPorObra.get(obraId)!.push(f);
-    });
-
-    const obrasFacturables = this.obras
-      .filter(o => o.id != null)
-      .filter(o => this.obraEsFacturable(o.id));
-
-    this.obrasFacturacion = obrasFacturables.map(o => {
-      const obraId = Number(o.id);
-      const presupuesto = this.presupuestoPorObra[obraId] ?? this.calcularPresupuestoObra(o);
-      const facturado = this.facturadoPorObra[obraId] ?? 0;
-      const porFacturar = Math.max(0, presupuesto - facturado);
-      return {
-        id: obraId,
-        nombre: o.nombre || `Obra #${obraId}`,
-        clienteNombre: o.cliente?.nombre || 'Sin cliente',
-        estado: this.normalizarEstado(o.obra_estado),
-        presupuesto,
-        facturado,
-        porFacturar,
-        facturas: (facturasPorObra.get(obraId) || []).sort((a, b) => Number(b.id ?? 0) - Number(a.id ?? 0))
-      };
-    });
-  }
 
   private normalizarEstado(raw: any): string {
     if (!raw) return '';
@@ -716,7 +558,7 @@ export class FacturasListComponent implements OnInit, OnDestroy {
       return;
     }
     this.facturaObrasFiltradas = this.obras.filter(o =>
-      Number(o.cliente?.id) === Number(this.facturaForm.id_cliente) && this.esObraDisponibleParaFacturar(o)
+      Number(o.id_cliente || o.cliente?.id) === Number(this.facturaForm.id_cliente) && this.esObraDisponibleParaFacturar(o)
     );
     this.facturaForm.id_obra = null;
     this.facturaRestanteObra = null;

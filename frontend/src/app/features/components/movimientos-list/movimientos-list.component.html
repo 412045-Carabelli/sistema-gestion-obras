@@ -40,11 +40,11 @@
           <tr class="cursor-pointer transition-colors" (click)="onRowClick(mov)">
             <td class="px-3 py-2 font-poppins font-normal">{{ mov.id }}</td>
             <td class="px-3 py-2 font-poppins font-normal">{{ mov.fecha | date:'dd/MM/yyyy' }}</td>
-            <td class="px-3 py-2 font-poppins font-normal">{{ getNombreObra(mov.id_obra) }}</td>
-            <td class="px-3 py-2 font-poppins font-normal">{{ mov.tipo_asociado }}</td>
+            <td class="px-3 py-2 font-poppins font-normal">{{ mov.nombre_obra || getNombreObra(mov.id_obra) }}</td>
+            <td class="px-3 py-2 font-poppins font-normal">{{ mov.tipo_asociado | estadoFormat }}</td>
             <td class="px-3 py-2 font-poppins font-normal">{{ getNombreAsociado(mov) }}</td>
-            <td class="px-3 py-2 font-poppins font-normal">{{ mov.tipo_transaccion }}</td>
-            <td class="px-3 py-2 font-poppins font-normal">{{ mov.forma_pago }}</td>
+            <td class="px-3 py-2 font-poppins font-normal">{{ mov.tipo_transaccion | estadoFormat }}</td>
+            <td class="px-3 py-2 font-poppins font-normal">{{ mov.forma_pago | estadoFormat }}</td>
             <td class="px-3 py-2 font-poppins font-normal">{{ mov.medio_pago || '-' }}</td>
             <td class="px-3 py-2 text-right font-poppins font-semibold">{{ mov.monto | currency:'ARS':'symbol-narrow':'1.0-2' }}</td>
             <td class="px-3 py-2" (click)="$event.stopPropagation()">

@@ -32,12 +32,12 @@ class FacturaBffControllerTest {
         FacturaBffController controller = new FacturaBffController(WebClient.builder().exchangeFunction(stub));
         ReflectionTestUtils.setField(controller, "FACTURAS_URL", baseUrl);
 
-        ResponseEntity<List<Map<String, Object>>> all = controller.getAll(Map.of()).block();
-        ResponseEntity<Map<String, Object>> byId = controller.getById(1L).block();
-        ResponseEntity<List<Map<String, Object>>> byCliente = controller.getByCliente(1L).block();
-        ResponseEntity<List<Map<String, Object>>> byObra = controller.getByObra(1L).block();
-        ResponseEntity<Map<String, Object>> create = controller.create("1", null, "10", "5", "2024-01-01", null, null, null, null).block();
-        ResponseEntity<Map<String, Object>> update = controller.update(1L, "1", "1", "10", "5", "2024-01-01", "desc", "ACTIVA", "true", null).block();
+        ResponseEntity<List<Map<String, Object>>> all = controller.getAll(null, null, null, null, null).block();
+        ResponseEntity<Map<String, Object>> byId = controller.getById(1L, null).block();
+        ResponseEntity<List<Map<String, Object>>> byCliente = controller.getByCliente(1L, null).block();
+        ResponseEntity<List<Map<String, Object>>> byObra = controller.getByObra(1L, null).block();
+        ResponseEntity<Map<String, Object>> create = controller.create("1", null, "10", "5", "2024-01-01", null, null, null, null, null).block();
+        ResponseEntity<Map<String, Object>> update = controller.update(1L, "1", "1", "10", "5", "2024-01-01", "desc", "ACTIVA", "true", null, null).block();
         ResponseEntity<Void> delete = controller.delete(1L).block();
 
         assertThat(all.getBody()).hasSize(1);

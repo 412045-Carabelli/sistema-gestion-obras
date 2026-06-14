@@ -16,7 +16,7 @@
         Ultimos movimientos
       </h2>
       <button
-        class="px-3 py-1 text-sm text-indigo-600 hover:text-indigo-800 font-semibold flex items-center gap-1"
+        class="cursor-pointer px-3 py-1 text-sm text-indigo-600 hover:text-indigo-800 font-semibold flex items-center gap-1"
         (click)="navigateTo('/reportes')">
         Ver todos
         <i class="pi pi-arrow-right text-xs"></i>
@@ -27,7 +27,7 @@
       <div class="space-y-3">
         @for (mov of movimientos.slice(0, 5); track mov.id) {
           <div class="flex items-center gap-3 p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer"
-               (click)="navigateTo('/obras/' + mov.obraId)">
+               (click)="navegarAMovimientosObra(mov.obraId)">
             <div class="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0"
                  [ngClass]="(mov.tipo_movimiento || mov.tipo || mov.tipoTransaccion) === 'INGRESO' || (mov.tipo_movimiento || mov.tipo || mov.tipoTransaccion) === 'COBRO' ? 'bg-green-100' : (mov.tipo_movimiento || mov.tipo || mov.tipoTransaccion) === 'EGRESO' || (mov.tipo_movimiento || mov.tipo || mov.tipoTransaccion) === 'PAGO' ? 'bg-red-100' : 'bg-indigo-100'">
               <i class="pi text-lg"

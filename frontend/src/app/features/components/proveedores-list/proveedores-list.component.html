@@ -28,7 +28,6 @@
             <th pSortableColumn="telefono" class="font-poppins font-semibold">Telefono <p-sortIcon field="telefono"></p-sortIcon></th>
             <th pSortableColumn="email" class="font-poppins font-semibold">Email <p-sortIcon field="email"></p-sortIcon></th>
             <th pSortableColumn="tipo_proveedor" class="font-poppins font-semibold">Tipo <p-sortIcon field="tipo_proveedor"></p-sortIcon></th>
-            <th pSortableColumn="saldoProveedor" class="text-right font-poppins font-semibold">Saldo <p-sortIcon field="saldoProveedor"></p-sortIcon></th>
           </tr>
         </ng-template>
 
@@ -40,13 +39,12 @@
             <td class="whitespace-nowrap max-w-[160px] overflow-hidden text-ellipsis font-poppins font-normal">{{ row.telefono || '-' }}</td>
             <td class="font-poppins font-normal">{{ row.email || '-' }}</td>
             <td class="font-poppins font-normal">{{ formatearTipo(row.tipo_proveedor) || '-' }}</td>
-            <td class="font-poppins font-normal text-right">{{ (row.saldoProveedor ?? 0) | currency:'ARS':'symbol-narrow':'1.0-0' }}</td>
           </tr>
         </ng-template>
 
         <ng-template pTemplate="emptymessage">
           <tr>
-            <td class="text-center py-10" colspan="6">
+            <td class="text-center py-10" colspan="5">
               <div class="flex flex-col items-center justify-center gap-2 text-gray-500">
                 <i class="pi pi-inbox text-3xl"></i>
                 <p class="text-base font-poppins font-semibold">No hay registros para mostrar</p>

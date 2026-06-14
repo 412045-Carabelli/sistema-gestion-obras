@@ -92,8 +92,12 @@ public class TransaccionController {
     }
 
     @PostMapping
-    public ResponseEntity<TransaccionDto> create(@RequestBody TransaccionDto dto) {
-        return ResponseEntity.ok(transaccionService.crear(toEntity(dto)));
+    public ResponseEntity<TransaccionDto> create(
+            @RequestBody TransaccionDto dto,
+            @RequestHeader(value = "X-Empresa-Id", required = false) Long empresaId) {
+        Transaccion entity = toEntity(dto);
+        entity.setEmpresaId(empresaId);
+        return ResponseEntity.ok(transaccionService.crear(entity));
     }
 
     @PutMapping("/{id}")

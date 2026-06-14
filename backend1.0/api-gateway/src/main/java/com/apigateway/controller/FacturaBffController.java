@@ -15,8 +15,8 @@ import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 
 import java.net.URI;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/bff/facturas")
@@ -27,6 +27,17 @@ public class FacturaBffController {
     @Value("${services.facturas.url}")
     private String FACTURAS_URL;
 
+    @Value("${services.obras.url}")
+    private String OBRAS_URL;
+
+    @Value("${services.clientes.url}")
+    private String CLIENTES_URL;
+
+    private static final List<String> ESTADOS_FACTURABLES = List.of(
+        "ADJUDICADA", "EN_PROGRESO", "FINALIZADA", "COBRADA",
+        "FACTURADA", "FACTURADA_PARCIAL", "FACTURADA_TOTAL"
+    );
+
     private final WebClient.Builder webClientBuilder;
 
     @GetMapping
@@ -34,7 +45,8 @@ public class FacturaBffController {
             @RequestParam(required = false) String estado,
             @RequestParam(required = false) Long idCliente,
             @RequestParam(required = false) Integer page,
-            @RequestParam(required = false) Integer size
+            @RequestParam(required = false) Integer size,
+            @RequestHeader(value = "X-Empresa-Id", required = false) String empresaId
     ) {
         return webClientBuilder.build()
                 .get()
@@ -63,6 +75,7 @@ public class FacturaBffController {
                     }
                     return builder.build();
                 })
+                .headers(h -> { if (empresaId != null) h.set("X-Empresa-Id", empresaId); })
                 .retrieve()
                 .bodyToFlux(new ParameterizedTypeReference<Map<String, Object>>() {})
                 .collectList()
@@ -70,20 +83,28 @@ public class FacturaBffController {
     }
 
     @GetMapping("/{id}")
-    public Mono<ResponseEntity<Map<String, Object>>> getById(@PathVariable("id") Long id) {
+    public Mono<ResponseEntity<Map<String, Object>>> getById(
+            @PathVariable("id") Long id,
+            @RequestHeader(value = "X-Empresa-Id", required = false) String empresaId
+    ) {
         return webClientBuilder.build()
                 .get()
                 .uri(FACTURAS_URL + "/{id}", id)
+                .headers(h -> { if (empresaId != null) h.set("X-Empresa-Id", empresaId); })
                 .retrieve()
                 .bodyToMono(new ParameterizedTypeReference<Map<String, Object>>() {})
                 .map(ResponseEntity::ok);
     }
 
     @GetMapping("/cliente/{idCliente}")
-    public Mono<ResponseEntity<List<Map<String, Object>>>> getByCliente(@PathVariable("idCliente") Long idCliente) {
+    public Mono<ResponseEntity<List<Map<String, Object>>>> getByCliente(
+            @PathVariable("idCliente") Long idCliente,
+            @RequestHeader(value = "X-Empresa-Id", required = false) String empresaId
+    ) {
         return webClientBuilder.build()
                 .get()
                 .uri(FACTURAS_URL + "/cliente/{idCliente}", idCliente)
+                .headers(h -> { if (empresaId != null) h.set("X-Empresa-Id", empresaId); })
                 .retrieve()
                 .bodyToFlux(new ParameterizedTypeReference<Map<String, Object>>() {})
                 .collectList()
@@ -91,10 +112,14 @@ public class FacturaBffController {
     }
 
     @GetMapping("/obra/{idObra}")
-    public Mono<ResponseEntity<List<Map<String, Object>>>> getByObra(@PathVariable("idObra") Long idObra) {
+    public Mono<ResponseEntity<List<Map<String, Object>>>> getByObra(
+            @PathVariable("idObra") Long idObra,
+            @RequestHeader(value = "X-Empresa-Id", required = false) String empresaId
+    ) {
         return webClientBuilder.build()
                 .get()
                 .uri(FACTURAS_URL + "/obra/{idObra}", idObra)
+                .headers(h -> { if (empresaId != null) h.set("X-Empresa-Id", empresaId); })
                 .retrieve()
                 .bodyToFlux(new ParameterizedTypeReference<Map<String, Object>>() {})
                 .collectList()
@@ -111,12 +136,14 @@ public class FacturaBffController {
             @RequestPart(value = "descripcion", required = false) String descripcion,
             @RequestPart(value = "estado", required = false) String estado,
             @RequestPart(value = "impacta_cta_cte", required = false) String impactaCtaCte,
-            @RequestPart(value = "file", required = false) FilePart filePart
+            @RequestPart(value = "file", required = false) FilePart filePart,
+            @RequestHeader(value = "X-Empresa-Id", required = false) String empresaId
     ) {
         MultipartBodyBuilder builder = buildMultipart(idCliente, idObra, monto, montoRestante, fecha, descripcion, estado, impactaCtaCte, filePart);
         return webClientBuilder.build()
                 .post()
                 .uri(FACTURAS_URL)
+                .headers(h -> { if (empresaId != null) h.set("X-Empresa-Id", empresaId); })
                 .contentType(MediaType.MULTIPART_FORM_DATA)
                 .body(BodyInserters.fromMultipartData(builder.build()))
                 .exchangeToMono(response -> response
@@ -135,12 +162,14 @@ public class FacturaBffController {
             @RequestPart(value = "descripcion", required = false) String descripcion,
             @RequestPart(value = "estado", required = false) String estado,
             @RequestPart(value = "impacta_cta_cte", required = false) String impactaCtaCte,
-            @RequestPart(value = "file", required = false) FilePart filePart
+            @RequestPart(value = "file", required = false) FilePart filePart,
+            @RequestHeader(value = "X-Empresa-Id", required = false) String empresaId
     ) {
         MultipartBodyBuilder builder = buildMultipart(idCliente, idObra, monto, montoRestante, fecha, descripcion, estado, impactaCtaCte, filePart);
         return webClientBuilder.build()
                 .put()
                 .uri(FACTURAS_URL + "/{id}", id)
+                .headers(h -> { if (empresaId != null) h.set("X-Empresa-Id", empresaId); })
                 .contentType(MediaType.MULTIPART_FORM_DATA)
                 .body(BodyInserters.fromMultipartData(builder.build()))
                 .exchangeToMono(response -> response
@@ -171,6 +200,188 @@ public class FacturaBffController {
                 .onErrorResume(ex -> {
                     response.setStatusCode(org.springframework.http.HttpStatus.NOT_FOUND);
                     return response.setComplete();
+                });
+    }
+
+    @GetMapping("/resumen")
+    public Mono<ResponseEntity<Map<String, Object>>> getResumen(
+            @RequestHeader(value = "X-Empresa-Id", required = false) String empresaId
+    ) {
+        WebClient client = webClientBuilder.build();
+
+        Mono<List<Map<String, Object>>> facturasMono = client.get()
+                .uri(FACTURAS_URL)
+                .headers(h -> { if (empresaId != null) h.set("X-Empresa-Id", empresaId); })
+                .retrieve()
+                .bodyToFlux(new ParameterizedTypeReference<Map<String, Object>>() {})
+                .collectList()
+                .onErrorResume(ex -> Mono.just(List.of()));
+
+        Mono<List<Map<String, Object>>> clientesMono = client.get()
+                .uri(CLIENTES_URL)
+                .headers(h -> { if (empresaId != null) h.set("X-Empresa-Id", empresaId); })
+                .retrieve()
+                .bodyToFlux(new ParameterizedTypeReference<Map<String, Object>>() {})
+                .collectList()
+                .onErrorResume(ex -> Mono.just(List.of()));
+
+        Mono<List<Map<String, Object>>> obrasMono = client.get()
+                .uri(b -> {
+                    URI base = URI.create(OBRAS_URL);
+                    var builder = b.scheme(base.getScheme()).host(base.getHost());
+                    if (base.getPort() != -1) builder.port(base.getPort());
+                    builder.path(base.getPath() + "/resumen");
+                    builder.queryParam("activo", "true");
+                    builder.queryParam("size", "1000");
+                    return builder.build();
+                })
+                .headers(h -> { if (empresaId != null) h.set("X-Empresa-Id", empresaId); })
+                .retrieve()
+                .bodyToMono(new ParameterizedTypeReference<Map<String, Object>>() {})
+                .map(page -> {
+                    @SuppressWarnings("unchecked")
+                    List<Map<String, Object>> content =
+                            (List<Map<String, Object>>) page.getOrDefault("content", List.of());
+                    return content;
+                })
+                .onErrorResume(ex -> Mono.just(List.of()));
+
+        return Mono.zip(facturasMono, clientesMono, obrasMono)
+                .map(tuple -> {
+                    List<Map<String, Object>> facturas = tuple.getT1();
+                    List<Map<String, Object>> clientes = tuple.getT2();
+                    List<Map<String, Object>> obras = tuple.getT3();
+
+                    // Índices para lookup
+                    Map<Long, String> clienteNombres = new HashMap<>();
+                    for (var c : clientes) {
+                        Object id = c.get("id");
+                        if (id != null) clienteNombres.put(((Number) id).longValue(),
+                                (String) c.getOrDefault("nombre", ""));
+                    }
+
+                    Map<Long, Map<String, Object>> obrasById = new HashMap<>();
+                    for (var o : obras) {
+                        Object id = o.get("id");
+                        if (id != null) obrasById.put(((Number) id).longValue(), o);
+                    }
+
+                    // Enriquecer facturas y agrupar por obra
+                    Map<Long, List<Map<String, Object>>> facturasByObra = new HashMap<>();
+                    double totalFacturado = 0;
+                    double totalCobrado = 0;
+                    double totalPorCobrar = 0;
+
+                    List<Map<String, Object>> facturasEnriquecidas = new ArrayList<>();
+                    for (var f : facturas) {
+                        Map<String, Object> enriched = new HashMap<>(f);
+                        Object idCliente = f.get("id_cliente");
+                        Object idObra = f.get("id_obra");
+
+                        if (idCliente != null)
+                            enriched.put("nombre_cliente",
+                                    clienteNombres.getOrDefault(((Number) idCliente).longValue(), "Sin cliente"));
+
+                        if (idObra != null) {
+                            long obraId = ((Number) idObra).longValue();
+                            Map<String, Object> obra = obrasById.get(obraId);
+                            enriched.put("nombre_obra", obra != null
+                                    ? obra.getOrDefault("nombre", "Obra #" + obraId)
+                                    : "Obra #" + obraId);
+                            facturasByObra.computeIfAbsent(obraId, k -> new ArrayList<>()).add(enriched);
+                        }
+
+                        double monto = ((Number) f.getOrDefault("monto", 0)).doubleValue();
+                        totalFacturado += monto;
+
+                        String estado = (String) f.getOrDefault("estado", "EMITIDA");
+                        if ("COBRADA".equalsIgnoreCase(estado)) {
+                            totalCobrado += monto;
+                        } else {
+                            Object mr = f.get("monto_restante");
+                            totalPorCobrar += mr != null ? ((Number) mr).doubleValue() : monto;
+                        }
+
+                        facturasEnriquecidas.add(enriched);
+                    }
+
+                    // Obras facturables con sus facturas agrupadas
+                    double totalPorFacturar = 0;
+                    List<Map<String, Object>> obrasFacturacion = new ArrayList<>();
+                    for (var o : obras) {
+                        if (!Boolean.TRUE.equals(o.get("requiere_factura"))) continue;
+                        if (Boolean.FALSE.equals(o.get("activo"))) continue;
+
+                        Object estadoRaw = o.get("obra_estado");
+                        String estadoStr = estadoRaw != null ? estadoRaw.toString().toUpperCase() : "";
+                        if (!ESTADOS_FACTURABLES.contains(estadoStr)) continue;
+
+                        Object idO = o.get("id");
+                        long obraId = idO != null ? ((Number) idO).longValue() : 0;
+
+                        Object idClienteO = o.get("id_cliente");
+                        String clienteNombre = idClienteO != null
+                                ? clienteNombres.getOrDefault(((Number) idClienteO).longValue(), "Sin cliente")
+                                : "Sin cliente";
+
+                        double presupuesto = ((Number) o.getOrDefault("presupuesto", 0)).doubleValue();
+                        List<Map<String, Object>> facturasObra =
+                                facturasByObra.getOrDefault(obraId, List.of());
+                        double facturado = facturasObra.stream()
+                                .mapToDouble(f -> ((Number) f.getOrDefault("monto", 0)).doubleValue())
+                                .sum();
+                        double porFacturar = Math.max(0, presupuesto - facturado);
+                        totalPorFacturar += porFacturar;
+
+                        Map<String, Object> obraFact = new LinkedHashMap<>();
+                        obraFact.put("id", obraId);
+                        obraFact.put("nombre", o.getOrDefault("nombre", "Obra #" + obraId));
+                        obraFact.put("clienteNombre", clienteNombre);
+                        obraFact.put("estado", estadoStr);
+                        obraFact.put("presupuesto", presupuesto);
+                        obraFact.put("facturado", facturado);
+                        obraFact.put("porFacturar", porFacturar);
+                        obraFact.put("facturas", facturasObra);
+                        obrasFacturacion.add(obraFact);
+                    }
+
+                    // KPIs
+                    Map<String, Object> kpis = new LinkedHashMap<>();
+                    kpis.put("totalFacturado", totalFacturado);
+                    kpis.put("totalCobrado", totalCobrado);
+                    kpis.put("totalPorCobrar", totalPorCobrar);
+                    kpis.put("totalPorFacturar", totalPorFacturar);
+
+                    // Clientes slim para filtros
+                    List<Map<String, Object>> clientesSlim = clientes.stream()
+                            .map(c -> Map.<String, Object>of(
+                                    "id", c.getOrDefault("id", 0),
+                                    "nombre", c.getOrDefault("nombre", "")))
+                            .collect(Collectors.toList());
+
+                    // Obras slim para modal y filtros
+                    List<Map<String, Object>> obrasSlim = obras.stream()
+                            .map(o -> {
+                                Map<String, Object> slim = new HashMap<>();
+                                slim.put("id", o.get("id"));
+                                slim.put("nombre", o.get("nombre"));
+                                slim.put("id_cliente", o.get("id_cliente"));
+                                slim.put("obra_estado", o.get("obra_estado"));
+                                slim.put("requiere_factura", o.get("requiere_factura"));
+                                slim.put("activo", o.get("activo"));
+                                slim.put("presupuesto", o.get("presupuesto"));
+                                return slim;
+                            })
+                            .collect(Collectors.toList());
+
+                    Map<String, Object> result = new LinkedHashMap<>();
+                    result.put("facturas", facturasEnriquecidas);
+                    result.put("obrasFacturacion", obrasFacturacion);
+                    result.put("kpis", kpis);
+                    result.put("clientes", clientesSlim);
+                    result.put("obras", obrasSlim);
+
+                    return ResponseEntity.ok(result);
                 });
     }
 

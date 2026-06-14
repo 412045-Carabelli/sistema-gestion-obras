@@ -14,6 +14,8 @@ import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import java.util.Map;
+
 @RestController
 @RequestMapping("/api/documentos")
 @RequiredArgsConstructor
@@ -21,6 +23,19 @@ import reactor.core.publisher.Mono;
 public class DocumentoController {
 
     private final DocumentoService documentoService;
+
+    @PostMapping(value = "/logo", consumes = MediaType.MULTIPART_FORM_DATA_VALUE,
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    public Mono<ResponseEntity<Map<String, String>>> uploadLogo(
+            @RequestPart("file") FilePart filePart
+    ) {
+        return documentoService.uploadLogo(filePart)
+                .map(url -> ResponseEntity.ok(Map.of("url", url)))
+                .onErrorResume(ex -> {
+                    log.error("Error subiendo logo", ex);
+                    return Mono.just(ResponseEntity.internalServerError().build());
+                });
+    }
 
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE)

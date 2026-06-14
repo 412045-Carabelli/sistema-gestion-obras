@@ -20,13 +20,16 @@ public class TareaController {
     private final TareaService service;
 
     @PostMapping
-    public ResponseEntity<TareaResponse> crear(@RequestBody @Valid TareaRequest request) {
-        return ResponseEntity.ok(service.crear(request));
+    public ResponseEntity<TareaResponse> crear(
+            @RequestBody @Valid TareaRequest request,
+            @RequestHeader(value = "X-Empresa-Id", required = false) Long empresaId) {
+        return ResponseEntity.ok(service.crear(request, empresaId));
     }
 
     @GetMapping
-    public List<TareaResponse> listar() {
-        return service.listar();
+    public List<TareaResponse> listar(
+            @RequestHeader(value = "X-Empresa-Id", required = false) Long empresaId) {
+        return service.listar(empresaId);
     }
 
     @GetMapping("/proveedor/{idProveedor}")

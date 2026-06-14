@@ -105,8 +105,9 @@ public class ProveedoresController {
     // ======== ENDPOINTS ========
 
     @GetMapping
-    public ResponseEntity<List<ProveedorDTO>> getAllActivos() {
-        List<Proveedor> proveedores = service.findAllActivos();
+    public ResponseEntity<List<ProveedorDTO>> getAllActivos(
+            @RequestHeader(value = "X-Empresa-Id", required = false) Long empresaId) {
+        List<Proveedor> proveedores = service.findAllActivosByEmpresa(empresaId);
         List<Long> ids = proveedores.stream().map(Proveedor::getId).toList();
         Map<Long, ProveedorFinanzasService.TotalesProveedor> totalesMap = finanzasService.calcularTotalesBulk(ids);
         List<ProveedorDTO> result = proveedores.stream()
@@ -126,8 +127,9 @@ public class ProveedoresController {
     }
 
     @GetMapping("/simple")
-    public ResponseEntity<List<ProveedorDTO>> getSimple() {
-        List<ProveedorDTO> result = service.findAllActivos()
+    public ResponseEntity<List<ProveedorDTO>> getSimple(
+            @RequestHeader(value = "X-Empresa-Id", required = false) Long empresaId) {
+        List<ProveedorDTO> result = service.findAllActivosByEmpresa(empresaId)
                 .stream()
                 .map(this::toDTO)
                 .toList();
@@ -158,9 +160,11 @@ public class ProveedoresController {
 
 
     @PostMapping
-    public ResponseEntity<ProveedorDTO> create(@RequestBody ProveedorDTO dto) {
+    public ResponseEntity<ProveedorDTO> create(
+            @RequestBody ProveedorDTO dto,
+            @RequestHeader(value = "X-Empresa-Id", required = false) Long empresaId) {
         try {
-            Proveedor saved = service.save(toEntity(dto));
+            Proveedor saved = service.save(toEntity(dto), empresaId);
             return ResponseEntity.ok(toDTO(saved));
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().build();

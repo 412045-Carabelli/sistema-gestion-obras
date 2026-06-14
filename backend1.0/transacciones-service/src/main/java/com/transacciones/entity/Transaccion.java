@@ -20,6 +20,9 @@ public class Transaccion {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(name = "empresa_id")
+    private Long empresaId;
+
     @Column(name = "id_obra", nullable = false)
     private Long idObra;
 

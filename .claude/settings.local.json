@@ -105,7 +105,26 @@
       "Bash(where gh:*)",
       "Read(//mnt/c/Users/Usuario/AppData/Local/**)",
       "Read(//mnt/c/**)",
-      "Read(//mnt/c/Users/Usuario/scoop/**)"
+      "Read(//mnt/c/Users/Usuario/scoop/**)",
+      "Bash(node -e \":*)",
+      "Bash(python3 -c \"import bcrypt; pw = b''Pablo2025!''; h = bcrypt.hashpw\\(pw, bcrypt.gensalt\\(10\\)\\); print\\(h.decode\\(\\)\\)\")",
+      "Bash(python -c \"import bcrypt; pw = b''Pablo2025!''; h = bcrypt.hashpw\\(pw, bcrypt.gensalt\\(10\\)\\); print\\(h.decode\\(\\)\\)\")",
+      "Bash(node -e \"const bcrypt = require\\(''bcrypt''\\); bcrypt.hash\\(''Pablo2025!'', 10\\).then\\(h => console.log\\(h\\)\\).catch\\(\\(\\) => console.log\\(''NO_NODE_BCRYPT''\\)\\);\")",
+      "Bash(powershell -Command \"Add-Type -Path ''C:/Users/Usuario/.m2/repository/org/springframework/security/spring-security-crypto/6.2.5/spring-security-crypto-6.2.5.jar'' -ErrorAction SilentlyContinue; echo ''skip''\")",
+      "Bash(powershell -Command \":*)",
+      "Bash(ls C:/Users/Usuario/Desktop/my-work/sistema-gestion-obras/backend1.0/auth-service/target/*.jar)",
+      "Bash(where java:*)",
+      "Bash(TOKEN=\"eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJwYWJsb0BtZWxpcXVpbmEuY29tIiwidXNlcklkIjo5OSwidXNlcm5hbWUiOiJwYWJsbyIsInJvbCI6IkFETUlOIiwib3JnYW5pemFjaW9uSWQiOjEsImlhdCI6MTc4MTQ2NzU2NiwiZXhwIjoxNzgxNDY4NDY2fQ.8yJ0EqZZFv-uigoxAL_129xYeByTuMPHZ7h_8FztLKY\")",
+      "Bash(curl -s -X GET \"http://localhost:8080/bff/obras\" -H \"Authorization: Bearer $TOKEN\" -H \"Content-Type: application/json\")",
+      "Bash(curl -v -X GET \"http://localhost:8080/bff/obras\" -H \"Authorization: Bearer $TOKEN\")",
+      "mcp__plugin_atlassian_atlassian__getAccessibleAtlassianResources",
+      "mcp__plugin_atlassian_atlassian__atlassianUserInfo",
+      "mcp__plugin_atlassian_atlassian__getVisibleJiraProjects",
+      "mcp__plugin_atlassian_atlassian__searchJiraIssuesUsingJql",
+      "Bash(python3 -c \":*)",
+      "Bash(node:*)",
+      "mcp__plugin_atlassian_atlassian__getTransitionsForJiraIssue",
+      "mcp__plugin_atlassian_atlassian__transitionJiraIssue"
     ]
   }
 }
