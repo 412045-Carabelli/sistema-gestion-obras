@@ -25,3 +25,16 @@ export const authMatchGuard: CanMatchFn = () => {
   router.navigate(['/login']);
   return false;
 };
+
+export const adminGuard: CanActivateFn = (route, state) => {
+  const authService = inject(AuthService);
+  const router = inject(Router);
+
+  const user = authService.getCurrentUser();
+  if (user?.rol === 'ADMIN') {
+    return true;
+  }
+
+  router.navigate(['/configuracion']);
+  return false;
+};

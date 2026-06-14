@@ -1,5 +1,8 @@
 import {Routes} from '@angular/router';
-import {authGuard, authMatchGuard} from './core/guards/auth.guard';
+import {authGuard, authMatchGuard, adminGuard} from './core/guards/auth.guard';
+import {ConfiguracionLayoutComponent} from './features/pages/configuracion/configuracion-layout.component';
+import {ConfiguracionComponent} from './features/pages/configuracion/configuracion.component';
+import {UsuariosAdminComponent} from './features/pages/configuracion/usuarios-admin/usuarios-admin.component';
 import {ObrasCreateComponent} from './features/pages/obras-create/obras-create.component';
 import {ObrasLayoutComponent} from './features/obras-layout/obras-layout.component';
 import {ObrasDetailComponent} from './features/pages/obras-detail/obras-detail.component';
@@ -149,10 +152,19 @@ export const routes: Routes = [
   },
   {
     path: 'configuracion',
-    loadComponent: () => import('./features/pages/configuracion/configuracion.component')
-      .then(m => m.ConfiguracionComponent),
+    component: ConfiguracionLayoutComponent,
     canMatch: [authMatchGuard],
-    canActivate: [authGuard]
+    canActivate: [authGuard],
+    children: [
+      { path: '', component: ConfiguracionComponent },
+      {
+        path: '',
+        canActivateChild: [adminGuard],
+        children: [
+          { path: 'usuarios', component: UsuariosAdminComponent }
+        ]
+      }
+    ]
   },
   {path: '**', redirectTo: 'dashboard'},
 ];

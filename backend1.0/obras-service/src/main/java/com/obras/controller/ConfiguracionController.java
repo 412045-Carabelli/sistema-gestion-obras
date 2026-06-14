@@ -29,13 +29,16 @@ public class ConfiguracionController {
 
     @PutMapping
     public ResponseEntity<Map<String, String>> actualizar(@RequestBody Map<String, String> valores) {
-        valores.forEach((clave, valor) ->
-            repository.findById(clave).ifPresent(config -> {
-                config.setValor(valor != null ? valor : "");
-                config.setActualizadoEn(Instant.now());
-                repository.save(config);
-            })
-        );
+        valores.forEach((clave, valor) -> {
+            AppConfig config = repository.findById(clave).orElseGet(() -> {
+                AppConfig nuevo = new AppConfig();
+                nuevo.setClave(clave);
+                return nuevo;
+            });
+            config.setValor(valor != null ? valor : "");
+            config.setActualizadoEn(Instant.now());
+            repository.save(config);
+        });
         return obtener();
     }
 }
