@@ -1,5 +1,5 @@
 import {Routes} from '@angular/router';
-// import {authGuard} from './core/guards/auth.guard'; // TODO: Descomentar cuando auth esté activado
+import {authGuard, authMatchGuard} from './core/guards/auth.guard';
 import {ObrasCreateComponent} from './features/pages/obras-create/obras-create.component';
 import {ObrasLayoutComponent} from './features/obras-layout/obras-layout.component';
 import {ObrasDetailComponent} from './features/pages/obras-detail/obras-detail.component';
@@ -31,23 +31,17 @@ import {MovimientosLayoutComponent} from './features/movimientos-layout/movimien
 import {MovimientosListComponent} from './features/components/movimientos-list/movimientos-list.component';
 
 export const routes: Routes = [
-  // TODO: Auth routes (descomentar cuando auth esté activado)
-  // {
-  //   path: 'login',
-  //   loadComponent: () => import('./features/pages/login/login.component')
-  //     .then(m => m.LoginComponent)
-  // },
-  // {
-  //   path: 'register',
-  //   loadComponent: () => import('./features/pages/register/register.component')
-  //     .then(m => m.RegisterComponent)
-  // },
-  // {
-  //   path: 'change-password',
-  //   loadComponent: () => import('./features/pages/change-password/change-password.component')
-  //     .then(m => m.ChangePasswordComponent),
-  //   canActivate: [authGuard]
-  // },
+  // Auth routes (públicas)
+  {
+    path: 'login',
+    loadComponent: () => import('./features/pages/login/login.component')
+      .then(m => m.LoginComponent)
+  },
+  {
+    path: 'register',
+    loadComponent: () => import('./features/pages/register/register.component')
+      .then(m => m.RegisterComponent)
+  },
 
   {
     path: '',
@@ -57,16 +51,22 @@ export const routes: Routes = [
   {
     path: 'dashboard',
     loadComponent: () => import('./features/pages/dashboard/dashboard.component')
-      .then(m => m.DashboardComponent)
+      .then(m => m.DashboardComponent),
+    canMatch: [authMatchGuard],
+    canActivate: [authGuard]
   },
   {
     path: 'tareas',
     loadComponent: () => import('./features/pages/tareas/tareas.component')
-      .then(m => m.TareasComponent)
+      .then(m => m.TareasComponent),
+    canMatch: [authMatchGuard],
+    canActivate: [authGuard]
   },
   {
     path: 'obras',
     component: ObrasLayoutComponent,
+    canMatch: [authMatchGuard],
+    canActivate: [authGuard],
     children: [
       {path: '', component: ObrasListComponent},
       {path: 'nueva', component: ObrasCreateComponent},
@@ -77,6 +77,8 @@ export const routes: Routes = [
   {
     path: 'clientes',
     component: ClientesLayoutComponent,
+    canMatch: [authMatchGuard],
+    canActivate: [authGuard],
     children: [
       {path: '', component: ClientesListComponent},
       {path: 'nueva', component: ClientesCreateComponent},
@@ -87,6 +89,8 @@ export const routes: Routes = [
   {
     path: 'proveedores',
     component: ProveedoresLayoutComponent,
+    canMatch: [authMatchGuard],
+    canActivate: [authGuard],
     children: [
       {path: '', component: ProveedoresListComponent},
       {path: 'nueva', component: ProveedoresCreateComponent},
@@ -97,6 +101,8 @@ export const routes: Routes = [
   {
     path: 'facturas',
     component: FacturasLayoutComponent,
+    canMatch: [authMatchGuard],
+    canActivate: [authGuard],
     children: [
       {path: '', component: FacturasListComponent},
       {path: 'nueva', component: FacturasCreateComponent},
@@ -107,14 +113,18 @@ export const routes: Routes = [
   {
     path: 'agendas',
     component: AgendasLayoutComponent,
+    canMatch: [authMatchGuard],
+    canActivate: [authGuard],
     children: [
       {path: '', component: AgendasListComponent},
     ],
   },
-  {path: 'reportes', component: ReportesComponent},
+  {path: 'reportes', component: ReportesComponent, canMatch: [authMatchGuard], canActivate: [authGuard]},
   {
     path: 'grupos',
     component: GruposLayoutComponent,
+    canMatch: [authMatchGuard],
+    canActivate: [authGuard],
     children: [
       {path: '', component: GruposObrasComponent},
     ],
@@ -122,6 +132,8 @@ export const routes: Routes = [
   {
     path: 'cuentas-corrientes',
     component: CuentaCorrienteLayoutComponent,
+    canMatch: [authMatchGuard],
+    canActivate: [authGuard],
     children: [
       {path: '', component: CuentaCorrienteComponent},
     ],
@@ -129,6 +141,8 @@ export const routes: Routes = [
   {
     path: 'movimientos',
     component: MovimientosLayoutComponent,
+    canMatch: [authMatchGuard],
+    canActivate: [authGuard],
     children: [
       {path: '', component: MovimientosListComponent},
     ],
@@ -136,7 +150,9 @@ export const routes: Routes = [
   {
     path: 'configuracion',
     loadComponent: () => import('./features/pages/configuracion/configuracion.component')
-      .then(m => m.ConfiguracionComponent)
+      .then(m => m.ConfiguracionComponent),
+    canMatch: [authMatchGuard],
+    canActivate: [authGuard]
   },
   {path: '**', redirectTo: 'dashboard'},
 ];

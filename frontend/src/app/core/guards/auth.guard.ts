@@ -1,5 +1,5 @@
 import { inject } from '@angular/core';
-import { Router, CanActivateFn } from '@angular/router';
+import { Router, CanActivateFn, CanMatchFn } from '@angular/router';
 import { AuthService } from '../../services/auth/auth.service';
 
 export const authGuard: CanActivateFn = (route, state) => {
@@ -10,7 +10,18 @@ export const authGuard: CanActivateFn = (route, state) => {
     return true;
   }
 
-  // No autenticado, redirigir a login
   router.navigate(['/login'], { queryParams: { returnUrl: state.url } });
+  return false;
+};
+
+export const authMatchGuard: CanMatchFn = () => {
+  const authService = inject(AuthService);
+  const router = inject(Router);
+
+  if (authService.isLoggedIn()) {
+    return true;
+  }
+
+  router.navigate(['/login']);
   return false;
 };
