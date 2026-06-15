@@ -124,6 +124,8 @@ export class ObrasDetailComponent implements OnInit, OnDestroy, AfterViewInit {
   beneficioCostos = 0;
   cronogramaFueraDeRango = false;
   memoriaExpandida = false;
+  editandoMemoria = false;
+  memoriaTemp = '';
   notasExpandida = false;
   notasOverflow = false;
   activeTab = '0';
@@ -758,6 +760,59 @@ export class ObrasDetailComponent implements OnInit, OnDestroy, AfterViewInit {
 
   toggleMemoria() {
     this.memoriaExpandida = !this.memoriaExpandida;
+  }
+
+  iniciarEditarMemoria() {
+    this.memoriaTemp = this.obra.memoria_descriptiva || '';
+    this.editandoMemoria = true;
+  }
+
+  cancelarEditarMemoria() {
+    this.editandoMemoria = false;
+    this.memoriaTemp = '';
+  }
+
+  guardarMemoria() {
+    if (!this.obra?.id) return;
+    const idCliente = this.obra.cliente?.id ?? (this.obra as any).id_cliente;
+    const estadoRaw = this.obra.obra_estado;
+    const estadoNormalizado: any = typeof estadoRaw === 'string'
+      ? estadoRaw
+      : (estadoRaw as any)?.name ?? (estadoRaw as any)?.value ?? estadoRaw;
+
+    const payload: any = {
+      id_cliente: idCliente,
+      obra_estado: estadoNormalizado,
+      nombre: this.obra.nombre,
+      direccion: this.obra.direccion,
+      fecha_inicio: this.toDateTimeString(this.obra.fecha_inicio),
+      fecha_presupuesto: this.toDateTimeString(this.obra.fecha_presupuesto),
+      fecha_fin: this.toDateTimeString(this.obra.fecha_fin),
+      fecha_adjudicada: this.toDateTimeString(this.obra.fecha_adjudicada),
+      fecha_perdida: this.toDateTimeString(this.obra.fecha_perdida),
+      tiene_comision: this.obra.tiene_comision ?? false,
+      presupuesto: this.obra.presupuesto,
+      beneficio_global: this.obra.beneficio_global,
+      beneficio: this.obra.beneficio,
+      comision: this.obra.comision,
+      notas: this.obra.notas,
+      memoria_descriptiva: this.memoriaTemp,
+      condiciones_presupuesto: this.obra.condiciones_presupuesto,
+      observaciones_presupuesto: this.obra.observaciones_presupuesto,
+      requiere_factura: this.obra.requiere_factura
+    };
+
+    this.obraService.updateObra(this.obra.id!, payload).subscribe({
+      next: (updated) => {
+        this.obra = { ...this.obra, ...updated, memoria_descriptiva: this.memoriaTemp };
+        this.editandoMemoria = false;
+        this.memoriaTemp = '';
+        this.messageService.add({ severity: 'success', summary: 'Guardado', detail: 'Memoria descriptiva actualizada' });
+      },
+      error: () => {
+        this.messageService.add({ severity: 'error', summary: 'Error', detail: 'No se pudo guardar la memoria descriptiva' });
+      }
+    });
   }
 
   toggleNotas() {

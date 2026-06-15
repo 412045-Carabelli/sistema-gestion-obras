@@ -348,7 +348,7 @@ export class FacturasListComponent implements OnInit, OnDestroy {
 
       return matchesSearch && matchesCliente && matchesObra && matchesEstado && matchesActivo;
     })
-      .sort((a, b) => Number(b.id ?? 0) - Number(a.id ?? 0));
+      .sort((a, b) => new Date(b.fecha ?? 0).getTime() - new Date(a.fecha ?? 0).getTime());
 
     this.obrasFacturacionFiltradas = this.obrasFacturacion
       .filter(obra => {

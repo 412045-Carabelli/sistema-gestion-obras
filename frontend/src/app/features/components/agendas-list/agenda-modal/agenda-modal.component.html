@@ -29,30 +29,17 @@
       }
     </div>
 
-    <!-- Estado y Prioridad -->
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-      <div>
-        <label class="block text-sm font-poppins font-semibold mb-1 text-gray-700">Estado</label>
-        <p-dropdown
-          [options]="estadosOptions"
-          optionLabel="label"
-          optionValue="name"
-          formControlName="estado"
-          styleClass="w-full"
-          appendTo="body">
-        </p-dropdown>
-      </div>
-      <div>
-        <label class="block text-sm font-poppins font-semibold mb-1 text-gray-700">Prioridad</label>
-        <p-dropdown
-          [options]="prioridadesOptions"
-          optionLabel="label"
-          optionValue="value"
-          formControlName="prioridad"
-          styleClass="w-full"
-          appendTo="body">
-        </p-dropdown>
-      </div>
+    <!-- Prioridad -->
+    <div>
+      <label class="block text-sm font-poppins font-semibold mb-1 text-gray-700">Prioridad</label>
+      <p-dropdown
+        [options]="prioridadesOptions"
+        optionLabel="label"
+        optionValue="value"
+        formControlName="prioridad"
+        styleClass="w-full"
+        appendTo="body">
+      </p-dropdown>
     </div>
 
     <!-- Obra, Cliente, Proveedor -->

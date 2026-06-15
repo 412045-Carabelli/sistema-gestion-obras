@@ -541,7 +541,23 @@
                     Documento descriptivo del proyecto y especificaciones técnicas
                   </p>
                 </div>
-                @if (obra.memoria_descriptiva) {
+                @if (editandoMemoria) {
+                  <div class="space-y-3">
+                    <textarea
+                      class="w-full border border-gray-200 rounded-lg p-3 text-gray-700 text-sm leading-relaxed resize-y focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      [(ngModel)]="memoriaTemp"
+                      rows="14"
+                      placeholder="Ingresá la memoria descriptiva...">
+                    </textarea>
+                    <div class="flex gap-2 justify-end">
+                      <button pButton type="button" label="Cancelar" class="p-button-text p-button-sm" (click)="cancelarEditarMemoria()"></button>
+                      <button pButton type="button" label="Guardar" icon="pi pi-check" class="p-button-sm" (click)="guardarMemoria()"></button>
+                    </div>
+                  </div>
+                } @else if (obra.memoria_descriptiva) {
+                  <div class="flex justify-end mb-2">
+                    <button pButton type="button" icon="pi pi-pencil" label="Editar" class="p-button-text p-button-sm" (click)="iniciarEditarMemoria()"></button>
+                  </div>
                   <div class="bg-white rounded-lg border border-gray-200 p-6 prose max-w-none">
                     <div class="text-gray-700 leading-relaxed" [innerHTML]="obra.memoria_descriptiva">
                     </div>
@@ -550,7 +566,7 @@
                   <div class="text-center py-12">
                     <i class="pi pi-inbox text-4xl text-gray-300 mb-3"></i>
                     <p class="text-gray-500 font-poppins font-semibold">Sin memoria descriptiva</p>
-                    <p class="text- font-normal text-gray-400 mt-1">Agregá la memoria descriptiva en la sección de edición</p>
+                    <button pButton type="button" icon="pi pi-plus" label="Agregar memoria descriptiva" class="p-button-text p-button-sm mt-3" (click)="iniciarEditarMemoria()"></button>
                   </div>
                 }
               </div>

@@ -31,7 +31,6 @@ import { CostosService } from '../../../services/costos/costos.service';
 import { Select } from 'primeng/select';
 import { ModalComponent } from '../../../shared/modal/modal.component';
 import {ConfirmDialog} from 'primeng/confirmdialog';
-import { AutoCompleteModule } from 'primeng/autocomplete';
 import { MenuModule } from 'primeng/menu';
 import { MenuItem } from 'primeng/api';
 import { EditorModule } from 'primeng/editor';
@@ -66,7 +65,6 @@ import { WhatsAppService } from '../../../services/whatsapp/whatsapp.service';
     ToastModule,
     NgClass,
     Select,
-    AutoCompleteModule,
     ModalComponent,
     MenuModule,
     EditorModule,
@@ -1325,7 +1323,18 @@ export class ObraPresupuestoComponent implements OnInit, OnChanges, AfterViewIni
     this.filteredProveedores = this.appendNuevoProveedorOption(filtrados);
   }
 
+  proveedoresConNuevo(): Proveedor[] {
+    return [
+      ...[...(this.proveedores || [])].sort((a, b) => (a.nombre || '').localeCompare(b.nombre || '')),
+      this.nuevoProveedorOption
+    ];
+  }
+
   seleccionarProveedorNuevo(value: any) {
+    if (!value) {
+      this.limpiarProveedorNuevo();
+      return;
+    }
     const seleccionado = typeof value === 'object' ? value : undefined;
     if (Number(seleccionado?.id ?? -1) === this.NUEVO_PROVEEDOR_ID) {
       this.proveedorTarget = 'nuevo';
@@ -1351,6 +1360,11 @@ export class ObraPresupuestoComponent implements OnInit, OnChanges, AfterViewIni
   }
 
   seleccionarProveedorFila(costo: ObraCosto, value: any) {
+    if (!value) {
+      costo.proveedor = undefined;
+      costo.id_proveedor = undefined;
+      return;
+    }
     const seleccionado = typeof value === 'object' ? value : undefined;
     if (Number(seleccionado?.id ?? -1) === this.NUEVO_PROVEEDOR_ID) {
       costo.proveedor = undefined;

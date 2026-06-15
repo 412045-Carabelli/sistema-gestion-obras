@@ -80,23 +80,18 @@
             </div>
             <div class="flex flex-col gap-1 sm:col-span-2">
               <label class="text-xs font-poppins font-semibold text-gray-600 min-h-[16px]">Proveedor</label>
-              <p-autoComplete
+              <p-select
                 [(ngModel)]="nuevoCostoProveedor"
-                [suggestions]="filteredProveedores"
-                [dropdown]="true"
-                [showClear]="true"
+                [options]="proveedoresConNuevo()"
                 optionLabel="nombre"
-                field="nombre"
+                [filter]="true"
+                filterBy="nombre"
+                [showClear]="true"
                 placeholder="Selecciona proveedor"
-                class="w-full"
-                inputStyleClass="w-full"
+                styleClass="w-full"
                 appendTo="body"
-                fluid
-                (completeMethod)="filtrarProveedores($event)"
-                (onSelect)="seleccionarProveedorNuevo($event.value ?? $event)"
-                (onClear)="limpiarProveedorNuevo()"
-                (onDropdownClick)="filtrarProveedores({ query: '' })"
-              ></p-autoComplete>
+                (onChange)="seleccionarProveedorNuevo($event.value)"
+              ></p-select>
             </div>
           </div>
         </div>
@@ -521,17 +516,17 @@
             <div class="flex flex-col gap-2">
               <label class="text-sm font-poppins font-semibold text-gray-700">Proveedor</label>
               @if (costoDetalleEditando) {
-                <p-autoComplete
+                <p-select
                   [(ngModel)]="costoDetalleDraft.proveedor"
-                  [suggestions]="filteredProveedores"
-                  (completeMethod)="filtrarProveedores($event)"
-                  field="nombre"
-                  [dropdown]="true"
+                  [options]="proveedoresConNuevo()"
+                  optionLabel="nombre"
+                  [filter]="true"
+                  filterBy="nombre"
                   placeholder="Buscar proveedor"
                   styleClass="w-full max-w-[260px]"
-                  inputStyleClass="text-sm py-1"
-                  (onSelect)="seleccionarProveedorFila(costoDetalleDraft, $event.value ?? $event)">
-                </p-autoComplete>
+                  appendTo="body"
+                  (onChange)="seleccionarProveedorFila(costoDetalleDraft, $event.value)">
+                </p-select>
             } @else {
               <input
                 class="p-inputtext p-component w-full max-w-[260px] text-sm py-1"

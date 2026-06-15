@@ -5,7 +5,6 @@ import {TableModule} from 'primeng/table';
 import {Select} from 'primeng/select';
 import {InputText} from 'primeng/inputtext';
 import {Proveedor} from '../../../core/models/models';
-import {AutoComplete} from 'primeng/autocomplete';
 import {ButtonModule} from 'primeng/button';
 import {InputNumber} from 'primeng/inputnumber';
 
@@ -19,7 +18,6 @@ import {InputNumber} from 'primeng/inputnumber';
     ReactiveFormsModule,
     Select,
     InputText,
-    AutoComplete,
     ButtonModule,
     InputNumber
   ]
@@ -30,18 +28,11 @@ export class ObraCostosTableComponent implements OnInit, OnChanges {
   @Input() modoEdicion = false;
   @Output() costoEliminado = new EventEmitter<void>();
 
-  filteredProveedores: Proveedor[] = [];
-
   ngOnInit() {
-    this.filteredProveedores = this.proveedores || [];
     this.normalizarValoresProveedor();
   }
 
   ngOnChanges(changes: SimpleChanges) {
-    if (changes['proveedores']) {
-      this.filteredProveedores = this.proveedores || [];
-    }
-
     if (changes['costos'] || changes['proveedores']) {
       this.normalizarValoresProveedor();
     }
@@ -73,25 +64,8 @@ export class ObraCostosTableComponent implements OnInit, OnChanges {
     this.costoEliminado.emit();
   }
 
-  filtrarProveedores(event: any) {
-    const query = (event?.query || '').toLowerCase();
-    this.filteredProveedores = (this.proveedores || []).filter(p => {
-      const nombre = (p.nombre || '').toLowerCase();
-      const cuit = (p.cuit || '').toString().toLowerCase();
-      return nombre.includes(query) || cuit.includes(query);
-    });
-  }
-
-  seleccionarProveedor(rowIndex: number, value: any) {
-    const seleccionado = typeof value === 'object' ? value : undefined;
-    const fila = this.costos.at(rowIndex) as FormGroup;
-    fila.get('id_proveedor')?.setValue(seleccionado ?? null);
-  }
-
-  limpiarProveedor(rowIndex: number) {
-    const fila = this.costos.at(rowIndex) as FormGroup;
-    fila.get('id_proveedor')?.setValue(null);
-    this.filteredProveedores = this.proveedores || [];
+  sortedProveedores(): Proveedor[] {
+    return [...(this.proveedores || [])].sort((a, b) => (a.nombre || '').localeCompare(b.nombre || ''));
   }
 
   private normalizarValoresProveedor() {

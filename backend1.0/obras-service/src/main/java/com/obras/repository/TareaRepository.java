@@ -8,6 +8,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 @Repository
@@ -37,6 +38,12 @@ public interface TareaRepository extends JpaRepository<Tarea, Long> {
 
     @Query("select coalesce(max(t.numeroOrden),0) from Tarea t where t.idObra = :idObra and t.activo = true")
     Long maxNumeroOrdenByObra(@Param("idObra") Long idObra);
+
+    @Query("select t from Tarea t where t.fechaFin between :desde and :hasta and t.estadoTarea <> :excluirEstado and t.activo = true")
+    List<Tarea> findVencimientosProximos(
+        @Param("desde") LocalDateTime desde,
+        @Param("hasta") LocalDateTime hasta,
+        @Param("excluirEstado") EstadoTareaEnum excluirEstado);
 
     @Modifying
     @Query("update Tarea t set t.activo = false, t.bajaObra = true where t.idObra = :idObra and t.activo = true")

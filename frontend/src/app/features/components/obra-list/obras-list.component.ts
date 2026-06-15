@@ -65,9 +65,11 @@ export class ObrasListComponent implements OnInit {
   mostrarInactivos = false;
   estadosOptions: EstadoOption[] = [];
   readonly estadosFacturacionOptions: EstadoOption[] = [
-    { label: 'Pendiente', value: 'Pendiente' },
-    { label: 'Parcial',   value: 'Parcial' },
-    { label: 'Total',     value: 'Total' },
+    { label: 'Facturada Parcial', value: 'FACTURADA_PARCIAL' },
+    { label: 'Facturada Total',   value: 'FACTURADA' },
+    { label: 'Cobrada Parcial',   value: 'COBRADA_PARCIAL' },
+    { label: 'Cobrada Total',     value: 'COBRADA' },
+    { label: 'Liquidada',         value: 'LIQUIDADA' },
   ];
 
   // Filter Bar
@@ -120,7 +122,10 @@ export class ObrasListComponent implements OnInit {
 
       this.obrasFiltradas = [...this.obras];
 
-      this.estadosOptions = this.estados.map(r => ({ label: r.label || r.name, value: r.name }));
+      const ESTADOS_OPERATIVOS = ['PRESUPUESTADA', 'COTIZADA', 'PERDIDA', 'ADJUDICADA', 'EN_PROGRESO', 'FINALIZADA'];
+      this.estadosOptions = this.estados
+        .filter(r => ESTADOS_OPERATIVOS.includes((r.name || '').toUpperCase()))
+        .map(r => ({ label: r.label || r.name, value: r.name }));
 
       // Setup filter definitions after loading datos
       this.setupFilterDefinitions();
@@ -156,11 +161,10 @@ export class ObrasListComponent implements OnInit {
         ? true
         : Boolean(obra.activo ?? true);
 
-      const ef = this.getEstadoFacturacion(obra);
       const matchesFacturacion =
         this.estadoFacturacionFiltro.length === 0
           ? true
-          : ef != null && this.estadoFacturacionFiltro.includes(ef.label);
+          : this.estadoFacturacionFiltro.includes((obra.estado_financiero ?? '').toUpperCase());
 
       return matchesSearch && matchesEstado && matchesActivo && matchesFacturacion;
     })
@@ -186,6 +190,7 @@ export class ObrasListComponent implements OnInit {
   }
 
   getEstadoFacturacion(obra: Obra): {label: string; severity: string} | undefined {
+    if (!obra.requiere_factura) return undefined;
     const estado = this.estadoValorObra(obra).toUpperCase();
     if (!this.ESTADOS_CON_FACTURACION.includes(estado)) return undefined;
 
@@ -258,14 +263,14 @@ export class ObrasListComponent implements OnInit {
       },
       {
         key: 'estado',
-        label: 'Estado',
+        label: 'Estado Operativo',
         type: 'select',
         placeholder: 'Todos',
         options: this.estadosOptions
       },
       {
         key: 'facturacion',
-        label: 'Facturación',
+        label: 'Estado Financiero',
         type: 'select',
         placeholder: 'Todos',
         options: this.estadosFacturacionOptions

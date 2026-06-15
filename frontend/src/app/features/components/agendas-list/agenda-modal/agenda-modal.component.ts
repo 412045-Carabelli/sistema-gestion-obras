@@ -85,11 +85,21 @@ export class AgendaModalComponent {
 
     this.obrasService.getObrasAll().subscribe({
       next: (obras) => {
+        const EXCLUIDOS = ['PERDIDA', 'FINALIZADA'];
+        const obrasFiltradas = obras
+          .filter(o => {
+            const raw = o.obra_estado;
+            const estado = typeof raw === 'string'
+              ? raw.toUpperCase()
+              : ((raw as any)?.name ?? (raw as any)?.value ?? '').toString().toUpperCase();
+            return !EXCLUIDOS.includes(estado) && o.activo !== false;
+          })
+          .sort((a, b) => a.nombre.localeCompare(b.nombre, 'es'));
         const map = new Map<number, Obra>();
-        obras.forEach(o => map.set(o.id!, o));
+        obrasFiltradas.forEach(o => map.set(o.id!, o));
         this.obrasMap.set(map);
         this.obrasOptions.set(
-          obras.map(o => ({ label: o.nombre, value: o.id! }))
+          obrasFiltradas.map(o => ({ label: o.nombre, value: o.id! }))
         );
       },
       error: () => {
@@ -103,8 +113,11 @@ export class AgendaModalComponent {
 
     this.clientesService.getClientes().subscribe({
       next: (clientes) => {
+        const clientesActivos = clientes
+          .filter(c => c.activo !== false)
+          .sort((a, b) => a.nombre.localeCompare(b.nombre, 'es'));
         this.clientesOptions.set(
-          clientes.map(c => ({ label: c.nombre, value: c.id }))
+          clientesActivos.map(c => ({ label: c.nombre, value: c.id }))
         );
       },
       error: () => {
@@ -118,8 +131,11 @@ export class AgendaModalComponent {
 
     this.proveedoresService.getProveedores().subscribe({
       next: (proveedores) => {
+        const proveedoresActivos = proveedores
+          .filter(p => p.activo !== false)
+          .sort((a, b) => a.nombre.localeCompare(b.nombre, 'es'));
         this.proveedoresOptions.set(
-          proveedores.map(p => ({ label: p.nombre, value: p.id }))
+          proveedoresActivos.map(p => ({ label: p.nombre, value: p.id }))
         );
         this.cargandoDatos.set(false);
       },
