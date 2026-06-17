@@ -9,6 +9,7 @@ export interface RegisterRequest {
   username: string;
   password: string;
   confirmPassword: string;
+  empresaNombre: string;
 }
 
 export interface ChangePasswordRequest {
@@ -26,6 +27,8 @@ export interface AuthResponse {
   email: string;
   username: string;
   rol: string;
+  nombre?: string;
+  apellido?: string;
   organizacion_id: number | null;
 }
 
@@ -34,7 +37,42 @@ export interface UserInfo {
   email: string;
   username: string;
   rol: string;
+  nombre?: string;
+  apellido?: string;
   organizacionId: number | null;
+}
+
+export interface UpdatePerfilRequest {
+  nombre: string;
+  apellido: string;
+  email: string;
+}
+
+export interface UpdateUsuarioOrganizacionRequest {
+  nombre: string;
+  apellido: string;
+  email: string;
+  rol: string;
+}
+
+export interface CreateUsuarioOrganizacionRequest {
+  nombre: string;
+  apellido: string;
+  username: string;
+  email: string;
+  password: string;
+  rol: string;
+}
+
+export interface UsuarioInfoResponse {
+  id: number;
+  username: string;
+  email: string;
+  nombre?: string;
+  apellido?: string;
+  rol: string;
+  activo: boolean;
+  creado_en?: string;
 }
 
 // ===== BUSINESS TYPES & INTERFACES =====

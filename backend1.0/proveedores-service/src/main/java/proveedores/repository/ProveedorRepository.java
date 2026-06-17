@@ -8,6 +8,7 @@ import java.util.Optional;
 
 public interface ProveedorRepository extends JpaRepository<Proveedor, Long> {
     List<Proveedor> findByActivoTrue();
+    List<Proveedor> findByActivoTrueAndEmpresaId(Long empresaId);
 
     Optional<Proveedor> findByIdAndActivoTrue(Long id);
 

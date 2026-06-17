@@ -41,39 +41,30 @@ public class FacturaService {
     private String uploadDirBase;
 
     @Transactional(readOnly = true)
-    public List<FacturaDto> listar() {
-        log.info("=== LISTAR FACTURAS DEBUG ===");
-        List<Factura> todasFacturas = facturaRepository.findAll();
-        log.info("Total facturas en BD: {}", todasFacturas.size());
-        todasFacturas.forEach(f -> log.info("  - Factura {} (Obra {}): monto={}, estado={}",
-                f.getId(), f.getIdObra(), f.getMonto(), f.getEstado()));
-
+    public List<FacturaDto> listar(Long empresaId) {
+        List<Factura> todasFacturas = empresaId != null
+                ? facturaRepository.findByEmpresaId(empresaId)
+                : facturaRepository.findAll();
         return todasFacturas.stream()
                 .map(this::toDto)
                 .collect(Collectors.toList());
     }
 
     @Transactional(readOnly = true)
-    public List<FacturaDto> listarPorCliente(Long idCliente) {
-        log.info("=== LISTAR FACTURAS POR CLIENTE {} DEBUG ===", idCliente);
-        List<Factura> facturas = facturaRepository.findByIdCliente(idCliente);
-        log.info("Total facturas para cliente {}: {}", idCliente, facturas.size());
-        facturas.forEach(f -> log.info("  - Factura {} (Obra {}): monto={}, estado={}",
-                f.getId(), f.getIdObra(), f.getMonto(), f.getEstado()));
-
+    public List<FacturaDto> listarPorCliente(Long idCliente, Long empresaId) {
+        List<Factura> facturas = empresaId != null
+                ? facturaRepository.findByIdClienteAndEmpresaId(idCliente, empresaId)
+                : facturaRepository.findByIdCliente(idCliente);
         return facturas.stream()
                 .map(this::toDto)
                 .collect(Collectors.toList());
     }
 
     @Transactional(readOnly = true)
-    public List<FacturaDto> listarPorObra(Long idObra) {
-        log.info("=== LISTAR FACTURAS POR OBRA {} DEBUG ===", idObra);
-        List<Factura> facturas = facturaRepository.findByIdObra(idObra);
-        log.info("Total facturas para obra {}: {}", idObra, facturas.size());
-        facturas.forEach(f -> log.info("  - Factura {} (Obra {}): monto={}, estado={}",
-                f.getId(), f.getIdObra(), f.getMonto(), f.getEstado()));
-
+    public List<FacturaDto> listarPorObra(Long idObra, Long empresaId) {
+        List<Factura> facturas = empresaId != null
+                ? facturaRepository.findByIdObraAndEmpresaId(idObra, empresaId)
+                : facturaRepository.findByIdObra(idObra);
         return facturas.stream()
                 .map(this::toDto)
                 .collect(Collectors.toList());
@@ -104,6 +95,7 @@ public class FacturaService {
         }
 
         Factura entity = Factura.builder()
+                .empresaId(dto.getEmpresa_id())
                 .idCliente(dto.getId_cliente())
                 .idObra(dto.getId_obra())
                 .monto(dto.getMonto())

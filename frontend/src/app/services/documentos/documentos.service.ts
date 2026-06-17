@@ -71,4 +71,10 @@ export class DocumentosService {
     return `${this.apiUrl}/${id}/view`;
   }
 
+  uploadLogo(file: File): Observable<{ url: string }> {
+    const formData = new FormData();
+    formData.append('file', file);
+    return this.http.post<{ url: string }>(`${environment.apiGateway}/api/documentos/logo`, formData);
+  }
+
 }

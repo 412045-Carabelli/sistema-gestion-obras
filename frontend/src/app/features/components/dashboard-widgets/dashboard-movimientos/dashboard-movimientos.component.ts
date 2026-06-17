@@ -46,6 +46,11 @@ export class DashboardMovimientosComponent implements OnInit, OnChanges, OnDestr
     this.router.navigate([path]);
   }
 
+  navegarAMovimientosObra(obraId: number | undefined): void {
+    if (!obraId) return;
+    this.router.navigate(['/obras', obraId], { queryParams: { tab: '2' } });
+  }
+
   getAsociadoNombre(mov: MovimientoRecenteDTO): string {
     return mov.asociadoNombre || '(sin asociado)';
   }

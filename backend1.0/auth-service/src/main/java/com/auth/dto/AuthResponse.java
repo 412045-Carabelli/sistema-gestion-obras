@@ -34,6 +34,10 @@ public class AuthResponse {
 
   private String rol;
 
+  private String nombre;
+
+  private String apellido;
+
   @JsonProperty("organizacion_id")
   private Long organizacionId;
 }

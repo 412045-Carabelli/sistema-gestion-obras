@@ -60,6 +60,12 @@ public class ProveedorService {
         return repository.findByActivoTrue();
     }
 
+    public List<Proveedor> findAllActivosByEmpresa(Long empresaId) {
+        return empresaId != null
+            ? repository.findByActivoTrueAndEmpresaId(empresaId)
+            : repository.findByActivoTrue();
+    }
+
     public Optional<Gremio> findGremioById(Long id) {
         return gremioRepo.findByIdAndActivoTrue(id);
     }
@@ -72,8 +78,11 @@ public class ProveedorService {
         return repository.findById(id);
     }
 
-    public Proveedor save(Proveedor proveedor) {
+    public Proveedor save(Proveedor proveedor, Long empresaId) {
         proveedor.setActivo(true);
+        if (empresaId != null) {
+            proveedor.setEmpresaId(empresaId);
+        }
         return repository.save(proveedor);
     }
 

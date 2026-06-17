@@ -2,22 +2,18 @@ import {Component, EventEmitter, OnInit, Output} from '@angular/core';
 import {CommonModule, DatePipe} from '@angular/common';
 import {ActivatedRoute, Router} from '@angular/router';
 import {FormsModule} from '@angular/forms';
-import {TableModule} from 'primeng/table';
+import {TableLazyLoadEvent, TableModule} from 'primeng/table';
 import {InputTextModule} from 'primeng/inputtext';
 import {DropdownModule} from 'primeng/dropdown';
 import {TagModule} from 'primeng/tag';
 import {IconFieldModule} from 'primeng/iconfield';
 import {InputIconModule} from 'primeng/inputicon';
-import {catchError, forkJoin, of} from 'rxjs';
 import {ButtonModule} from 'primeng/button';
 import {CheckboxModule} from 'primeng/checkbox';
 import {MultiSelectModule} from 'primeng/multiselect';
 
-import {Cliente, EstadoObra, Factura, Obra} from '../../../core/models/models';
+import {Obra} from '../../../core/models/models';
 import {ObrasService} from '../../../services/obras/obras.service';
-import {ClientesService} from '../../../services/clientes/clientes.service';
-import {EstadoObraService} from '../../../services/estado-obra/estado-obra.service';
-import {FacturasService} from '../../../services/facturas/facturas.service';
 import {Select} from 'primeng/select';
 import {EstadoFormatPipe} from '../../../shared/pipes/estado-format.pipe';
 import {GenericFilterBarComponent, FilterDefinition} from '../generic-filter-bar/generic-filter-bar.component';
@@ -26,6 +22,13 @@ interface EstadoOption {
   label: string;
   value: string;
 }
+
+const ESTADOS_CON_FACTURACION = ['ADJUDICADA', 'EN_PROGRESO', 'FINALIZADA'];
+
+const ORDEN_ESTADOS = [
+  'PRESUPUESTADA', 'COTIZADA', 'PERDIDA', 'ADJUDICADA',
+  'EN_PROGRESO', 'FINALIZADA', 'FACTURADA_PARCIAL', 'FACTURADA', 'COBRADA'
+];
 
 @Component({
   selector: 'app-obra-list',
@@ -56,128 +59,114 @@ export class ObrasListComponent implements OnInit {
   obras: Obra[] = [];
   obrasFiltradas: Obra[] = [];
   datosCargados = false;
-  clientes: Cliente[] = [];
   estados: { label: string; name: string }[] = [];
 
+  // Paginación servidor
+  totalElements = 0;
+  pageSize = 50;
+  first = 0;
+  private currentPage = -1;
+
+  // Filtros servidor
   estadoFiltro: string[] = [];
-  estadoFacturacionFiltro: string[] = [];
-  searchValue: string = '';
   mostrarInactivos = false;
+  searchValue = '';
+
+  // Filtro cliente (client-side)
+  estadoFacturacionFiltro: string[] = [];
+
   estadosOptions: EstadoOption[] = [];
   readonly estadosFacturacionOptions: EstadoOption[] = [
-    { label: 'Facturada Parcial', value: 'FACTURADA_PARCIAL' },
-    { label: 'Facturada Total',   value: 'FACTURADA' },
-    { label: 'Cobrada Parcial',   value: 'COBRADA_PARCIAL' },
-    { label: 'Cobrada Total',     value: 'COBRADA' },
-    { label: 'Liquidada',         value: 'LIQUIDADA' },
+    { label: 'Pendiente', value: 'PENDIENTE' },
+    { label: 'Parcial',   value: 'PARCIAL' },
+    { label: 'Total',     value: 'TOTAL' },
   ];
 
-  // Filter Bar
   filterDefinitions: FilterDefinition[] = [];
   currentFilters: Record<string, any> = {};
 
   private estadoInicialDesdeRuta: string[] = [];
-  private facturasPorObra: Record<number, Factura[]> = {};
-  private readonly ESTADOS_CON_FACTURACION = ['ADJUDICADA', 'EN_PROGRESO', 'FINALIZADA'];
 
   constructor(
     private router: Router,
     private route: ActivatedRoute,
-    private obrasService: ObrasService,
-    private clientesService: ClientesService,
-    private estadoObraService: EstadoObraService,
-    private facturasService: FacturasService
-  ) {
-  }
+    private obrasService: ObrasService
+  ) {}
 
   ngOnInit() {
-    // Leer filtro de estado desde query params
     this.route.queryParams.subscribe(params => {
-      this.estadoInicialDesdeRuta = this.parseEstadoFiltro(params['estado'] ?? null);
-      if (this.datosCargados) {
-        this.estadoFiltro = [...this.estadoInicialDesdeRuta];
-        this.applyFilter();
+      const nuevoEstado = this.parseEstadoFiltro(params['estado'] ?? null);
+      if (this.datosCargados && JSON.stringify(nuevoEstado) !== JSON.stringify(this.estadoFiltro)) {
+        this.estadoFiltro = nuevoEstado;
+        this.recargar();
+      } else {
+        this.estadoFiltro = nuevoEstado;
       }
     });
+    this.cargarPagina(0);
+  }
 
-    // Carga todo en paralelo
-    forkJoin({
-      obras: this.obrasService.getObrasAll(),
-      clientes: this.clientesService.getClientes(),
-      estados: this.estadoObraService.getEstados(),
-      facturas: this.facturasService.getFacturas().pipe(catchError(() => of([])))
-    }).subscribe(({obras, clientes, estados, facturas}) => {
-      this.obras = obras;
+  private recargar() {
+    this.currentPage = -1;
+    this.first = 0;
+    this.cargarPagina(0);
+  }
 
-      this.facturasPorObra = (facturas as Factura[]).reduce((acc, f) => {
-        if (f.id_obra) {
-          if (!acc[f.id_obra]) acc[f.id_obra] = [];
-          acc[f.id_obra].push(f);
+  cargarPagina(page: number) {
+    this.currentPage = page;
+    const filtros: { estado?: string; activo?: boolean; q?: string } = {};
+    if (this.estadoFiltro.length === 1) filtros.estado = this.estadoFiltro[0];
+    if (!this.mostrarInactivos) filtros.activo = true;
+    if (this.searchValue.trim()) filtros.q = this.searchValue.trim();
+
+    this.obrasService.getObrasConDetalles(page, this.pageSize, filtros).subscribe({
+      next: resp => {
+        this.obras = resp.content;
+        this.totalElements = resp.totalElements;
+        this.first = page * this.pageSize;
+
+        if (!this.datosCargados && resp.estados?.length) {
+          this.estados = this.ordenarEstadosObra(resp.estados);
+          this.estadosOptions = this.estados.map(r => ({ label: r.label || r.name, value: r.name }));
+          this.setupFilterDefinitions();
         }
-        return acc;
-      }, {} as Record<number, Factura[]>);
 
-      this.clientes = clientes.map(c => ({...c, id: Number(c.id)}));
-      this.estados = this.ordenarEstadosObra(estados as any);
-
-      this.obrasFiltradas = [...this.obras];
-
-      const ESTADOS_OPERATIVOS = ['PRESUPUESTADA', 'COTIZADA', 'PERDIDA', 'ADJUDICADA', 'EN_PROGRESO', 'FINALIZADA'];
-      this.estadosOptions = this.estados
-        .filter(r => ESTADOS_OPERATIVOS.includes((r.name || '').toUpperCase()))
-        .map(r => ({ label: r.label || r.name, value: r.name }));
-
-      // Setup filter definitions after loading datos
-      this.setupFilterDefinitions();
-
-      // Aplicar filtro inicial si vino por query param
-      if (this.estadoInicialDesdeRuta) {
-        this.estadoFiltro = [...this.estadoInicialDesdeRuta];
+        this.aplicarFiltroFacturacion();
+        this.datosCargados = true;
       }
-
-      this.applyFilter();
-      this.datosCargados = true;
     });
   }
 
-  // Filtrado
-  applyFilter() {
-    this.obrasFiltradas = this.obras
-      .filter(obra => {
+  onLazyLoad(event: TableLazyLoadEvent) {
+    const page = Math.floor((event.first ?? 0) / this.pageSize);
+    if (page === this.currentPage) return; // evita duplicado con carga inicial
+    this.cargarPagina(page);
+  }
 
-      const matchesSearch = this.searchValue
-        ? obra.nombre.toLowerCase().includes(this.searchValue.toLowerCase()) ||
-        (obra.direccion?.toLowerCase().includes(this.searchValue.toLowerCase()) ?? false) ||
-        obra.cliente.nombre.toLowerCase().includes(this.searchValue.toLowerCase())
-        : true;
+  private aplicarFiltroFacturacion() {
+    if (this.estadoFacturacionFiltro.length === 0) {
+      this.obrasFiltradas = [...this.obras];
+      return;
+    }
+    this.obrasFiltradas = this.obras.filter(obra => {
+      const ef = this.getEstadoFacturacion(obra);
+      return ef != null && this.estadoFacturacionFiltro.includes(ef.value);
+    });
+  }
 
-      const estadoValor = this.estadoValorObra(obra);
-      const matchesEstado =
-        this.estadoFiltro.length === 0
-          ? true
-          : this.estadoFiltro.some(estado => (estadoValor || '').toUpperCase() === (estado || '').toUpperCase());
+  getEstadoFacturacion(obra: Obra): { label: string; severity: string; value: string } | undefined {
+    const estado = this.estadoValorObra(obra).toUpperCase();
+    if (!ESTADOS_CON_FACTURACION.includes(estado)) return undefined;
 
-      const matchesActivo = this.mostrarInactivos
-        ? true
-        : Boolean(obra.activo ?? true);
-
-      const matchesFacturacion =
-        this.estadoFacturacionFiltro.length === 0
-          ? true
-          : this.estadoFacturacionFiltro.includes((obra.estado_financiero ?? '').toUpperCase());
-
-      return matchesSearch && matchesEstado && matchesActivo && matchesFacturacion;
-    })
-      .sort((a, b) => {
-        const creadaA = a.creado_en ? new Date(a.creado_en).getTime() : 0;
-        const creadaB = b.creado_en ? new Date(b.creado_en).getTime() : 0;
-        if (creadaA !== creadaB) return creadaB - creadaA;
-        return Number(b.id ?? 0) - Number(a.id ?? 0);
-      });
+    const ef = (obra as any).estado_financiero as string | undefined;
+    if (!ef || ef === 'PENDIENTE') return { label: 'Pendiente', severity: 'warn', value: 'PENDIENTE' };
+    if (ef === 'TOTAL') return { label: 'Total', severity: 'success', value: 'TOTAL' };
+    if (ef === 'PARCIAL') return { label: 'Parcial', severity: 'info', value: 'PARCIAL' };
+    return { label: 'Pendiente', severity: 'warn', value: 'PENDIENTE' };
   }
 
   private estadoValorObra(obra: any): string {
-    const raw = (obra as any)?.obra_estado;
+    const raw = obra?.obra_estado;
     if (!raw) return '';
     if (typeof raw === 'string') return raw;
     if (raw.value) return raw.value;
@@ -189,29 +178,8 @@ export class ObrasListComponent implements OnInit {
     return '';
   }
 
-  getEstadoFacturacion(obra: Obra): {label: string; severity: string} | undefined {
-    if (!obra.requiere_factura) return undefined;
-    const estado = this.estadoValorObra(obra).toUpperCase();
-    if (!this.ESTADOS_CON_FACTURACION.includes(estado)) return undefined;
-
-    const facturas = (this.facturasPorObra[obra.id!] ?? []).filter(f => f.activo !== false);
-    if (facturas.length === 0) {
-      return {label: 'Pendiente', severity: 'warn'};
-    }
-    const totalFacturado = facturas.reduce((sum, f) => sum + (f.monto ?? 0), 0);
-    const presupuesto = obra.presupuesto ?? 0;
-    if (presupuesto > 0 && totalFacturado >= presupuesto) {
-      return {label: 'Total', severity: 'success'};
-    }
-    return {label: 'Parcial', severity: 'info'};
-  }
-
-  getNumeroOrden(obra: Obra): number {
-    return Number(obra.id ?? 0);
-  }
-
   estadoLabelObra(obra: any): string {
-    const raw = (obra as any)?.obra_estado;
+    const raw = obra?.obra_estado;
     if (!raw) return '';
     if (typeof raw === 'string') {
       const rec = this.estados.find(r => ((r.name || '') as string).toUpperCase() === raw.toUpperCase());
@@ -220,76 +188,54 @@ export class ObrasListComponent implements OnInit {
     return raw.label || raw.nombre || '';
   }
 
-  private ordenarEstadosObra(records: { label: string; name: string }[]): { label: string; name: string }[] {
-    const ordenDeseado = [
-      'PRESUPUESTADA',
-      'COTIZADA',
-      'PERDIDA',
-      'ADJUDICADA',
-      'EN_PROGRESO',
-      'FINALIZADA',
-      'FACTURADA_PARCIAL',
-      'FACTURADA',
-      'COBRADA'
-    ];
-    const index = new Map(ordenDeseado.map((estado, i) => [estado, i]));
-    const normalizar = (value?: string | null) =>
-      (value || '').toString().trim().toUpperCase().replace(/\s+/g, '_');
-
-    return [...(records || [])].sort((a, b) => {
-      const aKey = index.get(normalizar(a?.name || a?.label)) ?? 999;
-      const bKey = index.get(normalizar(b?.name || b?.label)) ?? 999;
-      if (aKey !== bKey) return aKey - bKey;
-      return (a?.label || '').localeCompare(b?.label || '');
-    });
+  getNumeroOrden(obra: Obra): number {
+    return Number(obra.id ?? 0);
   }
 
-
-  private parseEstadoFiltro(raw: string | string[] | null): string[] {
-    if (!raw) return [];
-    const values = Array.isArray(raw) ? raw : raw.split(',');
-    return values
-      .map(value => (value || '').toString().trim().toUpperCase())
-      .filter(Boolean);
+  getEstadoSeverity(id_estado: number): string {
+    const severities: { [key: number]: string } = {
+      1: 'secondary', 2: 'info', 3: 'success',
+      4: 'success', 5: 'warning', 6: 'contrast', 7: 'danger'
+    };
+    return severities[id_estado] || 'secondary';
   }
 
-  private setupFilterDefinitions(): void {
-    this.filterDefinitions = [
-      {
-        key: 'search',
-        label: 'Buscar',
-        type: 'input',
-        placeholder: 'Por nombre, dirección o cliente'
-      },
-      {
-        key: 'estado',
-        label: 'Estado Operativo',
-        type: 'select',
-        placeholder: 'Todos',
-        options: this.estadosOptions
-      },
-      {
-        key: 'facturacion',
-        label: 'Estado Financiero',
-        type: 'select',
-        placeholder: 'Todos',
-        options: this.estadosFacturacionOptions
-      },
-      {
-        key: 'mostrarInactivos',
-        label: 'Ver inactivos',
-        type: 'checkbox'
-      }
-    ];
+  getProgreso(obra: Obra): number {
+    if (!obra.presupuesto || obra.presupuesto === 0) return 0;
+    return Math.round(((obra.gastado ?? 0) / obra.presupuesto) * 100);
+  }
+
+  onRowClick(obra: Obra) {
+    this.obraClick.emit(obra);
+    this.router.navigate(['/obras', obra.id]);
   }
 
   onFilterChange(filters: Record<string, any>): void {
     this.currentFilters = filters;
-    this.searchValue = filters['search'] || '';
-    this.estadoFiltro = filters['estado'] ? (Array.isArray(filters['estado']) ? filters['estado'] : [filters['estado']]) : [];
-    this.estadoFacturacionFiltro = filters['facturacion'] ? (Array.isArray(filters['facturacion']) ? filters['facturacion'] : [filters['facturacion']]) : [];
-    this.mostrarInactivos = filters['mostrarInactivos'] || false;
-    this.applyFilter();
+    const nuevoSearch = filters['search'] || '';
+    const nuevoEstado = filters['estado']
+      ? (Array.isArray(filters['estado']) ? filters['estado'] : [filters['estado']])
+      : [];
+    const nuevoInactivos = filters['mostrarInactivos'] || false;
+    const nuevoFacturacion = filters['facturacion']
+      ? (Array.isArray(filters['facturacion']) ? filters['facturacion'] : [filters['facturacion']])
+      : [];
+
+    const serverFiltrosChanged =
+      nuevoSearch !== this.searchValue ||
+      JSON.stringify(nuevoEstado) !== JSON.stringify(this.estadoFiltro) ||
+      nuevoInactivos !== this.mostrarInactivos;
+
+    this.searchValue = nuevoSearch;
+    this.estadoFiltro = nuevoEstado;
+    this.mostrarInactivos = nuevoInactivos;
+    this.estadoFacturacionFiltro = nuevoFacturacion;
+
+    if (serverFiltrosChanged) {
+      this.recargar();
+    } else {
+      this.aplicarFiltroFacturacion();
+    }
   }
 
   onClearFilters(): void {
@@ -298,34 +244,32 @@ export class ObrasListComponent implements OnInit {
     this.estadoFiltro = [];
     this.estadoFacturacionFiltro = [];
     this.mostrarInactivos = false;
-    this.applyFilter();
+    this.recargar();
   }
 
-  onRowClick(obra: Obra) {
-    this.obraClick.emit(obra);
-    this.router.navigate(['/obras', obra.id]);
+  private parseEstadoFiltro(raw: string | string[] | null): string[] {
+    if (!raw) return [];
+    const values = Array.isArray(raw) ? raw : raw.split(',');
+    return values.map(v => (v || '').toString().trim().toUpperCase()).filter(Boolean);
   }
 
-  // Helpers
-  getClienteNombre(id_cliente: number): string {
-    return this.clientes.find(c => Number(c.id) === Number(id_cliente))?.nombre ?? '—';
+  private setupFilterDefinitions(): void {
+    this.filterDefinitions = [
+      { key: 'search', label: 'Buscar', type: 'input', placeholder: 'Por nombre o dirección' },
+      { key: 'estado', label: 'Estado', type: 'select', placeholder: 'Todos', options: this.estadosOptions },
+      { key: 'facturacion', label: 'Facturación', type: 'select', placeholder: 'Todos', options: this.estadosFacturacionOptions },
+      { key: 'mostrarInactivos', label: 'Ver inactivos', type: 'checkbox' }
+    ];
   }
 
-  getEstadoSeverity(id_estado: number): string {
-    const severities: { [key: number]: string } = {
-      1: 'secondary',
-      2: 'info',
-      3: 'success',
-      4: 'success',
-      5: 'warning',
-      6: 'contrast',
-      7: 'danger'
-    };
-    return severities[id_estado] || 'secondary';
-  }
-
-  getProgreso(obra: Obra): number {
-    if (!obra.presupuesto || obra.presupuesto === 0) return 0;
-    return Math.round(((obra.gastado ?? 0) / obra.presupuesto) * 100);
+  private ordenarEstadosObra(records: { label: string; name: string }[]): { label: string; name: string }[] {
+    const index = new Map(ORDEN_ESTADOS.map((e, i) => [e, i]));
+    const norm = (v?: string | null) => (v || '').toString().trim().toUpperCase().replace(/\s+/g, '_');
+    return [...(records || [])].sort((a, b) => {
+      const aKey = index.get(norm(a?.name || a?.label)) ?? 999;
+      const bKey = index.get(norm(b?.name || b?.label)) ?? 999;
+      if (aKey !== bKey) return aKey - bKey;
+      return (a?.label || '').localeCompare(b?.label || '');
+    });
   }
 }

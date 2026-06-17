@@ -40,11 +40,12 @@ public class ObraServiceImpl implements ObraService {
        ============================================================ */
 
     @Override
-    public ObraDTO crear(ObraDTO dto) {
+    public ObraDTO crear(ObraDTO dto, Long empresaId) {
         validarFechas(dto);
         Obra obra = toEntity(dto);
         obra.setActivo(true);
         obra.setCreadoEn(Instant.now());
+        obra.setEmpresaId(empresaId);
         return toDto(obraRepo.save(obra));
     }
 
@@ -64,19 +65,32 @@ public class ObraServiceImpl implements ObraService {
 
     @Override
     @Transactional(readOnly = true)
-    public Page<ObraDTO> listar(Pageable p) {
-        Page<Obra> page = obraRepo.findAll(p);
+    public Page<ObraDTO> listar(Pageable p, Long empresaId) {
+        Page<Obra> page = empresaId != null
+            ? obraRepo.findByEmpresaId(empresaId, p)
+            : obraRepo.findAll(p);
         List<ObraDTO> dtos = page.stream().map(this::toDto).toList();
         return new PageImpl<>(dtos, p, page.getTotalElements());
     }
 
     @Override
     @Transactional(readOnly = true)
-    public Page<ObraDTO> listarPorCliente(Long idCliente, Pageable p) {
+    public Page<ObraListDTO> listarResumen(Pageable p, EstadoObraEnum estado, Boolean activo, String q, Long empresaId) {
+        String qParam = (q != null && !q.isBlank()) ? q.trim() : null;
+        Page<Obra> page = obraRepo.findByFiltros(estado, activo, empresaId, qParam, p);
+        List<ObraListDTO> dtos = page.stream().map(this::toListDto).toList();
+        return new PageImpl<>(dtos, p, page.getTotalElements());
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Page<ObraDTO> listarPorCliente(Long idCliente, Pageable p, Long empresaId) {
         if (idCliente == null) {
-            return listar(p);
+            return listar(p, empresaId);
         }
-        Page<Obra> page = obraRepo.findByIdCliente(idCliente, p);
+        Page<Obra> page = empresaId != null
+            ? obraRepo.findByIdClienteAndEmpresaId(idCliente, empresaId, p)
+            : obraRepo.findByIdCliente(idCliente, p);
         List<ObraDTO> dtos = page.stream().map(this::toDto).toList();
         return new PageImpl<>(dtos, p, page.getTotalElements());
     }
@@ -298,6 +312,23 @@ public class ObraServiceImpl implements ObraService {
             }
         }
 
+        return dto;
+    }
+
+    private ObraListDTO toListDto(Obra entity) {
+        ObraListDTO dto = new ObraListDTO();
+        dto.setId(entity.getId());
+        dto.setId_cliente(entity.getIdCliente());
+        dto.setId_grupo(entity.getIdGrupo());
+        dto.setObra_estado(entity.getEstadoObra());
+        dto.setNombre(entity.getNombre());
+        dto.setDireccion(entity.getDireccion());
+        dto.setFecha_inicio(entity.getFechaInicio());
+        dto.setFecha_fin(entity.getFechaFin());
+        dto.setPresupuesto(entity.getPresupuesto());
+        dto.setRequiere_factura(entity.getRequiereFactura());
+        dto.setActivo(entity.getActivo());
+        dto.setCreado_en(entity.getCreadoEn());
         return dto;
     }
 

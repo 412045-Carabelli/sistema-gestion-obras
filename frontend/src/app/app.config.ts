@@ -9,7 +9,7 @@ import {registerLocaleData} from '@angular/common';
 import localeEsAr from '@angular/common/locales/es-AR'
 import {MessageService} from 'primeng/api';
 import {LoadingServerInterceptor} from './core/loading-server.interceptor';
-// import {AuthInterceptor} from './core/interceptors/auth.interceptor'; // TODO: Descomentar cuando auth esté activado
+import {AuthInterceptor} from './core/interceptors/auth.interceptor';
 
 registerLocaleData(localeEsAr);
 
@@ -30,12 +30,11 @@ export const appConfig: ApplicationConfig = {
       }
     }),
     MessageService,
-    // TODO: Descomentar AuthInterceptor cuando auth esté activado
-    // {
-    //   provide: HTTP_INTERCEPTORS,
-    //   useClass: AuthInterceptor,
-    //   multi: true
-    // },
+    {
+      provide: HTTP_INTERCEPTORS,
+      useClass: AuthInterceptor,
+      multi: true
+    },
     {
       provide: HTTP_INTERCEPTORS,
       useClass: LoadingServerInterceptor,

@@ -4,6 +4,15 @@ import {Observable} from 'rxjs';
 import {EstadoObra, Obra, Tarea} from '../../core/models/models';
 import {environment} from '../../../environments/environment';
 
+export interface ObrasConDetallesResponse {
+  content: Obra[];
+  totalElements: number;
+  totalPages: number;
+  number: number;
+  size: number;
+  estados: { label: string; name: string }[];
+}
+
 export interface ObraPayload {
   id?: number;
   id_cliente: number;
@@ -60,6 +69,14 @@ export class ObrasService {
   getObrasAll(): Observable<Obra[]> {
     const params = new HttpParams().set('size', '1000');
     return this.http.get<Obra[]>(this.apiUrl, {withCredentials: true, params});
+  }
+
+  getObrasConDetalles(page = 0, size = 50, filtros: { estado?: string; activo?: boolean; q?: string } = {}): Observable<ObrasConDetallesResponse> {
+    let params = new HttpParams().set('page', page).set('size', size);
+    if (filtros.estado) params = params.set('estado', filtros.estado);
+    if (filtros.activo !== undefined) params = params.set('activo', String(filtros.activo));
+    if (filtros.q) params = params.set('q', filtros.q);
+    return this.http.get<ObrasConDetallesResponse>(`${this.apiUrl}/con-detalles`, {params});
   }
 
   getObraById(id: number): Observable<Obra> {

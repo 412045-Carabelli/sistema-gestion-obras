@@ -20,14 +20,14 @@ import java.util.Date;
 public class JwtUtil {
   private final JwtConfig jwtConfig;
 
-  public String generateAccessToken(Usuario usuario) {
+  public String generateAccessToken(Usuario usuario, Long organizacionId) {
     long expirationMillis = System.currentTimeMillis() + (jwtConfig.getAccessTokenExpiration() * 1000);
     return Jwts.builder()
         .subject(usuario.getEmail())
         .claim("userId", usuario.getId())
         .claim("username", usuario.getUsername())
         .claim("rol", usuario.getRol())
-        .claim("organizacionId", null)  // null por ahora, se usa cuando sea activada la capa empresa
+        .claim("organizacionId", organizacionId)
         .issuedAt(new Date())
         .expiration(new Date(expirationMillis))
         .signWith(Keys.hmacShaKeyFor(jwtConfig.getSecret().getBytes(StandardCharsets.UTF_8)), SignatureAlgorithm.HS256)

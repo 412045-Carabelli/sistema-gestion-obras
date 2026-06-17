@@ -27,4 +27,8 @@ public class RegisterRequest {
 
   @NotBlank(message = "Confirmación de contraseña requerida")
   private String confirmPassword;
+
+  @NotBlank(message = "Nombre de empresa requerido")
+  @Size(min = 2, max = 255, message = "Nombre de empresa debe tener entre 2 y 255 caracteres")
+  private String empresaNombre;
 }

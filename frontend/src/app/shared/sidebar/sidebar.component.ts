@@ -62,12 +62,6 @@ export class SidebarComponent {
       items: [
         {label: 'Reportes', icon: 'pi-chart-bar', path: '/reportes'}
       ]
-    },
-    {
-      label: 'Sistema',
-      items: [
-        {label: 'Configuración', icon: 'pi-cog', path: '/configuracion'}
-      ]
     }
   ];
 

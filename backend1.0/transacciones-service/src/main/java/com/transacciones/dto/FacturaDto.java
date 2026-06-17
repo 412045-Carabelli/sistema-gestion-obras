@@ -12,6 +12,7 @@ import java.time.LocalDate;
 @Builder
 public class FacturaDto {
     private Long id;
+    private Long empresa_id;
     private Long id_cliente;
     private Long id_obra;
     private Double monto;

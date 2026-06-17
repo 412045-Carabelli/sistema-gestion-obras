@@ -3,7 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { BehaviorSubject, Observable, throwError } from 'rxjs';
 import { map, catchError, tap } from 'rxjs/operators';
 import { environment } from '../../../environments/environment';
-import { LoginRequest, RegisterRequest, ChangePasswordRequest, AuthResponse, UserInfo } from '../../core/models/models';
+import { LoginRequest, RegisterRequest, ChangePasswordRequest, UpdatePerfilRequest, AuthResponse, UserInfo, CreateUsuarioOrganizacionRequest, UpdateUsuarioOrganizacionRequest, UsuarioInfoResponse } from '../../core/models/models';
 
 @Injectable({
   providedIn: 'root'
@@ -48,6 +48,33 @@ export class AuthService {
           return throwError(() => error);
         })
       );
+  }
+
+  updatePerfil(request: UpdatePerfilRequest): Observable<AuthResponse> {
+    return this.http.put<AuthResponse>(`${this.apiUrl}/perfil`, request)
+      .pipe(
+        tap(response => this.handleAuthResponse(response)),
+        catchError(error => {
+          console.error('Update perfil error', error);
+          return throwError(() => error);
+        })
+      );
+  }
+
+  listarUsuariosOrganizacion(): Observable<UsuarioInfoResponse[]> {
+    return this.http.get<UsuarioInfoResponse[]>(`${this.apiUrl}/admin/usuarios`);
+  }
+
+  crearUsuarioOrganizacion(request: CreateUsuarioOrganizacionRequest): Observable<UsuarioInfoResponse> {
+    return this.http.post<UsuarioInfoResponse>(`${this.apiUrl}/admin/usuarios`, request);
+  }
+
+  actualizarUsuarioOrganizacion(id: number, request: UpdateUsuarioOrganizacionRequest): Observable<UsuarioInfoResponse> {
+    return this.http.put<UsuarioInfoResponse>(`${this.apiUrl}/admin/usuarios/${id}`, request);
+  }
+
+  cambiarEstadoUsuario(id: number, activo: boolean): Observable<UsuarioInfoResponse> {
+    return this.http.patch<UsuarioInfoResponse>(`${this.apiUrl}/admin/usuarios/${id}/estado?activo=${activo}`, {});
   }
 
   refresh(refreshToken: string): Observable<AuthResponse> {
@@ -98,6 +125,8 @@ export class AuthService {
       email: response.email,
       username: response.username,
       rol: response.rol,
+      nombre: response.nombre,
+      apellido: response.apellido,
       organizacionId: response.organizacion_id || null
     };
     localStorage.setItem('sgo_user_info', JSON.stringify(userInfo));

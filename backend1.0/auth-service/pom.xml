@@ -7,8 +7,9 @@
 
   <parent>
     <groupId>com.meliquina</groupId>
-    <artifactId>backend</artifactId>
+    <artifactId>gestion-obras</artifactId>
     <version>1.15.35</version>
+    <relativePath>../pom.xml</relativePath>
   </parent>
 
   <artifactId>auth-service</artifactId>

@@ -1,22 +1,24 @@
-<app-changelog-modal></app-changelog-modal>
+@if (!isPublicRoute) {
+  <app-changelog-modal></app-changelog-modal>
+}
 
 <div class="flex flex-col h-screen bg-gray-50">
 
-  <!-- 🧭 Header -->
-  <app-header (toggleMenu)="toggleSidebar()"></app-header>
+  @if (!isPublicRoute) {
+    <!-- 🧭 Header -->
+    <app-header (toggleMenu)="toggleSidebar()"></app-header>
+  }
 
   <!-- 🧭 Container principal -->
   <div class="flex flex-1 overflow-hidden">
 
-    <!-- 📌 Sidebar -->
-    @if (sidebarVisible) {
+    @if (!isPublicRoute && sidebarVisible) {
+      <!-- 📌 Sidebar -->
       <app-sidebar [visible]="sidebarVisible"></app-sidebar>
     }
 
     <!-- 📄 Main Content -->
-    <main
-      [class.ml-60]="sidebarVisible"
-      class="flex-1 overflow-y-auto bg-gray-50 transition-all duration-300">
+    <main class="flex-1 overflow-y-auto bg-gray-50 transition-all duration-300">
       <router-outlet></router-outlet>
     </main>
 

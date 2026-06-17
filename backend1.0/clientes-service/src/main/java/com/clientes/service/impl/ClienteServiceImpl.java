@@ -48,9 +48,12 @@ public class ClienteServiceImpl implements ClienteService {
     private final TransaccionesClient transaccionesClient;
 
     @Override
-    public ClienteResponse crear(ClienteRequest request) {
+    public ClienteResponse crear(ClienteRequest request, Long empresaId) {
         validarCondicionIVA(request.getCondicionIVA());
         Cliente entity = mapearEntidad(request);
+        if (empresaId != null) {
+            entity.setId_empresa(empresaId);
+        }
         entity.setCreadoEn(Instant.now());
         Cliente guardado = repository.save(entity);
         return mapearRespuesta(guardado, null, null, null, null);
@@ -93,17 +96,22 @@ public class ClienteServiceImpl implements ClienteService {
     }
 
     @Override
-    public List<ClienteResponse> listar() {
+    public List<ClienteResponse> listar(Long empresaId) {
         // ⚡ RÁPIDO: sin obras ni transacciones, para dashboard/reportes
-        return repository.findAll().stream()
-                .map(cliente -> mapearRespuestaLite(cliente))
+        List<Cliente> clientes = empresaId != null
+            ? repository.findByIdEmpresa(empresaId)
+            : repository.findAll();
+        return clientes.stream()
+                .map(this::mapearRespuestaLite)
                 .toList();
     }
 
     @Override
-    public Page<ClienteResponse> listarConDetalles(Pageable pageable) {
+    public Page<ClienteResponse> listarConDetalles(Pageable pageable, Long empresaId) {
         // 📊 COMPLETO: con obras, saldos, transacciones (PAGINADO en BD)
-        Page<Cliente> clientes = repository.findAll(pageable);
+        Page<Cliente> clientes = empresaId != null
+            ? repository.findByIdEmpresa(empresaId, pageable)
+            : repository.findAll(pageable);
         List<ClienteResponse> detalles = clientes.getContent().stream()
                 .map(cliente -> cargarClienteConDetallesEnParalelo(cliente))
                 .toList();

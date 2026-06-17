@@ -1,6 +1,7 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
+import { Router } from '@angular/router';
 import { environment } from '../../../../../environments/environment';
 import { TareaAntiguaAgenda } from '../../../../core/models/models';
 import { Subscription } from 'rxjs';
@@ -23,7 +24,11 @@ export class DashboardTareasComponent implements OnInit, OnDestroy {
   private subs = new Subscription();
   private apiUrl = `${environment.apiGateway}/bff/agendas/antiguas`;
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient, private router: Router) {}
+
+  navigateTo(route: string): void {
+    this.router.navigate([route]);
+  }
 
   ngOnInit(): void {
     this.cargar();

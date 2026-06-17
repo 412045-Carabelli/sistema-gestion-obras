@@ -6,6 +6,7 @@ import { MessageService } from 'primeng/api';
 import { HttpErrorResponse, HttpClient } from '@angular/common/http';
 import { Toast } from 'primeng/toast';
 import { ProgressSpinnerModule } from 'primeng/progressspinner';
+import { SkeletonModule } from 'primeng/skeleton';
 import { Button } from 'primeng/button';
 import { TooltipModule } from 'primeng/tooltip';
 import {FlujoCajaResponse, MovimientoDashboard, ResumenGeneralResponse, Tarea, Obra, Cliente, Proveedor, Transaccion, ObraCosto, ReportFilter, DashboardFinancieroResponse, DashboardConsolidadoResponse, TareaAntiguaAgenda, MovimientoRecenteDTO} from '../../../core/models/models';
@@ -60,7 +61,8 @@ import { environment } from '../../../../environments/environment';
     DashboardGraficosComponent,
     LayoutHeaderComponent,
     GenericFilterBarComponent,
-    TooltipModule
+    TooltipModule,
+    SkeletonModule
   ],
   providers: [MessageService],
   templateUrl: './dashboard.component.html',
@@ -69,6 +71,7 @@ import { environment } from '../../../../environments/environment';
 export class DashboardComponent implements OnInit {
   // Estados de carga
   loadingGeneral = true;
+  loadingKpis = true;
 
   // Datos principales
   flujoCaja!: FlujoCajaResponse;
@@ -375,6 +378,7 @@ export class DashboardComponent implements OnInit {
   }
 
   private cargarDeudasGlobales(): void {
+    this.loadingKpis = true;
     const deudasUrl = `${environment.apiGateway}/bff/reportes/financieros/deudas-globales`;
     const filtro: ReportFilter = {
       obraId: this.filtrosDashboard.obra?.id,
@@ -387,10 +391,12 @@ export class DashboardComponent implements OnInit {
     this.http.post<any>(deudasUrl, filtro).subscribe({
       next: (response) => {
         this.deudasGlobales = response;
+        this.loadingKpis = false;
       },
       error: (err) => {
         console.error('Error cargando deudas globales:', err);
         this.deudasGlobales = null;
+        this.loadingKpis = false;
       }
     });
   }

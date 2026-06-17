@@ -11,20 +11,33 @@
         styleClass="text-gray-700">
       </p-button>
 
-      <div class="flex items-center gap-2 hidden sm:flex">
-        <img src="/buildr-icono.svg" alt="Buildr" class="h-10 w-10">
-        <span class="text-gray-400 text-lg">×</span>
-        <img [src]="logoUrl" alt="Logo empresa" class="h-8 object-contain">
-      </div>
-      <div class="flex sm:hidden items-center gap-2">
-        <img src="/buildr-icono.svg" alt="Buildr" class="h-8 w-8">
-      </div>
+      @if (logoUrl) {
+        <div class="flex items-center">
+          <img [src]="logoUrl" alt="Logo empresa" class="h-9 object-contain max-w-[160px]"
+            (error)="onLogoError()">
+        </div>
+      }
     </div>
 
-    <!-- Welcome Message -->
-    <div class="hidden md:flex items-center gap-2 text-gray-700">
-      <span class="font-poppins font-normal">Bienvenido,</span>
-      <strong class="font-poppins font-semibold text-gray-900">{{ userName }}</strong>
+    <!-- Avatar -->
+    <div class="flex items-center">
+      @if (userAvatarUrl) {
+        <img
+          [src]="userAvatarUrl"
+          alt="Avatar"
+          class="w-9 h-9 rounded-full object-cover cursor-pointer ring-2 ring-indigo-100 hover:ring-indigo-300 transition-all"
+          (click)="toggleUserMenu($event)"
+        />
+      } @else {
+        <div
+          class="w-9 h-9 rounded-full bg-indigo-600 flex items-center justify-center cursor-pointer select-none ring-2 ring-indigo-100 hover:ring-indigo-300 hover:bg-indigo-700 transition-all"
+          (click)="toggleUserMenu($event)"
+        >
+          <span class="text-white text-sm font-semibold leading-none">{{ userInitials }}</span>
+        </div>
+      }
+
+      <p-menu #userMenu [model]="menuItems" [popup]="true" appendTo="body"></p-menu>
     </div>
 
   </div>

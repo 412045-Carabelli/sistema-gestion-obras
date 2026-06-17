@@ -5,7 +5,6 @@ import com.auth.service.AuthService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
@@ -35,17 +34,10 @@ public class AuthController {
   @PostMapping("/change-password")
   public ResponseEntity<AuthResponse> cambiarContrasena(
       @Valid @RequestBody ChangePasswordRequest request,
-      Authentication authentication) {
-    if (authentication == null || !authentication.isAuthenticated()) {
-      return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-    }
-
-    // Extraer userId del principal (será pasado por el gateway via X-User-Id header)
-    Long usuarioId = extraerUsuarioId(authentication);
+      @RequestHeader(value = "X-User-Id", required = false) Long usuarioId) {
     if (usuarioId == null) {
       return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
     }
-
     AuthResponse response = authService.cambiarContrasena(usuarioId, request);
     return ResponseEntity.ok(response);
   }
@@ -59,19 +51,24 @@ public class AuthController {
     return ResponseEntity.ok(response);
   }
 
+  @PutMapping("/perfil")
+  public ResponseEntity<AuthResponse> actualizarPerfil(
+      @Valid @RequestBody UpdatePerfilRequest request,
+      @RequestHeader(value = "X-User-Id", required = false) Long usuarioId) {
+    if (usuarioId == null) {
+      return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+    }
+    AuthResponse response = authService.actualizarPerfil(usuarioId, request);
+    return ResponseEntity.ok(response);
+  }
+
   @PostMapping("/logout")
   public ResponseEntity<Void> logout(
       @Valid @RequestBody RefreshTokenRequest request,
-      Authentication authentication) {
-    if (authentication == null || !authentication.isAuthenticated()) {
-      return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-    }
-
-    Long usuarioId = extraerUsuarioId(authentication);
+      @RequestHeader(value = "X-User-Id", required = false) Long usuarioId) {
     if (usuarioId != null) {
       authService.logout(usuarioId, request.getRefreshToken());
     }
-
     return ResponseEntity.noContent().build();
   }
 
@@ -86,12 +83,5 @@ public class AuthController {
       return xRealIp;
     }
     return request.getRemoteAddr();
-  }
-
-  private Long extraerUsuarioId(Authentication authentication) {
-    // El gateway inyectará X-User-Id header, pero en Spring Security
-    // es mejor obtenerlo del principal. Para now, retornamos null
-    // esto será manejado completamente en el gateway
-    return null;
   }
 }

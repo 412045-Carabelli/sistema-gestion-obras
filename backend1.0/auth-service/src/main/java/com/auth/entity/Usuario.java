@@ -22,6 +22,12 @@ public class Usuario {
   @Column(nullable = false, unique = true, length = 100)
   private String username;
 
+  @Column(length = 100)
+  private String nombre;
+
+  @Column(length = 100)
+  private String apellido;
+
   @Column(nullable = false, length = 255)
   private String passwordHash;
 
@@ -46,9 +52,9 @@ public class Usuario {
   @PrePersist
   protected void onCreate() {
     this.creadoEn = Instant.now();
-    this.rol = "USER";
-    this.activo = Boolean.TRUE;
-    this.intentosFallidos = 0;
+    if (this.rol == null) this.rol = "USER";
+    if (this.activo == null) this.activo = Boolean.TRUE;
+    if (this.intentosFallidos == null) this.intentosFallidos = 0;
   }
 
   @PreUpdate

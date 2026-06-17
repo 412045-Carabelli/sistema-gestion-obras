@@ -47,17 +47,24 @@ public class DocumentoService {
     private final boolean minioEnabled;
     private final String minioBucket;
 
+    private final String logosBucket;
+    private final String minioPublicUrl;
+
     @Autowired
     public DocumentoService(@Value("${file.upload-dir}") String uploadDirBase,
                             DocumentoRepository documentoRepository,
                             @Autowired(required = false) MinioClient minioClient,
                             @Value("${minio.enabled:false}") boolean minioEnabled,
-                            @Value("${minio.bucket:documentos}") String minioBucket) {
+                            @Value("${minio.bucket:documentos}") String minioBucket,
+                            @Value("${minio.logos-bucket:logos}") String logosBucket,
+                            @Value("${minio.public-url:http://localhost:9000}") String minioPublicUrl) {
         this.uploadDirBase = uploadDirBase;
         this.documentoRepository = documentoRepository;
         this.minioClient = minioClient;
         this.minioEnabled = minioEnabled && minioClient != null;
         this.minioBucket = minioBucket;
+        this.logosBucket = logosBucket;
+        this.minioPublicUrl = minioPublicUrl;
     }
 
     public Mono<DocumentoDto> createWithFileReactive(
@@ -257,6 +264,39 @@ public class DocumentoService {
                     .contentType(contentType)
                     .body((Resource) resource);
         }).subscribeOn(Schedulers.boundedElastic());
+    }
+
+    public Mono<String> uploadLogo(FilePart filePart) {
+        if (!minioEnabled) {
+            return Mono.error(new IllegalStateException("MinIO no está habilitado"));
+        }
+        final String safeName = Optional.ofNullable(filePart.filename())
+                .orElse("logo")
+                .replaceAll("[^a-zA-Z0-9._-]", "_");
+        final String objectName = safeName;
+
+        return Mono.usingWhen(
+                Mono.fromCallable(() -> Files.createTempFile("logo-", "-" + safeName))
+                        .subscribeOn(Schedulers.boundedElastic()),
+                temp -> filePart.transferTo(temp)
+                        .then(Mono.fromCallable(() -> {
+                            UploadObjectArgs.Builder builder = UploadObjectArgs.builder()
+                                    .bucket(logosBucket)
+                                    .object(objectName)
+                                    .filename(temp.toString());
+                            if (filePart.headers().getContentType() != null) {
+                                builder.contentType(filePart.headers().getContentType().toString());
+                            }
+                            minioClient.uploadObject(builder.build());
+                            return minioPublicUrl + "/" + logosBucket + "/" + objectName;
+                        }).subscribeOn(Schedulers.boundedElastic())),
+                temp -> Mono.fromRunnable(() -> {
+                    try {
+                        Files.deleteIfExists(temp);
+                    } catch (IOException ignored) {
+                    }
+                }).subscribeOn(Schedulers.boundedElastic())
+        );
     }
 
     private Mono<Void> uploadToMinio(String objectName, FilePart filePart) {

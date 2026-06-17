@@ -20,14 +20,23 @@ public class ClientesController {
     private final ClienteService service;
 
     @PostMapping
-    public ResponseEntity<ClienteResponse> save(@RequestBody @Valid ClienteRequest c){ return ResponseEntity.ok(service.crear(c)); }
+    public ResponseEntity<ClienteResponse> save(
+            @RequestBody @Valid ClienteRequest c,
+            @RequestHeader(value = "X-Empresa-Id", required = false) Long empresaId) {
+        return ResponseEntity.ok(service.crear(c, empresaId));
+    }
 
     @GetMapping
-    public List<ClienteResponse> all(){ return service.listar(); }
+    public List<ClienteResponse> all(
+            @RequestHeader(value = "X-Empresa-Id", required = false) Long empresaId) {
+        return service.listar(empresaId);
+    }
 
     @GetMapping("/con-detalles")
-    public Page<ClienteResponse> listarConDetalles(Pageable pageable) {
-        return service.listarConDetalles(pageable);
+    public Page<ClienteResponse> listarConDetalles(
+            Pageable pageable,
+            @RequestHeader(value = "X-Empresa-Id", required = false) Long empresaId) {
+        return service.listarConDetalles(pageable, empresaId);
     }
 
     @GetMapping("/{id}") public ResponseEntity<ClienteResponse> one(@PathVariable("id") Long id){ return ResponseEntity.ok(service.obtenerConObras(id)); }

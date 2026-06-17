@@ -1,0 +1,202 @@
+<p-toast position="bottom-right"></p-toast>
+<p-confirmDialog></p-confirmDialog>
+
+<div class="space-y-6">
+
+  <!-- Header -->
+  <div class="flex items-center justify-between">
+    <div>
+      <h2 class="text-base font-poppins font-semibold text-gray-800 flex items-center gap-2">
+        <i class="pi pi-users text-gray-500"></i>
+        Usuarios de la empresa
+      </h2>
+      <p class="text-xs text-gray-400 mt-1">Usuarios con acceso al sistema</p>
+    </div>
+    @if (!mostrarFormulario && !usuarioEditando) {
+      <p-button
+        label="Nuevo usuario"
+        icon="pi pi-plus"
+        size="small"
+        (onClick)="mostrarFormulario = true">
+      </p-button>
+    }
+  </div>
+
+  <!-- Formulario crear -->
+  @if (mostrarFormulario) {
+    <div class="bg-white rounded-xl border border-gray-200 p-6">
+      <h3 class="text-sm font-poppins font-semibold text-gray-700 mb-4">Crear nuevo usuario</h3>
+      <form [formGroup]="formCrear" (ngSubmit)="guardarUsuario()" class="space-y-4">
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-sm font-poppins font-semibold mb-1 text-gray-700">Nombre <span class="text-red-500">*</span></label>
+            <input pInputText formControlName="nombre" class="w-full" placeholder="Nombre">
+            <small class="text-red-600" *ngIf="formCrear.get('nombre')?.invalid && formCrear.get('nombre')?.touched">Requerido</small>
+          </div>
+          <div>
+            <label class="block text-sm font-poppins font-semibold mb-1 text-gray-700">Apellido <span class="text-red-500">*</span></label>
+            <input pInputText formControlName="apellido" class="w-full" placeholder="Apellido">
+            <small class="text-red-600" *ngIf="formCrear.get('apellido')?.invalid && formCrear.get('apellido')?.touched">Requerido</small>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-sm font-poppins font-semibold mb-1 text-gray-700">Username <span class="text-red-500">*</span></label>
+            <input pInputText formControlName="username" class="w-full" placeholder="usuario123">
+            <small class="text-red-600" *ngIf="formCrear.get('username')?.invalid && formCrear.get('username')?.touched">Requerido</small>
+          </div>
+          <div>
+            <label class="block text-sm font-poppins font-semibold mb-1 text-gray-700">Email <span class="text-red-500">*</span></label>
+            <input pInputText formControlName="email" type="email" class="w-full" placeholder="usuario@empresa.com">
+            <small class="text-red-600" *ngIf="formCrear.get('email')?.invalid && formCrear.get('email')?.touched">Email válido requerido</small>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-sm font-poppins font-semibold mb-1 text-gray-700">Contraseña <span class="text-red-500">*</span></label>
+            <p-password
+              formControlName="password"
+              [toggleMask]="true"
+              styleClass="w-full"
+              inputStyleClass="w-full"
+              promptLabel="Ingresá una contraseña"
+              weakLabel="Débil"
+              mediumLabel="Media"
+              strongLabel="Fuerte">
+            </p-password>
+            <small class="text-red-600" *ngIf="formCrear.get('password')?.invalid && formCrear.get('password')?.touched">Mínimo 8 caracteres</small>
+          </div>
+          <div>
+            <label class="block text-sm font-poppins font-semibold mb-1 text-gray-700">Rol <span class="text-red-500">*</span></label>
+            <p-select
+              formControlName="rol"
+              [options]="rolesOpciones"
+              optionLabel="label"
+              optionValue="value"
+              styleClass="w-full">
+            </p-select>
+          </div>
+        </div>
+
+        <div class="flex justify-end gap-2">
+          <p-button type="button" label="Cancelar" severity="secondary" [text]="true" (onClick)="cancelarCreacion()"></p-button>
+          <p-button type="submit" label="Crear usuario" icon="pi pi-check" [loading]="guardando" [disabled]="formCrear.invalid || guardando"></p-button>
+        </div>
+      </form>
+    </div>
+  }
+
+  <!-- Formulario editar -->
+  @if (usuarioEditando) {
+    <div class="bg-white rounded-xl border border-indigo-200 p-6">
+      <h3 class="text-sm font-poppins font-semibold text-gray-700 mb-1">Editar usuario</h3>
+      <p class="text-xs text-gray-400 mb-4">{{ usuarioEditando.username }}</p>
+      <form [formGroup]="formEditar" (ngSubmit)="guardarEdicion()" class="space-y-4">
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-sm font-poppins font-semibold mb-1 text-gray-700">Nombre <span class="text-red-500">*</span></label>
+            <input pInputText formControlName="nombre" class="w-full">
+            <small class="text-red-600" *ngIf="formEditar.get('nombre')?.invalid && formEditar.get('nombre')?.touched">Requerido</small>
+          </div>
+          <div>
+            <label class="block text-sm font-poppins font-semibold mb-1 text-gray-700">Apellido <span class="text-red-500">*</span></label>
+            <input pInputText formControlName="apellido" class="w-full">
+            <small class="text-red-600" *ngIf="formEditar.get('apellido')?.invalid && formEditar.get('apellido')?.touched">Requerido</small>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-sm font-poppins font-semibold mb-1 text-gray-700">Email <span class="text-red-500">*</span></label>
+            <input pInputText formControlName="email" type="email" class="w-full">
+            <small class="text-red-600" *ngIf="formEditar.get('email')?.invalid && formEditar.get('email')?.touched">Email válido requerido</small>
+          </div>
+          <div>
+            <label class="block text-sm font-poppins font-semibold mb-1 text-gray-700">Rol <span class="text-red-500">*</span></label>
+            <p-select
+              formControlName="rol"
+              [options]="rolesOpciones"
+              optionLabel="label"
+              optionValue="value"
+              styleClass="w-full">
+            </p-select>
+          </div>
+        </div>
+
+        <div class="flex justify-end gap-2">
+          <p-button type="button" label="Cancelar" severity="secondary" [text]="true" (onClick)="usuarioEditando = null"></p-button>
+          <p-button type="submit" label="Guardar cambios" icon="pi pi-save" [loading]="guardando" [disabled]="formEditar.invalid || guardando"></p-button>
+        </div>
+      </form>
+    </div>
+  }
+
+  <!-- Tabla -->
+  <div class="bg-white rounded-xl border border-gray-200 overflow-hidden">
+    <p-table [value]="usuarios" [loading]="cargando" [rowHover]="true" styleClass="p-datatable-sm">
+      <ng-template pTemplate="header">
+        <tr>
+          <th class="font-poppins text-xs text-gray-500 uppercase">Nombre</th>
+          <th class="font-poppins text-xs text-gray-500 uppercase">Username</th>
+          <th class="font-poppins text-xs text-gray-500 uppercase">Email</th>
+          <th class="font-poppins text-xs text-gray-500 uppercase">Rol</th>
+          <th class="font-poppins text-xs text-gray-500 uppercase">Estado</th>
+          <th class="font-poppins text-xs text-gray-500 uppercase text-center">Acciones</th>
+        </tr>
+      </ng-template>
+      <ng-template pTemplate="body" let-u>
+        <tr [class.opacity-50]="!u.activo">
+          <td class="font-poppins text-sm text-gray-800">{{ u.nombre }} {{ u.apellido }}</td>
+          <td class="font-poppins text-sm text-gray-600">{{ u.username }}</td>
+          <td class="font-poppins text-sm text-gray-600">{{ u.email }}</td>
+          <td>
+            <p-tag [value]="u.rol" [severity]="rolSeverity(u.rol)" styleClass="text-xs font-poppins"></p-tag>
+          </td>
+          <td>
+            <p-tag
+              [value]="u.activo ? 'Activo' : 'Inactivo'"
+              [severity]="u.activo ? 'success' : 'danger'"
+              styleClass="text-xs font-poppins">
+            </p-tag>
+          </td>
+          <td class="text-center">
+            <div class="flex items-center justify-center gap-1">
+              <p-button
+                icon="pi pi-pencil"
+                [rounded]="true"
+                [text]="true"
+                severity="secondary"
+                size="small"
+                pTooltip="Editar"
+                tooltipPosition="top"
+                (onClick)="abrirEdicion(u)">
+              </p-button>
+              <p-button
+                [icon]="u.activo ? 'pi pi-ban' : 'pi pi-check-circle'"
+                [rounded]="true"
+                [text]="true"
+                [severity]="u.activo ? 'danger' : 'success'"
+                size="small"
+                [pTooltip]="u.activo ? 'Dar de baja' : 'Reactivar'"
+                tooltipPosition="top"
+                (onClick)="confirmarCambioEstado(u)">
+              </p-button>
+            </div>
+          </td>
+        </tr>
+      </ng-template>
+      <ng-template pTemplate="emptymessage">
+        <tr>
+          <td colspan="6" class="text-center text-gray-400 font-poppins text-sm py-8">
+            No hay usuarios en la organización
+          </td>
+        </tr>
+      </ng-template>
+    </p-table>
+  </div>
+
+</div>

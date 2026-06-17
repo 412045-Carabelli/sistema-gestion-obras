@@ -19,6 +19,21 @@ public class Organizacion {
   @Column(nullable = false, length = 255)
   private String nombre;
 
+  @Column(name = "razon_social", length = 255)
+  private String razonSocial;
+
+  @Column(name = "cuit", length = 20)
+  private String cuit;
+
+  @Column(name = "email", length = 255)
+  private String email;
+
+  @Column(name = "telefono", length = 50)
+  private String telefono;
+
+  @Column(name = "direccion", length = 500)
+  private String direccion;
+
   @Column(nullable = false)
   private Boolean activo = Boolean.TRUE;
 
