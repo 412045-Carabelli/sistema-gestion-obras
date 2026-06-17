@@ -7,8 +7,11 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.reactive.function.client.WebClient;
+import org.springframework.web.util.UriComponentsBuilder;
 import reactor.core.publisher.Mono;
 
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -23,6 +26,136 @@ public class ReportesBffController {
 
     @Value("${services.reportes.url}")
     private String reportesServiceUrl;
+
+    @Value("${services.transacciones.url}")
+    private String transaccionesServiceUrl;
+
+    @Value("${services.obras.url}")
+    private String obrasServiceUrl;
+
+    @Value("${services.clientes.url}")
+    private String clientesServiceUrl;
+
+    @Value("${services.proveedores.url}")
+    private String proveedoresServiceUrl;
+
+    // ---------- CATÁLOGOS ----------
+
+    @GetMapping("/catalogos/filtros-cuenta-corriente")
+    public Mono<ResponseEntity<Map<String, Object>>> getCatalogosFiltroCuentaCorriente() {
+        return Mono.zip(
+                fetchObras(),
+                fetchClientes(),
+                fetchProveedores()
+        ).map(tuple -> {
+            Map<String, Object> result = new java.util.HashMap<>();
+            result.put("obras", tuple.getT1());
+            result.put("clientes", tuple.getT2());
+            result.put("proveedores", tuple.getT3());
+            return ResponseEntity.ok(result);
+        }).onErrorResume(e -> {
+            Map<String, Object> errorResult = new java.util.HashMap<>();
+            errorResult.put("error", "Error al cargar catálogos: " + e.getMessage());
+            return Mono.just(ResponseEntity.internalServerError().body(errorResult));
+        });
+    }
+
+    private Mono<List<Map<String, Object>>> fetchGrupos() {
+        return webClientBuilder.build()
+                .get()
+                .uri(obrasServiceUrl + "/grupos-obras")
+                .accept(MediaType.APPLICATION_JSON)
+                .retrieve()
+                .bodyToMono(new ParameterizedTypeReference<List<Map<String, Object>>>() {})
+                .onErrorResume(e -> Mono.just(List.of()));
+    }
+
+    private Mono<List<Map<String, Object>>> fetchObras() {
+        return webClientBuilder.build()
+                .get()
+                .uri(obrasServiceUrl + "?size=1000")
+                .accept(MediaType.APPLICATION_JSON)
+                .retrieve()
+                .bodyToMono(new ParameterizedTypeReference<List<Map<String, Object>>>() {})
+                .map(list -> list.stream()
+                    .filter(obj -> {
+                        Object activo = obj.get("activo");
+                        return activo != null && (
+                            (activo instanceof Boolean && (Boolean) activo) ||
+                            (activo instanceof String && "true".equalsIgnoreCase((String) activo)) ||
+                            (activo instanceof Number && ((Number) activo).intValue() == 1)
+                        );
+                    })
+                    .map(obj -> {
+                        Map<String, Object> result = new java.util.HashMap<>();
+                        result.put("id", obj.get("id"));
+                        result.put("nombre", obj.get("nombre"));
+                        return result;
+                    })
+                    .toList())
+                .onErrorResume(e -> {
+                    System.err.println("Error fetching obras: " + e.getMessage());
+                    return Mono.just(List.of());
+                });
+    }
+
+    private Mono<List<Map<String, Object>>> fetchClientes() {
+        return webClientBuilder.build()
+                .get()
+                .uri(clientesServiceUrl)
+                .accept(MediaType.APPLICATION_JSON)
+                .retrieve()
+                .bodyToMono(new ParameterizedTypeReference<List<Map<String, Object>>>() {})
+                .map(list -> list.stream()
+                    .filter(obj -> {
+                        Object activo = obj.get("activo");
+                        return activo != null && (
+                            (activo instanceof Boolean && (Boolean) activo) ||
+                            (activo instanceof String && "true".equalsIgnoreCase((String) activo)) ||
+                            (activo instanceof Number && ((Number) activo).intValue() == 1)
+                        );
+                    })
+                    .map(obj -> {
+                        Map<String, Object> result = new java.util.HashMap<>();
+                        result.put("id", obj.get("id"));
+                        result.put("nombre", obj.get("nombre"));
+                        return result;
+                    })
+                    .toList())
+                .onErrorResume(e -> {
+                    System.err.println("Error fetching clientes: " + e.getMessage());
+                    return Mono.just(List.of());
+                });
+    }
+
+    private Mono<List<Map<String, Object>>> fetchProveedores() {
+        return webClientBuilder.build()
+                .get()
+                .uri(proveedoresServiceUrl)
+                .accept(MediaType.APPLICATION_JSON)
+                .retrieve()
+                .bodyToMono(new ParameterizedTypeReference<List<Map<String, Object>>>() {})
+                .map(list -> list.stream()
+                    .filter(obj -> {
+                        Object activo = obj.get("activo");
+                        return activo != null && (
+                            (activo instanceof Boolean && (Boolean) activo) ||
+                            (activo instanceof String && "true".equalsIgnoreCase((String) activo)) ||
+                            (activo instanceof Number && ((Number) activo).intValue() == 1)
+                        );
+                    })
+                    .map(obj -> {
+                        Map<String, Object> result = new java.util.HashMap<>();
+                        result.put("id", obj.get("id"));
+                        result.put("nombre", obj.get("nombre"));
+                        return result;
+                    })
+                    .toList())
+                .onErrorResume(e -> {
+                    System.err.println("Error fetching proveedores: " + e.getMessage());
+                    return Mono.just(List.of());
+                });
+    }
 
     // ---------- FINANCIEROS ----------
 
@@ -41,14 +174,120 @@ public class ReportesBffController {
         return proxyPost("/financieros/flujo-caja", filtro, new ParameterizedTypeReference<>() {});
     }
 
+    @PostMapping("/financieros/flujo-caja-principal")
+    public Mono<ResponseEntity<Object>> flujoCajaPrincipal(@RequestBody(required = false) Object filtro) {
+        // Endpoint confiable que devuelve: cobrado, por_cobrar, pagado, por_pagar, resultado
+        // Filtrado por 6 estados: Adjudicada, En progreso, Cobrada, Facturada, Facturada parcial, Finalizada
+        String baseUrl = extractBaseUrl(transaccionesServiceUrl);
+        String url = baseUrl + "/api/flujo-caja/principal";
+        return webClientBuilder.build()
+                .get()
+                .uri(url)
+                .accept(MediaType.APPLICATION_JSON)
+                .retrieve()
+                .bodyToMono(new ParameterizedTypeReference<Object>() {})
+                .map(ResponseEntity::ok)
+                .onErrorResume(e -> Mono.just(ResponseEntity.internalServerError()
+                        .body((Object) ("Error al obtener flujo de caja: " + e.getMessage()))));
+    }
+
     @PostMapping("/financieros/dashboard")
     public Mono<ResponseEntity<Object>> dashboardFinanciero(@RequestBody(required = false) Object filtro) {
         return proxyPost("/financieros/dashboard", filtro, new ParameterizedTypeReference<>() {});
     }
 
+    @PostMapping("/financieros/dashboard-consolidado")
+    public Mono<ResponseEntity<Object>> dashboardConsolidado(@RequestBody(required = false) Object filtro) {
+        return proxyPost("/financieros/dashboard-consolidado", filtro, new ParameterizedTypeReference<>() {});
+    }
+
     @PostMapping("/financieros/deudas-globales")
     public Mono<ResponseEntity<Object>> deudasGlobales(@RequestBody(required = false) Object filtro) {
         return proxyPost("/financieros/deudas-globales", filtro, new ParameterizedTypeReference<>() {});
+    }
+
+    @GetMapping("/dashboard/graficos")
+    public Mono<ResponseEntity<Object>> dashboardGraficos(
+            @RequestParam(defaultValue = "10") int topN) {
+        return proxyGet("/dashboard/graficos?topN=" + topN, new ParameterizedTypeReference<>() {});
+    }
+
+    @PostMapping("/financieros/cuentas-corrientes-combinadas")
+    public Mono<ResponseEntity<Object>> cuentasCorrientesCombinadas(@RequestBody(required = false) Object filtro) {
+        return proxyPost("/financieros/cuentas-corrientes-combinadas", filtro, new ParameterizedTypeReference<>() {});
+    }
+
+    // Filtros en cascada para deudas globales
+    @GetMapping("/filtros/obras-por-cliente")
+    public Mono<ResponseEntity<Object>> obtenerObrasPorCliente(
+            @RequestParam(required = false) Long clienteId,
+            @RequestParam(required = false) Long proveedorId,
+            @RequestParam(required = false) Long obraId) {
+        String url = reportesServiceUrl + "/filtros/obras-por-cliente";
+        url = agregarParametros(url, clienteId != null ? "clienteId=" + clienteId : null);
+        url = agregarParametros(url, proveedorId != null ? "proveedorId=" + proveedorId : null);
+        url = agregarParametros(url, obraId != null ? "obraId=" + obraId : null);
+        return proxyGetWithUrl(url, new ParameterizedTypeReference<>() {});
+    }
+
+    @GetMapping("/filtros/proveedores-por-cliente")
+    public Mono<ResponseEntity<Object>> obtenerProveedoresPorCliente(
+            @RequestParam(required = false) Long clienteId,
+            @RequestParam(required = false) Long proveedorId,
+            @RequestParam(required = false) Long obraId) {
+        String url = reportesServiceUrl + "/filtros/proveedores-por-cliente";
+        url = agregarParametros(url, clienteId != null ? "clienteId=" + clienteId : null);
+        url = agregarParametros(url, proveedorId != null ? "proveedorId=" + proveedorId : null);
+        url = agregarParametros(url, obraId != null ? "obraId=" + obraId : null);
+        return proxyGetWithUrl(url, new ParameterizedTypeReference<>() {});
+    }
+
+    @GetMapping("/filtros/obras-por-proveedor")
+    public Mono<ResponseEntity<Object>> obtenerObrasPorProveedor(
+            @RequestParam(required = false) Long proveedorId,
+            @RequestParam(required = false) Long clienteId,
+            @RequestParam(required = false) Long obraId) {
+        String url = reportesServiceUrl + "/filtros/obras-por-proveedor";
+        url = agregarParametros(url, proveedorId != null ? "proveedorId=" + proveedorId : null);
+        url = agregarParametros(url, clienteId != null ? "clienteId=" + clienteId : null);
+        url = agregarParametros(url, obraId != null ? "obraId=" + obraId : null);
+        return proxyGetWithUrl(url, new ParameterizedTypeReference<>() {});
+    }
+
+    @GetMapping("/filtros/clientes-por-proveedor")
+    public Mono<ResponseEntity<Object>> obtenerClientesPorProveedor(
+            @RequestParam(required = false) Long proveedorId,
+            @RequestParam(required = false) Long clienteId,
+            @RequestParam(required = false) Long obraId) {
+        String url = reportesServiceUrl + "/filtros/clientes-por-proveedor";
+        url = agregarParametros(url, proveedorId != null ? "proveedorId=" + proveedorId : null);
+        url = agregarParametros(url, clienteId != null ? "clienteId=" + clienteId : null);
+        url = agregarParametros(url, obraId != null ? "obraId=" + obraId : null);
+        return proxyGetWithUrl(url, new ParameterizedTypeReference<>() {});
+    }
+
+    @GetMapping("/filtros/proveedores-por-obra")
+    public Mono<ResponseEntity<Object>> obtenerProveedoresPorObra(
+            @RequestParam(required = false) Long obraId,
+            @RequestParam(required = false) Long clienteId,
+            @RequestParam(required = false) Long proveedorId) {
+        String url = reportesServiceUrl + "/filtros/proveedores-por-obra";
+        url = agregarParametros(url, obraId != null ? "obraId=" + obraId : null);
+        url = agregarParametros(url, clienteId != null ? "clienteId=" + clienteId : null);
+        url = agregarParametros(url, proveedorId != null ? "proveedorId=" + proveedorId : null);
+        return proxyGetWithUrl(url, new ParameterizedTypeReference<>() {});
+    }
+
+    @GetMapping("/filtros/clientes-por-obra")
+    public Mono<ResponseEntity<Object>> obtenerClientesPorObra(
+            @RequestParam(required = false) Long obraId,
+            @RequestParam(required = false) Long clienteId,
+            @RequestParam(required = false) Long proveedorId) {
+        String url = reportesServiceUrl + "/filtros/clientes-por-obra";
+        url = agregarParametros(url, obraId != null ? "obraId=" + obraId : null);
+        url = agregarParametros(url, clienteId != null ? "clienteId=" + clienteId : null);
+        url = agregarParametros(url, proveedorId != null ? "proveedorId=" + proveedorId : null);
+        return proxyGetWithUrl(url, new ParameterizedTypeReference<>() {});
     }
 
     @PostMapping("/financieros/cuenta-corriente-obra-global")
@@ -69,6 +308,11 @@ public class ReportesBffController {
     @PostMapping("/financieros/pendientes")
     public Mono<ResponseEntity<Object>> pendientes(@RequestBody(required = false) Object filtro) {
         return proxyPost("/financieros/pendientes", filtro, new ParameterizedTypeReference<>() {});
+    }
+
+    @PostMapping("/financieros/kpi-facturas")
+    public Mono<ResponseEntity<Object>> kpiFacturas(@RequestBody(required = false) Object filtro) {
+        return proxyPost("/financieros/kpi-facturas", filtro, new ParameterizedTypeReference<>() {});
     }
 
     @PostMapping("/financieros/cuenta-corriente-obra")
@@ -94,6 +338,73 @@ public class ReportesBffController {
         return proxyGet("/cuenta-corriente/proveedores", new ParameterizedTypeReference<>() {});
     }
 
+    @PostMapping("/cuenta-corriente-pdf/proveedor/{proveedorId}")
+    public Mono<ResponseEntity<byte[]>> cuentaCorrientePdfProveedor(
+            @PathVariable("proveedorId") Long proveedorId,
+            @RequestParam(name = "obraIds", required = false) List<Long> obraIds) {
+        StringBuilder url = new StringBuilder(reportesServiceUrl + "/cuenta-corriente-pdf/proveedor/" + proveedorId);
+        if (obraIds != null && !obraIds.isEmpty()) {
+            url.append("?");
+            for (int i = 0; i < obraIds.size(); i++) {
+                if (i > 0) url.append("&");
+                url.append("obraIds=").append(obraIds.get(i));
+            }
+        }
+        return webClientBuilder.build()
+                .post()
+                .uri(url.toString())
+                .contentType(MediaType.APPLICATION_JSON)
+                .retrieve()
+                .bodyToMono(byte[].class)
+                .map(pdfBytes -> ResponseEntity.ok()
+                        .contentType(MediaType.APPLICATION_PDF)
+                        .header("Content-Disposition", "attachment; filename=CtaCte_Proveedor_" + proveedorId + ".pdf")
+                        .body(pdfBytes))
+                .onErrorResume(e -> Mono.just(ResponseEntity.internalServerError().build()));
+    }
+
+    @PostMapping("/cuenta-corriente-pdf/cliente/{clienteId}")
+    public Mono<ResponseEntity<byte[]>> cuentaCorrientePdfCliente(
+            @PathVariable("clienteId") Long clienteId,
+            @RequestParam(name = "obraIds", required = false) List<Long> obraIds) {
+        StringBuilder url = new StringBuilder(reportesServiceUrl + "/cuenta-corriente-pdf/cliente/" + clienteId);
+        if (obraIds != null && !obraIds.isEmpty()) {
+            url.append("?");
+            for (int i = 0; i < obraIds.size(); i++) {
+                if (i > 0) url.append("&");
+                url.append("obraIds=").append(obraIds.get(i));
+            }
+        }
+        return webClientBuilder.build()
+                .post()
+                .uri(url.toString())
+                .contentType(MediaType.APPLICATION_JSON)
+                .retrieve()
+                .bodyToMono(byte[].class)
+                .map(pdfBytes -> ResponseEntity.ok()
+                        .contentType(MediaType.APPLICATION_PDF)
+                        .header("Content-Disposition", "attachment; filename=CtaCte_Cliente_" + clienteId + ".pdf")
+                        .body(pdfBytes))
+                .onErrorResume(e -> Mono.just(ResponseEntity.internalServerError().build()));
+    }
+
+    @PostMapping("/financieros/cuentas-corrientes-combinadas-pdf")
+    public Mono<ResponseEntity<byte[]>> cuentasCorrientesCombinaidasPdf(
+            @RequestBody(required = false) Object filtro) {
+        return webClientBuilder.build()
+                .post()
+                .uri(reportesServiceUrl + "/financieros/cuentas-corrientes-combinadas-pdf")
+                .contentType(MediaType.APPLICATION_JSON)
+                .bodyValue(filtro != null ? filtro : new Object())
+                .retrieve()
+                .bodyToMono(byte[].class)
+                .map(pdfBytes -> ResponseEntity.ok()
+                        .contentType(MediaType.APPLICATION_PDF)
+                        .header("Content-Disposition", "attachment; filename=CuentasCorrientesCombinadas.pdf")
+                        .body(pdfBytes))
+                .onErrorResume(e -> Mono.just(ResponseEntity.internalServerError().build()));
+    }
+
     @PostMapping("/financieros/comisiones")
     public Mono<ResponseEntity<Object>> comisiones(@RequestBody(required = false) Map<String, Object> filtro) {
         Long obraId = extractLong(filtro, "obraId");
@@ -112,6 +423,11 @@ public class ReportesBffController {
     @PostMapping("/operativos/avance-tareas")
     public Mono<ResponseEntity<Object>> avanceTareas(@RequestBody(required = false) Object filtro) {
         return proxyPost("/operativos/avance-tareas", filtro, new ParameterizedTypeReference<>() {});
+    }
+
+    @GetMapping("/operativos/avance-pagos-obra/{obraId}")
+    public Mono<ResponseEntity<Object>> avancePagosObra(@PathVariable("obraId") Long obraId) {
+        return proxyGet("/operativos/avance-pagos-obra/" + obraId, new ParameterizedTypeReference<>() {});
     }
 
     @PostMapping("/operativos/costos-categoria")
@@ -136,6 +452,23 @@ public class ReportesBffController {
         return proxyPost("/generales/ranking-proveedores", filtro, new ParameterizedTypeReference<>() {});
     }
 
+    // ---------- MOVIMIENTOS ----------
+
+    @GetMapping("/movimientos/recientes")
+    public Mono<ResponseEntity<Object>> getUltimosMovimientos() {
+        String baseUrl = extractBaseUrl(transaccionesServiceUrl);
+        String url = baseUrl + "/api/transacciones/recientes";
+        return webClientBuilder.build()
+                .get()
+                .uri(url)
+                .accept(MediaType.APPLICATION_JSON)
+                .retrieve()
+                .bodyToMono(new ParameterizedTypeReference<Object>() {})
+                .map(ResponseEntity::ok)
+                .onErrorResume(e -> Mono.just(ResponseEntity.internalServerError()
+                        .body((Object) ("Error al obtener movimientos recientes: " + e.getMessage()))));
+    }
+
     // ---------- NOTAS ----------
 
     @GetMapping("/obras/notas")
@@ -146,6 +479,18 @@ public class ReportesBffController {
     @GetMapping("/obras/{obraId}/notas")
     public Mono<ResponseEntity<Object>> notasPorObra(@PathVariable("obraId") Long obraId) {
         return proxyGet("/obras/" + obraId + "/notas", new ParameterizedTypeReference<>() {});
+    }
+
+    // ---------- SALDOS ----------
+
+    @GetMapping("/financieros/saldos/cliente/{clienteId}")
+    public Mono<ResponseEntity<Object>> saldosCliente(@PathVariable("clienteId") Long clienteId) {
+        return proxyGet("/financieros/saldos/cliente/" + clienteId, new ParameterizedTypeReference<>() {});
+    }
+
+    @GetMapping("/financieros/saldos/proveedor/{proveedorId}")
+    public Mono<ResponseEntity<Object>> saldosProveedor(@PathVariable("proveedorId") Long proveedorId) {
+        return proxyGet("/financieros/saldos/proveedor/" + proveedorId, new ParameterizedTypeReference<>() {});
     }
 
     // ---------- MÉTODOS UTILITARIOS ----------
@@ -160,6 +505,23 @@ public class ReportesBffController {
                 .map(ResponseEntity::ok)
                 .onErrorResume(e -> Mono.just(ResponseEntity.internalServerError()
                         .body((T) ("Error al obtener datos: " + e.getMessage()))));
+    }
+
+    private <T> Mono<ResponseEntity<T>> proxyGetWithUrl(String fullUrl, ParameterizedTypeReference<T> type) {
+        return webClientBuilder.build()
+                .get()
+                .uri(fullUrl)
+                .accept(MediaType.APPLICATION_JSON)
+                .retrieve()
+                .bodyToMono(type)
+                .map(ResponseEntity::ok)
+                .onErrorResume(e -> Mono.just(ResponseEntity.internalServerError()
+                        .body((T) ("Error al obtener datos: " + e.getMessage()))));
+    }
+
+    private String agregarParametros(String url, String param) {
+        if (param == null) return url;
+        return url.contains("?") ? url + "&" + param : url + "?" + param;
     }
 
     private <T> Mono<ResponseEntity<T>> proxyPost(String path, Object body, ParameterizedTypeReference<T> type) {
@@ -187,5 +549,32 @@ public class ReportesBffController {
                     }
                 })
                 .orElse(null);
+    }
+
+    /**
+     * Extrae la URL base (esquema + host + puerto) de una URL completa.
+     * Ej: http://localhost:8086/api/transacciones -> http://localhost:8086
+     * Más robusto que regex: tolera cambios en la estructura de la ruta.
+     */
+    private String extractBaseUrl(String fullUrl) {
+        try {
+            URI uri = new URI(fullUrl);
+            int port = uri.getPort();
+            String baseUrl = String.format("%s://%s", uri.getScheme(), uri.getHost());
+
+            // Incluir puerto si no es el default
+            if (port != -1) {
+                baseUrl += ":" + port;
+            }
+            return baseUrl;
+        } catch (URISyntaxException e) {
+            // Fallback: intenta extraer todo antes de /api/
+            int apiIndex = fullUrl.indexOf("/api/");
+            if (apiIndex > 0) {
+                return fullUrl.substring(0, apiIndex);
+            }
+            // Si todo falla, retorna la URL tal cual
+            return fullUrl;
+        }
     }
 }

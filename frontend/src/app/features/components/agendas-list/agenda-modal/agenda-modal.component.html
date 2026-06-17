@@ -1,0 +1,156 @@
+<app-modal
+  [visible]="visible()"
+  [title]="esEdicion() ? 'Editar Evento' : 'Nuevo Evento'"
+  [width]="'700px'"
+  [confirmLabel]="'Guardar'"
+  [confirmDisabled]="!form?.valid"
+  [confirmLoading]="guardando()"
+  (closed)="cerrar()"
+  (confirmed)="guardar()">
+
+  <form [formGroup]="form!" class="space-y-4" *ngIf="form">
+
+    <!-- Título -->
+    <div>
+      <label class="block text-sm font-poppins font-semibold mb-1 text-gray-700">
+        Título <span class="text-red-500">*</span>
+      </label>
+      <input
+        pInputText
+        formControlName="titulo"
+        class="w-full"
+        placeholder="Ej: Instalación de puertas"
+        [class.ng-invalid]="form?.get('titulo')?.invalid && form?.get('titulo')?.touched">
+      @if (form?.get('titulo')?.invalid && form?.get('titulo')?.touched) {
+        <p class="text-red-500 text-xs mt-1 flex items-center gap-1">
+          <i class="pi pi-exclamation-circle text-xs"></i>
+          Este campo es obligatorio
+        </p>
+      }
+    </div>
+
+    <!-- Prioridad -->
+    <div>
+      <label class="block text-sm font-poppins font-semibold mb-1 text-gray-700">Prioridad</label>
+      <p-dropdown
+        [options]="prioridadesOptions"
+        optionLabel="label"
+        optionValue="value"
+        formControlName="prioridad"
+        styleClass="w-full"
+        appendTo="body">
+      </p-dropdown>
+    </div>
+
+    <!-- Obra, Cliente, Proveedor -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div>
+        <label class="block text-sm font-poppins font-semibold mb-1 text-gray-700">Obra</label>
+        <p-dropdown
+          [options]="obrasOptions()"
+          optionLabel="label"
+          optionValue="value"
+          formControlName="obraId"
+          [showClear]="true"
+          [filter]="true"
+          filterPlaceholder="Buscar obra..."
+          styleClass="w-full"
+          placeholder="Selecciona una obra"
+          [loading]="cargandoDatos()"
+          (onChange)="onObraChange()"
+          appendTo="body">
+        </p-dropdown>
+      </div>
+
+      <div>
+        <label class="block text-sm font-poppins font-semibold mb-1 text-gray-700">Cliente</label>
+        <p-dropdown
+          [options]="clientesFiltrados()"
+          optionLabel="label"
+          optionValue="value"
+          formControlName="clienteId"
+          [showClear]="true"
+          [filter]="true"
+          filterPlaceholder="Buscar cliente..."
+          styleClass="w-full"
+          placeholder="Selecciona un cliente"
+          [loading]="cargandoDatos()"
+          appendTo="body">
+        </p-dropdown>
+        @if (form?.get('obraId')?.value && clientesFiltrados().length === 0) {
+          <p class="text-orange-500 text-xs mt-1">
+            <i class="pi pi-info-circle text-xs mr-1"></i>No hay clientes en esta obra
+          </p>
+        }
+      </div>
+
+      <div>
+        <label class="block text-sm font-poppins font-semibold mb-1 text-gray-700">Proveedor</label>
+        <p-dropdown
+          [options]="proveedoresFiltrados()"
+          optionLabel="label"
+          optionValue="value"
+          formControlName="proveedorId"
+          [showClear]="true"
+          [filter]="true"
+          filterPlaceholder="Buscar proveedor..."
+          styleClass="w-full"
+          placeholder="Selecciona un proveedor"
+          [loading]="cargandoDatos()"
+          appendTo="body">
+        </p-dropdown>
+      </div>
+    </div>
+
+    <!-- Descripción -->
+    <div>
+      <label class="block text-sm font-poppins font-semibold mb-1 text-gray-700">Descripción</label>
+      <textarea
+        pInputTextarea
+        formControlName="descripcion"
+        class="w-full"
+        rows="3"
+        placeholder="Detalles adicionales (opcional)">
+      </textarea>
+    </div>
+
+    <!-- Fechas -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div>
+        <label class="block text-sm font-poppins font-semibold mb-1 text-gray-700">Fecha de Inicio</label>
+        <input pInputText formControlName="fechaInicio" type="date" class="w-full">
+      </div>
+      <div>
+        <label class="block text-sm font-poppins font-semibold mb-1 text-gray-700">Fecha de Vencimiento</label>
+        <input
+          pInputText
+          formControlName="fechaVencimiento"
+          type="date"
+          class="w-full"
+          [class.ng-invalid]="form?.get('fechaVencimiento')?.hasError('fechaMenorQueInicio') && form?.get('fechaVencimiento')?.touched">
+        @if (form?.get('fechaVencimiento')?.hasError('fechaMenorQueInicio') && form?.get('fechaVencimiento')?.touched) {
+          <p class="text-red-500 text-xs mt-1 flex items-center gap-1">
+            <i class="pi pi-exclamation-circle text-xs"></i>
+            La fecha de vencimiento no puede ser anterior a la fecha de inicio
+          </p>
+        }
+      </div>
+    </div>
+
+    <!-- Eliminar (solo edición) -->
+    @if (esEdicion()) {
+      <div class="pt-2 border-t border-gray-100">
+        <button
+          pButton
+          type="button"
+          label="Eliminar evento"
+          icon="pi pi-trash"
+          class="p-button-danger p-button-text p-button-sm"
+          [disabled]="guardando()"
+          (click)="eliminar()">
+        </button>
+      </div>
+    }
+
+  </form>
+</app-modal>

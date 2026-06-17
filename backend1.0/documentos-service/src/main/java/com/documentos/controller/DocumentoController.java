@@ -5,6 +5,7 @@ import com.documentos.enums.TipoDocumentoEnum;
 import com.documentos.service.DocumentoService;
 import org.springframework.core.io.Resource;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -13,12 +14,28 @@ import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import java.util.Map;
+
 @RestController
 @RequestMapping("/api/documentos")
 @RequiredArgsConstructor
+@Slf4j
 public class DocumentoController {
 
     private final DocumentoService documentoService;
+
+    @PostMapping(value = "/logo", consumes = MediaType.MULTIPART_FORM_DATA_VALUE,
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    public Mono<ResponseEntity<Map<String, String>>> uploadLogo(
+            @RequestPart("file") FilePart filePart
+    ) {
+        return documentoService.uploadLogo(filePart)
+                .map(url -> ResponseEntity.ok(Map.of("url", url)))
+                .onErrorResume(ex -> {
+                    log.error("Error subiendo logo", ex);
+                    return Mono.just(ResponseEntity.internalServerError().build());
+                });
+    }
 
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE)
@@ -28,7 +45,7 @@ public class DocumentoController {
             @RequestPart(value = "id_asociado", required = false) String idAsociado,
             @RequestPart(value = "tipo_asociado", required = false) String tipoAsociado,
             @RequestPart(value = "observacion", required = false) String observacion,
-            @RequestPart("file") FilePart filePart
+            @RequestPart(value = "file", required = false) FilePart filePart
     ) {
         // Convert String to Enum
         TipoDocumentoEnum tipoEnum = TipoDocumentoEnum.OTRO;
@@ -44,7 +61,7 @@ public class DocumentoController {
                         idObra, tipoEnum, observacion, idAsociado, tipoAsociado, filePart)
                 .map(dto -> ResponseEntity.status(HttpStatus.CREATED).body(dto))
                 .onErrorResume(ex -> {
-                    ex.printStackTrace();
+                    log.error("Error en operación de documentos", ex);
                     return Mono.just(ResponseEntity.internalServerError().build());
                 });
     }
@@ -53,9 +70,10 @@ public class DocumentoController {
     @GetMapping("/asociado/{tipo}/{id}")
     public Flux<DocumentoDto> getDocumentosPorAsociado(
             @PathVariable("tipo") String tipo,
-            @PathVariable("id") Long id
+            @PathVariable("id") Long id,
+            @RequestParam(value = "obraId", required = false) Long obraId
     ) {
-        return documentoService.findByTipoAsociado(tipo.toUpperCase(), id);
+        return documentoService.findByTipoAsociado(tipo.toUpperCase(), id, obraId);
     }
 
     @GetMapping("/obra/{obraId}")

@@ -32,6 +32,14 @@ public class ProveedoresBffController {
         return ResponseEntity.ok(dtos);
     }
 
+    @GetMapping("/proveedores/simple")
+    public ResponseEntity<List<ProveedorDTO>> getProveedoresSimple() {
+        List<ProveedorDTO> dtos = proveedorService.findAllActivos().stream()
+                .map(this::toDTO)
+                .toList();
+        return ResponseEntity.ok(dtos);
+    }
+
     @GetMapping("/proveedores/{id}")
     public ResponseEntity<ProveedorDTO> getProveedor(@PathVariable("id") Long id) {
         return proveedorService.findById(id)
@@ -50,9 +58,11 @@ public class ProveedoresBffController {
     }
 
     @PostMapping("/proveedores")
-    public ResponseEntity<ProveedorDTO> createProveedor(@RequestBody ProveedorDTO dto) {
+    public ResponseEntity<ProveedorDTO> createProveedor(
+            @RequestBody ProveedorDTO dto,
+            @RequestHeader(value = "X-Empresa-Id", required = false) Long empresaId) {
         try {
-            Proveedor saved = proveedorService.save(toEntity(dto));
+            Proveedor saved = proveedorService.save(toEntity(dto), empresaId);
             return ResponseEntity.ok(toDTO(saved));
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().build();

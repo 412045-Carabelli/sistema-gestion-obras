@@ -67,7 +67,7 @@ class ClienteServiceImplTest {
             return c;
         });
 
-        ClienteResponse response = service.crear(baseRequest);
+        ClienteResponse response = service.crear(baseRequest, null);
 
         verify(repository).save(clienteCaptor.capture());
         Cliente guardado = clienteCaptor.getValue();
@@ -83,14 +83,14 @@ class ClienteServiceImplTest {
     @Test
     void crear_condicion_iva_invalida_lanza_excepcion() {
         baseRequest.setCondicionIVA("INVALIDA");
-        assertThrows(InvalidClienteException.class, () -> service.crear(baseRequest));
+        assertThrows(InvalidClienteException.class, () -> service.crear(baseRequest, null));
         verify(repository, never()).save(any());
     }
 
     @Test
     void crear_condicion_iva_vacia_lanza_excepcion() {
         baseRequest.setCondicionIVA(" ");
-        assertThrows(InvalidClienteException.class, () -> service.crear(baseRequest));
+        assertThrows(InvalidClienteException.class, () -> service.crear(baseRequest, null));
         verify(repository, never()).save(any());
     }
 
@@ -179,7 +179,7 @@ class ClienteServiceImplTest {
         c2.setId(2L);
         when(repository.findAll()).thenReturn(List.of(c1, c2));
 
-        List<ClienteResponse> result = service.listar();
+        List<ClienteResponse> result = service.listar(null);
 
         assertEquals(2, result.size());
         assertEquals(1L, result.get(0).getId());

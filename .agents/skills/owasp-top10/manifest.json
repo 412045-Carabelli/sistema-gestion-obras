@@ -1,0 +1,55 @@
+{
+  "name": "owasp-top10",
+  "displayName": "OWASP Top 10 Security Scanner",
+  "description": "Detects and suggests fixes for OWASP Top 10 vulnerabilities in Angular + Java code. Runs as pre-commit hook.",
+  "version": "1.0.0",
+  "category": "security",
+  "platforms": ["universal"],
+  "supportedIDEs": ["Claude Code"],
+  "entrylang": "javascript",
+  "entrypoint": "command.js",
+  "bin": {
+    "owasp-scan": "command.js",
+    "owasp-frontend": "owasp-frontend.js",
+    "owasp-backend": "owasp-backend.js"
+  },
+  "commands": {
+    "owasp-scan": {
+      "description": "Run OWASP security scan on specified files",
+      "usage": "/owasp-scan [PATTERN1 PATTERN2 ...]",
+      "examples": [
+        "/owasp-scan",
+        "/owasp-scan 'frontend/src/**/*.ts'",
+        "/owasp-scan 'backend1.0/**/*.java'",
+        "/owasp-scan 'src/app/components/*.ts' 'backend1.0/obras-service/**/*.java'"
+      ],
+      "onDemand": true
+    },
+    "owasp-frontend": {
+      "description": "Scan frontend (Angular) files only",
+      "usage": "/owasp-frontend",
+      "examples": ["/owasp-frontend"],
+      "onDemand": true
+    },
+    "owasp-backend": {
+      "description": "Scan backend (Java) files only",
+      "usage": "/owasp-backend",
+      "examples": ["/owasp-backend"],
+      "onDemand": true
+    }
+  },
+  "keywords": [
+    "security",
+    "owasp",
+    "vulnerability",
+    "scanner",
+    "angular",
+    "java",
+    "xss",
+    "sql-injection",
+    "csrf",
+    "authentication"
+  ],
+  "author": "SGO Team",
+  "license": "MIT"
+}

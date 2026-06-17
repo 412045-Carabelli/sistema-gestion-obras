@@ -1,0 +1,26 @@
+<p-toast position="bottom-right"></p-toast>
+<p-confirmDialog></p-confirmDialog>
+
+@switch (true) {
+  @case (currentRoute.includes('/cuentas-corrientes')) {
+    <app-layout-header type="list" title="Cuentas Corrientes" subtitle="Seguimiento de deudas con clientes y proveedores">
+      <p-button
+        header-actions
+        label="Volver"
+        icon="pi pi-arrow-left"
+        appBackButton
+        fallback="/dashboard"
+        styleClass="p-button">
+      </p-button>
+    </app-layout-header>
+  }
+  @default {
+    <div class="p-4">
+      <h1 class="font-poppins text-3xl font-semibold text-gray-800 m-0">Cuentas Corrientes</h1>
+    </div>
+  }
+}
+
+<div class="p-5 bg-gray-50">
+  <router-outlet></router-outlet>
+</div>

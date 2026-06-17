@@ -1,0 +1,35 @@
+<aside class="sidebar">
+  <div class="flex flex-col h-full bg-gray-200">
+
+    <!-- Navigation Menu -->
+    <nav class="flex-1 flex flex-col gap-1 p-4 overflow-y-auto">
+      @for (group of menuGroups; track group.label) {
+        <div class="mt-2">
+          <!-- Separador de grupo -->
+          <p class="px-3 py-1 text-xs font-poppins font-semibold text-gray-500 uppercase tracking-wider">
+            {{ group.label }}
+          </p>
+          @for (item of group.items; track item.path) {
+            <a
+              [routerLink]="item.path"
+              routerLinkActive="active-nav-item"
+              class="nav-item flex items-center gap-3 px-3 py-2 rounded-lg text-gray-800 no-underline transition-all duration-200 hover:bg-gray-900/10">
+              <i [class]="'pi ' + item.icon + ' text-lg'"></i>
+              <span class="text-sm font-poppins font-semibold">{{ item.label }}</span>
+            </a>
+          }
+        </div>
+      }
+    </nav>
+
+    <div class="sidebar-footer">
+      <!-- Versión -->
+      <p class="m-0 text-xs font-poppins font-normal text-gray-500 cursor-pointer hover:text-gray-900 transition-colors duration-200 text-center"
+         (click)="abrirChangelog()"
+         title="Ver novedades">
+        Sistema de Gestion {{ version }}
+      </p>
+    </div>
+
+  </div>
+</aside>

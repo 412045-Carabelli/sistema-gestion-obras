@@ -33,7 +33,7 @@ class ObraBffControllerTest {
                 Map.of("id", 1, "id_cliente", 1),
                 Map.of("id", 2)
         );
-        stub.stub(HttpMethod.GET, obrasUrl, HttpStatus.OK, obras);
+        stub.stub(HttpMethod.GET, obrasUrl + "/resumen", HttpStatus.OK, Map.of("content", obras, "totalElements", 2));
         stub.stub(HttpMethod.GET, clientesUrl + "/1", HttpStatus.OK, Map.of("id", 1, "nombre", "Cliente"));
 
         stub.stub(HttpMethod.GET, obrasUrl + "/1", HttpStatus.OK, Map.of("id", 1, "id_cliente", 1));
@@ -48,12 +48,12 @@ class ObraBffControllerTest {
         ReflectionTestUtils.setField(controller, "TAREAS_URL", tareasUrl);
         ReflectionTestUtils.setField(controller, "PROVEEDORES_URL", proveedoresUrl);
 
-        ResponseEntity<Map<String, Object>> crear = controller.crearObra(Map.of("x", 1)).block();
-        ResponseEntity<Map<String, Object>> actualizar = controller.actualizarObra(1L, Map.of("x", 2)).block();
+        ResponseEntity<Map<String, Object>> crear = controller.crearObra(Map.of("x", 1), null).block();
+        ResponseEntity<Map<String, Object>> actualizar = controller.actualizarObra(1L, Map.of("x", 2), null).block();
         ResponseEntity<Object> cambiarEstado = controller.cambiarEstadoObra(1L, "EN_PROGRESO").block();
         ResponseEntity<Object> actualizarActivo = controller.actualizarActivo(1L).block();
-        ResponseEntity<List<Map<String, Object>>> todas = controller.getTodasLasObras().block();
-        ResponseEntity<Map<String, Object>> completa = controller.getObraCompleta(1L).block();
+        ResponseEntity<List<Map<String, Object>>> todas = controller.getTodasLasObras(null, null, null, null, null).block();
+        ResponseEntity<Map<String, Object>> completa = controller.getObraCompleta(1L, null).block();
 
         assertThat(crear.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(actualizar.getStatusCode()).isEqualTo(HttpStatus.OK);

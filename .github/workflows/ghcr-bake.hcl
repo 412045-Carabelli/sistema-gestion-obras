@@ -5,9 +5,11 @@ group "default" {
     "proveedores-service",
     "documentos-service",
     "transacciones-service",
+    "agendas-service",
     "reportes-service",
     "api-gateway",
-    "frontend"
+    "frontend",
+    "migrador"
   ]
 }
 
@@ -75,6 +77,15 @@ target "transacciones-service" {
   ]
 }
 
+target "agendas-service" {
+  inherits = ["_common"]
+  context  = "backend1.0/agendas-service"
+  tags     = [
+    "${REGISTRY}/${OWNER}/sgo-agendas-service:${TAG}",
+    "${REGISTRY}/${OWNER}/sgo-agendas-service:latest"
+  ]
+}
+
 target "reportes-service" {
   inherits = ["_common"]
   context  = "backend1.0/reportes-service"
@@ -95,10 +106,19 @@ target "api-gateway" {
 
 target "frontend" {
   inherits = ["_common"]
-  context  = "frontend1.2"
+  context  = "frontend"
   tags     = [
     "${REGISTRY}/${OWNER}/sgo-frontend:${TAG}",
     "${REGISTRY}/${OWNER}/sgo-frontend:latest"
+  ]
+}
+
+target "migrador" {
+  inherits = ["_common"]
+  context  = "db/migrador"
+  tags     = [
+    "${REGISTRY}/${OWNER}/sgo-migrador:${TAG}",
+    "${REGISTRY}/${OWNER}/sgo-migrador:latest"
   ]
 }
 

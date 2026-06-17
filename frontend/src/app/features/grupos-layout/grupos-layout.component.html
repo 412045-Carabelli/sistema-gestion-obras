@@ -1,0 +1,26 @@
+<p-toast position="bottom-right"></p-toast>
+<p-confirmDialog></p-confirmDialog>
+
+@switch (true) {
+  @case (currentRoute === '/grupos') {
+    <app-layout-header type="list" title="Grupos de Obras" subtitle="Organiza tus obras por grupo para mejor seguimiento">
+      <p-button
+        header-actions
+        label="Crear grupo"
+        icon="pi pi-plus"
+        severity="success"
+        (onClick)="openNewGrupo()"
+        styleClass="p-button">
+      </p-button>
+    </app-layout-header>
+  }
+  @default {
+    <div class="p-4">
+      <h1 class="font-poppins text-3xl font-semibold text-gray-800 m-0">Gestión de Grupos</h1>
+    </div>
+  }
+}
+
+<div class="p-5 bg-gray-50">
+  <router-outlet></router-outlet>
+</div>

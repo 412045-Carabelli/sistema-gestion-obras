@@ -13,6 +13,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.core.env.Environment;
 
 @SpringBootApplication
+@org.springframework.scheduling.annotation.EnableScheduling
 public class ObrasServiceApplication {
     
     private static final Logger log = LoggerFactory.getLogger(ObrasServiceApplication.class);

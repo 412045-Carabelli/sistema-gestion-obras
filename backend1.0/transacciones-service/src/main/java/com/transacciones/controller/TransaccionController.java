@@ -2,15 +2,21 @@ package com.transacciones.controller;
 
 import com.transacciones.dto.ComisionPagoRequest;
 import com.transacciones.dto.TransaccionDto;
+import com.transacciones.dto.MovimientoRecenteDTO;
+import com.transacciones.dto.TransaccionConAsociadoDto;
 import com.transacciones.entity.Transaccion;
 import com.transacciones.enums.TipoTransaccionEnum;
 import com.transacciones.service.TransaccionService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @RestController
@@ -27,6 +33,15 @@ public class TransaccionController {
         return ResponseEntity.ok(lista);
     }
 
+    @GetMapping("/con-asociados")
+    public ResponseEntity<Map<String, Object>> getAllConAsociados(
+            @RequestParam(name = "page", defaultValue = "0") int page,
+            @RequestParam(name = "size", defaultValue = "50") int size
+    ) {
+        Pageable pageable = PageRequest.of(page, size, Sort.by("id").descending());
+        Map<String, Object> result = transaccionService.listarConAsociadosPaginado(pageable);
+        return ResponseEntity.ok(result);
+    }
 
     @GetMapping("/asociado/{tipo}/{id}")
     public ResponseEntity<List<TransaccionDto>> getDocumentosPorAsociado(
@@ -45,6 +60,12 @@ public class TransaccionController {
     @GetMapping("/obra/{obraId}")
     public ResponseEntity<List<TransaccionDto>> getByObra(@PathVariable("obraId") Long obraId) {
         List<TransaccionDto> lista = transaccionService.listarPorObra(obraId);
+        return ResponseEntity.ok(lista);
+    }
+
+    @GetMapping("/recientes")
+    public ResponseEntity<List<MovimientoRecenteDTO>> getUltimos10() {
+        List<MovimientoRecenteDTO> lista = transaccionService.obtenerUltimos10Movimientos();
         return ResponseEntity.ok(lista);
     }
 
@@ -71,8 +92,12 @@ public class TransaccionController {
     }
 
     @PostMapping
-    public ResponseEntity<TransaccionDto> create(@RequestBody TransaccionDto dto) {
-        return ResponseEntity.ok(transaccionService.crear(toEntity(dto)));
+    public ResponseEntity<TransaccionDto> create(
+            @RequestBody TransaccionDto dto,
+            @RequestHeader(value = "X-Empresa-Id", required = false) Long empresaId) {
+        Transaccion entity = toEntity(dto);
+        entity.setEmpresaId(empresaId);
+        return ResponseEntity.ok(transaccionService.crear(entity));
     }
 
     @PutMapping("/{id}")
@@ -98,6 +123,7 @@ public class TransaccionController {
         entity.setMonto(dto.getMonto());
         entity.setForma_pago(dto.getForma_pago());
         entity.setMedio_pago(dto.getMedio_pago());
+        entity.setConcepto(dto.getConcepto());
         entity.setFacturaCobrada(dto.getFactura_cobrada());
         entity.setActivo(dto.getActivo());
 

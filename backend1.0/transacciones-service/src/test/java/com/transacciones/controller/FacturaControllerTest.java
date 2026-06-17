@@ -43,7 +43,7 @@ class FacturaControllerTest {
     @Test
     void listar_ok() throws Exception {
         FacturaDto dto = FacturaDto.builder().id(1L).build();
-        when(facturaService.listar()).thenReturn(List.of(dto));
+        when(facturaService.listar(any())).thenReturn(List.of(dto));
 
         mockMvc.perform(get("/api/facturas"))
             .andExpect(status().isOk())
@@ -63,7 +63,7 @@ class FacturaControllerTest {
     @Test
     void listar_por_cliente_ok() throws Exception {
         FacturaDto dto = FacturaDto.builder().id(3L).build();
-        when(facturaService.listarPorCliente(10L)).thenReturn(List.of(dto));
+        when(facturaService.listarPorCliente(eq(10L), any())).thenReturn(List.of(dto));
 
         mockMvc.perform(get("/api/facturas/cliente/10"))
             .andExpect(status().isOk())
@@ -73,7 +73,7 @@ class FacturaControllerTest {
     @Test
     void listar_por_obra_ok() throws Exception {
         FacturaDto dto = FacturaDto.builder().id(4L).build();
-        when(facturaService.listarPorObra(20L)).thenReturn(List.of(dto));
+        when(facturaService.listarPorObra(eq(20L), any())).thenReturn(List.of(dto));
 
         mockMvc.perform(get("/api/facturas/obra/20"))
             .andExpect(status().isOk())

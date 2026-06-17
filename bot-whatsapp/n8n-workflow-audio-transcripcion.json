@@ -1,0 +1,273 @@
+{
+  "name": "WhatsApp → Transcribir Audio con Gemini",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "whatsapp-audio",
+        "responseMode": "onReceived",
+        "responseData": "noData",
+        "options": {}
+      },
+      "id": "node-01",
+      "name": "WhatsApp Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1.1,
+      "position": [240, 300]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "f1",
+              "name": "from",
+              "value": "={{ $json.body.entry?.[0]?.changes?.[0]?.value?.messages?.[0]?.from }}",
+              "type": "string"
+            },
+            {
+              "id": "f2",
+              "name": "messageType",
+              "value": "={{ $json.body.entry?.[0]?.changes?.[0]?.value?.messages?.[0]?.type }}",
+              "type": "string"
+            },
+            {
+              "id": "f3",
+              "name": "audioId",
+              "value": "={{ $json.body.entry?.[0]?.changes?.[0]?.value?.messages?.[0]?.audio?.id }}",
+              "type": "string"
+            },
+            {
+              "id": "f4",
+              "name": "phoneNumberId",
+              "value": "={{ $json.body.entry?.[0]?.changes?.[0]?.value?.metadata?.phone_number_id }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "node-02",
+      "name": "Extraer Datos",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [460, 300]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": false,
+            "typeValidation": "loose"
+          },
+          "conditions": [
+            {
+              "id": "c1",
+              "leftValue": "={{ $json.messageType }}",
+              "rightValue": "audio",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        }
+      },
+      "id": "node-03",
+      "name": "Es Audio?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [680, 300]
+    },
+    {
+      "parameters": {
+        "url": "=https://graph.facebook.com/v18.0/{{ $json.audioId }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{ $vars.WHATSAPP_API_TOKEN }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "node-04",
+      "name": "Obtener URL Media",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [900, 200]
+    },
+    {
+      "parameters": {
+        "url": "={{ $json.url }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{ $vars.WHATSAPP_API_TOKEN }}"
+            }
+          ]
+        },
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "file",
+              "outputPropertyName": "audioData"
+            }
+          }
+        }
+      },
+      "id": "node-05",
+      "name": "Descargar Audio",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1120, 200]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Convertir audio binario a base64 y preparar payload Gemini\nconst buffer = await this.helpers.getBinaryDataBuffer(items[0], 'audioData');\nconst base64 = buffer.toString('base64');\nconst mimeType = (items[0].binary?.audioData?.mimeType || 'audio/ogg').split(';')[0].trim();\n\n// Recuperar datos del mensaje (sobreviven al nodo de descarga binaria)\nconst msgData = $('Extraer Datos').first().json;\n\nreturn [{\n  json: {\n    from: msgData.from,\n    phoneNumberId: msgData.phoneNumberId,\n    geminiPayload: {\n      contents: [{\n        parts: [\n          {\n            inlineData: {\n              mimeType,\n              data: base64\n            }\n          },\n          {\n            text: 'Transcribe este audio. Responde SOLO con la transcripción, sin comentarios adicionales.'\n          }\n        ]\n      }]\n    }\n  }\n}];"
+      },
+      "id": "node-06",
+      "name": "Preparar Request Gemini",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1340, 200]
+    },
+    {
+      "parameters": {
+        "url": "=https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={{ $vars.GEMINI_API_KEY }}",
+        "method": "POST",
+        "sendBody": true,
+        "contentType": "json",
+        "specifyBody": "json",
+        "jsonParameters": "={{ JSON.stringify($json.geminiPayload) }}",
+        "options": {}
+      },
+      "id": "node-07",
+      "name": "Transcribir con Gemini",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1560, 200]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "r1",
+              "name": "transcripcion",
+              "value": "={{ $json.candidates?.[0]?.content?.parts?.[0]?.text ?? 'No se pudo transcribir el audio.' }}",
+              "type": "string"
+            },
+            {
+              "id": "r2",
+              "name": "from",
+              "value": "={{ $('Preparar Request Gemini').first().json.from }}",
+              "type": "string"
+            },
+            {
+              "id": "r3",
+              "name": "phoneNumberId",
+              "value": "={{ $('Preparar Request Gemini').first().json.phoneNumberId }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "node-08",
+      "name": "Extraer Transcripción",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [1780, 200]
+    },
+    {
+      "parameters": {
+        "url": "=https://graph.facebook.com/v18.0/{{ $json.phoneNumberId }}/messages",
+        "method": "POST",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{ $vars.WHATSAPP_API_TOKEN }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "json",
+        "specifyBody": "keypairs",
+        "bodyParameters": {
+          "parameters": [
+            { "name": "messaging_product", "value": "whatsapp" },
+            { "name": "to", "value": "={{ $json.from }}" },
+            { "name": "type", "value": "text" },
+            {
+              "name": "text",
+              "value": "={{ JSON.stringify({ body: '📝 *Transcripción:*\\n\\n' + $json.transcripcion }) }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "node-09",
+      "name": "Enviar Transcripción WA",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [2000, 200]
+    }
+  ],
+  "connections": {
+    "WhatsApp Webhook": {
+      "main": [
+        [{ "node": "Extraer Datos", "type": "main", "index": 0 }]
+      ]
+    },
+    "Extraer Datos": {
+      "main": [
+        [{ "node": "Es Audio?", "type": "main", "index": 0 }]
+      ]
+    },
+    "Es Audio?": {
+      "main": [
+        [{ "node": "Obtener URL Media", "type": "main", "index": 0 }],
+        []
+      ]
+    },
+    "Obtener URL Media": {
+      "main": [
+        [{ "node": "Descargar Audio", "type": "main", "index": 0 }]
+      ]
+    },
+    "Descargar Audio": {
+      "main": [
+        [{ "node": "Preparar Request Gemini", "type": "main", "index": 0 }]
+      ]
+    },
+    "Preparar Request Gemini": {
+      "main": [
+        [{ "node": "Transcribir con Gemini", "type": "main", "index": 0 }]
+      ]
+    },
+    "Transcribir con Gemini": {
+      "main": [
+        [{ "node": "Extraer Transcripción", "type": "main", "index": 0 }]
+      ]
+    },
+    "Extraer Transcripción": {
+      "main": [
+        [{ "node": "Enviar Transcripción WA", "type": "main", "index": 0 }]
+      ]
+    }
+  },
+  "pinData": {},
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "tags": []
+}

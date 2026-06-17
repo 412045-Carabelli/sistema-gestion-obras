@@ -3,7 +3,13 @@ name: Publish img to GHCR
 on:
   push:
     tags: [ 'v*.*.*', '*.*.*' ]
+    branches: [ 'develop' ]
   workflow_dispatch:
+    inputs:
+      force_build:
+        description: 'Force build all services'
+        required: false
+        default: 'false'
 
 permissions:
   contents: read
@@ -14,49 +20,99 @@ env:
   OWNER: ${{ github.repository_owner }}
 
 jobs:
-  build-and-push:
+  detect-changes:
     runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.set-matrix.outputs.matrix }}
+      tag: ${{ steps.set-tag.outputs.tag }}
+      force_build: ${{ github.event.inputs.force_build }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Detect modified services
+        id: set-matrix
+        run: |
+          if [[ "${{ github.event.inputs.force_build }}" == "true" ]] || [[ "${{ github.ref_type }}" == "tag" ]]; then
+            SERVICES='["api-gateway","obras-service","clientes-service","proveedores-service","reportes-service","transacciones-service","documentos-service","agendas-service","frontend","migrador"]'
+          else
+            # Get changed files between HEAD and previous commit
+            CHANGED=$(git diff --name-only HEAD~1..HEAD || git diff --name-only HEAD)
+            SERVICES='[]'
+
+            # Check each service path
+            echo "$CHANGED" | grep -q "^backend1.0/api-gateway/" && SERVICES=$(echo $SERVICES | jq '. += ["api-gateway"]') || true
+            echo "$CHANGED" | grep -q "^backend1.0/obras-service/" && SERVICES=$(echo $SERVICES | jq '. += ["obras-service"]') || true
+            echo "$CHANGED" | grep -q "^backend1.0/clientes-service/" && SERVICES=$(echo $SERVICES | jq '. += ["clientes-service"]') || true
+            echo "$CHANGED" | grep -q "^backend1.0/proveedores-service/" && SERVICES=$(echo $SERVICES | jq '. += ["proveedores-service"]') || true
+            echo "$CHANGED" | grep -q "^backend1.0/reportes-service/" && SERVICES=$(echo $SERVICES | jq '. += ["reportes-service"]') || true
+            echo "$CHANGED" | grep -q "^backend1.0/transacciones-service/" && SERVICES=$(echo $SERVICES | jq '. += ["transacciones-service"]') || true
+            echo "$CHANGED" | grep -q "^backend1.0/documentos-service/" && SERVICES=$(echo $SERVICES | jq '. += ["documentos-service"]') || true
+            echo "$CHANGED" | grep -q "^backend1.0/agendas-service/" && SERVICES=$(echo $SERVICES | jq '. += ["agendas-service"]') || true
+            echo "$CHANGED" | grep -q "^frontend/" && SERVICES=$(echo $SERVICES | jq '. += ["frontend"]') || true
+            echo "$CHANGED" | grep -q "^db/migrador/" && SERVICES=$(echo $SERVICES | jq '. += ["migrador"]') || true
+
+            # Si no detecta cambios, buildea todo como fallback
+            if [[ "$SERVICES" == "[]" ]]; then
+              SERVICES='["api-gateway","obras-service","clientes-service","proveedores-service","reportes-service","transacciones-service","documentos-service","agendas-service","frontend","migrador"]'
+            fi
+          fi
+
+          echo "matrix={\"service\":$(echo $SERVICES)}" >> $GITHUB_OUTPUT
+          echo "Detected services: $SERVICES"
+
+      - name: Set version tag
+        id: set-tag
+        run: |
+          if [[ "${GITHUB_REF}" == refs/tags/* ]]; then
+            TAG="${GITHUB_REF##refs/tags/}"
+          else
+            TAG="latest"
+          fi
+          echo "tag=${TAG}" >> $GITHUB_OUTPUT
+
+  build-and-push:
+    needs: detect-changes
+    runs-on: ubuntu-latest
+    strategy:
+      matrix: ${{ fromJson(needs.detect-changes.outputs.matrix) }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Set up Java 17
+      - name: Resolve build context
+        id: context
+        run: |
+          case "${{ matrix.service }}" in
+            api-gateway) echo "path=backend1.0/api-gateway" >> $GITHUB_OUTPUT ;;
+            migrador) echo "path=db/migrador" >> $GITHUB_OUTPUT ;;
+            frontend) echo "path=frontend" >> $GITHUB_OUTPUT ;;
+            *) echo "path=backend1.0/${{ matrix.service }}" >> $GITHUB_OUTPUT ;;
+          esac
+
+      - name: Set up Java 17 (backend only)
+        if: matrix.service != 'frontend'
         uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
           java-version: '17'
 
-      - name: Cache Maven
+      - name: Cache Maven (backend only)
+        if: matrix.service != 'frontend'
         uses: actions/cache@v4
         with:
-          path: |
-            ~/.m2/repository
+          path: ~/.m2/repository
           key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
-          restore-keys: |
-            ${{ runner.os }}-maven-
+          restore-keys: ${{ runner.os }}-maven-
 
-      - name: Build backend JARs (skip tests)
+      - name: Build backend1.0 JARs (skip tests)
+        if: matrix.service != 'frontend'
         run: |
           set -e
-          for dir in backend1.0/*-service backend1.0/api-gateway; do
-            echo "Building $dir"
-            (cd "$dir" && mvn -B -DskipTests package)
-          done
-
-      - name: Set version tag
-        id: vars
-        run: |
-          if [[ "${GITHUB_REF}" == refs/tags/* ]]; then
-            TAG="${GITHUB_REF##refs/tags/}"
-          elif [[ "${GITHUB_REF}" == refs/heads/* ]]; then
-            BRANCH="${GITHUB_REF##refs/heads/}"
-            SHORT_SHA=$(git rev-parse --short HEAD)
-            TAG="${BRANCH}-${SHORT_SHA}"
-          else
-            SHORT_SHA=$(git rev-parse --short HEAD)
-            TAG="sha-${SHORT_SHA}"
-          fi
-          echo "tag=${TAG}" >> $GITHUB_OUTPUT
+          cd backend1.0
+          mvn -B -DskipTests package
 
       - name: Normalize owner to lowercase
         id: owner
@@ -72,14 +128,11 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      - name: Build and push img
-        uses: docker/bake-action@v5
-        env:
-          REGISTRY: ${{ env.REGISTRY }}
-          OWNER: ${{ steps.owner.outputs.owner }}
-          TAG: ${{ steps.vars.outputs.tag }}
+      - name: Build and push ${{ matrix.service }}
+        uses: docker/build-push-action@v5
         with:
-          files: |
-            .github/workflows/ghcr-bake.hcl
-          set: |
-            *.platform=linux/amd64
+          context: ${{ steps.context.outputs.path }}
+          push: true
+          tags: |
+            ${{ env.REGISTRY }}/${{ steps.owner.outputs.owner }}/sgo-${{ matrix.service }}:latest
+            ${{ needs.detect-changes.outputs.tag != 'latest' && format('{0}/{1}/sgo-{2}:{3}', env.REGISTRY, steps.owner.outputs.owner, matrix.service, needs.detect-changes.outputs.tag) || '' }}

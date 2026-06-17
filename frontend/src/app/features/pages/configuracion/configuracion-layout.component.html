@@ -1,0 +1,26 @@
+<app-layout-header type="list" [title]="headerTitle" [subtitle]="headerSubtitle">
+</app-layout-header>
+
+<div class="p-5 bg-gray-50">
+
+  @if (isAdmin) {
+    <nav class="flex gap-1 mb-6 border-b border-gray-200">
+      <a
+        routerLink="/configuracion"
+        [routerLinkActiveOptions]="{ exact: true }"
+        routerLinkActive="border-b-2 border-blue-600 text-blue-700 font-semibold"
+        class="px-4 py-2 text-sm font-poppins text-gray-600 hover:text-gray-900 transition-colors -mb-px">
+        General
+      </a>
+      <a
+        routerLink="/configuracion/usuarios"
+        routerLinkActive="border-b-2 border-blue-600 text-blue-700 font-semibold"
+        class="px-4 py-2 text-sm font-poppins text-gray-600 hover:text-gray-900 transition-colors -mb-px">
+        Usuarios
+      </a>
+    </nav>
+  }
+
+  <router-outlet></router-outlet>
+
+</div>

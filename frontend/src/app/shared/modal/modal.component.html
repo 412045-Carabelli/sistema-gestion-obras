@@ -1,0 +1,22 @@
+<p-dialog
+  (onHide)="close()"
+  [(visible)]="visible"
+  [closable]="closable"
+  [modal]="true"
+  [style]="{width: width}"
+>
+  <ng-template pTemplate="header">
+    <span class="font-poppins font-semibold text-xl">{{ title }}</span>
+  </ng-template>
+
+  <ng-content></ng-content>
+
+  @if (showFooter) {
+    <ng-template pTemplate="footer">
+      <div class="flex justify-end gap-2">
+        <p-button label="Cancelar" icon="pi pi-times" severity="secondary" (onClick)="close()"></p-button>
+        <p-button [label]="confirmLabel" icon="pi pi-check" (onClick)="confirm()" severity="primary" [disabled]="confirmDisabled" [loading]="confirmLoading"></p-button>
+      </div>
+    </ng-template>
+  }
+</p-dialog>

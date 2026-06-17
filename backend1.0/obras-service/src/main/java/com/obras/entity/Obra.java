@@ -21,8 +21,14 @@ public class Obra {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(name = "empresa_id")
+    private Long empresaId;
+
     @Column(name = "id_cliente", nullable = false)
     private Long idCliente;
+
+    @Column(name = "id_grupo")
+    private Long idGrupo;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "estado_obra", nullable = false)
@@ -53,16 +59,16 @@ public class Obra {
     @Column(name = "creado_en", updatable = false)
     private Instant creadoEn;
 
-    @Column(columnDefinition = "TEXT")
+    @Column(columnDefinition = "NVARCHAR(MAX)")
     private String notas;
 
-    @Column(name = "memoria_descriptiva", columnDefinition = "TEXT")
+    @Column(name = "memoria_descriptiva", columnDefinition = "NVARCHAR(MAX)")
     private String memoriaDescriptiva;
 
-    @Column(name = "condiciones_presupuesto", columnDefinition = "TEXT")
+    @Column(name = "condiciones_presupuesto", columnDefinition = "NVARCHAR(MAX)")
     private String condicionesPresupuesto;
 
-    @Column(name = "observaciones_presupuesto", columnDefinition = "TEXT")
+    @Column(name = "observaciones_presupuesto", columnDefinition = "NVARCHAR(MAX)")
     private String observacionesPresupuesto;
 
     @Column(name = "requiere_factura")

@@ -1,6 +1,7 @@
 package com.obras.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.obras.audit.AuditLogService;
 import com.obras.dto.ObraDTO;
 import com.obras.enums.EstadoObraEnum;
 import com.obras.repository.ObraCostoRepository;
@@ -50,14 +51,19 @@ class ObrasControllerTest {
     @MockBean
     private ObraProveedorRepository obraProveedorRepository;
 
+    @MockBean
+    private AuditLogService auditLogService;
+
     @Test
     void crear_ok() throws Exception {
         ObraDTO dto = new ObraDTO();
         dto.setId(1L);
         dto.setNombre("Obra A");
         dto.setPresupuesto(new BigDecimal("100.00"));
+        dto.setId_cliente(1L);
+        dto.setId_grupo(1L);
 
-        when(svc.crear(any())).thenReturn(dto);
+        when(svc.crear(any(), any())).thenReturn(dto);
 
         mockMvc.perform(post("/api/obras")
                 .contentType(MediaType.APPLICATION_JSON)
@@ -92,7 +98,7 @@ class ObrasControllerTest {
     void listar_ok() throws Exception {
         ObraDTO dto = new ObraDTO();
         dto.setId(3L);
-        when(svc.listar(any(Pageable.class))).thenReturn(new PageImpl<>(List.of(dto)));
+        when(svc.listar(any(Pageable.class), any())).thenReturn(new PageImpl<>(List.of(dto)));
 
         mockMvc.perform(get("/api/obras"))
             .andExpect(status().isOk())

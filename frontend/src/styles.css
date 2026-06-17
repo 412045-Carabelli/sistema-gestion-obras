@@ -1,0 +1,122 @@
+@import "tailwindcss";
+@import "primeicons/primeicons.css";
+@import "quill/dist/quill.snow.css";
+
+/**
+ * Sistema de escalado de tipografía accesible
+ * - Respeta preferencias del navegador/SO
+ * - Usa CSS variables para personalización sin comprometer accesibilidad
+ * - Los usuarios pueden escalar via navegador sin afectar el diseño
+ */
+:root {
+  /* Multiplicador de escala (1 = sin cambios, 0.8 = 80% del tamaño base) */
+  --font-scale-multiplier: 0.9;
+  /* Tamaño base: respeta preferencias del navegador/SO */
+  --base-font-size: 1rem;
+}
+
+html {
+  /* NO FIJAR font-size aquí - permite que rem sea relativo a preferencias del usuario */
+  font-size: calc(var(--base-font-size) * var(--font-scale-multiplier));
+}
+
+body {
+  /* Utiliza el tamaño escalado desde html */
+  font-size: 1rem;
+  line-height: 1.5;
+}
+
+/**
+ * Respetar preferencias de accesibilidad del usuario
+ * Si el usuario configura "Texto más grande" en navegador, aumentar escala
+ */
+@media (prefers-reduced-text: no-preference) {
+  /* Usuarios sin preferencia específica usan la escala por defecto */
+}
+
+@media (prefers-large-text: enabled) {
+  :root {
+    --font-scale-multiplier: 1.1; /* +10% para usuarios que prefieren texto grande */
+  }
+}
+
+/* ============================================================
+   PrimeNG DataTable — estilos globales normalizados (Fase 2)
+   Aplica a TODOS los p-table del sistema. No usar ::ng-deep
+   en componentes individuales para estos casos.
+   ============================================================ */
+
+/* Cabecera */
+.p-datatable .p-datatable-thead > tr > th {
+  background-color: #f9fafb;   /* gray-50 */
+  color: #374151;               /* gray-700 */
+  font-weight: 600;
+  padding: 1rem;
+  border-bottom: 2px solid #e5e7eb;  /* gray-200 */
+}
+
+/* Celdas */
+.p-datatable .p-datatable-tbody > tr > td {
+  padding: 1rem;
+  border-bottom: 1px solid #f3f4f6;  /* gray-100 */
+}
+
+/* Hover de fila — valor canónico: gray-50 (#f9fafb) */
+.p-datatable .p-datatable-tbody > tr:hover {
+  background-color: #f9fafb !important;
+}
+
+/* Tags de estado */
+.p-tag {
+  font-size: 0.75rem;
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.375rem;
+  font-weight: 500;
+}
+
+/* Paginador */
+.p-paginator {
+  padding: 1rem;
+  background-color: #ffffff;
+  border-top: 1px solid #e5e7eb;
+}
+
+.p-paginator .p-paginator-current {
+  color: #6b7280;
+  font-size: 0.875rem;
+}
+
+/* Inputs y dropdowns */
+.p-inputtext {
+  border: 1px solid #e5e7eb;
+}
+
+.p-inputtext:enabled:hover {
+  border-color: #d1d5db;
+}
+
+.p-inputtext:enabled:focus {
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 0.2rem rgba(59, 130, 246, 0.2);
+}
+
+.p-dropdown,
+.p-multiselect,
+.p-select {
+  border: 1px solid #e5e7eb;
+}
+
+.p-dropdown:not(.p-disabled):hover,
+.p-multiselect:not(.p-disabled):hover,
+.p-select:not(.p-disabled):hover {
+  border-color: #d1d5db;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .p-datatable .p-datatable-thead > tr > th,
+  .p-datatable .p-datatable-tbody > tr > td {
+    padding: 0.75rem 0.5rem;
+    font-size: 0.875rem;
+  }
+}

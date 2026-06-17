@@ -1,0 +1,54 @@
+/* Square action buttons in header */
+::ng-deep .header-action-edit.p-button,
+::ng-deep .header-action-toggle.p-button {
+  width: 40px !important;
+  height: 40px !important;
+  min-width: auto !important;
+  padding: 0 !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  border-radius: 0.375rem !important;
+  border: none !important;
+  font-size: 1rem;
+  transition: background-color 200ms ease;
+}
+
+/* Edit button - Blue */
+::ng-deep .header-action-edit.p-button {
+  background-color: #2563eb !important;
+  color: white !important;
+}
+
+::ng-deep .header-action-edit.p-button:hover {
+  background-color: #1d4ed8 !important;
+}
+
+::ng-deep .header-action-edit.p-button:active {
+  background-color: #1e40af !important;
+}
+
+/* Toggle button - Red (active/deactivate) or Green (inactive/activate) */
+::ng-deep .header-action-toggle.active.p-button {
+  background-color: #7f1d1d !important;
+  color: white !important;
+}
+
+::ng-deep .header-action-toggle.active.p-button:hover {
+  background-color: #5a1515 !important;
+}
+
+::ng-deep .header-action-toggle.inactive.p-button {
+  background-color: #16a34a !important;
+  color: white !important;
+}
+
+::ng-deep .header-action-toggle.inactive.p-button:hover {
+  background-color: #15803d !important;
+}
+
+/* Icon sizing */
+::ng-deep .header-action-edit .p-button-icon,
+::ng-deep .header-action-toggle .p-button-icon {
+  font-size: 1.1rem !important;
+}

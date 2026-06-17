@@ -1,0 +1,68 @@
+@if (loading) {
+  <!-- Skeleton loading -->
+  <div class="bg-white rounded-xl shadow-md p-6 animate-pulse">
+    <div class="h-6 bg-gray-200 rounded w-1/3 mb-5"></div>
+    <div class="space-y-3">
+      @for (i of [1, 2, 3, 4, 5]; track i) {
+        <div class="h-16 bg-gray-100 rounded-lg"></div>
+      }
+    </div>
+  </div>
+} @else {
+  <div class="bg-white rounded-xl shadow-md p-6">
+    <div class="flex items-center justify-between mb-5 pb-3 border-b border-gray-200">
+      <h2 class="font-poppins font-semibold text-gray-900 flex items-center gap-2">
+        <i class="pi pi-arrow-right-arrow-left text-indigo-600"></i>
+        Ultimos movimientos
+      </h2>
+      <button
+        class="cursor-pointer px-3 py-1 text-sm text-indigo-600 hover:text-indigo-800 font-semibold flex items-center gap-1"
+        (click)="navigateTo('/reportes')">
+        Ver todos
+        <i class="pi pi-arrow-right text-xs"></i>
+      </button>
+    </div>
+
+    @if (movimientos.length > 0) {
+      <div class="space-y-3">
+        @for (mov of movimientos.slice(0, 5); track mov.id) {
+          <div class="flex items-center gap-3 p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer"
+               (click)="navegarAMovimientosObra(mov.obraId)">
+            <div class="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0"
+                 [ngClass]="(mov.tipo_movimiento || mov.tipo || mov.tipoTransaccion) === 'INGRESO' || (mov.tipo_movimiento || mov.tipo || mov.tipoTransaccion) === 'COBRO' ? 'bg-green-100' : (mov.tipo_movimiento || mov.tipo || mov.tipoTransaccion) === 'EGRESO' || (mov.tipo_movimiento || mov.tipo || mov.tipoTransaccion) === 'PAGO' ? 'bg-red-100' : 'bg-indigo-100'">
+              <i class="pi text-lg"
+                 [ngClass]="(mov.tipo_movimiento || mov.tipo || mov.tipoTransaccion) === 'INGRESO' || (mov.tipo_movimiento || mov.tipo || mov.tipoTransaccion) === 'COBRO' ? 'pi-arrow-up text-green-600' : (mov.tipo_movimiento || mov.tipo || mov.tipoTransaccion) === 'EGRESO' || (mov.tipo_movimiento || mov.tipo || mov.tipoTransaccion) === 'PAGO' ? 'pi-arrow-down text-red-600' : 'pi-file text-indigo-600'">
+              </i>
+            </div>
+            <div class="flex-1 min-w-0">
+              <div class="flex flex-wrap items-center gap-x-3 gap-y-1">
+                <span class="text-sm font-poppins font-semibold text-gray-900">{{ mov.formaPago }}</span>
+                <span class="inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-1 rounded-full bg-gray-100 text-gray-700">
+                  <i class="pi pi-tag text-xs"></i>
+                  {{ getTipoMovimiento(mov) }}
+                </span>
+                <span class="text-xs font-poppins font-normal text-gray-700 font-semibold truncate">
+                  {{ getAsociadoNombre(mov) }}
+                </span>
+                <span class="text-xs font-poppins font-normal text-gray-500 flex items-center gap-2">
+                  <i class="pi pi-calendar text-gray-400"></i>
+                  <span>{{ mov.fecha | date:'dd/MM/yyyy' }}</span>
+                </span>
+              </div>
+              <p class="text-xs font-poppins font-normal text-indigo-700 font-semibold mt-1">Obra {{ mov.obraNombre }}</p>
+            </div>
+            <span class="text-sm font-bold"
+                  [ngClass]="(mov.tipo_movimiento || mov.tipo || mov.tipoTransaccion) === 'COBRO' ? 'text-green-600' : (mov.tipo_movimiento || mov.tipo || mov.tipoTransaccion) === 'PAGO' ? 'text-red-600' : 'text-indigo-600'">
+              {{ (mov.tipo_movimiento || mov.tipo || mov.tipoTransaccion) === 'COBRO' || (mov.tipo_movimiento || mov.tipo || mov.tipoTransaccion) === 'INGRESO' ? '+' : '-' }} {{ mov.monto | currency:'ARS':'symbol-narrow':'1.0-0' }}
+            </span>
+          </div>
+        }
+      </div>
+    } @else {
+      <div class="text-center py-8 text-gray-400">
+        <i class="pi pi-inbox text-4xl mb-2"></i>
+        <p class="text-sm">No hay movimientos recientes</p>
+      </div>
+    }
+  </div>
+}

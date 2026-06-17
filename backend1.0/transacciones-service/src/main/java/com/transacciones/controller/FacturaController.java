@@ -21,8 +21,10 @@ public class FacturaController {
     private final FacturaService facturaService;
 
     @GetMapping
-    public ResponseEntity<List<FacturaDto>> getAll() {
-        return ResponseEntity.ok(facturaService.listar());
+    public ResponseEntity<List<FacturaDto>> getAll(
+            @RequestHeader(value = "X-Empresa-Id", required = false) Long empresaId
+    ) {
+        return ResponseEntity.ok(facturaService.listar(empresaId));
     }
 
     @GetMapping("/{id}")
@@ -31,13 +33,19 @@ public class FacturaController {
     }
 
     @GetMapping("/cliente/{idCliente}")
-    public ResponseEntity<List<FacturaDto>> getByCliente(@PathVariable("idCliente") Long idCliente) {
-        return ResponseEntity.ok(facturaService.listarPorCliente(idCliente));
+    public ResponseEntity<List<FacturaDto>> getByCliente(
+            @PathVariable("idCliente") Long idCliente,
+            @RequestHeader(value = "X-Empresa-Id", required = false) Long empresaId
+    ) {
+        return ResponseEntity.ok(facturaService.listarPorCliente(idCliente, empresaId));
     }
 
     @GetMapping("/obra/{idObra}")
-    public ResponseEntity<List<FacturaDto>> getByObra(@PathVariable("idObra") Long idObra) {
-        return ResponseEntity.ok(facturaService.listarPorObra(idObra));
+    public ResponseEntity<List<FacturaDto>> getByObra(
+            @PathVariable("idObra") Long idObra,
+            @RequestHeader(value = "X-Empresa-Id", required = false) Long empresaId
+    ) {
+        return ResponseEntity.ok(facturaService.listarPorObra(idObra, empresaId));
     }
 
     @PostMapping(consumes = {MediaType.MULTIPART_FORM_DATA_VALUE, MediaType.APPLICATION_FORM_URLENCODED_VALUE})
@@ -50,9 +58,11 @@ public class FacturaController {
             @RequestParam(value = "descripcion", required = false) String descripcion,
             @RequestParam(value = "estado", required = false) String estado,
             @RequestParam(value = "impacta_cta_cte", required = false) Boolean impactaCtaCte,
-            @RequestParam(value = "file", required = false) MultipartFile file
+            @RequestParam(value = "file", required = false) MultipartFile file,
+            @RequestHeader(value = "X-Empresa-Id", required = false) Long empresaId
     ) {
         FacturaDto dto = FacturaDto.builder()
+                .empresa_id(empresaId)
                 .id_cliente(idCliente)
                 .id_obra(idObra)
                 .monto(monto)

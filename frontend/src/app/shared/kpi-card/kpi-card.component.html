@@ -1,0 +1,14 @@
+<div
+  class="w-full h-full bg-white rounded-xl shadow-md p-5 flex flex-col justify-between"
+  [style.borderLeftColor]="borderColor"
+  [style.borderLeftWidth.px]="4"
+  [pTooltip]="tooltip || ''"
+  tooltipPosition="top">
+  <div>
+    <p class="text-xs font-poppins font-semibold uppercase" [style.color]="textColor">{{ title }}</p>
+    <p [style.fontSize.px]="valueFontSize" class="font-poppins font-bold text-gray-900 line-clamp-2">{{ value }}</p>
+    @if (description) {
+      <p class="text-xs text-gray-500 mt-1 line-clamp-2">{{ description }}</p>
+    }
+  </div>
+</div>

@@ -19,6 +19,9 @@ public class Factura {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(name = "empresa_id")
+    private Long empresaId;
+
     @Column(name = "id_cliente", nullable = false)
     private Long idCliente;
 
@@ -34,8 +37,7 @@ public class Factura {
     @Column(name = "fecha")
     private LocalDate fecha;
 
-    @Lob
-    @Column(name = "descripcion")
+    @Column(name = "descripcion", columnDefinition = "NVARCHAR(MAX)")
     private String descripcion;
 
     @Column(name = "estado")

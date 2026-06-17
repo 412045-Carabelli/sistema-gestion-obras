@@ -13,11 +13,11 @@ import io.minio.StatObjectResponse;
 import io.minio.UploadObjectArgs;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.core.io.Resource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.FileSystemResource;
+import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -46,25 +46,27 @@ public class DocumentoService {
     private final MinioClient minioClient;
     private final boolean minioEnabled;
     private final String minioBucket;
-    
 
-    // Inyectamos la ruta base y los repositorios a través del constructor
+    private final String logosBucket;
+    private final String minioPublicUrl;
+
     @Autowired
     public DocumentoService(@Value("${file.upload-dir}") String uploadDirBase,
                             DocumentoRepository documentoRepository,
                             @Autowired(required = false) MinioClient minioClient,
                             @Value("${minio.enabled:false}") boolean minioEnabled,
-                            @Value("${minio.bucket:documentos}") String minioBucket) {
+                            @Value("${minio.bucket:documentos}") String minioBucket,
+                            @Value("${minio.logos-bucket:logos}") String logosBucket,
+                            @Value("${minio.public-url:http://localhost:9000}") String minioPublicUrl) {
         this.uploadDirBase = uploadDirBase;
         this.documentoRepository = documentoRepository;
         this.minioClient = minioClient;
         this.minioEnabled = minioEnabled && minioClient != null;
         this.minioBucket = minioBucket;
+        this.logosBucket = logosBucket;
+        this.minioPublicUrl = minioPublicUrl;
     }
 
-    /**
-     * Sube un archivo, lo guarda físicamente y crea el registro en la base de datos.
-     */
     public Mono<DocumentoDto> createWithFileReactive(
             String idObra,
             TipoDocumentoEnum tipoDocumento,
@@ -73,16 +75,25 @@ public class DocumentoService {
             String tipoAsociado,
             FilePart filePart) {
 
-        // Definir la carpeta según si es obra, cliente o proveedor
+        boolean tieneArchivo = filePart != null && filePart.filename() != null && !filePart.filename().isBlank();
+        boolean tieneObservacion = observacion != null && !observacion.trim().isEmpty();
+        if (!tieneArchivo && !tieneObservacion) {
+            return Mono.error(new IllegalArgumentException("Debes indicar un archivo o una nota."));
+        }
+
         String folder = (tipoAsociado != null && !tipoAsociado.isEmpty())
                 ? tipoAsociado.toLowerCase() + "s/" + idAsociado
-                : "obras/" + idObra;
+                : "obras/" + (idObra != null ? idObra : "sin-obra");
 
-        String relativePath = folder + "/" + filePart.filename();
-        Path destPath = Paths.get(uploadDirBase, relativePath).normalize().toAbsolutePath();
+        String relativePath = tieneArchivo ? folder + "/" + filePart.filename() : "";
+        Path destPath = tieneArchivo
+                ? Paths.get(uploadDirBase, relativePath).normalize().toAbsolutePath()
+                : null;
 
         Mono<Void> storageMono;
-        if (minioEnabled) {
+        if (!tieneArchivo) {
+            storageMono = Mono.empty();
+        } else if (minioEnabled) {
             storageMono = uploadToMinio(relativePath, filePart)
                     .doOnSuccess(v -> logger.info("Documento guardado en MinIO: {}", relativePath));
         } else {
@@ -93,32 +104,43 @@ public class DocumentoService {
                     throw new RuntimeException("No se pudo crear el directorio para la subida de archivos.", e);
                 }
             }).then(filePart.transferTo(destPath))
-              .doOnSuccess(v -> logger.info("Documento guardado en filesystem: {}", destPath));
+                    .doOnSuccess(v -> logger.info("Documento guardado en filesystem: {}", destPath));
         }
 
-        return storageMono
-                .then(
-                        Mono.fromCallable(() -> {
-                            DocumentoDto dto = new DocumentoDto();
-                            dto.setId_obra(idObra != null ? Long.parseLong(idObra) : null);
-                            dto.setId_asociado(idAsociado != null ? Long.parseLong(idAsociado) : null);
-                            dto.setTipo_asociado(tipoAsociado);
-                            dto.setNombre_archivo(filePart.filename());
-                            dto.setPath_archivo(relativePath);
-                            dto.setObservacion(observacion);
-                            dto.setFecha(LocalDate.now().toString());
-                            dto.setTipo_documento(tipoDocumento);
+        return storageMono.then(
+                Mono.fromCallable(() -> {
+                    DocumentoDto dto = new DocumentoDto();
+                    dto.setId_obra(idObra != null ? Long.parseLong(idObra) : null);
+                    dto.setId_asociado(idAsociado != null ? Long.parseLong(idAsociado) : null);
+                    dto.setTipo_asociado(tipoAsociado);
+                    dto.setNombre_archivo(tieneArchivo ? filePart.filename() : "");
+                    dto.setPath_archivo(relativePath);
+                    dto.setObservacion(observacion);
+                    dto.setFecha(LocalDate.now().toString());
+                    dto.setTipo_documento(tipoDocumento);
 
-                            Documento entity = DocumentosMapper.toEntity(dto);
-                            Documento saved = documentoRepository.save(entity);
-                            return DocumentosMapper.toDto(saved);
-                        }).subscribeOn(Schedulers.boundedElastic())
-                );
+                    Documento entity = DocumentosMapper.toEntity(dto);
+                    Documento saved = documentoRepository.save(entity);
+                    return DocumentosMapper.toDto(saved);
+                }).subscribeOn(Schedulers.boundedElastic())
+        );
     }
 
     @Transactional(readOnly = true)
-    public Flux<DocumentoDto> findByTipoAsociado(String tipo, Long idAsociado) {
-        return Mono.fromCallable(() -> documentoRepository.findByTipoAsociadoAndIdAsociado(tipo, idAsociado)
+    public Flux<DocumentoDto> findByTipoAsociado(String tipo, Long idAsociado, Long idObra) {
+        return Mono.fromCallable(() -> (idObra != null
+                        ? documentoRepository.findByTipoAsociadoAndIdAsociadoAndIdObra(tipo, idAsociado, idObra)
+                        : documentoRepository.findByTipoAsociadoAndIdAsociado(tipo, idAsociado))
+                .stream()
+                .map(DocumentosMapper::toDto)
+                .collect(Collectors.toList()))
+                .flatMapMany(Flux::fromIterable)
+                .subscribeOn(Schedulers.boundedElastic());
+    }
+
+    @Transactional(readOnly = true)
+    public Flux<DocumentoDto> findByObra(Long obraId) {
+        return Mono.fromCallable(() -> documentoRepository.findByIdObra(obraId)
                         .stream()
                         .map(DocumentosMapper::toDto)
                         .collect(Collectors.toList()))
@@ -126,25 +148,6 @@ public class DocumentoService {
                 .subscribeOn(Schedulers.boundedElastic());
     }
 
-    /**
-     * Obtiene todos los documentos de una obra específica.
-     */
-    @Transactional(readOnly = true) // 1. La transacción envuelve toda la operación
-    public Flux<DocumentoDto> findByObra(Long obraId) {
-        return Mono.fromCallable(() -> {
-                    // 2. La consulta Y el mapeo ocurren JUNTOS DENTRO de la transacción
-                    return documentoRepository.findByIdObra(obraId)
-                            .stream()
-                            .map(DocumentosMapper::toDto) // La carga perezosa ocurre aquí, con la sesión abierta
-                            .collect(Collectors.toList());
-                })
-                .flatMapMany(Flux::fromIterable) // Convierte el Mono<List<Dto>> en un Flux<Dto>
-                .subscribeOn(Schedulers.boundedElastic()); // 3. Todo el bloque se ejecuta en un hilo seguro
-    }
-
-    /**
-     * Obtiene todos los documentos.
-     */
     @Transactional(readOnly = true)
     public Flux<DocumentoDto> findAll() {
         return Mono.fromCallable(() ->
@@ -157,26 +160,24 @@ public class DocumentoService {
                 .subscribeOn(Schedulers.boundedElastic());
     }
 
-    /**
-     * Obtiene un documento por su ID.
-     */
     @Transactional(readOnly = true)
     public Mono<DocumentoDto> findById(Long id) {
         return Mono.fromCallable(() ->
                         documentoRepository.findById(id)
-                                .map(DocumentosMapper::toDto) // El mapeo ocurre dentro del bloque transaccional
+                                .map(DocumentosMapper::toDto)
                                 .orElseThrow(() -> new RuntimeException("Documento no encontrado con ID: " + id))
                 )
                 .subscribeOn(Schedulers.boundedElastic());
     }
 
-    /**
-     * Elimina un documento por su ID.
-     */
     public Mono<Void> delete(Long id) {
         return Mono.fromRunnable(() -> {
                     Documento documento = documentoRepository.findById(id)
                             .orElseThrow(() -> new RuntimeException("Documento no encontrado con ID: " + id));
+                    if (documento.getPathArchivo() == null || documento.getPathArchivo().isBlank()) {
+                        documentoRepository.deleteById(id);
+                        return;
+                    }
                     if (minioEnabled) {
                         try {
                             minioClient.removeObject(
@@ -186,14 +187,12 @@ public class DocumentoService {
                                             .build()
                             );
                         } catch (Exception ignored) {
-                            // Si el objeto no existe, igualmente borramos el registro.
                         }
                     } else {
                         try {
                             Path filePath = Paths.get(uploadDirBase, documento.getPathArchivo()).normalize();
                             Files.deleteIfExists(filePath);
                         } catch (IOException ignored) {
-                            // Ignorar si no existe en disco
                         }
                     }
                     documentoRepository.deleteById(id);
@@ -206,6 +205,14 @@ public class DocumentoService {
         return Mono.fromCallable(() -> {
             Documento documento = documentoRepository.findById(id)
                     .orElseThrow(() -> new RuntimeException("Documento no encontrado con ID: " + id));
+
+            if (documento.getPathArchivo() == null || documento.getPathArchivo().isBlank()) {
+                byte[] bytes = Optional.ofNullable(documento.getObservacion()).orElse("").getBytes();
+                return ResponseEntity.ok()
+                        .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"nota.txt\"")
+                        .contentType(MediaType.TEXT_PLAIN)
+                        .body((Resource) new ByteArrayResource(bytes));
+            }
 
             if (minioEnabled) {
                 StatObjectResponse stat = minioClient.statObject(
@@ -250,7 +257,6 @@ public class DocumentoService {
                     contentType = MediaType.parseMediaType(detected);
                 }
             } catch (IOException ignored) {
-                // fallback a octet-stream
             }
 
             return ResponseEntity.ok()
@@ -258,6 +264,39 @@ public class DocumentoService {
                     .contentType(contentType)
                     .body((Resource) resource);
         }).subscribeOn(Schedulers.boundedElastic());
+    }
+
+    public Mono<String> uploadLogo(FilePart filePart) {
+        if (!minioEnabled) {
+            return Mono.error(new IllegalStateException("MinIO no está habilitado"));
+        }
+        final String safeName = Optional.ofNullable(filePart.filename())
+                .orElse("logo")
+                .replaceAll("[^a-zA-Z0-9._-]", "_");
+        final String objectName = safeName;
+
+        return Mono.usingWhen(
+                Mono.fromCallable(() -> Files.createTempFile("logo-", "-" + safeName))
+                        .subscribeOn(Schedulers.boundedElastic()),
+                temp -> filePart.transferTo(temp)
+                        .then(Mono.fromCallable(() -> {
+                            UploadObjectArgs.Builder builder = UploadObjectArgs.builder()
+                                    .bucket(logosBucket)
+                                    .object(objectName)
+                                    .filename(temp.toString());
+                            if (filePart.headers().getContentType() != null) {
+                                builder.contentType(filePart.headers().getContentType().toString());
+                            }
+                            minioClient.uploadObject(builder.build());
+                            return minioPublicUrl + "/" + logosBucket + "/" + objectName;
+                        }).subscribeOn(Schedulers.boundedElastic())),
+                temp -> Mono.fromRunnable(() -> {
+                    try {
+                        Files.deleteIfExists(temp);
+                    } catch (IOException ignored) {
+                    }
+                }).subscribeOn(Schedulers.boundedElastic())
+        );
     }
 
     private Mono<Void> uploadToMinio(String objectName, FilePart filePart) {
@@ -284,11 +323,8 @@ public class DocumentoService {
                     try {
                         Files.deleteIfExists(temp);
                     } catch (IOException ignored) {
-                        // Ignorar limpieza fallida
                     }
                 }).subscribeOn(Schedulers.boundedElastic())
         );
     }
 }
-
-

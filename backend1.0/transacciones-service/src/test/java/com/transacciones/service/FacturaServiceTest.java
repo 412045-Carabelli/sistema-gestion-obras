@@ -71,7 +71,7 @@ class FacturaServiceTest {
         Factura f = Factura.builder().id(1L).idCliente(1L).monto(10d).montoRestante(0d).build();
         when(facturaRepository.findAll()).thenReturn(List.of(f));
 
-        List<FacturaDto> result = service.listar();
+        List<FacturaDto> result = service.listar(null);
 
         assertEquals(1, result.size());
         assertEquals(1L, result.get(0).getId());

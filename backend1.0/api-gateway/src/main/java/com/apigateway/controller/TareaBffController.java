@@ -17,7 +17,7 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class TareaBffController {
 
-    @Value("${services.obras.url}/tareas")
+    @Value("${services.obras.tareas.url}")
     private String TAREAS_URL;
 
     private final WebClient.Builder webClientBuilder;
@@ -45,7 +45,7 @@ public class TareaBffController {
                 .map(ResponseEntity::ok);
     }
 
-    // 🆕 ✅ Tareas por proveedor
+    // ✅ Tareas por proveedor
     @GetMapping("/proveedor/{idProveedor}")
     public Mono<ResponseEntity<List<Map<String, Object>>>> getTareasPorProveedor(@PathVariable("idProveedor") Long idProveedor) {
         return webClientBuilder.build()

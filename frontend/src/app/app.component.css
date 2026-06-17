@@ -1,0 +1,6 @@
+/* Layout principal */
+:host {
+  display: block;
+  height: 100vh;
+}
+

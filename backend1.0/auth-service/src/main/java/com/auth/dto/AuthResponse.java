@@ -1,0 +1,43 @@
+package com.auth.dto;
+
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+@JsonInclude(JsonInclude.Include.NON_NULL)
+public class AuthResponse {
+  @JsonProperty("access_token")
+  private String accessToken;
+
+  @JsonProperty("refresh_token")
+  private String refreshToken;
+
+  @JsonProperty("token_type")
+  private String tokenType = "Bearer";
+
+  @JsonProperty("expires_in")
+  private Long expiresIn;  // en segundos
+
+  @JsonProperty("user_id")
+  private Long userId;
+
+  private String email;
+
+  private String username;
+
+  private String rol;
+
+  private String nombre;
+
+  private String apellido;
+
+  @JsonProperty("organizacion_id")
+  private Long organizacionId;
+}

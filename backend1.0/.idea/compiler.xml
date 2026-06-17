@@ -26,8 +26,11 @@
       </profile>
     </annotationProcessing>
     <bytecodeTargetLevel>
+      <module name="agendas-service" target="17" />
+      <module name="auth-service" target="1.5" />
       <module name="catalogos-obras.service" target="17" />
       <module name="clientes-obras.service" target="17" />
+      <module name="common" target="17" />
       <module name="proveedores-obras.service" target="17" />
       <module name="reportes-obras.service" target="17" />
     </bytecodeTargetLevel>

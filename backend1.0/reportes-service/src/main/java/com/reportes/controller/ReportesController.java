@@ -3,7 +3,10 @@ package com.reportes.controller;
 import com.reportes.dto.request.EstadoObraFilterRequest;
 import com.reportes.dto.request.ReportFilterRequest;
 import com.reportes.dto.response.*;
+import com.reportes.dto.response.FiltroResponse;
+import com.reportes.repository.DeudasGlobalesRepository;
 import com.reportes.service.ReportesService;
+import com.reportes.service.ReportesProveedoresService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -16,6 +19,7 @@ import java.util.List;
 public class ReportesController {
 
     private final ReportesService reportesService;
+    private final ReportesProveedoresService proveedoresService;
 
     @PostMapping("/financieros/ingresos-egresos")
     public ResponseEntity<IngresosEgresosResponse> ingresosEgresos(@RequestBody(required = false) ReportFilterRequest filtro) {
@@ -37,9 +41,19 @@ public class ReportesController {
         return ResponseEntity.ok(reportesService.generarDashboardFinanciero(filtro));
     }
 
+    @PostMapping("/financieros/dashboard-consolidado")
+    public ResponseEntity<DashboardConsolidadoResponse> dashboardConsolidado(@RequestBody(required = false) ReportFilterRequest filtro) {
+        return ResponseEntity.ok(reportesService.generarDashboardConsolidado(filtro));
+    }
+
     @PostMapping("/financieros/deudas-globales")
     public ResponseEntity<DeudasGlobalesResponse> deudasGlobales(@RequestBody(required = false) ReportFilterRequest filtro) {
         return ResponseEntity.ok(reportesService.generarDeudasGlobales(filtro));
+    }
+
+    @PostMapping("/financieros/cuentas-corrientes-combinadas")
+    public ResponseEntity<CuentasCorrientesCombindasResponse> cuentasCorrientesCombinadas(@RequestBody(required = false) ReportFilterRequest filtro) {
+        return ResponseEntity.ok(reportesService.generarCuentasCorrientesCombinadas(filtro));
     }
 
     @PostMapping("/financieros/cuenta-corriente-obra-global")
@@ -70,6 +84,11 @@ public class ReportesController {
     @PostMapping("/operativos/avance-tareas")
     public ResponseEntity<AvanceTareasResponse> avanceTareas(@RequestBody(required = false) ReportFilterRequest filtro) {
         return ResponseEntity.ok(reportesService.generarAvanceTareas(filtro));
+    }
+
+    @GetMapping("/operativos/avance-pagos-obra/{obraId}")
+    public ResponseEntity<AvancePagosObraResponse> avancePagosObra(@PathVariable("obraId") Long obraId) {
+        return ResponseEntity.ok(reportesService.generarAvancePagosObra(obraId));
     }
 
     @PostMapping("/operativos/costos-categoria")
@@ -112,6 +131,99 @@ public class ReportesController {
         return ResponseEntity.ok(reportesService.generarComisionesGeneral());
     }
 
+    // Filtros en cascada para deudas globales
+    @GetMapping("/filtros/obras-por-cliente")
+    public ResponseEntity<List<FiltroResponse>> obtenerObrasPorCliente(
+            @RequestParam(required = false) Long clienteId,
+            @RequestParam(required = false) Long proveedorId,
+            @RequestParam(required = false) Long obraId) {
+        return ResponseEntity.ok(reportesService.obtenerObrasPorCliente(clienteId, proveedorId, obraId));
+    }
+
+    @GetMapping("/filtros/proveedores-por-cliente")
+    public ResponseEntity<List<FiltroResponse>> obtenerProveedoresPorCliente(
+            @RequestParam(required = false) Long clienteId,
+            @RequestParam(required = false) Long proveedorId,
+            @RequestParam(required = false) Long obraId) {
+        return ResponseEntity.ok(reportesService.obtenerProveedoresPorCliente(clienteId, proveedorId, obraId));
+    }
+
+    @GetMapping("/filtros/obras-por-proveedor")
+    public ResponseEntity<List<FiltroResponse>> obtenerObrasPorProveedor(
+            @RequestParam(required = false) Long proveedorId,
+            @RequestParam(required = false) Long clienteId,
+            @RequestParam(required = false) Long obraId) {
+        return ResponseEntity.ok(reportesService.obtenerObrasPorProveedor(proveedorId, clienteId, obraId));
+    }
+
+    @GetMapping("/filtros/clientes-por-proveedor")
+    public ResponseEntity<List<FiltroResponse>> obtenerClientesPorProveedor(
+            @RequestParam(required = false) Long proveedorId,
+            @RequestParam(required = false) Long clienteId,
+            @RequestParam(required = false) Long obraId) {
+        return ResponseEntity.ok(reportesService.obtenerClientesPorProveedor(proveedorId, clienteId, obraId));
+    }
+
+    @GetMapping("/filtros/proveedores-por-obra")
+    public ResponseEntity<List<FiltroResponse>> obtenerProveedoresPorObra(
+            @RequestParam(required = false) Long obraId,
+            @RequestParam(required = false) Long clienteId,
+            @RequestParam(required = false) Long proveedorId) {
+        return ResponseEntity.ok(reportesService.obtenerProveedoresPorObra(obraId, clienteId, proveedorId));
+    }
+
+    @GetMapping("/filtros/clientes-por-obra")
+    public ResponseEntity<List<FiltroResponse>> obtenerClientesPorObra(
+            @RequestParam(required = false) Long obraId,
+            @RequestParam(required = false) Long clienteId,
+            @RequestParam(required = false) Long proveedorId) {
+        return ResponseEntity.ok(reportesService.obtenerClientesPorObra(obraId, clienteId, proveedorId));
+    }
+
+    @PostMapping("/cuenta-corriente-pdf/proveedor/{proveedorId}")
+    public ResponseEntity<byte[]> cuentaCorrientePdfProveedor(
+            @PathVariable("proveedorId") Long proveedorId,
+            @RequestParam(required = false) List<Long> obraIds) {
+        try {
+            byte[] pdfBytes = reportesService.generarCuentaCorrienteProveedorPdfBinario(proveedorId, obraIds);
+            return ResponseEntity.ok()
+                    .contentType(org.springframework.http.MediaType.APPLICATION_PDF)
+                    .header("Content-Disposition", "attachment; filename=CtaCte_Proveedor_" + proveedorId + ".pdf")
+                    .body(pdfBytes);
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().build();
+        }
+    }
+
+    @PostMapping("/cuenta-corriente-pdf/cliente/{clienteId}")
+    public ResponseEntity<byte[]> cuentaCorrientePdfCliente(
+            @PathVariable("clienteId") Long clienteId,
+            @RequestParam(required = false) List<Long> obraIds) {
+        try {
+            byte[] pdfBytes = reportesService.generarCuentaCorrienteClientePdfBinario(clienteId, obraIds);
+            return ResponseEntity.ok()
+                    .contentType(org.springframework.http.MediaType.APPLICATION_PDF)
+                    .header("Content-Disposition", "attachment; filename=CtaCte_Cliente_" + clienteId + ".pdf")
+                    .body(pdfBytes);
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().build();
+        }
+    }
+
+    @PostMapping("/financieros/cuentas-corrientes-combinadas-pdf")
+    public ResponseEntity<byte[]> cuentasCorrientesCombinaidasPdf(
+            @RequestBody(required = false) ReportFilterRequest filtro) {
+        try {
+            byte[] pdfBytes = reportesService.generarCuentasCorrientesCombinaidasPdfBinario(filtro);
+            return ResponseEntity.ok()
+                    .contentType(org.springframework.http.MediaType.APPLICATION_PDF)
+                    .header("Content-Disposition", "attachment; filename=CuentasCorrientesCombinadas.pdf")
+                    .body(pdfBytes);
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().build();
+        }
+    }
+
     @PostMapping("/generales/ranking-clientes")
     public ResponseEntity<RankingClientesResponse> rankingClientes(@RequestBody(required = false) ReportFilterRequest filtro) {
         return ResponseEntity.ok(reportesService.generarRankingClientes(filtro));
@@ -130,5 +242,31 @@ public class ReportesController {
     @GetMapping("/obras/{obraId}/notas")
     public ResponseEntity<NotasObraResponse> notasPorObra(@PathVariable Long obraId) {
         return ResponseEntity.ok(reportesService.generarNotasPorObra(obraId));
+    }
+
+    @PostMapping("/financieros/kpi-facturas")
+    public ResponseEntity<FacturasKpiResponse> kpiFacturas(@RequestBody(required = false) ReportFilterRequest filtro) {
+        return ResponseEntity.ok(reportesService.generarKpiFacturas(filtro));
+    }
+
+    @GetMapping("/financieros/saldos/cliente/{clienteId}")
+    public ResponseEntity<SaldosClienteResponse> saldosCliente(@PathVariable("clienteId") Long clienteId) {
+        return ResponseEntity.ok(reportesService.generarSaldosCliente(clienteId));
+    }
+
+    @GetMapping("/financieros/saldos/proveedor/{proveedorId}")
+    public ResponseEntity<SaldosProveedorResponse> saldosProveedor(@PathVariable("proveedorId") Long proveedorId) {
+        return ResponseEntity.ok(reportesService.generarSaldosProveedor(proveedorId));
+    }
+
+    @GetMapping("/financieros/saldos/proveedores")
+    public ResponseEntity<List<ProveedorSaldoResponse>> saldosProveedores() {
+        return ResponseEntity.ok(proveedoresService.obtenerSaldosProveedores());
+    }
+
+    @GetMapping("/dashboard/graficos")
+    public ResponseEntity<DashboardGraficosResponse> dashboardGraficos(
+            @RequestParam(defaultValue = "10") int topN) {
+        return ResponseEntity.ok(reportesService.generarDashboardGraficos(topN));
     }
 }

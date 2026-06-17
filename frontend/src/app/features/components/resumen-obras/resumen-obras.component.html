@@ -1,0 +1,77 @@
+<div class="space-y-8">
+  <!-- TABLA PROVEEDORES -->
+  <div class="bg-white rounded-xl shadow-md p-6">
+    <h2 class="font-poppins font-semibold text-gray-900 mb-5 flex items-center gap-2 pb-3 border-b border-gray-200">
+      <i class="pi pi-truck text-indigo-600"></i>
+      Resumen por Proveedor
+    </h2>
+    <table style="min-width: 50rem; width: 100%; border-collapse: collapse;">
+      <thead>
+        <tr>
+          <th style="width: 25%; border-bottom: 1px solid #ddd; padding: 8px; text-align: left;">Proveedor</th>
+          <th style="width: 25%; border-bottom: 1px solid #ddd; padding: 8px; text-align: left;">Obra</th>
+          <th style="width: 15%; border-bottom: 1px solid #ddd; padding: 8px; text-align: right;">Presupuestado</th>
+          <th style="width: 15%; border-bottom: 1px solid #ddd; padding: 8px; text-align: right;">Pagado</th>
+          <th style="width: 20%; border-bottom: 1px solid #ddd; padding: 8px; text-align: right;">Saldo</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let row of obrasProveedores" style="border-bottom: 1px solid #eee;">
+          <td style="width: 25%; padding: 8px;">{{ row.proveedorNombre }}</td>
+          <td style="width: 25%; padding: 8px;">{{ row.obraNombre }}</td>
+          <td style="width: 15%; padding: 8px; text-align: right;">{{ row.presupuestado | currency:'ARS':'symbol-narrow':'1.2-2' }}</td>
+          <td style="width: 15%; padding: 8px; text-align: right;">{{ row.pagado | currency:'ARS':'symbol-narrow':'1.2-2' }}</td>
+          <td style="width: 20%; padding: 8px; text-align: right;" [ngClass]="row.saldo < 0 ? 'text-red-600' : 'text-blue-600'">
+            {{ row.saldo | currency:'ARS':'symbol-narrow':'1.2-2' }}
+          </td>
+        </tr>
+        <tr class="font-bold bg-gray-100" style="border-top: 2px solid #999;">
+          <td colspan="2" style="width: 50%; padding: 8px;">Totales Generales</td>
+          <td style="width: 15%; padding: 8px; text-align: right;">{{ totalCostosProveedores | currency:'ARS':'symbol-narrow':'1.2-2' }}</td>
+          <td style="width: 15%; padding: 8px; text-align: right;">{{ totalPagosProveedores | currency:'ARS':'symbol-narrow':'1.2-2' }}</td>
+          <td style="width: 20%; padding: 8px; text-align: right;" [ngClass]="totalSaldoProveedores < 0 ? 'text-red-600' : 'text-blue-600'">
+            {{ totalSaldoProveedores | currency:'ARS':'symbol-narrow':'1.2-2' }}
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- TABLA CLIENTES -->
+  <div class="bg-white rounded-xl shadow-md p-6">
+    <h2 class="font-poppins font-semibold text-gray-900 mb-5 flex items-center gap-2 pb-3 border-b border-gray-200">
+      <i class="pi pi-user text-indigo-600"></i>
+      Resumen por Cliente
+    </h2>
+    <table style="min-width: 50rem; width: 100%; border-collapse: collapse;">
+      <thead>
+        <tr>
+          <th style="width: 25%; border-bottom: 1px solid #ddd; padding: 8px; text-align: left;">Cliente</th>
+          <th style="width: 25%; border-bottom: 1px solid #ddd; padding: 8px; text-align: left;">Obra</th>
+          <th style="width: 15%; border-bottom: 1px solid #ddd; padding: 8px; text-align: right;">Presupuestado</th>
+          <th style="width: 15%; border-bottom: 1px solid #ddd; padding: 8px; text-align: right;">Cobrado</th>
+          <th style="width: 20%; border-bottom: 1px solid #ddd; padding: 8px; text-align: right;">Saldo</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let row of obrasClientes" style="border-bottom: 1px solid #eee;">
+          <td style="width: 25%; padding: 8px;">{{ row.clienteNombre }}</td>
+          <td style="width: 25%; padding: 8px;">{{ row.obraNombre }}</td>
+          <td style="width: 15%; padding: 8px; text-align: right;">{{ row.presupuesto | currency:'ARS':'symbol-narrow':'1.2-2' }}</td>
+          <td style="width: 15%; padding: 8px; text-align: right;">{{ row.cobrado | currency:'ARS':'symbol-narrow':'1.2-2' }}</td>
+          <td style="width: 20%; padding: 8px; text-align: right;" [ngClass]="row.saldo < 0 ? 'text-red-600' : 'text-blue-600'">
+            {{ row.saldo | currency:'ARS':'symbol-narrow':'1.2-2' }}
+          </td>
+        </tr>
+        <tr class="font-bold bg-gray-100" style="border-top: 2px solid #999;">
+          <td colspan="2" style="width: 50%; padding: 8px;">Totales Generales</td>
+          <td style="width: 15%; padding: 8px; text-align: right;">{{ totalPresupuestadoClientes | currency:'ARS':'symbol-narrow':'1.2-2' }}</td>
+          <td style="width: 15%; padding: 8px; text-align: right;">{{ totalCobrosClientes | currency:'ARS':'symbol-narrow':'1.2-2' }}</td>
+          <td style="width: 20%; padding: 8px; text-align: right;" [ngClass]="totalSaldoClientes < 0 ? 'text-red-600' : 'text-blue-600'">
+            {{ totalSaldoClientes | currency:'ARS':'symbol-narrow':'1.2-2' }}
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>

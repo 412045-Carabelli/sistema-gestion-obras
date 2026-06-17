@@ -29,7 +29,7 @@ public class ObraCostoServiceImpl implements ObraCostoService {
     @Override
     public ObraCostoDTO crear(ObraCostoDTO dto) {
         if (dto.getTipo_costo() == null) {
-            throw new IllegalArgumentException("Debes indicar el tipo de costo (ORIGINAL o ADICIONAL).");
+            throw new IllegalArgumentException("Debes indicar el tipo de costo (ORIGINAL, ADICIONAL o AJUSTE).");
         }
         ObraCosto entity = fromDto(dto);
         entity.setBajaObra(Boolean.FALSE);
@@ -55,7 +55,6 @@ public class ObraCostoServiceImpl implements ObraCostoService {
     public ObraCostoDTO actualizar(Long idCosto, ObraCostoDTO dto) {
         ObraCosto entity = costoRepo.findByIdAndActivoTrue(idCosto)
                 .orElseThrow(() -> new RuntimeException("Costo no encontrado"));
-        validarOperacionOriginalEnProgreso(entity, dto.getTipo_costo(), "actualizar");
         entity.setIdProveedor(dto.getId_proveedor());
         entity.setItemNumero(normalizarItemNumero(dto.getItem_numero()));
         entity.setDescripcion(dto.getDescripcion());
@@ -63,6 +62,7 @@ public class ObraCostoServiceImpl implements ObraCostoService {
         entity.setCantidad(dto.getCantidad());
         entity.setPrecioUnitario(dto.getPrecio_unitario());
         entity.setBeneficio(dto.getBeneficio());
+        entity.setMontoReal(dto.getMonto_real());
         if (dto.getTipo_costo() != null) {
             entity.setTipoCosto(dto.getTipo_costo());
         }
@@ -78,7 +78,6 @@ public class ObraCostoServiceImpl implements ObraCostoService {
     @Override
     public void eliminar(Long id) {
         costoRepo.findByIdAndActivoTrue(id).ifPresent(costo -> {
-            validarOperacionOriginalEnProgreso(costo, "eliminar");
             costo.setActivo(false);
             costo.setBajaObra(Boolean.FALSE);
             costoRepo.save(costo);
@@ -101,8 +100,8 @@ public class ObraCostoServiceImpl implements ObraCostoService {
         return lst
             .stream()
             .sorted((a, b) -> {
-                boolean aAdd = TipoCostoEnum.ADICIONAL.equals(a.getTipoCosto());
-                boolean bAdd = TipoCostoEnum.ADICIONAL.equals(b.getTipoCosto());
+                boolean aAdd = !TipoCostoEnum.ORIGINAL.equals(a.getTipoCosto());
+                boolean bAdd = !TipoCostoEnum.ORIGINAL.equals(b.getTipoCosto());
                 int tipoCompare = Boolean.compare(aAdd, bAdd);
                 if (tipoCompare != 0) return tipoCompare;
                 return Long.compare(
@@ -124,7 +123,7 @@ public class ObraCostoServiceImpl implements ObraCostoService {
                 ? entity.getCantidad().multiply(entity.getPrecioUnitario()).setScale(2, RoundingMode.HALF_UP)
                 : BigDecimal.ZERO;
 
-        boolean esAdicional = tipoCosto == TipoCostoEnum.ADICIONAL;
+        boolean esAdicional = tipoCosto != TipoCostoEnum.ORIGINAL;
         BigDecimal beneficioAplicado = !esAdicional && Boolean.TRUE.equals(entity.getObra().getBeneficioGlobal())
                 ? Optional.ofNullable(entity.getObra().getBeneficio()).orElse(BigDecimal.ZERO)
                 : Optional.ofNullable(entity.getBeneficio()).orElse(BigDecimal.ZERO);
@@ -152,6 +151,7 @@ public class ObraCostoServiceImpl implements ObraCostoService {
         dto.setBeneficio(entity.getBeneficio());
         dto.setSubtotal(entity.getSubtotal());
         dto.setTotal(entity.getTotal());
+        dto.setMonto_real(entity.getMontoReal());
         dto.setEstado_pago(entity.getEstadoPago());
         dto.setTipo_costo(entity.getTipoCosto());
         dto.setActivo(entity.getActivo());
@@ -171,6 +171,7 @@ public class ObraCostoServiceImpl implements ObraCostoService {
         entity.setCantidad(dto.getCantidad());
         entity.setPrecioUnitario(dto.getPrecio_unitario());
         entity.setBeneficio(dto.getBeneficio());
+        entity.setMontoReal(dto.getMonto_real());
 
         TipoCostoEnum tipoCosto = dto.getTipo_costo() != null ? dto.getTipo_costo() : TipoCostoEnum.ORIGINAL;
         validarTipoCosto(tipoCosto);
@@ -193,7 +194,7 @@ public class ObraCostoServiceImpl implements ObraCostoService {
 
     private void validarTipoCosto(TipoCostoEnum tipo) {
         if (tipo == null) {
-            throw new IllegalArgumentException("El tipo de costo es obligatorio (ORIGINAL o ADICIONAL).");
+            throw new IllegalArgumentException("El tipo de costo es obligatorio (ORIGINAL, ADICIONAL o AJUSTE).");
         }
     }
 
@@ -244,7 +245,7 @@ public class ObraCostoServiceImpl implements ObraCostoService {
                 base = cantidad.multiply(precio);
             }
 
-            boolean esAdicional = TipoCostoEnum.ADICIONAL.equals(costo.getTipoCosto());
+            boolean esAdicional = !TipoCostoEnum.ORIGINAL.equals(costo.getTipoCosto());
             BigDecimal beneficioAplicado = esAdicional
                     ? Optional.ofNullable(costo.getBeneficio()).orElse(BigDecimal.ZERO)
                     : (Boolean.TRUE.equals(obra.getBeneficioGlobal())

@@ -1,0 +1,1929 @@
+import { Component, OnInit } from '@angular/core';
+import { Router } from '@angular/router';
+import { CommonModule } from '@angular/common';
+import { forkJoin } from 'rxjs';
+import { MessageService } from 'primeng/api';
+import { HttpErrorResponse, HttpClient } from '@angular/common/http';
+import { Toast } from 'primeng/toast';
+import { ProgressSpinnerModule } from 'primeng/progressspinner';
+import { SkeletonModule } from 'primeng/skeleton';
+import { Button } from 'primeng/button';
+import { TooltipModule } from 'primeng/tooltip';
+import {FlujoCajaResponse, MovimientoDashboard, ResumenGeneralResponse, Tarea, Obra, Cliente, Proveedor, Transaccion, ObraCosto, ReportFilter, DashboardFinancieroResponse, DashboardConsolidadoResponse, TareaAntiguaAgenda, MovimientoRecenteDTO} from '../../../core/models/models';
+import {TareasService} from '../../../services/tareas/tareas.service';
+import {ReportesService} from '../../../services/reportes/reportes.service';
+import {TransaccionesService} from '../../../services/transacciones/transacciones.service';
+import {ObrasService} from '../../../services/obras/obras.service';
+import {EstadoFormatPipe} from '../../../shared/pipes/estado-format.pipe';
+import {FormsModule} from '@angular/forms';
+import {Select} from 'primeng/select';
+import {InputText} from 'primeng/inputtext';
+import {InputNumber} from 'primeng/inputnumber';
+import {DatePicker} from 'primeng/datepicker';
+import {RadioButtonModule} from 'primeng/radiobutton';
+import {FileUploadModule} from 'primeng/fileupload';
+import {EditorModule} from 'primeng/editor';
+import {ModalComponent} from '../../../shared/modal/modal.component';
+import {ProveedorQuickModalComponent} from '../../components/proveedor-quick-modal/proveedor-quick-modal.component';
+import {ClientesService} from '../../../services/clientes/clientes.service';
+import {ProveedoresService, CatalogoOption} from '../../../services/proveedores/proveedores.service';
+import {FacturasService} from '../../../services/facturas/facturas.service';
+import {DashboardKpisComponent} from '../../components/dashboard-widgets/dashboard-kpis/dashboard-kpis.component';
+import {DashboardDeudasComponent} from '../../components/dashboard-widgets/dashboard-deudas/dashboard-deudas.component';
+import {DashboardTareasComponent} from '../../components/dashboard-widgets/dashboard-tareas/dashboard-tareas.component';
+import {DashboardMovimientosComponent} from '../../components/dashboard-widgets/dashboard-movimientos/dashboard-movimientos.component';
+import {DashboardGraficosComponent} from '../../components/dashboard-widgets/dashboard-graficos/dashboard-graficos.component';
+import { LayoutHeaderComponent } from '../../../shared/layout-header/layout-header.component';
+import { GenericFilterBarComponent, FilterDefinition } from '../../components/generic-filter-bar/generic-filter-bar.component';
+import { environment } from '../../../../environments/environment';
+
+@Component({
+  selector: 'app-dashboard',
+  standalone: true,
+  imports: [
+    CommonModule,
+    Toast,
+    ProgressSpinnerModule,
+    FormsModule,
+    Select,
+    InputText,
+    InputNumber,
+    DatePicker,
+    RadioButtonModule,
+    FileUploadModule,
+    EditorModule,
+    ModalComponent,
+    ProveedorQuickModalComponent,
+    DashboardKpisComponent,
+    DashboardDeudasComponent,
+    DashboardTareasComponent,
+    DashboardMovimientosComponent,
+    DashboardGraficosComponent,
+    LayoutHeaderComponent,
+    GenericFilterBarComponent,
+    TooltipModule,
+    SkeletonModule
+  ],
+  providers: [MessageService],
+  templateUrl: './dashboard.component.html',
+  styleUrls: ['./dashboard.component.css']
+})
+export class DashboardComponent implements OnInit {
+  // Estados de carga
+  loadingGeneral = true;
+  loadingKpis = true;
+
+  // Datos principales
+  flujoCaja!: FlujoCajaResponse;
+  dashboardFinanciero: DashboardFinancieroResponse | null = null;
+  dashboardConsolidado: DashboardConsolidadoResponse | null = null;
+  obras: Obra[] = [];
+  filteredObras: Obra[] = [];
+  proveedores: Proveedor[] = [];
+  clientes: Cliente[] = [];
+  filterDefinitions: FilterDefinition[] = [];
+  filtrosDashboard = {
+    obra: null as Obra | null,
+    cliente: null as Cliente | null,
+    proveedor: null as Proveedor | null,
+    rangoFechas: null as Date[] | null
+  };
+  filteredClientes: Cliente[] = [];
+  filteredProveedores: Proveedor[] = [];
+
+  // Filtros activos para pasar a los componentes hijos
+  filtrosActivos: ReportFilter = {};
+  deudasGlobales: any = null;
+  ivaOptions: { label: string; name: string }[] = [];
+  tiposProveedor: CatalogoOption[] = [];
+  gremiosProveedor: CatalogoOption[] = [];
+  private readonly NUEVO_TIPO_VALUE = '__nuevo_tipo__';
+  private readonly NUEVO_GREMIO_VALUE = '__nuevo_gremio__';
+
+  showMovimientoModal = false;
+  showClienteModal = false;
+  showProveedorModal = false;
+  showGremioModal = false;
+  showTareaModal = false;
+  showFacturaModal = false;
+
+  movimientoObra: Obra | null = null;
+  movimientoObraDetalle: Obra | null = null;
+  movimientoTipoEntidad: 'CLIENTE' | 'PROVEEDOR' = 'CLIENTE';
+  movimientoClientesObra: Cliente[] = [];
+  movimientoProveedoresObra: Proveedor[] = [];
+  movimientoTransaccionesObra: Transaccion[] = [];
+  filteredMovimientoClientes: Cliente[] = [];
+  filteredMovimientoProveedores: Proveedor[] = [];
+  movimientoCliente: Cliente | null = null;
+  movimientoProveedor: Proveedor | null = null;
+  movimientoForm: Partial<Transaccion> = {
+    tipo_transaccion: 'COBRO',
+    forma_pago: 'TOTAL',
+    medio_pago: 'Transferencia',
+    fecha: new Date(),
+    monto: 0
+  };
+
+  tareaObra: Obra | null = null;
+  tareaObraDetalle: Obra | null = null;
+  tareaProveedoresObra: Proveedor[] = [];
+  tareaProveedor: Proveedor | null = null;
+  tareaForm: Partial<Tarea> = {
+    nombre: '',
+    descripcion: '',
+    estado_tarea: 'PENDIENTE',
+    numero_orden: undefined,
+    porcentaje: 0,
+    fecha_inicio: new Date().toISOString()
+  };
+
+  clienteForm: Partial<Cliente> = {
+    nombre: '',
+    contacto: '',
+    direccion: '',
+    cuit: '',
+    condicion_iva: undefined,
+    telefono: '',
+    email: '',
+    activo: true
+  };
+
+  proveedorForm: Partial<Proveedor> = {
+    nombre: '',
+    tipo_proveedor: '',
+    gremio: '',
+    direccion: '',
+    contacto: '',
+    cuit: '',
+    telefono: '',
+    email: '',
+    activo: true
+  };
+
+  facturaForm: {
+    id_cliente: number | null;
+    id_obra: number | null;
+    fecha: Date;
+    monto: number | null;
+    descripcion: string;
+    estado: string;
+  } = {
+    id_cliente: null,
+    id_obra: null,
+    fecha: new Date(),
+    monto: null,
+    descripcion: '',
+    estado: 'EMITIDA'
+  };
+  facturaObrasFiltradas: Obra[] = [];
+  facturaFile: File | null = null;
+  facturaRestanteObra: number | null = null;
+  showTipoProveedorModal = false;
+  nuevoTipoProveedorNombre = '';
+  nuevoGremioNombre = '';
+  guardandoTipoProveedor = false;
+  guardandoGremio = false;
+
+  constructor(
+    private router: Router,
+    private reportesService: ReportesService,
+    private tareasService: TareasService,
+    private transaccionesService: TransaccionesService,
+    private obrasService: ObrasService,
+    private clientesService: ClientesService,
+    private proveedoresService: ProveedoresService,
+    private facturasService: FacturasService,
+    private messageService: MessageService,
+    private http: HttpClient
+  ) {}
+
+  ngOnInit(): void {
+    // Cargar listas para filtros y modales
+    this.cargarListasParaFiltros();
+  }
+
+  private cargarListasParaFiltros(): void {
+    this.loadingGeneral = true;
+
+    // Cargar solo las listas necesarias para los filtros y modales
+    forkJoin({
+      obras: this.obrasService.getObras(),
+      proveedores: this.proveedoresService.getProveedoresAll(),
+      clientes: this.clientesService.getClientes()
+    }).subscribe({
+      next: ({ obras, proveedores, clientes }) => {
+        this.obras = obras || [];
+        this.proveedores = proveedores || [];
+        this.clientes = clientes || [];
+        this.facturaObrasFiltradas = [...this.obras];
+        this.filteredObras = [...this.obras];
+        this.filteredClientes = [...this.clientes];
+        this.filteredProveedores = [...this.proveedores];
+
+        // Setup filter definitions
+        this.setupFilterDefinitions();
+
+        // Cargar KPIs iniciales
+        this.cargarDeudasGlobales();
+
+        // Cargar opciones de IVA y catálogos de proveedores
+        this.cargarOpcionesAdicionales();
+
+        this.loadingGeneral = false;
+      },
+      error: (error) => {
+        console.error('Error cargando listas para filtros:', error);
+        this.loadingGeneral = false;
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: 'No se pudo cargar la información necesaria'
+        });
+      }
+    });
+  }
+
+  private setupFilterDefinitions(): void {
+    this.filterDefinitions = [
+      {
+        key: 'cliente',
+        label: 'Cliente',
+        type: 'select',
+        placeholder: 'Todos',
+        options: this.clientes.map((c) => ({ label: c.nombre, value: c.id }))
+      },
+      {
+        key: 'proveedor',
+        label: 'Proveedor',
+        type: 'select',
+        placeholder: 'Todos',
+        options: this.proveedores.map((p) => ({ label: p.nombre, value: p.id }))
+      },
+      {
+        key: 'obra',
+        label: 'Obra',
+        type: 'select',
+        placeholder: 'Todos',
+        options: this.obras.map((o) => ({ label: o.nombre, value: o.id }))
+      },
+      {
+        key: 'fechaInicio',
+        label: 'Fecha Inicio',
+        type: 'date'
+      },
+      {
+        key: 'fechaFin',
+        label: 'Fecha Fin',
+        type: 'date'
+      }
+    ];
+  }
+
+  private cargarOpcionesAdicionales(): void {
+    this.cargarCondicionesIva();
+    this.cargarCatalogosProveedor();
+  }
+
+  navigateTo(route: string): void {
+    this.router.navigate([route]);
+  }
+
+  filtrarObras(event: any) {
+    const query = (event?.query || '').toLowerCase();
+    this.filteredObras = (this.obras || []).filter(o =>
+      (o.nombre || '').toLowerCase().includes(query)
+    );
+  }
+
+  filtrarClientes(event: any) {
+    const query = (event?.query || '').toLowerCase();
+    this.filteredClientes = (this.clientes || []).filter(c =>
+      (c.nombre || '').toLowerCase().includes(query)
+    );
+  }
+
+  filtrarProveedores(event: any) {
+    const query = (event?.query || '').toLowerCase();
+    this.filteredProveedores = (this.proveedores || []).filter(p =>
+      (p.nombre || '').toLowerCase().includes(query)
+    );
+  }
+
+  aplicarFiltrosDashboard() {
+    // Los componentes hijos se recargan automáticamente via ngOnChanges
+    this.onFiltroChange();
+  }
+
+  limpiarFiltrosDashboard() {
+    this.filtrosDashboard = {
+      obra: null,
+      cliente: null,
+      proveedor: null,
+      rangoFechas: null
+    };
+    this.filteredObras = [...this.obras];
+    this.filteredClientes = [...this.clientes];
+    this.filteredProveedores = [...this.proveedores];
+    this.onFiltroChange();
+  }
+
+  onFilterChange(filters: Record<string, any>): void {
+    // Map generic filter bar values to filtrosDashboard
+    const clienteId = filters['cliente'];
+    const proveedorId = filters['proveedor'];
+    const obraId = filters['obra'];
+    const fechaInicio = filters['fechaInicio'];
+    const fechaFin = filters['fechaFin'];
+
+    this.filtrosDashboard.cliente = clienteId
+      ? this.clientes.find(c => Number(c.id) === Number(clienteId)) || null
+      : null;
+    this.filtrosDashboard.proveedor = proveedorId
+      ? this.proveedores.find(p => Number(p.id) === Number(proveedorId)) || null
+      : null;
+    this.filtrosDashboard.obra = obraId
+      ? this.obras.find(o => Number(o.id) === Number(obraId)) || null
+      : null;
+
+    // Handle date range
+    if (fechaInicio || fechaFin) {
+      const inicio = fechaInicio ? new Date(fechaInicio) : null;
+      const fin = fechaFin ? new Date(fechaFin) : null;
+      this.filtrosDashboard.rangoFechas = [inicio, fin].filter((d) => d !== null) as Date[];
+    } else {
+      this.filtrosDashboard.rangoFechas = null;
+    }
+
+    this.onFiltroChange();
+  }
+
+  onClearFilters(): void {
+    this.limpiarFiltrosDashboard();
+  }
+
+  /**
+   * Reconstruye los filtros activos para pasar a los componentes hijos.
+   * Se ejecuta cuando cambian los filtros del dashboard.
+   */
+  onFiltroChange(): void {
+    this.filtrosActivos = {
+      obraId: this.filtrosDashboard.obra?.id,
+      clienteId: this.filtrosDashboard.cliente?.id,
+      proveedorId: this.filtrosDashboard.proveedor?.id,
+      fechaInicio: this.filtrosDashboard.rangoFechas?.[0] ? new Date(this.filtrosDashboard.rangoFechas[0]).toISOString().split('T')[0] : undefined,
+      fechaFin: this.filtrosDashboard.rangoFechas?.[1] ? new Date(this.filtrosDashboard.rangoFechas[1]).toISOString().split('T')[0] : undefined
+    };
+    this.cargarDeudasGlobales();
+  }
+
+  private cargarDeudasGlobales(): void {
+    this.loadingKpis = true;
+    const deudasUrl = `${environment.apiGateway}/bff/reportes/financieros/deudas-globales`;
+    const filtro: ReportFilter = {
+      obraId: this.filtrosDashboard.obra?.id,
+      clienteId: this.filtrosDashboard.cliente?.id,
+      proveedorId: this.filtrosDashboard.proveedor?.id,
+      fechaInicio: this.filtrosActivos.fechaInicio,
+      fechaFin: this.filtrosActivos.fechaFin
+    };
+
+    this.http.post<any>(deudasUrl, filtro).subscribe({
+      next: (response) => {
+        this.deudasGlobales = response;
+        this.loadingKpis = false;
+      },
+      error: (err) => {
+        console.error('Error cargando deudas globales:', err);
+        this.deudasGlobales = null;
+        this.loadingKpis = false;
+      }
+    });
+  }
+
+  abrirMovimientoModal() {
+    this.resetMovimientoForm();
+    this.showMovimientoModal = true;
+  }
+
+  cerrarMovimientoModal() {
+    this.showMovimientoModal = false;
+  }
+
+  abrirClienteModal() {
+    this.resetClienteForm();
+    this.cargarCondicionesIva();
+    this.showClienteModal = true;
+  }
+
+  cerrarClienteModal() {
+    this.showClienteModal = false;
+  }
+
+  abrirProveedorModal() {
+    this.resetProveedorForm();
+    this.cargarCatalogosProveedor();
+    this.showProveedorModal = true;
+  }
+
+  cerrarProveedorModal() {
+    this.showProveedorModal = false;
+  }
+
+  abrirTareaModal() {
+    this.resetTareaForm();
+    this.showTareaModal = true;
+  }
+
+  cerrarTareaModal() {
+    this.showTareaModal = false;
+  }
+
+  abrirFacturaModal() {
+    this.resetFacturaForm();
+    this.facturaObrasFiltradas = this.obras.filter(o => this.esObraDisponibleParaFacturar(o));
+    this.showFacturaModal = true;
+  }
+
+  cerrarFacturaModal() {
+    this.showFacturaModal = false;
+  }
+
+  onFacturaClienteChange() {
+    if (!this.facturaForm.id_cliente) {
+      this.facturaObrasFiltradas = this.obras.filter(o => this.esObraDisponibleParaFacturar(o));
+      this.facturaForm.id_obra = null;
+      this.facturaRestanteObra = null;
+      return;
+    }
+    this.facturaObrasFiltradas = this.obras.filter(o =>
+      Number(o.cliente?.id) === Number(this.facturaForm.id_cliente) && this.esObraDisponibleParaFacturar(o)
+    );
+    this.facturaForm.id_obra = null;
+    this.facturaRestanteObra = null;
+  }
+
+  onFacturaObraChange() {
+    const obraId = this.facturaForm.id_obra;
+    if (!obraId) {
+      this.facturaRestanteObra = null;
+      return;
+    }
+    this.actualizarRestanteFacturaObra(Number(obraId));
+  }
+
+  onFacturaFileSelected(event: any) {
+    const files = event?.currentFiles ?? event?.files ?? [];
+    this.facturaFile = files?.[0] ?? null;
+  }
+
+  quitarFacturaArchivo() {
+    this.facturaFile = null;
+  }
+
+  onMovimientoObraSelect(obra: Obra | null) {
+    this.movimientoObra = obra;
+    this.movimientoObraDetalle = null;
+    this.movimientoClientesObra = [];
+    this.movimientoProveedoresObra = [];
+    this.movimientoTransaccionesObra = [];
+    this.movimientoTransaccionesObra = [];
+    this.filteredMovimientoClientes = [];
+    this.filteredMovimientoProveedores = [];
+    this.movimientoCliente = null;
+    this.movimientoProveedor = null;
+
+    if (!obra?.id) return;
+    this.obrasService.getObraById(obra.id).subscribe(detalle => {
+      this.movimientoObraDetalle = detalle;
+      this.movimientoClientesObra = detalle?.cliente ? [detalle.cliente] : [];
+      this.movimientoProveedoresObra = this.proveedoresDeObra(detalle);
+      this.filteredMovimientoClientes = [...this.movimientoClientesObra];
+      this.filteredMovimientoProveedores = [...this.movimientoProveedoresObra];
+      if (this.movimientoTipoEntidad === 'CLIENTE') {
+        this.movimientoCliente = this.movimientoClientesObra[0] || null;
+      }
+      this.transaccionesService.getByObra(obra.id!).subscribe({
+        next: (transacciones) => {
+          this.movimientoTransaccionesObra = transacciones || [];
+        },
+        error: () => {
+          this.movimientoTransaccionesObra = [];
+        }
+      });
+    });
+  }
+
+  onMovimientoTipoEntidadChange() {
+    this.movimientoCliente = null;
+    this.movimientoProveedor = null;
+    const requerido = this.movimientoTipoEntidad === 'PROVEEDOR' ? 'PAGO' : 'COBRO';
+    this.movimientoForm.tipo_transaccion = requerido;
+    if (this.movimientoTipoEntidad === 'CLIENTE') {
+      this.movimientoCliente = this.movimientoClientesObra[0] || null;
+      this.filteredMovimientoClientes = [...this.movimientoClientesObra];
+    } else {
+      this.filteredMovimientoProveedores = [...this.movimientoProveedoresObra];
+    }
+  }
+
+  onMovimientoProveedorChange() {
+    return;
+  }
+
+  onMovimientoProveedorSelect(proveedor: Proveedor | null) {
+    this.movimientoProveedor = proveedor;
+    this.onMovimientoProveedorChange();
+    this.aplicarMontoProveedorMovimiento();
+  }
+
+  onMovimientoClienteSelect(cliente: Cliente | null) {
+    this.movimientoCliente = cliente;
+    this.aplicarMontoClienteMovimiento();
+  }
+
+
+  get movimientoPagadoCliente(): number | null {
+    if (!this.movimientoCliente?.id) return null;
+    return this.movimientoTransaccionesObra
+      .filter(t => (t.tipo_asociado || '').toString().toUpperCase() === 'CLIENTE')
+      .filter(t => Number(t.id_asociado) === Number(this.movimientoCliente?.id))
+      .filter(t => (t.tipo_transaccion || '').toString().toUpperCase() === 'COBRO')
+      .reduce((acc, t) => acc + Number(t.monto ?? 0), 0);
+  }
+
+  get movimientoTotalCliente(): number | null {
+    if (!this.movimientoCliente?.id) return null;
+    const presupuesto = Number(this.movimientoObraDetalle?.presupuesto ?? NaN);
+    if (!Number.isFinite(presupuesto)) return null;
+    return presupuesto;
+  }
+
+  get movimientoRestanteCliente(): number | null {
+    if (!this.movimientoCliente?.id) return null;
+    const presupuesto = Number(this.movimientoObraDetalle?.presupuesto ?? NaN);
+    if (!Number.isFinite(presupuesto)) return null;
+    const cobrado = this.movimientoPagadoCliente ?? 0;
+    return Math.max(0, presupuesto - cobrado);
+  }
+
+  get movimientoTotalProveedor(): number | null {
+    if (!this.movimientoProveedor?.id) return null;
+    const costos = this.movimientoObraDetalle?.costos || [];
+    return costos.reduce((acc, costo) => {
+      const id = Number((costo as any)?.id_proveedor ?? (costo as any)?.proveedor?.id ?? 0);
+      if (id !== Number(this.movimientoProveedor?.id)) return acc;
+      return acc + this.obtenerSubtotalCosto(costo);
+    }, 0);
+  }
+
+  get movimientoPagadoProveedor(): number | null {
+    if (!this.movimientoProveedor?.id) return null;
+    return this.movimientoTransaccionesObra
+      .filter(t => (t.tipo_asociado || '').toString().toUpperCase() === 'PROVEEDOR')
+      .filter(t => Number(t.id_asociado) === Number(this.movimientoProveedor?.id))
+      .filter(t => (t.tipo_transaccion || '').toString().toUpperCase() === 'PAGO')
+      .reduce((acc, t) => acc + Number(t.monto ?? 0), 0);
+  }
+
+  get movimientoSaldoProveedor(): number | null {
+    if (!this.movimientoProveedor?.id) return null;
+    const total = this.movimientoTotalProveedor ?? 0;
+    const pagado = this.movimientoPagadoProveedor ?? 0;
+    return Math.max(0, total - pagado);
+  }
+
+  filtrarMovimientoClientes(event: any) {
+    const query = (event?.query || '').toLowerCase();
+    this.filteredMovimientoClientes = (this.movimientoClientesObra || []).filter(c =>
+      (c.nombre || '').toLowerCase().includes(query)
+    );
+  }
+
+  filtrarMovimientoProveedores(event: any) {
+    if (!this.movimientoObra?.id) {
+      this.filteredMovimientoProveedores = [];
+      return;
+    }
+    const query = (event?.query || '').toLowerCase();
+    this.filteredMovimientoProveedores = (this.movimientoProveedoresObra || []).filter(p =>
+      (p.nombre || '').toLowerCase().includes(query)
+    );
+  }
+
+  guardarMovimientoRapido() {
+    if (!this.movimientoObra?.id) {
+      this.messageService.add({
+        severity: 'warn',
+        summary: 'Falta obra',
+        detail: 'Selecciona una obra.'
+      });
+      return;
+    }
+
+    const asociado = this.movimientoTipoEntidad === 'PROVEEDOR' ? this.movimientoProveedor : this.movimientoCliente;
+    if (!asociado?.id) {
+      this.messageService.add({
+        severity: 'warn',
+        summary: 'Falta asociado',
+        detail: 'Selecciona el asociado de la obra.'
+      });
+      return;
+    }
+
+    if (!this.validarMontoMovimientoRapido()) {
+      return;
+    }
+
+    const payload: any = {
+      id_obra: this.movimientoObra.id,
+      id_asociado: asociado.id,
+      tipo_asociado: this.movimientoTipoEntidad,
+      tipo_transaccion: this.movimientoForm.tipo_transaccion,
+      fecha: this.movimientoForm.fecha instanceof Date
+        ? this.movimientoForm.fecha.toISOString().split('T')[0]
+        : this.movimientoForm.fecha,
+      monto: this.movimientoForm.monto ?? 0,
+      forma_pago: this.movimientoForm.forma_pago ?? 'TOTAL',
+      medio_pago: this.movimientoForm.medio_pago ?? 'Transferencia'
+    };
+
+    this.transaccionesService.create(payload).subscribe({
+      next: () => {
+        this.showMovimientoModal = false;
+        this.messageService.add({
+          severity: 'success',
+          summary: 'Movimiento creado',
+          detail: 'Se creo el movimiento correctamente.'
+        });
+      },
+      error: () => {
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: 'No se pudo crear el movimiento.'
+        });
+      }
+    });
+  }
+
+  onTareaObraSelect(obra: Obra | null) {
+    this.tareaObra = obra;
+    this.tareaObraDetalle = null;
+    this.tareaProveedor = null;
+    this.tareaProveedoresObra = [];
+
+    if (!obra?.id) return;
+    this.obrasService.getObraById(obra.id).subscribe(detalle => {
+      this.tareaObraDetalle = detalle;
+      this.tareaProveedoresObra = this.proveedoresDeObra(detalle);
+    });
+  }
+
+  guardarTareaRapida() {
+    if (!this.tareaObra?.id) {
+      this.messageService.add({
+        severity: 'warn',
+        summary: 'Falta obra',
+        detail: 'Selecciona una obra.'
+      });
+      return;
+    }
+    if (!this.tareaProveedor?.id) {
+      this.messageService.add({
+        severity: 'warn',
+        summary: 'Falta proveedor',
+        detail: 'Selecciona un proveedor de la obra.'
+      });
+      return;
+    }
+    if (!this.tareaForm.nombre) {
+      this.messageService.add({
+        severity: 'warn',
+        summary: 'Falta nombre',
+        detail: 'Completa el nombre de la tarea.'
+      });
+      return;
+    }
+
+    const payload = {
+      id_obra: this.tareaObra.id,
+      id_proveedor: this.tareaProveedor.id,
+      estado_tarea: 'PENDIENTE',
+      numero_orden: this.tareaForm.numero_orden ?? undefined,
+      nombre: this.tareaForm.nombre,
+      descripcion: this.tareaForm.descripcion ?? '',
+      porcentaje: this.tareaForm.porcentaje ?? 0,
+      fecha_inicio: this.normalizarFechaInicio(this.tareaForm.fecha_inicio)
+    };
+
+    this.tareasService.createTarea(payload as any).subscribe({
+      next: () => {
+        this.showTareaModal = false;
+        this.messageService.add({
+          severity: 'success',
+          summary: 'Tarea creada',
+          detail: 'Se creo la tarea correctamente.'
+        });
+      },
+      error: (err) => {
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: this.obtenerMensajeError(err, 'No se pudo crear la tarea.')
+        });
+      }
+    });
+  }
+
+  guardarClienteRapido() {
+    if (!this.clienteForm.nombre || !this.clienteForm.contacto || !this.clienteForm.cuit ||
+      !this.clienteForm.condicion_iva || !this.clienteForm.telefono) {
+      this.messageService.add({
+        severity: 'warn',
+        summary: 'Datos incompletos',
+        detail: 'Completa los datos obligatorios del cliente.'
+      });
+      return;
+    }
+
+    this.clientesService.createCliente(this.clienteForm as Cliente).subscribe({
+      next: () => {
+        this.showClienteModal = false;
+        this.messageService.add({
+          severity: 'success',
+          summary: 'Cliente creado',
+          detail: 'Se creo el cliente correctamente.'
+        });
+      },
+      error: () => {
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: 'No se pudo crear el cliente.'
+        });
+      }
+    });
+  }
+
+  guardarProveedorRapido() {
+    if (!this.proveedorForm.nombre || !this.proveedorForm.tipo_proveedor || !this.proveedorForm.contacto ||
+      !this.proveedorForm.cuit || !this.proveedorForm.telefono) {
+      this.messageService.add({
+        severity: 'warn',
+        summary: 'Datos incompletos',
+        detail: 'Completa los datos obligatorios del proveedor.'
+      });
+      return;
+    }
+
+    this.proveedoresService.createProveedor(this.proveedorForm).subscribe({
+      next: () => {
+        this.showProveedorModal = false;
+        this.messageService.add({
+          severity: 'success',
+          summary: 'Proveedor creado',
+          detail: 'Se creo el proveedor correctamente.'
+        });
+      },
+      error: () => {
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: 'No se pudo crear el proveedor.'
+        });
+      }
+    });
+  }
+
+  guardarFacturaRapida() {
+    if (!this.facturaForm.id_cliente) {
+      this.messageService.add({
+        severity: 'warn',
+        summary: 'Faltan datos',
+        detail: 'Selecciona el cliente.'
+      });
+      return;
+    }
+    const monto = Number(this.facturaForm.monto ?? 0);
+    if (!monto || monto <= 0) {
+      this.messageService.add({
+        severity: 'warn',
+        summary: 'Monto invalido',
+        detail: 'Ingresa un monto mayor a 0.'
+      });
+      return;
+    }
+    if (this.facturaRestanteObra != null && monto > this.facturaRestanteObra + 0.01) {
+      this.messageService.add({
+        severity: 'warn',
+        summary: 'Monto invalido',
+        detail: 'El monto supera el restante disponible de la obra.'
+      });
+      return;
+    }
+
+    const payload = {
+      id_cliente: Number(this.facturaForm.id_cliente),
+      id_obra: this.facturaForm.id_obra != null ? Number(this.facturaForm.id_obra) : null,
+      monto,
+      monto_restante: (this.facturaForm.estado || 'EMITIDA') === 'COBRADA' ? 0 : monto,
+      fecha: this.formatDate(this.facturaForm.fecha),
+      descripcion: this.facturaForm.descripcion || '',
+      estado: this.facturaForm.estado || 'EMITIDA'
+    };
+
+    this.facturasService.createFactura(payload, this.facturaFile).subscribe({
+      next: () => {
+        this.messageService.add({
+          severity: 'success',
+          summary: 'Factura creada',
+          detail: 'La factura se guardo correctamente.'
+        });
+        this.cerrarFacturaModal();
+        this.resetFacturaForm();
+      },
+      error: (err: any) => {
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: err?.error?.message || 'No se pudo crear la factura.'
+        });
+      }
+    });
+  }
+
+  navigateToObrasEstado(estado?: string): void {
+    if (estado) {
+      this.router.navigate(['/obras'], { queryParams: { estado } });
+    } else {
+      this.router.navigate(['/obras']);
+    }
+  }
+
+  get cobradoClientesGlobal(): number {
+    const detalle: any[] = this.deudasGlobales?.detalleDeudaClientes ?? [];
+    return detalle.reduce((sum: number, d: any) => sum + Number(d.cobrado ?? 0), 0);
+  }
+
+  get pagadoProveedoresGlobal(): number {
+    const detalle: any[] = this.deudasGlobales?.detalleDeudaProveedores ?? [];
+    return detalle.reduce((sum: number, d: any) => sum + Number(d.pagado ?? 0), 0);
+  }
+
+  get totalCobrosDashboard(): number {
+    return this.dashboardConsolidado?.totalCobros ?? this.calcularTotalMovimientos(['INGRESO', 'COBRO']);
+  }
+
+  get totalPagosDashboard(): number {
+    return this.dashboardConsolidado?.totalPagos ?? this.calcularTotalMovimientos(['EGRESO', 'PAGO']);
+  }
+
+  get totalPresupuestoObras(): number {
+    return this.dashboardConsolidado?.totalPresupuesto ?? (() => {
+      const obras = this.filtrarObrasConDeuda(this.obras || []);
+      return obras.reduce((acc, o) => acc + Number(o.presupuesto || 0), 0);
+    })();
+  }
+
+  get totalPresupuestoFiltradoDashboard(): number {
+    return this.dashboardConsolidado?.totalPresupuesto ?? (() => {
+      const obrasFiltradas = this.filtrarObrasConDeuda(this.obtenerObrasFiltradasDashboard());
+      return obrasFiltradas.reduce((acc, obra) => acc + Number(obra.presupuesto || 0), 0);
+    })();
+  }
+
+  get totalCostosObras(): number {
+    return this.dashboardConsolidado?.totalCostos ?? (() => {
+      const obras = this.filtrarObrasConDeuda(this.obras || []);
+      return obras.reduce((acc, obra) => {
+        const costos = obra.costos || [];
+        const totalObra = costos.reduce((sum, costo) => sum + this.obtenerSubtotalCosto(costo), 0);
+        return acc + totalObra;
+      }, 0);
+    })();
+  }
+
+  get totalCostosFiltradosDashboard(): number {
+    return this.dashboardConsolidado?.totalCostos ?? (() => {
+      const obrasFiltradas = this.filtrarObrasConDeuda(this.obtenerObrasFiltradasDashboard());
+      return (obrasFiltradas || []).reduce((acc, obra) => {
+        const costos = obra.costos || [];
+        const totalObra = costos.reduce((sum, costo) => sum + this.obtenerSubtotalCosto(costo), 0);
+        return acc + totalObra;
+      }, 0);
+    })();
+  }
+
+  get porCobrarPendienteDashboard(): number {
+    return Math.max(0, this.totalPresupuestoObras - this.totalCobrosDashboard);
+  }
+
+  get porPagarPendienteDashboard(): number {
+    return Math.max(0, this.totalCostosObras - this.totalPagosDashboard);
+  }
+
+  get saldoPendienteDashboard(): number {
+    return this.porCobrarPendienteDashboard - this.porPagarPendienteDashboard;
+  }
+
+  get saldoFlujoDashboard(): number {
+    if (this.dashboardFinanciero) {
+      return Number(this.dashboardFinanciero.flujo?.saldo ?? 0);
+    }
+    return this.totalCobrosDashboard - this.totalPagosDashboard;
+  }
+
+  get cuentaCorrienteModo(): 'CLIENTE' | 'PROVEEDOR' | 'GENERAL' {
+    if (this.filtrosDashboard?.proveedor?.id) return 'PROVEEDOR';
+    if (this.filtrosDashboard?.cliente?.id) return 'CLIENTE';
+    return 'GENERAL';
+  }
+
+  get cuentaCorrientePresupuesto(): number {
+    if (this.cuentaCorrienteModo === 'PROVEEDOR') {
+      const proveedorId = this.filtrosDashboard?.proveedor?.id;
+      if (!proveedorId) return this.totalCostosObras;
+      return this.calcularTotalCostosProveedor(this.obtenerObrasFiltradasDashboard(), proveedorId);
+    }
+    return this.totalPresupuestoFiltradoDashboard;
+  }
+
+  get cuentaCorrienteSaldo(): number {
+    if (this.cuentaCorrienteModo === 'PROVEEDOR') {
+      return this.cuentaCorrientePresupuesto - this.totalPagosDashboard;
+    }
+    if (this.cuentaCorrienteModo === 'CLIENTE') {
+      return this.cuentaCorrientePresupuesto - this.totalCobrosDashboard;
+    }
+    return this.saldoFlujoDashboard;
+  }
+
+  get dashboardCobrado(): number {
+    if (this.dashboardFinanciero) {
+      return Number(this.dashboardFinanciero.ctaCte?.loCobrado ?? 0);
+    }
+    const obraSeleccionada = this.obtenerObraSeleccionada();
+    if (obraSeleccionada?.id) {
+      if (!this.obraGeneraDeuda(obraSeleccionada)) return 0;
+      return this.calcularTotalMovimientosDesdeLista(
+        this.obtenerMovimientosPorObra(obraSeleccionada.id),
+        ['INGRESO', 'COBRO']
+      );
+    }
+    if (this.filtrosDashboard?.proveedor?.id) return 0;
+    return this.totalCobrosDashboard;
+  }
+
+  get dashboardPorCobrar(): number {
+    if (this.dashboardFinanciero) {
+      return Number(this.dashboardFinanciero.ctaCte?.porCobrar ?? 0);
+    }
+    const obraSeleccionada = this.obtenerObraSeleccionada();
+    if (obraSeleccionada?.id) {
+      if (!this.obraGeneraDeuda(obraSeleccionada)) return 0;
+      const cobrado = this.dashboardCobrado;
+      const presupuesto = Number(obraSeleccionada.presupuesto ?? 0);
+      return Math.max(0, presupuesto - cobrado);
+    }
+    if (this.filtrosDashboard?.proveedor?.id) return 0;
+    const tieneRangoFechas = !!(this.filtrosDashboard?.rangoFechas?.[0] || this.filtrosDashboard?.rangoFechas?.[1]);
+    const base = (this.filtrosDashboard?.cliente?.id || tieneRangoFechas)
+      ? this.totalPresupuestoFiltradoDashboard
+      : this.totalPresupuestoObras;
+    return Math.max(0, base - this.totalCobrosDashboard);
+  }
+
+  get dashboardPagado(): number {
+    if (this.dashboardFinanciero) {
+      return Number(this.dashboardFinanciero.ctaCte?.pagado ?? 0);
+    }
+    const obraSeleccionada = this.obtenerObraSeleccionada();
+    if (obraSeleccionada?.id) {
+      if (!this.obraGeneraDeuda(obraSeleccionada)) return 0;
+      return this.calcularTotalMovimientosDesdeLista(
+        this.obtenerMovimientosPorObra(obraSeleccionada.id),
+        ['EGRESO', 'PAGO']
+      );
+    }
+    if (this.filtrosDashboard?.cliente?.id) return 0;
+    return this.totalPagosDashboard;
+  }
+
+  get dashboardPorPagar(): number {
+    if (this.dashboardFinanciero) {
+      return Number(this.dashboardFinanciero.ctaCte?.porPagar ?? 0);
+    }
+    const obraSeleccionada = this.obtenerObraSeleccionada();
+    if (obraSeleccionada?.id) {
+      if (!this.obraGeneraDeuda(obraSeleccionada)) return 0;
+      const pagado = this.dashboardPagado;
+      const totalCostos = this.totalCostosDeObra(obraSeleccionada);
+      return Math.max(0, totalCostos - pagado);
+    }
+    if (this.filtrosDashboard?.cliente?.id) return 0;
+    if (this.filtrosDashboard?.proveedor?.id) {
+      const proveedorId = this.filtrosDashboard?.proveedor?.id ?? 0;
+      const totalProveedor = this.calcularTotalCostosProveedor(this.filtrarObrasConDeuda(this.obtenerObrasFiltradasDashboard()), proveedorId);
+      return Math.max(0, totalProveedor - this.totalPagosDashboard);
+    }
+    const tieneRangoFechas = !!(this.filtrosDashboard?.rangoFechas?.[0] || this.filtrosDashboard?.rangoFechas?.[1]);
+    const base = tieneRangoFechas ? this.totalCostosFiltradosDashboard : this.totalCostosObras;
+    return Math.max(0, base - this.totalPagosDashboard);
+  }
+
+  get dashboardResultado(): number {
+    return this.dashboardCobrado - this.dashboardPagado;
+  }
+
+  private obtenerMovimientosPorObra(obraId: number): MovimientoDashboard[] {
+    let movimientos = this.flujoCaja?.movimientos || [];
+    const rangoFechas = this.filtrosDashboard?.rangoFechas;
+    movimientos = movimientos.filter(mov => Number(mov.obraId) === Number(obraId));
+    if (rangoFechas?.[0] || rangoFechas?.[1]) {
+      movimientos = movimientos.filter(mov =>
+        this.estaEnRangoFecha(mov.fecha, rangoFechas)
+      );
+    }
+    return movimientos;
+  }
+
+  private calcularTotalMovimientosDesdeLista(movimientos: MovimientoDashboard[], tipos: string[]): number {
+    const tiposUpper = tipos.map(t => t.toUpperCase());
+    return (movimientos || []).reduce((acc, mov) => {
+      const tipo = (mov.tipo_movimiento || mov.tipo || '').toString().toUpperCase();
+      if (!tiposUpper.includes(tipo)) return acc;
+      return acc + Number(mov.monto ?? 0);
+    }, 0);
+  }
+
+  private obtenerObraSeleccionada(): Obra | null {
+    const obraId = this.filtrosDashboard?.obra?.id;
+    if (!obraId) return null;
+    const obra = (this.obras || []).find(o => Number(o.id) === Number(obraId)) ?? null;
+    if (!obra) return null;
+    const rangoFechas = this.filtrosDashboard?.rangoFechas;
+    if (rangoFechas?.[0] || rangoFechas?.[1]) {
+      const fechaBase = this.obtenerFechaCreacionObra(obra);
+      if (!this.estaEnRangoFecha(fechaBase, rangoFechas)) return null;
+    }
+    return obra;
+  }
+
+  private totalCostosDeObra(obra: Obra): number {
+    return (obra?.costos || []).reduce((sum, costo) => {
+      return sum + this.obtenerSubtotalCosto(costo);
+    }, 0);
+  }
+
+  private movimientoPerteneceObraConDeuda(mov: MovimientoDashboard): boolean {
+    const obraId = Number(mov?.obraId ?? 0);
+    if (!obraId) return true;
+    const obra = (this.obras || []).find(o => Number(o.id) === obraId);
+    if (!obra) return true;
+    return this.obraGeneraDeuda(obra);
+  }
+
+  private filtrarObrasConDeuda(obras: Obra[]): Obra[] {
+    return (obras || []).filter(obra => this.obraGeneraDeuda(obra));
+  }
+
+  private obraGeneraDeuda(obra: Obra | null | undefined): boolean {
+    if (!obra) return false;
+    const estado = (obra.obra_estado || '').toString()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .toUpperCase()
+      .replace(/[^A-Z0-9]+/g, '_')
+      .replace(/^_+|_+$/g, '');
+    return new Set(['ADJUDICADA', 'EN_PROGRESO', 'FINALIZADA']).has(estado);
+  }
+
+  private proveedoresDeObra(obra: Obra): Proveedor[] {
+    const ids = new Set<number>();
+    const proveedoresDirectos = (obra as any)?.proveedores as Proveedor[] | undefined;
+    (proveedoresDirectos || []).forEach(p => {
+      const id = Number((p as any)?.id ?? (p as any)?.id_proveedor ?? 0);
+      if (id) ids.add(id);
+    });
+    (obra?.costos || []).forEach(c => {
+      const id = Number((c.proveedor as any)?.id ?? c.id_proveedor ?? 0);
+      if (id) ids.add(id);
+    });
+    (obra?.tareas || []).forEach(t => {
+      const id = Number((t.proveedor as any)?.id ?? t.id_proveedor ?? 0);
+      if (id) ids.add(id);
+    });
+    return this.proveedores.filter(p => ids.has(Number(p.id)));
+  }
+
+  private calcularTotalMovimientos(tipos: string[]): number {
+    const buscados = new Set(tipos.map(t => t.toUpperCase()));
+    return this.obtenerMovimientosFiltradosDashboard().reduce((acc, mov) => {
+      const tipo = (mov.tipo_movimiento || mov.tipo || '').toString().toUpperCase();
+      if (buscados.has(tipo)) {
+        return acc + Number(mov.monto ?? 0);
+      }
+      return acc;
+    }, 0);
+  }
+
+  private obtenerMovimientosFiltradosDashboard(): MovimientoDashboard[] {
+    let movimientos = this.flujoCaja?.movimientos || [];
+    const obraId = this.filtrosDashboard?.obra?.id;
+    const clienteId = this.filtrosDashboard?.cliente?.id;
+    const proveedorId = this.filtrosDashboard?.proveedor?.id;
+    const rangoFechas = this.filtrosDashboard?.rangoFechas;
+
+    if (obraId) {
+      movimientos = movimientos.filter(mov => Number(mov.obraId) === Number(obraId));
+    }
+
+    if (clienteId) {
+      movimientos = movimientos.filter(mov =>
+        (mov.asociadoTipo || '').toString().toUpperCase() === 'CLIENTE' &&
+        Number(mov.asociadoId) === Number(clienteId)
+      );
+    }
+
+    if (proveedorId) {
+      movimientos = movimientos.filter(mov =>
+        (mov.asociadoTipo || '').toString().toUpperCase() === 'PROVEEDOR' &&
+        Number(mov.asociadoId) === Number(proveedorId)
+      );
+    }
+
+    if (rangoFechas?.[0] || rangoFechas?.[1]) {
+      movimientos = movimientos.filter(mov =>
+        this.estaEnRangoFecha(mov.fecha, rangoFechas)
+      );
+    }
+
+    return movimientos.filter(mov => this.movimientoPerteneceObraConDeuda(mov));
+  }
+
+  get reporteDebePagar(): Array<{ id: number; nombre: string; total: number; pagado: number; saldo: number }> {
+    const obras = this.filtrarObrasConDeuda(this.obtenerObrasFiltradasDashboard());
+    const costosPorProveedor = new Map<number, number>();
+    for (const obra of obras) {
+      for (const costo of obra.costos || []) {
+        if ((costo as any)?.activo === false) continue;
+        const id = Number((costo as any)?.id_proveedor ?? (costo as any)?.proveedor?.id ?? 0);
+        if (!id) continue;
+        const subtotal = this.obtenerSubtotalCosto(costo);
+        costosPorProveedor.set(id, (costosPorProveedor.get(id) ?? 0) + subtotal);
+      }
+    }
+
+    const pagosPorProveedor = new Map<number, number>();
+    for (const mov of this.obtenerMovimientosFiltradosDashboard()) {
+      const tipo = this.normalizarTipoMovimiento(mov);
+      if (tipo !== 'PAGO') continue;
+      const asociadoTipo = (mov.asociadoTipo || '').toString().toUpperCase();
+      if (asociadoTipo !== 'PROVEEDOR') continue;
+      const id = Number(mov.asociadoId ?? 0);
+      if (!id) continue;
+      pagosPorProveedor.set(id, (pagosPorProveedor.get(id) ?? 0) + Number(mov.monto ?? 0));
+    }
+
+    const ids = new Set<number>([...costosPorProveedor.keys(), ...pagosPorProveedor.keys()]);
+    const items = Array.from(ids).map(id => {
+      const total = costosPorProveedor.get(id) ?? 0;
+      const pagado = pagosPorProveedor.get(id) ?? 0;
+      const saldo = Math.max(0, total - pagado);
+      const proveedor = this.proveedores.find(p => Number(p.id) === id);
+      return { id, nombre: proveedor?.nombre ?? `Proveedor #${id}`, total, pagado, saldo };
+    });
+
+    return items.filter(i => i.saldo > 0).sort((a, b) => b.saldo - a.saldo);
+  }
+
+  get reporteDebeCobrar(): Array<{ id: number; nombre: string; total: number; cobrado: number; saldo: number }> {
+    const obras = this.filtrarObrasConDeuda(this.obtenerObrasFiltradasDashboard());
+    const totalPorCliente = new Map<number, number>();
+    const obraCliente = new Map<number, number>();
+    for (const obra of obras) {
+      const clienteId = Number(obra?.cliente?.id ?? obra?.id_cliente ?? 0);
+      if (clienteId) {
+        obraCliente.set(Number(obra.id), clienteId);
+        totalPorCliente.set(clienteId, (totalPorCliente.get(clienteId) ?? 0) + Number(obra.presupuesto ?? 0));
+      }
+    }
+
+    const cobrosPorCliente = new Map<number, number>();
+    for (const mov of this.obtenerMovimientosFiltradosDashboard()) {
+      const tipo = this.normalizarTipoMovimiento(mov);
+      if (tipo !== 'COBRO') continue;
+      let clienteId = 0;
+      const asociadoTipo = (mov.asociadoTipo || '').toString().toUpperCase();
+      if (asociadoTipo === 'CLIENTE') {
+        clienteId = Number(mov.asociadoId ?? 0);
+      } else if (mov.obraId) {
+        clienteId = obraCliente.get(Number(mov.obraId)) ?? 0;
+      }
+      if (!clienteId) continue;
+      cobrosPorCliente.set(clienteId, (cobrosPorCliente.get(clienteId) ?? 0) + Number(mov.monto ?? 0));
+    }
+
+    const ids = new Set<number>([...totalPorCliente.keys(), ...cobrosPorCliente.keys()]);
+    const items = Array.from(ids).map(id => {
+      const total = totalPorCliente.get(id) ?? 0;
+      const cobrado = cobrosPorCliente.get(id) ?? 0;
+      const saldo = Math.max(0, total - cobrado);
+      const cliente = this.clientes.find(c => Number(c.id) === id);
+      return { id, nombre: cliente?.nombre ?? `Cliente #${id}`, total, cobrado, saldo };
+    });
+
+    return items.filter(i => i.saldo > 0).sort((a, b) => b.saldo - a.saldo);
+  }
+
+  get reporteCuentasUnificado(): Array<{
+    key: string;
+    obraId: number;
+    clienteNombre: string;
+    obraNombre: string;
+    totalCobrar: number;
+    cobrado: number;
+    saldoCobrar: number;
+    proveedorId: number | null;
+    proveedorNombre: string;
+    totalPagar: number;
+    pagado: number;
+    saldoPagar: number;
+    rowSpan: number;
+    showLeft: boolean;
+    isLastInObra: boolean;
+  }> {
+    const obras = this.filtrarObrasConDeuda(this.obtenerObrasFiltradasDashboard());
+    const movimientos = this.obtenerMovimientosFiltradosDashboard();
+
+    const cobrosPorObra = new Map<number, number>();
+    const pagosPorObraProveedor = new Map<string, number>();
+    const pagosComisionPorObra = new Map<number, number>();
+
+    for (const mov of movimientos) {
+      const obraId = Number(mov.obraId ?? 0);
+      if (!obraId) continue;
+      const tipo = this.normalizarTipoMovimiento(mov);
+      if (tipo === 'COBRO') {
+        cobrosPorObra.set(obraId, (cobrosPorObra.get(obraId) ?? 0) + Number(mov.monto ?? 0));
+      }
+      if (tipo === 'PAGO') {
+        const asociadoTipo = (mov.asociadoTipo || '').toString().toUpperCase();
+        if (asociadoTipo === 'COMISION') {
+          pagosComisionPorObra.set(obraId, (pagosComisionPorObra.get(obraId) ?? 0) + Number(mov.monto ?? 0));
+          continue;
+        }
+        if (asociadoTipo !== 'PROVEEDOR') continue;
+        const proveedorId = Number(mov.asociadoId ?? 0);
+        if (!proveedorId) continue;
+        const key = `${obraId}:${proveedorId}`;
+        pagosPorObraProveedor.set(key, (pagosPorObraProveedor.get(key) ?? 0) + Number(mov.monto ?? 0));
+      }
+    }
+
+    const rows: Array<{
+      key: string;
+      obraId: number;
+      clienteNombre: string;
+      obraNombre: string;
+      totalCobrar: number;
+      cobrado: number;
+      saldoCobrar: number;
+      proveedorId: number | null;
+      proveedorNombre: string;
+      totalPagar: number;
+      pagado: number;
+      saldoPagar: number;
+      rowSpan: number;
+      showLeft: boolean;
+      isLastInObra: boolean;
+    }> = [];
+
+    for (const obra of obras) {
+      const obraId = Number(obra?.id ?? 0);
+      if (!obraId) continue;
+
+      const clienteNombre = obra?.cliente?.nombre || `Cliente #${obra?.cliente?.id ?? obra?.id_cliente ?? ''}` || 'Cliente sin nombre';
+      const obraNombre = obra?.nombre || `Obra #${obraId}`;
+      const totalCobrar = Number(obra?.total_con_beneficio ?? obra?.presupuesto ?? 0);
+      const cobrado = cobrosPorObra.get(obraId) ?? 0;
+      const saldoCobrar = Math.max(0, totalCobrar - cobrado);
+
+      const costosPorProveedor = new Map<number, number>();
+      for (const costo of obra?.costos || []) {
+        if ((costo as any)?.activo === false) continue;
+        const proveedorId = Number((costo as any)?.id_proveedor ?? (costo as any)?.proveedor?.id ?? 0);
+        if (!proveedorId) continue;
+        const subtotal = this.obtenerSubtotalCosto(costo);
+        costosPorProveedor.set(proveedorId, (costosPorProveedor.get(proveedorId) ?? 0) + subtotal);
+      }
+
+      const proveedoresIds = new Set<number>([...costosPorProveedor.keys()]);
+      for (const key of pagosPorObraProveedor.keys()) {
+        const [obraKey, proveedorKey] = key.split(':').map(Number);
+        if (obraKey === obraId) {
+          proveedoresIds.add(proveedorKey);
+        }
+      }
+
+      const proveedoresList = Array.from(proveedoresIds).sort((a, b) => {
+        const nombreA = this.proveedores.find(p => Number(p.id) === a)?.nombre ?? '';
+        const nombreB = this.proveedores.find(p => Number(p.id) === b)?.nombre ?? '';
+        return nombreA.localeCompare(nombreB);
+      });
+
+      const comisionTotal = Number(obra?.comision_monto ?? 0);
+      const comisionPagada = pagosComisionPorObra.get(obraId) ?? 0;
+      const comisionPendiente = Math.max(0, comisionTotal - comisionPagada);
+      const extraRows = comisionPendiente > 0 ? 1 : 0;
+      const rowSpan = Math.max(1, proveedoresList.length + extraRows);
+      const filasObra: typeof rows = [];
+
+      if (proveedoresList.length === 0) {
+        filasObra.push({
+          key: `${obraId}:0:0`,
+          obraId,
+          clienteNombre,
+          obraNombre,
+          totalCobrar,
+          cobrado,
+          saldoCobrar,
+          proveedorId: null,
+          proveedorNombre: 'Sin proveedores',
+          totalPagar: 0,
+          pagado: 0,
+          saldoPagar: 0,
+          rowSpan,
+          showLeft: true,
+          isLastInObra: true
+        });
+      } else {
+        proveedoresList.forEach((proveedorId, index) => {
+          const totalPagar = costosPorProveedor.get(proveedorId) ?? 0;
+          const pagado = pagosPorObraProveedor.get(`${obraId}:${proveedorId}`) ?? 0;
+          const saldoPagar = Math.max(0, totalPagar - pagado);
+          const proveedorNombre = this.proveedores.find(p => Number(p.id) === proveedorId)?.nombre ?? `Proveedor #${proveedorId}`;
+
+          filasObra.push({
+            key: `${obraId}:${proveedorId}:${index}`,
+            obraId,
+            clienteNombre,
+            obraNombre,
+            totalCobrar,
+            cobrado,
+            saldoCobrar,
+            proveedorId,
+            proveedorNombre,
+            totalPagar,
+            pagado,
+            saldoPagar,
+            rowSpan,
+            showLeft: index === 0,
+            isLastInObra: index === proveedoresList.length - 1 && comisionPendiente <= 0
+          });
+        });
+      }
+
+      if (comisionPendiente > 0) {
+        filasObra.push({
+          key: `${obraId}:COMISION`,
+          obraId,
+          clienteNombre,
+          obraNombre,
+          totalCobrar,
+          cobrado,
+          saldoCobrar,
+          proveedorId: null,
+          proveedorNombre: 'Comision',
+          totalPagar: comisionTotal,
+          pagado: comisionPagada,
+          saldoPagar: comisionPendiente,
+          rowSpan,
+          showLeft: proveedoresList.length === 0,
+          isLastInObra: true
+        });
+      }
+
+      const tieneSaldo = saldoCobrar > 0 || filasObra.some(f => f.saldoPagar > 0);
+      if (tieneSaldo) {
+        rows.push(...filasObra);
+      }
+    }
+
+    return rows;
+  }
+
+  get reportePague(): Array<{ id: number; nombre: string; pagado: number }> {
+    const pagosPorProveedor = new Map<number, number>();
+    for (const mov of this.obtenerMovimientosFiltradosDashboard()) {
+      const tipo = this.normalizarTipoMovimiento(mov);
+      if (tipo !== 'PAGO') continue;
+      const asociadoTipo = (mov.asociadoTipo || '').toString().toUpperCase();
+      if (asociadoTipo !== 'PROVEEDOR') continue;
+      const id = Number(mov.asociadoId ?? 0);
+      if (!id) continue;
+      pagosPorProveedor.set(id, (pagosPorProveedor.get(id) ?? 0) + Number(mov.monto ?? 0));
+    }
+    return Array.from(pagosPorProveedor.entries())
+      .map(([id, pagado]) => {
+        const proveedor = this.proveedores.find(p => Number(p.id) === id);
+        return { id, nombre: proveedor?.nombre ?? `Proveedor #${id}`, pagado };
+      })
+      .filter(i => i.pagado > 0)
+      .sort((a, b) => b.pagado - a.pagado);
+  }
+
+  get reporteCobre(): Array<{ id: number; nombre: string; cobrado: number }> {
+    const cobrosPorCliente = new Map<number, number>();
+    for (const mov of this.obtenerMovimientosFiltradosDashboard()) {
+      const tipo = this.normalizarTipoMovimiento(mov);
+      if (tipo !== 'COBRO') continue;
+      const asociadoTipo = (mov.asociadoTipo || '').toString().toUpperCase();
+      if (asociadoTipo !== 'CLIENTE') continue;
+      const id = Number(mov.asociadoId ?? 0);
+      if (!id) continue;
+      cobrosPorCliente.set(id, (cobrosPorCliente.get(id) ?? 0) + Number(mov.monto ?? 0));
+    }
+    return Array.from(cobrosPorCliente.entries())
+      .map(([id, cobrado]) => {
+        const cliente = this.clientes.find(c => Number(c.id) === id);
+        return { id, nombre: cliente?.nombre ?? `Cliente #${id}`, cobrado };
+      })
+      .filter(i => i.cobrado > 0)
+      .sort((a, b) => b.cobrado - a.cobrado);
+  }
+
+  private normalizarTipoMovimiento(mov: MovimientoDashboard): 'COBRO' | 'PAGO' | 'COSTO' | '' {
+    const raw = (mov.tipo_movimiento || mov.tipo || '').toString().toUpperCase();
+    if (raw === 'INGRESO') return 'COBRO';
+    if (raw === 'EGRESO') return 'PAGO';
+    if (raw === 'PAGADO') return 'PAGO';
+    if (raw === 'COBRO' || raw === 'PAGO' || raw === 'COSTO') return raw as any;
+    return '';
+  }
+
+  private estaEnRangoFecha(
+    fecha: string | Date | undefined | null,
+    rangoFechas: Date[] | null
+  ): boolean {
+    if (!rangoFechas?.[0] && !rangoFechas?.[1]) return true;
+    const inicio = rangoFechas?.[0] ? this.normalizarFechaLocal(rangoFechas[0]) : null;
+    const fin = rangoFechas?.[1] ? this.normalizarFechaLocal(rangoFechas[1]) : null;
+    const fechaMov = this.normalizarFechaLocal(fecha);
+    if (!fechaMov) return false;
+    if (inicio && fechaMov < inicio) return false;
+    if (fin && fechaMov > fin) return false;
+    return true;
+  }
+
+  private normalizarFechaLocal(valor: string | Date | undefined | null): Date | null {
+    if (!valor) return null;
+    if (valor instanceof Date) {
+      return new Date(valor.getFullYear(), valor.getMonth(), valor.getDate());
+    }
+
+    const raw = valor.toString().split('T')[0];
+    if (raw.includes('-')) {
+      const [y, m, d] = raw.split('-').map(Number);
+      if (!y || !m || !d) return null;
+      return new Date(y, m - 1, d);
+    }
+    if (raw.includes('/')) {
+      const [d, m, y] = raw.split('/').map(Number);
+      if (!y || !m || !d) return null;
+      const year = y < 100 ? 2000 + y : y;
+      return new Date(year, m - 1, d);
+    }
+    const parsed = new Date(raw);
+    if (Number.isNaN(parsed.getTime())) return null;
+    return new Date(parsed.getFullYear(), parsed.getMonth(), parsed.getDate());
+  }
+
+  private construirFiltroDashboard(): ReportFilter {
+    const { obra, cliente, proveedor, rangoFechas } = this.filtrosDashboard;
+    const filtro: ReportFilter = {};
+
+    if (obra?.id) filtro.obraId = obra.id;
+    if (cliente?.id) filtro.clienteId = cliente.id;
+    if (proveedor?.id) filtro.proveedorId = proveedor.id;
+    if (rangoFechas?.[0]) filtro.fechaInicio = this.formatDate(rangoFechas[0]);
+    if (rangoFechas?.[1]) filtro.fechaFin = this.formatDate(rangoFechas[1]);
+
+    return filtro;
+  }
+
+  private cargarCondicionesIva() {
+    if (this.ivaOptions.length > 0) return;
+    this.clientesService.getCondicionesIva().subscribe({
+      next: (options) => this.ivaOptions = options,
+      error: () => this.ivaOptions = []
+    });
+  }
+
+  private cargarCatalogosProveedor() {
+    if (this.tiposProveedor.length === 0) {
+      this.proveedoresService.getTipos().subscribe({
+        next: (tipos) => this.tiposProveedor = this.agregarOpcionNuevoTipo(tipos),
+        error: () => this.tiposProveedor = this.agregarOpcionNuevoTipo([])
+      });
+    }
+    if (this.gremiosProveedor.length === 0) {
+      this.proveedoresService.getGremios().subscribe({
+        next: (gremios) => this.gremiosProveedor = this.agregarOpcionNuevoGremio(gremios),
+        error: () => this.gremiosProveedor = this.agregarOpcionNuevoGremio([])
+      });
+    }
+  }
+
+  onTipoProveedorChange(value: CatalogoOption | string | null) {
+    const val = (value as CatalogoOption)?.name ?? (value as any)?.value ?? value;
+    if (val !== this.NUEVO_TIPO_VALUE) return;
+    this.abrirTipoProveedorModal();
+  }
+
+  abrirTipoProveedorModal() {
+    this.nuevoTipoProveedorNombre = '';
+    this.guardandoTipoProveedor = false;
+    this.showTipoProveedorModal = true;
+  }
+
+  cerrarTipoProveedorModal() {
+    this.showTipoProveedorModal = false;
+    this.guardandoTipoProveedor = false;
+    this.nuevoTipoProveedorNombre = '';
+    if (this.proveedorForm.tipo_proveedor === this.NUEVO_TIPO_VALUE) {
+      this.proveedorForm.tipo_proveedor = undefined;
+    }
+  }
+
+  guardarTipoProveedorModal() {
+    const nombre = (this.nuevoTipoProveedorNombre || '').trim();
+    if (!nombre || this.guardandoTipoProveedor) return;
+    this.guardandoTipoProveedor = true;
+    this.proveedoresService.crearTipo(nombre).subscribe({
+      next: (tipo) => {
+        this.tiposProveedor = this.agregarOpcionNuevoTipo([
+          ...this.tiposProveedor.filter(op => op.name !== this.NUEVO_TIPO_VALUE),
+          tipo
+        ]);
+        this.proveedorForm.tipo_proveedor = tipo.name ?? tipo.label ?? tipo;
+        this.cerrarTipoProveedorModal();
+      },
+      error: () => {
+        this.guardandoTipoProveedor = false;
+        this.messageService.add({
+          severity: 'error',
+          summary: 'No se pudo crear el tipo',
+          detail: 'Intentá nuevamente.'
+        });
+      }
+    });
+  }
+
+  private agregarOpcionNuevoTipo(tipos: CatalogoOption[]): CatalogoOption[] {
+    return [
+      ...tipos.filter(op => op?.name !== this.NUEVO_TIPO_VALUE),
+      {label: 'Crear nuevo tipo...', name: this.NUEVO_TIPO_VALUE, nombre: 'Crear nuevo tipo'}
+    ];
+  }
+
+  private agregarOpcionNuevoGremio(gremios: CatalogoOption[]): CatalogoOption[] {
+    return [
+      ...gremios.filter(op => op?.name !== this.NUEVO_GREMIO_VALUE),
+      {label: 'Crear nuevo gremio...', name: this.NUEVO_GREMIO_VALUE, nombre: 'Crear nuevo gremio'}
+    ];
+  }
+
+  onGremioChange(value: CatalogoOption | string | null) {
+    const val = (value as CatalogoOption)?.name ?? (value as any)?.value ?? value;
+    if (val !== this.NUEVO_GREMIO_VALUE) return;
+    this.abrirGremioModal();
+  }
+
+  abrirGremioModal() {
+    this.nuevoGremioNombre = '';
+    this.guardandoGremio = false;
+    this.showGremioModal = true;
+  }
+
+  cerrarGremioModal() {
+    this.showGremioModal = false;
+    this.guardandoGremio = false;
+    this.nuevoGremioNombre = '';
+    if (this.proveedorForm.gremio === this.NUEVO_GREMIO_VALUE) {
+      this.proveedorForm.gremio = undefined;
+    }
+  }
+
+  guardarGremioModal() {
+    const nombre = (this.nuevoGremioNombre || '').trim();
+    if (!nombre || this.guardandoGremio) return;
+    this.guardandoGremio = true;
+    this.proveedoresService.crearGremio(nombre).subscribe({
+      next: (gremio) => {
+        this.gremiosProveedor = this.agregarOpcionNuevoGremio([
+          ...this.gremiosProveedor.filter(op => op.name !== this.NUEVO_GREMIO_VALUE),
+          gremio
+        ]);
+        this.proveedorForm.gremio = gremio.name ?? gremio.label ?? gremio;
+        this.cerrarGremioModal();
+      },
+      error: () => {
+        this.guardandoGremio = false;
+        this.messageService.add({
+          severity: 'error',
+          summary: 'No se pudo crear el gremio',
+          detail: 'Intentá nuevamente.'
+        });
+      }
+    });
+  }
+
+  private resetMovimientoForm() {
+    this.movimientoObra = null;
+    this.movimientoObraDetalle = null;
+    this.movimientoClientesObra = [];
+    this.movimientoProveedoresObra = [];
+    this.filteredMovimientoClientes = [];
+    this.filteredMovimientoProveedores = [];
+    this.movimientoCliente = null;
+    this.movimientoProveedor = null;
+    this.movimientoTipoEntidad = 'CLIENTE';
+    this.movimientoForm = {
+      tipo_transaccion: 'COBRO',
+      forma_pago: 'TOTAL',
+      medio_pago: 'Transferencia',
+      fecha: new Date(),
+      monto: 0
+    };
+  }
+
+  onMovimientoFormaPagoChange(forma: 'TOTAL' | 'PARCIAL') {
+    if (forma === 'PARCIAL') {
+      this.movimientoForm.monto = 0;
+      return;
+    }
+    if (this.movimientoTipoEntidad === 'CLIENTE') {
+      this.aplicarMontoClienteMovimiento();
+    } else {
+      this.aplicarMontoProveedorMovimiento();
+    }
+  }
+
+  private aplicarMontoClienteMovimiento() {
+    if ((this.movimientoForm.forma_pago || '').toString().toUpperCase() === 'PARCIAL') return;
+    const restante = this.movimientoRestanteCliente;
+    if (restante == null) return;
+    this.movimientoForm.monto = restante;
+  }
+
+  private aplicarMontoProveedorMovimiento() {
+    if ((this.movimientoForm.forma_pago || '').toString().toUpperCase() === 'PARCIAL') return;
+    const saldo = this.movimientoSaldoProveedor;
+    if (saldo == null) return;
+    this.movimientoForm.monto = saldo;
+  }
+
+  private resetTareaForm() {
+    this.tareaObra = null;
+    this.tareaObraDetalle = null;
+    this.tareaProveedor = null;
+    this.tareaProveedoresObra = [];
+    this.tareaForm = {
+      nombre: '',
+      descripcion: '',
+      estado_tarea: 'PENDIENTE',
+      numero_orden: undefined,
+      porcentaje: 0,
+      fecha_inicio: new Date().toISOString()
+    };
+  }
+
+  private resetClienteForm() {
+    this.clienteForm = {
+      nombre: '',
+      contacto: '',
+      direccion: '',
+      cuit: '',
+      condicion_iva: undefined,
+      telefono: '',
+      email: '',
+      activo: true
+    };
+  }
+
+  private resetProveedorForm() {
+    this.proveedorForm = {
+      nombre: '',
+      tipo_proveedor: '',
+      gremio: '',
+      direccion: '',
+      contacto: '',
+      cuit: '',
+      telefono: '',
+      email: '',
+      activo: true
+    };
+  }
+
+  private esObraDisponibleParaFacturar(obra: Obra): boolean {
+    const raw = (obra as any).obra_estado;
+    let nombre = '';
+    if (typeof raw === 'string') nombre = raw;
+    else if (raw && typeof raw === 'object') nombre = raw.nombre ?? raw.name ?? raw.label ?? raw.estado ?? '';
+    const estado = String(nombre)
+      .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+      .toUpperCase().replace(/[^A-Z0-9]+/g, '_').replace(/^_+|_+$/g, '');
+    return estado !== 'FACTURADA';
+  }
+
+  private resetFacturaForm() {
+    this.facturaForm = {
+      id_cliente: null,
+      id_obra: null,
+      fecha: new Date(),
+      monto: null,
+      descripcion: '',
+      estado: 'EMITIDA'
+    };
+    this.facturaFile = null;
+    this.facturaRestanteObra = null;
+  }
+
+  private actualizarRestanteFacturaObra(obraId: number) {
+    const obra = this.obras.find(o => Number(o.id) === Number(obraId));
+    const presupuesto = Number(obra?.presupuesto ?? NaN);
+    if (!Number.isFinite(presupuesto)) {
+      this.facturaRestanteObra = null;
+      return;
+    }
+    this.facturasService.getFacturasByObra(obraId).subscribe({
+      next: (facturas) => {
+        const facturado = (facturas || []).reduce((sum, f) => sum + Number(f.monto || 0), 0);
+        this.facturaRestanteObra = Math.max(0, presupuesto - facturado);
+      },
+      error: () => {
+        this.facturaRestanteObra = null;
+      }
+    });
+  }
+
+  private normalizarFechaInicio(valor?: string) {
+    if (!valor) return new Date().toISOString();
+    if (valor.length === 10) {
+      return `${valor}T00:00:00`;
+    }
+    return valor;
+  }
+
+  private formatDate(value: any): string {
+    if (!value) return '';
+    if (value instanceof Date) {
+      return value.toISOString().split('T')[0];
+    }
+    return String(value);
+  }
+
+  private validarMontoMovimientoRapido(): boolean {
+    if (this.movimientoTipoEntidad === 'CLIENTE') {
+      return this.validarMontoMovimientoRapidoCliente();
+    }
+    return true;
+  }
+
+  private obtenerObrasFiltradasDashboard(): Obra[] {
+    let filtradas = this.obras || [];
+    const obraSeleccionada = this.filtrosDashboard?.obra;
+    const clienteSeleccionado = this.filtrosDashboard?.cliente;
+    const proveedorSeleccionado = this.filtrosDashboard?.proveedor;
+    const rangoFechas = this.filtrosDashboard?.rangoFechas;
+
+    if (obraSeleccionada?.id) {
+      filtradas = filtradas.filter(obra => Number(obra.id) === Number(obraSeleccionada.id));
+    }
+
+    if (clienteSeleccionado?.id) {
+      filtradas = filtradas.filter(obra => Number(obra.cliente?.id) === Number(clienteSeleccionado.id));
+    }
+
+    if (proveedorSeleccionado?.id) {
+      filtradas = filtradas.filter(obra =>
+        this.obraTieneProveedor(obra, proveedorSeleccionado.id)
+      );
+    }
+
+    if (rangoFechas?.[0] || rangoFechas?.[1]) {
+      filtradas = filtradas.filter(obra =>
+        this.estaEnRangoFecha(this.obtenerFechaCreacionObra(obra), rangoFechas)
+      );
+    }
+
+    return filtradas;
+  }
+
+  private obraTieneProveedor(obra: Obra, proveedorId: number): boolean {
+    return (obra?.costos || []).some(c => {
+      const id = Number((c as any).id_proveedor ?? (c as any).proveedor?.id ?? 0);
+      return id === Number(proveedorId);
+    });
+  }
+
+  private calcularTotalCostosProveedor(obras: Obra[], proveedorId: number): number {
+    const filtradas = this.filtrarObrasConDeuda(obras || []);
+    return filtradas.reduce((acc, obra) => {
+      const totalObra = (obra?.costos || []).reduce((sum, costo) => {
+        const id = Number((costo as any).id_proveedor ?? (costo as any).proveedor?.id ?? 0);
+        if (id !== Number(proveedorId)) return sum;
+        return sum + this.obtenerSubtotalCosto(costo);
+      }, 0);
+      return acc + totalObra;
+    }, 0);
+  }
+
+  private costoTieneProveedor(costo: any): boolean {
+    const id = Number((costo as any)?.id_proveedor ?? (costo as any)?.proveedor?.id ?? 0);
+    return id > 0;
+  }
+
+  private obtenerSubtotalCosto(costo: any): number {
+    if (!this.costoTieneProveedor(costo)) return 0;
+    // Priorizar montoReal (gasto real) como el backend
+    return Number(costo?.montoReal ?? costo?.subtotal ?? costo?.total ?? 0);
+  }
+
+  private obtenerFechaCreacionObra(obra: Obra): string | Date | null {
+    return obra?.creado_en ?? obra?.fecha_presupuesto ?? obra?.fecha_inicio ?? null;
+  }
+
+  private validarMontoMovimientoRapidoCliente(): boolean {
+    const presupuesto = Number(this.movimientoObraDetalle?.presupuesto ?? NaN);
+    if (Number.isNaN(presupuesto)) {
+      this.messageService.add({
+        severity: 'warn',
+        summary: 'Sin presupuesto',
+        detail: 'No se pudo obtener el presupuesto total de la obra.'
+      });
+      return false;
+    }
+
+    const formaPago = (this.movimientoForm.forma_pago || '').toString().toUpperCase();
+    const monto = Number(this.movimientoForm.monto ?? 0);
+    const totalPendiente = Number(this.movimientoRestanteCliente ?? presupuesto);
+    const diferencia = Math.abs(monto - totalPendiente);
+
+    if (formaPago === 'TOTAL' && diferencia >= 0.01) {
+      this.messageService.add({
+        severity: 'warn',
+        summary: 'Monto invalido',
+        detail: 'Para cobro total, el monto debe ser igual al restante de la obra.'
+      });
+      return false;
+    }
+
+    if (formaPago === 'PARCIAL' && monto >= totalPendiente) {
+      this.messageService.add({
+        severity: 'warn',
+        summary: 'Monto invalido',
+        detail: 'Para cobro parcial, el monto debe ser menor al restante de la obra.'
+      });
+      return false;
+    }
+
+    return true;
+  }
+
+  private obtenerMensajeError(err: unknown, fallback: string): string {
+    if (err instanceof HttpErrorResponse) {
+      const body = err.error as any;
+      if (typeof body === 'string') return body;
+      if (body?.message) return body.message;
+      if (body?.error) return body.error;
+    }
+    return fallback;
+  }
+
+  getAsociadoNombre(mov: any): string {
+    const tipo = (mov.asociadoTipo || '').toString().toUpperCase();
+    if (tipo === 'COMISION') {
+      return 'Comisión';
+    }
+    // Usar asociadoNombre si está disponible (MovimientoRecenteDTO)
+    if (mov.asociadoNombre) {
+      return mov.asociadoNombre;
+    }
+    // Fallback para MovimientoDashboard
+    if (tipo === 'CLIENTE') {
+      const cliente = this.clientes.find(c => Number(c.id) === Number(mov.asociadoId));
+      if (cliente?.nombre) return cliente.nombre;
+    }
+    if (tipo === 'PROVEEDOR') {
+      const proveedor = this.proveedores.find(p => Number(p.id) === Number(mov.asociadoId));
+      if (proveedor?.nombre) return proveedor.nombre;
+    }
+    return mov.asociadoId ? `Asociado #${mov.asociadoId}` : 'Asociado';
+  }
+
+}
+
+

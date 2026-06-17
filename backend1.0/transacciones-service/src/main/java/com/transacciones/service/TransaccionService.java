@@ -3,19 +3,27 @@ package com.transacciones.service;
 import com.transacciones.dto.ObraCostoDto;
 import com.transacciones.dto.ObraResumenDto;
 import com.transacciones.dto.TransaccionDto;
+import com.transacciones.dto.MovimientoRecenteDTO;
+import com.transacciones.dto.ObraNombreDto;
+import com.transacciones.dto.TransaccionConAsociadoDto;
+import com.transacciones.dto.AsociadoNombreDto;
 import com.transacciones.entity.Transaccion;
 import com.transacciones.enums.TipoTransaccionEnum;
 import com.transacciones.repository.TransaccionRepository;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.client.RestTemplate;
 
 import java.time.LocalDate;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 @Service
 @RequiredArgsConstructor
@@ -25,6 +33,16 @@ public class TransaccionService {
 
     private final TransaccionRepository transaccionRepository;
     private final ObraCostoClient obraCostoClient;
+    private final RestTemplate restTemplate;
+
+    @Value("${services.obras.url}")
+    private String obrasServiceUrl;
+
+    @Value("${services.clientes.url}")
+    private String clientesServiceUrl;
+
+    @Value("${services.proveedores.url}")
+    private String proveedoresServiceUrl;
 
     public List<TransaccionDto> listar() {
         return transaccionRepository.findAll()
@@ -49,6 +67,7 @@ public class TransaccionService {
                 .monto(dto.getMonto())
                 .forma_pago(dto.getForma_pago())
                 .medio_pago(dto.getMedio_pago())
+                .concepto(dto.getConcepto())
                 .facturaCobrada(dto.getFacturaCobrada())
                 .activo(dto.getActivo() != null ? dto.getActivo() : true)
                 .bajaObra(Boolean.FALSE)
@@ -82,6 +101,7 @@ public class TransaccionService {
         entity.setMonto(dto.getMonto());
         entity.setForma_pago(dto.getForma_pago());
         entity.setMedio_pago(dto.getMedio_pago());
+        entity.setConcepto(dto.getConcepto());
         entity.setFacturaCobrada(dto.getFacturaCobrada());
         entity.setActivo(dto.getActivo());
         if (dto.getActivo() != null && !dto.getActivo()) {
@@ -182,6 +202,7 @@ public class TransaccionService {
                 .monto(transaccion.getMonto())
                 .forma_pago(transaccion.getForma_pago())
                 .medio_pago(transaccion.getMedio_pago())
+                .concepto(transaccion.getConcepto())
                 .factura_cobrada(transaccion.getFacturaCobrada())
                 .activo(transaccion.getActivo())
                 .ultima_actualizacion(transaccion.getUltimaActualizacion())
@@ -339,7 +360,16 @@ public class TransaccionService {
 
     private double getMontoBaseCosto(ObraCostoDto costo) {
         if (costo == null) return 0d;
+
+        // Priorizar monto_real si está registrado
+        if (costo.getMonto_real() != null && costo.getMonto_real() > 0) {
+            return costo.getMonto_real();
+        }
+
+        // Si no, usar subtotal
         if (costo.getSubtotal() != null) return costo.getSubtotal();
+
+        // Si no hay subtotal, calcular
         double cantidad = costo.getCantidad() != null ? costo.getCantidad() : 0d;
         double precio = costo.getPrecio_unitario() != null ? costo.getPrecio_unitario() : 0d;
         return cantidad * precio;
@@ -349,6 +379,254 @@ public class TransaccionService {
         String estado = obra.getObra_estado() == null ? "" : obra.getObra_estado().trim().toUpperCase().replaceAll("\\s+", "_");
         if (!"ADJUDICADA".equals(estado) && !"EN_PROGRESO".equals(estado) && !"FINALIZADA".equals(estado)) {
             throw new IllegalArgumentException("La obra debe estar Adjudicada, En progreso o Finalizada para registrar movimientos");
+        }
+    }
+
+    @Transactional(readOnly = true)
+    public List<MovimientoRecenteDTO> obtenerUltimos10Movimientos() {
+        List<Transaccion> movimientos = transaccionRepository.obtenerMovimientosActivos()
+                .stream()
+                .limit(10)
+                .collect(Collectors.toList());
+
+        // Recolectar IDs únicos de obras para bulk loading (evita N+1)
+        Set<Long> obraIds = movimientos.stream()
+                .map(Transaccion::getIdObra)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toSet());
+
+        // Obtener nombres en bulk si hay obras
+        Map<Long, String> obraNombres = obraIds.isEmpty()
+            ? new HashMap<>()
+            : obtenerNombresObrasPorBatch(new ArrayList<>(obraIds));
+
+        // Mapear transacciones con nombres precargados
+        return movimientos.stream()
+                .map(t -> toMovimientoRecenteDTO(t, obraNombres.getOrDefault(t.getIdObra(), null)))
+                .collect(Collectors.toList());
+    }
+
+    private MovimientoRecenteDTO toMovimientoRecenteDTO(Transaccion transaccion) {
+        return toMovimientoRecenteDTO(transaccion, null);
+    }
+
+    private MovimientoRecenteDTO toMovimientoRecenteDTO(Transaccion transaccion, String obraNombre) {
+        if (transaccion == null) return null;
+
+        return MovimientoRecenteDTO.builder()
+                .id(transaccion.getId())
+                .obraId(transaccion.getIdObra())
+                .obraNombre(obraNombre)
+                .asociadoId(transaccion.getIdAsociado())
+                .asociadoTipo(transaccion.getTipoAsociado())
+                .tipoTransaccion(transaccion.getTipo_transaccion() != null ? transaccion.getTipo_transaccion().toString() : null)
+                .fecha(transaccion.getFecha())
+                .monto(transaccion.getMonto())
+                .formaPago(transaccion.getForma_pago())
+                .medioPago(transaccion.getMedio_pago())
+                .concepto(transaccion.getConcepto())
+                .build();
+    }
+
+    /**
+     * Obtiene el nombre de una obra con caché para evitar múltiples llamadas.
+     * Útil cuando se necesita el nombre de forma individual.
+     */
+    @Cacheable(value = "obraNombres", key = "#obraId")
+    public String obtenerNombreObra(Long obraId) {
+        try {
+            String url = String.format("%s/%s", obrasServiceUrl, obraId);
+            ObraNombreDto obra = restTemplate.getForObject(url, ObraNombreDto.class);
+            return obra != null ? obra.getNombre() : null;
+        } catch (Exception e) {
+            log.warn("Error obteniendo nombre de obra {}", obraId, e);
+            return null;
+        }
+    }
+
+    /**
+     * Obtiene múltiples nombres de obras en una sola llamada (bulk).
+     * Evita N+1 problem cuando se necesitan nombres de varias obras.
+     * Fallback: si el endpoint no existe, obtiene uno a uno con caché.
+     */
+    private Map<Long, String> obtenerNombresObrasPorBatch(List<Long> obraIds) {
+        Map<Long, String> resultado = new HashMap<>();
+
+        if (obraIds == null || obraIds.isEmpty()) {
+            return resultado;
+        }
+
+        try {
+            // Intenta llamada bulk si el endpoint existe
+            // TODO: agregar endpoint en obras-service: GET /api/obras/bulk?ids=1,2,3
+            // String url = obrasServiceUrl + "/bulk?ids=" + String.join(",", obraIds.stream().map(String::valueOf).collect(Collectors.toList()));
+            // List<ObraNombreDto> obras = restTemplate.exchange(url, HttpMethod.GET, null,
+            //         new ParameterizedTypeReference<List<ObraNombreDto>>() {}).getBody();
+            // if (obras != null) {
+            //     obras.forEach(o -> resultado.put(o.getId(), o.getNombre()));
+            //     return resultado;
+            // }
+
+            // Fallback: obtener de uno en uno con caché
+            for (Long id : obraIds) {
+                String nombre = obtenerNombreObra(id); // Usa caché
+                if (nombre != null) {
+                    resultado.put(id, nombre);
+                }
+            }
+        } catch (Exception e) {
+            log.warn("Error en bulk loading de obras, usando fallback", e);
+            // Fallback: obtener de uno en uno con caché
+            for (Long id : obraIds) {
+                String nombre = obtenerNombreObra(id);
+                if (nombre != null) {
+                    resultado.put(id, nombre);
+                }
+            }
+        }
+
+        return resultado;
+    }
+
+    /**
+     * Lista transacciones paginadas enriquecidas con nombres de asociados (cliente o proveedor).
+     * Devuelve un Map con contenido paginado compatible con frontend.
+     */
+    @Transactional(readOnly = true)
+    public Map<String, Object> listarConAsociadosPaginado(Pageable pageable) {
+        Page<Transaccion> page = transaccionRepository.findAll(pageable);
+        List<Transaccion> txList = page.getContent();
+
+        // Pre-warm cache: fetch unique IDs first, then map uses cached values (no N+1)
+        txList.stream().map(Transaccion::getIdObra).filter(Objects::nonNull).distinct()
+                .forEach(this::obtenerNombreObra);
+        txList.stream()
+                .filter(t -> "CLIENTE".equals(t.getTipoAsociado()) && t.getIdAsociado() != null)
+                .map(Transaccion::getIdAsociado).distinct()
+                .forEach(this::obtenerNombreCliente);
+        txList.stream()
+                .filter(t -> "PROVEEDOR".equals(t.getTipoAsociado()) && t.getIdAsociado() != null)
+                .map(Transaccion::getIdAsociado).distinct()
+                .forEach(this::obtenerNombreProveedor);
+
+        List<TransaccionConAsociadoDto> content = txList.stream()
+                .map(this::toTransaccionConAsociadoDto)
+                .collect(Collectors.toList());
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("content", content);
+        response.put("totalElements", page.getTotalElements());
+        response.put("totalPages", page.getTotalPages());
+        response.put("currentPage", page.getNumber());
+        response.put("pageSize", page.getSize());
+        response.put("isFirst", page.isFirst());
+        response.put("isLast", page.isLast());
+        return response;
+    }
+
+    /**
+     * Convierte una Transaccion a TransaccionConAsociadoDto enriquecido con nombre del asociado y obra.
+     */
+    private TransaccionConAsociadoDto toTransaccionConAsociadoDto(Transaccion transaccion) {
+        if (transaccion == null) return null;
+
+        TransaccionConAsociadoDto dto = TransaccionConAsociadoDto.builder()
+                .id(transaccion.getId())
+                .id_obra(transaccion.getIdObra())
+                .nombre_obra(obtenerNombreObra(transaccion.getIdObra()))
+                .id_asociado(transaccion.getIdAsociado())
+                .tipo_asociado(transaccion.getTipoAsociado())
+                .tipo_transaccion(transaccion.getTipo_transaccion())
+                .fecha(transaccion.getFecha())
+                .monto(transaccion.getMonto())
+                .forma_pago(transaccion.getForma_pago())
+                .medio_pago(transaccion.getMedio_pago())
+                .concepto(transaccion.getConcepto())
+                .factura_cobrada(transaccion.getFacturaCobrada())
+                .activo(transaccion.getActivo())
+                .ultima_actualizacion(transaccion.getUltimaActualizacion())
+                .tipo_actualizacion(transaccion.getTipoActualizacion())
+                .build();
+
+        // Enriquecer con nombre del asociado
+        dto.setNombre_asociado(obtenerNombreAsociado(transaccion.getTipoAsociado(), transaccion.getIdAsociado()));
+
+        // Completar pagado/restante
+        completarPagadoRestante(transaccion, dto);
+
+        return dto;
+    }
+
+    /**
+     * Obtiene el nombre del cliente o proveedor según el tipo.
+     */
+    private String obtenerNombreAsociado(String tipo, Long id) {
+        if (tipo == null || id == null) return null;
+        if ("COMISION".equals(tipo)) return "Comisión";
+
+        try {
+            if ("CLIENTE".equals(tipo)) {
+                return obtenerNombreCliente(id);
+            } else if ("PROVEEDOR".equals(tipo)) {
+                return obtenerNombreProveedor(id);
+            }
+        } catch (Exception e) {
+            log.warn("Error obteniendo nombre de asociado tipo {} id {}", tipo, id, e);
+        }
+        return null;
+    }
+
+    /**
+     * Obtiene el nombre del cliente por ID con caché.
+     */
+    @Cacheable(value = "clienteNombres", key = "#id")
+    public String obtenerNombreCliente(Long id) {
+        try {
+            String url = String.format("%s/%d", clientesServiceUrl, id);
+            AsociadoNombreDto cliente = restTemplate.getForObject(url, AsociadoNombreDto.class);
+            return cliente != null ? cliente.getNombre() : null;
+        } catch (Exception e) {
+            log.debug("Error obteniendo nombre de cliente {}", id, e);
+            return null;
+        }
+    }
+
+    /**
+     * Obtiene el nombre del proveedor por ID con caché.
+     */
+    @Cacheable(value = "proveedorNombres", key = "#id")
+    public String obtenerNombreProveedor(Long id) {
+        try {
+            String url = String.format("%s/%d", proveedoresServiceUrl, id);
+            AsociadoNombreDto proveedor = restTemplate.getForObject(url, AsociadoNombreDto.class);
+            return proveedor != null ? proveedor.getNombre() : null;
+        } catch (Exception e) {
+            log.debug("Error obteniendo nombre de proveedor {}", id, e);
+            return null;
+        }
+    }
+
+    /**
+     * Variante de completarPagadoRestante que acepta TransaccionConAsociadoDto.
+     */
+    private void completarPagadoRestante(Transaccion transaccion, TransaccionConAsociadoDto dto) {
+        if (transaccion == null || dto == null) return;
+        if (transaccion.getTipo_transaccion() == null) return;
+
+        String tipoAsociado = transaccion.getTipoAsociado() == null ? "" : transaccion.getTipoAsociado().toUpperCase();
+        if (transaccion.getTipo_transaccion() == TipoTransaccionEnum.COBRO
+                && "CLIENTE".equals(tipoAsociado)
+                && transaccion.getIdObra() != null) {
+            try {
+                ObraResumenDto obra = obraCostoClient.obtenerObra(transaccion.getIdObra());
+                if (obra == null || obra.getPresupuesto() == null) return;
+                Double cobrado = transaccionRepository.sumarCobrosPorObra(transaccion.getIdObra());
+                double cobradoVal = cobrado != null ? cobrado : 0d;
+                dto.setPagado(cobradoVal);
+                dto.setRestante(Math.max(0d, obra.getPresupuesto() - cobradoVal));
+            } catch (Exception ex) {
+                log.debug("No se pudo calcular pagado/restante para obra {}", transaccion.getIdObra(), ex);
+            }
         }
     }
 }

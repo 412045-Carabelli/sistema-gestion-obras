@@ -20,6 +20,9 @@ public class Transaccion {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(name = "empresa_id")
+    private Long empresaId;
+
     @Column(name = "id_obra", nullable = false)
     private Long idObra;
 
@@ -44,6 +47,9 @@ public class Transaccion {
 
     @Column(name = "medio_pago")
     private String medio_pago; // transferencia, efectivo, cheque, etc.
+
+    @Column(name = "concepto", length = 500)
+    private String concepto; // concepto o detalle del movimiento (opcional)
 
     @Column(name = "factura_cobrada")
     private Boolean facturaCobrada;

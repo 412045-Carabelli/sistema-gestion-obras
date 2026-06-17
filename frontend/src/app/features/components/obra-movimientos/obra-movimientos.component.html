@@ -1,0 +1,389 @@
+﻿<p-toast position="bottom-right"></p-toast>
+<p-confirmDialog></p-confirmDialog>
+
+<div class="p-4 space-y-5">
+  <!-- Titulo y boton -->
+  <div class="flex justify-between items-center flex-wrap gap-3">
+    <div>
+      <h2 class="font-poppins font-bold text-gray-900">Movimientos</h2>
+      <p class="text-gray-500 text-sm font-poppins font-normal mt-1">
+        Pagos y cobros asociados a la obra
+      </p>
+    </div>
+
+    <p-button
+      (onClick)="openModal()"
+      icon="pi pi-plus"
+      label="Nuevo Movimiento"
+      styleClass="p-button-md p-button-primary"
+    ></p-button>
+  </div>
+
+  <!-- Tabla de movimientos -->
+  @if (transacciones.length > 0) {
+    <p-table
+      [value]="transacciones"
+      responsiveLayout="scroll"
+      class="text-sm p-datatable-sm border border-gray-200 rounded-lg overflow-hidden"
+    >
+      <ng-template pTemplate="header">
+        <tr class="bg-gray-50 text-gray-700">
+          <th class="font-poppins font-semibold">ID</th>
+          <th class="font-poppins font-semibold">Tipo</th>
+          <th class="font-poppins font-semibold">Asociado</th>
+          <th class="font-poppins font-semibold">Fecha</th>
+          <th class="font-poppins font-semibold">Condicion (Parcial/Total)</th>
+          <th class="font-poppins font-semibold">Medio</th>
+          <th class="font-poppins font-semibold">Monto</th>
+          <th class="text-center font-poppins font-semibold"></th>
+        </tr>
+      </ng-template>
+
+      <ng-template pTemplate="body" let-t let-rowIndex="rowIndex">
+        <tr
+          class="hover:bg-emerald-50 hover:shadow-sm transition"
+          [ngClass]="rowIndex % 2 === 0 ? 'bg-white' : 'bg-gray-50'"
+        >
+          <td>
+            <button
+              type="button"
+              class="text-indigo-600 underline font-poppins font-semibold hover:text-indigo-800 hover:bg-indigo-50 px-1 rounded cursor-pointer"
+              (click)="abrirDetalleMovimiento(t)"
+            >
+              {{ t.id }}
+            </button>
+          </td>
+          <td>
+            <p-tag
+              [value]="tipoMovimiento(t)"
+              [severity]="tipoMovimiento(t) === 'COBRO' ? 'success' : tipoMovimiento(t) === 'PAGO' ? 'danger' : 'info'"
+            ></p-tag>
+          </td>
+
+          <td class="font-poppins font-normal">
+            <div class="flex items-center gap-2">
+              <span>{{ proveedorOCliente(t.id_asociado, t.tipo_asociado) }}</span>
+            </div>
+          </td>
+
+          <!-- Fecha -->
+          <td class="font-poppins font-normal">{{ t.fecha | date: 'dd/MM/yyyy' }}</td>
+
+          <!-- Forma de pago -->
+          <td class="uppercase font-poppins font-normal">{{ t.forma_pago }}</td>
+          <td class="capitalize font-poppins font-normal">{{ t.medio_pago || 'Sin especificar' }}</td>
+
+          <!-- Monto -->
+          <td>
+            <div class="flex justify-start">
+              <span
+                [ngClass]="tipoMovimiento(t) === 'COBRO' ? 'text-green-600 font-semibold' : tipoMovimiento(t) === 'PAGO' ? 'text-red-600 font-semibold' : 'text-gray-800'">
+                {{ tipoMovimiento(t) === 'COBRO' ? '+' : tipoMovimiento(t) === 'PAGO' ? '-' : '' }}
+                {{ t.monto | currency: 'ARS' }}
+              </span>
+            </div>
+          </td>
+
+          <td class="text-center">
+            <p-button
+              icon="pi pi-trash"
+              severity="danger"
+              styleClass="p-button-sm p-button-text"
+              (onClick)="eliminarMovimiento(t)"
+            ></p-button>
+          </td>
+        </tr>
+      </ng-template>
+    </p-table>
+
+    <!-- Totales -->
+    <div class="mt-4 p-4 bg-gray-50 rounded-lg text-sm space-y-1">
+      <div class="flex justify-between">
+        <span class="font-medium">Total cliente:</span>
+        <span class="flex justify-start">{{ totalCliente | currency: 'ARS' }}</span>
+      </div>
+      <div class="flex justify-between">
+        <span class="font-medium">Total cobros:</span>
+        <span class="flex justify-start">{{ totalCobros | currency: 'ARS' }}</span>
+      </div>
+      <div class="flex justify-between font-semibold text-base border-t pt-2">
+        <span>Saldo cliente:</span>
+        <span class="flex justify-start">{{ saldoClienteResumen | currency: 'ARS' }}</span>
+      </div>
+      <div class="flex justify-between text-sm text-gray-700 pt-2 border-t">
+        <span>Total proveedores:</span>
+        <span class="flex justify-start">{{ totalProveedores | currency: 'ARS' }}</span>
+      </div>
+      <div class="flex justify-between text-sm text-gray-700">
+        <span>Total pagos:</span>
+        <span class="flex justify-start">{{ totalPagos | currency: 'ARS' }}</span>
+      </div>
+      <div class="flex justify-between font-semibold text-base border-t pt-2">
+        <span>Saldo proveedor:</span>
+        <span class="flex justify-start">{{ saldoProveedorResumen | currency: 'ARS' }}</span>
+      </div>
+    </div>
+  } @else {
+    <div class="text-center text-gray-500 py-10 flex flex-col items-center gap-2">
+      <i class="pi pi-inbox text-4xl"></i>
+      <p>No hay movimientos registrados para esta obra.</p>
+    </div>
+  }
+
+  <!-- Modal de creacion / edicion -->
+  <app-modal
+    (closed)="cerrarModal()"
+    (confirmed)="guardarMovimiento()"
+    [title]="modoEdicion ? 'Editar movimiento' : 'Nuevo movimiento'"
+    [visible]="showAddMovementModal"
+  >
+    <div class="p-3 space-y-3">
+      <div class="grid grid-cols-5 gap-3">
+        <div class="col-span-2">
+          <label class="block text-sm font-poppins font-semibold mb-1 text-gray-700">
+            Asociar documento a
+          </label>
+          <p-select
+            [(ngModel)]="tipoEntidad"
+            [options]="[
+            { label: 'Proveedor', value: 'PROVEEDOR' },
+            { label: 'Cliente', value: 'CLIENTE' }
+          ]"
+            placeholder="Seleccionar tipo de entidad"
+            styleClass="w-full"
+            (onChange)="onTipoEntidadChange()"
+          ></p-select>
+        </div>
+
+        @if (tipoEntidad === 'PROVEEDOR') {
+          <div class="col-span-3">
+            <label class="block text-sm font-poppins font-semibold mb-1 text-gray-700">
+              Proveedor
+            </label>
+            <p-autoComplete
+              [(ngModel)]="selectedProveedor"
+              [suggestions]="filteredProveedores"
+              (completeMethod)="filtrarProveedores($event)"
+              field="nombre"
+              [dropdown]="true"
+              placeholder="Buscar proveedor"
+              styleClass="w-full"
+              (onSelect)="onProveedorSeleccionado()"
+            ></p-autoComplete>
+          </div>
+        }
+
+        @if (tipoEntidad === 'CLIENTE') {
+          <div class="col-span-3">
+            <label class="block text-sm font-poppins font-semibold mb-1 text-gray-700">
+              Cliente
+            </label>
+            <p-autoComplete
+              [(ngModel)]="selectedCliente"
+              [suggestions]="filteredClientes"
+              (completeMethod)="filtrarClientes($event)"
+              field="nombre"
+              [dropdown]="true"
+              placeholder="Buscar cliente"
+              styleClass="w-full"
+              (onSelect)="onClienteSeleccionado()"
+            ></p-autoComplete>
+
+          </div>
+        }
+      </div>
+
+      @if (deudaClienteSeleccionado != null) {
+        <div class="text-xs font-poppins font-normal text-gray-500 mt-1 flex flex-col gap-1">
+          <div>Total: {{ (totalClienteSeleccionado ?? 0) | currency:'ARS' }}</div>
+          <div>Cobrado: {{ (totalCobrosClienteSeleccionado ?? 0) | currency:'ARS' }}</div>
+          <div>Por cobrar: {{ (deudaClienteSeleccionado ?? 0) | currency:'ARS' }}</div>
+        </div>
+      }
+      @else if (selectedProveedor?.id) {
+        <div class="text-xs font-poppins font-normal text-gray-500 mt-1 flex flex-col gap-1">
+          <div>Total: {{ (totalProveedorSeleccionado ?? 0) | currency:'ARS' }}</div>
+          <div>Pagado: {{ (pagadoProveedorSeleccionado ?? 0) | currency:'ARS' }}</div>
+          <div>Saldo: {{ (saldoProveedorSeleccionado ?? 0) | currency:'ARS' }}</div>
+        </div>
+      }
+
+      @if (getTiposTransaccionDisponibles().length === 1) {
+        <label class="block text-sm font-poppins font-semibold mb-1 text-gray-700">
+          Tipo de movimiento
+        </label>
+        <p-tag
+          [value]="getTipoTransaccionDisponibleLabel()"
+          [severity]="getTipoTransaccionSeverity()"
+        ></p-tag>
+      }
+
+      <!-- Forma de pago -->
+      <label class="block text-sm font-poppins font-semibold mb-1 text-gray-700">
+        Condicion de pago/cobro (Total/Parcial)
+      </label>
+      <div class="flex items-center gap-6">
+        <div class="flex items-center gap-2">
+          <p-radiobutton
+            name="formaPago"
+            inputId="formaPagoParcial"
+            value="PARCIAL"
+            [(ngModel)]="nuevoMovimiento.forma_pago"
+            (ngModelChange)="onFormaPagoChange($event)"
+            (onClick)="onFormaPagoChange('PARCIAL')"
+          ></p-radiobutton>
+          <label for="formaPagoParcial" class="text-sm text-gray-700">Parcial</label>
+        </div>
+        <div class="flex items-center gap-2">
+          <p-radiobutton
+            name="formaPago"
+            inputId="formaPagoTotal"
+            value="TOTAL"
+            [(ngModel)]="nuevoMovimiento.forma_pago"
+            (ngModelChange)="onFormaPagoChange($event)"
+            (onClick)="onFormaPagoChange('TOTAL')"
+          ></p-radiobutton>
+          <label for="formaPagoTotal" class="text-sm text-gray-700">Total</label>
+        </div>
+      </div>
+      @if (getTiposTransaccionDisponibles().length > 1) {
+        <label class="block text-sm font-poppins font-semibold mb-1 text-gray-700">
+          Tipo de movimiento
+        </label>
+        <p-select
+          [(ngModel)]="nuevoMovimiento.tipo_transaccion"
+          [options]="getTiposTransaccionDisponibles()"
+          class="w-full"
+          optionLabel="label"
+          optionValue="name"
+          placeholder="Seleccionar tipo"
+        ></p-select>
+      }
+
+      <label class="block text-sm font-poppins font-semibold mb-1 text-gray-700">
+        Medio de pago/cobro
+      </label>
+      <input
+        type="text"
+        pInputText
+        [(ngModel)]="nuevoMovimiento.medio_pago"
+        class="w-full"
+        placeholder="Ej: Transferencia, Efectivo, Cheque"
+      />
+
+      <label class="block text-sm font-poppins font-semibold mb-1 text-gray-700">
+        Concepto <span class="text-gray-500 text-xs">(opcional)</span>
+      </label>
+      <input
+        type="text"
+        pInputText
+        [(ngModel)]="nuevoMovimiento.concepto"
+        class="w-full"
+        placeholder="Ej: Adelanto de pago, Comisión, etc."
+      />
+
+      <!-- Monto y Fecha -->
+      <div class="flex gap-5">
+        <div class="flex flex-col w-1/2">
+          <label class="block text-sm font-poppins font-semibold mb-1 text-gray-700">Monto</label>
+          <p-inputNumber
+            [(ngModel)]="nuevoMovimiento.monto"
+            (ngModelChange)="onMontoChange($event)"
+            class="w-full"
+            mode="decimal"
+            locale="es-AR"
+            [useGrouping]="true"
+            [minFractionDigits]="2"
+            [maxFractionDigits]="2"
+            inputStyleClass="w-full text-right"
+            [min]="0"
+          ></p-inputNumber>
+        </div>
+
+        <div class="flex flex-col w-1/2">
+          <label class="block text-sm font-poppins font-semibold mb-1 text-gray-700">Fecha</label>
+          <p-datepicker
+            [(ngModel)]="nuevoMovimiento.fecha"
+            appendTo="body"
+            class="w-full"
+            dateFormat="dd/mm/yy"
+          ></p-datepicker>
+        </div>
+      </div>
+    </div>
+  </app-modal>
+
+  <app-modal
+    [visible]="showDetalleMovimientoModal"
+    [title]="'Detalle de movimiento'"
+    [showFooter]="false"
+    (closed)="cerrarDetalleMovimiento()"
+  >
+    <div class="p-3 space-y-4">
+      @if (movimientoDetalle) {
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div class="flex flex-col gap-2">
+            <label class="text-sm font-poppins font-semibold text-gray-700">Tipo</label>
+            <input
+              class="p-inputtext p-component w-full"
+              [value]="tipoMovimiento(movimientoDetalle)"
+              disabled
+              type="text"/>
+          </div>
+          <div class="flex flex-col gap-2">
+            <label class="text-sm font-poppins font-semibold text-gray-700">Asociado</label>
+            <input
+              class="p-inputtext p-component w-full"
+              [value]="proveedorOCliente(movimientoDetalle.id_asociado || 0, movimientoDetalle.tipo_asociado || '')"
+              disabled
+              type="text"/>
+          </div>
+          <div class="flex flex-col gap-2">
+            <label class="text-sm font-poppins font-semibold text-gray-700">Fecha</label>
+            <input
+              class="p-inputtext p-component w-full"
+              [value]="(movimientoDetalle.fecha | date:'dd/MM/yyyy') || ''"
+              disabled
+              type="text"/>
+          </div>
+          <div class="flex flex-col gap-2">
+            <label class="text-sm font-poppins font-semibold text-gray-700">Condicion</label>
+            <input
+              class="p-inputtext p-component w-full"
+              [value]="movimientoDetalle.forma_pago || ''"
+              disabled
+              type="text"/>
+          </div>
+          <div class="flex flex-col gap-2">
+            <label class="text-sm font-poppins font-semibold text-gray-700">Medio</label>
+            <input
+              class="p-inputtext p-component w-full"
+              [value]="movimientoDetalle.medio_pago || 'Sin especificar'"
+              disabled
+              type="text"/>
+          </div>
+          <div class="flex flex-col gap-2">
+            <label class="text-sm font-poppins font-semibold text-gray-700">Monto</label>
+            <input
+              class="p-inputtext p-component w-full"
+              [value]="(movimientoDetalle.monto | currency:'ARS':'symbol':'1.0-2') || ''"
+              disabled
+              type="text"/>
+          </div>
+        </div>
+
+        <div class="flex justify-end gap-2">
+          <p-button label="Cerrar" icon="pi pi-times" (onClick)="cerrarDetalleMovimiento()"></p-button>
+          <p-button label="Editar" icon="pi pi-pencil" (onClick)="editarDetalleMovimiento()"></p-button>
+          <p-button
+            label="Eliminar"
+            icon="pi pi-trash"
+            severity="danger"
+            (onClick)="eliminarDetalleMovimiento()">
+          </p-button>
+        </div>
+      }
+    </div>
+  </app-modal>
+</div>
+

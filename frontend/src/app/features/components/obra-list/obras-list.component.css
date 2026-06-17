@@ -1,0 +1,7 @@
+/* Estilos movidos a styles.css en Fase 2 — aquí solo la clase única de este componente */
+
+:host ::ng-deep .obras-estado-multiselect .p-multiselect-label {
+  min-height: 2.8rem;
+  display: flex;
+  align-items: center;
+}

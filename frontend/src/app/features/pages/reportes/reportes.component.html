@@ -1,0 +1,104 @@
+<p-toast position="bottom-right"></p-toast>
+<p-confirmDialog></p-confirmDialog>
+
+<app-layout-header type="list" title="Reportes" subtitle="Panel de control y análisis detallado de obras">
+</app-layout-header>
+
+<div class="p-8 space-y-8 max-w-full mx-auto">
+
+  <!-- ===================== FILTROS DE BÚSQUEDA ===================== -->
+  <app-generic-filter-bar
+    [filterDefinitions]="filterDefinitions"
+    (filterChange)="onFilterChange($event)"
+    (clearFilters)="onClearFilters()"
+  ></app-generic-filter-bar>
+
+  <!-- ===================== LOADING ===================== -->
+  @if (loading) {
+    <div class="space-y-6 animate-pulse">
+      <div class="bg-white rounded-xl shadow-md p-5">
+        <div class="h-5 w-1/4 bg-gray-200 rounded mb-4"></div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          @for (item of [1,2]; track item) {
+            <div class="h-16 bg-gray-100 rounded-lg"></div>
+          }
+        </div>
+      </div>
+      <div class="bg-white rounded-xl shadow-md p-5">
+        <div class="h-5 w-1/3 bg-gray-200 rounded mb-4"></div>
+        <div class="space-y-3">
+          @for (row of [1,2,3]; track row) {
+            <div class="h-12 bg-gray-100 rounded-lg"></div>
+          }
+        </div>
+      </div>
+    </div>
+  } @else {
+    <!-- ===================== RESUMEN DE OBRAS ===================== -->
+    <app-resumen-obras></app-resumen-obras>
+
+    <!-- ===================== COMISIONES ===================== -->
+    <div class="bg-white rounded-xl shadow-md p-6">
+        <div class="flex items-center justify-between pb-3 mb-5 border-b border-gray-200">
+          <h2 class="font-poppins font-semibold text-gray-900 flex items-center gap-2">
+            <i class="pi pi-percentage text-indigo-600"></i>
+            Comisiones
+          </h2>
+          <p-button
+            icon="pi pi-file-pdf"
+            label="Exportar PDF"
+            severity="secondary"
+            size="small"
+            [outlined]="true"
+            (onClick)="exportComisionesPdf()"
+            [disabled]="!comisiones?.detalle?.length">
+          </p-button>
+        </div>
+
+        <div class="flex items-center gap-3 mb-4 text-sm">
+          <span class="text-gray-600">Total comisiones:</span>
+          <span class="text-xl font-poppins font-bold text-indigo-700">{{ (comisiones?.totalComision ?? 0) | currency:'ARS':'symbol-narrow':'1.2-2' }}</span>
+          <span class="text-gray-500">| Pagado:</span>
+          <span class="text-gray-700">{{ (comisiones?.totalPagos ?? 0) | currency:'ARS':'symbol-narrow':'1.2-2' }}</span>
+          <span class="text-gray-500">| Saldo:</span>
+          <span class="font-poppins font-semibold text-slate-800">{{ (comisiones?.saldo ?? 0) | currency:'ARS':'symbol-narrow':'1.2-2' }}</span>
+        </div>
+
+        <p-table [value]="comisiones?.detalle || []" [paginator]="true" [rows]="10" responsiveLayout="scroll" styleClass="p-datatable-sm" [sortField]="'fecha'" [sortOrder]="-1">
+          <ng-template pTemplate="header">
+            <tr>
+              <th pSortableColumn="obraNombre" class="text-left">Obra <p-sortIcon field="obraNombre"></p-sortIcon></th>
+              <th pSortableColumn="fecha" class="text-center">Fecha <p-sortIcon field="fecha"></p-sortIcon></th>
+              <th pSortableColumn="monto" class="text-right">Monto <p-sortIcon field="monto"></p-sortIcon></th>
+              <th pSortableColumn="pagos" class="text-right">Pagado <p-sortIcon field="pagos"></p-sortIcon></th>
+              <th pSortableColumn="saldo" class="text-right">Saldo <p-sortIcon field="saldo"></p-sortIcon></th>
+            </tr>
+          </ng-template>
+          <ng-template pTemplate="body" let-item>
+            <tr class="cursor-pointer hover:bg-gray-50 transition-colors" (click)="irAObra(item.obraId)">
+              <td>{{ item.obraNombre || 'General' }}</td>
+              <td class="text-center text-gray-600 text-xs">{{ item.fecha ? (item.fecha | date:'dd/MM/yyyy') : '-' }}</td>
+              <td class="text-right">{{ item.monto | currency:'ARS':'symbol-narrow':'1.2-2' }}</td>
+              <td class="text-right">{{ item.pagos | currency:'ARS':'symbol-narrow':'1.2-2' }}</td>
+              <td class="text-right font-semibold" [class.text-green-700]="item.saldo <= 0" [class.text-slate-800]="item.saldo > 0">
+                {{ item.saldo | currency:'ARS':'symbol-narrow':'1.2-2' }}
+              </td>
+            </tr>
+          </ng-template>
+          <ng-template pTemplate="emptymessage">
+            <tr>
+              <td colspan="5" class="text-center text-gray-500 py-4">Sin comisiones registradas.</td>
+            </tr>
+          </ng-template>
+        </p-table>
+      </div>
+
+  }
+</div>
+
+
+
+
+
+
+

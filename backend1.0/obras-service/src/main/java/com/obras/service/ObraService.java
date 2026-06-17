@@ -8,10 +8,11 @@ import org.springframework.data.domain.Pageable;
 import java.util.*;
 
 public interface ObraService {
-    ObraDTO crear(ObraDTO dto);
+    ObraDTO crear(ObraDTO dto, Long empresaId);
     Optional<ObraDTO> obtener(Long id);
-    Page<ObraDTO> listar(Pageable p);
-    Page<ObraDTO> listarPorCliente(Long idCliente, Pageable p);
+    Page<ObraDTO> listar(Pageable p, Long empresaId);
+    Page<ObraListDTO> listarResumen(Pageable p, com.obras.enums.EstadoObraEnum estado, Boolean activo, String q, Long empresaId);
+    Page<ObraDTO> listarPorCliente(Long idCliente, Pageable p, Long empresaId);
     ObraDTO actualizar(Long id, ObraDTO dto);
     Optional<ObraDTO> obtenerUltimaCondicion();
     void cambiarEstado(Long idObra, com.obras.enums.EstadoObraEnum estado);

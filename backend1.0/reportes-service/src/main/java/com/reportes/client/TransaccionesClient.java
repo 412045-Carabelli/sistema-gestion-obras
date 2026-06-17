@@ -1,5 +1,6 @@
 package com.reportes.client;
 
+import com.reportes.dto.external.TopObraFinancieroExternalDto;
 import com.reportes.dto.external.TransaccionExternalDto;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -27,6 +28,9 @@ public class TransaccionesClient {
     private static final ParameterizedTypeReference<List<TransaccionExternalDto>> TRANSACCIONES_TYPE =
             new ParameterizedTypeReference<>() {};
 
+    private static final ParameterizedTypeReference<List<TopObraFinancieroExternalDto>> TOP_OBRAS_TYPE =
+            new ParameterizedTypeReference<>() {};
+
     public List<TransaccionExternalDto> obtenerTransacciones() {
         try {
             ResponseEntity<List<TransaccionExternalDto>> response = restTemplate.exchange(
@@ -38,6 +42,21 @@ public class TransaccionesClient {
             return response.getBody() != null ? response.getBody() : Collections.emptyList();
         } catch (RestClientException e) {
             log.warn("No se pudieron obtener las transacciones: {}", e.getMessage());
+            return Collections.emptyList();
+        }
+    }
+
+    public List<TopObraFinancieroExternalDto> obtenerTopObras(int topN) {
+        try {
+            ResponseEntity<List<TopObraFinancieroExternalDto>> response = restTemplate.exchange(
+                    baseUrl + "/api/transacciones/dashboard/graficos?topN=" + topN,
+                    HttpMethod.GET,
+                    null,
+                    TOP_OBRAS_TYPE
+            );
+            return response.getBody() != null ? response.getBody() : Collections.emptyList();
+        } catch (RestClientException e) {
+            log.warn("No se pudieron obtener las top obras financiero: {}", e.getMessage());
             return Collections.emptyList();
         }
     }

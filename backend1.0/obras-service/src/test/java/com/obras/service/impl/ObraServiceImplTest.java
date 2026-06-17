@@ -9,6 +9,7 @@ import com.obras.enums.EstadoPagoEnum;
 import com.obras.enums.TipoCostoEnum;
 import com.obras.repository.ObraCostoRepository;
 import com.obras.repository.ObraRepository;
+import com.obras.repository.TareaRepository;
 import jakarta.persistence.EntityNotFoundException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -39,6 +40,9 @@ class ObraServiceImplTest {
 
     @Mock
     private ObraCostoRepository costoRepo;
+
+    @Mock
+    private TareaRepository tareaRepo;
 
     @InjectMocks
     private ObraServiceImpl service;
@@ -83,7 +87,7 @@ class ObraServiceImplTest {
         when(obraRepo.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
         when(costoRepo.findByObra_IdAndActivoTrue(100L)).thenReturn(List.of());
 
-        service.crear(dto);
+        service.crear(dto, null);
 
         ArgumentCaptor<Obra> captor = ArgumentCaptor.forClass(Obra.class);
         verify(obraRepo).save(captor.capture());
@@ -190,7 +194,7 @@ class ObraServiceImplTest {
         when(costoRepo.findByObra_IdAndActivoTrue(1L)).thenReturn(List.of());
         when(costoRepo.findByObra_IdAndActivoTrue(2L)).thenReturn(List.of());
 
-        Page<ObraDTO> result = service.listar(PageRequest.of(0, 2));
+        Page<ObraDTO> result = service.listar(PageRequest.of(0, 2), null);
 
         assertEquals(2, result.getTotalElements());
         assertEquals(2, result.getContent().size());

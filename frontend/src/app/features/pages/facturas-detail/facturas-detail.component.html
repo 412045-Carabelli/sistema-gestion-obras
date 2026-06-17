@@ -1,0 +1,172 @@
+<p-toast position="bottom-right"></p-toast>
+<p-confirmDialog></p-confirmDialog>
+
+@if (loading) {
+  <div class="p-8 space-y-8 max-w-full mx-auto animate-pulse">
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+      @for (item of [1,2,3]; track item) {
+        <div class="bg-white rounded-xl shadow-md p-6">
+          <div class="flex items-center gap-3 mb-2">
+            <div class="w-10 h-10 bg-gray-200 rounded-lg"></div>
+            <div class="h-4 bg-gray-200 rounded w-20"></div>
+          </div>
+          <div class="h-6 bg-gray-200 rounded w-2/3"></div>
+        </div>
+      }
+    </div>
+
+    <div class="bg-white rounded-xl shadow-md overflow-hidden">
+      <div class="p-6 border-b border-gray-100">
+        <div class="h-6 bg-gray-200 rounded w-1/3"></div>
+      </div>
+      <div class="p-6 grid grid-cols-1 md:grid-cols-3 gap-6">
+        @for (item of [1,2,3]; track item) {
+          <div class="space-y-3">
+            <div class="h-3 bg-gray-200 rounded w-1/2"></div>
+            <div class="h-12 bg-gray-100 rounded-lg"></div>
+          </div>
+        }
+      </div>
+    </div>
+
+    <div class="bg-white rounded-xl shadow-md p-6">
+      <div class="h-4 bg-gray-200 rounded w-1/4 mb-3"></div>
+      <div class="h-24 bg-gray-100 rounded-lg"></div>
+    </div>
+  </div>
+} @else {
+  <div class="space-y-6">
+    <!-- Resumen financiero de la obra -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div class="bg-white rounded-xl shadow-sm p-5 border-l-4 border-emerald-500">
+        <p class="text-xs font-poppins font-normal text-emerald-700 font-semibold uppercase tracking-wide mb-1">Factura</p>
+        <p class="text-3xl font-poppins font-bold text-gray-900">{{ factura?.monto | currency:'ARS':'symbol':'1.0-0' }}</p>
+      </div>
+      <div class="bg-white rounded-xl shadow-sm p-5 border-l-4 border-blue-500">
+        <p class="text-xs font-poppins font-normal text-blue-700 font-semibold uppercase tracking-wide mb-1">Por cobrar</p>
+        <p class="text-3xl font-poppins font-bold text-gray-900">{{ totalPorCobrar | currency:'ARS':'symbol':'1.0-0' }}</p>
+      </div>
+      <div class="bg-white rounded-xl shadow-sm p-5 border-l-4 border-amber-500">
+        <p class="text-xs font-poppins font-normal text-amber-700 font-semibold uppercase tracking-wide mb-1">Saldo obra</p>
+        <p class="text-3xl font-poppins font-bold" [ngClass]="saldoNoFacturado >= 0 ? 'text-gray-900' : 'text-red-600'">
+          {{ saldoNoFacturado | currency:'ARS':'symbol':'1.0-0' }}
+        </p>
+      </div>
+    </div>
+
+    <!-- Contenido principal -->
+    <div class="bg-white rounded-xl shadow-sm">
+      <div class="p-6 border-b border-gray-100">
+        <div class="flex justify-between items-start">
+          <div>
+            <h2 class="font-poppins font-bold text-gray-900 mb-1">Factura Nro #{{ factura!.id }}</h2>
+            <div class="flex gap-2">
+              <p-tag
+                [value]="factura?.estado || 'EMITIDA'"
+                [severity]="(factura?.estado || 'EMITIDA') === 'COBRADA' ? 'success' : 'info'">
+              </p-tag>
+              <button
+                type="button"
+                class="px-3 py-1 rounded-md border border-indigo-200 text-indigo-700 text-xs font-semibold hover:bg-indigo-50 cursor-pointer"
+                (click)="toggleEstadoFactura()"
+              >
+                {{ (factura?.estado || 'EMITIDA') === 'COBRADA' ? 'Marcar emitida' : 'Marcar cobrada' }}
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="p-6 grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div class="space-y-4">
+          <div>
+            <p class="text-xs uppercase text-gray-500 font-semibold mb-2">Cliente</p>
+            <div class="flex items-center gap-3">
+              <div class="w-12 h-12 rounded-lg bg-emerald-100 flex items-center justify-center flex-shrink-0">
+                <i class="pi pi-user text-emerald-600 text-lg"></i>
+              </div>
+              <p class="text-lg font-poppins font-semibold text-gray-900">{{ cliente?.nombre || 'Sin cliente' }}</p>
+            </div>
+          </div>
+
+          <div>
+            <p class="text-xs uppercase text-gray-500 font-semibold mb-2">Obra asociada</p>
+            <div class="flex items-center gap-3">
+              <div class="w-12 h-12 rounded-lg bg-blue-100 flex items-center justify-center flex-shrink-0">
+                <i class="pi pi-building text-blue-600 text-lg"></i>
+              </div>
+              @if (obra?.id) {
+                <button
+                  type="button"
+                  class="text-lg font-poppins font-semibold text-blue-600 hover:text-blue-800 hover:underline cursor-pointer text-left"
+                  (click)="irAObra()">
+                  {{ obra?.nombre }}
+                </button>
+              } @else {
+                <p class="text-lg font-poppins font-semibold text-gray-900">Sin obra</p>
+              }
+            </div>
+          </div>
+        </div>
+
+        <div class="space-y-4">
+          <div>
+            <p class="text-xs uppercase text-gray-500 font-semibold mb-2">Fecha emisión</p>
+            <div class="flex items-center gap-3">
+              <div class="w-12 h-12 rounded-lg bg-amber-100 flex items-center justify-center flex-shrink-0">
+                <i class="pi pi-calendar text-amber-600 text-lg"></i>
+              </div>
+              <p class="text-lg font-poppins font-semibold text-gray-900">{{ factura?.fecha | date:'dd/MM/yyyy' }}</p>
+            </div>
+          </div>
+
+          <div>
+            <p class="text-xs uppercase text-gray-500 font-semibold mb-2">Monto</p>
+            <div class="flex items-center gap-3">
+              <div class="w-12 h-12 rounded-lg bg-green-100 flex items-center justify-center flex-shrink-0">
+                <i class="pi pi-dollar text-green-600 text-lg"></i>
+              </div>
+              <p class="text-lg font-poppins font-semibold text-gray-900">{{ factura?.monto | currency:'ARS':'symbol':'1.2-2' }}</p>
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <p class="text-xs uppercase text-gray-500 font-semibold mb-2">Archivo adjunto</p>
+          <div class="flex items-start gap-3">
+            <div class="w-12 h-12 rounded-lg bg-indigo-100 flex items-center justify-center flex-shrink-0">
+              <i class="pi pi-file text-indigo-600 text-lg"></i>
+            </div>
+            <div class="flex-1 min-w-0">
+              <p class="text- font-semibold text-gray-900 truncate">{{ factura?.nombre_archivo || 'Sin archivo' }}</p>
+              @if (factura?.nombre_archivo) {
+                <p class="text-xs font-poppins font-normal text-gray-500 mt-1">
+                  {{ isImageFile(factura!.nombre_archivo) ? 'Imagen' : 'Documento' }}
+                </p>
+              }
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="bg-white rounded-xl shadow-sm p-6">
+      <h3 class="font-poppins font-semibold text-gray-900 mb-3">Descripcion</h3>
+      @if (factura?.descripcion?.trim()) {
+        <div class="prose prose-sm max-w-none text-gray-800" [innerHTML]="factura?.descripcion"></div>
+      } @else {
+        <p class="text-sm text-gray-500">Sin descripcion registrada.</p>
+      }
+    </div>
+
+    <!-- Vista previa de imagen -->
+    @if (previewUrl) {
+      <div class="bg-white rounded-xl shadow-sm p-6">
+        <h3 class="font-poppins font-semibold text-gray-900 mb-4">Vista previa del adjunto</h3>
+        <div class="flex justify-center">
+          <img [src]="previewUrl" alt="Factura adjunta" class="max-w-full max-h-[600px] rounded-lg border border-gray-200 shadow-sm"/>
+        </div>
+      </div>
+    }
+  </div>
+}

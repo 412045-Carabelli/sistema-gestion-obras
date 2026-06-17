@@ -1,0 +1,23 @@
+<div class="relative flex justify-between items-center w-full bg-gradient-to-r p-8 shadow-lg text-white overflow-hidden"
+     [ngClass]="gradientClass">
+  <!-- Decorative circles -->
+  <div class="absolute inset-0 opacity-10">
+    <div class="absolute -right-10 -top-10 w-40 h-40 bg-white rounded-full"></div>
+    <div class="absolute -left-10 -bottom-10 w-32 h-32 bg-white rounded-full"></div>
+  </div>
+
+  <!-- Left: title + subtitle + extra content -->
+  <div class="relative z-10 space-y-2">
+    <h1 class="font-poppins font-bold text-3xl">{{ title }}</h1>
+    @if (subtitle) {
+      <p class="font-poppins font-normal" [ngClass]="subtitleColorClass">{{ subtitle }}</p>
+    }
+    <!-- Slot para tags, subtítulos dinámicos, badges, etc. -->
+    <ng-content select="[header-meta]"></ng-content>
+  </div>
+
+  <!-- Right: action buttons -->
+  <div class="relative z-10 flex items-center gap-3">
+    <ng-content select="[header-actions]"></ng-content>
+  </div>
+</div>

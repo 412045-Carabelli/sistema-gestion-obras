@@ -1,0 +1,448 @@
+<div class="p-4 space-y-8 mx-auto">
+  <!-- ===================== FORMULARIO ===================== -->
+  <form appPreventInvalidSubmit (ngSubmit)="onSubmit()" [formGroup]="form" class="space-y-6" (keydown.enter)="$event.preventDefault()">
+
+    <div class="grid grid-cols-3 gap-6 w-full">
+      <!-- ========== INFORMACIÓN BÁSICA ========== -->
+      <div class="col-span-2 bg-white rounded-xl shadow-md p-6">
+        <h2 class="font-poppins font-semibold text-gray-900 mb-5 flex items-center gap-2 pb-3 border-b border-gray-200">
+          <i class="pi pi-info-circle text-blue-600"></i>
+          Información Básica
+        </h2>
+
+        <div class="grid grid-cols-2 w-full gap-6">
+          <!-- Nombre -->
+          <div class="flex flex-col">
+            <label class="text-sm font-poppins font-semibold mb-2 text-gray-700 flex items-center gap-2">
+              <i class="pi pi-tag text-gray-400 text-xs"></i>
+              Nombre del Proyecto
+            </label>
+            <input
+              class="w-full"
+              formControlName="nombre"
+              pInputText
+              placeholder="Ej. Proyecto X"
+            />
+            @if (form.get('nombre')?.touched && form.get('nombre')?.hasError('required')) {
+              <small class="text-red-500 text-xs mt-1">Campo obligatorio</small>
+            }
+          </div>
+
+          <!-- Dirección -->
+          <div class="flex flex-col">
+            <label class="text-sm font-poppins font-semibold mb-2 text-gray-700 flex items-center gap-2">
+              <i class="pi pi-map-marker text-gray-400 text-xs"></i>
+              Dirección
+            </label>
+            <input
+              class="w-full"
+              formControlName="direccion"
+              pInputText
+              placeholder="Ej. Av. San Martín 1234"
+            />
+            @if (form.get('direccion')?.touched && form.get('direccion')?.hasError('required')) {
+              <small class="text-red-500 text-xs mt-1">Campo obligatorio</small>
+            }
+          </div>
+
+          <!-- Cliente -->
+          <div class="flex flex-col">
+            <label class="text-sm font-poppins font-semibold mb-2 text-gray-700 flex items-center gap-2">
+              <i class="pi pi-user text-gray-400 text-xs"></i>
+              Cliente
+            </label>
+            <div class="flex gap-2">
+              <div class="flex-1">
+                <p-autoComplete
+                  formControlName="cliente"
+                  [suggestions]="filteredClientes"
+                  [dropdown]="true"
+                  [showClear]="true"
+                  appendTo="body"
+                  fluid
+                  class="w-full"
+                  inputStyleClass="w-full"
+                  field="nombre"
+                  placeholder="Selecciona un cliente"
+                  (completeMethod)="filtrarClientes($event)"
+                  (onSelect)="onClienteSeleccionado($event?.value)"
+                  (onClear)="onClienteLimpiar()"
+                  (onDropdownClick)="filtrarClientes({ query: '' })"
+                ></p-autoComplete>
+              </div>
+              <p-button
+                icon="pi pi-plus"
+                label="Nuevo"
+                size="small"
+                (onClick)="abrirModalCliente()"
+                styleClass="h-[42px]"
+                type="button"
+              ></p-button>
+            </div>
+            @if (form.get('cliente')?.touched && form.get('cliente')?.hasError('required')) {
+              <small class="text-red-500 text-xs mt-1">Selecciona un cliente</small>
+            }
+          </div>
+
+          <!-- Requiere factura -->
+          <div class="flex flex-col">
+            <label class="text-sm font-poppins font-semibold mb-2 text-gray-700 flex items-center gap-2">
+              <i class="pi pi-file text-gray-400 text-xs"></i>
+              Requiere factura
+            </label>
+            <div class="flex items-center gap-3 p-3 bg-gray-50 rounded-lg border border-gray-200">
+              <p-checkbox
+                binary="true"
+                formControlName="requiere_factura"
+                inputId="requiereFactura"
+              ></p-checkbox>
+              <label for="requiereFactura" class="text-sm text-gray-700">Marcar obra para facturar</label>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ========== FECHAS ========== -->
+      <div class="col-span-1 bg-white rounded-xl shadow-md p-6">
+        <h2 class="font-poppins font-semibold text-gray-900 mb-5 flex items-center gap-2 pb-3 border-b border-gray-200">
+          <i class="pi pi-calendar text-blue-600"></i>
+          Cronograma
+        </h2>
+
+        <div class="grid grid-cols-1 gap-6">
+          <!-- Fecha de presupuesto -->
+          <div class="flex flex-col">
+            <label class="text-sm font-poppins font-semibold mb-2 text-gray-700 flex items-center gap-2">
+              <i class="pi pi-calendar-edit text-gray-400 text-xs"></i>
+              Fecha de presupuesto
+            </label>
+            <p-datePicker
+              appendTo="body"
+              styleClass="w-full"
+              dateFormat="dd/mm/yy"
+              formControlName="fecha_presupuesto"
+              inputId="fechaPresupuesto"
+              [showIcon]="true"
+            ></p-datePicker>
+            @if (form.get('fecha_presupuesto')?.touched && form.get('fecha_presupuesto')?.hasError('required')) {
+              <small class="text-red-500 text-xs mt-1">Campo obligatorio</small>
+            }
+          </div>
+
+          <!-- Fecha de inicio -->
+          <div class="flex flex-col">
+            <label class="text-sm font-poppins font-semibold mb-2 text-gray-700 flex items-center gap-2">
+              <i class="pi pi-calendar-plus text-gray-400 text-xs"></i>
+              Fecha de inicio
+            </label>
+            <p-datePicker
+              appendTo="body"
+              styleClass="w-full"
+              dateFormat="dd/mm/yy"
+              formControlName="fecha_inicio"
+              inputId="fechaInicio"
+              [showIcon]="true"
+            ></p-datePicker>
+            @if (form.get('fecha_inicio')?.touched && form.get('fecha_inicio')?.hasError('required')) {
+              <small class="text-red-500 text-xs mt-1">Campo obligatorio</small>
+            }
+          </div>
+
+          <!-- Fecha fin -->
+          <div class="flex flex-col">
+            <label class="text-sm font-poppins font-semibold mb-2 text-gray-700 flex items-center gap-2">
+              <i class="pi pi-calendar-times text-gray-400 text-xs"></i>
+              Fecha de fin
+              <span class="text-xs font-normal text-gray-400">(opcional)</span>
+            </label>
+            <p-datePicker
+              appendTo="body"
+              styleClass="w-full"
+              dateFormat="dd/mm/yy"
+              formControlName="fecha_fin"
+              inputId="fechaFin"
+              [showIcon]="true"
+            ></p-datePicker>
+            @if (fechasFueraDeRango) {
+              <small class="text-red-600 text-xs mt-1">La fecha fin no puede ser anterior al inicio.</small>
+            }
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="bg-white rounded-xl shadow-md p-6">
+      <h2 class="font-poppins font-semibold text-gray-900 mb-5 flex items-center gap-2 pb-3 border-b border-gray-200">
+        <i class="pi pi-align-left text-blue-600"></i>
+        Memoria Descriptiva
+      </h2>
+
+      <p-editor
+        formControlName="memoria_descriptiva"
+        styleClass="memoria-editor"
+        placeholder="Describe el alcance de la obra"
+      >
+        <ng-template pTemplate="header">
+          <span class="ql-formats">
+            <button type="button" class="ql-bold" aria-label="Negrita"></button>
+            <button type="button" class="ql-italic" aria-label="Cursiva"></button>
+            <button type="button" class="ql-underline" aria-label="Subrayado"></button>
+          </span>
+          <span class="ql-formats">
+            <button type="button" class="ql-list" value="ordered" aria-label="Lista ordenada"></button>
+            <button type="button" class="ql-list" value="bullet" aria-label="Viñetas"></button>
+          </span>
+        </ng-template>
+      </p-editor>
+    </div>
+
+    <div class="grid grid-cols-2 gap-6 justify-between">
+      <!-- ========== INFORMACIÓN FINANCIERA ========== -->
+      <div class="bg-white rounded-xl shadow-md p-6">
+        <h2 class="font-poppins font-semibold text-gray-900 mb-5 flex items-center gap-2 pb-3 border-b border-gray-200">
+          <i class="pi pi-dollar text-green-600"></i>
+          Información Financiera
+        </h2>
+
+        <div class="space-y-6">
+          <!-- Presupuesto (readonly) -->
+          <div class="flex flex-col">
+            <label class="text-sm font-poppins font-semibold mb-2 text-gray-700 flex items-center gap-2">
+              <i class="pi pi-money-bill text-gray-400 text-xs"></i>
+              Presupuesto Total
+            </label>
+            <div class="relative">
+              <span class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 font-semibold">ARS</span>
+              <input
+                class="w-full pl-14 bg-gray-100"
+                formControlName="presupuesto"
+                pInputText
+                readonly
+                placeholder="Se calculará automáticamente"
+              />
+            </div>
+            <small class="text-gray-500 text-xs mt-2">
+              <i class="pi pi-info-circle text-xs mr-1"></i>
+              Se calculará a partir de los costos ingresados
+            </small>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 items-center gap-6">
+            <!-- Comisión -->
+            <div class="flex flex-col">
+              <label class="text-sm font-poppins font-semibold mb-2 text-gray-700 flex items-center gap-2">
+                <i class="pi pi-percentage text-gray-400 text-xs"></i>
+                Comisión
+              </label>
+              <div class="flex items-center gap-3 p-4 bg-purple-50 rounded-lg border border-purple-200">
+                <p-checkbox
+                  binary="true"
+                  formControlName="tiene_comision"
+                  inputId="tieneComision"
+                ></p-checkbox>
+                <span class="text-sm font-poppins font-normal text-gray-700">Aplica comisión</span>
+                <div class="flex items-center gap-2 ml-auto">
+                  <input
+                    type="number"
+                    pInputText
+                    formControlName="comision"
+                    class="w-20 text-center"
+                    placeholder="10"
+                    [disabled]="form.get('tiene_comision')?.value"
+                  />
+                  <span class="text-gray-600 font-semibold">%</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Beneficio Global -->
+            <div class="flex flex-col">
+              <label class="text-sm font-poppins font-semibold mb-2 text-gray-700 flex items-center gap-2">
+                <i class="pi pi-chart-line text-gray-400 text-xs"></i>
+                Beneficio Global
+              </label>
+              <div class="flex items-center gap-3 p-4 bg-blue-50 rounded-lg border border-blue-200">
+                <p-checkbox
+                  binary="true"
+                  formControlName="beneficio_global"
+                  inputId="beneficioGlobal"
+                ></p-checkbox>
+                <div class="flex items-center gap-2">
+                  <input
+                    class="w-20 text-center"
+                    formControlName="beneficio"
+                    pInputText
+                    placeholder="0"
+                    type="number"
+                  />
+                  <span class="text-gray-600 font-semibold">%</span>
+                </div>
+                <span class="text-xs font-poppins font-normal text-gray-600">
+                aplicado a todos los costos
+              </span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ========== NOTAS ========== -->
+      <div class="bg-white rounded-xl shadow-md p-6">
+        <h2 class="font-poppins font-semibold text-gray-900 mb-5 flex items-center gap-2 pb-3 border-b border-gray-200">
+          <i class="pi pi-file-edit text-blue-600"></i>
+          Notas y Observaciones
+        </h2>
+
+        <textarea
+          class="w-full max-h-54 min-h-54 h-54 p-inputtext p-component"
+          rows="4"
+          formControlName="notas"
+          placeholder="Comentarios u observaciones de la obra"
+        ></textarea>
+      </div>
+    </div>
+
+    <!-- ========== MATRIZ DE COSTOS ========== -->
+    <div class="bg-white rounded-xl shadow-md p-6">
+      <div class="flex items-center justify-between mb-5 pb-3 border-b border-gray-200">
+        <h2 class="font-poppins font-semibold text-gray-900 flex items-center gap-2">
+          <i class="pi pi-list text-blue-600"></i>
+          Matriz de Costos
+        </h2>
+        <div class="flex gap-3">
+          <p-button
+            icon="pi pi-briefcase"
+            label="Nuevo proveedor"
+            severity="secondary"
+            size="small"
+            styleClass="p-button-sm"
+            type="button"
+            (onClick)="abrirModalProveedor()"
+          ></p-button>
+          <p-button
+            (click)="nuevaFilaCosto()"
+            icon="pi pi-plus"
+            label="Agregar costo"
+            styleClass="p-button-sm"
+            type="button"
+          ></p-button>
+        </div>
+      </div>
+
+      @if (costos.length > 0) {
+        <app-obra-costos-table
+          [costos]="costos"
+          [modoEdicion]="true"
+          [proveedores]="proveedores"
+          (costoEliminado)="recalcularTotales()"
+        ></app-obra-costos-table>
+      } @else {
+        <div class="flex flex-col items-center justify-center py-12 text-gray-400">
+          <i class="pi pi-shopping-cart text-5xl mb-3"></i>
+          <p class="text-lg font-poppins font-semibold text-gray-500">No hay costos registrados</p>
+          <p class="text-sm text-gray-400 mb-4">Comienza agregando el primer costo del proyecto</p>
+        </div>
+      }
+    </div>
+
+    <!-- ========== BOTONES DE ACCIÓN ========== -->
+    <div class="flex justify-between items-center bg-white rounded-xl shadow-md p-6">
+      <p-button
+        label="Cancelar"
+        icon="pi pi-times"
+        [outlined]="true"
+        severity="secondary"
+        routerLink="/obras"
+        styleClass="p-button-lg"
+      ></p-button>
+
+      <p-button
+        [disabled]="form.invalid"
+        icon="pi pi-save"
+        label="Guardar Obra"
+        styleClass="p-button-lg"
+        type="submit"
+      ></p-button>
+    </div>
+  </form>
+</div>
+
+<app-modal
+  [visible]="showClienteModal"
+  [title]="'Nuevo cliente'"
+  [width]="'680px'"
+  [showFooter]="false"
+  (closed)="cerrarModalCliente()"
+>
+  <form class="space-y-4" [formGroup]="clienteForm" (ngSubmit)="guardarCliente()">
+    <div class="grid grid-cols-2 gap-4">
+      <div class="flex flex-col gap-1">
+        <label class="text-sm font-poppins font-semibold text-gray-700">Nombre</label>
+        <input pInputText formControlName="nombre" placeholder="Razón social" />
+      </div>
+      <div class="flex flex-col gap-1">
+        <label class="text-sm font-poppins font-semibold text-gray-700">Contacto</label>
+        <input pInputText formControlName="contacto" placeholder="Persona de contacto" />
+      </div>
+      <div class="flex flex-col gap-1">
+        <label class="text-sm font-poppins font-semibold text-gray-700">DNI/CUIT</label>
+        <input pInputText formControlName="cuit" placeholder="00-00000000-0" />
+      </div>
+      <div class="flex flex-col gap-1">
+        <label class="text-sm font-poppins font-semibold text-gray-700">Condición IVA</label>
+        <p-select
+          [options]="ivaOptions"
+          formControlName="condicion_iva"
+          optionLabel="label"
+          optionValue="name"
+          appendTo="body"
+          placeholder="Seleccioná"
+        ></p-select>
+      </div>
+      <div class="flex flex-col gap-1">
+        <label class="text-sm font-poppins font-semibold text-gray-700">Teléfono</label>
+        <input pInputText formControlName="telefono" placeholder="Ej. 1122334455" />
+      </div>
+      <div class="flex flex-col gap-1">
+        <label class="text-sm font-poppins font-semibold text-gray-700">Email (opcional)</label>
+        <input pInputText formControlName="email" placeholder="correo@cliente.com" />
+      </div>
+    </div>
+    <div class="flex justify-end gap-2 pt-2">
+      <p-button label="Cancelar" severity="secondary" [outlined]="true" (onClick)="cerrarModalCliente()" type="button"></p-button>
+      <p-button type="submit" label="Guardar cliente" icon="pi pi-save" [loading]="creandoCliente"></p-button>
+    </div>
+  </form>
+</app-modal>
+
+<app-proveedor-quick-create
+  [visible]="showProveedorModal"
+  (closed)="cerrarModalProveedor()"
+  (created)="onProveedorCreado($event)"
+></app-proveedor-quick-create>
+
+<app-modal
+  [visible]="showGrupoModal"
+  [title]="'Nuevo grupo de obra'"
+  [width]="'500px'"
+  [showFooter]="false"
+  (closed)="cerrarModalGrupo()"
+>
+  <form class="space-y-4" [formGroup]="grupoForm" (ngSubmit)="guardarGrupo()">
+    <div class="flex flex-col gap-1">
+      <label class="text-sm font-poppins font-semibold text-gray-700">Nombre</label>
+      <input pInputText formControlName="nombre" placeholder="Ej. Grupo A - Frente 1" />
+      @if (grupoForm.get('nombre')?.invalid && grupoForm.get('nombre')?.touched) {
+        <small class="text-red-500">Campo requerido, mínimo 3 caracteres</small>
+      }
+    </div>
+    <div class="flex justify-end gap-2 pt-2">
+      <p-button label="Cancelar" severity="secondary" [outlined]="true" (onClick)="cerrarModalGrupo()" type="button"></p-button>
+      <p-button type="submit" label="Crear grupo" icon="pi pi-save" [loading]="creandoGrupo"></p-button>
+    </div>
+  </form>
+</app-modal>
+
+
+
+

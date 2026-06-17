@@ -1,0 +1,442 @@
+<p-toast position="bottom-right"></p-toast>
+
+<app-layout-header type="list" title="Dashboard General" subtitle="Vista general del sistema - Resumen de actividades">
+</app-layout-header>
+
+<div class="p-8 space-y-8 max-w-full mx-auto">
+
+  <!-- ===================== ACCESOS RÁPIDOS ===================== -->
+  <div class="bg-white rounded-xl shadow-md p-6">
+    <h2 class="font-poppins font-semibold text-gray-900 mb-5 flex items-center gap-2 pb-3 border-b border-gray-200">
+      <i class="pi pi-bolt text-indigo-600"></i>
+      Accesos Rápidos
+    </h2>
+
+    <div class="grid grid-cols-2 md:grid-cols-5 gap-4">
+      <button
+        (click)="abrirMovimientoModal()"
+        class="cursor-pointer flex flex-col items-center gap-3 p-4 rounded-lg bg-gradient-to-br from-green-50 to-green-100 hover:from-green-100 hover:to-green-200 transition-all border border-green-200 hover:shadow-md">
+        <div class="w-12 h-12 bg-green-500 rounded-full flex items-center justify-center">
+          <i class="pi pi-arrow-right-arrow-left text-white text-xl"></i>
+        </div>
+        <span class="text-sm font-poppins font-semibold text-gray-700 text-center">Nuevo movimiento</span>
+      </button>
+
+      <button
+        (click)="abrirFacturaModal()"
+        class="cursor-pointer flex flex-col items-center gap-3 p-4 rounded-lg bg-gradient-to-br from-teal-50 to-teal-100 hover:from-teal-100 hover:to-teal-200 transition-all border border-teal-200 hover:shadow-md">
+        <div class="w-12 h-12 bg-teal-500 rounded-full flex items-center justify-center">
+          <i class="pi pi-file text-white text-xl"></i>
+        </div>
+        <span class="text-sm font-poppins font-semibold text-gray-700 text-center">Nueva factura</span>
+      </button>
+
+      <button
+        (click)="abrirClienteModal()"
+        class="cursor-pointer flex flex-col items-center gap-3 p-4 rounded-lg bg-gradient-to-br from-blue-50 to-blue-100 hover:from-blue-100 hover:to-blue-200 transition-all border border-blue-200 hover:shadow-md">
+        <div class="w-12 h-12 bg-blue-500 rounded-full flex items-center justify-center">
+          <i class="pi pi-user-plus text-white text-xl"></i>
+        </div>
+        <span class="text-sm font-poppins font-semibold text-gray-700 text-center">Nuevo cliente</span>
+      </button>
+
+      <button
+        (click)="abrirProveedorModal()"
+        class="cursor-pointer flex flex-col items-center gap-3 p-4 rounded-lg bg-gradient-to-br from-purple-50 to-purple-100 hover:from-purple-100 hover:to-purple-200 transition-all border border-purple-200 hover:shadow-md">
+        <div class="w-12 h-12 bg-purple-500 rounded-full flex items-center justify-center">
+          <i class="pi pi-truck text-white text-xl"></i>
+        </div>
+        <span class="text-sm font-poppins font-semibold text-gray-700 text-center">Nuevo proveedor</span>
+      </button>
+
+      <button
+        (click)="abrirTareaModal()"
+        class="cursor-pointer flex flex-col items-center gap-3 p-4 rounded-lg bg-gradient-to-br from-orange-50 to-orange-100 hover:from-orange-100 hover:to-orange-200 transition-all border border-orange-200 hover:shadow-md">
+        <div class="w-12 h-12 bg-orange-500 rounded-full flex items-center justify-center">
+          <i class="pi pi-list-check text-white text-xl"></i>
+        </div>
+        <span class="text-sm font-poppins font-semibold text-gray-700 text-center">Nueva tarea</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- ===================== FILTROS DEL DASHBOARD ===================== -->
+  <app-generic-filter-bar
+    [filterDefinitions]="filterDefinitions"
+    [actions]="[]"
+    (filterChange)="onFilterChange($event)"
+    (clearFilters)="onClearFilters()"
+  ></app-generic-filter-bar>
+
+  <!-- ===================== KPIS DE DEUDAS GLOBALES ===================== -->
+  @if (loadingKpis) {
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+      @for (i of [1,2,3,4]; track i) {
+        <div class="bg-white rounded-xl shadow-md p-5 border-l-4 border-gray-200">
+          <p-skeleton width="60%" height="12px" styleClass="mb-3"></p-skeleton>
+          <p-skeleton width="80%" height="28px"></p-skeleton>
+        </div>
+      }
+    </div>
+  } @else if (deudasGlobales) {
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div
+        class="bg-white rounded-xl shadow-md p-5 border-l-4 border-emerald-500"
+        pTooltip="Total cobrado de clientes."
+        tooltipPosition="top">
+        <p class="text-xs font-poppins font-semibold text-emerald-700 uppercase">Cobrado Clientes</p>
+        <p class="text-2xl font-poppins font-bold text-gray-900">{{ cobradoClientesGlobal | currency:'ARS':'symbol':'1.0-0' }}</p>
+      </div>
+      <div
+        class="bg-white rounded-xl shadow-md p-5 border-l-4 border-blue-500"
+        pTooltip="Total pagado a proveedores."
+        tooltipPosition="top">
+        <p class="text-xs font-poppins font-semibold text-blue-700 uppercase">Pagado Proveedores</p>
+        <p class="text-2xl font-poppins font-bold text-gray-900">{{ pagadoProveedoresGlobal | currency:'ARS':'symbol':'1.0-0' }}</p>
+      </div>
+      <div
+        class="bg-white rounded-xl shadow-md p-5 border-l-4 border-rose-500"
+        pTooltip="Total pendiente de cobrar."
+        tooltipPosition="top">
+        <p class="text-xs font-poppins font-semibold text-rose-700 uppercase">Por Cobrar</p>
+        <p class="text-2xl font-poppins font-bold text-gray-900">{{ deudasGlobales?.deudaClientes | currency:'ARS':'symbol':'1.0-0' }}</p>
+      </div>
+      <div
+        class="bg-white rounded-xl shadow-md p-5 border-l-4 border-amber-500"
+        pTooltip="Total pendiente de pagar."
+        tooltipPosition="top">
+        <p class="text-xs font-poppins font-semibold text-amber-700 uppercase">Por Pagar</p>
+        <p class="text-2xl font-poppins font-bold text-gray-900">{{ deudasGlobales?.deudaProveedores | currency:'ARS':'symbol':'1.0-0' }}</p>
+      </div>
+    </div>
+  }
+
+  <!-- ===================== WIDGETS DEL DASHBOARD ===================== -->
+
+  <!-- Gráficos sueltos -->
+  <app-dashboard-graficos></app-dashboard-graficos>
+
+  <!-- Tareas Antiguas y Movimientos Recientes (2 columnas) -->
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+    <app-dashboard-tareas></app-dashboard-tareas>
+    <app-dashboard-movimientos [filtros]="filtrosActivos"></app-dashboard-movimientos>
+  </div>
+
+</div>
+
+<!-- ===================== MODALES DE ACCESOS RÁPIDOS ===================== -->
+
+<app-modal
+  (closed)="cerrarMovimientoModal()"
+  (confirmed)="guardarMovimientoRapido()"
+  [title]="'Nuevo movimiento'"
+  [visible]="showMovimientoModal"
+>
+  <div class="p-3 space-y-3">
+    <label class="block text-sm font-poppins font-semibold mb-1 text-gray-700">Obra</label>
+    <p-select
+      [(ngModel)]="movimientoObra"
+      [options]="obras"
+      optionLabel="nombre"
+      placeholder="Buscar obra"
+      [filter]="true"
+      filterBy="nombre"
+      [showClear]="true"
+      appendTo="body"
+      styleClass="w-full"
+      (onChange)="onMovimientoObraSelect($event.value)"
+    ></p-select>
+
+    <label class="block text-sm font-poppins font-semibold mb-1 text-gray-700">Tipo de asociado</label>
+    <p-select
+      [(ngModel)]="movimientoTipoEntidad"
+      [options]="[
+        { label: 'Cliente', value: 'CLIENTE' },
+        { label: 'Proveedor', value: 'PROVEEDOR' }
+      ]"
+      placeholder="Seleccionar"
+      styleClass="w-full"
+      (onChange)="onMovimientoTipoEntidadChange()"
+    ></p-select>
+
+    @if (movimientoTipoEntidad === 'CLIENTE') {
+      <label class="block text-sm font-poppins font-semibold mb-1 text-gray-700">Cliente</label>
+      <p-select
+        [(ngModel)]="movimientoCliente"
+        [options]="movimientoClientesObra"
+        optionLabel="nombre"
+        placeholder="Cliente de la obra"
+        [filter]="true"
+        filterBy="nombre"
+        [showClear]="true"
+        appendTo="body"
+        styleClass="w-full"
+        (onChange)="onMovimientoClienteSelect($event.value)"
+      ></p-select>
+    }
+
+    @if (movimientoTipoEntidad === 'PROVEEDOR') {
+      <label class="block text-sm font-poppins font-semibold mb-1 text-gray-700">Proveedor</label>
+      <p-select
+        [(ngModel)]="movimientoProveedor"
+        [options]="movimientoProveedoresObra"
+        optionLabel="nombre"
+        placeholder="Proveedor de la obra"
+        [filter]="true"
+        filterBy="nombre"
+        [showClear]="true"
+        appendTo="body"
+        styleClass="w-full"
+        (onChange)="onMovimientoProveedorSelect($event.value)"
+      ></p-select>
+    }
+
+    <label class="block text-sm font-poppins font-semibold mb-1 text-gray-700">Condicion de pago/cobro</label>
+    <div class="flex items-center gap-6">
+      <div class="flex items-center gap-2">
+        <p-radiobutton
+          name="movFormaPago"
+          inputId="movFormaParcial"
+          value="PARCIAL"
+          [(ngModel)]="movimientoForm.forma_pago"
+          (ngModelChange)="onMovimientoFormaPagoChange($event)"
+        ></p-radiobutton>
+        <label for="movFormaParcial" class="text-sm text-gray-700">Parcial</label>
+      </div>
+      <div class="flex items-center gap-2">
+        <p-radiobutton
+          name="movFormaPago"
+          inputId="movFormaTotal"
+          value="TOTAL"
+          [(ngModel)]="movimientoForm.forma_pago"
+          (ngModelChange)="onMovimientoFormaPagoChange($event)"
+        ></p-radiobutton>
+        <label for="movFormaTotal" class="text-sm text-gray-700">Total</label>
+      </div>
+    </div>
+
+    <label class="block text-sm font-poppins font-semibold mb-1 text-gray-700">Medio</label>
+    <input
+      type="text"
+      pInputText
+      [(ngModel)]="movimientoForm.medio_pago"
+      class="w-full"
+      placeholder="Ej: Transferencia"
+    />
+
+    <div class="flex gap-5">
+      <div class="flex flex-col w-1/2">
+        <label class="block text-sm font-poppins font-semibold mb-1 text-gray-700">Monto</label>
+        <p-inputNumber
+          [(ngModel)]="movimientoForm.monto"
+          class="w-full"
+          currency="ARS"
+          locale="es-AR"
+          mode="currency"
+        ></p-inputNumber>
+      </div>
+      <div class="flex flex-col w-1/2">
+        <label class="block text-sm font-poppins font-semibold mb-1 text-gray-700">Fecha</label>
+        <p-datepicker
+          [(ngModel)]="movimientoForm.fecha"
+          appendTo="body"
+          class="w-full"
+          dateFormat="dd/mm/yy"
+        ></p-datepicker>
+      </div>
+    </div>
+  </div>
+</app-modal>
+
+<app-modal
+  (closed)="cerrarTareaModal()"
+  (confirmed)="guardarTareaRapida()"
+  [title]="'Nueva tarea'"
+  [visible]="showTareaModal"
+>
+  <div class="p-3 space-y-3">
+    <label class="block text-sm font-poppins font-semibold mb-1 text-gray-700">Obra</label>
+    <p-select
+      [(ngModel)]="tareaObra"
+      [options]="obras"
+      optionLabel="nombre"
+      placeholder="Buscar obra"
+      [filter]="true"
+      filterBy="nombre"
+      [showClear]="true"
+      appendTo="body"
+      styleClass="w-full"
+      (onChange)="onTareaObraSelect($event.value)"
+    ></p-select>
+
+    <label class="block text-sm font-poppins font-semibold mb-1 text-gray-700">Proveedor</label>
+    <p-select
+      [(ngModel)]="tareaProveedor"
+      [options]="tareaProveedoresObra"
+      optionLabel="nombre"
+      placeholder="Proveedor de la obra"
+      styleClass="w-full"
+    ></p-select>
+
+    <label class="block text-sm font-poppins font-semibold mb-1 text-gray-700">Nombre</label>
+    <input pInputText type="text" [(ngModel)]="tareaForm.nombre" class="w-full" />
+
+    <label class="block text-sm font-poppins font-semibold mb-1 text-gray-700">Nro de orden</label>
+    <p-inputNumber
+      [(ngModel)]="tareaForm.numero_orden"
+      class="w-full"
+      mode="decimal"
+      [useGrouping]="false"
+    ></p-inputNumber>
+
+    <label class="block text-sm font-poppins font-semibold mb-1 text-gray-700">Descripcion</label>
+    <textarea class="w-full border rounded p-2 text-sm" [(ngModel)]="tareaForm.descripcion" rows="3"></textarea>
+
+    <label class="block text-sm font-poppins font-semibold mb-1 text-gray-700">Porcentaje</label>
+    <p-inputNumber
+      [(ngModel)]="tareaForm.porcentaje"
+      class="w-full"
+      mode="decimal"
+      [min]="0"
+      [max]="100"
+    ></p-inputNumber>
+
+    <label class="block text-sm font-poppins font-semibold mb-1 text-gray-700">Fecha inicio</label>
+    <input pInputText type="date" [(ngModel)]="tareaForm.fecha_inicio" class="w-full" />
+  </div>
+</app-modal>
+
+<app-modal
+  (closed)="cerrarClienteModal()"
+  (confirmed)="guardarClienteRapido()"
+  [title]="'Nuevo cliente'"
+  [visible]="showClienteModal"
+>
+  <div class="p-3 space-y-3">
+    <label class="block text-sm font-poppins font-semibold mb-1 text-gray-700">Nombre</label>
+    <input pInputText type="text" [(ngModel)]="clienteForm.nombre" class="w-full" />
+
+    <label class="block text-sm font-poppins font-semibold mb-1 text-gray-700">Contacto</label>
+    <input pInputText type="text" [(ngModel)]="clienteForm.contacto" class="w-full" />
+
+    <label class="block text-sm font-poppins font-semibold mb-1 text-gray-700">Direccion</label>
+    <input pInputText type="text" [(ngModel)]="clienteForm.direccion" class="w-full" />
+
+    <label class="block text-sm font-poppins font-semibold mb-1 text-gray-700">CUIT</label>
+    <input pInputText type="text" [(ngModel)]="clienteForm.cuit" class="w-full" />
+
+    <label class="block text-sm font-poppins font-semibold mb-1 text-gray-700">Condicion IVA</label>
+    <p-select
+      [(ngModel)]="clienteForm.condicion_iva"
+      [options]="ivaOptions"
+      optionLabel="label"
+      optionValue="name"
+      placeholder="Seleccionar"
+      styleClass="w-full"
+    ></p-select>
+
+    <label class="block text-sm font-poppins font-semibold mb-1 text-gray-700">Telefono</label>
+    <input pInputText type="text" [(ngModel)]="clienteForm.telefono" class="w-full" />
+
+    <label class="block text-sm font-poppins font-semibold mb-1 text-gray-700">Email</label>
+    <input pInputText type="email" [(ngModel)]="clienteForm.email" class="w-full" />
+  </div>
+</app-modal>
+
+<app-proveedor-quick-modal
+  [visible]="showProveedorModal"
+  [tiposProveedor]="tiposProveedor"
+  [gremiosProveedor]="gremiosProveedor"
+  [model]="proveedorForm"
+  (closed)="cerrarProveedorModal()"
+  (confirmed)="guardarProveedorRapido()"
+  (tipoChange)="onTipoProveedorChange($event)"
+  (gremioChange)="onGremioChange($event)"
+></app-proveedor-quick-modal>
+
+<app-modal
+  (closed)="cerrarFacturaModal()"
+  (confirmed)="guardarFacturaRapida()"
+  [title]="'Nueva factura'"
+  [visible]="showFacturaModal"
+>
+  <div class="p-3 space-y-3">
+    <label class="block text-sm font-poppins font-semibold mb-1 text-gray-700">Cliente</label>
+    <p-select
+      [(ngModel)]="facturaForm.id_cliente"
+      [options]="clientes"
+      optionLabel="nombre"
+      optionValue="id"
+      placeholder="Seleccionar cliente"
+      styleClass="w-full"
+      (onChange)="onFacturaClienteChange()"
+    ></p-select>
+
+    <label class="block text-sm font-poppins font-semibold mb-1 text-gray-700">Obra</label>
+    <p-select
+      [(ngModel)]="facturaForm.id_obra"
+      [options]="facturaObrasFiltradas"
+      optionLabel="nombre"
+      optionValue="id"
+      placeholder="Seleccionar obra"
+      styleClass="w-full"
+      (onChange)="onFacturaObraChange()"
+    ></p-select>
+
+    <div class="flex gap-5">
+      <div class="flex flex-col w-1/2">
+        <label class="block text-sm font-poppins font-semibold mb-1 text-gray-700">Fecha</label>
+        <p-datepicker
+          [(ngModel)]="facturaForm.fecha"
+          appendTo="body"
+          class="w-full"
+          dateFormat="dd/mm/yy"
+        ></p-datepicker>
+      </div>
+      <div class="flex flex-col w-1/2">
+        <label class="block text-sm font-poppins font-semibold mb-1 text-gray-700">Monto</label>
+        <p-inputNumber
+          [(ngModel)]="facturaForm.monto"
+          class="w-full"
+          mode="decimal"
+          locale="es-AR"
+        ></p-inputNumber>
+      </div>
+    </div>
+
+    <label class="block text-sm font-poppins font-semibold mb-1 text-gray-700">Estado</label>
+    <p-select
+      [(ngModel)]="facturaForm.estado"
+      [options]="[
+        { label: 'Emitida', value: 'EMITIDA' },
+        { label: 'Cobrada', value: 'COBRADA' }
+      ]"
+      optionLabel="label"
+      optionValue="value"
+      placeholder="Seleccionar estado"
+      styleClass="w-full"
+    ></p-select>
+
+    <label class="block text-sm font-poppins font-semibold mb-1 text-gray-700">Descripcion</label>
+    <p-editor
+      [(ngModel)]="facturaForm.descripcion"
+      [style]="{ height: '160px' }"
+    ></p-editor>
+
+    <label class="block text-sm font-poppins font-semibold mb-1 text-gray-700">Adjuntar factura (opcional)</label>
+    <p-fileUpload
+      mode="basic"
+      chooseLabel="Seleccionar archivo"
+      chooseIcon="pi pi-upload"
+      accept=".jpg,.jpeg,.png,.pdf"
+      [auto]="false"
+      (onSelect)="onFacturaFileSelected($event)"
+    ></p-fileUpload>
+    @if (facturaFile) {
+      <div class="flex items-center gap-2 text-sm text-gray-700">
+        <span>{{ facturaFile.name }}</span>
+        <button type="button" class="text-red-500 hover:text-red-700" (click)="quitarFacturaArchivo()">x</button>
+      </div>
+    }
+  </div>
+</app-modal>

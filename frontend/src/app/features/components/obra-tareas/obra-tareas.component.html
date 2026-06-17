@@ -1,0 +1,221 @@
+﻿<p-toast></p-toast>
+<div class="flex flex-col gap-3">
+  <!-- Header -->
+  <div class="flex w-full justify-between items-center">
+    <div class="p-5">
+      <h1 class="font-poppins text-2xl font-semibold text-black">Gestión de tareas</h1>
+    </div>
+    <p-button (onClick)="abrirModal()" icon="pi pi-plus" label="Nueva Tarea"></p-button>
+  </div>
+
+  @if (avancePagos && avancePagos.items.length > 0) {
+    <div class="bg-white border border-gray-200 rounded-lg p-4">
+      <div class="flex flex-wrap items-center justify-between gap-3 mb-3">
+        <div class="text-sm font-poppins font-semibold text-gray-800">Avance y pagos habilitados</div>
+      </div>
+
+      <div class="overflow-x-auto">
+        <table class="w-full text-sm">
+          <thead class="bg-gray-50 text-gray-600">
+            <tr>
+              <th class="text-left px-3 py-2 font-poppins font-semibold">Proveedor</th>
+              <th class="text-right px-3 py-2 font-poppins font-semibold">Costo total</th>
+              <th class="text-right px-3 py-2 font-poppins font-semibold">Avance</th>
+              <th class="text-right px-3 py-2 font-poppins font-semibold">Pago habilitado</th>
+              <th class="text-right px-3 py-2 font-poppins font-semibold">Pagado</th>
+              <th class="text-right px-3 py-2 font-poppins font-semibold">Saldo</th>
+              <th class="text-center px-3 py-2 font-poppins font-semibold">Estado</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (row of avancePagos.items; track row.proveedorId) {
+              <tr class="border-t border-gray-100">
+                <td class="px-3 py-2 font-poppins font-normal">{{ row.proveedorNombre }}</td>
+                <td class="px-3 py-2 text-right font-poppins font-normal">{{ row.costoTotal | currency:'ARS':'symbol-narrow':'1.0-0' }}</td>
+                <td class="px-3 py-2 text-right font-poppins font-normal">{{ row.avancePorcentaje | number:'1.0-1' }}%</td>
+                <td class="px-3 py-2 text-right font-poppins font-semibold">{{ row.pagoHabilitado | currency:'ARS':'symbol-narrow':'1.0-0' }}</td>
+                <td class="px-3 py-2 text-right text-blue-700 font-poppins font-semibold">{{ row.pagado | currency:'ARS':'symbol-narrow':'1.0-0' }}</td>
+                <td class="px-3 py-2 text-right font-poppins"
+                  [ngClass]="row.saldo > 1 ? 'text-red-600 font-semibold' : row.saldo < -1 ? 'text-green-600 font-semibold' : 'text-gray-500 font-normal'">
+                  {{ row.saldo | currency:'ARS':'symbol-narrow':'1.0-0' }}
+                </td>
+                <td class="px-3 py-2 text-center">
+                  @if (row.estadoPago === 'AL_DIA') {
+                    <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-700">
+                      <i class="pi pi-check-circle text-xs"></i> Al día
+                    </span>
+                  } @else if (row.estadoPago === 'ATRASADO') {
+                    <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-700">
+                      <i class="pi pi-exclamation-circle text-xs"></i> Atrasado
+                    </span>
+                  } @else if (row.estadoPago === 'ADELANTADO') {
+                    <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-700">
+                      <i class="pi pi-arrow-up-right text-xs"></i> Adelantado
+                    </span>
+                  } @else {
+                    <span class="text-xs font-poppins font-normal text-gray-400">—</span>
+                  }
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </div>
+  }
+
+  <!-- Tabla de tareas -->
+  <p-table
+    [value]="tareas"
+    sortMode="multiple"
+    [multiSortMeta]="sortTareasMeta"
+    [paginator]="true"
+    [rows]="8"
+    responsiveLayout="scroll"
+    [tableStyle]="{'min-width':'720px'}">
+    <ng-template pTemplate="header">
+      <tr>
+        <th pSortableColumn="numero_orden" class="font-poppins font-semibold">Orden <p-sortIcon field="numero_orden"></p-sortIcon></th>
+        <th pSortableColumn="nombre" class="w-[260px] font-poppins font-semibold">Tarea <p-sortIcon field="nombre"></p-sortIcon></th>
+        <th pSortableColumn="proveedor.nombre" class="font-poppins font-semibold">Proveedor <p-sortIcon field="proveedor.nombre"></p-sortIcon></th>
+        <th pSortableColumn="estado_tarea" class="font-poppins font-semibold">Estado <p-sortIcon field="estado_tarea"></p-sortIcon></th>
+        <th pSortableColumn="fecha_inicio" class="font-poppins font-semibold">Fecha inicio <p-sortIcon field="fecha_inicio"></p-sortIcon></th>
+        <th pSortableColumn="porcentaje" class="font-poppins font-semibold">% Avance <p-sortIcon field="porcentaje"></p-sortIcon></th>
+        <th class="text-right font-poppins font-semibold">Acciones</th>
+      </tr>
+    </ng-template>
+    <ng-template pTemplate="body" let-tarea>
+      <tr
+        [ngClass]="claseEstado(tarea)"
+        class="cursor-pointer hover:bg-gray-100 transition-colors"
+        (click)="verTarea(tarea)"
+      >
+        <td class="font-poppins font-semibold text-gray-700">{{ tarea.numero_orden ?? '—' }}</td>
+        <td class="font-poppins font-semibold text-gray-900 w-[260px]">{{ tarea.nombre }}</td>
+        <td class="font-poppins font-normal">{{ tarea.proveedor?.nombre || ('Proveedor #' + tarea.id_proveedor) }}</td>
+        <td>
+          <p-tag
+            [value]="tarea.estado_tarea | estadoFormat"
+            [severity]="tarea.estado_tarea === 'COMPLETADA' ? 'success' : tarea.estado_tarea === 'EN_PROGRESO' ? 'info' : tarea.estado_tarea === 'PENDIENTE' ? 'secondary' : 'warning'">
+          </p-tag>
+        </td>
+        <td>{{ tarea.fecha_inicio ? (tarea.fecha_inicio | date:'dd/MM/yyyy') : 'â€”' }}</td>
+        <td class="text-right font-semibold">{{ tarea.porcentaje ?? 0 }}%</td>
+        <td class="text-right">
+          <div class="flex gap-1">
+            <p-button
+              [icon]="getSiguienteEstadoIcon(tarea)"
+              styleClass="p-button-text p-button-sm"
+              (onClick)="cambiarEstadoSecuencial(tarea); $event.stopPropagation()"
+              [pTooltip]="'Cambiar a ' + getSiguienteEstadoLabel(tarea)">
+            </p-button>
+            <p-button icon="pi pi-eye" styleClass="p-button-text p-button-sm" (onClick)="verTarea(tarea); $event.stopPropagation()" pTooltip="Ver"></p-button>
+            <p-button icon="pi pi-pencil" styleClass="p-button-text p-button-sm" (onClick)="editarTarea(tarea); $event.stopPropagation()" pTooltip="Editar"></p-button>
+            <p-button icon="pi pi-trash" styleClass="p-button-text p-button-sm text-red-500" (onClick)="eliminarTarea(tarea.id!); $event.stopPropagation()" pTooltip="Eliminar"></p-button>
+          </div>
+        </td>
+      </tr>
+    </ng-template>
+    <ng-template pTemplate="emptymessage">
+      <tr>
+        <td colspan="7" class="text-center text-gray-500 py-6">No hay tareas cargadas</td>
+      </tr>
+    </ng-template>
+  </p-table>
+
+  <!-- Modal -->
+  <app-modal
+    (closed)="cerrarModal()"
+    [showFooter]="false"
+    [visible]="showAddTaskModal"
+    [title]="editandoTarea ? (camposDeshabilitados ? 'Detalle de tarea' : 'Editar Tarea') : 'Nueva Tarea'">
+    <div class="p-3 space-y-3">
+      <label class="block text-sm font-medium">Nombre de la tarea</label>
+      <input
+        [(ngModel)]="nuevaTarea.nombre"
+        class="w-full"
+        pInputText
+        type="text"
+        [disabled]="camposDeshabilitados"
+      />
+
+      <label class="block text-sm font-medium">Descripción</label>
+      <textarea
+        [(ngModel)]="nuevaTarea.descripcion"
+        class="w-full p-2 border rounded-md"
+        rows="3"
+        placeholder="Detalle o notas de la tarea"
+        [disabled]="camposDeshabilitados"></textarea>
+
+      <label class="block text-sm font-medium">Proveedor</label>
+      <p-select
+        [(ngModel)]="nuevaTarea.id_proveedor"
+        [options]="proveedoresFiltrados"
+        appendTo="body"
+        class="w-full"
+        optionLabel="nombre"
+        optionValue="id"
+        placeholder="Seleccionar proveedor"
+        [disabled]="camposDeshabilitados">
+      </p-select>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+        <div>
+          <label class="block text-sm font-medium">Estado</label>
+          <p-select
+            [(ngModel)]="nuevaTarea.estado_tarea"
+            [options]="estadoOptions"
+            optionLabel="label"
+            optionValue="value"
+            appendTo="body"
+            class="w-full"
+            placeholder="Seleccionar estado"
+            [disabled]="camposDeshabilitados">
+          </p-select>
+        </div>
+        <div>
+          <label class="block text-sm font-medium">Fecha</label>
+          <input
+            [(ngModel)]="nuevaTarea.fecha_inicio"
+            class="w-full"
+            type="date"
+            pInputText
+            [disabled]="camposDeshabilitados" />
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+        <div>
+          <label class="block text-sm font-medium">Nro de orden</label>
+          <p-inputNumber
+            [(ngModel)]="nuevaTarea.numero_orden"
+            class="w-full"
+            mode="decimal"
+            [useGrouping]="false"
+            [disabled]="camposDeshabilitados">
+          </p-inputNumber>
+        </div>
+        <div>
+          <label class="block text-sm font-medium">Porcentaje de avance</label>
+          <input
+            [(ngModel)]="nuevaTarea.porcentaje"
+            class="w-full"
+            type="number"
+            min="0"
+            max="100"
+            pInputText
+            placeholder="0 - 100"
+            [disabled]="camposDeshabilitados" />
+        </div>
+      </div>
+    </div>
+
+    <div class="flex justify-end gap-2 p-3">
+      <p-button label="Cerrar" icon="pi pi-times" (onClick)="cerrarModal()" severity="secondary"></p-button>
+      @if (camposDeshabilitados) {
+        <p-button label="Editar" icon="pi pi-pencil" (onClick)="habilitarEdicion()" severity="info"></p-button>
+      }
+      <p-button label="Guardar" icon="pi pi-check" (onClick)="guardarTarea()" [disabled]="camposDeshabilitados" severity="primary"></p-button>
+    </div>
+  </app-modal>
+</div>

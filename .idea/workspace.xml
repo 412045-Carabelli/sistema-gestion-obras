@@ -1,0 +1,467 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="AutoImportSettings">
+    <option name="autoReloadType" value="SELECTIVE" />
+  </component>
+  <component name="ChangeListManager">
+    <list default="true" id="136fcb9c-e23f-4df3-a0a1-35500f9899cd" name="Changes" comment="release">
+      <change afterPath="$PROJECT_DIR$/backend1.0/reportes-service/src/main/java/com/reportes/dto/response/FiltroResponse.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/backend1.0/transacciones-service/src/main/resources/db/migration/V13__sp_filtros_cascada_deudas.sql" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/backend1.0/transacciones-service/src/main/resources/db/migration/V14__actualizar_sp_deudas_globales_con_proveedor.sql" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/backend1.0/transacciones-service/src/main/resources/db/migration/V15__sp_deudas_con_correlacion_cliente_proveedor.sql" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend1.0/agendas-service/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/backend1.0/agendas-service/pom.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend1.0/agendas-service/src/main/java/com/agendas/AgendasServiceApplication.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend1.0/agendas-service/src/main/java/com/agendas/AgendasServiceApplication.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend1.0/api-gateway/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/backend1.0/api-gateway/pom.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend1.0/api-gateway/src/main/java/com/apigateway/ApiGatewayApplication.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend1.0/api-gateway/src/main/java/com/apigateway/ApiGatewayApplication.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend1.0/api-gateway/src/main/java/com/apigateway/controller/ReportesBffController.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend1.0/api-gateway/src/main/java/com/apigateway/controller/ReportesBffController.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend1.0/clientes-service/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/backend1.0/clientes-service/pom.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend1.0/clientes-service/src/main/java/com/clientes/ClientesServiceApplication.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend1.0/clientes-service/src/main/java/com/clientes/ClientesServiceApplication.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend1.0/common/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/backend1.0/common/pom.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend1.0/documentos-service/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/backend1.0/documentos-service/pom.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend1.0/documentos-service/src/main/java/com/documentos/DocumentosServiceApplication.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend1.0/documentos-service/src/main/java/com/documentos/DocumentosServiceApplication.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend1.0/obras-service/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/backend1.0/obras-service/pom.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend1.0/obras-service/src/main/java/com/obras/ObrasServiceApplication.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend1.0/obras-service/src/main/java/com/obras/ObrasServiceApplication.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend1.0/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/backend1.0/pom.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend1.0/proveedores-service/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/backend1.0/proveedores-service/pom.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend1.0/proveedores-service/src/main/java/proveedores/ProveedoresServiceApplication.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend1.0/proveedores-service/src/main/java/proveedores/ProveedoresServiceApplication.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend1.0/reportes-service/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/backend1.0/reportes-service/pom.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend1.0/reportes-service/src/main/java/com/reportes/ReportesServiceApplication.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend1.0/reportes-service/src/main/java/com/reportes/ReportesServiceApplication.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend1.0/reportes-service/src/main/java/com/reportes/controller/ReportesController.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend1.0/reportes-service/src/main/java/com/reportes/controller/ReportesController.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend1.0/reportes-service/src/main/java/com/reportes/repository/DeudasGlobalesRepository.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend1.0/reportes-service/src/main/java/com/reportes/repository/DeudasGlobalesRepository.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend1.0/reportes-service/src/main/java/com/reportes/service/ReportesService.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend1.0/reportes-service/src/main/java/com/reportes/service/ReportesService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend1.0/transacciones-service/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/backend1.0/transacciones-service/pom.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend1.0/transacciones-service/src/main/java/com/transacciones/TransaccionesServiceApplication.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend1.0/transacciones-service/src/main/java/com/transacciones/TransaccionesServiceApplication.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend1.0/transacciones-service/src/main/resources/db/migration/V12__fix_sp_deudas_proveedores_usar_monto_real.sql" beforeDir="false" afterPath="$PROJECT_DIR$/backend1.0/transacciones-service/src/main/resources/db/migration/V12__fix_sp_deudas_proveedores_usar_monto_real.sql" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/package.json" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/package.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/src/app/features/components/obra-movimientos/obra-movimientos.component.ts" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/src/app/features/components/obra-movimientos/obra-movimientos.component.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/src/app/shared/sidebar/sidebar.component.ts" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/src/app/shared/sidebar/sidebar.component.ts" afterDir="false" />
+    </list>
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="CoverageOptionsProvider">
+    <option name="myAddOrReplace" value="0" />
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_BRANCH_BY_REPOSITORY">
+      <map>
+        <entry key="$PROJECT_DIR$" value="main" />
+      </map>
+    </option>
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="GitHubPullRequestSearchHistory">{
+  &quot;lastFilter&quot;: {
+    &quot;state&quot;: &quot;OPEN&quot;,
+    &quot;assignee&quot;: &quot;412045-Carabelli&quot;
+  }
+}</component>
+  <component name="GithubPullRequestsUISettings">{
+  &quot;selectedUrlAndAccountId&quot;: {
+    &quot;url&quot;: &quot;https://github.com/412045-Carabelli/sistema-gestion-obras.git&quot;,
+    &quot;accountId&quot;: &quot;931fa0a7-c1d8-48f7-8398-9c9e2bd5fa43&quot;
+  }
+}</component>
+  <component name="KubernetesApiPersistence">{}</component>
+  <component name="KubernetesApiProvider">{
+  &quot;isMigrated&quot;: true
+}</component>
+  <component name="ProblemsViewState">
+    <option name="selectedTabId" value="ProjectErrors" />
+  </component>
+  <component name="ProjectColorInfo">{
+  &quot;associatedIndex&quot;: 7
+}</component>
+  <component name="ProjectId" id="35J8ybffcJRaLRvtJ5YPAE06y5m" />
+  <component name="ProjectLevelVcsManager">
+    <ConfirmationsSetting value="1" id="Add" />
+  </component>
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "ASKED_MARK_IGNORED_FILES_AS_EXCLUDED": "true",
+    "Docker.Sistema de Gestión de Obras.api-gateway: Compose Deployment.executor": "Run",
+    "Docker.Sistema de Gestión de Obras.frontend: Compose Deployment.executor": "Run",
+    "Docker.Sistema de Gestión de Obras.minio: Compose Deployment.executor": "Run",
+    "Docker.Sistema de Gestión de Obras: Compose Deployment.executor": "Run",
+    "Docker.docker-compose.dev.yml: Compose Deployment.executor": "Run",
+    "Docker.docker-compose.ghcr.yml.clientes-service: Compose Deployment.executor": "Run",
+    "Docker.docker-compose.ghcr.yml.frontend: Compose Deployment.executor": "Run",
+    "Docker.docker-compose.ghcr.yml.obras-service: Compose Deployment.executor": "Run",
+    "Docker.docker-compose.ghcr.yml.proveedores-service: Compose Deployment.executor": "Run",
+    "Docker.docker-compose.ghcr.yml: Compose Deployment.executor": "Run",
+    "Docker.docker-compose.yml.api-gateway: Compose Deployment.executor": "Run",
+    "Docker.docker-compose.yml.clientes-service: Compose Deployment.executor": "Run",
+    "Docker.docker-compose.yml.frontend: Compose Deployment.executor": "Run",
+    "Docker.docker-compose.yml.proveedores-service: Compose Deployment.executor": "Run",
+    "Docker.docker-compose.yml.sqlserver: Compose Deployment.executor": "Run",
+    "Docker.docker-compose.yml: Compose Deployment.executor": "Run",
+    "Docker.frontend1.2.obras-service: Compose Deployment.executor": "Run",
+    "Docker.frontend1.2/docker-compose.frontend.yml: Compose Deployment.executor": "Run",
+    "Docker.frontend1.2: Compose Deployment.executor": "Run",
+    "JUnit.All in api-gateway.executor": "Coverage",
+    "JUnit.All in clientes-service.executor": "Coverage",
+    "JUnit.All in proveedores-service.executor": "Coverage",
+    "JUnit.All in reportes-service.executor": "Coverage",
+    "JUnit.java in documentos-service.executor": "Coverage",
+    "JUnit.java in obras-service.executor": "Coverage",
+    "JUnit.java in transacciones-service.executor": "Coverage",
+    "Maven.gestion-obras [-q,-DskipTests,package].executor": "Run",
+    "ModuleVcsDetector.initialDetectionPerformed": "true",
+    "Notification.DisplayName-DoNotAsk-DatabaseConfigFileWatcher.found": "Database connection parameters found",
+    "Notification.DoNotAsk-DatabaseConfigFileWatcher.found": "true",
+    "RequestMappingsPanelOrder0": "0",
+    "RequestMappingsPanelOrder1": "1",
+    "RequestMappingsPanelWidth0": "75",
+    "RequestMappingsPanelWidth1": "75",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252": "true",
+    "RunOnceActivity.git.unshallow": "true",
+    "RunOnceActivity.typescript.service.memoryLimit.init": "true",
+    "Spring Boot.ApiGatewayApplication.executor": "Run",
+    "Spring Boot.BackupServiceApplication.executor": "Run",
+    "Spring Boot.ClientesServiceApplication.executor": "Run",
+    "Spring Boot.DocumentosServiceApplication.executor": "Run",
+    "Spring Boot.ObrasServiceApplication.executor": "Run",
+    "Spring Boot.ProveedoresServiceApplication.executor": "Run",
+    "Spring Boot.ReportesServiceApplication.executor": "Run",
+    "Spring Boot.TransaccionesServiceApplication.executor": "Run",
+    "codeWithMe.voiceChat.enabledByDefault": "false",
+    "git-widget-placeholder": "fix/devo-09-05",
+    "kotlin-language-version-configured": "true",
+    "last_opened_file_path": "C:/Users/Usuario/Desktop/my-work/sistema-gestion-obras/data",
+    "node.js.detected.package.eslint": "true",
+    "node.js.selected.package.eslint": "(autodetect)",
+    "node.js.selected.package.tslint": "(autodetect)",
+    "nodejs_package_manager_path": "npm",
+    "project.structure.last.edited": "Modules",
+    "project.structure.proportion": "0.0",
+    "project.structure.side.proportion": "0.0",
+    "run.configurations.included.in.services": "true",
+    "settings.editor.selected.configurable": "preferences.pluginManager",
+    "ts.external.directory.path": "C:\\Users\\Usuario\\Desktop\\my-work\\sistema-gestion-obras\\frontend1.2\\node_modules\\typescript\\lib",
+    "vue.rearranger.settings.migration": "true"
+  }
+}]]></component>
+  <component name="RecentsManager">
+    <key name="CopyFile.RECENT_KEYS">
+      <recent name="C:\Users\Usuario\Desktop\my-work\sistema-gestion-obras\data" />
+      <recent name="C:\Users\Usuario\Desktop\my-work\sistema-gestion-obras\db" />
+      <recent name="C:\Users\Usuario\Desktop\my-work\sistema-gestion-obras" />
+    </key>
+    <key name="MoveFile.RECENT_KEYS">
+      <recent name="C:\Users\Usuario\Desktop\my-work\sistema-gestion-obras\db" />
+    </key>
+  </component>
+  <component name="RunAnythingCache">
+    <option name="myCommands">
+      <command value="mvn -q -DskipTests package" />
+    </option>
+  </component>
+  <component name="RunDashboard">
+    <option name="configurationTypes">
+      <set>
+        <option value="KtorApplicationConfigurationType" />
+        <option value="MicronautRunConfigurationType" />
+        <option value="QuarkusRunConfigurationType" />
+        <option value="SpringBootApplicationConfigurationType" />
+      </set>
+    </option>
+    <option name="hiddenConfigurations">
+      <map>
+        <entry key="SpringBootApplicationConfigurationType">
+          <value>
+            <set>
+              <option value="BackupServiceApplication" />
+            </set>
+          </value>
+        </entry>
+      </map>
+    </option>
+  </component>
+  <component name="RunManager" selected="Docker.docker-compose.ghcr.yml: Compose Deployment">
+    <configuration name="migrate_to_sqlserver.sql" type="DatabaseScript" editBeforeRun="true" temporary="true" nameIsGenerated="true">
+      <script-file value="$PROJECT_DIR$/db/migrate_to_sqlserver.sql" />
+      <script-mode>FILE</script-mode>
+      <method v="2" />
+    </configuration>
+    <configuration name="ApiGatewayApplication" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot" nameIsGenerated="true">
+      <option name="ACTIVE_PROFILES" value="dev" />
+      <module name="api-gateway" />
+      <selectedOptions>
+        <option name="environmentVariables" />
+      </selectedOptions>
+      <option name="SPRING_BOOT_MAIN_CLASS" value="com.apigateway.ApiGatewayApplication" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="BackupServiceApplication" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot" nameIsGenerated="true">
+      <module name="backup-service" />
+      <option name="SPRING_BOOT_MAIN_CLASS" value="com.backups.BackupServiceApplication" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="ClientesServiceApplication" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot">
+      <option name="ACTIVE_PROFILES" value="dev" />
+      <envs>
+        <env name="SPRING_DATASOURCE_PASSWORD" value="Sistema_obras_2026!" />
+      </envs>
+      <module name="clientes-service" />
+      <option name="SPRING_BOOT_MAIN_CLASS" value="com.clientes.ClientesServiceApplication" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="DocumentosServiceApplication" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot" nameIsGenerated="true">
+      <option name="ACTIVE_PROFILES" value="dev" />
+      <envs>
+        <env name="SPRING_DATASOURCE_PASSWORD" value="Sistema_obras_2026!" />
+      </envs>
+      <module name="documentos-service" />
+      <option name="SPRING_BOOT_MAIN_CLASS" value="com.documentos.DocumentosServiceApplication" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="ObrasServiceApplication" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot" nameIsGenerated="true">
+      <option name="ACTIVE_PROFILES" value="dev" />
+      <envs>
+        <env name="SPRING_DATASOURCE_PASSWORD" value="Sistema_obras_2026!" />
+      </envs>
+      <module name="obras-service" />
+      <option name="SPRING_BOOT_MAIN_CLASS" value="com.obras.ObrasServiceApplication" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="ProveedoresServiceApplication" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot" nameIsGenerated="true">
+      <option name="ACTIVE_PROFILES" value="dev" />
+      <envs>
+        <env name="SPRING_DATASOURCE_PASSWORD" value="Sistema_obras_2026!" />
+      </envs>
+      <module name="proveedores-service" />
+      <option name="SPRING_BOOT_MAIN_CLASS" value="proveedores.ProveedoresServiceApplication" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="ReportesServiceApplication" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot" nameIsGenerated="true">
+      <option name="ACTIVE_PROFILES" value="dev" />
+      <envs>
+        <env name="SPRING_DATASOURCE_PASSWORD" value="Sistema_obras_2026!" />
+      </envs>
+      <module name="reportes-service" />
+      <option name="SPRING_BOOT_MAIN_CLASS" value="com.reportes.ReportesServiceApplication" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="TransaccionesServiceApplication" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot" nameIsGenerated="true">
+      <option name="ACTIVE_PROFILES" value="dev" />
+      <envs>
+        <env name="SPRING_DATASOURCE_PASSWORD" value="Sistema_obras_2026!" />
+      </envs>
+      <module name="transacciones-service" />
+      <option name="SPRING_BOOT_MAIN_CLASS" value="com.transacciones.TransaccionesServiceApplication" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="Sistema de Gestión de Obras: Compose Deployment" type="docker-deploy" factoryName="docker-compose.yml" temporary="true" server-name="Docker">
+      <deployment type="docker-compose.yml">
+        <settings>
+          <option name="sourceFilePath" value="Sistema de Gestión de Obras/docker-compose.yml" />
+        </settings>
+      </deployment>
+      <method v="2" />
+    </configuration>
+    <configuration default="true" type="docker-deploy" factoryName="docker-compose.yml" temporary="true">
+      <deployment type="docker-compose.yml">
+        <settings />
+      </deployment>
+      <method v="2" />
+    </configuration>
+    <configuration name="docker-compose.ghcr.yml: Compose Deployment" type="docker-deploy" factoryName="docker-compose.yml" temporary="true" server-name="Docker">
+      <deployment type="docker-compose.yml">
+        <settings>
+          <option name="sourceFilePath" value="docker-compose.ghcr.yml" />
+        </settings>
+      </deployment>
+      <method v="2" />
+    </configuration>
+    <configuration name="docker-compose.yml: Compose Deployment" type="docker-deploy" factoryName="docker-compose.yml" temporary="true" server-name="Docker">
+      <deployment type="docker-compose.yml">
+        <settings>
+          <option name="sourceFilePath" value="docker-compose.yml" />
+        </settings>
+      </deployment>
+      <method v="2" />
+    </configuration>
+    <configuration name="docker-compose.yml.sqlserver: Compose Deployment" type="docker-deploy" factoryName="docker-compose.yml" temporary="true" server-name="Docker">
+      <deployment type="docker-compose.yml">
+        <settings>
+          <option name="services">
+            <list>
+              <option value="sqlserver" />
+            </list>
+          </option>
+          <option name="sourceFilePath" value="docker-compose.yml" />
+        </settings>
+      </deployment>
+      <method v="2" />
+    </configuration>
+    <list>
+      <item itemvalue="Database Script.migrate_to_sqlserver.sql" />
+      <item itemvalue="Docker.Sistema de Gestión de Obras: Compose Deployment" />
+      <item itemvalue="Docker.docker-compose.ghcr.yml: Compose Deployment" />
+      <item itemvalue="Docker.docker-compose.yml: Compose Deployment" />
+      <item itemvalue="Docker.docker-compose.yml.sqlserver: Compose Deployment" />
+      <item itemvalue="Spring Boot.ApiGatewayApplication" />
+      <item itemvalue="Spring Boot.BackupServiceApplication" />
+      <item itemvalue="Spring Boot.ClientesServiceApplication" />
+      <item itemvalue="Spring Boot.DocumentosServiceApplication" />
+      <item itemvalue="Spring Boot.ObrasServiceApplication" />
+      <item itemvalue="Spring Boot.ProveedoresServiceApplication" />
+      <item itemvalue="Spring Boot.ReportesServiceApplication" />
+      <item itemvalue="Spring Boot.TransaccionesServiceApplication" />
+    </list>
+    <recent_temporary>
+      <list>
+        <item itemvalue="Docker.docker-compose.ghcr.yml: Compose Deployment" />
+        <item itemvalue="Docker.docker-compose.yml.sqlserver: Compose Deployment" />
+        <item itemvalue="Database Script.migrate_to_sqlserver.sql" />
+        <item itemvalue="Docker.docker-compose.yml: Compose Deployment" />
+        <item itemvalue="Docker.Sistema de Gestión de Obras: Compose Deployment" />
+      </list>
+    </recent_temporary>
+  </component>
+  <component name="SharedIndexes">
+    <attachedChunks>
+      <set>
+        <option value="bundled-jdk-9823dce3aa75-fbdcb00ec9e3-intellij.indexing.shared.core-IU-251.26094.121" />
+        <option value="bundled-js-predefined-d6986cc7102b-b26f3e71634d-JavaScript-IU-251.26094.121" />
+      </set>
+    </attachedChunks>
+  </component>
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="136fcb9c-e23f-4df3-a0a1-35500f9899cd" name="Changes" comment="" />
+      <created>1762817071705</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1762817071705</updated>
+      <workItem from="1762817074259" duration="615000" />
+      <workItem from="1762817956661" duration="5382000" />
+      <workItem from="1762875611103" duration="168000" />
+      <workItem from="1762876900627" duration="6533000" />
+      <workItem from="1763047785980" duration="2112000" />
+      <workItem from="1764087302567" duration="12596000" />
+      <workItem from="1764128811853" duration="117000" />
+      <workItem from="1764177462849" duration="25000" />
+      <workItem from="1764177588912" duration="6432000" />
+      <workItem from="1764188607555" duration="9000" />
+      <workItem from="1764555255461" duration="8270000" />
+      <workItem from="1764565493849" duration="921000" />
+      <workItem from="1764616886153" duration="10701000" />
+      <workItem from="1764700135092" duration="14256000" />
+      <workItem from="1764875648088" duration="11764000" />
+      <workItem from="1764888621224" duration="1947000" />
+      <workItem from="1764935285426" duration="6901000" />
+      <workItem from="1765216887813" duration="5592000" />
+      <workItem from="1765302171543" duration="17127000" />
+      <workItem from="1765390968124" duration="1138000" />
+      <workItem from="1765567039641" duration="8990000" />
+      <workItem from="1765676710029" duration="6997000" />
+      <workItem from="1765900840256" duration="18430000" />
+      <workItem from="1766328115489" duration="5673000" />
+      <workItem from="1766422030102" duration="7015000" />
+      <workItem from="1766545901018" duration="8756000" />
+      <workItem from="1766706360545" duration="747000" />
+      <workItem from="1766806985536" duration="7249000" />
+      <workItem from="1766857433027" duration="2976000" />
+      <workItem from="1767023461534" duration="7740000" />
+      <workItem from="1767037335103" duration="1670000" />
+      <workItem from="1767218787170" duration="4270000" />
+      <workItem from="1767316019483" duration="10261000" />
+      <workItem from="1767472978339" duration="7265000" />
+      <workItem from="1767715881689" duration="12567000" />
+      <workItem from="1767920756061" duration="4074000" />
+      <workItem from="1768075761572" duration="4382000" />
+      <workItem from="1768236042129" duration="6205000" />
+      <workItem from="1768272951398" duration="9079000" />
+      <workItem from="1768321988186" duration="14801000" />
+      <workItem from="1768509868319" duration="9785000" />
+      <workItem from="1768586136665" duration="4509000" />
+      <workItem from="1768680368444" duration="5000" />
+      <workItem from="1769222036176" duration="2608000" />
+      <workItem from="1769515819026" duration="301000" />
+      <workItem from="1769518895114" duration="10192000" />
+      <workItem from="1769535173570" duration="1524000" />
+      <workItem from="1769824260567" duration="2544000" />
+      <workItem from="1769885503832" duration="3140000" />
+      <workItem from="1769907856547" duration="129000" />
+      <workItem from="1769995189059" duration="31091000" />
+      <workItem from="1770177198621" duration="2455000" />
+      <workItem from="1770258972960" duration="9960000" />
+      <workItem from="1770343773109" duration="9486000" />
+      <workItem from="1770490780185" duration="5305000" />
+      <workItem from="1771360223543" duration="8156000" />
+      <workItem from="1771550501882" duration="8867000" />
+      <workItem from="1771818210186" duration="8193000" />
+      <workItem from="1771888706982" duration="11742000" />
+      <workItem from="1772410793021" duration="10658000" />
+      <workItem from="1773406720323" duration="18476000" />
+      <workItem from="1773923858404" duration="13314000" />
+      <workItem from="1773946269259" duration="2408000" />
+      <workItem from="1774466170073" duration="2364000" />
+      <workItem from="1775423772619" duration="6000" />
+      <workItem from="1778335722457" duration="12000" />
+      <workItem from="1778499911518" duration="8000" />
+    </task>
+    <task id="LOCAL-00001" summary="release">
+      <option name="closed" value="true" />
+      <created>1770491104569</created>
+      <option name="number" value="00001" />
+      <option name="presentableId" value="LOCAL-00001" />
+      <option name="project" value="LOCAL" />
+      <updated>1770491104569</updated>
+    </task>
+    <option name="localTasksCounter" value="2" />
+    <servers />
+  </component>
+  <component name="TypeScriptGeneratedFilesManager">
+    <option name="version" value="3" />
+  </component>
+  <component name="Vcs.Log.Tabs.Properties">
+    <option name="TAB_STATES">
+      <map>
+        <entry key="MAIN">
+          <value>
+            <State />
+          </value>
+        </entry>
+      </map>
+    </option>
+  </component>
+  <component name="VcsManagerConfiguration">
+    <MESSAGE value="release" />
+    <option name="LAST_COMMIT_MESSAGE" value="release" />
+  </component>
+  <component name="com.intellij.coverage.CoverageDataManagerImpl">
+    <SUITE FILE_PATH="coverage/sistema_gestion_obras$All_in_api_gateway.ic" NAME="All in api-gateway Coverage Results" MODIFIED="1770001830806" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="idea" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="true" />
+    <SUITE FILE_PATH="coverage/sistema_gestion_obras$java_in_obras_service.ic" NAME="java in obras-service Coverage Results" MODIFIED="1769997731642" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="idea" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="true" />
+    <SUITE FILE_PATH="coverage/sistema_gestion_obras$All_in_proveedores_service.ic" NAME="All in proveedores-service Coverage Results" MODIFIED="1769998811339" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="idea" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="true" />
+    <SUITE FILE_PATH="coverage/sistema_gestion_obras$java_in_transacciones_service.ic" NAME="java in transacciones-service Coverage Results" MODIFIED="1769999905095" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="idea" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="true" />
+    <SUITE FILE_PATH="coverage/sistema_gestion_obras$All_in_clientes_service.ic" NAME="All in clientes-service Coverage Results" MODIFIED="1769998616900" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="idea" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="true" />
+    <SUITE FILE_PATH="coverage/sistema_gestion_obras$All_in_reportes_service.ic" NAME="All in reportes-service Coverage Results" MODIFIED="1770001369521" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="idea" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="true" />
+    <SUITE FILE_PATH="coverage/sistema_gestion_obras$java_in_documentos_service.ic" NAME="java in documentos-service Coverage Results" MODIFIED="1770002207771" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="idea" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="true" />
+  </component>
+</project>

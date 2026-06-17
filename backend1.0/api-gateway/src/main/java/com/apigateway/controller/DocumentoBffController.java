@@ -1,6 +1,7 @@
 package com.apigateway.controller;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpHeaders;
@@ -20,6 +21,7 @@ import java.util.Map;
 @RestController
 @RequestMapping("/bff/documentos")
 @RequiredArgsConstructor
+@Slf4j
 @CrossOrigin(origins = "http://localhost:4200")
 public class DocumentoBffController {
 
@@ -33,12 +35,12 @@ public class DocumentoBffController {
     // ================================
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public Mono<ResponseEntity<Map<String, Object>>> create(
-            @RequestPart("id_obra") String idObra,
+            @RequestPart(value = "id_obra", required = false) String idObra,
             @RequestPart(value = "tipo_documento", required = false) String tipoDocumento,
             @RequestPart(value = "observacion", required = false) String observacion,
             @RequestPart(value = "id_asociado", required = false) String idAsociado,
             @RequestPart(value = "tipo_asociado", required = false) String tipoAsociado,
-            @RequestPart("file") FilePart filePart
+            @RequestPart(value = "file", required = false) FilePart filePart
     ) {
         MultipartBodyBuilder builder = new MultipartBodyBuilder();
         builder.part("id_obra", idObra);
@@ -55,10 +57,12 @@ public class DocumentoBffController {
             builder.part("tipo_asociado", tipoAsociado);
         }
 
-        // Adjuntar archivo preservando filename y content type
-        builder.part("file", filePart)
-                .header(HttpHeaders.CONTENT_DISPOSITION, "form-data; name=file; filename=\"" + filePart.filename() + "\"")
-                .contentType(filePart.headers().getContentType());
+        // Adjuntar archivo solo si fue enviado
+        if (filePart != null) {
+            builder.part("file", filePart)
+                    .header(HttpHeaders.CONTENT_DISPOSITION, "form-data; name=file; filename=\"" + filePart.filename() + "\"")
+                    .contentType(filePart.headers().getContentType());
+        }
 
         return webClientBuilder.build()
                 .post()
@@ -68,7 +72,7 @@ public class DocumentoBffController {
                 .bodyToMono(new ParameterizedTypeReference<Map<String, Object>>() {})
                 .map(ResponseEntity::ok)
                 .onErrorResume(ex -> {
-                    ex.printStackTrace();
+                    log.error("Error creando documento", ex);
                     Map<String, Object> err = Map.of(
                             "error", "No se pudo crear el documento",
                             "detalle", ex.getMessage()
@@ -90,7 +94,7 @@ public class DocumentoBffController {
                 .bodyToMono(new ParameterizedTypeReference<List<Map<String, Object>>>() {})
                 .map(ResponseEntity::ok)
                 .onErrorResume(ex -> {
-                    ex.printStackTrace();
+                    log.error("Error obteniendo documentos por obra: {}", ex.getMessage());
                     return Mono.just(ResponseEntity.internalServerError().body(List.of()));
                 });
     }
@@ -106,7 +110,7 @@ public class DocumentoBffController {
                 .retrieve()
                 .toBodilessEntity()
                 .onErrorResume(ex -> {
-                    ex.printStackTrace();
+                    log.error("Error eliminando documento id: {}", id, ex);
                     return Mono.just(ResponseEntity.internalServerError().build());
                 });
     }

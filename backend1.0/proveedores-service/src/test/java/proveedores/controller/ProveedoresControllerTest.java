@@ -15,7 +15,9 @@ import proveedores.repository.ProveedorRepository;
 import proveedores.service.ProveedorFinanzasService;
 import proveedores.service.ProveedorService;
 
+import java.math.BigDecimal;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import static org.mockito.ArgumentMatchers.any;
@@ -46,7 +48,10 @@ class ProveedoresControllerTest {
         Proveedor p = new Proveedor();
         p.setId(1L);
         p.setNombre("Prov A");
-        when(service.findAllActivos()).thenReturn(List.of(p));
+        when(service.findAllActivosByEmpresa(any())).thenReturn(List.of(p));
+        when(finanzasService.calcularTotalesBulk(any())).thenReturn(Map.of(
+                1L, new ProveedorFinanzasService.TotalesProveedor(BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO)
+        ));
 
         mockMvc.perform(get("/api/proveedores"))
             .andExpect(status().isOk())
@@ -107,7 +112,7 @@ class ProveedoresControllerTest {
         Proveedor saved = new Proveedor();
         saved.setId(5L);
         saved.setNombre("Prov X");
-        when(service.save(any(Proveedor.class))).thenReturn(saved);
+        when(service.save(any(Proveedor.class), any())).thenReturn(saved);
 
         mockMvc.perform(post("/api/proveedores")
                 .contentType(MediaType.APPLICATION_JSON)
@@ -121,7 +126,7 @@ class ProveedoresControllerTest {
     void create_bad_request() throws Exception {
         ProveedorDTO dto = new ProveedorDTO();
         dto.setNombre("Prov X");
-        when(service.save(any(Proveedor.class))).thenThrow(new RuntimeException("error"));
+        when(service.save(any(Proveedor.class), any())).thenThrow(new RuntimeException("error"));
 
         mockMvc.perform(post("/api/proveedores")
                 .contentType(MediaType.APPLICATION_JSON)
@@ -141,7 +146,7 @@ class ProveedoresControllerTest {
                 .content(objectMapper.writeValueAsString(dto)))
             .andExpect(status().isBadRequest());
 
-        verify(service, never()).save(any(Proveedor.class));
+        verify(service, never()).save(any(Proveedor.class), any());
     }
 
     @Test

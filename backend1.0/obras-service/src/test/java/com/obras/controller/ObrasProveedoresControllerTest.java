@@ -1,5 +1,6 @@
 package com.obras.controller;
 
+import com.obras.audit.AuditLogService;
 import com.obras.entity.ObraProveedor;
 import com.obras.repository.ObraCostoRepository;
 import com.obras.repository.ObraProveedorRepository;
@@ -38,6 +39,9 @@ class ObrasProveedoresControllerTest {
 
     @MockBean
     private ObraProveedorRepository obraProveedorRepository;
+
+    @MockBean
+    private AuditLogService auditLogService;
 
     @Test
     void listar_proveedores_ok() throws Exception {

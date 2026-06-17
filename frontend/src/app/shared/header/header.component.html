@@ -1,0 +1,44 @@
+<header class="sticky top-0 z-50 bg-white border-b border-gray-200 px-4 py-3">
+  <div class="flex items-center justify-between">
+
+    <!-- Menu Toggle & Logo -->
+    <div class="flex items-center gap-4">
+      <p-button
+        (onClick)="onToggleMenu()"
+        [rounded]="true"
+        [text]="true"
+        icon="pi pi-bars"
+        styleClass="text-gray-700">
+      </p-button>
+
+      @if (logoUrl) {
+        <div class="flex items-center">
+          <img [src]="logoUrl" alt="Logo empresa" class="h-9 object-contain max-w-[160px]"
+            (error)="onLogoError()">
+        </div>
+      }
+    </div>
+
+    <!-- Avatar -->
+    <div class="flex items-center">
+      @if (userAvatarUrl) {
+        <img
+          [src]="userAvatarUrl"
+          alt="Avatar"
+          class="w-9 h-9 rounded-full object-cover cursor-pointer ring-2 ring-indigo-100 hover:ring-indigo-300 transition-all"
+          (click)="toggleUserMenu($event)"
+        />
+      } @else {
+        <div
+          class="w-9 h-9 rounded-full bg-indigo-600 flex items-center justify-center cursor-pointer select-none ring-2 ring-indigo-100 hover:ring-indigo-300 hover:bg-indigo-700 transition-all"
+          (click)="toggleUserMenu($event)"
+        >
+          <span class="text-white text-sm font-semibold leading-none">{{ userInitials }}</span>
+        </div>
+      }
+
+      <p-menu #userMenu [model]="menuItems" [popup]="true" appendTo="body"></p-menu>
+    </div>
+
+  </div>
+</header>

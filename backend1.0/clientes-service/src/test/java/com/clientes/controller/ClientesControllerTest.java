@@ -1,9 +1,11 @@
 package com.clientes.controller;
 
+import com.clientes.audit.AuditLogService;
 import com.clientes.dto.ClienteRequest;
 import com.clientes.dto.ClienteResponse;
 import com.clientes.entity.CondicionIva;
 import com.clientes.exception.ClienteNotFoundException;
+import com.clientes.repository.ClienteRepository;
 import com.clientes.service.ClienteService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
@@ -33,6 +35,12 @@ class ClientesControllerTest {
     @MockBean
     private ClienteService service;
 
+    @MockBean
+    private AuditLogService auditLogService;
+
+    @MockBean
+    private ClienteRepository clienteRepository;
+
     @Test
     void crear_ok() throws Exception {
         ClienteRequest request = new ClienteRequest();
@@ -42,7 +50,7 @@ class ClientesControllerTest {
         response.setId(1L);
         response.setNombre("Cliente A");
         response.setCondicionIVA("MONOTRIBUTO");
-        when(service.crear(any(ClienteRequest.class))).thenReturn(response);
+        when(service.crear(any(ClienteRequest.class), any())).thenReturn(response);
 
         mockMvc.perform(post("/api/clientes")
                 .contentType(MediaType.APPLICATION_JSON)
@@ -56,7 +64,7 @@ class ClientesControllerTest {
     void listar_ok() throws Exception {
         ClienteResponse c1 = new ClienteResponse();
         c1.setId(1L);
-        when(service.listar()).thenReturn(List.of(c1));
+        when(service.listar(any())).thenReturn(List.of(c1));
 
         mockMvc.perform(get("/api/clientes"))
             .andExpect(status().isOk())

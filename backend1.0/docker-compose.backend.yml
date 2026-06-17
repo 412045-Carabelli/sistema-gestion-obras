@@ -5,7 +5,7 @@ services:
     build:
       context: ./obras-service
     image: sistema-gestion-obras/obras-service:latest
-    container_name: obras_service
+    container_name: obras_service_local
     ports:
       - "8081:8081"
     volumes:
@@ -23,7 +23,7 @@ services:
     build:
       context: ./clientes-service
     image: sistema-gestion-obras/clientes-service:latest
-    container_name: clientes_service
+    container_name: clientes_service_local
     ports:
       - "8082:8082"
     volumes:
@@ -38,7 +38,7 @@ services:
     build:
       context: ./proveedores-service
     image: sistema-gestion-obras/proveedores-service:latest
-    container_name: proveedores_service
+    container_name: proveedores_service_local
     ports:
       - "8083:8083"
     volumes:
@@ -56,7 +56,7 @@ services:
     build:
       context: ./documentos-service
     image: sistema-gestion-obras/documentos-service:latest
-    container_name: documentos_service
+    container_name: documentos_service_local
     ports:
       - "8087:8087"
     volumes:
@@ -82,7 +82,7 @@ services:
     build:
       context: ./transacciones-service
     image: sistema-gestion-obras/transacciones-service:latest
-    container_name: transacciones_service
+    container_name: transacciones_service_local
     ports:
       - "8086:8086"
     volumes:
@@ -100,7 +100,7 @@ services:
     build:
       context: ./reportes-service
     image: sistema-gestion-obras/reportes-service:latest
-    container_name: reportes_service
+    container_name: reportes_service_local
     ports:
       - "8084:8084"
     volumes:
@@ -113,17 +113,33 @@ services:
     networks:
       - sgo_backend
 
+  agendas-service:
+    build:
+      context: ./agendas-service
+    image: sistema-gestion-obras/agendas-service:latest
+    container_name: agendas_service_local
+    ports:
+      - "8088:8088"
+    volumes:
+      - ./agendas-service/data:/app/data
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+    restart: unless-stopped
+    networks:
+      - sgo_backend
+
   api-gateway:
     build:
       context: ./api-gateway
     image: sistema-gestion-obras/api-gateway:latest
-    container_name: api_gateway_service
+    container_name: api_gateway_service_local
     depends_on:
       - obras-service
       - clientes-service
       - proveedores-service
       - documentos-service
       - transacciones-service
+      - agendas-service
     ports:
       - "8080:8080"
     environment:
@@ -134,7 +150,7 @@ services:
 
   minio:
     image: minio/minio:latest
-    container_name: minio
+    container_name: minio_local
     command: server /data --console-address ":9001"
     ports:
       - "9000:9000"

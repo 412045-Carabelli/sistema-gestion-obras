@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 160" width="160" height="160">
+  <defs>
+    <style>@import url('https://fonts.googleapis.com/css2?family=Syne:wght@800&amp;display=swap');</style>
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="1.5" result="coloredBlur"/>
+      <feMerge><feMergeNode in="coloredBlur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+
+  <!-- Background -->
+  <rect width="160" height="160" fill="#0e0e0e" rx="28"/>
+
+  <!-- Icon box -->
+  <rect x="16" y="16" width="128" height="128" rx="22" fill="#161616"/>
+
+  <!-- "b" centrada -->
+  <text
+    x="80" y="114"
+    text-anchor="middle"
+    font-family="'Syne', 'Helvetica Neue', sans-serif"
+    font-weight="800"
+    font-size="98"
+    fill="#F0F0F0"
+  >b</text>
+
+  <!-- Punto lima -->
+  <circle cx="118" cy="46" r="8" fill="#E8FF47" filter="url(#glow)"/>
+</svg>

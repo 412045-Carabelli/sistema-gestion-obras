@@ -14,6 +14,9 @@ import com.clientes.repository.ClienteRepository;
 import com.clientes.service.ClienteService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
@@ -45,9 +48,12 @@ public class ClienteServiceImpl implements ClienteService {
     private final TransaccionesClient transaccionesClient;
 
     @Override
-    public ClienteResponse crear(ClienteRequest request) {
+    public ClienteResponse crear(ClienteRequest request, Long empresaId) {
         validarCondicionIVA(request.getCondicionIVA());
         Cliente entity = mapearEntidad(request);
+        if (empresaId != null) {
+            entity.setId_empresa(empresaId);
+        }
         entity.setCreadoEn(Instant.now());
         Cliente guardado = repository.save(entity);
         return mapearRespuesta(guardado, null, null, null, null);
@@ -90,29 +96,53 @@ public class ClienteServiceImpl implements ClienteService {
     }
 
     @Override
-    public List<ClienteResponse> listar() {
-        return repository.findAll().stream()
-                .map(cliente -> {
-                    List<ObraClienteResponse> obras;
-                    try {
-                        obras = obrasClient.obtenerObrasPorCliente(cliente.getId());
-                    } catch (Exception ex) {
-                        log.warn("No se pudieron obtener las obras para el cliente {}", cliente.getId(), ex);
-                        obras = Collections.emptyList();
-                    }
-
-                    List<TransaccionExternalDto> transacciones;
-                    try {
-                        transacciones = transaccionesClient.obtenerTransaccionesPorAsociado("CLIENTE", cliente.getId());
-                    } catch (Exception ex) {
-                        log.warn("No se pudieron obtener transacciones del cliente {}", cliente.getId(), ex);
-                        transacciones = Collections.emptyList();
-                    }
-
-                    TotalesCliente totales = calcularTotalesCliente(obras, transacciones, false);
-                    return mapearRespuesta(cliente, null, totales.totalCliente, totales.cobrosRealizados, totales.saldoCliente);
-                })
+    public List<ClienteResponse> listar(Long empresaId) {
+        // ⚡ RÁPIDO: sin obras ni transacciones, para dashboard/reportes
+        List<Cliente> clientes = empresaId != null
+            ? repository.findByIdEmpresa(empresaId)
+            : repository.findAll();
+        return clientes.stream()
+                .map(this::mapearRespuestaLite)
                 .toList();
+    }
+
+    @Override
+    public Page<ClienteResponse> listarConDetalles(Pageable pageable, Long empresaId) {
+        // 📊 COMPLETO: con obras, saldos, transacciones (PAGINADO en BD)
+        Page<Cliente> clientes = empresaId != null
+            ? repository.findByIdEmpresa(empresaId, pageable)
+            : repository.findAll(pageable);
+        List<ClienteResponse> detalles = clientes.getContent().stream()
+                .map(cliente -> cargarClienteConDetallesEnParalelo(cliente))
+                .toList();
+        return new PageImpl<>(detalles, pageable, clientes.getTotalElements());
+    }
+
+    private ClienteResponse cargarClienteConDetallesEnParalelo(Cliente cliente) {
+        try {
+            // Llamadas HTTP secuenciales (en MVC la latencia de red domina)
+            List<ObraClienteResponse> obras;
+            try {
+                obras = obrasClient.obtenerObrasPorCliente(cliente.getId());
+            } catch (Exception ex) {
+                log.warn("No se pudieron obtener obras para cliente {}", cliente.getId(), ex);
+                obras = Collections.emptyList();
+            }
+
+            List<TransaccionExternalDto> transacciones;
+            try {
+                transacciones = transaccionesClient.obtenerTransaccionesPorAsociado("CLIENTE", cliente.getId());
+            } catch (Exception ex) {
+                log.warn("No se pudieron obtener transacciones para cliente {}", cliente.getId(), ex);
+                transacciones = Collections.emptyList();
+            }
+
+            TotalesCliente totales = calcularTotalesCliente(obras, transacciones, true);
+            return mapearRespuesta(cliente, obras, totales.totalCliente, totales.cobrosRealizados, totales.saldoCliente);
+        } catch (Exception ex) {
+            log.error("Error cargando detalles del cliente {}: {}", cliente.getId(), ex.getMessage());
+            return mapearRespuestaLite(cliente);
+        }
     }
 
     @Override
@@ -169,13 +199,8 @@ public class ClienteServiceImpl implements ClienteService {
         }
     }
 
-    private ClienteResponse mapearRespuesta(
-            Cliente cliente,
-            List<ObraClienteResponse> obras,
-            BigDecimal totalCliente,
-            BigDecimal cobrosRealizados,
-            BigDecimal saldoCliente
-    ) {
+    private ClienteResponse mapearRespuestaLite(Cliente cliente) {
+        // ⚡ LITE: solo datos básicos, sin obras ni transacciones
         ClienteResponse response = new ClienteResponse();
         response.setId(cliente.getId());
         response.setNombre(cliente.getNombre());
@@ -185,17 +210,24 @@ public class ClienteServiceImpl implements ClienteService {
         response.setCuit(cliente.getCuit());
         response.setTelefono(cliente.getTelefono());
         response.setEmail(cliente.getEmail());
-        String condicion = null;
-        if (cliente.getCondicionIVA() != null) {
-            condicion = cliente.getCondicionIVA();
-        } else if (cliente.getCondicionIVA() != null) {
-            condicion = cliente.getCondicionIVA();
-        }
-        response.setCondicionIVA(condicion != null ? condicion : CondicionIva.CONSUMIDOR_FINAL.name());
+        response.setCondicionIVA(cliente.getCondicionIVA() != null ?
+                cliente.getCondicionIVA() : CondicionIva.CONSUMIDOR_FINAL.name());
         response.setActivo(cliente.getActivo() != null ? cliente.getActivo() : Boolean.TRUE);
         response.setCreadoEn(cliente.getCreadoEn());
         response.setUltimaActualizacion(cliente.getUltimaActualizacion());
         response.setTipoActualizacion(cliente.getTipoActualizacion());
+        return response;
+    }
+
+    private ClienteResponse mapearRespuesta(
+            Cliente cliente,
+            List<ObraClienteResponse> obras,
+            BigDecimal totalCliente,
+            BigDecimal cobrosRealizados,
+            BigDecimal saldoCliente
+    ) {
+        // 📊 COMPLETO: con obras y totales
+        ClienteResponse response = mapearRespuestaLite(cliente);
 
         if (obras != null) {
             response.setObras(obras);

@@ -1,0 +1,166 @@
+<div class="container">
+  <h2>Cuenta Corriente</h2>
+
+  <!-- Filtros -->
+  <p-card class="filtros-card">
+    <form [formGroup]="form" class="filtros-form">
+      <div class="filtro-row">
+        <div class="filtro-col">
+          <label>Obra</label>
+          <p-select
+            formControlName="obraId"
+            placeholder="Seleccionar obra"
+            [options]="obras"
+            optionLabel="nombre"
+            optionValue="id"
+            [showClear]="true"
+            [fluid]="true"
+          ></p-select>
+        </div>
+
+        <div class="filtro-col">
+          <label>Cliente</label>
+          <p-select
+            formControlName="clienteId"
+            placeholder="Seleccionar cliente"
+            [options]="clientes"
+            optionLabel="nombre"
+            optionValue="id"
+            [showClear]="true"
+            [fluid]="true"
+          ></p-select>
+        </div>
+
+        <div class="filtro-col">
+          <label>Proveedor</label>
+          <p-select
+            formControlName="proveedorId"
+            placeholder="Seleccionar proveedor"
+            [options]="proveedores"
+            optionLabel="nombre"
+            optionValue="id"
+            [showClear]="true"
+            [fluid]="true"
+          ></p-select>
+        </div>
+
+        <div class="filtro-col">
+          <label>Fecha Desde</label>
+          <p-datepicker
+            formControlName="fechaInicio"
+            dateFormat="dd/mm/yy"
+            placeholder="DD/MM/YYYY"
+          ></p-datepicker>
+        </div>
+
+        <div class="filtro-col">
+          <label>Fecha Hasta</label>
+          <p-datepicker
+            formControlName="fechaFin"
+            dateFormat="dd/mm/yy"
+            placeholder="DD/MM/YYYY"
+          ></p-datepicker>
+        </div>
+      </div>
+
+      <div class="botones">
+        <p-button
+          label="Limpiar Filtros"
+          (onClick)="limpiarFiltros()"
+          severity="secondary"
+          icon="pi pi-times"
+        ></p-button>
+      </div>
+    </form>
+  </p-card>
+
+  <!-- Tabla Clientes -->
+  <p-card class="tabla-card">
+    <ng-template pTemplate="header">
+      <h3>Deuda Clientes</h3>
+    </ng-template>
+    <p-table
+      [value]="deudaClientes"
+      [loading]="cargando"
+      [tableStyle]="{ 'min-width': '50rem' }"
+      [paginator]="true"
+      [rows]="10"
+      responsiveLayout="scroll"
+    >
+      <ng-template pTemplate="header">
+        <tr>
+          <th>Obra</th>
+          <th>Cliente</th>
+          <th>Presupuestado</th>
+          <th>Cobrado</th>
+          <th>Saldo</th>
+          <th>Acciones</th>
+        </tr>
+      </ng-template>
+      <ng-template let-row="rowData" pTemplate="body">
+        <tr>
+          <td>{{ row.obraNombre }}</td>
+          <td>{{ row.clienteNombre }}</td>
+          <td>{{ row.presupuesto | currency }}</td>
+          <td>{{ row.cobrado | currency }}</td>
+          <td>{{ row.saldo | currency }}</td>
+          <td>
+            <p-button
+              icon="pi pi-eye"
+              severity="info"
+              [rounded]="true"
+              [text]="true"
+              [disabled]="cargando"
+              title="Ver detalle"
+            ></p-button>
+          </td>
+        </tr>
+      </ng-template>
+    </p-table>
+  </p-card>
+
+  <!-- Tabla Proveedores -->
+  <p-card class="tabla-card">
+    <ng-template pTemplate="header">
+      <h3>Deuda Proveedores</h3>
+    </ng-template>
+    <p-table
+      [value]="deudaProveedores"
+      [loading]="cargando"
+      [tableStyle]="{ 'min-width': '50rem' }"
+      [paginator]="true"
+      [rows]="10"
+      responsiveLayout="scroll"
+    >
+      <ng-template pTemplate="header">
+        <tr>
+          <th>Obra</th>
+          <th>Proveedor</th>
+          <th>Presupuestado</th>
+          <th>Pagado</th>
+          <th>Saldo</th>
+          <th>Acciones</th>
+        </tr>
+      </ng-template>
+      <ng-template let-row="rowData" pTemplate="body">
+        <tr>
+          <td>{{ row.obraNombre }}</td>
+          <td>{{ row.proveedorNombre }}</td>
+          <td>{{ row.presupuestado | currency }}</td>
+          <td>{{ row.pagado | currency }}</td>
+          <td>{{ row.saldo | currency }}</td>
+          <td>
+            <p-button
+              icon="pi pi-eye"
+              severity="info"
+              [rounded]="true"
+              [text]="true"
+              [disabled]="cargando"
+              title="Ver detalle"
+            ></p-button>
+          </td>
+        </tr>
+      </ng-template>
+    </p-table>
+  </p-card>
+</div>

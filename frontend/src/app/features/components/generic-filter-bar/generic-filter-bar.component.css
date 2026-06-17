@@ -1,0 +1,25 @@
+:host {
+  display: block;
+}
+
+/* Smooth transitions for inputs */
+::ng-deep .p-select,
+::ng-deep .p-datepicker {
+  transition: all 200ms;
+}
+
+/* Input styling */
+::ng-deep input[pInputText] {
+  border-color: #e5e7eb;
+  transition: all 200ms;
+}
+
+::ng-deep input[pInputText]:focus {
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
+}
+
+/* Button spacing */
+::ng-deep .p-button {
+  transition: all 200ms;
+}

@@ -40,11 +40,12 @@ public class ObraServiceImpl implements ObraService {
        ============================================================ */
 
     @Override
-    public ObraDTO crear(ObraDTO dto) {
+    public ObraDTO crear(ObraDTO dto, Long empresaId) {
         validarFechas(dto);
         Obra obra = toEntity(dto);
         obra.setActivo(true);
         obra.setCreadoEn(Instant.now());
+        obra.setEmpresaId(empresaId);
         return toDto(obraRepo.save(obra));
     }
 
@@ -64,19 +65,32 @@ public class ObraServiceImpl implements ObraService {
 
     @Override
     @Transactional(readOnly = true)
-    public Page<ObraDTO> listar(Pageable p) {
-        Page<Obra> page = obraRepo.findAll(p);
+    public Page<ObraDTO> listar(Pageable p, Long empresaId) {
+        Page<Obra> page = empresaId != null
+            ? obraRepo.findByEmpresaId(empresaId, p)
+            : obraRepo.findAll(p);
         List<ObraDTO> dtos = page.stream().map(this::toDto).toList();
         return new PageImpl<>(dtos, p, page.getTotalElements());
     }
 
     @Override
     @Transactional(readOnly = true)
-    public Page<ObraDTO> listarPorCliente(Long idCliente, Pageable p) {
+    public Page<ObraListDTO> listarResumen(Pageable p, EstadoObraEnum estado, Boolean activo, String q, Long empresaId) {
+        String qParam = (q != null && !q.isBlank()) ? q.trim() : null;
+        Page<Obra> page = obraRepo.findByFiltros(estado, activo, empresaId, qParam, p);
+        List<ObraListDTO> dtos = page.stream().map(this::toListDto).toList();
+        return new PageImpl<>(dtos, p, page.getTotalElements());
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Page<ObraDTO> listarPorCliente(Long idCliente, Pageable p, Long empresaId) {
         if (idCliente == null) {
-            return listar(p);
+            return listar(p, empresaId);
         }
-        Page<Obra> page = obraRepo.findByIdCliente(idCliente, p);
+        Page<Obra> page = empresaId != null
+            ? obraRepo.findByIdClienteAndEmpresaId(idCliente, empresaId, p)
+            : obraRepo.findByIdCliente(idCliente, p);
         List<ObraDTO> dtos = page.stream().map(this::toDto).toList();
         return new PageImpl<>(dtos, p, page.getTotalElements());
     }
@@ -117,6 +131,7 @@ public class ObraServiceImpl implements ObraService {
         existing.setBeneficio(dto.getBeneficio());
         existing.setComision(dto.getComision());
         existing.setIdCliente(dto.getId_cliente());
+        existing.setIdGrupo(dto.getId_grupo());
         existing.setMemoriaDescriptiva(dto.getMemoria_descriptiva());
         existing.setNotas(dto.getNotas());
         existing.setCondicionesPresupuesto(dto.getCondiciones_presupuesto());
@@ -176,6 +191,7 @@ public class ObraServiceImpl implements ObraService {
         Obra entity = new Obra();
         entity.setId(dto.getId());
         entity.setIdCliente(dto.getId_cliente());
+        entity.setIdGrupo(dto.getId_grupo());
 
         if (dto.getObra_estado() != null) {
             entity.setEstadoObra(parseEstado(dto.getObra_estado()));
@@ -217,6 +233,7 @@ public class ObraServiceImpl implements ObraService {
         ObraDTO dto = new ObraDTO();
         dto.setId(entity.getId());
         dto.setId_cliente(entity.getIdCliente());
+        dto.setId_grupo(entity.getIdGrupo());
         dto.setObra_estado(entity.getEstadoObra());
         dto.setNombre(entity.getNombre());
         dto.setDireccion(entity.getDireccion());
@@ -247,6 +264,9 @@ public class ObraServiceImpl implements ObraService {
         dto.setComision_monto(totales.comisionMonto());
         dto.setBeneficio_neto(totales.beneficioNeto());
         dto.setPresupuesto(totales.presupuestoFinal());
+        dto.setEconomia_obra(totales.economiaObra());
+        dto.setDemasia_obra(totales.demasiasObra());
+        dto.setDesvio_total(totales.desvioTotal());
 
         if (entity.getId() != null) {
             boolean obraActiva = Boolean.TRUE.equals(entity.getActivo());
@@ -259,8 +279,8 @@ public class ObraServiceImpl implements ObraService {
                 dto.setCostos(
                     costosActivos.stream()
                         .sorted((a, b) -> {
-                            boolean aAdd = com.obras.enums.TipoCostoEnum.ADICIONAL.equals(a.getTipoCosto());
-                            boolean bAdd = com.obras.enums.TipoCostoEnum.ADICIONAL.equals(b.getTipoCosto());
+                            boolean aAdd = !com.obras.enums.TipoCostoEnum.ORIGINAL.equals(a.getTipoCosto());
+                            boolean bAdd = !com.obras.enums.TipoCostoEnum.ORIGINAL.equals(b.getTipoCosto());
                             int tipoCompare = Boolean.compare(aAdd, bAdd);
                             if (tipoCompare != 0) return tipoCompare;
                             return Long.compare(
@@ -280,6 +300,7 @@ public class ObraServiceImpl implements ObraService {
                             cdto.setBeneficio(c.getBeneficio());
                             cdto.setSubtotal(c.getSubtotal());
                             cdto.setTotal(c.getTotal());
+                            cdto.setMonto_real(c.getMontoReal());
                             cdto.setEstado_pago(c.getEstadoPago());
                             cdto.setTipo_costo(c.getTipoCosto());
                             cdto.setActivo(c.getActivo());
@@ -291,6 +312,23 @@ public class ObraServiceImpl implements ObraService {
             }
         }
 
+        return dto;
+    }
+
+    private ObraListDTO toListDto(Obra entity) {
+        ObraListDTO dto = new ObraListDTO();
+        dto.setId(entity.getId());
+        dto.setId_cliente(entity.getIdCliente());
+        dto.setId_grupo(entity.getIdGrupo());
+        dto.setObra_estado(entity.getEstadoObra());
+        dto.setNombre(entity.getNombre());
+        dto.setDireccion(entity.getDireccion());
+        dto.setFecha_inicio(entity.getFechaInicio());
+        dto.setFecha_fin(entity.getFechaFin());
+        dto.setPresupuesto(entity.getPresupuesto());
+        dto.setRequiere_factura(entity.getRequiereFactura());
+        dto.setActivo(entity.getActivo());
+        dto.setCreado_en(entity.getCreadoEn());
         return dto;
     }
 
@@ -334,6 +372,7 @@ public class ObraServiceImpl implements ObraService {
                     .tipoCosto(tipoCosto)
                     .subtotal(subtotal)
                     .total(total)
+                    .montoReal(cdto.getMonto_real())
                     .estadoPago(cdto.getEstado_pago() != null ? cdto.getEstado_pago() : EstadoPagoEnum.PENDIENTE)
                     .activo(cdto.getActivo() != null ? cdto.getActivo() : Boolean.TRUE)
                     .obra(obra)
@@ -356,7 +395,11 @@ public class ObraServiceImpl implements ObraService {
 
         if (estado instanceof String s) {
             try {
-                return EstadoObraEnum.valueOf(s.toUpperCase());
+                String normalized = s.trim().toUpperCase();
+                if ("FACTURADA_TOTAL".equals(normalized)) {
+                    return EstadoObraEnum.FACTURADA;
+                }
+                return EstadoObraEnum.valueOf(normalized);
             } catch (Exception ex) {
                 throw new RuntimeException("Estado de obra inválido: " + s);
             }
@@ -380,11 +423,10 @@ public class ObraServiceImpl implements ObraService {
 
         boolean cambiaBeneficio = false;
         if (dto.getBeneficio() != null) {
-            if (existing.getBeneficio() == null) {
-                cambiaBeneficio = true;
-            } else {
-                cambiaBeneficio = dto.getBeneficio().compareTo(existing.getBeneficio()) != 0;
-            }
+            BigDecimal existingBeneficio = existing.getBeneficio() != null
+                    ? existing.getBeneficio()
+                    : BigDecimal.ZERO;
+            cambiaBeneficio = dto.getBeneficio().compareTo(existingBeneficio) != 0;
         }
 
         return cambiaFlag || cambiaBeneficio;
@@ -392,6 +434,9 @@ public class ObraServiceImpl implements ObraService {
     private TotalesObra calcularTotalesObra(Obra obra) {
         if (obra == null || obra.getId() == null) {
             return new TotalesObra(
+                BigDecimal.ZERO,
+                BigDecimal.ZERO,
+                BigDecimal.ZERO,
                 BigDecimal.ZERO,
                 BigDecimal.ZERO,
                 BigDecimal.ZERO,
@@ -413,12 +458,17 @@ public class ObraServiceImpl implements ObraService {
                 BigDecimal.ZERO,
                 BigDecimal.ZERO,
                 BigDecimal.ZERO,
+                BigDecimal.ZERO,
+                BigDecimal.ZERO,
+                BigDecimal.ZERO,
                 BigDecimal.ZERO
             );
         }
 
         BigDecimal subtotalCostos = BigDecimal.ZERO;
         BigDecimal beneficioCostos = BigDecimal.ZERO;
+        BigDecimal economiaObra = BigDecimal.ZERO;
+        BigDecimal demasiasObra = BigDecimal.ZERO;
 
         for (ObraCosto costo : costos) {
             BigDecimal base = costo.getSubtotal() != null
@@ -426,7 +476,7 @@ public class ObraServiceImpl implements ObraService {
                     : Optional.ofNullable(costo.getCantidad()).orElse(BigDecimal.ZERO)
                     .multiply(Optional.ofNullable(costo.getPrecioUnitario()).orElse(BigDecimal.ZERO));
 
-            boolean esAdicional = TipoCostoEnum.ADICIONAL.equals(costo.getTipoCosto());
+            boolean esAdicional = !TipoCostoEnum.ORIGINAL.equals(costo.getTipoCosto());
             BigDecimal beneficioAplicado = esAdicional
                     ? Optional.ofNullable(costo.getBeneficio()).orElse(BigDecimal.ZERO)
                     : (Boolean.TRUE.equals(obra.getBeneficioGlobal())
@@ -437,8 +487,19 @@ public class ObraServiceImpl implements ObraService {
             beneficioCostos = beneficioCostos.add(
                     base.multiply(beneficioAplicado).divide(new BigDecimal("100"), 6, RoundingMode.HALF_UP)
             );
+
+            // Calcular economía (ahorro) y demasia (sobrecosto)
+            if (costo.getMontoReal() != null) {
+                BigDecimal desvio = base.subtract(costo.getMontoReal());
+                if (desvio.compareTo(BigDecimal.ZERO) > 0) {
+                    economiaObra = economiaObra.add(desvio);
+                } else if (desvio.compareTo(BigDecimal.ZERO) < 0) {
+                    demasiasObra = demasiasObra.add(desvio.abs());
+                }
+            }
         }
 
+        BigDecimal desvioTotal = economiaObra.subtract(demasiasObra);
         BigDecimal totalConBeneficio = subtotalCostos.add(beneficioCostos);
         BigDecimal comisionMonto = BigDecimal.ZERO;
         if (Boolean.TRUE.equals(obra.getTieneComision()) && obra.getComision() != null) {
@@ -447,8 +508,7 @@ public class ObraServiceImpl implements ObraService {
             );
         }
 
-        // La comisión no se suma al presupuesto: se descuenta del beneficio bruto.
-        BigDecimal beneficioNeto = beneficioCostos.subtract(comisionMonto);
+        BigDecimal beneficioNeto = beneficioCostos.subtract(comisionMonto).add(desvioTotal);
         BigDecimal presupuestoFinal = totalConBeneficio;
 
         return new TotalesObra(
@@ -457,7 +517,10 @@ public class ObraServiceImpl implements ObraService {
                 totalConBeneficio.setScale(2, RoundingMode.HALF_UP),
                 comisionMonto.setScale(2, RoundingMode.HALF_UP),
                 beneficioNeto.setScale(2, RoundingMode.HALF_UP),
-                presupuestoFinal.setScale(2, RoundingMode.HALF_UP)
+                presupuestoFinal.setScale(2, RoundingMode.HALF_UP),
+                economiaObra.setScale(2, RoundingMode.HALF_UP),
+                demasiasObra.setScale(2, RoundingMode.HALF_UP),
+                desvioTotal.setScale(2, RoundingMode.HALF_UP)
         );
     }
 
@@ -467,7 +530,10 @@ public class ObraServiceImpl implements ObraService {
             BigDecimal totalConBeneficio,
             BigDecimal comisionMonto,
             BigDecimal beneficioNeto,
-            BigDecimal presupuestoFinal
+            BigDecimal presupuestoFinal,
+            BigDecimal economiaObra,
+            BigDecimal demasiasObra,
+            BigDecimal desvioTotal
     ) {
     }
 }
