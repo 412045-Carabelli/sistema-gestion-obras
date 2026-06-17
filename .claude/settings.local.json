@@ -112,7 +112,10 @@
       "Bash(echo \"Copiando $db.bak...\")",
       "Bash(docker cp:*)",
       "Bash(npm install:*)",
-      "Bash(ls \"C:\\\\Users\\\\Usuario\\\\Desktop\\\\my-work\\\\sgo-deploy\"/*.env)"
+      "Bash(ls \"C:\\\\Users\\\\Usuario\\\\Desktop\\\\my-work\\\\sgo-deploy\"/*.env)",
+      "Bash(sed -n '25,50p' \"C:/Users/Usuario/Desktop/my-work/sistema-gestion-obras/backend1.0/api-gateway/src/main/java/com/apigateway/controller/FacturaBffController.java\")",
+      "Bash(sed -n '25,50p' \"C:/Users/Usuario/Desktop/my-work/sistema-gestion-obras/backend1.0/api-gateway/src/main/java/com/apigateway/controller/ProveedorBffController.java\")",
+      "Bash(sed -n '25,50p' \"C:/Users/Usuario/Desktop/my-work/sistema-gestion-obras/backend1.0/api-gateway/src/main/java/com/apigateway/controller/ClienteBffController.java\")"
     ]
   }
 }

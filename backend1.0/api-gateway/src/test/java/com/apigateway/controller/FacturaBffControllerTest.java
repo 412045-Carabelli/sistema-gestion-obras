@@ -32,7 +32,7 @@ class FacturaBffControllerTest {
         FacturaBffController controller = new FacturaBffController(WebClient.builder().exchangeFunction(stub));
         ReflectionTestUtils.setField(controller, "FACTURAS_URL", baseUrl);
 
-        ResponseEntity<List<Map<String, Object>>> all = controller.getAll(Map.of()).block();
+        ResponseEntity<List<Map<String, Object>>> all = controller.getAll(null, null, null, null).block();
         ResponseEntity<Map<String, Object>> byId = controller.getById(1L).block();
         ResponseEntity<List<Map<String, Object>>> byCliente = controller.getByCliente(1L).block();
         ResponseEntity<List<Map<String, Object>>> byObra = controller.getByObra(1L).block();
