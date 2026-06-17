@@ -10,6 +10,7 @@ import com.reportes.dto.request.ReportFilterRequest;
 import com.reportes.dto.response.*;
 import com.reportes.entity.Comision;
 import com.reportes.repository.ComisionRepository;
+import com.reportes.repository.DeudasGlobalesRepository;
 import com.reportes.repository.MovimientoReporteRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -41,6 +42,8 @@ class ReportesServiceTest {
     private ProveedoresClient proveedoresClient;
     @Mock
     private ComisionRepository comisionRepository;
+    @Mock
+    private DeudasGlobalesRepository deudasGlobalesRepository;
     @Mock
     private MovimientoReporteRepository movimientoReporteRepository;
 
@@ -389,18 +392,25 @@ class ReportesServiceTest {
 
     @Test
     void generarDeudasGlobales_devuelveDetallesSinSaldoCeroYOrdenados() {
-        obra1.setTotalConBeneficio(new BigDecimal("1234.56"));
+        // generarDeudasGlobales delega en SP; mockeamos el repository directamente.
+        DeudasGlobalesResponse.DetalleDeudaCliente dc1 = new DeudasGlobalesResponse.DetalleDeudaCliente();
+        dc1.setObraId(2L); dc1.setSaldo(new BigDecimal("200"));
+        DeudasGlobalesResponse.DetalleDeudaCliente dc2 = new DeudasGlobalesResponse.DetalleDeudaCliente();
+        dc2.setObraId(1L); dc2.setPresupuesto(new BigDecimal("1234.56")); dc2.setSaldo(new BigDecimal("1034.56"));
 
-        ReportFilterRequest filtro = new ReportFilterRequest();
+        DeudasGlobalesResponse.DetalleDeudaProveedor dp1 = new DeudasGlobalesResponse.DetalleDeudaProveedor();
+        dp1.setSaldo(new BigDecimal("60"));
+        DeudasGlobalesResponse.DetalleDeudaProveedor dp2 = new DeudasGlobalesResponse.DetalleDeudaProveedor();
+        dp2.setSaldo(new BigDecimal("50.0"));
+        DeudasGlobalesResponse.DetalleDeudaProveedor dp3 = new DeudasGlobalesResponse.DetalleDeudaProveedor();
+        dp3.setSaldo(new BigDecimal("70.0"));
 
-        when(obrasClient.obtenerObras()).thenReturn(List.of(obra1, obra2));
-        when(clientesClient.obtenerClientes()).thenReturn(List.of(cliente1, cliente2));
-        when(proveedoresClient.obtenerProveedores()).thenReturn(List.of(proveedor1, proveedor2));
-        when(transaccionesClient.obtenerTransacciones()).thenReturn(transacciones);
-        when(obrasClient.obtenerCostos(1L)).thenReturn(costosObra1);
-        when(obrasClient.obtenerCostos(2L)).thenReturn(costosObra2);
+        when(deudasGlobalesRepository.obtenerDeudaClientes(any(), any(), any(), any(), any(), any()))
+                .thenReturn(List.of(dc1, dc2));
+        when(deudasGlobalesRepository.obtenerDeudaProveedores(any(), any(), any(), any(), any(), any()))
+                .thenReturn(List.of(dp1, dp2, dp3));
 
-        DeudasGlobalesResponse response = reportesService.generarDeudasGlobales(filtro);
+        DeudasGlobalesResponse response = reportesService.generarDeudasGlobales(new ReportFilterRequest());
 
         assertThat(response.getDeudaClientes()).isEqualByComparingTo("1234.56");
         assertThat(response.getDeudaProveedores()).isEqualByComparingTo("180");

@@ -9,6 +9,7 @@ import com.reportes.dto.request.ReportFilterRequest;
 import com.reportes.dto.response.DashboardFinancieroResponse;
 import com.reportes.dto.response.DeudasGlobalesResponse;
 import com.reportes.repository.ComisionRepository;
+import com.reportes.repository.DeudasGlobalesRepository;
 import com.reportes.repository.MovimientoReporteRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -44,6 +45,8 @@ class DeudasGlobalesYDashboardTest {
     private ProveedoresClient proveedoresClient;
     @Mock
     private ComisionRepository comisionRepository;
+    @Mock
+    private DeudasGlobalesRepository deudasGlobalesRepository;
     @Mock
     private MovimientoReporteRepository movimientoReporteRepository;
 
@@ -146,33 +149,25 @@ class DeudasGlobalesYDashboardTest {
      */
     @Test
     void testDeudasGlobales_DebenIncluirTodasObrasAdjudicadas() {
-        // Setup
-        List<ObraExternalDto> todasLasObras = Arrays.asList(
-                obraAdjudicada1, obraAdjudicada2, obraEnProgreso, obraFinalizada,
-                obraPendiente, obraCancelada
-        );
-        when(obrasClient.obtenerObras()).thenReturn(todasLasObras);
-        when(clientesClient.obtenerClientes()).thenReturn(Arrays.asList(cliente1, cliente2));
+        // generarDeudasGlobales ahora delega en deudasGlobalesRepository (SP).
+        // Mockeamos el SP para que devuelva obras 1, 2, 3, 4 (adjudicadas, en progreso, finalizadas).
+        DeudasGlobalesResponse.DetalleDeudaCliente d1 = new DeudasGlobalesResponse.DetalleDeudaCliente();
+        d1.setObraId(1L); d1.setSaldo(new java.math.BigDecimal("10000"));
+        DeudasGlobalesResponse.DetalleDeudaCliente d2 = new DeudasGlobalesResponse.DetalleDeudaCliente();
+        d2.setObraId(2L); d2.setSaldo(new java.math.BigDecimal("2500"));
+        DeudasGlobalesResponse.DetalleDeudaCliente d3 = new DeudasGlobalesResponse.DetalleDeudaCliente();
+        d3.setObraId(3L); d3.setSaldo(new java.math.BigDecimal("8000"));
+        DeudasGlobalesResponse.DetalleDeudaCliente d4 = new DeudasGlobalesResponse.DetalleDeudaCliente();
+        d4.setObraId(4L); d4.setSaldo(new java.math.BigDecimal("5000"));
 
-        // Transacciones: solo se cobró la mitad de Obra Adjudicada 2
-        TransaccionExternalDto cobro = new TransaccionExternalDto();
-        cobro.setId(1L);
-        cobro.setIdObra(2L);
-        cobro.setMonto(2500d); // 2500 de 5000
-        cobro.setTipoTransaccion("COBRO");
-        cobro.setActivo(true);
-        cobro.setFecha(LocalDate.now());
+        when(deudasGlobalesRepository.obtenerDeudaClientes(any(), any(), any(), any(), any(), any()))
+                .thenReturn(Arrays.asList(d1, d2, d3, d4));
+        when(deudasGlobalesRepository.obtenerDeudaProveedores(any(), any(), any(), any(), any(), any()))
+                .thenReturn(Collections.emptyList());
 
-        when(transaccionesClient.obtenerTransacciones()).thenReturn(Collections.singletonList(cobro));
-
-        // Execute
         DeudasGlobalesResponse response = reportesService.generarDeudasGlobales(null);
 
-        // Verify - DEBE HABER DETALLES PARA TODAS LAS OBRAS ADJUDICADAS, EN PROGRESO, FINALIZADAS
         assertThat(response.getDetalleDeudaClientes()).isNotNull();
-
-        // Debe incluir: Obra 1, 2, 3 (Adjudicada, Adjudicada, EnProgreso), 4 (Finalizada)
-        // NO debe incluir: Obra 5 (Presupuestada), 6 (Cancelada)
         assertThat(response.getDetalleDeudaClientes())
                 .extracting(DeudasGlobalesResponse.DetalleDeudaCliente::getObraId)
                 .containsExactlyInAnyOrder(1L, 2L, 3L, 4L)
@@ -186,49 +181,31 @@ class DeudasGlobalesYDashboardTest {
      */
     @Test
     void testDeudasGlobales_CalculoSaldoCorrecto() {
-        // Setup
-        List<ObraExternalDto> obras = Arrays.asList(
-                obraAdjudicada1, obraAdjudicada2, obraEnProgreso, obraFinalizada
-        );
-        when(obrasClient.obtenerObras()).thenReturn(obras);
-        when(clientesClient.obtenerClientes()).thenReturn(Arrays.asList(cliente1, cliente2));
+        // generarDeudasGlobales delega en SP; el filtrado de saldo 0 lo hace el SP.
+        DeudasGlobalesResponse.DetalleDeudaCliente d1 = new DeudasGlobalesResponse.DetalleDeudaCliente();
+        d1.setObraId(1L); d1.setSaldo(new BigDecimal("10000"));
+        DeudasGlobalesResponse.DetalleDeudaCliente d2 = new DeudasGlobalesResponse.DetalleDeudaCliente();
+        d2.setObraId(2L); d2.setSaldo(new BigDecimal("2500"));
+        // Obra 3 no aparece (saldo 0 filtrado por el SP)
 
-        TransaccionExternalDto cobro1 = new TransaccionExternalDto();
-        cobro1.setIdObra(2L);
-        cobro1.setMonto(2500d);
-        cobro1.setTipoTransaccion("COBRO");
-        cobro1.setActivo(true);
-        cobro1.setFecha(LocalDate.now());
+        when(deudasGlobalesRepository.obtenerDeudaClientes(any(), any(), any(), any(), any(), any()))
+                .thenReturn(Arrays.asList(d1, d2));
+        when(deudasGlobalesRepository.obtenerDeudaProveedores(any(), any(), any(), any(), any(), any()))
+                .thenReturn(Collections.emptyList());
 
-        TransaccionExternalDto cobro2 = new TransaccionExternalDto();
-        cobro2.setIdObra(3L);
-        cobro2.setMonto(8000d); // Pagado completamente
-        cobro2.setTipoTransaccion("COBRO");
-        cobro2.setActivo(true);
-        cobro2.setFecha(LocalDate.now());
-
-        when(transaccionesClient.obtenerTransacciones()).thenReturn(Arrays.asList(cobro1, cobro2));
-
-        // Execute
         DeudasGlobalesResponse response = reportesService.generarDeudasGlobales(null);
 
-        // Verify
         Map<Long, BigDecimal> saldosPorObra = new HashMap<>();
         for (DeudasGlobalesResponse.DetalleDeudaCliente detalle : response.getDetalleDeudaClientes()) {
             saldosPorObra.put(detalle.getObraId(), detalle.getSaldo());
         }
 
-        // Obra 1: sin cobros -> 10000 de saldo
         assertThat(saldosPorObra.get(1L))
                 .as("Obra 1 debe tener saldo de 10000")
                 .isEqualByComparingTo(new BigDecimal("10000"));
-
-        // Obra 2: 2500 cobrados de 5000 -> 2500 de saldo
         assertThat(saldosPorObra.get(2L))
                 .as("Obra 2 debe tener saldo de 2500")
                 .isEqualByComparingTo(new BigDecimal("2500"));
-
-        // Obra 3: 8000 cobrados de 8000 -> 0 de saldo (no debe aparecer si no es significativo)
         assertThat(saldosPorObra.get(3L))
                 .as("Obra 3 pagada completamente no debe aparecer")
                 .isNull();
@@ -240,34 +217,18 @@ class DeudasGlobalesYDashboardTest {
      */
     @Test
     void testDeudasGlobales_CuentaCorrienteClienteIncluydeTodo() {
-        // Setup
-        List<ObraExternalDto> obras = Arrays.asList(
-                obraAdjudicada1, obraAdjudicada2, obraEnProgreso, obraFinalizada
-        );
-        when(obrasClient.obtenerObras()).thenReturn(obras);
-        when(clientesClient.obtenerClientes()).thenReturn(Arrays.asList(cliente1, cliente2));
+        // generarDeudasGlobales delega en SP; mockeamos para devolver saldo total de 23000
+        DeudasGlobalesResponse.DetalleDeudaCliente d1 = new DeudasGlobalesResponse.DetalleDeudaCliente();
+        d1.setObraId(1L); d1.setPresupuesto(new BigDecimal("26000")); d1.setCobrado(new BigDecimal("3000")); d1.setSaldo(new BigDecimal("23000"));
 
-        // Solo se cobraron 3000 de 26000 presupuestados
-        TransaccionExternalDto cobro = new TransaccionExternalDto();
-        cobro.setIdObra(1L);
-        cobro.setMonto(3000d);
-        cobro.setTipoTransaccion("COBRO");
-        cobro.setActivo(true);
-        cobro.setFecha(LocalDate.now());
+        when(deudasGlobalesRepository.obtenerDeudaClientes(any(), any(), any(), any(), any(), any()))
+                .thenReturn(Collections.singletonList(d1));
+        when(deudasGlobalesRepository.obtenerDeudaProveedores(any(), any(), any(), any(), any(), any()))
+                .thenReturn(Collections.emptyList());
 
-        when(transaccionesClient.obtenerTransacciones()).thenReturn(Collections.singletonList(cobro));
-
-        // Execute
         DeudasGlobalesResponse response = reportesService.generarDeudasGlobales(null);
 
-        // Verify
-        BigDecimal deudaTotalClientes = response.getDeudaClientes();
-
-        // RESULTADO ACTUAL: 23000 (26000 - 3000) ✓ CORRECTO
-        // pero el test falla porque suele no restar. Mostrar el valor actual para debug
-        System.out.println("DEBUG: Total deuda de clientes = " + deudaTotalClientes);
-
-        assertThat(deudaTotalClientes)
+        assertThat(response.getDeudaClientes())
                 .as("Total deuda de clientes debe ser 23000 (26000 presupuestado - 3000 cobrado)")
                 .isEqualByComparingTo(new BigDecimal("23000"));
     }

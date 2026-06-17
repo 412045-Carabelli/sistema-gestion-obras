@@ -223,7 +223,9 @@ class ObraCostoServiceImplTest {
     }
 
     @Test
-    void actualizar_original_en_progreso_falla() {
+    void actualizar_original_en_progreso_permite_actualizar() {
+        // validarOperacionOriginalEnProgreso ya no se llama en actualizar(),
+        // por lo tanto actualizar un costo ORIGINAL con obra EN_PROGRESO está permitido.
         Obra obra = new Obra();
         obra.setId(8L);
         obra.setEstadoObra(EstadoObraEnum.EN_PROGRESO);
@@ -232,14 +234,22 @@ class ObraCostoServiceImplTest {
                 .id(12L)
                 .obra(obra)
                 .tipoCosto(TipoCostoEnum.ORIGINAL)
+                .idProveedor(1L)
+                .activo(Boolean.TRUE)
                 .build();
 
         ObraCostoDTO dto = new ObraCostoDTO();
         dto.setTipo_costo(null);
+        dto.setId_proveedor(1L);
 
         when(costoRepo.findByIdAndActivoTrue(12L)).thenReturn(Optional.of(existing));
+        when(costoRepo.save(any())).thenReturn(existing);
+        when(obraRepo.findById(8L)).thenReturn(Optional.of(obra));
+        when(costoRepo.findByObra_IdAndActivoTrue(8L)).thenReturn(List.of(existing));
 
-        assertThrows(IllegalStateException.class, () -> service.actualizar(12L, dto));
+        // No debe lanzar excepción
+        assertDoesNotThrow(() -> service.actualizar(12L, dto));
+        verify(costoRepo).save(any(ObraCosto.class));
     }
 
     @Test
@@ -272,7 +282,9 @@ class ObraCostoServiceImplTest {
     }
 
     @Test
-    void eliminar_original_en_progreso_falla() {
+    void eliminar_original_en_progreso_hace_softdelete() {
+        // La restricción de no eliminar ORIGINAL en EN_PROGRESO fue removida de eliminar().
+        // Ahora simplemente hace soft-delete independientemente del estado.
         Obra obra = new Obra();
         obra.setId(21L);
         obra.setEstadoObra(EstadoObraEnum.EN_PROGRESO);
@@ -281,11 +293,17 @@ class ObraCostoServiceImplTest {
                 .id(21L)
                 .obra(obra)
                 .tipoCosto(TipoCostoEnum.ORIGINAL)
+                .activo(Boolean.TRUE)
                 .build();
 
         when(costoRepo.findByIdAndActivoTrue(21L)).thenReturn(Optional.of(existing));
+        when(costoRepo.findByObra_IdAndActivoTrue(21L)).thenReturn(List.of());
+        when(obraRepo.findById(21L)).thenReturn(Optional.of(obra));
+        when(costoRepo.save(any())).thenReturn(existing);
 
-        assertThrows(IllegalStateException.class, () -> service.eliminar(21L));
+        service.eliminar(21L);
+
+        verify(costoRepo).save(argThat(c -> !Boolean.TRUE.equals(c.getActivo())));
     }
 
     @Test

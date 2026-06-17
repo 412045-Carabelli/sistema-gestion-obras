@@ -50,7 +50,7 @@ class ClientesControllerTest {
         response.setId(1L);
         response.setNombre("Cliente A");
         response.setCondicionIVA("MONOTRIBUTO");
-        when(service.crear(any(ClienteRequest.class))).thenReturn(response);
+        when(service.crear(any(ClienteRequest.class), any())).thenReturn(response);
 
         mockMvc.perform(post("/api/clientes")
                 .contentType(MediaType.APPLICATION_JSON)
@@ -64,7 +64,7 @@ class ClientesControllerTest {
     void listar_ok() throws Exception {
         ClienteResponse c1 = new ClienteResponse();
         c1.setId(1L);
-        when(service.listar()).thenReturn(List.of(c1));
+        when(service.listar(any())).thenReturn(List.of(c1));
 
         mockMvc.perform(get("/api/clientes"))
             .andExpect(status().isOk())

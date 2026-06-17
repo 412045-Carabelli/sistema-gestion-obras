@@ -33,7 +33,7 @@ class ObraBffControllerTest {
                 Map.of("id", 1, "id_cliente", 1),
                 Map.of("id", 2)
         );
-        stub.stub(HttpMethod.GET, obrasUrl, HttpStatus.OK, obras);
+        stub.stub(HttpMethod.GET, obrasUrl + "/resumen", HttpStatus.OK, Map.of("content", obras, "totalElements", 2));
         stub.stub(HttpMethod.GET, clientesUrl + "/1", HttpStatus.OK, Map.of("id", 1, "nombre", "Cliente"));
 
         stub.stub(HttpMethod.GET, obrasUrl + "/1", HttpStatus.OK, Map.of("id", 1, "id_cliente", 1));

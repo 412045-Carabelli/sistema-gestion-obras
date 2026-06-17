@@ -31,10 +31,10 @@ public class JwtAuthFilter implements WebFilter {
   // Rutas públicas que no requieren JWT
   private static final List<String> PUBLIC_PATHS = List.of(
       "/auth/login",
-      "/auth/register",
+      // "/auth/register",   // REGISTRO DESHABILITADO
       "/auth/refresh",
       "/bff/auth/login",
-      "/bff/auth/register",
+      // "/bff/auth/register",  // REGISTRO DESHABILITADO
       "/bff/auth/refresh",
       "/api-docs",
       "/swagger-ui"

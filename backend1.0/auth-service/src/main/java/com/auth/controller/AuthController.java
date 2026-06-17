@@ -15,11 +15,12 @@ import jakarta.validation.Valid;
 public class AuthController {
   private final AuthService authService;
 
-  @PostMapping("/register")
-  public ResponseEntity<AuthResponse> registrar(@Valid @RequestBody RegisterRequest request) {
-    AuthResponse response = authService.registrar(request);
-    return ResponseEntity.status(HttpStatus.CREATED).body(response);
-  }
+  // REGISTRO DESHABILITADO — endpoint público, cualquiera podría crear cuentas
+  // @PostMapping("/register")
+  // public ResponseEntity<AuthResponse> registrar(@Valid @RequestBody RegisterRequest request) {
+  //   AuthResponse response = authService.registrar(request);
+  //   return ResponseEntity.status(HttpStatus.CREATED).body(response);
+  // }
 
   @PostMapping("/login")
   public ResponseEntity<AuthResponse> login(
