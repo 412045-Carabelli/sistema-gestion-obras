@@ -105,7 +105,14 @@
       "Bash(where gh:*)",
       "Read(//mnt/c/Users/Usuario/AppData/Local/**)",
       "Read(//mnt/c/**)",
-      "Read(//mnt/c/Users/Usuario/scoop/**)"
+      "Read(//mnt/c/Users/Usuario/scoop/**)",
+      "Bash(docker exec:*)",
+      "Bash(BACKUP_DIR=\"C:/Users/Usuario/Desktop/my-work/pablo-pezzini/backups\")",
+      "Bash(for db:*)",
+      "Bash(echo \"Copiando $db.bak...\")",
+      "Bash(docker cp:*)",
+      "Bash(npm install:*)",
+      "Bash(ls \"C:\\\\Users\\\\Usuario\\\\Desktop\\\\my-work\\\\sgo-deploy\"/*.env)"
     ]
   }
 }

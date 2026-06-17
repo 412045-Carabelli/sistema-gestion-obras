@@ -1,8 +1,7 @@
 import { Component, OnInit, OnDestroy, Output, EventEmitter } from '@angular/core';
 import { CommonModule, CurrencyPipe } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
-import jsPDF from 'jspdf';
-import autoTable from 'jspdf-autotable';
+import * as XLSX from 'xlsx';
 import { environment } from '../../../../environments/environment';
 import { ReportFilter, DeudasGlobalesResponse, CatalogoCuentaCorriente, DetalleDeudaCliente, DetalleDeudaProveedor, CuentaCorrienteClienteResponse, CuentaCorrienteProveedorResponse, CuentaCorrienteMovimiento } from '../../../core/models/models';
 import { TableModule } from 'primeng/table';
@@ -68,10 +67,10 @@ export class CuentasCorrientesListComponent implements OnInit, OnDestroy {
   private setupFilterActions(): void {
     this.filterActions = [
       {
-        label: 'Exportar PDF',
-        icon: 'pi pi-file-pdf',
+        label: 'Exportar Excel',
+        icon: 'pi pi-file-excel',
         severity: 'secondary',
-        callback: () => this.exportarPdf()
+        callback: () => this.exportarExcel()
       }
     ];
   }
@@ -195,7 +194,7 @@ export class CuentasCorrientesListComponent implements OnInit, OnDestroy {
         this.reportesService.getCuentaCorrienteCliente({ clienteId: id, obraIds: filtroObraIds })
       );
       (reqs.length ? forkJoin(reqs) : of([] as CuentaCorrienteClienteResponse[])).subscribe({
-        next: (clientes) => { this.generarPdfCombinado(clientes, []); this.generandoPdf = false; },
+        next: (clientes) => { this.generarExcelCombinado(clientes, []); this.generandoPdf = false; },
         error: () => { this.generandoPdf = false; }
       });
     } else {
@@ -208,13 +207,13 @@ export class CuentasCorrientesListComponent implements OnInit, OnDestroy {
         this.reportesService.getCuentaCorrienteProveedor({ proveedorId: id, obraIds: filtroObraIds })
       );
       (reqs.length ? forkJoin(reqs) : of([] as CuentaCorrienteProveedorResponse[])).subscribe({
-        next: (proveedores) => { this.generarPdfCombinado([], proveedores); this.generandoPdf = false; },
+        next: (proveedores) => { this.generarExcelCombinado([], proveedores); this.generandoPdf = false; },
         error: () => { this.generandoPdf = false; }
       });
     }
   }
 
-  private exportarPdf(): void {
+  private exportarExcel(): void {
     if (!this.datos) return;
     this.generandoPdf = true;
 
@@ -246,267 +245,145 @@ export class CuentasCorrientesListComponent implements OnInit, OnDestroy {
       proveedores: proveedorReqs.length ? forkJoin(proveedorReqs) : of([] as CuentaCorrienteProveedorResponse[])
     }).subscribe({
       next: ({ clientes, proveedores }) => {
-        this.generarPdfCombinado(clientes, proveedores);
+        this.generarExcelCombinado(clientes, proveedores);
         this.generandoPdf = false;
       },
       error: () => { this.generandoPdf = false; }
     });
   }
 
-  private buildPivot(movimientos: CuentaCorrienteMovimiento[]): {
-    fechas: string[];
-    filas: Array<{ obra: string; porFecha: Record<string, number>; saldo: number }>;
-  } {
-    const obraMap = new Map<string, Record<string, number>>();
-    const fechaSet = new Set<string>();
-
-    for (const mov of movimientos) {
-      const obra = mov.obraNombre || 'Sin obra';
-      const fecha = (mov.fecha || '').substring(0, 10);
-      if (!obraMap.has(obra)) obraMap.set(obra, {});
-      const entry = obraMap.get(obra)!;
-      entry[fecha] = (entry[fecha] || 0) + mov.monto;
-      if (fecha) fechaSet.add(fecha);
-    }
-
-    const fechas = Array.from(fechaSet).sort();
-    const filas = Array.from(obraMap.entries()).map(([obra, porFecha]) => ({
-      obra,
-      porFecha,
-      saldo: Object.values(porFecha).reduce((a, b) => a + b, 0)
-    }));
-
-    return { fechas, filas };
-  }
-
-  private generarPdfCombinado(
+  private generarExcelCombinado(
     clientes: CuentaCorrienteClienteResponse[],
     proveedores: CuentaCorrienteProveedorResponse[]
   ): void {
-    const doc = new jsPDF({ orientation: 'landscape' });
-    const fechaExport = new Date().toLocaleDateString('es-AR');
     const hoy = new Date().toISOString().split('T')[0];
-    const fmt = (n: number) => `$${(n ?? 0).toLocaleString('es-AR', { minimumFractionDigits: 2 })}`;
+    const obraIdsFiltro: number[] = this.currentFilters['obraIds'] || [];
+    const wb = XLSX.utils.book_new();
 
-    const obraIds: number[] = this.currentFilters['obraIds'] || [];
-    const esUnicoCliente = clientes.length === 1 && proveedores.length === 0;
-    const esUnicoProveedor = proveedores.length === 1 && clientes.length === 0;
-    const nombreEntidad = esUnicoCliente
-      ? (clientes[0].clienteNombre || '')
-      : esUnicoProveedor
-        ? (proveedores[0].proveedorNombre || '')
-        : '';
-    const tipoEntidad = esUnicoCliente ? 'Cliente' : esUnicoProveedor ? 'Proveedor' : '';
-
-    // Encabezado principal
-    let y = 14;
-    if (esUnicoCliente || esUnicoProveedor) {
-      // Destinatario único: nombre prominente
-      doc.setFontSize(8);
-      doc.setFont('helvetica', 'normal');
-      doc.setTextColor(100, 100, 100);
-      doc.text('CUENTA CORRIENTE', 14, y);
-      y += 6;
-      doc.setFontSize(16);
-      doc.setFont('helvetica', 'bold');
-      doc.setTextColor(0, 0, 0);
-      doc.text(nombreEntidad, 14, y);
-      y += 5;
-      doc.setFontSize(8);
-      doc.setFont('helvetica', 'normal');
-      doc.setTextColor(120, 120, 120);
-      doc.text(`${tipoEntidad}   |   Exportado: ${fechaExport}`, 14, y);
-      y += 5;
-    } else {
-      // Múltiples entidades
-      const hayClientes = clientes.length > 0;
-      const hayProveedores = proveedores.length > 0;
-      const tipoTitulo = hayClientes && !hayProveedores ? 'Clientes'
-        : !hayClientes && hayProveedores ? 'Proveedores' : 'Combinada';
-      doc.setFontSize(16);
-      doc.setFont('helvetica', 'bold');
-      doc.setTextColor(0, 0, 0);
-      doc.text(`Cuentas Corrientes — ${tipoTitulo}`, 14, y);
-      y += 6;
-      doc.setFontSize(8);
-      doc.setFont('helvetica', 'normal');
-      doc.setTextColor(120, 120, 120);
-      doc.text(`Exportado: ${fechaExport}`, 14, y);
-      y += 5;
-    }
-
-    if (obraIds.length) {
-      const nombres = obraIds.map(id => this.obras.find(o => o.id === id)?.nombre).filter(Boolean).join(', ');
-      if (nombres) {
-        doc.setFontSize(8);
-        doc.setFont('helvetica', 'bold');
-        doc.setTextColor(60, 60, 60);
-        doc.text(`Obra(s): ${nombres}`, 14, y);
-        y += 5;
-      }
-    }
-
-    doc.setTextColor(0, 0, 0);
-    y += 2;
-
-    // Indica si se debe mostrar el sub-encabezado por entidad en addSection
-    const mostrarSubtitulo = !esUnicoCliente && !esUnicoProveedor;
-
-    const addSection = (
-      titulo: string,
+    const buildPivotSheet = (
       nombre: string,
       movimientos: CuentaCorrienteMovimiento[],
-      headerColor: [number, number, number],
+      presupuestoMap: Map<string, number>,
       totalLabel: string,
       totalValue: number,
-      saldoFinal: number,
-      presupuestoMap: Map<string, number>
+      saldoFinal: number
     ) => {
-      if (y > 170) { doc.addPage(); y = 15; }
+      // Recopilar todas las fechas únicas ordenadas
+      const fechaSet = new Set<string>();
+      for (const mov of movimientos) {
+        const f = (mov.fecha || '').substring(0, 10);
+        if (f) fechaSet.add(f);
+      }
+      const fechas = Array.from(fechaSet).sort();
 
-      if (mostrarSubtitulo) {
-        doc.setFontSize(10);
-        doc.setFont('helvetica', 'bold');
-        doc.setTextColor(0, 0, 0);
-        doc.text(`${titulo}: ${nombre}`, 14, y);
-        y += 4;
+      // Pivot: obra → { fecha → sumatoria }
+      const obraMap = new Map<string, Record<string, number>>();
+      for (const [obraNombre] of presupuestoMap) {
+        obraMap.set(obraNombre, {});
+      }
+      for (const mov of movimientos) {
+        const key = mov.obraNombre || 'Sin obra';
+        if (!obraMap.has(key)) obraMap.set(key, {});
+        const f = (mov.fecha || '').substring(0, 10);
+        const entry = obraMap.get(key)!;
+        entry[f] = (entry[f] || 0) + mov.monto;
       }
 
-      const { fechas, filas } = this.buildPivot(movimientos);
+      const header = ['Obra', 'Presupuesto', ...fechas, 'Saldo'];
+      const rows: any[][] = [];
 
-      if (!filas.length) {
-        doc.setFontSize(8);
-        doc.setFont('helvetica', 'italic');
-        doc.text('Sin movimientos.', 18, y + 3);
-        y += 10;
-        return;
+      for (const [obraNombre, porFecha] of obraMap) {
+        const presupuesto = presupuestoMap.get(obraNombre) ?? 0;
+        const totalObra = Object.values(porFecha).reduce((a, b) => a + b, 0);
+        const saldo = presupuesto - totalObra;
+        rows.push([
+          obraNombre,
+          presupuesto,
+          ...fechas.map(f => porFecha[f] ?? 0),
+          saldo
+        ]);
       }
-
-      const head = [['Obra', 'Presupuesto', ...fechas.map(f => this.formatFechaShort(f)), 'Saldo']];
-      const body: string[][] = filas.map(fila => [
-        fila.obra,
-        fmt(presupuestoMap.get(fila.obra) ?? 0),
-        ...fechas.map(f => fila.porFecha[f] != null ? fmt(fila.porFecha[f]) : '—'),
-        fmt(fila.saldo)
-      ]);
 
       // Fila totales
-      const totalPresupuesto = filas.reduce((acc, fila) => acc + (presupuestoMap.get(fila.obra) ?? 0), 0);
-      body.push([
+      const totalPres = Array.from(presupuestoMap.values()).reduce((a, b) => a + b, 0);
+      rows.push([
         'TOTAL',
-        fmt(totalPresupuesto),
+        totalPres,
         ...fechas.map(f => {
-          const sum = filas.reduce((acc, fila) => acc + (fila.porFecha[f] || 0), 0);
-          return sum ? fmt(sum) : '—';
+          let sum = 0;
+          for (const porFecha of obraMap.values()) sum += porFecha[f] ?? 0;
+          return sum;
         }),
-        fmt(saldoFinal)
+        saldoFinal
       ]);
 
-      autoTable(doc, {
-        startY: y,
-        head,
-        body,
-        styles: {
-          fontSize: 7,
-          cellPadding: 1.5,
-          lineWidth: 0.15,
-          lineColor: [200, 200, 200]
-        },
-        headStyles: {
-          fillColor: headerColor,
-          fontSize: 7,
-          lineWidth: 0.15,
-          lineColor: [180, 180, 180]
-        },
-        columnStyles: {
-          0: { cellWidth: 45 },
-          1: { cellWidth: 45 }
-        },
-        didParseCell: (data) => {
-          if (data.section === 'body' && data.row.index === body.length - 1) {
-            data.cell.styles.fontStyle = 'bold';
-            data.cell.styles.fillColor = [235, 235, 235];
+      const wsData = [header, ...rows];
+      const ws = XLSX.utils.aoa_to_sheet(wsData);
+
+      // Formato monetario: separador de miles, 2 decimales, "-" para cero
+      const moneyFmt = '#,##0.00;-#,##0.00;"-"';
+      const numRows = wsData.length;
+      // Columnas monetarias: presupuesto (1), fechas (2..2+N-1), saldo (2+N)
+      const moneyCols = [1, ...fechas.map((_, i) => 2 + i), 2 + fechas.length];
+      for (let r = 1; r < numRows; r++) {
+        for (const c of moneyCols) {
+          const addr = XLSX.utils.encode_cell({ r, c });
+          if (ws[addr] && typeof ws[addr].v === 'number') {
+            ws[addr].z = moneyFmt;
           }
         }
-      });
+      }
 
-      y = (doc as any).lastAutoTable.finalY + 4;
-      doc.setFontSize(8);
-      doc.setFont('helvetica', 'normal');
-      doc.text(`${totalLabel}: ${fmt(totalValue)}   |   Saldo final: ${fmt(saldoFinal)}`, 14, y);
-      y += 8;
+      // Ancho de columnas
+      ws['!cols'] = [
+        { wch: 40 },  // Obra
+        { wch: 18 },  // Presupuesto
+        ...fechas.map(() => ({ wch: 14 })),
+        { wch: 18 }   // Saldo
+      ];
+
+      // Nombre de hoja: truncar a 31 chars (límite Excel)
+      const sheetName = nombre.substring(0, 31);
+      XLSX.utils.book_append_sheet(wb, ws, sheetName);
     };
 
-    const obraIdsFiltro: number[] = this.currentFilters['obraIds'] || [];
+    for (const c of clientes) {
+      const presupuestoMap = new Map<string, number>();
+      this.datos!.detalleDeudaClientes
+        .filter(d => d.clienteId === c.clienteId)
+        .filter(d => !obraIdsFiltro.length || obraIdsFiltro.includes(d.obraId))
+        .forEach(d => presupuestoMap.set(d.obraNombre, d.presupuesto));
 
-    // Sección clientes
-    const clientesConMov = clientes.filter(c => c.movimientos?.length);
-    if (clientesConMov.length) {
-      if (mostrarSubtitulo) {
-        doc.setFontSize(11);
-        doc.setFont('helvetica', 'bold');
-        doc.setTextColor(37, 99, 235);
-        doc.text('Cuentas Corrientes — Clientes', 14, y);
-        doc.setTextColor(0, 0, 0);
-        y += 6;
-      }
-
-      for (const c of clientesConMov) {
-        // obraNombre → presupuesto de esa obra para este cliente
-        const presupuestoMap = new Map<string, number>();
-        this.datos!.detalleDeudaClientes
-          .filter(d => d.clienteId === c.clienteId)
-          .filter(d => !obraIdsFiltro.length || obraIdsFiltro.includes(d.obraId))
-          .forEach(d => presupuestoMap.set(d.obraNombre, d.presupuesto));
-
-        addSection(
-          'Cliente', c.clienteNombre || `ID ${c.clienteId}`,
-          c.movimientos, [59, 130, 246],
-          'Total cobrado', c.totalCobros, c.saldoFinal,
-          presupuestoMap
-        );
-      }
+      buildPivotSheet(
+        c.clienteNombre || `Cliente ${c.clienteId}`,
+        c.movimientos ?? [],
+        presupuestoMap,
+        'Total cobrado', c.totalCobros, c.saldoFinal
+      );
     }
 
-    // Sección proveedores
-    const proveedoresConMov = proveedores.filter(p => p.movimientos?.length);
-    if (proveedoresConMov.length) {
-      if (y > 160) { doc.addPage(); y = 15; }
-      if (mostrarSubtitulo) {
-        doc.setFontSize(11);
-        doc.setFont('helvetica', 'bold');
-        doc.setTextColor(220, 38, 38);
-        doc.text('Cuentas Corrientes — Proveedores', 14, y);
-        doc.setTextColor(0, 0, 0);
-        y += 6;
-      }
+    for (const p of proveedores) {
+      const presupuestoMap = new Map<string, number>();
+      this.datos!.detalleDeudaProveedores
+        .filter(d => d.proveedorId === p.proveedorId)
+        .filter(d => !obraIdsFiltro.length || obraIdsFiltro.includes(d.obraId))
+        .forEach(d => presupuestoMap.set(d.obraNombre, d.presupuestado));
 
-      for (const p of proveedoresConMov) {
-        // obraNombre → presupuestado de este proveedor en esa obra
-        const presupuestoMap = new Map<string, number>();
-        this.datos!.detalleDeudaProveedores
-          .filter(d => d.proveedorId === p.proveedorId)
-          .filter(d => !obraIdsFiltro.length || obraIdsFiltro.includes(d.obraId))
-          .forEach(d => presupuestoMap.set(d.obraNombre, d.presupuestado));
-
-        addSection(
-          'Proveedor', p.proveedorNombre || `ID ${p.proveedorId}`,
-          p.movimientos, [239, 68, 68],
-          'Total costos', p.totalCostos, p.saldoFinal,
-          presupuestoMap
-        );
-      }
+      buildPivotSheet(
+        p.proveedorNombre || `Proveedor ${p.proveedorId}`,
+        p.movimientos ?? [],
+        presupuestoMap,
+        'Total pagado', p.totalPagos, p.saldoFinal
+      );
     }
 
-    const fileLabel = esUnicoCliente ? 'clientes'
-      : esUnicoProveedor ? 'proveedores'
+    const esUnicoCliente = clientes.length === 1 && proveedores.length === 0;
+    const esUnicoProveedor = proveedores.length === 1 && clientes.length === 0;
+    const fileLabel = esUnicoCliente ? (clientes[0].clienteNombre || 'clientes')
+      : esUnicoProveedor ? (proveedores[0].proveedorNombre || 'proveedores')
       : (clientes.length > 0 && proveedores.length > 0) ? 'combinada'
       : clientes.length > 0 ? 'clientes' : 'proveedores';
-    doc.save(`cuentas-corrientes-${fileLabel}-${hoy}.pdf`);
-  }
 
-  private formatFechaShort(fecha: string): string {
-    const [y, m, d] = fecha.split('-');
-    return `${d}/${m}/${y.substring(2)}`;
+    XLSX.writeFile(wb, `cuentas-corrientes-${fileLabel}-${hoy}.xlsx`);
   }
 }
