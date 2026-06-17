@@ -14,13 +14,6 @@ import java.util.Optional;
 @Repository
 public interface TareaRepository extends JpaRepository<Tarea, Long> {
 
-    @Query("select t from Tarea t where t.activo = true and t.fechaFin between :desde and :hasta and t.estadoTarea <> :excluirEstado")
-    List<Tarea> findVencimientosProximos(
-        @Param("desde") LocalDateTime desde,
-        @Param("hasta") LocalDateTime hasta,
-        @Param("excluirEstado") EstadoTareaEnum excluirEstado
-    );
-
     List<Tarea> findByIdObraAndActivoTrueOrderByNumeroOrdenAscFechaInicioAscCreadoEnAsc(Long idObra);
 
     Optional<Tarea> findByIdAndActivoTrue(Long id);
