@@ -41,6 +41,7 @@ services:
       - sgo_backend
 
   obras-service:
+    pull_policy: always
     image: ghcr.io/412045-carabelli/sgo-obras-service:latest
     container_name: obras_service_v2
     ports:
@@ -63,6 +64,7 @@ services:
       - sgo_backend
 
   clientes-service:
+    pull_policy: always
     image: ghcr.io/412045-carabelli/sgo-clientes-service:latest
     container_name: clientes_service_v2
     ports:
@@ -85,6 +87,7 @@ services:
       - sgo_backend
 
   proveedores-service:
+    pull_policy: always
     image: ghcr.io/412045-carabelli/sgo-proveedores-service:latest
     container_name: proveedores_service_v2
     ports:
@@ -107,6 +110,7 @@ services:
       - sgo_backend
 
   documentos-service:
+    pull_policy: always
     image: ghcr.io/412045-carabelli/sgo-documentos-service:latest
     container_name: documentos_service_v2
     ports:
@@ -131,6 +135,7 @@ services:
       - sgo_backend
 
   transacciones-service:
+    pull_policy: always
     image: ghcr.io/412045-carabelli/sgo-transacciones-service:latest
     container_name: transacciones_service_v2
     ports:
@@ -153,6 +158,7 @@ services:
       - sgo_backend
 
   agendas-service:
+    pull_policy: always
     image: ghcr.io/412045-carabelli/sgo-agendas-service:latest
     container_name: agendas_service_v2
     ports:
@@ -177,6 +183,7 @@ services:
       - sgo_backend
 
   reportes-service:
+    pull_policy: always
     image: ghcr.io/412045-carabelli/sgo-reportes-service:latest
     container_name: reportes_service_v2
     ports:
@@ -205,6 +212,7 @@ services:
       - sgo_backend
 
   auth-service:
+    pull_policy: always
     image: ghcr.io/412045-carabelli/sgo-auth-service:latest
     container_name: auth_service_v2
     ports:
@@ -225,6 +233,7 @@ services:
       - sgo_backend
 
   api-gateway:
+    pull_policy: always
     image: ghcr.io/412045-carabelli/sgo-api-gateway:latest
     container_name: api_gateway_service_v2
     ports:
@@ -263,6 +272,7 @@ services:
       - sgo_backend
 
   frontend:
+    pull_policy: always
     image: ghcr.io/412045-carabelli/sgo-frontend:latest
     container_name: obras_frontend_v2
     ports:
@@ -284,7 +294,6 @@ services:
       - N8N_PROTOCOL=http
       - NODE_ENV=production
       - TZ=America/Argentina/Córdoba
-      # Configuración de SQL Server
       - DB_TYPE=mssql
       - DB_MSSQL_HOST=sqlserver
       - DB_MSSQL_PORT=1433
@@ -320,6 +329,7 @@ services:
       - sgo_backend
 
   bot-whatsapp:
+    pull_policy: always
     image: ghcr.io/412045-carabelli/sgo-bot-whatsapp:latest
     container_name: sgo_bot_whatsapp
     ports:
@@ -330,12 +340,9 @@ services:
       - API_GATEWAY_URL=http://api-gateway:8080
       - WAHA_SESSION=default
       - PORT=4000
-      # Números autorizados separados por coma (sin +, ej: 5491112345678)
       - NUMEROS_AUTORIZADOS=${BOT_NUMEROS_AUTORIZADOS:-}
-      # Números que reciben notificaciones diarias
       - NUMEROS_NOTIFICACIONES=${BOT_NUMEROS_NOTIFICACIONES:-}
       - DIAS_VENCIMIENTO=${BOT_DIAS_VENCIMIENTO:-7}
-      # Cron: default 8am Argentina (UTC-3 = 11:00 UTC)
       - CRON_NOTIFICACIONES=${BOT_CRON_NOTIFICACIONES:-0 11 * * *}
     depends_on:
       - waha
