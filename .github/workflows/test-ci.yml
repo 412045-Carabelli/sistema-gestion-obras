@@ -1,0 +1,111 @@
+name: Test CI
+
+on:
+  pull_request:
+    branches: [ main, 'release/**' ]
+  push:
+    branches: [ 'release/**' ]
+
+jobs:
+  detect-changes:
+    runs-on: ubuntu-latest
+    outputs:
+      backend: ${{ steps.changes.outputs.backend }}
+      frontend: ${{ steps.changes.outputs.frontend }}
+      services: ${{ steps.services.outputs.services }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Detect backend/frontend changes
+        id: changes
+        run: |
+          CHANGED=$(git diff --name-only origin/${{ github.base_ref || 'main' }}...HEAD 2>/dev/null || git diff --name-only HEAD~1..HEAD || echo ".")
+
+          if echo "$CHANGED" | grep -q "^backend1.0/"; then
+            echo "backend=true" >> $GITHUB_OUTPUT
+          else
+            echo "backend=false" >> $GITHUB_OUTPUT
+          fi
+
+          if echo "$CHANGED" | grep -q "^frontend/"; then
+            echo "frontend=true" >> $GITHUB_OUTPUT
+          else
+            echo "frontend=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Build service list for matrix
+        id: services
+        run: |
+          CHANGED=$(git diff --name-only origin/${{ github.base_ref || 'main' }}...HEAD 2>/dev/null || git diff --name-only HEAD~1..HEAD || echo ".")
+          SERVICES='[]'
+
+          echo "$CHANGED" | grep -q "^backend1.0/api-gateway/"        && SERVICES=$(echo $SERVICES | jq '. += ["api-gateway"]')        || true
+          echo "$CHANGED" | grep -q "^backend1.0/obras-service/"       && SERVICES=$(echo $SERVICES | jq '. += ["obras-service"]')       || true
+          echo "$CHANGED" | grep -q "^backend1.0/clientes-service/"    && SERVICES=$(echo $SERVICES | jq '. += ["clientes-service"]')    || true
+          echo "$CHANGED" | grep -q "^backend1.0/proveedores-service/" && SERVICES=$(echo $SERVICES | jq '. += ["proveedores-service"]') || true
+          echo "$CHANGED" | grep -q "^backend1.0/reportes-service/"    && SERVICES=$(echo $SERVICES | jq '. += ["reportes-service"]')    || true
+          echo "$CHANGED" | grep -q "^backend1.0/transacciones-service/" && SERVICES=$(echo $SERVICES | jq '. += ["transacciones-service"]') || true
+          echo "$CHANGED" | grep -q "^backend1.0/documentos-service/"  && SERVICES=$(echo $SERVICES | jq '. += ["documentos-service"]')  || true
+          echo "$CHANGED" | grep -q "^backend1.0/agendas-service/"     && SERVICES=$(echo $SERVICES | jq '. += ["agendas-service"]')     || true
+          echo "$CHANGED" | grep -q "^backend1.0/auth-service/"        && SERVICES=$(echo $SERVICES | jq '. += ["auth-service"]')        || true
+          echo "$CHANGED" | grep -q "^backend1.0/common/"              && SERVICES='["api-gateway","obras-service","clientes-service","proveedores-service","reportes-service","transacciones-service","documentos-service","agendas-service","auth-service"]' || true
+
+          # Si nada cambió en backend usar lista vacía (evita correr tests sin razón)
+          echo "services={\"service\":$(echo $SERVICES)}" >> $GITHUB_OUTPUT
+
+  test-backend:
+    needs: detect-changes
+    if: needs.detect-changes.outputs.backend == 'true' && needs.detect-changes.outputs.services != '{"service":[]}'
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJson(needs.detect-changes.outputs.services) }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Cache Maven
+        uses: actions/cache@v4
+        with:
+          path: ~/.m2/repository
+          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+          restore-keys: ${{ runner.os }}-maven-
+
+      - name: Install common module
+        run: |
+          cd backend1.0/common
+          mvn -B -DskipTests install
+
+      - name: Run tests — ${{ matrix.service }}
+        run: |
+          cd backend1.0/${{ matrix.service }}
+          mvn -B test
+
+  test-frontend:
+    needs: detect-changes
+    if: needs.detect-changes.outputs.frontend == 'true'
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install dependencies
+        run: cd frontend && npm ci
+
+      - name: Build production
+        run: cd frontend && npm run build -- --configuration production

@@ -354,7 +354,7 @@ services:
       - sgo_backend
 
   bot-whatsapp:
-    build: ../bot-whatsapp
+    build: ./bot-whatsapp
     container_name: sgo_bot_whatsapp
     ports:
       - "4000:4000"
