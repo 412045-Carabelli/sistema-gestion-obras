@@ -282,6 +282,7 @@ services:
     restart: unless-stopped
     networks:
       - sgo_backend
+      - dokploy-network
 
   n8n:
     image: n8nio/n8n:latest
@@ -356,6 +357,8 @@ networks:
     driver: bridge
   n8n_network:
     driver: bridge
+  dokploy-network:
+    external: true
 
 volumes:
   sqlserver_data_v2:
