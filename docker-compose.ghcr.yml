@@ -304,7 +304,7 @@ services:
     image: devlikeapro/waha
     container_name: sgo_waha
     ports:
-      - "3000:3000"
+      - "3001:3000"
     volumes:
       - waha_data:/app/.waha/sessions
     environment:
