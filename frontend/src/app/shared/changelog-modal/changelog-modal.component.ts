@@ -6,7 +6,7 @@ import { TagModule } from 'primeng/tag';
 import { Subscription } from 'rxjs';
 import { ChangelogService } from '../../services/changelog/changelog.service';
 
-const VERSION = 'v1.15.73';
+const VERSION = 'v1.16.0';
 const STORAGE_KEY = `sgo-changelog-seen-${VERSION}`;
 
 interface ChangeItem {
@@ -32,6 +32,23 @@ export class ChangelogModalComponent implements OnInit, OnDestroy {
   private sub = new Subscription();
 
   grupos: ChangeGroup[] = [
+    {
+      modulo: 'Devolución 15/06/2026',
+      icon: 'pi pi-tag',
+      items: [
+        { texto: 'Cuentas corrientes: saldos corregidos (presupuesto − pagos/cobros)', estado: 'done' },
+        { texto: 'Cuentas corrientes: obras faltantes ahora aparecen en el export', estado: 'done' },
+        { texto: 'Cuentas corrientes: export reemplazado por Excel con pivot obras × fechas', estado: 'done' },
+        { texto: 'Facturas: listado con columnas de cliente y obra, estilo movimientos', estado: 'done' },
+        { texto: 'Obras: filtro de estado separado en "Estado Operativo" y "Estado Financiero"', estado: 'done' },
+        { texto: 'Obras: edición de memoria descriptiva directo desde el detalle', estado: 'done' },
+        { texto: 'Obras: proveedores ordenados alfabéticamente al agregar un costo', estado: 'done' },
+        { texto: 'Obras: corregido indicador de facturación pendiente en obras no marcadas', estado: 'done' },
+        { texto: 'Agendas: quitado select de estado (eventos se crean en Pendiente)', estado: 'done' },
+        { texto: 'Agendas: obras, clientes y proveedores ordenados alfabéticamente en selects', estado: 'done' },
+        { texto: 'Agendas: muestra solo clientes/proveedores activos y obras no Perdidas ni Finalizadas', estado: 'done' },
+      ]
+    },
     {
       modulo: 'Bot WhatsApp',
       icon: 'pi pi-whatsapp',
