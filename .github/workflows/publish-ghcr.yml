@@ -65,6 +65,10 @@ jobs:
             fi
           fi
 
+          # GitHub no acepta matrix vacío — usar sentinel "none" para saltear
+          if [[ "$SERVICES" == "[]" ]]; then
+            SERVICES='["none"]'
+          fi
           echo "matrix={\"service\":$(echo $SERVICES)}" >> $GITHUB_OUTPUT
           echo "Detected services: $SERVICES"
 
@@ -83,6 +87,7 @@ jobs:
 
   build-and-push:
     needs: detect-changes
+    if: ${{ !contains(needs.detect-changes.outputs.matrix, '"none"') }}
     runs-on: ubuntu-latest
     strategy:
       matrix: ${{ fromJson(needs.detect-changes.outputs.matrix) }}
