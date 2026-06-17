@@ -58,9 +58,10 @@ jobs:
             echo "$CHANGED" | grep -q "^backend1.0/common/" && \
               SERVICES=$(echo $SERVICES | jq '. += ["api-gateway","obras-service","clientes-service","proveedores-service","reportes-service","transacciones-service","documentos-service","agendas-service","auth-service"] | unique') || true
 
-            # Fallback: nada detectado → build todo
+            # Fallback: nada detectado en código → no buildear nada
+            # (cambios en .github/, docker-compose, docs no requieren rebuild de imágenes)
             if [[ "$SERVICES" == "[]" ]]; then
-              SERVICES="$ALL"
+              echo "No service code changed, skipping all builds"
             fi
           fi
 
@@ -111,8 +112,10 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ~/.m2/repository
-          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
-          restore-keys: ${{ runner.os }}-maven-
+          key: ${{ runner.os }}-maven-${{ matrix.service }}-${{ hashFiles('**/pom.xml') }}
+          restore-keys: |
+            ${{ runner.os }}-maven-${{ matrix.service }}-
+            ${{ runner.os }}-maven-
 
       - name: Build backend JARs (skip tests — already validated in test-ci)
         if: matrix.service != 'frontend' && matrix.service != 'bot-whatsapp'
