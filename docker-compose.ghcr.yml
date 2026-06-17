@@ -250,6 +250,7 @@ services:
       - SERVICES_AGENDAS_TAREAS_URL=http://agendas-service:8085/api/agenda/tareas
       - SERVICES_REPORTES_URL=http://reportes-service:8084/api/reportes
       - JWT_SECRET=${JWT_SECRET:-your-super-secret-key-min-32-chars-long-for-hs256-algorithm}
+      - CORS_ALLOWED_ORIGINS=http://localhost:4200,https://buildrr.cloud,http://buildrr.cloud
     depends_on:
       obras-service:
         condition: service_started
