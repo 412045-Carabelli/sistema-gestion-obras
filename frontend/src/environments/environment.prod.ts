@@ -1,7 +1,7 @@
 // src/environments/environment.prod.ts
 export const environment = {
   production: true,
-  apiGateway: 'http://localhost:8080',
+  apiGateway: '',
   endpoints: {
     auth: '/auth',
     obras: '/bff/obras',
