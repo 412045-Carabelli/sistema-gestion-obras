@@ -36,7 +36,22 @@ jobs:
         id: owner
         run: echo "owner=${GITHUB_REPOSITORY_OWNER,,}" >> $GITHUB_OUTPUT
 
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GHCR_TOKEN || secrets.GITHUB_TOKEN }}
+
+      - name: Check image exists
+        id: check
+        run: |
+          docker manifest inspect ghcr.io/${{ steps.owner.outputs.owner }}/sgo-${{ matrix.service }}:latest \
+            && echo "exists=true" >> $GITHUB_OUTPUT \
+            || echo "exists=false" >> $GITHUB_OUTPUT
+
       - name: Scan ghcr.io image with Trivy
+        if: steps.check.outputs.exists == 'true'
         uses: aquasecurity/trivy-action@master
         with:
           image-ref: ghcr.io/${{ steps.owner.outputs.owner }}/sgo-${{ matrix.service }}:latest
@@ -46,9 +61,10 @@ jobs:
           exit-code: '0'
         env:
           TRIVY_USERNAME: ${{ github.actor }}
-          TRIVY_PASSWORD: ${{ secrets.GITHUB_TOKEN }}
+          TRIVY_PASSWORD: ${{ secrets.GHCR_TOKEN || secrets.GITHUB_TOKEN }}
 
       - name: Upload Trivy results to GitHub Security
+        if: steps.check.outputs.exists == 'true'
         uses: github/codeql-action/upload-sarif@v3
         with:
           sarif_file: trivy-${{ matrix.service }}.sarif
