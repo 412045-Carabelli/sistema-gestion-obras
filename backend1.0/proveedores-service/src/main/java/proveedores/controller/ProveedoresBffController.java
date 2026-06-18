@@ -60,9 +60,9 @@ public class ProveedoresBffController {
     @PostMapping("/proveedores")
     public ResponseEntity<ProveedorDTO> createProveedor(
             @RequestBody ProveedorDTO dto,
-            @RequestHeader(value = "X-Empresa-Id", required = false) Long empresaId) {
+            @RequestHeader(value = "X-Organizacion-Id", required = false) Long organizacionId) {
         try {
-            Proveedor saved = proveedorService.save(toEntity(dto), empresaId);
+            Proveedor saved = proveedorService.saveWithOrganizacion(toEntity(dto), organizacionId);
             return ResponseEntity.ok(toDTO(saved));
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().build();
