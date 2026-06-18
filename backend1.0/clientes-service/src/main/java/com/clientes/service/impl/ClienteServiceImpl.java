@@ -48,12 +48,9 @@ public class ClienteServiceImpl implements ClienteService {
     private final TransaccionesClient transaccionesClient;
 
     @Override
-    public ClienteResponse crear(ClienteRequest request, Long empresaId) {
+    public ClienteResponse crear(ClienteRequest request) {
         validarCondicionIVA(request.getCondicionIVA());
         Cliente entity = mapearEntidad(request);
-        if (empresaId != null) {
-            entity.setId_empresa(empresaId);
-        }
         entity.setCreadoEn(Instant.now());
         Cliente guardado = repository.save(entity);
         return mapearRespuesta(guardado, null, null, null, null);
@@ -96,22 +93,23 @@ public class ClienteServiceImpl implements ClienteService {
     }
 
     @Override
-    public List<ClienteResponse> listar(Long empresaId) {
-        // ⚡ RÁPIDO: sin obras ni transacciones, para dashboard/reportes
-        List<Cliente> clientes = empresaId != null
-            ? repository.findByIdEmpresa(empresaId)
-            : repository.findAll();
-        return clientes.stream()
+    public List<ClienteResponse> listar() {
+        return repository.findAll().stream()
                 .map(this::mapearRespuestaLite)
                 .toList();
     }
 
     @Override
-    public Page<ClienteResponse> listarConDetalles(Pageable pageable, Long empresaId) {
-        // 📊 COMPLETO: con obras, saldos, transacciones (PAGINADO en BD)
-        Page<Cliente> clientes = empresaId != null
-            ? repository.findByIdEmpresa(empresaId, pageable)
-            : repository.findAll(pageable);
+    public List<ClienteResponse> listar(Long organizacionId) {
+        List<Cliente> clientes = (organizacionId != null && organizacionId > 0)
+                ? repository.findByOrganizacionId(organizacionId)
+                : repository.findAll();
+        return clientes.stream().map(this::mapearRespuestaLite).toList();
+    }
+
+    @Override
+    public Page<ClienteResponse> listarConDetalles(Pageable pageable) {
+        Page<Cliente> clientes = repository.findAll(pageable);
         List<ClienteResponse> detalles = clientes.getContent().stream()
                 .map(cliente -> cargarClienteConDetallesEnParalelo(cliente))
                 .toList();
@@ -175,6 +173,7 @@ public class ClienteServiceImpl implements ClienteService {
         Cliente entity = new Cliente();
         entity.setNombre(request.getNombre());
         entity.setId_empresa(request.getIdEmpresa());
+        entity.setOrganizacionId(request.getOrganizacionId() != null ? request.getOrganizacionId() : 0L);
         entity.setContacto(request.getContacto());
         entity.setDireccion(request.getDireccion());
         entity.setCuit(request.getCuit());

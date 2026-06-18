@@ -76,13 +76,13 @@ public class JwtAuthFilter implements WebFilter {
       String username = (String) claims.get("username");
       String rol = (String) claims.get("rol");
       Object orgIdObj = claims.get("organizacionId");
-      String empresaId = orgIdObj != null ? String.valueOf(((Number) orgIdObj).longValue()) : null;
+      String organizacionId = orgIdObj != null ? String.valueOf(((Number) orgIdObj).longValue()) : null;
 
       // Inyectar headers hacia downstream usando decorator (headers son read-only en WebFlux 6.1+)
       final String finalUserId = String.valueOf(userId);
       final String finalUsername = username != null ? username : "";
       final String finalRol = rol != null ? rol : "USER";
-      final String finalEmpresaId = empresaId != null ? empresaId : "";
+      final String finalEmpresaId = organizacionId != null ? organizacionId : "";
 
       ServerHttpRequest decoratedRequest = new ServerHttpRequestDecorator(exchange.getRequest()) {
         @Override
@@ -92,7 +92,7 @@ public class JwtAuthFilter implements WebFilter {
           headers.set("X-User-Id", finalUserId);
           headers.set("X-Username", finalUsername);
           headers.set("X-User-Rol", finalRol);
-          headers.set("X-Empresa-Id", finalEmpresaId);
+          headers.set("X-Organizacion-Id", finalEmpresaId);
           return headers;
         }
       };

@@ -3,20 +3,15 @@ package com.transacciones.controller;
 import com.transacciones.dto.ComisionPagoRequest;
 import com.transacciones.dto.TransaccionDto;
 import com.transacciones.dto.MovimientoRecenteDTO;
-import com.transacciones.dto.TransaccionConAsociadoDto;
 import com.transacciones.entity.Transaccion;
 import com.transacciones.enums.TipoTransaccionEnum;
 import com.transacciones.service.TransaccionService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 
 @RestController
@@ -28,20 +23,12 @@ public class TransaccionController {
     private final TransaccionService transaccionService;
 
     @GetMapping
-    public ResponseEntity<List<TransaccionDto>> getAll() {
-        List<TransaccionDto> lista = transaccionService.listar();
+    public ResponseEntity<List<TransaccionDto>> getAll(
+            @RequestHeader(value = "X-Organizacion-Id", defaultValue = "0") Long organizacionId) {
+        List<TransaccionDto> lista = transaccionService.listar(organizacionId);
         return ResponseEntity.ok(lista);
     }
 
-    @GetMapping("/con-asociados")
-    public ResponseEntity<Map<String, Object>> getAllConAsociados(
-            @RequestParam(name = "page", defaultValue = "0") int page,
-            @RequestParam(name = "size", defaultValue = "50") int size
-    ) {
-        Pageable pageable = PageRequest.of(page, size, Sort.by("id").descending());
-        Map<String, Object> result = transaccionService.listarConAsociadosPaginado(pageable);
-        return ResponseEntity.ok(result);
-    }
 
     @GetMapping("/asociado/{tipo}/{id}")
     public ResponseEntity<List<TransaccionDto>> getDocumentosPorAsociado(
@@ -94,9 +81,9 @@ public class TransaccionController {
     @PostMapping
     public ResponseEntity<TransaccionDto> create(
             @RequestBody TransaccionDto dto,
-            @RequestHeader(value = "X-Empresa-Id", required = false) Long empresaId) {
+            @RequestHeader(value = "X-Organizacion-Id", defaultValue = "0") Long organizacionId) {
         Transaccion entity = toEntity(dto);
-        entity.setEmpresaId(empresaId);
+        entity.setOrganizacionId(organizacionId);
         return ResponseEntity.ok(transaccionService.crear(entity));
     }
 

@@ -33,7 +33,7 @@ public class ClienteBffController {
             @RequestParam(required = false) String sort,
             @RequestParam(required = false) Integer page,
             @RequestParam(required = false) Integer size,
-            @RequestHeader(value = "X-Empresa-Id", required = false) String empresaId
+            @RequestHeader(value = "X-Organizacion-Id", required = false) String organizacionId
     ) {
         WebClient client = webClientBuilder.build();
 
@@ -63,7 +63,7 @@ public class ClienteBffController {
                     }
                     return builder.build();
                 })
-                .headers(h -> { if (empresaId != null) h.set("X-Empresa-Id", empresaId); })
+                .headers(h -> { if (organizacionId != null) h.set("X-Organizacion-Id", organizacionId); })
                 .retrieve()
                 .bodyToFlux(new ParameterizedTypeReference<Map<String, Object>>() {});
 
@@ -78,13 +78,13 @@ public class ClienteBffController {
     public Mono<ResponseEntity<Map<String, Object>>> getAllClientesConDetalles(
             @RequestParam(name = "page", defaultValue = "0") int page,
             @RequestParam(name = "size", defaultValue = "50") int size,
-            @RequestHeader(value = "X-Empresa-Id", required = false) String empresaId
+            @RequestHeader(value = "X-Organizacion-Id", required = false) String organizacionId
     ) {
         WebClient client = webClientBuilder.build();
 
         return client.get()
                 .uri(CLIENTES_URL + "/con-detalles?page={page}&size={size}", page, size)
-                .headers(h -> { if (empresaId != null) h.set("X-Empresa-Id", empresaId); })
+                .headers(h -> { if (organizacionId != null) h.set("X-Organizacion-Id", organizacionId); })
                 .retrieve()
                 .bodyToMono(new ParameterizedTypeReference<Map<String, Object>>() {})
                 .map(ResponseEntity::ok)
@@ -112,13 +112,13 @@ public class ClienteBffController {
     @PostMapping
     public Mono<ResponseEntity<Map<String, Object>>> createCliente(
             @RequestBody Map<String, Object> clienteData,
-            @RequestHeader(value = "X-Empresa-Id", required = false) String empresaId
+            @RequestHeader(value = "X-Organizacion-Id", required = false) String organizacionId
     ) {
         WebClient client = webClientBuilder.build();
 
         return client.post()
                 .uri(CLIENTES_URL)
-                .headers(h -> { if (empresaId != null) h.set("X-Empresa-Id", empresaId); })
+                .headers(h -> { if (organizacionId != null) h.set("X-Organizacion-Id", organizacionId); })
                 .contentType(MediaType.APPLICATION_JSON)
                 .bodyValue(clienteData)
                 .retrieve()

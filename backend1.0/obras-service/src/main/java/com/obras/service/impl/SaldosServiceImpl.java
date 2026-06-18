@@ -27,24 +27,18 @@ public class SaldosServiceImpl implements SaldosService {
      * @return Lista de saldos por proveedor (id, nombre, total_costos, total_pagos, saldo_pendiente)
      */
     @Override
-    public List<SaldoProveedorDTO> obtenerSaldosProveedores() {
+    public List<SaldoProveedorDTO> obtenerSaldosProveedores(Long organizacionId) {
         try {
-            return saldosProveedoresRepository.obtenerSaldosOptimizado();
+            return saldosProveedoresRepository.obtenerSaldosOptimizado(organizacionId);
         } catch (Exception ex) {
             return Collections.emptyList();
         }
     }
 
-    /**
-     * Ejecuta el SP sp_saldos_clientes en la BD.
-     * Devuelve saldos de TODOS los clientes en 1 sola query.
-     *
-     * @return Lista de saldos por cliente (id, nombre, total_presupuesto, total_cobros, saldo_pendiente)
-     */
     @Override
-    public List<SaldoClienteDTO> obtenerSaldosClientes() {
+    public List<SaldoClienteDTO> obtenerSaldosClientes(Long organizacionId) {
         try {
-            return saldosClientesRepository.obtenerSaldosOptimizado();
+            return saldosClientesRepository.obtenerSaldosOptimizado(organizacionId);
         } catch (Exception ex) {
             return Collections.emptyList();
         }

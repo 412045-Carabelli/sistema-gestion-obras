@@ -7,8 +7,8 @@ import com.obras.dto.ResumenObraProveedorDTO;
 import java.util.List;
 
 public interface SaldosGruposService {
-  List<SaldoGrupoClienteDTO> obtenerSaldosGruposClientes();
-  List<SaldoGrupoProveedorDTO> obtenerSaldosGruposProveedores();
-  List<ResumenObraClienteDTO> obtenerResumenObrasClientes();
-  List<ResumenObraProveedorDTO> obtenerResumenObrasProveedores();
+  List<SaldoGrupoClienteDTO> obtenerSaldosGruposClientes(Long organizacionId);
+  List<SaldoGrupoProveedorDTO> obtenerSaldosGruposProveedores(Long organizacionId);
+  List<ResumenObraClienteDTO> obtenerResumenObrasClientes(Long organizacionId);
+  List<ResumenObraProveedorDTO> obtenerResumenObrasProveedores(Long organizacionId);
 }

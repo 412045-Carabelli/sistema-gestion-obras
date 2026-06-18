@@ -14,7 +14,7 @@ public class Proveedor {
     @Id
     @GeneratedValue(strategy= GenerationType.IDENTITY) private Long id;
     @Column(nullable=false) private String nombre;
-    @Column(name = "empresa_id") private Long empresaId;
+    @Column(name = "organizacion_id", nullable = false) private Long organizacionId = 0L;
     @ManyToOne
     @JoinColumn(name = "tipo_proveedor_id")
     private TipoProveedor tipoProveedor;

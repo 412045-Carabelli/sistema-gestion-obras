@@ -40,7 +40,7 @@ export class AuthInterceptor implements HttpInterceptor {
     const headers: Record<string, string> = { Authorization: `Bearer ${token}` };
     const user = this.authService.getCurrentUser();
     if (user?.organizacionId != null) {
-      headers['X-Empresa-Id'] = String(user.organizacionId);
+      headers['X-Organizacion-Id'] = String(user.organizacionId);
     }
     if (user?.userId != null) {
       headers['X-User-Id'] = String(user.userId);

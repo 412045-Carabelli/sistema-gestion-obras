@@ -20,7 +20,7 @@ public class GrupoObrasServiceImpl implements GrupoObrasService {
   private final GrupoObrasRepository repository;
 
   @Override
-  public GrupoObraDTO crear(GrupoObraDTO dto) {
+  public GrupoObraDTO crear(GrupoObraDTO dto, Long organizacionId) {
     if (dto.getId_cliente() == null) {
       throw new IllegalArgumentException("id_cliente es requerido");
     }
@@ -29,6 +29,7 @@ public class GrupoObrasServiceImpl implements GrupoObrasService {
     }
 
     GrupoObra grupo = new GrupoObra();
+    grupo.setOrganizacionId(organizacionId != null ? organizacionId : 0L);
     grupo.setIdCliente(dto.getId_cliente());
     grupo.setNombre(dto.getNombre());
     grupo.setActivo(Boolean.TRUE);
@@ -47,26 +48,29 @@ public class GrupoObrasServiceImpl implements GrupoObrasService {
 
   @Override
   @Transactional(readOnly = true)
-  public List<GrupoObraDTO> listar() {
-    return repository.findAll().stream()
-        .map(this::toDTO)
-        .toList();
+  public List<GrupoObraDTO> listar(Long organizacionId) {
+    List<GrupoObra> grupos = (organizacionId != null && organizacionId > 0)
+        ? repository.findByOrganizacionId(organizacionId)
+        : repository.findAll();
+    return grupos.stream().map(this::toDTO).toList();
   }
 
   @Override
   @Transactional(readOnly = true)
-  public List<GrupoObraDTO> listarPorCliente(Long idCliente) {
-    return repository.findByIdCliente(idCliente).stream()
-        .map(this::toDTO)
-        .toList();
+  public List<GrupoObraDTO> listarPorCliente(Long idCliente, Long organizacionId) {
+    List<GrupoObra> grupos = (organizacionId != null && organizacionId > 0)
+        ? repository.findByIdClienteAndOrganizacionId(idCliente, organizacionId)
+        : repository.findByIdCliente(idCliente);
+    return grupos.stream().map(this::toDTO).toList();
   }
 
   @Override
   @Transactional(readOnly = true)
-  public List<GrupoObraDTO> listarActivosPorCliente(Long idCliente) {
-    return repository.findByIdClienteAndActivoTrue(idCliente).stream()
-        .map(this::toDTO)
-        .toList();
+  public List<GrupoObraDTO> listarActivosPorCliente(Long idCliente, Long organizacionId) {
+    List<GrupoObra> grupos = (organizacionId != null && organizacionId > 0)
+        ? repository.findByIdClienteAndActivoTrueAndOrganizacionId(idCliente, organizacionId)
+        : repository.findByIdClienteAndActivoTrue(idCliente);
+    return grupos.stream().map(this::toDTO).toList();
   }
 
   @Override

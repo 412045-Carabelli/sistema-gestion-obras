@@ -18,14 +18,17 @@ public class GrupoObrasController {
   private final GrupoObrasService service;
 
   @PostMapping
-  public ResponseEntity<GrupoObraDTO> crear(@RequestBody GrupoObraDTO dto) {
-    GrupoObraDTO created = service.crear(dto);
+  public ResponseEntity<GrupoObraDTO> crear(
+      @RequestBody GrupoObraDTO dto,
+      @RequestHeader(value = "X-Organizacion-Id", defaultValue = "0") Long organizacionId) {
+    GrupoObraDTO created = service.crear(dto, organizacionId);
     return ResponseEntity.status(HttpStatus.CREATED).body(created);
   }
 
   @GetMapping
-  public ResponseEntity<List<GrupoObraDTO>> listar() {
-    return ResponseEntity.ok(service.listar());
+  public ResponseEntity<List<GrupoObraDTO>> listar(
+      @RequestHeader(value = "X-Organizacion-Id", defaultValue = "0") Long organizacionId) {
+    return ResponseEntity.ok(service.listar(organizacionId));
   }
 
   @GetMapping("/{id}")
@@ -34,13 +37,17 @@ public class GrupoObrasController {
   }
 
   @GetMapping("/cliente/{idCliente}")
-  public ResponseEntity<List<GrupoObraDTO>> listarPorCliente(@PathVariable Long idCliente) {
-    return ResponseEntity.ok(service.listarPorCliente(idCliente));
+  public ResponseEntity<List<GrupoObraDTO>> listarPorCliente(
+      @PathVariable Long idCliente,
+      @RequestHeader(value = "X-Organizacion-Id", defaultValue = "0") Long organizacionId) {
+    return ResponseEntity.ok(service.listarPorCliente(idCliente, organizacionId));
   }
 
   @GetMapping("/cliente/{idCliente}/activos")
-  public ResponseEntity<List<GrupoObraDTO>> listarActivosPorCliente(@PathVariable Long idCliente) {
-    return ResponseEntity.ok(service.listarActivosPorCliente(idCliente));
+  public ResponseEntity<List<GrupoObraDTO>> listarActivosPorCliente(
+      @PathVariable Long idCliente,
+      @RequestHeader(value = "X-Organizacion-Id", defaultValue = "0") Long organizacionId) {
+    return ResponseEntity.ok(service.listarActivosPorCliente(idCliente, organizacionId));
   }
 
   @PutMapping("/{id}")

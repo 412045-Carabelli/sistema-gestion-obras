@@ -20,8 +20,8 @@ public class Transaccion {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "empresa_id")
-    private Long empresaId;
+    @Column(name = "organizacion_id", nullable = false)
+    private Long organizacionId;
 
     @Column(name = "id_obra", nullable = false)
     private Long idObra;

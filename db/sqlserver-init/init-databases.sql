@@ -1,3 +1,6 @@
+IF NOT EXISTS (SELECT name FROM sys.databases WHERE name = 'sgo_auth')
+    CREATE DATABASE sgo_auth;
+GO
 IF NOT EXISTS (SELECT name FROM sys.databases WHERE name = 'sgo_clientes')
     CREATE DATABASE sgo_clientes;
 GO

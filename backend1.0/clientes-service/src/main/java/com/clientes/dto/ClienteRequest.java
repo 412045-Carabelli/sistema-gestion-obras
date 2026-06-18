@@ -9,6 +9,7 @@ public class ClienteRequest {
     @NotBlank
     private String nombre;
     private Long idEmpresa;
+    private Long organizacionId;
     private String contacto;
     private String direccion;
     private String cuit;

@@ -14,6 +14,9 @@ public class Cliente {
     @GeneratedValue(strategy= GenerationType.IDENTITY) private Long id;
     @Column(nullable=false) private String nombre;
     private Long id_empresa;
+
+    @Column(name = "organizacion_id", nullable = false)
+    private Long organizacionId = 0L;
     private String contacto, cuit, telefono, email, direccion;
     @JsonProperty("condicionIVA")
     @JsonAlias({"condicionIva", "condicion_iva"})

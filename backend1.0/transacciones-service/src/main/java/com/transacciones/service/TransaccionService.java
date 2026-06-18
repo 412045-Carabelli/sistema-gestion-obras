@@ -51,6 +51,13 @@ public class TransaccionService {
                 .collect(Collectors.toList());
     }
 
+    public List<TransaccionDto> listar(Long organizacionId) {
+        List<Transaccion> lista = (organizacionId != null && organizacionId > 0)
+                ? transaccionRepository.findByOrganizacionId(organizacionId)
+                : transaccionRepository.findAll();
+        return lista.stream().map(this::toDto).collect(Collectors.toList());
+    }
+
     public TransaccionDto crear(Transaccion dto) {
         if (dto.getTipo_transaccion() == null) {
             throw new IllegalArgumentException("Debe especificarse un tipo de transaccion valido");

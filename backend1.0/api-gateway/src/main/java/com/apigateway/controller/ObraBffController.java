@@ -55,13 +55,13 @@ public class ObraBffController {
     @PreAuthorize("permitAll()")  // TODO: cambiar a hasRole('ADMIN') o hasRole('OBRAS') cuando JWT esté listo
     public Mono<ResponseEntity<Map<String, Object>>> crearObra(
             @RequestBody Map<String, Object> obraDto,
-            @RequestHeader(value = "X-Empresa-Id", required = false) String empresaId
+            @RequestHeader(value = "X-Organizacion-Id", required = false) String organizacionId
     ) {
         WebClient client = webClientBuilder.build();
 
         return client.post()
                 .uri(OBRAS_URL)
-                .headers(h -> { if (empresaId != null) h.set("X-Empresa-Id", empresaId); })
+                .headers(h -> { if (organizacionId != null) h.set("X-Organizacion-Id", organizacionId); })
                 .contentType(MediaType.APPLICATION_JSON)
                 .bodyValue(obraDto)
                 .exchangeToMono(response -> {
@@ -90,13 +90,13 @@ public class ObraBffController {
     public Mono<ResponseEntity<Map<String, Object>>> actualizarObra(
             @PathVariable("id") Long id,
             @RequestBody Map<String, Object> obraDto,
-            @RequestHeader(value = "X-Empresa-Id", required = false) String empresaId
+            @RequestHeader(value = "X-Organizacion-Id", required = false) String organizacionId
     ) {
         WebClient client = webClientBuilder.build();
 
         return client.put()
                 .uri(OBRAS_URL + "/{id}", id)
-                .headers(h -> { if (empresaId != null) h.set("X-Empresa-Id", empresaId); })
+                .headers(h -> { if (organizacionId != null) h.set("X-Organizacion-Id", organizacionId); })
                 .contentType(MediaType.APPLICATION_JSON)
                 .bodyValue(obraDto)
                 .exchangeToMono(response -> {
@@ -188,7 +188,7 @@ public class ObraBffController {
             @RequestParam(required = false) Long idCliente,
             @RequestParam(required = false) Integer page,
             @RequestParam(required = false) Integer size,
-            @RequestHeader(value = "X-Empresa-Id", required = false) String empresaId
+            @RequestHeader(value = "X-Organizacion-Id", required = false) String organizacionId
     ) {
         WebClient client = webClientBuilder.build();
 
@@ -219,7 +219,7 @@ public class ObraBffController {
                     }
                     return builder.build();
                 })
-                .headers(h -> { if (empresaId != null) h.set("X-Empresa-Id", empresaId); })
+                .headers(h -> { if (organizacionId != null) h.set("X-Organizacion-Id", organizacionId); })
                 .retrieve()
                 .bodyToMono(new ParameterizedTypeReference<Map<String, Object>>() {})
                 .flatMapMany(pageResult -> {
@@ -311,13 +311,13 @@ public class ObraBffController {
     @GetMapping("/{id}")
     public Mono<ResponseEntity<Map<String, Object>>> getObraCompleta(
             @PathVariable("id") Long id,
-            @RequestHeader(value = "X-Empresa-Id", required = false) String empresaId
+            @RequestHeader(value = "X-Organizacion-Id", required = false) String organizacionId
     ) {
         WebClient client = webClientBuilder.build();
 
         Mono<Map<String, Object>> obraMono = client.get()
                 .uri(OBRAS_URL + "/{id}", id)
-                .headers(h -> { if (empresaId != null) h.set("X-Empresa-Id", empresaId); })
+                .headers(h -> { if (organizacionId != null) h.set("X-Organizacion-Id", organizacionId); })
                 .retrieve()
                 .bodyToMono(new ParameterizedTypeReference<Map<String, Object>>() {})
                 .onErrorResume(ex -> Mono.empty());
@@ -401,7 +401,7 @@ public class ObraBffController {
 
         Mono<List<Map<String, Object>>> facturasMono = client.get()
                 .uri(FACTURAS_URL + "/obra/{id}", id)
-                .headers(h -> { if (empresaId != null) h.set("X-Empresa-Id", empresaId); })
+                .headers(h -> { if (organizacionId != null) h.set("X-Organizacion-Id", organizacionId); })
                 .retrieve()
                 .bodyToFlux(new ParameterizedTypeReference<Map<String, Object>>() {})
                 .collectList()
@@ -456,7 +456,7 @@ public class ObraBffController {
             @RequestParam(required = false) String estado,
             @RequestParam(required = false) Boolean activo,
             @RequestParam(required = false) String q,
-            @RequestHeader(value = "X-Empresa-Id", required = false) String empresaId
+            @RequestHeader(value = "X-Organizacion-Id", required = false) String organizacionId
     ) {
         WebClient client = webClientBuilder.build();
 
@@ -473,7 +473,7 @@ public class ObraBffController {
                     if (q != null && !q.isBlank()) b.queryParam("q", q);
                     return b.build();
                 })
-                .headers(h -> { if (empresaId != null) h.set("X-Empresa-Id", empresaId); })
+                .headers(h -> { if (organizacionId != null) h.set("X-Organizacion-Id", organizacionId); })
                 .retrieve()
                 .bodyToMono(new ParameterizedTypeReference<Map<String, Object>>() {})
                 .onErrorResume(ex -> Mono.just(Map.of("content", List.of(), "totalElements", 0, "totalPages", 0)));
@@ -522,7 +522,7 @@ public class ObraBffController {
                         Long idObra = ((Number) obra.get("id")).longValue();
                         return client.get()
                                 .uri(FACTURAS_URL + "/obra/{id}", idObra)
-                                .headers(h -> { if (empresaId != null) h.set("X-Empresa-Id", empresaId); })
+                                .headers(h -> { if (organizacionId != null) h.set("X-Organizacion-Id", organizacionId); })
                                 .retrieve()
                                 .bodyToFlux(new ParameterizedTypeReference<Map<String, Object>>() {})
                                 .collectList()

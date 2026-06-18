@@ -42,4 +42,9 @@ public class DashboardFilterRequest {
    * Fecha fin del rango (opcional)
    */
   private LocalDate fechaFin;
+
+  /**
+   * Filtro por organización (obligatorio en contexto multiempresa)
+   */
+  private Long organizacionId;
 }
