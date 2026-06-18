@@ -1,0 +1,1 @@
+-- Seed deshabilitado para PROD (sin inserts)

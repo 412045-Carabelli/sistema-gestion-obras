@@ -54,15 +54,20 @@ public class JwtAuthFilter implements WebFilter {
       return chain.filter(exchange);
     }
 
-    // Leer Authorization header
+    // Leer token: primero Authorization header, luego query param ?token=
+    String token = null;
     String authHeader = exchange.getRequest().getHeaders().getFirst("Authorization");
-    if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+    if (authHeader != null && authHeader.startsWith("Bearer ")) {
+      token = authHeader.substring(7);
+    } else {
+      token = exchange.getRequest().getQueryParams().getFirst("token");
+    }
+
+    if (token == null || token.isBlank()) {
       log.warn("Request sin token JWT: {}", path);
       exchange.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED);
       return exchange.getResponse().setComplete();
     }
-
-    String token = authHeader.substring(7);
 
     try {
       Claims claims = Jwts.parser()

@@ -22,14 +22,14 @@ public class TareaController {
     @PostMapping
     public ResponseEntity<TareaResponse> crear(
             @RequestBody @Valid TareaRequest request,
-            @RequestHeader(value = "X-Empresa-Id", required = false) Long empresaId) {
-        return ResponseEntity.ok(service.crear(request, empresaId));
+            @RequestHeader(value = "X-Organizacion-Id", required = false) Long organizacionId) {
+        return ResponseEntity.ok(service.crear(request, organizacionId));
     }
 
     @GetMapping
     public List<TareaResponse> listar(
-            @RequestHeader(value = "X-Empresa-Id", required = false) Long empresaId) {
-        return service.listar(empresaId);
+            @RequestHeader(value = "X-Organizacion-Id", required = false) Long organizacionId) {
+        return service.listar(organizacionId);
     }
 
     @GetMapping("/proveedor/{idProveedor}")

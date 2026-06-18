@@ -105,11 +105,11 @@ export class AuthService {
   }
 
   getAccessToken(): string | null {
-    return localStorage.getItem('sgo_access_token');
+    return this.getCookie('sgo_access_token');
   }
 
   getRefreshToken(): string | null {
-    return localStorage.getItem('sgo_refresh_token');
+    return this.getCookie('sgo_refresh_token');
   }
 
   getCurrentUser(): UserInfo | null {
@@ -117,8 +117,8 @@ export class AuthService {
   }
 
   private handleAuthResponse(response: AuthResponse): void {
-    localStorage.setItem('sgo_access_token', response.access_token);
-    localStorage.setItem('sgo_refresh_token', response.refresh_token);
+    this.setCookie('sgo_access_token', response.access_token, 1);
+    this.setCookie('sgo_refresh_token', response.refresh_token, 7);
 
     const userInfo: UserInfo = {
       userId: response.user_id,
@@ -129,14 +129,14 @@ export class AuthService {
       apellido: response.apellido,
       organizacionId: response.organizacion_id || null
     };
-    localStorage.setItem('sgo_user_info', JSON.stringify(userInfo));
+    this.setCookie('sgo_user_info', JSON.stringify(userInfo), 1);
     this.currentUserSubject.next(userInfo);
   }
 
   private clearStorageAndState(): void {
-    localStorage.removeItem('sgo_access_token');
-    localStorage.removeItem('sgo_refresh_token');
-    localStorage.removeItem('sgo_user_info');
+    this.deleteCookie('sgo_access_token');
+    this.deleteCookie('sgo_refresh_token');
+    this.deleteCookie('sgo_user_info');
     this.currentUserSubject.next(null);
   }
 
@@ -148,8 +148,23 @@ export class AuthService {
   }
 
   private getUserFromStorage(): UserInfo | null {
-    const userJson = localStorage.getItem('sgo_user_info');
+    const userJson = this.getCookie('sgo_user_info');
     return userJson ? JSON.parse(userJson) : null;
+  }
+
+  private setCookie(name: string, value: string, days: number): void {
+    const expires = new Date();
+    expires.setTime(expires.getTime() + days * 24 * 60 * 60 * 1000);
+    document.cookie = `${name}=${encodeURIComponent(value)};expires=${expires.toUTCString()};path=/;SameSite=Strict`;
+  }
+
+  private getCookie(name: string): string | null {
+    const match = document.cookie.match(new RegExp('(^| )' + name + '=([^;]+)'));
+    return match ? decodeURIComponent(match[2]) : null;
+  }
+
+  private deleteCookie(name: string): void {
+    document.cookie = `${name}=;expires=Thu, 01 Jan 1970 00:00:00 UTC;path=/;SameSite=Strict`;
   }
 
   private isAccessTokenExpired(): boolean {

@@ -1,0 +1,3 @@
+-- V5__extend_sp_cuenta_corriente_with_grupo.sql
+-- Stub: esta migración fue ejecutada en la BD anteriormente
+-- El contenido fue refactorizado a las migraciones posteriores

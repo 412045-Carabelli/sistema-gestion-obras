@@ -1,0 +1,7 @@
+# Default: Windows checkouts use CRLF
+* text=auto
+
+# Shell scripts and SQL: always LF (run in Linux containers)
+*.sh text eol=lf
+*.sql text eol=lf
+db/**/* text eol=lf

@@ -113,6 +113,16 @@ public class ProveedoresController {
         return ResponseEntity.ok(result);
     }
 
+    @GetMapping("/simple")
+    public ResponseEntity<List<ProveedorDTO>> getSimple(
+            @RequestHeader(value = "X-Organizacion-Id", defaultValue = "0") Long organizacionId) {
+        List<ProveedorDTO> result = service.findAllActivosByOrganizacion(organizacionId)
+                .stream()
+                .map(this::toDTO)
+                .toList();
+        return ResponseEntity.ok(result);
+    }
+
     @GetMapping("/{id}")
     public ResponseEntity<ProveedorDTO> getById(@PathVariable("id") Long id) {
         return service.findById(id)

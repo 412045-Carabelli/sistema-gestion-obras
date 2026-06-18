@@ -47,10 +47,10 @@ public class TareaServiceImpl implements TareaService {
     private String proveedoresServiceUrl;
 
     @Override
-    public TareaResponse crear(TareaRequest request, Long empresaId) {
+    public TareaResponse crear(TareaRequest request, Long organizacionId) {
         validarEstado(request.getEstado());
         Tarea entity = mapearEntidad(request);
-        entity.setEmpresaId(empresaId);
+        entity.setOrganizacionId(organizacionId);
         Tarea guardada = repository.save(entity);
         return mapearRespuesta(guardada);
     }
@@ -73,9 +73,9 @@ public class TareaServiceImpl implements TareaService {
     }
 
     @Override
-    public List<TareaResponse> listar(Long empresaId) {
-        List<Tarea> tareas = empresaId != null
-            ? repository.findByEmpresaIdOrderByCreadoEnAsc(empresaId)
+    public List<TareaResponse> listar(Long organizacionId) {
+        List<Tarea> tareas = organizacionId != null
+            ? repository.findByOrganizacionIdOrderByCreadoEnAsc(organizacionId)
             : repository.findAll();
         return tareas.stream()
                 .map(this::mapearRespuesta)
