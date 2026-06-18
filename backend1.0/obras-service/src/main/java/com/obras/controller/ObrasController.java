@@ -61,13 +61,6 @@ public class ObrasController {
         return svc.listarResumen(p, estadoEnum, activo, q, organizacionId);
     }
 
-    @GetMapping("/estados")
-    public List<Map<String, String>> listarEstados() {
-        return Arrays.stream(EstadoObraEnum.values())
-                .map(e -> Map.of("name", e.name(), "label", e.name()))
-                .toList();
-    }
-
     @PutMapping("/{id}") public ObraDTO update(@PathVariable("id") Long id, @RequestBody ObraDTO dto){ return svc.actualizar(id,dto); }
     @PatchMapping("/{id}/estado/{estado}")
     public void changeEstado(@PathVariable("id") Long id, @PathVariable("estado") com.obras.enums.EstadoObraEnum estado) {
