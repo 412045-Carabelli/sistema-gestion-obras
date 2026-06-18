@@ -12,6 +12,7 @@ public interface ObraService {
     Optional<ObraDTO> obtener(Long id);
     Page<ObraDTO> listar(Long organizacionId, Pageable p);
     Page<ObraDTO> listarPorCliente(Long idCliente, Long organizacionId, Pageable p);
+    Page<ObraListDTO> listarResumen(Pageable p, com.obras.enums.EstadoObraEnum estado, Boolean activo, String q, Long organizacionId);
     ObraDTO actualizar(Long id, ObraDTO dto);
     Optional<ObraDTO> obtenerUltimaCondicion();
     void cambiarEstado(Long idObra, com.obras.enums.EstadoObraEnum estado);

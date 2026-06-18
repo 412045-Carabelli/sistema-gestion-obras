@@ -2,9 +2,12 @@ package com.obras.controller;
 
 import com.obras.dto.*;
 import com.obras.entity.ObraProveedor;
+import com.obras.enums.EstadoObraEnum;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -43,6 +46,28 @@ public class ObrasController {
                 ? svc.listarPorCliente(idCliente, organizacionId, p)
                 : svc.listar(organizacionId, p)).getContent();
     }
+    @GetMapping("/resumen")
+    public Page<ObraListDTO> listarResumen(
+            @PageableDefault(size = 50, sort = "id", direction = Sort.Direction.DESC) Pageable p,
+            @RequestParam(required = false) String estado,
+            @RequestParam(required = false) Boolean activo,
+            @RequestParam(required = false) String q,
+            @RequestHeader(value = "X-Organizacion-Id", defaultValue = "0") Long organizacionId
+    ) {
+        EstadoObraEnum estadoEnum = null;
+        if (estado != null && !estado.isBlank()) {
+            try { estadoEnum = EstadoObraEnum.valueOf(estado.trim().toUpperCase()); } catch (Exception ignored) {}
+        }
+        return svc.listarResumen(p, estadoEnum, activo, q, organizacionId);
+    }
+
+    @GetMapping("/estados")
+    public List<Map<String, String>> listarEstados() {
+        return Arrays.stream(EstadoObraEnum.values())
+                .map(e -> Map.of("name", e.name(), "label", e.name()))
+                .toList();
+    }
+
     @PutMapping("/{id}") public ObraDTO update(@PathVariable("id") Long id, @RequestBody ObraDTO dto){ return svc.actualizar(id,dto); }
     @PatchMapping("/{id}/estado/{estado}")
     public void changeEstado(@PathVariable("id") Long id, @PathVariable("estado") com.obras.enums.EstadoObraEnum estado) {

@@ -96,6 +96,41 @@ public class ObraServiceImpl implements ObraService {
     }
 
     /* ============================================================
+                         RESUMEN (paginado con filtros)
+       ============================================================ */
+
+    @Override
+    @Transactional(readOnly = true)
+    public org.springframework.data.domain.Page<com.obras.dto.ObraListDTO> listarResumen(
+            org.springframework.data.domain.Pageable p,
+            com.obras.enums.EstadoObraEnum estado,
+            Boolean activo,
+            String q,
+            Long organizacionId) {
+        String qParam = (q != null && !q.isBlank()) ? q.trim() : null;
+        org.springframework.data.domain.Page<Obra> page = obraRepo.findByFiltros(estado, activo, organizacionId, qParam, p);
+        java.util.List<com.obras.dto.ObraListDTO> dtos = page.stream().map(this::toListDto).toList();
+        return new org.springframework.data.support.PageImpl<>(dtos, p, page.getTotalElements());
+    }
+
+    private com.obras.dto.ObraListDTO toListDto(Obra entity) {
+        com.obras.dto.ObraListDTO dto = new com.obras.dto.ObraListDTO();
+        dto.setId(entity.getId());
+        dto.setId_cliente(entity.getIdCliente());
+        dto.setId_grupo(entity.getIdGrupo());
+        dto.setObra_estado(entity.getEstadoObra());
+        dto.setNombre(entity.getNombre());
+        dto.setDireccion(entity.getDireccion());
+        dto.setFecha_inicio(entity.getFechaInicio());
+        dto.setFecha_fin(entity.getFechaFin());
+        dto.setPresupuesto(entity.getPresupuesto());
+        dto.setRequiere_factura(entity.getRequiereFactura());
+        dto.setActivo(entity.getActivo());
+        dto.setCreado_en(entity.getCreadoEn());
+        return dto;
+    }
+
+    /* ============================================================
                              ACTUALIZAR
        ============================================================ */
 
