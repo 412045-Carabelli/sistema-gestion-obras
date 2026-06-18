@@ -110,7 +110,7 @@ public class ObraServiceImpl implements ObraService {
         String qParam = (q != null && !q.isBlank()) ? q.trim() : null;
         org.springframework.data.domain.Page<Obra> page = obraRepo.findByFiltros(estado, activo, organizacionId, qParam, p);
         java.util.List<com.obras.dto.ObraListDTO> dtos = page.stream().map(this::toListDto).toList();
-        return new org.springframework.data.support.PageImpl<>(dtos, p, page.getTotalElements());
+        return new org.springframework.data.domain.PageImpl<>(dtos, p, page.getTotalElements());
     }
 
     private com.obras.dto.ObraListDTO toListDto(Obra entity) {
