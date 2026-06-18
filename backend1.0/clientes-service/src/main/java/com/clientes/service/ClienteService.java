@@ -14,7 +14,7 @@ public interface ClienteService {
     ClienteResponse obtenerConObras(Long id);
     List<ClienteResponse> listar();
     List<ClienteResponse> listar(Long organizacionId);
-    Page<ClienteResponse> listarConDetalles(Pageable pageable);
+    Page<ClienteResponse> listarConDetalles(Pageable pageable, Long organizacionId);
     List<String> listarCondicionesIva();
     void activar(Long id);
     void desactivar(Long id);

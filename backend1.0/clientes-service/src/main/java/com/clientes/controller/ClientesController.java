@@ -34,8 +34,10 @@ public class ClientesController {
     }
 
     @GetMapping("/con-detalles")
-    public Page<ClienteResponse> listarConDetalles(Pageable pageable) {
-        return service.listarConDetalles(pageable);
+    public Page<ClienteResponse> listarConDetalles(
+            Pageable pageable,
+            @RequestHeader(value = "X-Organizacion-Id", defaultValue = "0") Long organizacionId) {
+        return service.listarConDetalles(pageable, organizacionId);
     }
 
     @GetMapping("/{id}") public ResponseEntity<ClienteResponse> one(@PathVariable("id") Long id){ return ResponseEntity.ok(service.obtenerConObras(id)); }

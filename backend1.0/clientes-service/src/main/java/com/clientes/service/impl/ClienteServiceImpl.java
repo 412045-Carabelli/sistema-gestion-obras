@@ -108,8 +108,10 @@ public class ClienteServiceImpl implements ClienteService {
     }
 
     @Override
-    public Page<ClienteResponse> listarConDetalles(Pageable pageable) {
-        Page<Cliente> clientes = repository.findAll(pageable);
+    public Page<ClienteResponse> listarConDetalles(Pageable pageable, Long organizacionId) {
+        Page<Cliente> clientes = (organizacionId != null && organizacionId > 0)
+            ? repository.findByOrganizacionId(organizacionId, pageable)
+            : repository.findAll(pageable);
         List<ClienteResponse> detalles = clientes.getContent().stream()
                 .map(cliente -> cargarClienteConDetallesEnParalelo(cliente))
                 .toList();
