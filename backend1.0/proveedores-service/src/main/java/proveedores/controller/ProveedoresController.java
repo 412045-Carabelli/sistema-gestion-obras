@@ -131,8 +131,12 @@ public class ProveedoresController {
     }
 
     @GetMapping("/all")
-    public ResponseEntity<List<Proveedor>> getAllSinFiltro() {
-        return ResponseEntity.ok(service.findAll());
+    public ResponseEntity<List<Proveedor>> getAllSinFiltro(
+            @RequestHeader(value = "X-Organizacion-Id", defaultValue = "0") Long organizacionId) {
+        List<Proveedor> result = organizacionId > 0
+            ? service.findAllByOrganizacionId(organizacionId)
+            : service.findAll();
+        return ResponseEntity.ok(result);
     }
 
 

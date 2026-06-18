@@ -25,16 +25,18 @@ public class ProveedoresBffController {
 
     // --- Proveedores ---
     @GetMapping("/proveedores")
-    public ResponseEntity<List<ProveedorDTO>> getProveedores() {
-        List<ProveedorDTO> dtos = proveedorService.findAllActivos().stream()
+    public ResponseEntity<List<ProveedorDTO>> getProveedores(
+            @RequestHeader(value = "X-Organizacion-Id", required = false) Long organizacionId) {
+        List<ProveedorDTO> dtos = proveedorService.findAllActivosByOrganizacion(organizacionId).stream()
                 .map(this::toDTOConTotales)
                 .toList();
         return ResponseEntity.ok(dtos);
     }
 
     @GetMapping("/proveedores/simple")
-    public ResponseEntity<List<ProveedorDTO>> getProveedoresSimple() {
-        List<ProveedorDTO> dtos = proveedorService.findAllActivos().stream()
+    public ResponseEntity<List<ProveedorDTO>> getProveedoresSimple(
+            @RequestHeader(value = "X-Organizacion-Id", required = false) Long organizacionId) {
+        List<ProveedorDTO> dtos = proveedorService.findAllActivosByOrganizacion(organizacionId).stream()
                 .map(this::toDTO)
                 .toList();
         return ResponseEntity.ok(dtos);

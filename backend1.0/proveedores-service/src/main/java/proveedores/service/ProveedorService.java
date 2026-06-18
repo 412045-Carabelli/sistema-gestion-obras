@@ -114,6 +114,10 @@ public class ProveedorService {
                 });
     }
 
+    public List<Proveedor> findAllByOrganizacionId(Long organizacionId) {
+        return repository.findByOrganizacionId(organizacionId);
+    }
+
     public List<Proveedor> findAll() {
         return repository.findAll();
     }
