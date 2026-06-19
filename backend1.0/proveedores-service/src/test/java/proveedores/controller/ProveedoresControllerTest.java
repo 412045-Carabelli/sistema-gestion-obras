@@ -48,7 +48,7 @@ class ProveedoresControllerTest {
         Proveedor p = new Proveedor();
         p.setId(1L);
         p.setNombre("Prov A");
-        when(service.findAllActivosByEmpresa(any())).thenReturn(List.of(p));
+        when(service.findAllActivosByOrganizacion(any())).thenReturn(List.of(p));
         when(finanzasService.calcularTotalesBulk(any())).thenReturn(Map.of(
                 1L, new ProveedorFinanzasService.TotalesProveedor(BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO)
         ));
@@ -112,7 +112,7 @@ class ProveedoresControllerTest {
         Proveedor saved = new Proveedor();
         saved.setId(5L);
         saved.setNombre("Prov X");
-        when(service.save(any(Proveedor.class), any())).thenReturn(saved);
+        when(service.saveWithOrganizacion(any(Proveedor.class), any())).thenReturn(saved);
 
         mockMvc.perform(post("/api/proveedores")
                 .contentType(MediaType.APPLICATION_JSON)
@@ -126,7 +126,7 @@ class ProveedoresControllerTest {
     void create_bad_request() throws Exception {
         ProveedorDTO dto = new ProveedorDTO();
         dto.setNombre("Prov X");
-        when(service.save(any(Proveedor.class), any())).thenThrow(new RuntimeException("error"));
+        when(service.saveWithOrganizacion(any(Proveedor.class), any())).thenThrow(new RuntimeException("error"));
 
         mockMvc.perform(post("/api/proveedores")
                 .contentType(MediaType.APPLICATION_JSON)
