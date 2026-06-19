@@ -131,7 +131,7 @@ class ProveedorServiceTest {
         proveedor.setActivo(false);
         when(repository.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
 
-        Proveedor saved = service.save(proveedor, null);
+        Proveedor saved = service.save(proveedor);
 
         verify(repository).save(proveedorCaptor.capture());
         assertTrue(Boolean.TRUE.equals(proveedorCaptor.getValue().getActivo()));

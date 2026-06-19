@@ -103,7 +103,7 @@ class ProveedoresBffControllerTest {
         Proveedor saved = new Proveedor();
         saved.setId(3L);
         saved.setNombre("Prov C");
-        when(proveedorService.save(any(Proveedor.class), any())).thenReturn(saved);
+        when(proveedorService.saveWithOrganizacion(any(Proveedor.class), any())).thenReturn(saved);
 
         mockMvc.perform(post("/bff/proveedores")
                 .contentType(MediaType.APPLICATION_JSON)
@@ -117,7 +117,7 @@ class ProveedoresBffControllerTest {
     void create_proveedor_bad_request() throws Exception {
         ProveedorDTO dto = new ProveedorDTO();
         dto.setNombre("Prov X");
-        when(proveedorService.save(any(Proveedor.class), any())).thenThrow(new RuntimeException("error"));
+        when(proveedorService.saveWithOrganizacion(any(Proveedor.class), any())).thenThrow(new RuntimeException("error"));
 
         mockMvc.perform(post("/bff/proveedores")
                 .contentType(MediaType.APPLICATION_JSON)
