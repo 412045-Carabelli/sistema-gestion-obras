@@ -5,6 +5,7 @@ import com.transacciones.dto.TransaccionDto;
 import com.transacciones.dto.MovimientoRecenteDTO;
 import com.transacciones.entity.Transaccion;
 import com.transacciones.enums.TipoTransaccionEnum;
+import com.transacciones.repository.TransaccionConAsociadoRepository;
 import com.transacciones.service.TransaccionService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -12,6 +13,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @RestController
@@ -21,12 +23,26 @@ import java.util.stream.Collectors;
 public class TransaccionController {
 
     private final TransaccionService transaccionService;
+    private final TransaccionConAsociadoRepository transaccionConAsociadoRepository;
 
     @GetMapping
     public ResponseEntity<List<TransaccionDto>> getAll(
             @RequestHeader(value = "X-Organizacion-Id", defaultValue = "0") Long organizacionId) {
         List<TransaccionDto> lista = transaccionService.listar(organizacionId);
         return ResponseEntity.ok(lista);
+    }
+
+    @GetMapping("/con-asociados")
+    public ResponseEntity<Map<String, Object>> getConAsociados(
+            @RequestParam(name = "page", defaultValue = "0") int page,
+            @RequestParam(name = "size", defaultValue = "50") int size,
+            @RequestParam(name = "idObra", required = false) Long idObra,
+            @RequestParam(name = "tipoAsociado", required = false) String tipoAsociado,
+            @RequestParam(name = "idAsociado", required = false) Long idAsociado,
+            @RequestHeader(value = "X-Organizacion-Id", defaultValue = "0") Long organizacionId) {
+        Map<String, Object> result = transaccionConAsociadoRepository
+                .listarConAsociadosPaginado(page, size, idObra, tipoAsociado, idAsociado, organizacionId);
+        return ResponseEntity.ok(result);
     }
 
 

@@ -8,8 +8,8 @@
       (clearFilters)="onClearFilters()"
     ></app-generic-filter-bar>
 
-    <!-- Tabla -->
-    <div class="bg-white rounded-lg border border-gray-200 overflow-hidden">
+    <!-- Tabla (tablet/desktop) -->
+    <div class="hidden lg:block bg-white rounded-lg border border-gray-200 overflow-hidden">
       <p-table
         [rowHover]="true"
         [tableStyle]="{ 'min-width': '100%' }"
@@ -31,7 +31,6 @@
             <th pSortableColumn="cuit" class="text-left font-poppins font-semibold">DNI/CUIT <p-sortIcon field="cuit"></p-sortIcon></th>
           </tr>
         </ng-template>
-
         <ng-template let-c pTemplate="body">
           <tr (click)="onRowClick(c)" class="cursor-pointer transition-colors">
             <td class="font-poppins font-normal">{{ c.nombre }}</td>
@@ -42,7 +41,6 @@
             <td class="font-poppins font-normal">{{ c.cuit || '-' }}</td>
           </tr>
         </ng-template>
-
         <ng-template pTemplate="emptymessage">
           <tr>
             <td class="text-center py-10" colspan="6">
@@ -55,6 +53,52 @@
           </tr>
         </ng-template>
       </p-table>
+    </div>
+
+    <!-- Cards (mobile) -->
+    <div class="lg:hidden flex flex-col gap-3">
+      @if (clientesFiltrados.length === 0) {
+        <div class="flex flex-col items-center justify-center gap-2 text-gray-500 py-10">
+          <i class="pi pi-inbox text-3xl"></i>
+          <p class="text-base font-poppins font-semibold">No hay registros para mostrar</p>
+        </div>
+      }
+      @for (c of clientesFiltrados; track c.id) {
+        <div
+          (click)="onRowClick(c)"
+          class="bg-white rounded-lg border border-gray-200 p-4 cursor-pointer hover:shadow-md transition-shadow active:bg-gray-50">
+          <div class="flex items-center justify-between mb-3">
+            <span class="font-poppins font-semibold text-gray-900">{{ c.nombre }}</span>
+            <i class="pi pi-chevron-right text-gray-400 text-xs"></i>
+          </div>
+          <div class="grid grid-cols-2 gap-x-4 gap-y-2 text-xs">
+            @if (c.telefono) {
+              <div class="flex items-center gap-1.5 text-gray-600">
+                <i class="pi pi-phone text-gray-400"></i>
+                <span class="font-poppins">{{ c.telefono }}</span>
+              </div>
+            }
+            @if (c.email) {
+              <div class="flex items-center gap-1.5 text-gray-600 col-span-2 truncate">
+                <i class="pi pi-envelope text-gray-400 flex-shrink-0"></i>
+                <span class="font-poppins truncate">{{ c.email }}</span>
+              </div>
+            }
+            @if (c.direccion) {
+              <div class="flex items-center gap-1.5 text-gray-600 col-span-2">
+                <i class="pi pi-map-marker text-gray-400 flex-shrink-0"></i>
+                <span class="font-poppins">{{ c.direccion }}</span>
+              </div>
+            }
+            @if (c.cuit) {
+              <div class="flex flex-col">
+                <span class="text-gray-400">DNI/CUIT</span>
+                <span class="text-gray-700 font-poppins font-medium">{{ c.cuit }}</span>
+              </div>
+            }
+          </div>
+        </div>
+      }
     </div>
   </div>
 } @placeholder {

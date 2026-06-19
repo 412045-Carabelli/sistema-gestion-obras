@@ -37,7 +37,7 @@ class TransaccionBffControllerTest {
         ReflectionTestUtils.setField(controller, "TIPO_TRANSACCIONES_URL", baseUrl + "/tipo-transaccion");
         ReflectionTestUtils.setField(controller, "OBRAS_URL", "http://obras");
 
-        ResponseEntity<List<Map<String, Object>>> listResp = controller.getAllTransacciones().block();
+        ResponseEntity<List<Map<String, Object>>> listResp = controller.getAllTransacciones("1").block();
         ResponseEntity<Map<String, Object>> getResp = controller.getTransaccionById(1L).block();
         ResponseEntity<List<Map<String, Object>>> porObra = controller.getTransaccionesByObra(1L).block();
         ResponseEntity<Map<String, Object>> createResp = controller.createTransaccion(Map.of("x", 1)).block();

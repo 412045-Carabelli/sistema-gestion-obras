@@ -8,7 +8,8 @@
       (clearFilters)="onClearFilters()"
     ></app-generic-filter-bar>
 
-    <div class="bg-white rounded-lg border border-gray-200 overflow-hidden">
+    <!-- Tabla (tablet/desktop) -->
+    <div class="hidden lg:block bg-white rounded-lg border border-gray-200 overflow-hidden">
       <p-table
         [rowHover]="true"
         [tableStyle]="{ 'min-width': '100%' }"
@@ -19,8 +20,7 @@
         [sortOrder]="1"
         responsiveLayout="scroll"
         class="w-full"
-        styleClass="p-datatable-sm"
-      >
+        styleClass="p-datatable-sm">
         <ng-template pTemplate="header">
           <tr>
             <th pSortableColumn="nombre" class="font-poppins font-semibold">Nombre <p-sortIcon field="nombre"></p-sortIcon></th>
@@ -30,10 +30,8 @@
             <th pSortableColumn="tipo_proveedor" class="font-poppins font-semibold">Tipo <p-sortIcon field="tipo_proveedor"></p-sortIcon></th>
           </tr>
         </ng-template>
-
         <ng-template let-row pTemplate="body">
-          <tr (click)="irAlDetalle(row)"
-              class="cursor-pointer transition-colors">
+          <tr (click)="irAlDetalle(row)" class="cursor-pointer transition-colors">
             <td class="font-poppins font-normal">{{ row.nombre }}</td>
             <td class="font-poppins font-normal">{{ row.contacto || '-' }}</td>
             <td class="whitespace-nowrap max-w-[160px] overflow-hidden text-ellipsis font-poppins font-normal">{{ row.telefono || '-' }}</td>
@@ -41,19 +39,59 @@
             <td class="font-poppins font-normal">{{ formatearTipo(row.tipo_proveedor) || '-' }}</td>
           </tr>
         </ng-template>
-
         <ng-template pTemplate="emptymessage">
           <tr>
             <td class="text-center py-10" colspan="5">
               <div class="flex flex-col items-center justify-center gap-2 text-gray-500">
                 <i class="pi pi-inbox text-3xl"></i>
                 <p class="text-base font-poppins font-semibold">No hay registros para mostrar</p>
-                <p class="text-sm font-poppins font-normal">Ajusta los filtros o crea un nuevo registro.</p>
               </div>
             </td>
           </tr>
         </ng-template>
       </p-table>
+    </div>
+
+    <!-- Cards (mobile) -->
+    <div class="lg:hidden flex flex-col gap-3">
+      @if (proveedoresFiltrados.length === 0) {
+        <div class="flex flex-col items-center justify-center gap-2 text-gray-500 py-10">
+          <i class="pi pi-inbox text-3xl"></i>
+          <p class="text-base font-poppins font-semibold">No hay registros para mostrar</p>
+        </div>
+      }
+      @for (row of proveedoresFiltrados; track row.id) {
+        <div
+          (click)="irAlDetalle(row)"
+          class="bg-white rounded-lg border border-gray-200 p-4 cursor-pointer hover:shadow-md transition-shadow active:bg-gray-50">
+          <div class="flex items-center justify-between mb-2">
+            <span class="font-poppins font-semibold text-gray-900">{{ row.nombre }}</span>
+            @if (row.tipo_proveedor) {
+              <span class="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded font-poppins">{{ formatearTipo(row.tipo_proveedor) }}</span>
+            }
+          </div>
+          <div class="flex flex-col gap-1.5 text-xs mt-2">
+            @if (row.telefono) {
+              <div class="flex items-center gap-1.5 text-gray-600">
+                <i class="pi pi-phone text-gray-400"></i>
+                <span class="font-poppins">{{ row.telefono }}</span>
+              </div>
+            }
+            @if (row.email) {
+              <div class="flex items-center gap-1.5 text-gray-600 truncate">
+                <i class="pi pi-envelope text-gray-400 flex-shrink-0"></i>
+                <span class="font-poppins truncate">{{ row.email }}</span>
+              </div>
+            }
+            @if (row.contacto) {
+              <div class="flex items-center gap-1.5 text-gray-600">
+                <i class="pi pi-user text-gray-400"></i>
+                <span class="font-poppins">{{ row.contacto }}</span>
+              </div>
+            }
+          </div>
+        </div>
+      }
     </div>
   </div>
 } @placeholder {

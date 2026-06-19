@@ -37,11 +37,13 @@ public class TransaccionBffController {
 
     // ✅ GET /bff/transacciones
     @GetMapping
-    public Mono<ResponseEntity<List<Map<String, Object>>>> getAllTransacciones() {
+    public Mono<ResponseEntity<List<Map<String, Object>>>> getAllTransacciones(
+            @RequestHeader(value = "X-Organizacion-Id", defaultValue = "0") String organizacionId) {
         WebClient client = webClientBuilder.build();
 
         Flux<Map<String, Object>> transaccionesFlux = client.get()
                 .uri(TRANSACCIONES_URL)
+                .header("X-Organizacion-Id", organizacionId)
                 .retrieve()
                 .bodyToFlux(new ParameterizedTypeReference<Map<String, Object>>() {});
 
@@ -52,7 +54,8 @@ public class TransaccionBffController {
     @GetMapping("/con-asociados")
     public Mono<ResponseEntity<Map<String, Object>>> getAllConAsociados(
             @RequestParam(name = "page", defaultValue = "0") int page,
-            @RequestParam(name = "size", defaultValue = "50") int size
+            @RequestParam(name = "size", defaultValue = "50") int size,
+            @RequestHeader(value = "X-Organizacion-Id", defaultValue = "0") String organizacionId
     ) {
         WebClient client = webClientBuilder.build();
 
@@ -64,12 +67,13 @@ public class TransaccionBffController {
 
         return client.get()
                 .uri(url)
+                .header("X-Organizacion-Id", organizacionId)
                 .retrieve()
                 .bodyToMono(new ParameterizedTypeReference<Map<String, Object>>() {})
                 .map(ResponseEntity::ok)
                 .onErrorResume(ex -> {
                     log.error("Error en operación de transacciones", ex);
-                    return Mono.just(ResponseEntity.badRequest().build());
+                    return Mono.just(ResponseEntity.internalServerError().build());
                 });
     }
 
