@@ -123,7 +123,8 @@ public class ObraServiceImpl implements ObraService {
         dto.setDireccion(entity.getDireccion());
         dto.setFecha_inicio(entity.getFechaInicio());
         dto.setFecha_fin(entity.getFechaFin());
-        dto.setPresupuesto(entity.getPresupuesto());
+        TotalesObra totalesLista = calcularTotalesObra(entity);
+        dto.setPresupuesto(totalesLista.presupuestoFinal());
         dto.setRequiere_factura(entity.getRequiereFactura());
         dto.setActivo(entity.getActivo());
         dto.setCreado_en(entity.getCreadoEn());
@@ -150,7 +151,6 @@ public class ObraServiceImpl implements ObraService {
         existing.setFechaFin(dto.getFecha_fin());
         existing.setFechaAdjudicada(dto.getFecha_adjudicada());
         existing.setFechaPerdida(dto.getFecha_perdida());
-        existing.setPresupuesto(dto.getPresupuesto());
         existing.setBeneficioGlobal(dto.getBeneficio_global());
         existing.setTieneComision(dto.getTiene_comision());
         existing.setBeneficio(dto.getBeneficio());
@@ -167,7 +167,12 @@ public class ObraServiceImpl implements ObraService {
             existing.setEstadoObra(parseEstado(dto.getObra_estado()));
         }
 
-        return toDto(obraRepo.save(existing));
+        Obra saved = obraRepo.save(existing);
+        // Recalcular presupuesto desde costos para mantener consistencia con el detail
+        TotalesObra totales = calcularTotalesObra(saved);
+        saved.setPresupuesto(totales.presupuestoFinal());
+        saved = obraRepo.save(saved);
+        return toDto(saved);
     }
 
     /* ============================================================
