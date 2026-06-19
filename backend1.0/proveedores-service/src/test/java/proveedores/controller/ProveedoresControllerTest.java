@@ -146,7 +146,7 @@ class ProveedoresControllerTest {
                 .content(objectMapper.writeValueAsString(dto)))
             .andExpect(status().isBadRequest());
 
-        verify(service, never()).save(any(Proveedor.class), any());
+        verify(service, never()).saveWithOrganizacion(any(Proveedor.class), any());
     }
 
     @Test
