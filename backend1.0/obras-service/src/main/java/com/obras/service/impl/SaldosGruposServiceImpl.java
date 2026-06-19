@@ -21,9 +21,9 @@ public class SaldosGruposServiceImpl implements SaldosGruposService {
   private final SaldosGruposRepository repository;
 
   @Override
-  public List<SaldoGrupoClienteDTO> obtenerSaldosGruposClientes() {
+  public List<SaldoGrupoClienteDTO> obtenerSaldosGruposClientes(Long organizacionId) {
     try {
-      return repository.obtenerSaldosGruposClientes();
+      return repository.obtenerSaldosGruposClientes(organizacionId);
     } catch (Exception e) {
       log.error("Error al obtener saldos grupos clientes", e);
       throw new RuntimeException("Error al obtener saldos por grupo", e);
@@ -31,9 +31,9 @@ public class SaldosGruposServiceImpl implements SaldosGruposService {
   }
 
   @Override
-  public List<SaldoGrupoProveedorDTO> obtenerSaldosGruposProveedores() {
+  public List<SaldoGrupoProveedorDTO> obtenerSaldosGruposProveedores(Long organizacionId) {
     try {
-      return repository.obtenerSaldosGruposProveedores();
+      return repository.obtenerSaldosGruposProveedores(organizacionId);
     } catch (Exception e) {
       log.error("Error al obtener saldos grupos proveedores", e);
       throw new RuntimeException("Error al obtener saldos proveedores por grupo", e);
@@ -41,9 +41,9 @@ public class SaldosGruposServiceImpl implements SaldosGruposService {
   }
 
   @Override
-  public List<ResumenObraClienteDTO> obtenerResumenObrasClientes() {
+  public List<ResumenObraClienteDTO> obtenerResumenObrasClientes(Long organizacionId) {
     try {
-      return repository.obtenerResumenObrasClientes();
+      return repository.obtenerResumenObrasClientes(organizacionId);
     } catch (Exception e) {
       log.error("Error al obtener resumen obras clientes", e);
       throw new RuntimeException("Error al obtener resumen de obras", e);
@@ -51,9 +51,9 @@ public class SaldosGruposServiceImpl implements SaldosGruposService {
   }
 
   @Override
-  public List<ResumenObraProveedorDTO> obtenerResumenObrasProveedores() {
+  public List<ResumenObraProveedorDTO> obtenerResumenObrasProveedores(Long organizacionId) {
     try {
-      return repository.obtenerResumenObrasProveedores();
+      return repository.obtenerResumenObrasProveedores(organizacionId);
     } catch (Exception e) {
       log.error("Error al obtener resumen obras proveedores", e);
       throw new RuntimeException("Error al obtener resumen de obras", e);

@@ -47,12 +47,13 @@ public class DashboardController {
    */
   @PostMapping("/cuenta-corriente")
   public ResponseEntity<DashboardCuentaCorrienteResponse> obtenerCuentaCorriente(
-      @RequestBody(required = false) DashboardFilterRequest filtro) {
+      @RequestBody(required = false) DashboardFilterRequest filtro,
+      @RequestHeader(value = "X-Organizacion-Id", defaultValue = "0") Long organizacionId) {
 
-    // Si no viene filtro en el body, crear uno vacío (sin filtros)
     if (filtro == null) {
       filtro = new DashboardFilterRequest();
     }
+    filtro.setOrganizacionId(organizacionId > 0 ? organizacionId : null);
 
     DashboardCuentaCorrienteResponse response = dashboardService.obtenerCuentaCorriente(filtro);
     return ResponseEntity.ok(response);

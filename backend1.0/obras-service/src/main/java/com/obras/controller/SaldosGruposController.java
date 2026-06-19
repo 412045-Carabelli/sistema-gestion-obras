@@ -7,9 +7,7 @@ import com.obras.dto.ResumenObraProveedorDTO;
 import com.obras.service.SaldosGruposService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
@@ -20,22 +18,26 @@ public class SaldosGruposController {
   private final SaldosGruposService service;
 
   @GetMapping("/clientes")
-  public ResponseEntity<List<SaldoGrupoClienteDTO>> obtenerSaldosGruposClientes() {
-    return ResponseEntity.ok(service.obtenerSaldosGruposClientes());
+  public ResponseEntity<List<SaldoGrupoClienteDTO>> obtenerSaldosGruposClientes(
+          @RequestHeader(value = "X-Organizacion-Id", defaultValue = "0") Long organizacionId) {
+    return ResponseEntity.ok(service.obtenerSaldosGruposClientes(organizacionId));
   }
 
   @GetMapping("/proveedores")
-  public ResponseEntity<List<SaldoGrupoProveedorDTO>> obtenerSaldosGruposProveedores() {
-    return ResponseEntity.ok(service.obtenerSaldosGruposProveedores());
+  public ResponseEntity<List<SaldoGrupoProveedorDTO>> obtenerSaldosGruposProveedores(
+          @RequestHeader(value = "X-Organizacion-Id", defaultValue = "0") Long organizacionId) {
+    return ResponseEntity.ok(service.obtenerSaldosGruposProveedores(organizacionId));
   }
 
   @GetMapping("/resumen-obras/clientes")
-  public ResponseEntity<List<ResumenObraClienteDTO>> obtenerResumenObrasClientes() {
-    return ResponseEntity.ok(service.obtenerResumenObrasClientes());
+  public ResponseEntity<List<ResumenObraClienteDTO>> obtenerResumenObrasClientes(
+          @RequestHeader(value = "X-Organizacion-Id", defaultValue = "0") Long organizacionId) {
+    return ResponseEntity.ok(service.obtenerResumenObrasClientes(organizacionId));
   }
 
   @GetMapping("/resumen-obras/proveedores")
-  public ResponseEntity<List<ResumenObraProveedorDTO>> obtenerResumenObrasProveedores() {
-    return ResponseEntity.ok(service.obtenerResumenObrasProveedores());
+  public ResponseEntity<List<ResumenObraProveedorDTO>> obtenerResumenObrasProveedores(
+          @RequestHeader(value = "X-Organizacion-Id", defaultValue = "0") Long organizacionId) {
+    return ResponseEntity.ok(service.obtenerResumenObrasProveedores(organizacionId));
   }
 }

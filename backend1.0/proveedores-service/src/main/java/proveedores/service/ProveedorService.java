@@ -60,10 +60,16 @@ public class ProveedorService {
         return repository.findByActivoTrue();
     }
 
-    public List<Proveedor> findAllActivosByEmpresa(Long empresaId) {
-        return empresaId != null
-            ? repository.findByActivoTrueAndEmpresaId(empresaId)
-            : repository.findByActivoTrue();
+    public List<Proveedor> findAllActivosByOrganizacion(Long organizacionId) {
+        return (organizacionId != null && organizacionId > 0)
+                ? repository.findByActivoTrueAndOrganizacionId(organizacionId)
+                : repository.findByActivoTrue();
+    }
+
+    public Proveedor saveWithOrganizacion(Proveedor proveedor, Long organizacionId) {
+        proveedor.setActivo(true);
+        proveedor.setOrganizacionId(organizacionId != null ? organizacionId : 0L);
+        return repository.save(proveedor);
     }
 
     public Optional<Gremio> findGremioById(Long id) {
@@ -78,11 +84,8 @@ public class ProveedorService {
         return repository.findById(id);
     }
 
-    public Proveedor save(Proveedor proveedor, Long empresaId) {
+    public Proveedor save(Proveedor proveedor) {
         proveedor.setActivo(true);
-        if (empresaId != null) {
-            proveedor.setEmpresaId(empresaId);
-        }
         return repository.save(proveedor);
     }
 
@@ -109,6 +112,10 @@ public class ProveedorService {
                     proveedor.setActivo(false);
                     repository.save(proveedor);
                 });
+    }
+
+    public List<Proveedor> findAllByOrganizacionId(Long organizacionId) {
+        return repository.findByOrganizacionId(organizacionId);
     }
 
     public List<Proveedor> findAll() {

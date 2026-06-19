@@ -5,6 +5,7 @@ import io.minio.MakeBucketArgs;
 import io.minio.MinioClient;
 import io.minio.SetBucketPolicyArgs;
 import io.minio.errors.MinioException;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -13,6 +14,7 @@ import org.springframework.context.annotation.Configuration;
 
 @Configuration
 @ConditionalOnProperty(name = "minio.enabled", havingValue = "true")
+@Slf4j
 public class MinioConfig {
 
     @Bean
@@ -75,8 +77,8 @@ public class MinioConfig {
                                 .config(publicPolicy)
                                 .build()
                 );
-            } catch (MinioException ex) {
-                throw new RuntimeException("No se pudo inicializar el bucket MinIO.", ex);
+            } catch (Exception ex) {
+                log.warn("No se pudo inicializar bucket MinIO (el servicio arranca igual): {}", ex.getMessage());
             }
         };
     }

@@ -8,6 +8,9 @@ import java.util.List;
 @Repository
 public interface GrupoObrasRepository extends JpaRepository<GrupoObra, Long> {
   List<GrupoObra> findByIdClienteAndActivoTrue(Long idCliente);
+  List<GrupoObra> findByIdClienteAndActivoTrueAndOrganizacionId(Long idCliente, Long organizacionId);
   List<GrupoObra> findByIdCliente(Long idCliente);
+  List<GrupoObra> findByIdClienteAndOrganizacionId(Long idCliente, Long organizacionId);
   List<GrupoObra> findByActivoTrue();
+  List<GrupoObra> findByOrganizacionId(Long organizacionId);
 }

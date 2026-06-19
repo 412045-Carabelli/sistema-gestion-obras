@@ -25,8 +25,9 @@ public class ObrasController {
     @PostMapping
     public ResponseEntity<ObraDTO> crear(
             @Valid @RequestBody ObraDTO dto,
-            @RequestHeader(value = "X-Empresa-Id", required = false) Long empresaId) {
-        return ResponseEntity.ok(svc.crear(dto, empresaId));
+            @RequestHeader(value = "X-Organizacion-Id", defaultValue = "0") Long organizacionId) {
+        dto.setOrganizacion_id(organizacionId);
+        return ResponseEntity.ok(svc.crear(dto));
     }
     @GetMapping("/condiciones/ultima")
     public ResponseEntity<ObraDTO> getUltimaCondicion() {
@@ -39,9 +40,11 @@ public class ObrasController {
     public List<ObraDTO> listar(
             @PageableDefault(size = 20) Pageable p,
             @RequestParam(name = "id_cliente", required = false) Long idCliente,
-            @RequestHeader(value = "X-Empresa-Id", required = false) Long empresaId
+            @RequestHeader(value = "X-Organizacion-Id", defaultValue = "0") Long organizacionId
     ) {
-        return (idCliente != null ? svc.listarPorCliente(idCliente, p, empresaId) : svc.listar(p, empresaId)).getContent();
+        return (idCliente != null
+                ? svc.listarPorCliente(idCliente, organizacionId, p)
+                : svc.listar(organizacionId, p)).getContent();
     }
     @GetMapping("/resumen")
     public Page<ObraListDTO> listarResumen(
@@ -49,14 +52,15 @@ public class ObrasController {
             @RequestParam(required = false) String estado,
             @RequestParam(required = false) Boolean activo,
             @RequestParam(required = false) String q,
-            @RequestHeader(value = "X-Empresa-Id", required = false) Long empresaId
+            @RequestHeader(value = "X-Organizacion-Id", defaultValue = "0") Long organizacionId
     ) {
         EstadoObraEnum estadoEnum = null;
         if (estado != null && !estado.isBlank()) {
             try { estadoEnum = EstadoObraEnum.valueOf(estado.trim().toUpperCase()); } catch (Exception ignored) {}
         }
-        return svc.listarResumen(p, estadoEnum, activo, q, empresaId);
+        return svc.listarResumen(p, estadoEnum, activo, q, organizacionId);
     }
+
     @PutMapping("/{id}") public ObraDTO update(@PathVariable("id") Long id, @RequestBody ObraDTO dto){ return svc.actualizar(id,dto); }
     @PatchMapping("/{id}/estado/{estado}")
     public void changeEstado(@PathVariable("id") Long id, @PathVariable("estado") com.obras.enums.EstadoObraEnum estado) {

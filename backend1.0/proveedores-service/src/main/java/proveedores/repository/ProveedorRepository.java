@@ -8,7 +8,8 @@ import java.util.Optional;
 
 public interface ProveedorRepository extends JpaRepository<Proveedor, Long> {
     List<Proveedor> findByActivoTrue();
-    List<Proveedor> findByActivoTrueAndEmpresaId(Long empresaId);
+    List<Proveedor> findByActivoTrueAndOrganizacionId(Long organizacionId);
+    List<Proveedor> findByOrganizacionId(Long organizacionId);
 
     Optional<Proveedor> findByIdAndActivoTrue(Long id);
 

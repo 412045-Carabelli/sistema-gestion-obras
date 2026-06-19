@@ -16,34 +16,30 @@ public class SaldosGruposRepository {
   private EntityManager em;
 
   @SuppressWarnings("unchecked")
-  public List<SaldoGrupoClienteDTO> obtenerSaldosGruposClientes() {
-    return em.createNativeQuery(
-        "EXEC sp_saldos_grupos_clientes",
-        SaldoGrupoClienteDTO.class
-    ).getResultList();
+  public List<SaldoGrupoClienteDTO> obtenerSaldosGruposClientes(Long organizacionId) {
+    return em.createNativeQuery("EXEC sp_saldos_grupos_clientes ?", SaldoGrupoClienteDTO.class)
+        .setParameter(1, organizacionId)
+        .getResultList();
   }
 
   @SuppressWarnings("unchecked")
-  public List<SaldoGrupoProveedorDTO> obtenerSaldosGruposProveedores() {
-    return em.createNativeQuery(
-        "EXEC sp_saldos_grupos_proveedores",
-        SaldoGrupoProveedorDTO.class
-    ).getResultList();
+  public List<SaldoGrupoProveedorDTO> obtenerSaldosGruposProveedores(Long organizacionId) {
+    return em.createNativeQuery("EXEC sp_saldos_grupos_proveedores ?", SaldoGrupoProveedorDTO.class)
+        .setParameter(1, organizacionId)
+        .getResultList();
   }
 
   @SuppressWarnings("unchecked")
-  public List<ResumenObraClienteDTO> obtenerResumenObrasClientes() {
-    return em.createNativeQuery(
-        "EXEC sp_resumen_obras_clientes",
-        ResumenObraClienteDTO.class
-    ).getResultList();
+  public List<ResumenObraClienteDTO> obtenerResumenObrasClientes(Long organizacionId) {
+    return em.createNativeQuery("EXEC sp_resumen_obras_clientes ?", ResumenObraClienteDTO.class)
+        .setParameter(1, organizacionId)
+        .getResultList();
   }
 
   @SuppressWarnings("unchecked")
-  public List<ResumenObraProveedorDTO> obtenerResumenObrasProveedores() {
-    return em.createNativeQuery(
-        "EXEC sp_resumen_obras_proveedores",
-        ResumenObraProveedorDTO.class
-    ).getResultList();
+  public List<ResumenObraProveedorDTO> obtenerResumenObrasProveedores(Long organizacionId) {
+    return em.createNativeQuery("EXEC sp_resumen_obras_proveedores ?", ResumenObraProveedorDTO.class)
+        .setParameter(1, organizacionId)
+        .getResultList();
   }
 }

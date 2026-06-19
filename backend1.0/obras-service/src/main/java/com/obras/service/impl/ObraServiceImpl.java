@@ -40,12 +40,11 @@ public class ObraServiceImpl implements ObraService {
        ============================================================ */
 
     @Override
-    public ObraDTO crear(ObraDTO dto, Long empresaId) {
+    public ObraDTO crear(ObraDTO dto) {
         validarFechas(dto);
         Obra obra = toEntity(dto);
         obra.setActivo(true);
         obra.setCreadoEn(Instant.now());
-        obra.setEmpresaId(empresaId);
         return toDto(obraRepo.save(obra));
     }
 
@@ -65,32 +64,23 @@ public class ObraServiceImpl implements ObraService {
 
     @Override
     @Transactional(readOnly = true)
-    public Page<ObraDTO> listar(Pageable p, Long empresaId) {
-        Page<Obra> page = empresaId != null
-            ? obraRepo.findByEmpresaId(empresaId, p)
-            : obraRepo.findAll(p);
+    public Page<ObraDTO> listar(Long organizacionId, Pageable p) {
+        Page<Obra> page = (organizacionId != null && organizacionId > 0)
+                ? obraRepo.findByOrganizacionId(organizacionId, p)
+                : obraRepo.findAll(p);
         List<ObraDTO> dtos = page.stream().map(this::toDto).toList();
         return new PageImpl<>(dtos, p, page.getTotalElements());
     }
 
     @Override
     @Transactional(readOnly = true)
-    public Page<ObraListDTO> listarResumen(Pageable p, EstadoObraEnum estado, Boolean activo, String q, Long empresaId) {
-        String qParam = (q != null && !q.isBlank()) ? q.trim() : null;
-        Page<Obra> page = obraRepo.findByFiltros(estado, activo, empresaId, qParam, p);
-        List<ObraListDTO> dtos = page.stream().map(this::toListDto).toList();
-        return new PageImpl<>(dtos, p, page.getTotalElements());
-    }
-
-    @Override
-    @Transactional(readOnly = true)
-    public Page<ObraDTO> listarPorCliente(Long idCliente, Pageable p, Long empresaId) {
+    public Page<ObraDTO> listarPorCliente(Long idCliente, Long organizacionId, Pageable p) {
         if (idCliente == null) {
-            return listar(p, empresaId);
+            return listar(organizacionId, p);
         }
-        Page<Obra> page = empresaId != null
-            ? obraRepo.findByIdClienteAndEmpresaId(idCliente, empresaId, p)
-            : obraRepo.findByIdCliente(idCliente, p);
+        Page<Obra> page = (organizacionId != null && organizacionId > 0)
+                ? obraRepo.findByIdClienteAndOrganizacionId(idCliente, organizacionId, p)
+                : obraRepo.findByIdCliente(idCliente, p);
         List<ObraDTO> dtos = page.stream().map(this::toDto).toList();
         return new PageImpl<>(dtos, p, page.getTotalElements());
     }
@@ -103,6 +93,41 @@ public class ObraServiceImpl implements ObraService {
             return Optional.empty();
         }
         return Optional.ofNullable(toDto(obras.get(0)));
+    }
+
+    /* ============================================================
+                         RESUMEN (paginado con filtros)
+       ============================================================ */
+
+    @Override
+    @Transactional(readOnly = true)
+    public org.springframework.data.domain.Page<com.obras.dto.ObraListDTO> listarResumen(
+            org.springframework.data.domain.Pageable p,
+            com.obras.enums.EstadoObraEnum estado,
+            Boolean activo,
+            String q,
+            Long organizacionId) {
+        String qParam = (q != null && !q.isBlank()) ? q.trim() : null;
+        org.springframework.data.domain.Page<Obra> page = obraRepo.findByFiltros(estado, activo, organizacionId, qParam, p);
+        java.util.List<com.obras.dto.ObraListDTO> dtos = page.stream().map(this::toListDto).toList();
+        return new org.springframework.data.domain.PageImpl<>(dtos, p, page.getTotalElements());
+    }
+
+    private com.obras.dto.ObraListDTO toListDto(Obra entity) {
+        com.obras.dto.ObraListDTO dto = new com.obras.dto.ObraListDTO();
+        dto.setId(entity.getId());
+        dto.setId_cliente(entity.getIdCliente());
+        dto.setId_grupo(entity.getIdGrupo());
+        dto.setObra_estado(entity.getEstadoObra());
+        dto.setNombre(entity.getNombre());
+        dto.setDireccion(entity.getDireccion());
+        dto.setFecha_inicio(entity.getFechaInicio());
+        dto.setFecha_fin(entity.getFechaFin());
+        dto.setPresupuesto(entity.getPresupuesto());
+        dto.setRequiere_factura(entity.getRequiereFactura());
+        dto.setActivo(entity.getActivo());
+        dto.setCreado_en(entity.getCreadoEn());
+        return dto;
     }
 
     /* ============================================================
@@ -190,6 +215,7 @@ public class ObraServiceImpl implements ObraService {
 
         Obra entity = new Obra();
         entity.setId(dto.getId());
+        entity.setOrganizacionId(dto.getOrganizacion_id() != null ? dto.getOrganizacion_id() : 0L);
         entity.setIdCliente(dto.getId_cliente());
         entity.setIdGrupo(dto.getId_grupo());
 
@@ -232,6 +258,7 @@ public class ObraServiceImpl implements ObraService {
 
         ObraDTO dto = new ObraDTO();
         dto.setId(entity.getId());
+        dto.setOrganizacion_id(entity.getOrganizacionId());
         dto.setId_cliente(entity.getIdCliente());
         dto.setId_grupo(entity.getIdGrupo());
         dto.setObra_estado(entity.getEstadoObra());
@@ -312,23 +339,6 @@ public class ObraServiceImpl implements ObraService {
             }
         }
 
-        return dto;
-    }
-
-    private ObraListDTO toListDto(Obra entity) {
-        ObraListDTO dto = new ObraListDTO();
-        dto.setId(entity.getId());
-        dto.setId_cliente(entity.getIdCliente());
-        dto.setId_grupo(entity.getIdGrupo());
-        dto.setObra_estado(entity.getEstadoObra());
-        dto.setNombre(entity.getNombre());
-        dto.setDireccion(entity.getDireccion());
-        dto.setFecha_inicio(entity.getFechaInicio());
-        dto.setFecha_fin(entity.getFechaFin());
-        dto.setPresupuesto(entity.getPresupuesto());
-        dto.setRequiere_factura(entity.getRequiereFactura());
-        dto.setActivo(entity.getActivo());
-        dto.setCreado_en(entity.getCreadoEn());
         return dto;
     }
 

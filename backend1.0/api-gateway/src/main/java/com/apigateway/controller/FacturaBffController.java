@@ -46,7 +46,7 @@ public class FacturaBffController {
             @RequestParam(required = false) Long idCliente,
             @RequestParam(required = false) Integer page,
             @RequestParam(required = false) Integer size,
-            @RequestHeader(value = "X-Empresa-Id", required = false) String empresaId
+            @RequestHeader(value = "X-Organizacion-Id", required = false) String organizacionId
     ) {
         return webClientBuilder.build()
                 .get()
@@ -75,7 +75,7 @@ public class FacturaBffController {
                     }
                     return builder.build();
                 })
-                .headers(h -> { if (empresaId != null) h.set("X-Empresa-Id", empresaId); })
+                .headers(h -> { if (organizacionId != null) h.set("X-Organizacion-Id", organizacionId); })
                 .retrieve()
                 .bodyToFlux(new ParameterizedTypeReference<Map<String, Object>>() {})
                 .collectList()
@@ -85,12 +85,12 @@ public class FacturaBffController {
     @GetMapping("/{id}")
     public Mono<ResponseEntity<Map<String, Object>>> getById(
             @PathVariable("id") Long id,
-            @RequestHeader(value = "X-Empresa-Id", required = false) String empresaId
+            @RequestHeader(value = "X-Organizacion-Id", required = false) String organizacionId
     ) {
         return webClientBuilder.build()
                 .get()
                 .uri(FACTURAS_URL + "/{id}", id)
-                .headers(h -> { if (empresaId != null) h.set("X-Empresa-Id", empresaId); })
+                .headers(h -> { if (organizacionId != null) h.set("X-Organizacion-Id", organizacionId); })
                 .retrieve()
                 .bodyToMono(new ParameterizedTypeReference<Map<String, Object>>() {})
                 .map(ResponseEntity::ok);
@@ -99,12 +99,12 @@ public class FacturaBffController {
     @GetMapping("/cliente/{idCliente}")
     public Mono<ResponseEntity<List<Map<String, Object>>>> getByCliente(
             @PathVariable("idCliente") Long idCliente,
-            @RequestHeader(value = "X-Empresa-Id", required = false) String empresaId
+            @RequestHeader(value = "X-Organizacion-Id", required = false) String organizacionId
     ) {
         return webClientBuilder.build()
                 .get()
                 .uri(FACTURAS_URL + "/cliente/{idCliente}", idCliente)
-                .headers(h -> { if (empresaId != null) h.set("X-Empresa-Id", empresaId); })
+                .headers(h -> { if (organizacionId != null) h.set("X-Organizacion-Id", organizacionId); })
                 .retrieve()
                 .bodyToFlux(new ParameterizedTypeReference<Map<String, Object>>() {})
                 .collectList()
@@ -114,12 +114,12 @@ public class FacturaBffController {
     @GetMapping("/obra/{idObra}")
     public Mono<ResponseEntity<List<Map<String, Object>>>> getByObra(
             @PathVariable("idObra") Long idObra,
-            @RequestHeader(value = "X-Empresa-Id", required = false) String empresaId
+            @RequestHeader(value = "X-Organizacion-Id", required = false) String organizacionId
     ) {
         return webClientBuilder.build()
                 .get()
                 .uri(FACTURAS_URL + "/obra/{idObra}", idObra)
-                .headers(h -> { if (empresaId != null) h.set("X-Empresa-Id", empresaId); })
+                .headers(h -> { if (organizacionId != null) h.set("X-Organizacion-Id", organizacionId); })
                 .retrieve()
                 .bodyToFlux(new ParameterizedTypeReference<Map<String, Object>>() {})
                 .collectList()
@@ -137,13 +137,13 @@ public class FacturaBffController {
             @RequestPart(value = "estado", required = false) String estado,
             @RequestPart(value = "impacta_cta_cte", required = false) String impactaCtaCte,
             @RequestPart(value = "file", required = false) FilePart filePart,
-            @RequestHeader(value = "X-Empresa-Id", required = false) String empresaId
+            @RequestHeader(value = "X-Organizacion-Id", required = false) String organizacionId
     ) {
         MultipartBodyBuilder builder = buildMultipart(idCliente, idObra, monto, montoRestante, fecha, descripcion, estado, impactaCtaCte, filePart);
         return webClientBuilder.build()
                 .post()
                 .uri(FACTURAS_URL)
-                .headers(h -> { if (empresaId != null) h.set("X-Empresa-Id", empresaId); })
+                .headers(h -> { if (organizacionId != null) h.set("X-Organizacion-Id", organizacionId); })
                 .contentType(MediaType.MULTIPART_FORM_DATA)
                 .body(BodyInserters.fromMultipartData(builder.build()))
                 .exchangeToMono(response -> response
@@ -163,13 +163,13 @@ public class FacturaBffController {
             @RequestPart(value = "estado", required = false) String estado,
             @RequestPart(value = "impacta_cta_cte", required = false) String impactaCtaCte,
             @RequestPart(value = "file", required = false) FilePart filePart,
-            @RequestHeader(value = "X-Empresa-Id", required = false) String empresaId
+            @RequestHeader(value = "X-Organizacion-Id", required = false) String organizacionId
     ) {
         MultipartBodyBuilder builder = buildMultipart(idCliente, idObra, monto, montoRestante, fecha, descripcion, estado, impactaCtaCte, filePart);
         return webClientBuilder.build()
                 .put()
                 .uri(FACTURAS_URL + "/{id}", id)
-                .headers(h -> { if (empresaId != null) h.set("X-Empresa-Id", empresaId); })
+                .headers(h -> { if (organizacionId != null) h.set("X-Organizacion-Id", organizacionId); })
                 .contentType(MediaType.MULTIPART_FORM_DATA)
                 .body(BodyInserters.fromMultipartData(builder.build()))
                 .exchangeToMono(response -> response
@@ -205,13 +205,13 @@ public class FacturaBffController {
 
     @GetMapping("/resumen")
     public Mono<ResponseEntity<Map<String, Object>>> getResumen(
-            @RequestHeader(value = "X-Empresa-Id", required = false) String empresaId
+            @RequestHeader(value = "X-Organizacion-Id", required = false) String organizacionId
     ) {
         WebClient client = webClientBuilder.build();
 
         Mono<List<Map<String, Object>>> facturasMono = client.get()
                 .uri(FACTURAS_URL)
-                .headers(h -> { if (empresaId != null) h.set("X-Empresa-Id", empresaId); })
+                .headers(h -> { if (organizacionId != null) h.set("X-Organizacion-Id", organizacionId); })
                 .retrieve()
                 .bodyToFlux(new ParameterizedTypeReference<Map<String, Object>>() {})
                 .collectList()
@@ -219,7 +219,7 @@ public class FacturaBffController {
 
         Mono<List<Map<String, Object>>> clientesMono = client.get()
                 .uri(CLIENTES_URL)
-                .headers(h -> { if (empresaId != null) h.set("X-Empresa-Id", empresaId); })
+                .headers(h -> { if (organizacionId != null) h.set("X-Organizacion-Id", organizacionId); })
                 .retrieve()
                 .bodyToFlux(new ParameterizedTypeReference<Map<String, Object>>() {})
                 .collectList()
@@ -235,7 +235,7 @@ public class FacturaBffController {
                     builder.queryParam("size", "1000");
                     return builder.build();
                 })
-                .headers(h -> { if (empresaId != null) h.set("X-Empresa-Id", empresaId); })
+                .headers(h -> { if (organizacionId != null) h.set("X-Organizacion-Id", organizacionId); })
                 .retrieve()
                 .bodyToMono(new ParameterizedTypeReference<Map<String, Object>>() {})
                 .map(page -> {

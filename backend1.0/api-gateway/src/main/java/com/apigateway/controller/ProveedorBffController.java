@@ -33,7 +33,8 @@ public class ProveedorBffController {
             @RequestParam(required = false) String nombre,
             @RequestParam(required = false) String rubro,
             @RequestParam(required = false) Integer page,
-            @RequestParam(required = false) Integer size
+            @RequestParam(required = false) Integer size,
+            @RequestHeader(value = "X-Organizacion-Id", required = false, defaultValue = "0") String organizacionId
     ) {
         WebClient client = webClientBuilder.build();
 
@@ -63,6 +64,7 @@ public class ProveedorBffController {
                     }
                     return builder.build();
                 })
+                .header("X-Organizacion-Id", organizacionId)
                 .retrieve()
                 .bodyToFlux(new ParameterizedTypeReference<Map<String, Object>>() {});
 
@@ -73,11 +75,13 @@ public class ProveedorBffController {
     // 📥 GET /bff/proveedores/simple
     // ===============================
     @GetMapping("/simple")
-    public Mono<ResponseEntity<List<Map<String, Object>>>> getProveedoresSimple() {
+    public Mono<ResponseEntity<List<Map<String, Object>>>> getProveedoresSimple(
+            @RequestHeader(value = "X-Organizacion-Id", required = false, defaultValue = "0") String organizacionId) {
         WebClient client = webClientBuilder.build();
 
         return client.get()
                 .uri(PROVEEDORES_URL + "/simple")
+                .header("X-Organizacion-Id", organizacionId)
                 .retrieve()
                 .bodyToMono(new ParameterizedTypeReference<List<Map<String, Object>>>() {})
                 .map(ResponseEntity::ok);

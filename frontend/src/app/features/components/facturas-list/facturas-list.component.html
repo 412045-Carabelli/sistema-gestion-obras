@@ -39,105 +39,108 @@
       ></app-kpi-card>
     </div>
 
-    <p-table
-      [value]="facturasFiltradas"
-      [paginator]="true"
-      [rows]="15"
-      [sortField]="'fecha'"
-      [sortOrder]="-1"
-      responsiveLayout="scroll"
-      class="text-sm p-datatable-sm border border-gray-200 rounded-lg overflow-hidden"
-    >
-      <ng-template pTemplate="header">
-        <tr class="bg-gray-50 text-gray-700">
-          <th pSortableColumn="id" class="font-poppins font-semibold">ID <p-sortIcon field="id"></p-sortIcon></th>
-          <th pSortableColumn="fecha" class="font-poppins font-semibold">Fecha <p-sortIcon field="fecha"></p-sortIcon></th>
-          <th pSortableColumn="clienteNombre" class="font-poppins font-semibold">Cliente <p-sortIcon field="clienteNombre"></p-sortIcon></th>
-          <th pSortableColumn="obraNombre" class="font-poppins font-semibold">Obra <p-sortIcon field="obraNombre"></p-sortIcon></th>
-          <th pSortableColumn="monto" class="font-poppins font-semibold text-right">Monto <p-sortIcon field="monto"></p-sortIcon></th>
-          <th class="font-poppins font-semibold text-center">Estado</th>
-          <th class="font-poppins font-semibold text-center"></th>
-        </tr>
-      </ng-template>
+    <!-- Tabla (tablet/desktop) -->
+    <div class="hidden lg:block">
+      <p-table
+        [value]="facturasFiltradas"
+        [paginator]="true"
+        [rows]="15"
+        [sortField]="'fecha'"
+        [sortOrder]="-1"
+        responsiveLayout="scroll"
+        class="text-sm p-datatable-sm border border-gray-200 rounded-lg overflow-hidden">
+        <ng-template pTemplate="header">
+          <tr class="bg-gray-50 text-gray-700">
+            <th pSortableColumn="id" class="font-poppins font-semibold">ID <p-sortIcon field="id"></p-sortIcon></th>
+            <th pSortableColumn="fecha" class="font-poppins font-semibold">Fecha <p-sortIcon field="fecha"></p-sortIcon></th>
+            <th pSortableColumn="clienteNombre" class="font-poppins font-semibold">Cliente <p-sortIcon field="clienteNombre"></p-sortIcon></th>
+            <th pSortableColumn="obraNombre" class="font-poppins font-semibold">Obra <p-sortIcon field="obraNombre"></p-sortIcon></th>
+            <th pSortableColumn="monto" class="font-poppins font-semibold text-right">Monto <p-sortIcon field="monto"></p-sortIcon></th>
+            <th class="font-poppins font-semibold text-center">Estado</th>
+            <th class="font-poppins font-semibold text-center"></th>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="body" let-factura let-rowIndex="rowIndex">
+          <tr
+            class="hover:bg-emerald-50 hover:shadow-sm transition cursor-pointer"
+            [ngClass]="rowIndex % 2 === 0 ? 'bg-white' : 'bg-gray-50'"
+            (click)="onRowClick(factura)">
+            <td class="font-poppins font-semibold text-indigo-600">{{ factura.id }}</td>
+            <td class="font-poppins font-normal text-gray-700">{{ factura.fecha | date:'dd/MM/yyyy' }}</td>
+            <td class="font-poppins font-normal text-gray-700 max-w-[160px]">
+              <span class="block truncate" [pTooltip]="factura.clienteNombre" tooltipPosition="top">{{ factura.clienteNombre }}</span>
+            </td>
+            <td class="font-poppins font-normal text-gray-700 max-w-[200px]">
+              <span class="block truncate" [pTooltip]="factura.obraNombre" tooltipPosition="top">{{ factura.obraNombre }}</span>
+            </td>
+            <td class="text-right font-poppins font-semibold text-gray-900">{{ factura.monto | currency:'ARS':'symbol':'1.0-2' }}</td>
+            <td class="text-center" (click)="$event.stopPropagation()">
+              <p-tag [value]="factura.estado === 'COBRADA' ? 'Cobrada' : 'Emitida'" [severity]="factura.estado === 'COBRADA' ? 'success' : 'warn'"></p-tag>
+            </td>
+            <td class="text-center" (click)="$event.stopPropagation()">
+              <div class="flex items-center justify-center gap-1">
+                <button type="button" pButton [icon]="getSiguienteEstadoFacturaIcon(factura)" class="p-button-text p-button-sm" [ngClass]="factura.estado === 'COBRADA' ? 'text-amber-600' : 'text-emerald-600'" [pTooltip]="getSiguienteEstadoFacturaLabel(factura)" tooltipPosition="top" (click)="toggleEstadoFactura(factura, $event)"></button>
+                @if (factura.nombre_archivo) {
+                  <button type="button" pButton icon="pi pi-file" class="p-button-text p-button-sm text-blue-500" pTooltip="Ver adjunto" tooltipPosition="top" (click)="verAdjunto(factura, $event)"></button>
+                }
+                @if (factura.id_obra) {
+                  <button type="button" pButton icon="pi pi-arrow-right" class="p-button-text p-button-sm text-gray-400" pTooltip="Ver obra" tooltipPosition="top" (click)="irAlObraDetalle(factura.id_obra); $event.stopPropagation()"></button>
+                }
+                <button type="button" pButton icon="pi pi-trash" class="p-button-text p-button-sm text-red-400" pTooltip="Eliminar" tooltipPosition="top" (click)="eliminarFactura(factura, $event)"></button>
+              </div>
+            </td>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="emptymessage">
+          <tr>
+            <td colspan="7" class="text-center py-10 text-gray-500">
+              <i class="pi pi-inbox text-4xl mb-2"></i>
+              <p class="font-poppins font-normal">No hay facturas.</p>
+            </td>
+          </tr>
+        </ng-template>
+      </p-table>
+    </div>
 
-      <ng-template pTemplate="body" let-factura let-rowIndex="rowIndex">
-        <tr
-          class="hover:bg-emerald-50 hover:shadow-sm transition cursor-pointer"
-          [ngClass]="rowIndex % 2 === 0 ? 'bg-white' : 'bg-gray-50'"
-          (click)="onRowClick(factura)"
-        >
-          <td class="font-poppins font-semibold text-indigo-600">{{ factura.id }}</td>
-          <td class="font-poppins font-normal text-gray-700">{{ factura.fecha | date:'dd/MM/yyyy' }}</td>
-          <td class="font-poppins font-normal text-gray-700 max-w-[160px]">
-            <span class="block truncate" [pTooltip]="factura.clienteNombre" tooltipPosition="top">{{ factura.clienteNombre }}</span>
-          </td>
-          <td class="font-poppins font-normal text-gray-700 max-w-[200px]">
-            <span class="block truncate" [pTooltip]="factura.obraNombre" tooltipPosition="top">{{ factura.obraNombre }}</span>
-          </td>
-          <td class="text-right font-poppins font-semibold text-gray-900">{{ factura.monto | currency:'ARS':'symbol':'1.0-2' }}</td>
-          <td class="text-center" (click)="$event.stopPropagation()">
-            <p-tag
-              [value]="factura.estado === 'COBRADA' ? 'Cobrada' : 'Emitida'"
-              [severity]="factura.estado === 'COBRADA' ? 'success' : 'warn'"
-            ></p-tag>
-          </td>
-          <td class="text-center" (click)="$event.stopPropagation()">
-            <div class="flex items-center justify-center gap-1">
-              <button
-                type="button"
-                pButton
-                [icon]="getSiguienteEstadoFacturaIcon(factura)"
-                class="p-button-text p-button-sm"
-                [ngClass]="factura.estado === 'COBRADA' ? 'text-amber-600' : 'text-emerald-600'"
-                [pTooltip]="getSiguienteEstadoFacturaLabel(factura)"
-                tooltipPosition="top"
-                (click)="toggleEstadoFactura(factura, $event)"
-              ></button>
+    <!-- Cards (mobile) -->
+    <div class="lg:hidden flex flex-col gap-3">
+      @if (facturasFiltradas.length === 0) {
+        <div class="flex flex-col items-center justify-center gap-2 text-gray-500 py-10">
+          <i class="pi pi-inbox text-3xl"></i>
+          <p class="font-poppins font-normal">No hay facturas.</p>
+        </div>
+      }
+      @for (factura of facturasFiltradas; track factura.id) {
+        <div
+          class="bg-white rounded-lg border border-gray-200 p-4 cursor-pointer hover:shadow-md transition-shadow"
+          (click)="onRowClick(factura)">
+          <div class="flex items-start justify-between gap-2 mb-2">
+            <div class="flex flex-col gap-0.5 flex-1 min-w-0">
+              <span class="font-poppins font-semibold text-indigo-600 text-xs">#{{ factura.id }}</span>
+              <span class="font-poppins font-semibold text-gray-900 text-sm truncate">{{ factura.obraNombre }}</span>
+              <span class="font-poppins text-xs text-gray-500 truncate">{{ factura.clienteNombre }}</span>
+            </div>
+            <div class="flex flex-col items-end gap-1 flex-shrink-0">
+              <span class="font-poppins font-semibold text-gray-900">{{ factura.monto | currency:'ARS':'symbol':'1.0-0' }}</span>
+              <p-tag [value]="factura.estado === 'COBRADA' ? 'Cobrada' : 'Emitida'" [severity]="factura.estado === 'COBRADA' ? 'success' : 'warn'" styleClass="text-xs"></p-tag>
+            </div>
+          </div>
+          <div class="flex items-center justify-between mt-3 pt-2 border-t border-gray-100" (click)="$event.stopPropagation()">
+            <span class="text-xs text-gray-400 font-poppins">{{ factura.fecha | date:'dd/MM/yyyy' }}</span>
+            <div class="flex items-center gap-1">
+              <button type="button" pButton [icon]="getSiguienteEstadoFacturaIcon(factura)" class="p-button-text p-button-sm" [ngClass]="factura.estado === 'COBRADA' ? 'text-amber-600' : 'text-emerald-600'" (click)="toggleEstadoFactura(factura, $event)"></button>
               @if (factura.nombre_archivo) {
-                <button
-                  type="button"
-                  pButton
-                  icon="pi pi-file"
-                  class="p-button-text p-button-sm text-blue-500"
-                  pTooltip="Ver adjunto"
-                  tooltipPosition="top"
-                  (click)="verAdjunto(factura, $event)"
-                ></button>
+                <button type="button" pButton icon="pi pi-file" class="p-button-text p-button-sm text-blue-500" (click)="verAdjunto(factura, $event)"></button>
               }
               @if (factura.id_obra) {
-                <button
-                  type="button"
-                  pButton
-                  icon="pi pi-arrow-right"
-                  class="p-button-text p-button-sm text-gray-400"
-                  pTooltip="Ver obra"
-                  tooltipPosition="top"
-                  (click)="irAlObraDetalle(factura.id_obra); $event.stopPropagation()"
-                ></button>
+                <button type="button" pButton icon="pi pi-arrow-right" class="p-button-text p-button-sm text-gray-400" (click)="irAlObraDetalle(factura.id_obra); $event.stopPropagation()"></button>
               }
-              <button
-                type="button"
-                pButton
-                icon="pi pi-trash"
-                class="p-button-text p-button-sm text-red-400"
-                pTooltip="Eliminar"
-                tooltipPosition="top"
-                (click)="eliminarFactura(factura, $event)"
-              ></button>
+              <button type="button" pButton icon="pi pi-trash" class="p-button-text p-button-sm text-red-400" (click)="eliminarFactura(factura, $event)"></button>
             </div>
-          </td>
-        </tr>
-      </ng-template>
-
-      <ng-template pTemplate="emptymessage">
-        <tr>
-          <td colspan="7" class="text-center py-10 text-gray-500">
-            <i class="pi pi-inbox text-4xl mb-2"></i>
-            <p class="font-poppins font-normal">No hay facturas.</p>
-          </td>
-        </tr>
-      </ng-template>
-    </p-table>
+          </div>
+        </div>
+      }
+    </div>
   </div>
 } @placeholder {
   <div class="space-y-6 animate-pulse">

@@ -1,12 +1,9 @@
 package com.transacciones.repository;
 
 import com.transacciones.entity.Transaccion;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.PagingAndSortingRepository;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
@@ -14,7 +11,8 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 
 @Repository
-public interface TransaccionRepository extends JpaRepository<Transaccion, Long>, PagingAndSortingRepository<Transaccion, Long> {
+public interface TransaccionRepository extends JpaRepository<Transaccion, Long> {
+    List<Transaccion> findByOrganizacionId(Long organizacionId);
     List<Transaccion> findByIdObra(Long obraId);
     List<Transaccion> findByIdObraAndActivoTrue(Long obraId);
 
@@ -39,6 +37,4 @@ public interface TransaccionRepository extends JpaRepository<Transaccion, Long>,
 
     @Query("SELECT t FROM Transaccion t WHERE t.activo = true ORDER BY t.fecha DESC")
     List<Transaccion> obtenerMovimientosActivos();
-
-    Page<Transaccion> findAll(Pageable pageable);
 }

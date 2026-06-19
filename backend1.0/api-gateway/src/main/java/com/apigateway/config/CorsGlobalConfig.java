@@ -26,9 +26,9 @@ public class CorsGlobalConfig {
         corsConfig.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
         corsConfig.setAllowedHeaders(List.of(
             "Content-Type", "Authorization", "X-Requested-With",
-            "X-Empresa-Id", "X-User-Id", "X-User-Name", "X-User-Rol"
+            "X-Organizacion-Id", "X-User-Id", "X-User-Name", "X-User-Rol"
         ));
-        corsConfig.setExposedHeaders(List.of("Content-Type", "X-Empresa-Id"));
+        corsConfig.setExposedHeaders(List.of("Content-Type", "X-Organizacion-Id"));
         corsConfig.setAllowCredentials(true);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();

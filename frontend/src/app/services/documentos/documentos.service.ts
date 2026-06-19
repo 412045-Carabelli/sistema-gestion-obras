@@ -68,7 +68,9 @@ export class DocumentosService {
   }
 
   getDocumentoUrl(id: number): string {
-    return `${this.apiUrl}/${id}/view`;
+    const match = document.cookie.match(/(^| )sgo_access_token=([^;]+)/);
+    const token = match ? decodeURIComponent(match[2]) : '';
+    return `${this.apiUrl}/${id}/view?token=${token}`;
   }
 
   uploadLogo(file: File): Observable<{ url: string }> {

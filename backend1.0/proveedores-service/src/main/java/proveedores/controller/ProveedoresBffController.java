@@ -25,16 +25,18 @@ public class ProveedoresBffController {
 
     // --- Proveedores ---
     @GetMapping("/proveedores")
-    public ResponseEntity<List<ProveedorDTO>> getProveedores() {
-        List<ProveedorDTO> dtos = proveedorService.findAllActivos().stream()
+    public ResponseEntity<List<ProveedorDTO>> getProveedores(
+            @RequestHeader(value = "X-Organizacion-Id", required = false) Long organizacionId) {
+        List<ProveedorDTO> dtos = proveedorService.findAllActivosByOrganizacion(organizacionId).stream()
                 .map(this::toDTOConTotales)
                 .toList();
         return ResponseEntity.ok(dtos);
     }
 
     @GetMapping("/proveedores/simple")
-    public ResponseEntity<List<ProveedorDTO>> getProveedoresSimple() {
-        List<ProveedorDTO> dtos = proveedorService.findAllActivos().stream()
+    public ResponseEntity<List<ProveedorDTO>> getProveedoresSimple(
+            @RequestHeader(value = "X-Organizacion-Id", required = false) Long organizacionId) {
+        List<ProveedorDTO> dtos = proveedorService.findAllActivosByOrganizacion(organizacionId).stream()
                 .map(this::toDTO)
                 .toList();
         return ResponseEntity.ok(dtos);
@@ -60,9 +62,9 @@ public class ProveedoresBffController {
     @PostMapping("/proveedores")
     public ResponseEntity<ProveedorDTO> createProveedor(
             @RequestBody ProveedorDTO dto,
-            @RequestHeader(value = "X-Empresa-Id", required = false) Long empresaId) {
+            @RequestHeader(value = "X-Organizacion-Id", required = false) Long organizacionId) {
         try {
-            Proveedor saved = proveedorService.save(toEntity(dto), empresaId);
+            Proveedor saved = proveedorService.saveWithOrganizacion(toEntity(dto), organizacionId);
             return ResponseEntity.ok(toDTO(saved));
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().build();

@@ -23,9 +23,10 @@ public class SaldosProveedoresRepository {
      *
      * Resultado: [id, nombre, total_costos, total_pagos, saldo_pendiente]
      */
-    public List<SaldoProveedorDTO> obtenerSaldosOptimizado() {
+    public List<SaldoProveedorDTO> obtenerSaldosOptimizado(Long organizacionId) {
         try {
-            Query query = entityManager.createNativeQuery("EXEC sp_saldos_proveedores");
+            Query query = entityManager.createNativeQuery("EXEC sp_saldos_proveedores ?");
+            query.setParameter(1, organizacionId);
 
             @SuppressWarnings("unchecked")
             List<Object[]> resultados = query.getResultList();

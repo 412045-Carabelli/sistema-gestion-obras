@@ -41,7 +41,8 @@ public class DashboardRepository {
           "DECLARE @proveedorId BIGINT = ?; " +
           "DECLARE @fechaInicio DATE = ?; " +
           "DECLARE @fechaFin DATE = ?; " +
-          "EXEC sp_dashboard_cuenta_corriente @obraId, @clienteId, @proveedorId, @fechaInicio, @fechaFin"
+          "DECLARE @organizacion_id BIGINT = ?; " +
+          "EXEC sp_dashboard_cuenta_corriente @obraId, @clienteId, @proveedorId, @fechaInicio, @fechaFin, @organizacion_id"
       );
 
       query.setParameter(1, filtro.getObraId());
@@ -49,6 +50,7 @@ public class DashboardRepository {
       query.setParameter(3, filtro.getProveedorId());
       query.setParameter(4, filtro.getFechaInicio() != null ? Date.valueOf(filtro.getFechaInicio()) : null);
       query.setParameter(5, filtro.getFechaFin() != null ? Date.valueOf(filtro.getFechaFin()) : null);
+      query.setParameter(6, filtro.getOrganizacionId());
 
       @SuppressWarnings("unchecked")
       Object[] resultado = (Object[]) query.getSingleResult();

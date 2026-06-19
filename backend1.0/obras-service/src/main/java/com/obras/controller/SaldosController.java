@@ -43,8 +43,9 @@ public class SaldosController {
      * @return Lista de saldos por proveedor (optimizado, sin N+1)
      */
     @GetMapping("/proveedores")
-    public ResponseEntity<List<SaldoProveedorDTO>> obtenerSaldosProveedores() {
-        return ResponseEntity.ok(saldosService.obtenerSaldosProveedores());
+    public ResponseEntity<List<SaldoProveedorDTO>> obtenerSaldosProveedores(
+            @RequestHeader(value = "X-Organizacion-Id", defaultValue = "0") Long organizacionId) {
+        return ResponseEntity.ok(saldosService.obtenerSaldosProveedores(organizacionId));
     }
 
     /**
@@ -65,8 +66,9 @@ public class SaldosController {
      * @return Lista de saldos por cliente (optimizado, sin N+1)
      */
     @GetMapping("/clientes")
-    public ResponseEntity<List<SaldoClienteDTO>> obtenerSaldosClientes() {
-        return ResponseEntity.ok(saldosService.obtenerSaldosClientes());
+    public ResponseEntity<List<SaldoClienteDTO>> obtenerSaldosClientes(
+            @RequestHeader(value = "X-Organizacion-Id", defaultValue = "0") Long organizacionId) {
+        return ResponseEntity.ok(saldosService.obtenerSaldosClientes(organizacionId));
     }
 
     @GetMapping("/flujo-caja/presupuesto")

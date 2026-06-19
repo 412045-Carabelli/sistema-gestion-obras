@@ -30,7 +30,7 @@ public class TransaccionConAsociadoRepository {
      * Ejecuta el SP y retorna un mapa con "content" (lista de DTOs) y metadatos de paginación.
      */
     @SuppressWarnings("unchecked")
-    public Map<String, Object> listarConAsociadosPaginado(int page, int size, Long idObra, String tipoAsociado, Long idAsociado) {
+    public Map<String, Object> listarConAsociadosPaginado(int page, int size, Long idObra, String tipoAsociado, Long idAsociado, Long organizacionId) {
         try {
             Query query = entityManager.createNativeQuery(
                 "DECLARE @page INT = ?1; " +
@@ -51,7 +51,7 @@ public class TransaccionConAsociadoRepository {
             // El SP retorna 2 result sets: [0] = totalElements (scalar), resto = filas de datos.
             // Con JPA getResultList() solo obtenemos el primero (el SELECT de datos).
             // Ejecutamos count por separado para la paginación.
-            long total = contarTransacciones(idObra, tipoAsociado, idAsociado);
+            long total = contarTransacciones(idObra, tipoAsociado, idAsociado, organizacionId);
 
             List<TransaccionConAsociadoDto> content = new ArrayList<>();
             for (Object[] row : rows) {
@@ -74,17 +74,19 @@ public class TransaccionConAsociadoRepository {
         }
     }
 
-    private long contarTransacciones(Long idObra, String tipoAsociado, Long idAsociado) {
+    private long contarTransacciones(Long idObra, String tipoAsociado, Long idAsociado, Long organizacionId) {
         Query q = entityManager.createNativeQuery(
             "SELECT COUNT(1) FROM [sgo_transacciones].[dbo].[transacciones] t " +
             "WHERE t.activo = 1 " +
             "AND (:idObra IS NULL OR t.id_obra = :idObra) " +
             "AND (:tipoAsociado IS NULL OR t.tipo_asociado = :tipoAsociado) " +
-            "AND (:idAsociado IS NULL OR t.id_asociado = :idAsociado)"
+            "AND (:idAsociado IS NULL OR t.id_asociado = :idAsociado) " +
+            "AND (:organizacionId = 0 OR t.organizacion_id = :organizacionId)"
         );
         q.setParameter("idObra", idObra);
         q.setParameter("tipoAsociado", tipoAsociado);
         q.setParameter("idAsociado", idAsociado);
+        q.setParameter("organizacionId", organizacionId);
         Number result = (Number) q.getSingleResult();
         return result.longValue();
     }

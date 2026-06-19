@@ -12,8 +12,8 @@ public class Tarea {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "empresa_id")
-    private Long empresaId;
+    @Column(name = "organizacion_id")
+    private Long organizacionId;
 
     @Column(nullable = false)
     private String titulo;

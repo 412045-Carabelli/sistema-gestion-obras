@@ -25,10 +25,12 @@ public class AgendaBffController {
 
     // ✅ Listar todas las tareas de agendas
     @GetMapping
-    public Mono<ResponseEntity<List<Map<String, Object>>>> getTareasAgendas() {
+    public Mono<ResponseEntity<List<Map<String, Object>>>> getTareasAgendas(
+            @RequestHeader(value = "X-Organizacion-Id", required = false, defaultValue = "0") String organizacionId) {
         return webClientBuilder.build()
                 .get()
                 .uri(AGENDA_TAREAS_URL)
+                .header("X-Organizacion-Id", organizacionId)
                 .retrieve()
                 .bodyToFlux(new ParameterizedTypeReference<Map<String, Object>>() {})
                 .collectList()

@@ -12,7 +12,6 @@ import proveedores.service.ProveedorService;
 
 import java.math.BigDecimal;
 import java.util.List;
-import java.util.Map;
 
 @RestController
 @RequestMapping("/api/proveedores")
@@ -106,30 +105,18 @@ public class ProveedoresController {
 
     @GetMapping
     public ResponseEntity<List<ProveedorDTO>> getAllActivos(
-            @RequestHeader(value = "X-Empresa-Id", required = false) Long empresaId) {
-        List<Proveedor> proveedores = service.findAllActivosByEmpresa(empresaId);
-        List<Long> ids = proveedores.stream().map(Proveedor::getId).toList();
-        Map<Long, ProveedorFinanzasService.TotalesProveedor> totalesMap = finanzasService.calcularTotalesBulk(ids);
-        List<ProveedorDTO> result = proveedores.stream()
-                .map(p -> {
-                    ProveedorDTO dto = toDTO(p);
-                    ProveedorFinanzasService.TotalesProveedor totales = totalesMap.getOrDefault(
-                            p.getId(),
-                            new ProveedorFinanzasService.TotalesProveedor(BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO)
-                    );
-                    dto.setTotalProveedor(totales.totalProveedor());
-                    dto.setPagosRealizados(totales.pagosRealizados());
-                    dto.setSaldoProveedor(totales.saldoProveedor());
-                    return dto;
-                })
+            @RequestHeader(value = "X-Organizacion-Id", defaultValue = "0") Long organizacionId) {
+        List<ProveedorDTO> result = service.findAllActivosByOrganizacion(organizacionId)
+                .stream()
+                .map(this::toDTOConTotales)
                 .toList();
         return ResponseEntity.ok(result);
     }
 
     @GetMapping("/simple")
     public ResponseEntity<List<ProveedorDTO>> getSimple(
-            @RequestHeader(value = "X-Empresa-Id", required = false) Long empresaId) {
-        List<ProveedorDTO> result = service.findAllActivosByEmpresa(empresaId)
+            @RequestHeader(value = "X-Organizacion-Id", defaultValue = "0") Long organizacionId) {
+        List<ProveedorDTO> result = service.findAllActivosByOrganizacion(organizacionId)
                 .stream()
                 .map(this::toDTO)
                 .toList();
@@ -154,17 +141,21 @@ public class ProveedoresController {
     }
 
     @GetMapping("/all")
-    public ResponseEntity<List<Proveedor>> getAllSinFiltro() {
-        return ResponseEntity.ok(service.findAll());
+    public ResponseEntity<List<Proveedor>> getAllSinFiltro(
+            @RequestHeader(value = "X-Organizacion-Id", defaultValue = "0") Long organizacionId) {
+        List<Proveedor> result = organizacionId > 0
+            ? service.findAllByOrganizacionId(organizacionId)
+            : service.findAll();
+        return ResponseEntity.ok(result);
     }
 
 
     @PostMapping
     public ResponseEntity<ProveedorDTO> create(
             @RequestBody ProveedorDTO dto,
-            @RequestHeader(value = "X-Empresa-Id", required = false) Long empresaId) {
+            @RequestHeader(value = "X-Organizacion-Id", defaultValue = "0") Long organizacionId) {
         try {
-            Proveedor saved = service.save(toEntity(dto), empresaId);
+            Proveedor saved = service.saveWithOrganizacion(toEntity(dto), organizacionId);
             return ResponseEntity.ok(toDTO(saved));
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().build();
