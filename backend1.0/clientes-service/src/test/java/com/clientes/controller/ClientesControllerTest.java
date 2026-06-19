@@ -50,7 +50,7 @@ class ClientesControllerTest {
         response.setId(1L);
         response.setNombre("Cliente A");
         response.setCondicionIVA("MONOTRIBUTO");
-        when(service.crear(any(ClienteRequest.class), any())).thenReturn(response);
+        when(service.crear(any(ClienteRequest.class))).thenReturn(response);
 
         mockMvc.perform(post("/api/clientes")
                 .contentType(MediaType.APPLICATION_JSON)
