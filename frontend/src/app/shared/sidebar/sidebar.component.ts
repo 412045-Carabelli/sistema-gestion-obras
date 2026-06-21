@@ -44,7 +44,6 @@ export class SidebarComponent {
       label: 'Gestión de Obras',
       items: [
         {label: 'Obras', icon: 'pi-building', path: '/obras'},
-        {label: 'Grupos', icon: 'pi-sitemap', path: '/grupos'},
         {label: 'Agendas', icon: 'pi-calendar', path: '/agendas'},
         {label: 'Clientes', icon: 'pi-users', path: '/clientes'},
         {label: 'Proveedores', icon: 'pi-truck', path: '/proveedores'}
@@ -62,12 +61,6 @@ export class SidebarComponent {
       label: 'Reportes',
       items: [
         {label: 'Reportes', icon: 'pi-chart-bar', path: '/reportes'}
-      ]
-    },
-    {
-      label: 'Administración',
-      items: [
-        {label: 'Configuración', icon: 'pi-cog', path: '/configuracion'}
       ]
     }
   ];
