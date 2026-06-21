@@ -66,6 +66,7 @@ public class TransaccionService {
         validarMontoContraPresupuesto(dto);
 
         Transaccion entity = Transaccion.builder()
+                .organizacionId(dto.getOrganizacionId())
                 .idObra(dto.getIdObra())
                 .idAsociado(dto.getIdAsociado())
                 .tipoAsociado(dto.getTipoAsociado())
