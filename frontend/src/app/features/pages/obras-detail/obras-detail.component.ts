@@ -955,27 +955,20 @@ export class ObrasDetailComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   private ordenarEstadosObra(records: { label: string; name: string }[]): { label: string; name: string }[] {
-    const ordenDeseado = [
-      'PRESUPUESTADA',
-      'COTIZADA',
-      'PERDIDA',
-      'ADJUDICADA',
-      'EN_PROGRESO',
-      'FINALIZADA',
-      'FACTURADA_PARCIAL',
-      'FACTURADA',
-      'COBRADA'
-    ];
+    const estadosOperativos = ['PRESUPUESTADA', 'ADJUDICADA', 'EN_PROGRESO', 'FINALIZADA', 'PERDIDA'];
+    const ordenDeseado = ['PRESUPUESTADA', 'PERDIDA', 'ADJUDICADA', 'EN_PROGRESO', 'FINALIZADA'];
     const index = new Map(ordenDeseado.map((estado, i) => [estado, i]));
     const normalizar = (value?: string | null) =>
       (value || '').toString().trim().toUpperCase().replace(/\s+/g, '_');
 
-    return [...(records || [])].sort((a, b) => {
-      const aKey = index.get(normalizar(a?.name || a?.label)) ?? 999;
-      const bKey = index.get(normalizar(b?.name || b?.label)) ?? 999;
-      if (aKey !== bKey) return aKey - bKey;
-      return (a?.label || '').localeCompare(b?.label || '');
-    });
+    return [...(records || [])]
+      .filter(r => estadosOperativos.includes(normalizar(r?.name || r?.label)))
+      .sort((a, b) => {
+        const aKey = index.get(normalizar(a?.name || a?.label)) ?? 999;
+        const bKey = index.get(normalizar(b?.name || b?.label)) ?? 999;
+        if (aKey !== bKey) return aKey - bKey;
+        return (a?.label || '').localeCompare(b?.label || '');
+      });
   }
 
   private parseDate(value?: string | Date | null): Date | null {
