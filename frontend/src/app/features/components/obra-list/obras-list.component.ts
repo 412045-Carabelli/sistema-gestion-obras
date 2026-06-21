@@ -25,6 +25,8 @@ interface EstadoOption {
 
 const ESTADOS_CON_FACTURACION = ['ADJUDICADA', 'EN_PROGRESO', 'FINALIZADA'];
 
+const ESTADOS_OPERATIVOS = ['PRESUPUESTADA', 'ADJUDICADA', 'EN_PROGRESO', 'FINALIZADA', 'PERDIDA'];
+
 const ORDEN_ESTADOS = [
   'PRESUPUESTADA', 'COTIZADA', 'PERDIDA', 'ADJUDICADA',
   'EN_PROGRESO', 'FINALIZADA', 'FACTURADA_PARCIAL', 'FACTURADA', 'COBRADA'
@@ -270,7 +272,7 @@ export class ObrasListComponent implements OnInit {
     this.filterDefinitions = [
       { key: 'clienteSearch', label: 'Cliente', type: 'input', placeholder: 'Por nombre de cliente' },
       { key: 'search', label: 'Obra', type: 'input', placeholder: 'Por nombre o dirección' },
-      { key: 'estado', label: 'Estado', type: 'multiselect', placeholder: 'Todos', options: this.estadosOptions },
+      { key: 'estado', label: 'Estado', type: 'multiselect', placeholder: 'Todos', options: this.estadosOptions.filter(e => ESTADOS_OPERATIVOS.includes(e.value)) },
       { key: 'facturacion', label: 'Facturación', type: 'select', placeholder: 'Todos', options: this.estadosFacturacionOptions },
       { key: 'mostrarInactivos', label: 'Ver inactivos', type: 'checkbox' }
     ];
