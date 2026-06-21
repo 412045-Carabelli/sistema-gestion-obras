@@ -258,9 +258,9 @@ export class AgendasListComponent implements OnInit, OnDestroy {
 
   getEstadoSeverity(estado: string): string {
     const severities: Record<string, string> = {
-      'PENDIENTE': 'warning',
-      'EN_PROGRESO': 'info',
-      'COMPLETADA': 'success'
+      'PENDIENTE': 'danger',
+      'EN_PROGRESO': 'success',
+      'COMPLETADA': 'secondary'
     };
     return severities[estado] || 'secondary';
   }
