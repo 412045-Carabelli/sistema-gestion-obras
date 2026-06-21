@@ -213,9 +213,9 @@ export class DashboardComponent implements OnInit {
       clientes: this.clientesService.getClientes()
     }).subscribe({
       next: ({ obras, proveedores, clientes }) => {
-        this.obras = obras || [];
-        this.proveedores = proveedores || [];
-        this.clientes = clientes || [];
+        this.obras = (obras || []).sort((a, b) => a.nombre.localeCompare(b.nombre));
+        this.proveedores = (proveedores || []).sort((a, b) => a.nombre.localeCompare(b.nombre));
+        this.clientes = (clientes || []).sort((a, b) => a.nombre.localeCompare(b.nombre));
         this.facturaObrasFiltradas = [...this.obras];
         this.filteredObras = [...this.obras];
         this.filteredClientes = [...this.clientes];

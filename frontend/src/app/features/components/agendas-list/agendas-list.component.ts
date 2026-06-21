@@ -182,17 +182,17 @@ export class AgendasListComponent implements OnInit, OnDestroy {
 
   private cargarDatos() {
     this.obrasService.getObrasAll().subscribe({
-      next: (obras) => this.obras.set(obras),
+      next: (obras) => this.obras.set([...obras].sort((a, b) => a.nombre.localeCompare(b.nombre))),
       error: () => {}
     });
 
     this.clientesService.getClientes().subscribe({
-      next: (clientes) => this.clientes.set(clientes),
+      next: (clientes) => this.clientes.set([...clientes].sort((a, b) => a.nombre.localeCompare(b.nombre))),
       error: () => {}
     });
 
     this.proveedoresService.getProveedores().subscribe({
-      next: (proveedores) => this.proveedores.set(proveedores),
+      next: (proveedores) => this.proveedores.set([...proveedores].sort((a, b) => a.nombre.localeCompare(b.nombre))),
       error: () => {}
     });
 
