@@ -117,6 +117,7 @@ export class ObrasListComponent implements OnInit {
     this.currentPage = page;
     const filtros: { estado?: string; activo?: boolean; q?: string } = {};
     if (this.estadoFiltro.length === 1) filtros.estado = this.estadoFiltro[0];
+    // con múltiples estados se filtra client-side en aplicarFiltroFacturacion
     if (!this.mostrarInactivos) filtros.activo = true;
     if (this.searchValue.trim()) filtros.q = this.searchValue.trim();
 
@@ -147,6 +148,10 @@ export class ObrasListComponent implements OnInit {
   private aplicarFiltroFacturacion() {
     const clienteQ = this.clienteSearch.trim().toLowerCase();
     this.obrasFiltradas = this.obras.filter(obra => {
+      if (this.estadoFiltro.length > 1) {
+        const estadoObra = this.estadoValorObra(obra).toUpperCase();
+        if (!this.estadoFiltro.includes(estadoObra)) return false;
+      }
       if (this.estadoFacturacionFiltro.length > 0) {
         const ef = this.getEstadoFacturacion(obra);
         if (ef == null || !this.estadoFacturacionFiltro.includes(ef.value)) return false;
@@ -265,7 +270,7 @@ export class ObrasListComponent implements OnInit {
     this.filterDefinitions = [
       { key: 'clienteSearch', label: 'Cliente', type: 'input', placeholder: 'Por nombre de cliente' },
       { key: 'search', label: 'Obra', type: 'input', placeholder: 'Por nombre o dirección' },
-      { key: 'estado', label: 'Estado', type: 'select', placeholder: 'Todos', options: this.estadosOptions },
+      { key: 'estado', label: 'Estado', type: 'multiselect', placeholder: 'Todos', options: this.estadosOptions },
       { key: 'facturacion', label: 'Facturación', type: 'select', placeholder: 'Todos', options: this.estadosFacturacionOptions },
       { key: 'mostrarInactivos', label: 'Ver inactivos', type: 'checkbox' }
     ];
