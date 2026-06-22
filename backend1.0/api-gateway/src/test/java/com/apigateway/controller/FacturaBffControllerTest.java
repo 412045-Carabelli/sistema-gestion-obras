@@ -12,6 +12,8 @@ import org.springframework.web.reactive.function.client.WebClient;
 import java.util.List;
 import java.util.Map;
 
+import com.apigateway.service.PushTriggerService;
+import static org.mockito.Mockito.mock;
 import static org.assertj.core.api.Assertions.assertThat;
 
 class FacturaBffControllerTest {
@@ -29,14 +31,14 @@ class FacturaBffControllerTest {
         stub.stub(HttpMethod.DELETE, baseUrl + "/1", HttpStatus.OK, null);
         stub.stub(HttpMethod.GET, baseUrl + "/1/download", HttpStatus.OK, "data");
 
-        FacturaBffController controller = new FacturaBffController(WebClient.builder().exchangeFunction(stub));
+        FacturaBffController controller = new FacturaBffController(WebClient.builder().exchangeFunction(stub), mock(PushTriggerService.class));
         ReflectionTestUtils.setField(controller, "FACTURAS_URL", baseUrl);
 
         ResponseEntity<List<Map<String, Object>>> all = controller.getAll(null, null, null, null, null).block();
         ResponseEntity<Map<String, Object>> byId = controller.getById(1L, null).block();
         ResponseEntity<List<Map<String, Object>>> byCliente = controller.getByCliente(1L, null).block();
         ResponseEntity<List<Map<String, Object>>> byObra = controller.getByObra(1L, null).block();
-        ResponseEntity<Map<String, Object>> create = controller.create("1", null, "10", "5", "2024-01-01", null, null, null, null, null).block();
+        ResponseEntity<Map<String, Object>> create = controller.create("1", null, "10", "5", "2024-01-01", null, null, null, null, null, null, null).block();
         ResponseEntity<Map<String, Object>> update = controller.update(1L, "1", "1", "10", "5", "2024-01-01", "desc", "ACTIVA", "true", null, null).block();
         ResponseEntity<Void> delete = controller.delete(1L).block();
 
@@ -53,7 +55,7 @@ class FacturaBffControllerTest {
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
 
         MockServerHttpResponse responseError = new MockServerHttpResponse();
-        FacturaBffController controllerError = new FacturaBffController(WebClient.builder().exchangeFunction(new StubExchangeFunction()));
+        FacturaBffController controllerError = new FacturaBffController(WebClient.builder().exchangeFunction(new StubExchangeFunction()), mock(PushTriggerService.class));
         ReflectionTestUtils.setField(controllerError, "FACTURAS_URL", baseUrl);
         controllerError.download(99L, responseError).block();
         assertThat(responseError.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
