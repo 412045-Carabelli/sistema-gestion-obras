@@ -45,6 +45,9 @@ export class AuthInterceptor implements HttpInterceptor {
     if (user?.userId != null) {
       headers['X-User-Id'] = String(user.userId);
     }
+    if (user?.username != null) {
+      headers['X-User-Name'] = user.username;
+    }
     return req.clone({ setHeaders: headers });
   }
 

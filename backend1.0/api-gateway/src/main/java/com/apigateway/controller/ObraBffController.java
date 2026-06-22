@@ -1,5 +1,6 @@
 package com.apigateway.controller;
 
+import com.apigateway.service.PushTriggerService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -47,6 +48,7 @@ public class ObraBffController {
     private String FACTURAS_URL;
 
     private final WebClient.Builder webClientBuilder;
+    private final PushTriggerService pushTriggerService;
 
     // ================================
     // 📥 POST - Crear Obra
@@ -55,7 +57,9 @@ public class ObraBffController {
     @PreAuthorize("permitAll()")  // TODO: cambiar a hasRole('ADMIN') o hasRole('OBRAS') cuando JWT esté listo
     public Mono<ResponseEntity<Map<String, Object>>> crearObra(
             @RequestBody Map<String, Object> obraDto,
-            @RequestHeader(value = "X-Organizacion-Id", required = false) String organizacionId
+            @RequestHeader(value = "X-Organizacion-Id", required = false) String organizacionId,
+            @RequestHeader(value = "X-User-Id", required = false) String userId,
+            @RequestHeader(value = "X-User-Name", required = false) String userName
     ) {
         WebClient client = webClientBuilder.build();
 
@@ -67,6 +71,9 @@ public class ObraBffController {
                 .exchangeToMono(response -> {
                     if (response.statusCode().is2xxSuccessful()) {
                         return response.bodyToMono(new ParameterizedTypeReference<Map<String, Object>>() {})
+                                .doOnNext(body -> pushTriggerService.triggerNotification(
+                                        organizacionId, userId, userName,
+                                        "obra", String.valueOf(body.getOrDefault("nombre", ""))))
                                 .map(ResponseEntity::ok);
                     }
                     return response.bodyToMono(new ParameterizedTypeReference<Map<String, Object>>() {})

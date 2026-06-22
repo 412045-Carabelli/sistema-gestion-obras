@@ -1,5 +1,6 @@
 package com.apigateway.controller;
 
+import com.apigateway.service.PushTriggerService;
 import com.common.dto.tareas.TareaAntiguaAgendaResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
@@ -22,6 +23,7 @@ public class AgendaBffController {
     private String AGENDA_TAREAS_URL;
 
     private final WebClient.Builder webClientBuilder;
+    private final PushTriggerService pushTriggerService;
 
     // ✅ Listar todas las tareas de agendas
     @GetMapping
@@ -90,7 +92,10 @@ public class AgendaBffController {
     // ✅ POST Crear tarea (sin idObra)
     @PostMapping
     public Mono<ResponseEntity<Map<String, Object>>> crearTarea(
-            @RequestBody Map<String, Object> tareaDTO) {
+            @RequestBody Map<String, Object> tareaDTO,
+            @RequestHeader(value = "X-Organizacion-Id", required = false) String organizacionId,
+            @RequestHeader(value = "X-User-Id", required = false) String userId,
+            @RequestHeader(value = "X-User-Name", required = false) String userName) {
 
         return webClientBuilder.build()
                 .post()
@@ -98,6 +103,9 @@ public class AgendaBffController {
                 .bodyValue(tareaDTO)
                 .retrieve()
                 .bodyToMono(new ParameterizedTypeReference<Map<String, Object>>() {})
+                .doOnNext(body -> pushTriggerService.triggerNotification(
+                        organizacionId, userId, userName,
+                        "agenda", String.valueOf(body.getOrDefault("titulo", body.getOrDefault("descripcion", "")))))
                 .map(ResponseEntity::ok);
     }
 
@@ -105,7 +113,10 @@ public class AgendaBffController {
     @PostMapping("/{idObra}")
     public Mono<ResponseEntity<Map<String, Object>>> crearTareaConObra(
             @PathVariable("idObra") Long idObra,
-            @RequestBody Map<String, Object> tareaDTO) {
+            @RequestBody Map<String, Object> tareaDTO,
+            @RequestHeader(value = "X-Organizacion-Id", required = false) String organizacionId,
+            @RequestHeader(value = "X-User-Id", required = false) String userId,
+            @RequestHeader(value = "X-User-Name", required = false) String userName) {
 
         return webClientBuilder.build()
                 .post()
@@ -113,6 +124,9 @@ public class AgendaBffController {
                 .bodyValue(tareaDTO)
                 .retrieve()
                 .bodyToMono(new ParameterizedTypeReference<Map<String, Object>>() {})
+                .doOnNext(body -> pushTriggerService.triggerNotification(
+                        organizacionId, userId, userName,
+                        "agenda", String.valueOf(body.getOrDefault("titulo", body.getOrDefault("descripcion", "")))))
                 .map(ResponseEntity::ok);
     }
 

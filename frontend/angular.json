@@ -57,12 +57,14 @@
               "optimization": true,
               "sourceMap": false,
               "extractLicenses": true,
-              "aot": true
+              "aot": true,
+              "serviceWorker": "ngsw-config.json"
             },
             "development": {
               "optimization": false,
               "extractLicenses": false,
-              "sourceMap": true
+              "sourceMap": true,
+              "serviceWorker": "ngsw-config.json"
             }
           },
           "defaultConfiguration": "production"
