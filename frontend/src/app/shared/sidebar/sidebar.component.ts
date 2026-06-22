@@ -1,7 +1,8 @@
-import {Component, Input, Output, EventEmitter} from '@angular/core';
+import {Component, Input, Output, EventEmitter, OnInit} from '@angular/core';
 import {CommonModule} from '@angular/common';
 import {RouterModule} from '@angular/router';
 import {ChangelogService} from '../../services/changelog/changelog.service';
+import {ConfiguracionService, CONFIG_KEYS} from '../../services/configuracion/configuracion.service';
 
 interface MenuItem {
   label: string;
@@ -24,11 +25,24 @@ interface MenuGroup {
   templateUrl: './sidebar.component.html',
   styleUrls: ['./sidebar.component.css']
 })
-export class SidebarComponent {
+export class SidebarComponent implements OnInit {
   @Input() visible: boolean = true;
   @Output() navClicked = new EventEmitter<void>();
 
-  constructor(private changelogService: ChangelogService) {}
+  logoUrl: string = '';
+  empresaNombre: string = '';
+
+  constructor(
+    private changelogService: ChangelogService,
+    private configuracionService: ConfiguracionService
+  ) {}
+
+  ngOnInit(): void {
+    this.configuracionService.config$.subscribe(config => {
+      this.logoUrl = config[CONFIG_KEYS.LOGO_URL] || '';
+      this.empresaNombre = config[CONFIG_KEYS.EMPRESA_NOMBRE] || '';
+    });
+  }
 
   abrirChangelog(): void {
     this.changelogService.abrir();
@@ -66,5 +80,5 @@ export class SidebarComponent {
     }
   ];
 
-  version: string = 'v1.17.26';
+  version: string = 'v1.17.29';
 }

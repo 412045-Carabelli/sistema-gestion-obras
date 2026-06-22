@@ -37,4 +37,18 @@ public interface TransaccionRepository extends JpaRepository<Transaccion, Long> 
 
     @Query("SELECT t FROM Transaccion t WHERE t.activo = true ORDER BY t.fecha DESC")
     List<Transaccion> obtenerMovimientosActivos();
+
+    @Query(nativeQuery = true, value =
+        "SELECT COUNT(1) FROM transacciones t WHERE t.activo = 1 " +
+        "AND (:idObra IS NULL OR t.id_obra = :idObra) " +
+        "AND (:tipoAsociado IS NULL OR t.tipo_asociado = :tipoAsociado) " +
+        "AND (:idAsociado IS NULL OR t.id_asociado = :idAsociado) " +
+        "AND (:organizacionId = 0 OR t.organizacion_id = :organizacionId)"
+    )
+    long contarConFiltros(
+        @Param("idObra") Long idObra,
+        @Param("tipoAsociado") String tipoAsociado,
+        @Param("idAsociado") Long idAsociado,
+        @Param("organizacionId") Long organizacionId
+    );
 }

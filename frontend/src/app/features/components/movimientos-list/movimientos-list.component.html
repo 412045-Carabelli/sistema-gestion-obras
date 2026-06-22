@@ -1,3 +1,5 @@
+<p-toast position="bottom-right"></p-toast>
+
 @defer (when datosCargados; on interaction; prefetch on timer(2s)) {
   <div class="flex flex-col gap-4">
     <!-- Barra de filtros genérica -->
@@ -47,7 +49,7 @@
             <td class="px-3 py-2 font-poppins font-normal">{{ mov.medio_pago || '-' }}</td>
             <td class="px-3 py-2 text-right font-poppins font-semibold">{{ mov.monto | currency:'ARS':'symbol-narrow':'1.0-2' }}</td>
             <td class="px-3 py-2" (click)="$event.stopPropagation()">
-              <p-button icon="pi pi-pencil" [rounded]="true" [text]="true" severity="info" (click)="isViewMode = false; isEditMode = true; openEditModal(mov)" styleClass="p-button-sm"></p-button>
+              <p-button icon="pi pi-pencil" [rounded]="true" [text]="true" severity="info" (click)="openEditModal(mov)" styleClass="p-button-sm"></p-button>
               <p-button icon="pi pi-trash" [rounded]="true" [text]="true" severity="danger" (click)="eliminarMovimiento(mov)" styleClass="p-button-sm"></p-button>
             </td>
           </tr>
@@ -114,7 +116,7 @@
             }
           </div>
           <div class="flex justify-end gap-1 mt-3 pt-2 border-t border-gray-100" (click)="$event.stopPropagation()">
-            <p-button icon="pi pi-pencil" [rounded]="true" [text]="true" severity="info" (click)="isViewMode = false; isEditMode = true; openEditModal(mov)" styleClass="p-button-sm"></p-button>
+            <p-button icon="pi pi-pencil" [rounded]="true" [text]="true" severity="info" (click)="openEditModal(mov)" styleClass="p-button-sm"></p-button>
             <p-button icon="pi pi-trash" [rounded]="true" [text]="true" severity="danger" (click)="eliminarMovimiento(mov)" styleClass="p-button-sm"></p-button>
           </div>
         </div>
@@ -122,191 +124,263 @@
     </div>
   </div>
 
-  <!-- Modal crear/editar/ver -->
-  <p-dialog
-    [(visible)]="showModal"
-    [header]="isViewMode ? 'Ver Movimiento' : (isEditMode ? 'Editar Movimiento' : 'Nuevo Movimiento')"
-    [modal]="true"
-    [style]="{width: '500px', maxWidth: '95vw'}"
-    [closable]="true">
-    <form [formGroup]="form" (ngSubmit)="guardarMovimiento()" class="flex flex-col gap-4">
-      <!-- Tipo Asociado y Asociado (misma fila) — primero seleccionar tipo/asociado -->
-      <div class="grid grid-cols-2 gap-4">
-        <div>
-          <label class="block text-sm font-poppins font-semibold mb-1">Tipo Asociado</label>
-          <p-select
-            formControlName="tipo_asociado"
-            (onChange)="onTipoAsociadoChange()"
-            [options]="tiposAsociado.slice(1)"
-            optionLabel="label"
-            optionValue="name"
-            [disabled]="isViewMode"
-            appendTo="body"
-            styleClass="w-full">
-          </p-select>
-        </div>
+  <!-- Modal crear / editar / ver -->
+  <app-modal
+    (closed)="cerrarModal()"
+    (confirmed)="guardarMovimiento()"
+    [title]="isViewMode ? 'Ver movimiento' : (modoEdicion ? 'Editar movimiento' : 'Nuevo movimiento')"
+    [visible]="showModal"
+    [showFooter]="!isViewMode"
+  >
+    <div class="p-3 space-y-3">
 
-        <div>
-          <label class="block text-sm font-poppins font-semibold mb-1">Asociado</label>
-          @if (form.get('tipo_asociado')?.value === 'CLIENTE') {
-            <p-select
-              formControlName="id_asociado"
-              (onChange)="onAsociadoChange()"
-              [options]="clientesFiltrados"
-              optionLabel="nombre"
-              optionValue="id"
-              placeholder="Cliente"
-              [disabled]="isViewMode"
-              [loading]="!datosCargados"
-              [filter]="true"
-              appendTo="body"
-              styleClass="w-full">
-            </p-select>
-          } @else {
-            <p-select
-              formControlName="id_asociado"
-              (onChange)="onAsociadoChange()"
-              [options]="proveedoresFiltrados"
-              optionLabel="nombre"
-              optionValue="id"
-              placeholder="Proveedor"
-              [disabled]="isViewMode"
-              [loading]="!datosCargados"
-              [filter]="true"
-              appendTo="body"
-              styleClass="w-full">
-            </p-select>
-          }
-        </div>
-      </div>
-
-      <!-- Obra — filtrada según asociado seleccionado -->
+      <!-- Obra (va primero para filtrar asociados y mostrar saldo correcto) -->
       <div>
-        <label class="block text-sm font-poppins font-semibold mb-1">Obra</label>
+        <label class="block text-sm font-poppins font-semibold mb-1 text-gray-700">Obra</label>
         <p-select
-          formControlName="id_obra"
-          [options]="obrasFiltradas"
+          [(ngModel)]="selectedObra"
+          [options]="obrasOptions"
           optionLabel="nombre"
-          optionValue="id"
           placeholder="Selecciona una obra"
           [filter]="true"
-          [disabled]="isViewMode"
-          [loading]="!datosCargados"
+          filterBy="nombre"
+          [disabled]="isViewMode || modoEdicion"
           appendTo="body"
-          styleClass="w-full">
-        </p-select>
-        @if (obrasFiltradas.length === 0 && !isViewMode && form.get('id_asociado')?.value) {
-          <small class="text-amber-500">No hay obras activas para este asociado</small>
-        }
-        @if (!form.get('id_asociado')?.value && !isViewMode) {
-          <small class="text-gray-400">Selecciona primero un asociado</small>
+          styleClass="w-full"
+          (onChange)="onObraChange()"
+        ></p-select>
+        @if (!isViewMode && !modoEdicion && !selectedObra) {
+          <small class="text-gray-400">Selecciona primero una obra</small>
         }
       </div>
 
-      <!-- Saldo del Asociado -->
-      @if (saldoAsociado !== 0) {
-        <div class="bg-blue-50 p-3 rounded border border-blue-200">
-          <p class="text-sm text-blue-700">
-            <strong>Saldo:</strong> {{ saldoAsociado | currency:'ARS':'symbol-narrow':'1.0-2' }}
-          </p>
+      <!-- Tipo entidad + Asociado -->
+      <div class="grid grid-cols-5 gap-3">
+        <div class="col-span-2">
+          <label class="block text-sm font-poppins font-semibold mb-1 text-gray-700">
+            Asociar a
+          </label>
+          <p-select
+            [(ngModel)]="tipoEntidad"
+            [options]="[
+              { label: 'Cliente', value: 'CLIENTE' },
+              { label: 'Proveedor', value: 'PROVEEDOR' }
+            ]"
+            optionLabel="label"
+            optionValue="value"
+            placeholder="Tipo"
+            styleClass="w-full"
+            [disabled]="isViewMode || modoEdicion"
+            (onChange)="onTipoEntidadChange()"
+          ></p-select>
+        </div>
+
+        @if (tipoEntidad === 'PROVEEDOR') {
+          <div class="col-span-3">
+            <label class="block text-sm font-poppins font-semibold mb-1 text-gray-700">
+              Proveedor
+            </label>
+            <p-select
+              [(ngModel)]="selectedProveedor"
+              [options]="isViewMode ? proveedoresOptions : proveedoresFiltrados"
+              optionLabel="nombre"
+              [filter]="true"
+              filterBy="nombre"
+              placeholder="Buscar proveedor"
+              appendTo="body"
+              styleClass="w-full"
+              [disabled]="isViewMode || modoEdicion || !selectedObra"
+              (onChange)="onProveedorSeleccionado()"
+            >
+              <ng-template pTemplate="item" let-p>
+                <div class="flex justify-between w-full items-center gap-4">
+                  <span>{{ p.nombre }}</span>
+                  @if (getSaldoProveedor(p.id) > 0) {
+                    <span class="text-xs font-semibold text-red-600">{{ getSaldoProveedor(p.id) | currency:'ARS':'symbol-narrow':'1.0-0' }}</span>
+                  }
+                </div>
+              </ng-template>
+            </p-select>
+          </div>
+        }
+
+        @if (tipoEntidad === 'CLIENTE') {
+          <div class="col-span-3">
+            <label class="block text-sm font-poppins font-semibold mb-1 text-gray-700">
+              Cliente
+            </label>
+            <p-select
+              [(ngModel)]="selectedCliente"
+              [options]="isViewMode ? clientesOptions : clientesFiltrados"
+              optionLabel="nombre"
+              [filter]="true"
+              filterBy="nombre"
+              placeholder="Buscar cliente"
+              appendTo="body"
+              styleClass="w-full"
+              [disabled]="isViewMode || modoEdicion || !selectedObra"
+              (onChange)="onClienteSeleccionado()"
+            >
+              <ng-template pTemplate="item" let-c>
+                <div class="flex justify-between w-full items-center gap-4">
+                  <span>{{ c.nombre }}</span>
+                  @if (c.saldoCliente != null) {
+                    <span class="text-xs font-semibold text-green-700">{{ c.saldoCliente | currency:'ARS':'symbol-narrow':'1.0-0' }}</span>
+                  }
+                </div>
+              </ng-template>
+            </p-select>
+          </div>
+        }
+      </div>
+
+      <!-- Saldo del asociado seleccionado -->
+      @if (!isViewMode && selectedCliente) {
+        <div class="text-xs font-poppins font-normal text-gray-500 flex flex-col gap-1 bg-green-50 border border-green-100 rounded p-2">
+          <div>Total obra: {{ (selectedCliente.totalCliente ?? 0) | currency:'ARS' }}</div>
+          <div>Cobrado: {{ (selectedCliente.cobrosRealizados ?? 0) | currency:'ARS' }}</div>
+          <div class="font-semibold text-green-700">Por cobrar: {{ (selectedCliente.saldoCliente ?? 0) | currency:'ARS' }}</div>
+        </div>
+      }
+      @if (!isViewMode && selectedProveedor) {
+        <div class="text-xs font-poppins font-normal text-gray-500 flex flex-col gap-1 bg-red-50 border border-red-100 rounded p-2">
+          <div class="font-semibold text-red-700">Saldo a pagar: {{ getSaldoProveedor(selectedProveedor.id) | currency:'ARS' }}</div>
         </div>
       }
 
-      <!-- Tipo Transacción y Fecha (misma fila) -->
-      <div class="grid grid-cols-2 gap-4">
+      <!-- Tipo de movimiento (siempre 1 opción → tag) -->
+      @if (getTiposTransaccionDisponibles().length === 1) {
         <div>
-          <label class="block text-sm font-poppins font-semibold mb-1">Tipo Transacción</label>
-          <p-select
-            formControlName="tipo_transaccion"
-            [options]="[
-              {label: 'Cobro', value: 'COBRO'},
-              {label: 'Pago', value: 'PAGO'}
-            ]"
-            optionLabel="label"
-            optionValue="value"
-            [disabled]="isViewMode"
-            appendTo="body"
-            styleClass="w-full">
-          </p-select>
+          <label class="block text-sm font-poppins font-semibold mb-1 text-gray-700">
+            Tipo de movimiento
+          </label>
+          <p-tag
+            [value]="getTipoTransaccionDisponibleLabel()"
+            [severity]="getTipoTransaccionSeverity()"
+          ></p-tag>
         </div>
+      }
 
-        <div>
-          <label class="block text-sm font-poppins font-semibold mb-1">Fecha</label>
-          <p-datepicker
-            formControlName="fecha"
-            dateFormat="dd/mm/yy"
-            [showIcon]="true"
-            [disabled]="isViewMode"
-            appendTo="body"
-            styleClass="w-full">
-          </p-datepicker>
-        </div>
-      </div>
-
-      <!-- Forma Pago y Monto (misma fila) -->
-      <div class="grid grid-cols-2 gap-4">
-        <div>
-          <label class="block text-sm font-poppins font-semibold mb-1">Forma Pago</label>
-          <p-select
-            formControlName="forma_pago"
-            (onChange)="onFormaPagoChange()"
-            [options]="[
-              {label: 'Parcial', value: 'PARCIAL'},
-              {label: 'Total', value: 'TOTAL'}
-            ]"
-            optionLabel="label"
-            optionValue="value"
-            [disabled]="isViewMode"
-            appendTo="body"
-            styleClass="w-full">
-          </p-select>
-        </div>
-
-        <div>
-          <label class="block text-sm font-poppins font-semibold mb-1">Monto</label>
-          <p-inputNumber
-            formControlName="monto"
-            [useGrouping]="false"
-            placeholder="0.00"
-            [disabled]="isViewMode"
-            styleClass="w-full">
-          </p-inputNumber>
-        </div>
-      </div>
-
-      <!-- Medio Pago -->
+      <!-- Forma de pago (radio buttons) -->
       <div>
-        <label class="block text-sm font-poppins font-semibold mb-1">Medio Pago</label>
+        <label class="block text-sm font-poppins font-semibold mb-1 text-gray-700">
+          Condición de pago/cobro (Total/Parcial)
+        </label>
+        <div class="flex items-center gap-6">
+          <div class="flex items-center gap-2">
+            <p-radiobutton
+              name="formaPago"
+              inputId="formaPagoParcial"
+              value="PARCIAL"
+              [(ngModel)]="nuevoMovimiento.forma_pago"
+              [disabled]="isViewMode"
+              (ngModelChange)="onFormaPagoChange($event)"
+              (onClick)="!isViewMode && onFormaPagoChange('PARCIAL')"
+            ></p-radiobutton>
+            <label for="formaPagoParcial" class="text-sm text-gray-700">Parcial</label>
+          </div>
+          <div class="flex items-center gap-2">
+            <p-radiobutton
+              name="formaPago"
+              inputId="formaPagoTotal"
+              value="TOTAL"
+              [(ngModel)]="nuevoMovimiento.forma_pago"
+              [disabled]="isViewMode"
+              (ngModelChange)="onFormaPagoChange($event)"
+              (onClick)="!isViewMode && onFormaPagoChange('TOTAL')"
+            ></p-radiobutton>
+            <label for="formaPagoTotal" class="text-sm text-gray-700">Total</label>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tipo transacción si hay múltiples opciones -->
+      @if (getTiposTransaccionDisponibles().length > 1) {
+        <div>
+          <label class="block text-sm font-poppins font-semibold mb-1 text-gray-700">
+            Tipo de movimiento
+          </label>
+          <p-select
+            [(ngModel)]="nuevoMovimiento.tipo_transaccion"
+            [options]="getTiposTransaccionDisponibles()"
+            optionLabel="label"
+            optionValue="name"
+            [disabled]="isViewMode"
+            placeholder="Seleccionar tipo"
+            styleClass="w-full"
+          ></p-select>
+        </div>
+      }
+
+      <!-- Medio de pago -->
+      <div>
+        <label class="block text-sm font-poppins font-semibold mb-1 text-gray-700">
+          Medio de pago/cobro
+        </label>
         <input
           type="text"
           pInputText
-          formControlName="medio_pago"
-          placeholder="Transferencia, Efectivo, etc."
+          [(ngModel)]="nuevoMovimiento.medio_pago"
           [disabled]="isViewMode"
-          class="w-full">
+          class="w-full"
+          placeholder="Ej: Transferencia, Efectivo, Cheque"
+        />
       </div>
 
       <!-- Concepto -->
       <div>
-        <label class="block text-sm font-poppins font-semibold mb-1">Concepto</label>
-        <textarea
-          pInputTextarea
-          formControlName="concepto"
-          placeholder="Detalles adicionales"
+        <label class="block text-sm font-poppins font-semibold mb-1 text-gray-700">
+          Concepto <span class="text-gray-500 text-xs">(opcional)</span>
+        </label>
+        <input
+          type="text"
+          pInputText
+          [(ngModel)]="nuevoMovimiento.concepto"
           [disabled]="isViewMode"
           class="w-full"
-          rows="3">
-        </textarea>
+          placeholder="Ej: Adelanto de pago, Comisión, etc."
+        />
       </div>
 
-      <!-- Botones -->
+      <!-- Monto y Fecha -->
+      <div class="flex gap-5">
+        <div class="flex flex-col w-1/2">
+          <label class="block text-sm font-poppins font-semibold mb-1 text-gray-700">Monto</label>
+          <p-inputNumber
+            [(ngModel)]="nuevoMovimiento.monto"
+            (ngModelChange)="onMontoChange($event)"
+            [disabled]="isViewMode"
+            class="w-full"
+            mode="decimal"
+            locale="es-AR"
+            [useGrouping]="true"
+            [minFractionDigits]="2"
+            [maxFractionDigits]="2"
+            inputStyleClass="w-full text-right"
+            [min]="0"
+          ></p-inputNumber>
+        </div>
+
+        <div class="flex flex-col w-1/2">
+          <label class="block text-sm font-poppins font-semibold mb-1 text-gray-700">Fecha</label>
+          <p-datepicker
+            [(ngModel)]="nuevoMovimiento.fecha"
+            [disabled]="isViewMode"
+            appendTo="body"
+            class="w-full"
+            dateFormat="dd/mm/yy"
+          ></p-datepicker>
+        </div>
+      </div>
+
+      <!-- Botones view mode -->
       @if (isViewMode) {
         <div class="flex justify-between items-center gap-2 mt-4">
           <p-button
             type="button"
             label="Eliminar"
             icon="pi pi-trash"
-            (click)="eliminarMovimiento(movimientoEditando!)"
+            (click)="eliminarMovimiento(nuevoMovimiento)"
             severity="danger"
             [text]="true">
           </p-button>
@@ -315,38 +389,22 @@
               type="button"
               label="Cerrar"
               icon="pi pi-times"
-              (click)="showModal = false; isViewMode = false"
+              (click)="cerrarModal()"
               severity="secondary">
             </p-button>
             <p-button
               type="button"
               label="Editar"
               icon="pi pi-pencil"
-              (click)="isViewMode = false; isEditMode = true"
+              (click)="isViewMode = false; modoEdicion = true"
               severity="info">
             </p-button>
           </div>
         </div>
-      } @else {
-        <div class="flex justify-end gap-2 mt-4">
-          <p-button
-            type="button"
-            label="Cancelar"
-            icon="pi pi-times"
-            (click)="showModal = false"
-            severity="secondary">
-          </p-button>
-          <p-button
-            type="submit"
-            label="Guardar"
-            icon="pi pi-check"
-            severity="success"
-            [disabled]="form.invalid">
-          </p-button>
-        </div>
       }
-    </form>
-  </p-dialog>
+    </div>
+  </app-modal>
+
 } @placeholder {
   <div class="flex flex-col gap-4 animate-pulse">
     <div class="bg-white p-4 rounded-lg border border-gray-200">

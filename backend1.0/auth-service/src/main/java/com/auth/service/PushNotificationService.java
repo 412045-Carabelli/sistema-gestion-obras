@@ -82,8 +82,9 @@ public class PushNotificationService {
         if (subscriptions.isEmpty()) return;
 
         String entityLabel = translateEntity(req.getEntity());
-        String body = req.getFromUsername() + " agregó " + entityLabel
-                + (req.getEntityName() != null ? ": " + req.getEntityName() : "");
+        String entitySuffix = (req.getEntityName() != null && !req.getEntityName().isEmpty())
+                ? " " + req.getEntityName() : "";
+        String body = req.getFromUsername() + " agregó " + entityLabel + entitySuffix;
 
         String payload = buildPayload("Nueva actividad en buildrr", body);
 

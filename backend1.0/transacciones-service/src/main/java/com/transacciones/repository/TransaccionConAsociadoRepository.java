@@ -2,9 +2,8 @@ package com.transacciones.repository;
 
 import com.transacciones.dto.TransaccionConAsociadoDto;
 import com.transacciones.enums.TipoTransaccionEnum;
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.PersistenceContext;
-import jakarta.persistence.Query;
+import jakarta.persistence.*;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Repository;
 
@@ -20,11 +19,14 @@ import java.util.Map;
  * Reemplaza los N+1 HTTP calls del TransaccionService con un solo JOIN cross-DB.
  */
 @Repository
+@RequiredArgsConstructor
 @Slf4j
 public class TransaccionConAsociadoRepository {
 
     @PersistenceContext
     private EntityManager entityManager;
+
+    private final TransaccionRepository transaccionRepository;
 
     /**
      * Ejecuta el SP y retorna un mapa con "content" (lista de DTOs) y metadatos de paginación.
@@ -32,21 +34,25 @@ public class TransaccionConAsociadoRepository {
     @SuppressWarnings("unchecked")
     public Map<String, Object> listarConAsociadosPaginado(int page, int size, Long idObra, String tipoAsociado, Long idAsociado, Long organizacionId) {
         try {
-            Query query = entityManager.createNativeQuery(
-                "{call sp_transacciones_con_asociados_paginado(?, ?, ?, ?, ?)}"
-            );
-            query.setParameter(1, page);
-            query.setParameter(2, size);
-            query.setParameter(3, idObra);
-            query.setParameter(4, tipoAsociado);
-            query.setParameter(5, idAsociado);
+            StoredProcedureQuery spQuery = entityManager
+                .createStoredProcedureQuery("sp_transacciones_con_asociados_paginado");
+            spQuery.registerStoredProcedureParameter(1, Integer.class, ParameterMode.IN);
+            spQuery.registerStoredProcedureParameter(2, Integer.class, ParameterMode.IN);
+            spQuery.registerStoredProcedureParameter(3, Long.class, ParameterMode.IN);
+            spQuery.registerStoredProcedureParameter(4, String.class, ParameterMode.IN);
+            spQuery.registerStoredProcedureParameter(5, Long.class, ParameterMode.IN);
+            spQuery.setParameter(1, page);
+            spQuery.setParameter(2, size);
+            spQuery.setParameter(3, idObra);
+            spQuery.setParameter(4, tipoAsociado);
+            spQuery.setParameter(5, idAsociado);
 
-            List<Object[]> rows = query.getResultList();
+            List<Object[]> rows = (List<Object[]>) spQuery.getResultList();
 
             // El SP retorna 2 result sets: [0] = totalElements (scalar), resto = filas de datos.
             // Con JPA getResultList() solo obtenemos el primero (el SELECT de datos).
             // Ejecutamos count por separado para la paginación.
-            long total = contarTransacciones(idObra, tipoAsociado, idAsociado, organizacionId);
+            long total = transaccionRepository.contarConFiltros(idObra, tipoAsociado, idAsociado, organizacionId);
 
             List<TransaccionConAsociadoDto> content = new ArrayList<>();
             for (Object[] row : rows) {
@@ -67,23 +73,6 @@ public class TransaccionConAsociadoRepository {
             log.error("Error ejecutando sp_transacciones_con_asociados_paginado", e);
             throw e;
         }
-    }
-
-    private long contarTransacciones(Long idObra, String tipoAsociado, Long idAsociado, Long organizacionId) {
-        Query q = entityManager.createNativeQuery(
-            "SELECT COUNT(1) FROM [sgo_transacciones].[dbo].[transacciones] t " +
-            "WHERE t.activo = 1 " +
-            "AND (:idObra IS NULL OR t.id_obra = :idObra) " +
-            "AND (:tipoAsociado IS NULL OR t.tipo_asociado = :tipoAsociado) " +
-            "AND (:idAsociado IS NULL OR t.id_asociado = :idAsociado) " +
-            "AND (:organizacionId = 0 OR t.organizacion_id = :organizacionId)"
-        );
-        q.setParameter("idObra", idObra);
-        q.setParameter("tipoAsociado", tipoAsociado);
-        q.setParameter("idAsociado", idAsociado);
-        q.setParameter("organizacionId", organizacionId);
-        Number result = (Number) q.getSingleResult();
-        return result.longValue();
     }
 
     private TransaccionConAsociadoDto mapRow(Object[] row) {

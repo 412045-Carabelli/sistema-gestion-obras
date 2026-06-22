@@ -15,7 +15,6 @@ import {Select} from 'primeng/select';
 import {ConfirmationService, MessageService} from 'primeng/api';
 import {ConfirmDialog} from 'primeng/confirmdialog';
 import {Toast} from 'primeng/toast';
-import {AutoComplete} from 'primeng/autocomplete';
 import {TagModule} from 'primeng/tag';
 import {CheckboxModule} from 'primeng/checkbox';
 import {InputText} from 'primeng/inputtext';
@@ -30,7 +29,7 @@ import {CostosService} from '../../../services/costos/costos.service';
     CurrencyPipe, DatePipe, TableModule, ButtonModule,
     TooltipModule, DropdownModule, FormsModule,
     ModalComponent, InputNumber, DatePicker,
-    FileUploadModule, NgClass, Select, ConfirmDialog, Toast, AutoComplete, TagModule, CheckboxModule, InputText,
+    FileUploadModule, NgClass, Select, ConfirmDialog, Toast, TagModule, CheckboxModule, InputText,
     RadioButtonModule
   ],
   providers: [MessageService, ConfirmationService],
@@ -54,8 +53,6 @@ export class ObraMovimientosComponent implements OnInit {
   tipoEntidad: 'PROVEEDOR' | 'CLIENTE' = 'CLIENTE';
   selectedProveedor: Proveedor | null = null;
   selectedCliente: Cliente | null = null;
-  filteredProveedores: Proveedor[] = [];
-  filteredClientes: Cliente[] = [];
   costosObra: ObraCosto[] = [];
   showAddMovementModal = false;
   modoEdicion = false;
@@ -82,20 +79,6 @@ export class ObraMovimientosComponent implements OnInit {
     private confirmationService: ConfirmationService,
     private messageService: MessageService
   ) {
-  }
-
-  filtrarProveedores(event: any) {
-    const query = (event?.query || '').toLowerCase();
-    this.filteredProveedores = (this.proveedores || []).filter(p =>
-      p.nombre.toLowerCase().includes(query)
-    );
-  }
-
-  filtrarClientes(event: any) {
-    const query = event.query.toLowerCase();
-    this.filteredClientes = this.clientes.filter(c =>
-      c.nombre.toLowerCase().includes(query)
-    );
   }
 
   protected proveedorOCliente(id: number, tipoAsociado: string) {
