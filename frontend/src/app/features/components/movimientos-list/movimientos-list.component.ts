@@ -184,9 +184,9 @@ export class MovimientosListComponent implements OnInit {
       next: ({ movimientosPage, obras, clientes, proveedores }) => {
         this.movimientos = movimientosPage.content || [];
         this.totalElements = movimientosPage.totalElements || 0;
-        this.obrasOptions = obras.filter(o => o.activo !== false);
-        this.clientesOptions = clientes;
-        this.proveedoresOptions = proveedores;
+        this.obrasOptions = obras.filter(o => o.activo !== false).sort((a, b) => (a.nombre || '').localeCompare(b.nombre || ''));
+        this.clientesOptions = [...clientes].sort((a, b) => (a.nombre || '').localeCompare(b.nombre || ''));
+        this.proveedoresOptions = [...proveedores].sort((a, b) => (a.nombre || '').localeCompare(b.nombre || ''));
 
         // Mapear nombres de obras
         obras.forEach(o => {

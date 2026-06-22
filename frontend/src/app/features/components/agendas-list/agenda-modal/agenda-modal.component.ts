@@ -94,7 +94,7 @@ export class AgendaModalComponent {
               : ((raw as any)?.name ?? (raw as any)?.value ?? '').toString().toUpperCase();
             return !EXCLUIDOS.includes(estado) && o.activo !== false;
           })
-          .sort((a, b) => a.nombre.localeCompare(b.nombre, 'es'));
+          .sort((a, b) => (a.nombre || '').localeCompare(b.nombre || '', 'es'));
         const map = new Map<number, Obra>();
         obrasFiltradas.forEach(o => map.set(o.id!, o));
         this.obrasMap.set(map);
@@ -115,7 +115,7 @@ export class AgendaModalComponent {
       next: (clientes) => {
         const clientesActivos = clientes
           .filter(c => c.activo !== false)
-          .sort((a, b) => a.nombre.localeCompare(b.nombre, 'es'));
+          .sort((a, b) => (a.nombre || '').localeCompare(b.nombre || '', 'es'));
         this.clientesOptions.set(
           clientesActivos.map(c => ({ label: c.nombre, value: c.id }))
         );
@@ -133,7 +133,7 @@ export class AgendaModalComponent {
       next: (proveedores) => {
         const proveedoresActivos = proveedores
           .filter(p => p.activo !== false)
-          .sort((a, b) => a.nombre.localeCompare(b.nombre, 'es'));
+          .sort((a, b) => (a.nombre || '').localeCompare(b.nombre || '', 'es'));
         this.proveedoresOptions.set(
           proveedoresActivos.map(p => ({ label: p.nombre, value: p.id }))
         );

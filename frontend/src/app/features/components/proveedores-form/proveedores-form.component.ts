@@ -73,13 +73,13 @@ export class ProveedoresFormComponent implements OnInit {
     });
 
     this.service.getTipos().subscribe(t => {
-      this.tipos = t;
+      this.tipos = [...t].sort((a, b) => (a.label || '').localeCompare(b.label || ''));
       this.tiposOptions = this.appendCrearOption(this.tipos, 'tipo');
       this.setInitialDropdownValue('tipo_proveedor', this.tiposOptions);
     });
 
     this.service.getGremios().subscribe(g => {
-      this.gremios = g;
+      this.gremios = [...g].sort((a, b) => (a.label || '').localeCompare(b.label || ''));
       this.gremiosOptions = this.appendCrearOption(this.gremios, 'gremio');
       this.setInitialDropdownValue('gremio', this.gremiosOptions);
     });
