@@ -8,7 +8,7 @@ WORKDIR /usr/src/app
 # Copiamos los archivos de dependencias e instalamos
 COPY package*.json ./
 RUN npm install -g @angular/cli
-RUN npm ci --legacy-peer-deps
+RUN npm install --legacy-peer-deps --prefer-offline
 
 # Copiamos el resto del código fuente
 COPY . .
