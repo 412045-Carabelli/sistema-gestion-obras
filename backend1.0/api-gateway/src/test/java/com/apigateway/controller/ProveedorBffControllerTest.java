@@ -11,6 +11,8 @@ import org.springframework.web.reactive.function.client.WebClient;
 import java.util.List;
 import java.util.Map;
 
+import com.apigateway.service.PushTriggerService;
+import static org.mockito.Mockito.mock;
 import static org.assertj.core.api.Assertions.assertThat;
 
 class ProveedorBffControllerTest {
@@ -26,13 +28,13 @@ class ProveedorBffControllerTest {
         stub.stub(HttpMethod.PUT, baseUrl + "/1", HttpStatus.OK, Map.of("id", 1));
         stub.stub(HttpMethod.DELETE, baseUrl + "/1", HttpStatus.OK, null);
 
-        ProveedorBffController controller = new ProveedorBffController(WebClient.builder().exchangeFunction(stub));
+        ProveedorBffController controller = new ProveedorBffController(WebClient.builder().exchangeFunction(stub), mock(PushTriggerService.class));
         ReflectionTestUtils.setField(controller, "PROVEEDORES_URL", baseUrl);
 
         ResponseEntity<List<Map<String, Object>>> listResp = controller.getAllProveedores(null, null, null, null, "1").block();
         ResponseEntity<List<Map<String, Object>>> listAllResp = controller.getAllProveedoresSinFiltro().block();
         ResponseEntity<Map<String, Object>> getResp = controller.getProveedorById(1L).block();
-        ResponseEntity<Map<String, Object>> createResp = controller.crearProveedor(Map.of("x", 1)).block();
+        ResponseEntity<Map<String, Object>> createResp = controller.crearProveedor(Map.of("x", 1), null, null, null).block();
         ResponseEntity<Map<String, Object>> updateResp = controller.actualizarProveedor(1L, Map.of("x", 2)).block();
         ResponseEntity<Void> deleteResp = controller.eliminarProveedor(1L).block();
 

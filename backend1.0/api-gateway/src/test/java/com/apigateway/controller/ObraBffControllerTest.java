@@ -11,6 +11,8 @@ import org.springframework.web.reactive.function.client.WebClient;
 import java.util.List;
 import java.util.Map;
 
+import com.apigateway.service.PushTriggerService;
+import static org.mockito.Mockito.mock;
 import static org.assertj.core.api.Assertions.assertThat;
 
 class ObraBffControllerTest {
@@ -41,14 +43,14 @@ class ObraBffControllerTest {
         stub.stub(HttpMethod.GET, tareasUrl + "/1", HttpStatus.OK, List.of(Map.of("id", 20, "id_proveedor", 10)));
         stub.stub(HttpMethod.GET, proveedoresUrl + "/10", HttpStatus.OK, Map.of("id", 10, "nombre", "Prov"));
 
-        ObraBffController controller = new ObraBffController(WebClient.builder().exchangeFunction(stub));
+        ObraBffController controller = new ObraBffController(WebClient.builder().exchangeFunction(stub), mock(PushTriggerService.class));
         ReflectionTestUtils.setField(controller, "OBRAS_URL", obrasUrl);
         ReflectionTestUtils.setField(controller, "CLIENTES_URL", clientesUrl);
         ReflectionTestUtils.setField(controller, "COSTOS_URL", costosUrl);
         ReflectionTestUtils.setField(controller, "TAREAS_URL", tareasUrl);
         ReflectionTestUtils.setField(controller, "PROVEEDORES_URL", proveedoresUrl);
 
-        ResponseEntity<Map<String, Object>> crear = controller.crearObra(Map.of("x", 1), null).block();
+        ResponseEntity<Map<String, Object>> crear = controller.crearObra(Map.of("x", 1), null, null, null).block();
         ResponseEntity<Map<String, Object>> actualizar = controller.actualizarObra(1L, Map.of("x", 2), null).block();
         ResponseEntity<Object> cambiarEstado = controller.cambiarEstadoObra(1L, "EN_PROGRESO").block();
         ResponseEntity<Object> actualizarActivo = controller.actualizarActivo(1L).block();
