@@ -85,12 +85,65 @@ jobs:
           echo "tag=${TAG}" >> $GITHUB_OUTPUT
           echo "Branch/tag resolved to image tag: ${TAG}"
 
-  build-and-push:
+  pre-checks:
     needs: detect-changes
     if: ${{ !contains(needs.detect-changes.outputs.matrix, '"none"') }}
     runs-on: ubuntu-latest
     strategy:
       matrix: ${{ fromJson(needs.detect-changes.outputs.matrix) }}
+      fail-fast: false
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Java 17 (backend only)
+        if: matrix.service != 'frontend' && matrix.service != 'bot-whatsapp'
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Cache Maven (backend only)
+        if: matrix.service != 'frontend' && matrix.service != 'bot-whatsapp'
+        uses: actions/cache@v4
+        with:
+          path: ~/.m2/repository
+          key: ${{ runner.os }}-maven-${{ matrix.service }}-${{ hashFiles('**/pom.xml') }}
+          restore-keys: |
+            ${{ runner.os }}-maven-${{ matrix.service }}-
+            ${{ runner.os }}-maven-
+
+      - name: Run tests & lint (${{ matrix.service }})
+        if: matrix.service != 'frontend' && matrix.service != 'bot-whatsapp'
+        run: |
+          echo "::group::Testing ${{ matrix.service }}"
+          cd backend1.0
+          mvn -B test -pl $(echo "${{ matrix.service }}" | sed 's/-service//g') 2>&1 | tail -50
+          echo "::endgroup::"
+
+      - name: Node setup (frontend only)
+        if: matrix.service == 'frontend'
+        uses: actions/setup-node@v4
+        with:
+          node-version: '19'
+          cache: 'npm'
+          cache-dependency-path: 'frontend/package-lock.json'
+
+      - name: Run linting (frontend only)
+        if: matrix.service == 'frontend'
+        continue-on-error: true
+        run: |
+          cd frontend
+          npm ci --prefer-offline --no-audit
+          npm run lint 2>&1 | tail -50 || echo "⚠️  Lint warnings found but continuing"
+
+  build-and-push:
+    needs: [detect-changes, pre-checks]
+    if: ${{ !contains(needs.detect-changes.outputs.matrix, '"none"') }}
+    runs-on: ubuntu-latest
+    strategy:
+      matrix: ${{ fromJson(needs.detect-changes.outputs.matrix) }}
+      fail-fast: false
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -122,12 +175,23 @@ jobs:
             ${{ runner.os }}-maven-${{ matrix.service }}-
             ${{ runner.os }}-maven-
 
-      - name: Build backend JARs (skip tests — already validated in test-ci)
+      - name: Build backend JAR (${{ matrix.service }})
         if: matrix.service != 'frontend' && matrix.service != 'bot-whatsapp'
         run: |
           set -e
-          cd backend1.0
-          mvn -B -DskipTests package
+          for attempt in 1 2 3; do
+            echo "::group::Build attempt $attempt - ${{ matrix.service }}"
+            if cd backend1.0 && mvn -B -DskipTests -q package -pl ${{ matrix.service }} 2>&1; then
+              echo "✅ Build successful on attempt $attempt"
+              echo "::endgroup::"
+              exit 0
+            else
+              echo "❌ Build failed on attempt $attempt, retrying..."
+              echo "::endgroup::"
+              [ $attempt -lt 3 ] && sleep 10
+            fi
+          done
+          echo "❌ Build failed after 3 attempts" && exit 1
 
       - name: Normalize owner to lowercase
         id: owner
@@ -151,3 +215,19 @@ jobs:
           tags: |
             ${{ env.REGISTRY }}/${{ steps.owner.outputs.owner }}/sgo-${{ matrix.service }}:${{ needs.detect-changes.outputs.tag }}
             ${{ needs.detect-changes.outputs.tag != 'latest' && needs.detect-changes.outputs.tag != 'desa' && format('{0}/{1}/sgo-{2}:latest', env.REGISTRY, steps.owner.outputs.owner, matrix.service) || '' }}
+
+  publish-status:
+    if: always()
+    needs: build-and-push
+    runs-on: ubuntu-latest
+    steps:
+      - name: Publish summary
+        run: |
+          if [[ "${{ needs.build-and-push.result }}" == "success" ]]; then
+            echo "✅ All containers published to GHCR"
+          elif [[ "${{ needs.build-and-push.result }}" == "failure" ]]; then
+            echo "❌ Some services failed (check above)"
+            exit 1
+          else
+            echo "⏭️  Skipped (no changes detected)"
+          fi
