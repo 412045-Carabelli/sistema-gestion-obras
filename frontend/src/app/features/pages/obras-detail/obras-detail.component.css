@@ -63,7 +63,6 @@
 /* Cronograma Cards Compactas */
 .cronograma-card {
   animation: fadeInUp 0.35s ease-out both;
-  transition: transform 0.18s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.18s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 @keyframes fadeInUp {
@@ -83,7 +82,3 @@
 .cronograma-card:nth-child(4) { animation-delay: 0.2s; }
 .cronograma-card:nth-child(5) { animation-delay: 0.25s; }
 
-.cronograma-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
-}

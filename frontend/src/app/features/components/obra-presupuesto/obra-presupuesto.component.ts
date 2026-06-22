@@ -156,7 +156,8 @@ export class ObraPresupuestoComponent implements OnInit, OnChanges, AfterViewIni
   comisionPagada = false;
 
   ngOnInit() {
-    this.filteredProveedores = this.appendNuevoProveedorOption(this.proveedores || []);
+    const proveedoresOrdenados = [...(this.proveedores || [])].sort((a, b) => (a.nombre || '').localeCompare(b.nombre || ''));
+    this.filteredProveedores = this.appendNuevoProveedorOption(proveedoresOrdenados);
     this.nuevoCostoProveedor = undefined;
     if (this.costos?.length > 0) {
       this.inicializarCostos();
@@ -199,7 +200,8 @@ export class ObraPresupuestoComponent implements OnInit, OnChanges, AfterViewIni
       }
     }
     if (changes['proveedores']) {
-      this.filteredProveedores = this.appendNuevoProveedorOption(this.proveedores || []);
+      const proveedoresOrdenados = [...(this.proveedores || [])].sort((a, b) => (a.nombre || '').localeCompare(b.nombre || ''));
+    this.filteredProveedores = this.appendNuevoProveedorOption(proveedoresOrdenados);
     }
   }
 
@@ -1351,7 +1353,8 @@ export class ObraPresupuestoComponent implements OnInit, OnChanges, AfterViewIni
     this.nuevoCostoProveedor = null;
     this.nuevoCosto.id_proveedor = undefined;
     this.nuevoCosto.proveedor = undefined;
-    this.filteredProveedores = this.appendNuevoProveedorOption(this.proveedores || []);
+    const proveedoresOrdenados = [...(this.proveedores || [])].sort((a, b) => (a.nombre || '').localeCompare(b.nombre || ''));
+    this.filteredProveedores = this.appendNuevoProveedorOption(proveedoresOrdenados);
   }
 
   private appendNuevoProveedorOption(list: Proveedor[]): Proveedor[] {

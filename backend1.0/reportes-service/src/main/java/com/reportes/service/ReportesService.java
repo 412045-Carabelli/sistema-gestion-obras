@@ -205,6 +205,17 @@ public class ReportesService {
             filtros.getFechaFin()
         );
 
+        List<Long> obraIdsFiltro = filtros.getObraIds();
+        if (obraIdsFiltro != null && !obraIdsFiltro.isEmpty()) {
+            Set<Long> obraIdsSet = new HashSet<>(obraIdsFiltro);
+            detalleClientes = detalleClientes.stream()
+                .filter(d -> obraIdsSet.contains(d.getObraId()))
+                .collect(java.util.stream.Collectors.toList());
+            detalleProveedores = detalleProveedores.stream()
+                .filter(d -> obraIdsSet.contains(d.getObraId()))
+                .collect(java.util.stream.Collectors.toList());
+        }
+
         response.setDetalleDeudaClientes(detalleClientes);
         response.setDetalleDeudaProveedores(detalleProveedores);
         response.setDeudaClientes(sumarSaldosClientes(detalleClientes));
