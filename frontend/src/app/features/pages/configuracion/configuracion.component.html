@@ -1,146 +1,106 @@
 <p-toast position="bottom-right"></p-toast>
 
-<div class="max-w-2xl mx-auto space-y-8">
+<div class="config-layout">
 
-  <!-- Datos personales -->
-  <div class="bg-white rounded-xl border border-gray-200 p-6">
-    <h2 class="text-base font-poppins font-semibold text-gray-800 mb-1 flex items-center gap-2">
-      <i class="pi pi-user text-gray-500"></i>
-      Mi perfil
-    </h2>
-    <p class="text-xs text-gray-400 mb-4">
-      Usuario: <strong>{{ currentUser?.username }}</strong> &nbsp;·&nbsp; Rol: <strong>{{ currentUser?.rol }}</strong>
-    </p>
+  <!-- Columna izquierda -->
+  <div class="config-col">
 
-    <form [formGroup]="formPerfil" (ngSubmit)="guardarPerfil()" class="space-y-4">
-      <div class="grid grid-cols-2 gap-3">
-        <div>
-          <label class="block text-sm font-poppins font-semibold mb-1 text-gray-700">Nombre <span class="text-red-500">*</span></label>
-          <input pInputText formControlName="nombre" class="w-full" placeholder="Tu nombre">
-          <small class="text-red-600" *ngIf="formPerfil.get('nombre')?.invalid && formPerfil.get('nombre')?.touched">
-            Requerido
-          </small>
+    <!-- Mi perfil -->
+    <div class="config-card">
+      <h2 class="config-card-title">
+        <i class="pi pi-user"></i> Mi perfil
+      </h2>
+      <p class="config-card-sub">
+        Usuario: <strong>{{ currentUser?.username }}</strong> &nbsp;·&nbsp; Rol: <strong>{{ currentUser?.rol }}</strong>
+      </p>
+
+      <form [formGroup]="formPerfil" (ngSubmit)="guardarPerfil()" class="space-y-4">
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="field-label">Nombre <span class="text-red-500">*</span></label>
+            <input pInputText formControlName="nombre" class="w-full" placeholder="Tu nombre">
+            <small class="text-red-600" *ngIf="formPerfil.get('nombre')?.invalid && formPerfil.get('nombre')?.touched">Requerido</small>
+          </div>
+          <div>
+            <label class="field-label">Apellido <span class="text-red-500">*</span></label>
+            <input pInputText formControlName="apellido" class="w-full" placeholder="Tu apellido">
+            <small class="text-red-600" *ngIf="formPerfil.get('apellido')?.invalid && formPerfil.get('apellido')?.touched">Requerido</small>
+          </div>
         </div>
         <div>
-          <label class="block text-sm font-poppins font-semibold mb-1 text-gray-700">Apellido <span class="text-red-500">*</span></label>
-          <input pInputText formControlName="apellido" class="w-full" placeholder="Tu apellido">
-          <small class="text-red-600" *ngIf="formPerfil.get('apellido')?.invalid && formPerfil.get('apellido')?.touched">
-            Requerido
-          </small>
+          <label class="field-label">Email <span class="text-red-500">*</span></label>
+          <input pInputText formControlName="email" type="email" class="w-full" placeholder="tu@email.com">
+          <small class="text-red-600" *ngIf="formPerfil.get('email')?.invalid && formPerfil.get('email')?.touched">Email válido requerido</small>
         </div>
-      </div>
-      <div>
-        <label class="block text-sm font-poppins font-semibold mb-1 text-gray-700">Email <span class="text-red-500">*</span></label>
-        <input pInputText formControlName="email" type="email" class="w-full" placeholder="tu@email.com">
-        <small class="text-red-600" *ngIf="formPerfil.get('email')?.invalid && formPerfil.get('email')?.touched">
-          Email válido requerido
-        </small>
-      </div>
-      <div class="flex justify-end">
-        <p-button
-          type="submit"
-          label="Guardar perfil"
-          icon="pi pi-save"
-          [loading]="guardandoPerfil"
-          [disabled]="formPerfil.invalid || guardandoPerfil"
-          severity="secondary">
-        </p-button>
-      </div>
-    </form>
+        <div class="flex justify-end">
+          <p-button type="submit" label="Guardar perfil" icon="pi pi-save"
+            [loading]="guardandoPerfil" [disabled]="formPerfil.invalid || guardandoPerfil" severity="secondary">
+          </p-button>
+        </div>
+      </form>
+    </div>
+
+    <!-- Cambiar contraseña -->
+    <div class="config-card">
+      <h2 class="config-card-title">
+        <i class="pi pi-lock"></i> Cambiar contraseña
+      </h2>
+
+      <form [formGroup]="formPassword" (ngSubmit)="cambiarPassword()" class="space-y-4">
+        <div>
+          <label class="field-label">Contraseña actual</label>
+          <p-password formControlName="currentPassword" [feedback]="false" [toggleMask]="true"
+            styleClass="w-full" inputStyleClass="w-full">
+          </p-password>
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="field-label">Nueva contraseña</label>
+            <p-password formControlName="newPassword" [toggleMask]="true"
+              styleClass="w-full" inputStyleClass="w-full"
+              promptLabel="Ingresá una contraseña" weakLabel="Débil" mediumLabel="Media" strongLabel="Fuerte">
+            </p-password>
+            <small class="text-red-600" *ngIf="formPassword.get('newPassword')?.invalid && formPassword.get('newPassword')?.touched">Mínimo 8 caracteres</small>
+          </div>
+          <div>
+            <label class="field-label">Confirmar</label>
+            <p-password formControlName="confirmPassword" [feedback]="false" [toggleMask]="true"
+              styleClass="w-full" inputStyleClass="w-full">
+            </p-password>
+            <small class="text-red-600" *ngIf="formPassword.errors?.['passwordMismatch']">Las contraseñas no coinciden</small>
+          </div>
+        </div>
+        <div class="flex justify-end">
+          <p-button type="submit" label="Cambiar contraseña" icon="pi pi-lock"
+            [loading]="guardandoPassword" [disabled]="formPassword.invalid || guardandoPassword" severity="secondary">
+          </p-button>
+        </div>
+      </form>
+    </div>
+
   </div>
 
-  <!-- Cambiar contraseña -->
-  <div class="bg-white rounded-xl border border-gray-200 p-6">
-    <h2 class="text-base font-poppins font-semibold text-gray-800 mb-4 flex items-center gap-2">
-      <i class="pi pi-lock text-gray-500"></i>
-      Cambiar contraseña
-    </h2>
-
-    <form [formGroup]="formPassword" (ngSubmit)="cambiarPassword()" class="space-y-4">
-      <div>
-        <label class="block text-sm font-poppins font-semibold mb-1 text-gray-700">Contraseña actual</label>
-        <p-password
-          formControlName="currentPassword"
-          [feedback]="false"
-          [toggleMask]="true"
-          styleClass="w-full"
-          inputStyleClass="w-full">
-        </p-password>
-      </div>
-
-      <div class="grid grid-cols-2 gap-3">
-        <div>
-          <label class="block text-sm font-poppins font-semibold mb-1 text-gray-700">Nueva contraseña</label>
-          <p-password
-            formControlName="newPassword"
-            [toggleMask]="true"
-            styleClass="w-full"
-            inputStyleClass="w-full"
-            promptLabel="Ingresá una contraseña"
-            weakLabel="Débil"
-            mediumLabel="Media"
-            strongLabel="Fuerte">
-          </p-password>
-          <small class="text-red-600" *ngIf="formPassword.get('newPassword')?.invalid && formPassword.get('newPassword')?.touched">
-            Mínimo 8 caracteres
-          </small>
-        </div>
-        <div>
-          <label class="block text-sm font-poppins font-semibold mb-1 text-gray-700">Confirmar</label>
-          <p-password
-            formControlName="confirmPassword"
-            [feedback]="false"
-            [toggleMask]="true"
-            styleClass="w-full"
-            inputStyleClass="w-full">
-          </p-password>
-          <small class="text-red-600" *ngIf="formPassword.errors?.['passwordMismatch']">
-            Las contraseñas no coinciden
-          </small>
-        </div>
-      </div>
-
-      <div class="flex justify-end">
-        <p-button
-          type="submit"
-          label="Cambiar contraseña"
-          icon="pi pi-lock"
-          [loading]="guardandoPassword"
-          [disabled]="formPassword.invalid || guardandoPassword"
-          severity="secondary">
-        </p-button>
-      </div>
-    </form>
-  </div>
-
-  <!-- Empresa (solo ADMIN) -->
+  <!-- Columna derecha (solo ADMIN) -->
   @if (isAdmin) {
-    <form [formGroup]="formEmpresa" (ngSubmit)="guardarEmpresa()" class="space-y-6">
+    <form [formGroup]="formEmpresa" (ngSubmit)="guardarEmpresa()" class="config-col">
 
       <!-- Datos empresa -->
-      <div class="bg-white rounded-xl border border-gray-200 p-6">
-        <h2 class="text-base font-poppins font-semibold text-gray-800 mb-4 flex items-center gap-2">
-          <i class="pi pi-building text-gray-500"></i>
-          Empresa
+      <div class="config-card">
+        <h2 class="config-card-title">
+          <i class="pi pi-building"></i> Empresa
         </h2>
         <div class="space-y-4">
           <div>
-            <label class="block text-sm font-poppins font-semibold mb-1 text-gray-700">
-              Nombre de la empresa <span class="text-red-500">*</span>
-            </label>
+            <label class="field-label">Nombre de la empresa <span class="text-red-500">*</span></label>
             <input pInputText formControlName="empresa_nombre" class="w-full" placeholder="Ej: Meliquina Construcciones">
           </div>
           <div>
-            <label class="block text-sm font-poppins font-semibold mb-1 text-gray-700">
-              Nombre del propietario <span class="text-red-500">*</span>
-            </label>
+            <label class="field-label">Nombre del propietario <span class="text-red-500">*</span></label>
             <input pInputText formControlName="propietario_nombre" class="w-full" placeholder="Ej: Pablo Pezzini">
             <p class="text-xs text-gray-400 mt-1">Aparece en el header como "Bienvenido, [nombre]".</p>
           </div>
           <div>
-            <label class="block text-sm font-poppins font-semibold mb-1 text-gray-700">Logo de la empresa</label>
-
-            <!-- Zona drag & drop -->
+            <label class="field-label">Logo de la empresa</label>
             <div
               class="border-2 border-dashed rounded-lg p-6 text-center transition-colors cursor-pointer"
               [class.border-blue-400]="logoDragOver"
@@ -159,9 +119,7 @@
                 </div>
               } @else if (formEmpresa.get('logo_url')?.value) {
                 <div class="flex flex-col items-center gap-3">
-                  <img [src]="formEmpresa.get('logo_url')?.value" alt="Logo"
-                    class="h-16 object-contain"
-                    onerror="this.style.display='none'">
+                  <img [src]="formEmpresa.get('logo_url')?.value" alt="Logo" class="h-16 object-contain" onerror="this.style.display='none'">
                   <span class="text-xs text-gray-400 font-poppins">Clic o arrastrá para reemplazar</span>
                 </div>
               } @else {
@@ -172,21 +130,18 @@
                 </div>
               }
             </div>
-
-            <input #logoFileInput type="file" accept="image/*" class="hidden"
-              (change)="onLogoFileSelected($event)">
+            <input #logoFileInput type="file" accept="image/*" class="hidden" (change)="onLogoFileSelected($event)">
           </div>
         </div>
       </div>
 
       <!-- WhatsApp -->
-      <div class="bg-white rounded-xl border border-gray-200 p-6">
-        <h2 class="text-base font-poppins font-semibold text-gray-800 mb-4 flex items-center gap-2">
-          <i class="pi pi-comment text-gray-500"></i>
-          Notificaciones WhatsApp
+      <div class="config-card">
+        <h2 class="config-card-title">
+          <i class="pi pi-comment"></i> Notificaciones WhatsApp
         </h2>
         <div>
-          <label class="block text-sm font-poppins font-semibold mb-1 text-gray-700">Teléfono responsable</label>
+          <label class="field-label">Teléfono responsable</label>
           <input pInputText formControlName="whatsapp_owner_phone" class="w-full"
             placeholder="549XXXXXXXXXX (sin + ni espacios)">
           <p class="text-xs text-gray-400 mt-1">
@@ -210,16 +165,13 @@
         </div>
       </div>
 
-      <!-- Guardar empresa -->
+      <!-- Guardar -->
       <div class="flex justify-end">
-        <p-button
-          type="submit"
-          label="Guardar cambios"
-          icon="pi pi-save"
-          [loading]="guardandoEmpresa"
-          [disabled]="formEmpresa.invalid || guardandoEmpresa">
+        <p-button type="submit" label="Guardar cambios" icon="pi pi-save"
+          [loading]="guardandoEmpresa" [disabled]="formEmpresa.invalid || guardandoEmpresa">
         </p-button>
       </div>
+
     </form>
   }
 

@@ -21,17 +21,17 @@ public class AdminController {
 
   @GetMapping("/usuarios")
   public ResponseEntity<List<UsuarioInfoResponse>> listarUsuarios(
-      @RequestHeader(value = "X-Empresa-Id", required = false) Long empresaId) {
-    if (empresaId == null) {
+      @RequestHeader(value = "X-Organizacion-Id", required = false) Long organizacionId) {
+    if (organizacionId == null) {
       return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
     }
-    return ResponseEntity.ok(authService.listarUsuariosOrganizacion(empresaId));
+    return ResponseEntity.ok(authService.listarUsuariosOrganizacion(organizacionId));
   }
 
   @PostMapping("/usuarios")
   public ResponseEntity<UsuarioInfoResponse> crearUsuario(
       @Valid @RequestBody CreateUsuarioRequest request,
-      @RequestHeader(value = "X-Empresa-Id", required = false) Long empresaId) {
+      @RequestHeader(value = "X-Organizacion-Id", required = false) Long empresaId) {
     if (empresaId == null) {
       return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
     }
@@ -43,7 +43,7 @@ public class AdminController {
   public ResponseEntity<UsuarioInfoResponse> actualizarUsuario(
       @PathVariable("id") Long id,
       @Valid @RequestBody UpdateUsuarioRequest request,
-      @RequestHeader(value = "X-Empresa-Id", required = false) Long empresaId) {
+      @RequestHeader(value = "X-Organizacion-Id", required = false) Long empresaId) {
     if (empresaId == null) {
       return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
     }
@@ -54,7 +54,7 @@ public class AdminController {
   public ResponseEntity<UsuarioInfoResponse> cambiarEstado(
       @PathVariable("id") Long id,
       @RequestParam("activo") boolean activo,
-      @RequestHeader(value = "X-Empresa-Id", required = false) Long empresaId) {
+      @RequestHeader(value = "X-Organizacion-Id", required = false) Long empresaId) {
     if (empresaId == null) {
       return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
     }

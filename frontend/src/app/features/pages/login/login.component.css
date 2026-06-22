@@ -1,34 +1,190 @@
-::ng-deep {
-  .p-card {
-    border-radius: 8px;
-  }
+@import url("https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap");
 
-  .p-inputtext {
-    width: 100%;
-    padding: 0.75rem;
-    border: 1px solid #d1d5db;
-    border-radius: 4px;
-    font-size: 1rem;
+:host {
+  display: block;
+  font-family: "Space Grotesk", "Helvetica Neue", Arial, sans-serif;
+}
 
-    &:focus {
-      border-color: #3b82f6;
-      outline: none;
-      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
-    }
+/* ── Page layout ── */
+.login-page {
+  position: relative;
+  min-height: 100vh;
+  background: #0e0e0e;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  font-family: "Space Grotesk", sans-serif;
+}
 
-    &.ng-invalid.ng-touched {
-      border-color: #ef4444;
-    }
-  }
+/* ── Background effects (same as landing) ── */
+.login-bg {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+}
 
-  .p-button {
-    &:disabled {
-      opacity: 0.6;
-      cursor: not-allowed;
-    }
-  }
+.grid-lines {
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
+  background-size: 60px 60px;
+}
 
-  .field {
-    margin-bottom: 1.5rem;
-  }
+.glow {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(120px);
+  opacity: 0.18;
+}
+.glow-1 {
+  width: 600px; height: 600px;
+  background: #E8FF47;
+  top: -200px; right: -100px;
+}
+.glow-2 {
+  width: 500px; height: 500px;
+  background: #3b82f6;
+  bottom: -150px; left: -100px;
+}
+
+/* ── Wrapper ── */
+.login-wrapper {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  max-width: 420px;
+  padding: 24px 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 32px;
+}
+
+/* ── Brand / logo ── */
+.login-brand {
+  display: flex;
+  justify-content: center;
+}
+.login-logo {
+  height: 36px;
+}
+
+/* ── Card ── */
+.login-card {
+  width: 100%;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 16px;
+  padding: 36px 32px;
+  backdrop-filter: blur(12px);
+}
+
+.login-card-header {
+  margin-bottom: 28px;
+  text-align: center;
+}
+
+.login-title {
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: #F0F0F0;
+  margin: 0 0 6px;
+  letter-spacing: -0.02em;
+}
+
+.login-sub {
+  font-size: 0.9rem;
+  color: #888;
+  margin: 0;
+}
+
+/* ── Form ── */
+.login-form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.field-label {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #c0c0c0;
+  letter-spacing: 0.02em;
+}
+
+.field-input {
+  width: 100%;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 10px;
+  padding: 12px 14px;
+  font-size: 0.95rem;
+  font-family: "Space Grotesk", sans-serif;
+  color: #F0F0F0;
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  box-sizing: border-box;
+}
+
+.field-input::placeholder {
+  color: #555;
+}
+
+.field-input:focus {
+  border-color: #E8FF47;
+  box-shadow: 0 0 0 3px rgba(232, 255, 71, 0.12);
+}
+
+.field-input.field-error-input {
+  border-color: #ef4444;
+}
+
+.field-error {
+  font-size: 0.78rem;
+  color: #f87171;
+}
+
+/* ── Submit button ── */
+.btn-submit {
+  width: 100%;
+  padding: 13px 20px;
+  background: #E8FF47;
+  color: #0e0e0e;
+  border: none;
+  border-radius: 10px;
+  font-family: "Space Grotesk", sans-serif;
+  font-size: 0.95rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.1s, opacity 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.btn-submit:hover:not(:disabled) {
+  background: #d4e840;
+  transform: translateY(-1px);
+}
+
+.btn-submit:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.btn-submit:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
 }
