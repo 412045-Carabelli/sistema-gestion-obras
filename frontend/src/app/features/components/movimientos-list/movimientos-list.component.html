@@ -127,7 +127,7 @@
     [(visible)]="showModal"
     [header]="isViewMode ? 'Ver Movimiento' : (isEditMode ? 'Editar Movimiento' : 'Nuevo Movimiento')"
     [modal]="true"
-    [style]="{width: '500px'}"
+    [style]="{width: '500px', maxWidth: '95vw'}"
     [closable]="true">
     <form [formGroup]="form" (ngSubmit)="guardarMovimiento()" class="flex flex-col gap-4">
       <!-- Tipo Asociado y Asociado (misma fila) — primero seleccionar tipo/asociado -->
@@ -141,6 +141,7 @@
             optionLabel="label"
             optionValue="name"
             [disabled]="isViewMode"
+            appendTo="body"
             styleClass="w-full">
           </p-select>
         </div>
@@ -156,7 +157,9 @@
               optionValue="id"
               placeholder="Cliente"
               [disabled]="isViewMode"
+              [loading]="!datosCargados"
               [filter]="true"
+              appendTo="body"
               styleClass="w-full">
             </p-select>
           } @else {
@@ -168,7 +171,9 @@
               optionValue="id"
               placeholder="Proveedor"
               [disabled]="isViewMode"
+              [loading]="!datosCargados"
               [filter]="true"
+              appendTo="body"
               styleClass="w-full">
             </p-select>
           }
@@ -186,6 +191,8 @@
           placeholder="Selecciona una obra"
           [filter]="true"
           [disabled]="isViewMode"
+          [loading]="!datosCargados"
+          appendTo="body"
           styleClass="w-full">
         </p-select>
         @if (obrasFiltradas.length === 0 && !isViewMode && form.get('id_asociado')?.value) {
@@ -218,6 +225,7 @@
             optionLabel="label"
             optionValue="value"
             [disabled]="isViewMode"
+            appendTo="body"
             styleClass="w-full">
           </p-select>
         </div>
@@ -229,6 +237,7 @@
             dateFormat="dd/mm/yy"
             [showIcon]="true"
             [disabled]="isViewMode"
+            appendTo="body"
             styleClass="w-full">
           </p-datepicker>
         </div>
@@ -248,6 +257,7 @@
             optionLabel="label"
             optionValue="value"
             [disabled]="isViewMode"
+            appendTo="body"
             styleClass="w-full">
           </p-select>
         </div>

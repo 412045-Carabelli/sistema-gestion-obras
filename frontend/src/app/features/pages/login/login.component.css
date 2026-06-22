@@ -128,7 +128,7 @@
   border: 1px solid rgba(255, 255, 255, 0.12);
   border-radius: 10px;
   padding: 12px 14px;
-  font-size: 0.95rem;
+  font-size: 1rem;
   font-family: "Space Grotesk", sans-serif;
   color: #F0F0F0;
   outline: none;
@@ -163,7 +163,7 @@
   border: none;
   border-radius: 10px;
   font-family: "Space Grotesk", sans-serif;
-  font-size: 0.95rem;
+  font-size: 1rem;
   font-weight: 700;
   letter-spacing: 0.02em;
   cursor: pointer;
@@ -187,4 +187,15 @@
 .btn-submit:disabled {
   opacity: 0.45;
   cursor: not-allowed;
+}
+
+@media (max-width: 480px) {
+  .login-card {
+    padding: 24px 20px;
+  }
+
+  .login-wrapper {
+    padding: 16px 12px;
+    gap: 20px;
+  }
 }

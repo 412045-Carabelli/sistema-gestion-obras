@@ -177,7 +177,7 @@ export class MovimientosListComponent implements OnInit {
   private cargarDatos(): void {
     forkJoin({
       movimientosPage: this.movimientosService.listarConAsociados(this.currentPage, this.pageSize),
-      obras: this.obrasService.getObrasAll(),
+      obras: this.obrasService.getObrasParaMovimientos(),
       clientes: this.clientesService.getClientes(),
       proveedores: this.proveedoresService.getProveedores()
     }).subscribe({

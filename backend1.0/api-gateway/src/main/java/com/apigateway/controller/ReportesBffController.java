@@ -71,6 +71,7 @@ public class ReportesBffController {
     }
 
     private Mono<List<Map<String, Object>>> fetchObras() {
+        java.util.Set<String> estadosValidos = java.util.Set.of("ADJUDICADA", "EN_PROGRESO", "FINALIZADA");
         return webClientBuilder.build()
                 .get()
                 .uri(obrasServiceUrl + "?size=1000")
@@ -80,11 +81,14 @@ public class ReportesBffController {
                 .map(list -> list.stream()
                     .filter(obj -> {
                         Object activo = obj.get("activo");
-                        return activo != null && (
+                        boolean isActivo = activo != null && (
                             (activo instanceof Boolean && (Boolean) activo) ||
                             (activo instanceof String && "true".equalsIgnoreCase((String) activo)) ||
                             (activo instanceof Number && ((Number) activo).intValue() == 1)
                         );
+                        if (!isActivo) return false;
+                        Object obraEstado = obj.get("obra_estado");
+                        return obraEstado != null && estadosValidos.contains(obraEstado.toString());
                     })
                     .map(obj -> {
                         Map<String, Object> result = new java.util.HashMap<>();

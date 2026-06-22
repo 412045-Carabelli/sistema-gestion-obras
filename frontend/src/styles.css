@@ -120,3 +120,21 @@ body {
     font-size: 0.875rem;
   }
 }
+
+/* Botón "Nuevo" responsive: en mobile muestra solo ícono + grande */
+@media (max-width: 1023px) {
+  .btn-mobile-icon .p-button-label {
+    display: none;
+  }
+  .btn-mobile-icon .p-button {
+    border-radius: 8px;
+    padding: 0.65rem 0.75rem;
+    width: 2.5rem;
+    height: 2.5rem;
+    justify-content: center;
+  }
+  .btn-mobile-icon .p-button-icon {
+    font-size: 1.25rem;
+    margin: 0;
+  }
+}

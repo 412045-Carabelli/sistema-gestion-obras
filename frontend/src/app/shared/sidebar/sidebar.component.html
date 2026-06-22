@@ -13,6 +13,7 @@
             <a
               [routerLink]="item.path"
               routerLinkActive="active-nav-item"
+              (click)="navClicked.emit()"
               class="nav-item flex items-center gap-3 px-3 py-2 rounded-lg text-gray-800 no-underline transition-all duration-200 hover:bg-gray-900/10">
               <i [class]="'pi ' + item.icon + ' text-lg'"></i>
               <span class="text-sm font-poppins font-semibold">{{ item.label }}</span>

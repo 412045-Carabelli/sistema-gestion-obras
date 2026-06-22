@@ -1,4 +1,4 @@
-import {Component, Input} from '@angular/core';
+import {Component, Input, Output, EventEmitter} from '@angular/core';
 import {CommonModule} from '@angular/common';
 import {RouterModule} from '@angular/router';
 import {ChangelogService} from '../../services/changelog/changelog.service';
@@ -26,6 +26,7 @@ interface MenuGroup {
 })
 export class SidebarComponent {
   @Input() visible: boolean = true;
+  @Output() navClicked = new EventEmitter<void>();
 
   constructor(private changelogService: ChangelogService) {}
 
@@ -65,5 +66,5 @@ export class SidebarComponent {
     }
   ];
 
-  version: string = 'v1.17.25';
+  version: string = 'v1.17.26';
 }
