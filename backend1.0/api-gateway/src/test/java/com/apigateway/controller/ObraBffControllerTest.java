@@ -52,7 +52,7 @@ class ObraBffControllerTest {
         ResponseEntity<Map<String, Object>> actualizar = controller.actualizarObra(1L, Map.of("x", 2), null).block();
         ResponseEntity<Object> cambiarEstado = controller.cambiarEstadoObra(1L, "EN_PROGRESO").block();
         ResponseEntity<Object> actualizarActivo = controller.actualizarActivo(1L).block();
-        ResponseEntity<List<Map<String, Object>>> todas = controller.getTodasLasObras(null, null, null, null, null).block();
+        ResponseEntity<List<Map<String, Object>>> todas = controller.getTodasLasObras(null, null, null, null, null, null).block();
         ResponseEntity<Map<String, Object>> completa = controller.getObraCompleta(1L, null).block();
 
         assertThat(crear.getStatusCode()).isEqualTo(HttpStatus.OK);
