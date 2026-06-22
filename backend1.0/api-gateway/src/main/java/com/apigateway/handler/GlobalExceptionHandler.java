@@ -1,5 +1,6 @@
 package com.apigateway.handler;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -7,6 +8,7 @@ import org.springframework.validation.FieldError;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.bind.support.WebExchangeBindException;
+import org.springframework.web.reactive.function.client.WebClientResponseException;
 import org.springframework.web.server.ServerWebExchange;
 
 import java.time.Instant;
@@ -45,6 +47,38 @@ public class GlobalExceptionHandler {
         response.put("timestamp", Instant.now());
 
         return ResponseEntity.badRequest().body(response);
+    }
+
+    /**
+     * Propaga errores 4xx/5xx de microservicios downstream con su status y body originales.
+     */
+    @ExceptionHandler(WebClientResponseException.class)
+    public ResponseEntity<Map<String, Object>> handleWebClientResponseException(
+            WebClientResponseException ex,
+            ServerWebExchange exchange) {
+
+        if (ex.getStatusCode().is5xxServerError()) {
+            log.error("Error downstream en {}: {} - {}", exchange.getRequest().getPath(), ex.getStatusCode(), ex.getMessage());
+        } else {
+            log.warn("Error downstream en {}: {} - {}", exchange.getRequest().getPath(), ex.getStatusCode(), ex.getMessage());
+        }
+
+        String bodyStr = ex.getResponseBodyAsString();
+        if (bodyStr != null && !bodyStr.isBlank()) {
+            try {
+                ObjectMapper mapper = new ObjectMapper();
+                @SuppressWarnings("unchecked")
+                Map<String, Object> parsed = mapper.readValue(bodyStr, Map.class);
+                return ResponseEntity.status(ex.getStatusCode()).body(parsed);
+            } catch (Exception ignored) {}
+        }
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("message", ex.getMessage());
+        response.put("status", ex.getStatusCode().value());
+        response.put("path", exchange.getRequest().getPath().value());
+        response.put("timestamp", Instant.now());
+        return ResponseEntity.status(ex.getStatusCode()).body(response);
     }
 
     /**

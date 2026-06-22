@@ -71,6 +71,13 @@ export class ObrasService {
     return this.http.get<Obra[]>(this.apiUrl, {withCredentials: true, params});
   }
 
+  getObrasParaMovimientos(): Observable<Obra[]> {
+    const params = new HttpParams()
+      .set('size', '1000')
+      .set('estados', 'ADJUDICADA,EN_PROGRESO,FINALIZADA');
+    return this.http.get<Obra[]>(this.apiUrl, {withCredentials: true, params});
+  }
+
   getObrasConDetalles(page = 0, size = 50, filtros: { estado?: string; activo?: boolean; q?: string } = {}): Observable<ObrasConDetallesResponse> {
     let params = new HttpParams().set('page', page).set('size', size);
     if (filtros.estado) params = params.set('estado', filtros.estado);

@@ -185,6 +185,7 @@ public class ObraBffController {
     @GetMapping
     public Mono<ResponseEntity<List<Map<String, Object>>>> getTodasLasObras(
             @RequestParam(required = false) String estado,
+            @RequestParam(required = false) String estados,
             @RequestParam(required = false) Long idCliente,
             @RequestParam(required = false) Integer page,
             @RequestParam(required = false) Integer size,
@@ -225,7 +226,14 @@ public class ObraBffController {
                 .flatMapMany(pageResult -> {
                     @SuppressWarnings("unchecked")
                     List<Map<String, Object>> content =
-                        (List<Map<String, Object>>) pageResult.getOrDefault("content", List.of());
+                        new java.util.ArrayList<>((List<Map<String, Object>>) pageResult.getOrDefault("content", List.of()));
+                    if (estados != null && !estados.isBlank()) {
+                        java.util.Set<String> estadosSet = new java.util.HashSet<>(java.util.Arrays.asList(estados.split(",")));
+                        content.removeIf(obra -> {
+                            Object obraEstado = obra.get("obra_estado");
+                            return obraEstado == null || !estadosSet.contains(obraEstado.toString());
+                        });
+                    }
                     return Flux.fromIterable(content);
                 })
                 .onErrorResume(ex -> Flux.empty());

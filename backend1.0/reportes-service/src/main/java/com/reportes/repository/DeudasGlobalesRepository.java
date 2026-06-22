@@ -72,7 +72,7 @@ public class DeudasGlobalesRepository {
             LocalDate fechaInicio,
             LocalDate fechaFin) {
 
-        String sql = "EXEC [sgo_transacciones].[dbo].[sp_deudas_proveedores_con_grupo] ?, ?, ?, ?, ?, ?";
+        String sql = "EXEC [sgo_transacciones].[dbo].[sp_deudas_proveedores_con_grupo] @grupoId=?, @obraId=?, @proveedorId=?, @fechaInicio=?, @fechaFin=?";
         List<DeudasGlobalesResponse.DetalleDeudaProveedor> resultados = new ArrayList<>();
 
         try {
@@ -94,7 +94,6 @@ public class DeudasGlobalesRepository {
             },
                     grupoId,
                     obraId,
-                    clienteId,
                     proveedorId,
                     fechaInicio != null ? Date.valueOf(fechaInicio) : null,
                     fechaFin != null ? Date.valueOf(fechaFin) : null

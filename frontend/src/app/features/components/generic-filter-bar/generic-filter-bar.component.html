@@ -13,10 +13,13 @@
               <p-select
                 [formControlName]="filterDef.key"
                 [options]="getFilterOptions(filterDef.key)"
+                optionLabel="label"
+                optionValue="value"
                 [placeholder]="filterDef.placeholder || 'Todos'"
                 [showClear]="true"
                 [filter]="true"
                 [fluid]="true"
+                appendTo="body"
                 class="w-full sm:w-48"
               ></p-select>
             }
@@ -35,6 +38,7 @@
                 [showIcon]="true"
                 [fluid]="true"
                 dateFormat="dd/mm/yy"
+                appendTo="body"
                 class="w-full sm:w-48"
               ></p-datepicker>
             }
@@ -48,6 +52,7 @@
                 [filter]="true"
                 [showClear]="true"
                 [fluid]="true"
+                appendTo="body"
                 class="w-full sm:w-48"
               ></p-multiselect>
             }

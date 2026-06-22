@@ -14,7 +14,7 @@
 
     @if (!isPublicRoute && sidebarVisible) {
       <!-- 📌 Sidebar -->
-      <app-sidebar [visible]="sidebarVisible"></app-sidebar>
+      <app-sidebar [visible]="sidebarVisible" (navClicked)="isMobile && closeSidebar()"></app-sidebar>
     }
 
     <!-- 📄 Main Content -->

@@ -65,6 +65,9 @@ export class AppComponent implements OnInit{
       if (!this.isPublicRoute) {
         this.trySubscribePush();
       }
+      if (this.isMobile) {
+        this.sidebarVisible = false;
+      }
     });
     const url = this.router.url;
     this.isPublicRoute = PUBLIC_ROUTES.some(r => url.startsWith(r)) || EXACT_PUBLIC.includes(url);
