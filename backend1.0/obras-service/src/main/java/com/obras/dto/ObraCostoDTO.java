@@ -34,7 +34,6 @@ public class ObraCostoDTO {
     private BigDecimal cantidad;
 
     @NotNull(message = "Precio unitario requerido")
-    @DecimalMin(value = "0", message = "Precio unitario no puede ser negativo")
     @JsonProperty("precio_unitario")
     private BigDecimal precio_unitario;
 

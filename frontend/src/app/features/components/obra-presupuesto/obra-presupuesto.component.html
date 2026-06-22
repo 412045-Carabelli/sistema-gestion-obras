@@ -139,7 +139,7 @@
             [maxFractionDigits]="2"
             inputStyleClass="w-full text-right"
             placeholder="0"
-            [min]="0">
+            [min]="nuevoCosto.tipo_costo === 'DEMASIA' ? -9999999999 : 0">
           </p-inputNumber>
         </div>
 
@@ -561,7 +561,7 @@
                   [minFractionDigits]="2"
                   [maxFractionDigits]="2"
                   inputStyleClass="w-full max-w-[220px] text-left text-sm py-1"
-                  [min]="0">
+                  [min]="costoDetalleDraft?.tipo_costo === 'DEMASIA' ? -9999999999 : 0">
                 </p-inputNumber>
             } @else {
               <input

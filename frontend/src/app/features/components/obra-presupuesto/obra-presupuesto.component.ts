@@ -111,7 +111,8 @@ export class ObraPresupuestoComponent implements OnInit, OnChanges, AfterViewIni
   tipoCostoOptions = [
     { label: 'Original', value: 'ORIGINAL' },
     { label: 'Adicional', value: 'ADICIONAL' },
-    { label: 'Ajuste', value: 'AJUSTE' }
+    { label: 'Ajuste', value: 'AJUSTE' },
+    { label: 'Demasía', value: 'DEMASIA' }
   ];
   private pdfMakeReady = false;
   showCostoDetalleModal = false;
@@ -339,7 +340,15 @@ export class ObraPresupuestoComponent implements OnInit, OnChanges, AfterViewIni
       });
       return;
     }
-    if (esAdicional && subtotalNuevo <= 0) {
+    if (this.nuevoCosto.tipo_costo === 'DEMASIA' && subtotalNuevo >= 0) {
+      this.messageService.add({
+        severity: 'warn',
+        summary: 'Importe invalido',
+        detail: 'El monto de demasía debe ser negativo (precio unitario < 0).'
+      });
+      return;
+    }
+    if (esAdicional && this.nuevoCosto.tipo_costo !== 'DEMASIA' && subtotalNuevo <= 0) {
       this.messageService.add({
         severity: 'warn',
         summary: 'Importe invalido',
@@ -518,10 +527,17 @@ export class ObraPresupuestoComponent implements OnInit, OnChanges, AfterViewIni
     const { subtotal, total } = this.calcularMontosPayload(costo);
     costo.subtotal = subtotal;
     costo.total = total;
-    costo.tipo_costo = (costo.tipo_costo as 'ORIGINAL' | 'ADICIONAL' | 'AJUSTE') || 'ORIGINAL';
+    costo.tipo_costo = (costo.tipo_costo as 'ORIGINAL' | 'ADICIONAL' | 'AJUSTE' | 'DEMASIA') || 'ORIGINAL';
   }
 
-  onTipoCostoNuevoChange(tipo: 'ORIGINAL' | 'ADICIONAL' | 'AJUSTE') {
+  onTipoCostoNuevoChange(tipo: 'ORIGINAL' | 'ADICIONAL' | 'AJUSTE' | 'DEMASIA') {
+    if (tipo === 'DEMASIA') {
+      this.nuevoCosto.beneficio = 0;
+      if ((this.nuevoCosto.precio_unitario ?? 0) > 0) {
+        this.nuevoCosto.precio_unitario = -(this.nuevoCosto.precio_unitario ?? 0);
+      }
+      return;
+    }
     if (tipo !== 'ORIGINAL' && this.usarBeneficioGlobal) {
       this.nuevoCosto.beneficio = 0;
     }
@@ -1267,19 +1283,21 @@ export class ObraPresupuestoComponent implements OnInit, OnChanges, AfterViewIni
 
     const subtotal = cantidad * precio;
 
-    const tipoCosto: 'ORIGINAL' | 'ADICIONAL' | 'AJUSTE' =
-      costo.tipo_costo === 'ADICIONAL' || costo.tipo_costo === 'AJUSTE'
+    const tipoCosto: 'ORIGINAL' | 'ADICIONAL' | 'AJUSTE' | 'DEMASIA' =
+      costo.tipo_costo === 'ADICIONAL' || costo.tipo_costo === 'AJUSTE' || costo.tipo_costo === 'DEMASIA'
         ? costo.tipo_costo
         : 'ORIGINAL';
 
-    // EL PDF no usa beneficio ni comision, pero el sistema si.
-    const beneficio = tipoCosto !== 'ORIGINAL'
-      ? Number(costo.beneficio ?? 0)
-      : this.usarBeneficioGlobal
-        ? this.beneficioGlobal
-        : Number(costo.beneficio ?? 0);
+    // DEMASIA: sin beneficio, el subtotal es negativo (resta presupuesto)
+    const beneficio = tipoCosto === 'DEMASIA'
+      ? 0
+      : tipoCosto !== 'ORIGINAL'
+        ? Number(costo.beneficio ?? 0)
+        : this.usarBeneficioGlobal
+          ? this.beneficioGlobal
+          : Number(costo.beneficio ?? 0);
 
-    const total = subtotal * (1 + beneficio / 100);
+    const total = tipoCosto === 'DEMASIA' ? subtotal : subtotal * (1 + beneficio / 100);
 
     const idProveedorVal =
       typeof costo.id_proveedor === 'object'

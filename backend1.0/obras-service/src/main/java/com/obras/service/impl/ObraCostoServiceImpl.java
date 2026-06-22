@@ -29,7 +29,7 @@ public class ObraCostoServiceImpl implements ObraCostoService {
     @Override
     public ObraCostoDTO crear(ObraCostoDTO dto) {
         if (dto.getTipo_costo() == null) {
-            throw new IllegalArgumentException("Debes indicar el tipo de costo (ORIGINAL, ADICIONAL o AJUSTE).");
+            throw new IllegalArgumentException("Debes indicar el tipo de costo (ORIGINAL, ADICIONAL, AJUSTE o DEMASIA).");
         }
         ObraCosto entity = fromDto(dto);
         entity.setBajaObra(Boolean.FALSE);
@@ -123,6 +123,18 @@ public class ObraCostoServiceImpl implements ObraCostoService {
                 ? entity.getCantidad().multiply(entity.getPrecioUnitario()).setScale(2, RoundingMode.HALF_UP)
                 : BigDecimal.ZERO;
 
+        // DEMASIA: sin beneficio, solo resta presupuesto. Debe tener subtotal negativo.
+        if (TipoCostoEnum.DEMASIA.equals(tipoCosto)) {
+            if (subtotal.compareTo(BigDecimal.ZERO) >= 0) {
+                throw new IllegalArgumentException("El monto de un costo DEMASIA debe ser negativo (precio unitario < 0).");
+            }
+            entity.setBeneficio(BigDecimal.ZERO);
+            entity.setSubtotal(subtotal);
+            entity.setTotal(subtotal);
+            entity.setActivo(true);
+            return;
+        }
+
         boolean esAdicional = tipoCosto != TipoCostoEnum.ORIGINAL;
         BigDecimal beneficioAplicado = !esAdicional && Boolean.TRUE.equals(entity.getObra().getBeneficioGlobal())
                 ? Optional.ofNullable(entity.getObra().getBeneficio()).orElse(BigDecimal.ZERO)
@@ -194,7 +206,7 @@ public class ObraCostoServiceImpl implements ObraCostoService {
 
     private void validarTipoCosto(TipoCostoEnum tipo) {
         if (tipo == null) {
-            throw new IllegalArgumentException("El tipo de costo es obligatorio (ORIGINAL, ADICIONAL o AJUSTE).");
+            throw new IllegalArgumentException("El tipo de costo es obligatorio (ORIGINAL, ADICIONAL, AJUSTE o DEMASIA).");
         }
     }
 
@@ -246,11 +258,14 @@ public class ObraCostoServiceImpl implements ObraCostoService {
             }
 
             boolean esAdicional = !TipoCostoEnum.ORIGINAL.equals(costo.getTipoCosto());
-            BigDecimal beneficioAplicado = esAdicional
-                    ? Optional.ofNullable(costo.getBeneficio()).orElse(BigDecimal.ZERO)
-                    : (Boolean.TRUE.equals(obra.getBeneficioGlobal())
-                        ? Optional.ofNullable(obra.getBeneficio()).orElse(BigDecimal.ZERO)
-                        : Optional.ofNullable(costo.getBeneficio()).orElse(BigDecimal.ZERO));
+            // DEMASIA no aplica beneficio: solo resta el monto base al presupuesto
+            BigDecimal beneficioAplicado = TipoCostoEnum.DEMASIA.equals(costo.getTipoCosto())
+                    ? BigDecimal.ZERO
+                    : (esAdicional
+                        ? Optional.ofNullable(costo.getBeneficio()).orElse(BigDecimal.ZERO)
+                        : (Boolean.TRUE.equals(obra.getBeneficioGlobal())
+                            ? Optional.ofNullable(obra.getBeneficio()).orElse(BigDecimal.ZERO)
+                            : Optional.ofNullable(costo.getBeneficio()).orElse(BigDecimal.ZERO)));
 
             subtotalCostos = subtotalCostos.add(base);
             beneficioCostos = beneficioCostos.add(

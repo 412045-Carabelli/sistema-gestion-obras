@@ -1,9 +1,11 @@
 import { Component, OnInit, OnDestroy, Output, EventEmitter } from '@angular/core';
 import { CommonModule, CurrencyPipe } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
-import * as XLSX from 'xlsx';
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
 import { environment } from '../../../../environments/environment';
 import { ReportFilter, DeudasGlobalesResponse, CatalogoCuentaCorriente, DetalleDeudaCliente, DetalleDeudaProveedor, CuentaCorrienteClienteResponse, CuentaCorrienteProveedorResponse, CuentaCorrienteMovimiento } from '../../../core/models/models';
+import { ConfiguracionService, CONFIG_KEYS } from '../../../services/configuracion/configuracion.service';
 import { TableModule } from 'primeng/table';
 import { ButtonModule } from 'primeng/button';
 import { InputTextModule } from 'primeng/inputtext';
@@ -52,12 +54,42 @@ export class CuentasCorrientesListComponent implements OnInit, OnDestroy {
   private catalogoUrl = `${environment.apiGateway}/bff/reportes/catalogos/filtros-cuenta-corriente`;
   private deudasUrl = `${environment.apiGateway}/bff/reportes/financieros/deudas-globales`;
   private pdfUrl = `${environment.apiGateway}/bff/reportes/financieros/cuentas-corrientes-combinadas-pdf`;
+  private logoDataUrl: string | null = null;
 
-  constructor(private http: HttpClient, private reportesService: ReportesService) {}
+  constructor(
+    private http: HttpClient,
+    private reportesService: ReportesService,
+    private configService: ConfiguracionService
+  ) {}
 
   ngOnInit(): void {
     this.setupFilterActions();
     this.cargarCatalogos();
+    this.precargarLogo();
+  }
+
+  private precargarLogo(): void {
+    this.subs.add(
+      this.configService.config$.subscribe(config => {
+        const url = config[CONFIG_KEYS.LOGO_URL] || '/buildr-icono.svg';
+        const img = new Image();
+        img.crossOrigin = 'anonymous';
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          canvas.width = img.naturalWidth || 160;
+          canvas.height = img.naturalHeight || 160;
+          const ctx = canvas.getContext('2d')!;
+          ctx.drawImage(img, 0, 0);
+          try {
+            this.logoDataUrl = canvas.toDataURL('image/png');
+          } catch {
+            this.logoDataUrl = null;
+          }
+        };
+        img.onerror = () => { this.logoDataUrl = null; };
+        img.src = url;
+      })
+    );
   }
 
   ngOnDestroy(): void {
@@ -67,9 +99,9 @@ export class CuentasCorrientesListComponent implements OnInit, OnDestroy {
   private setupFilterActions(): void {
     this.filterActions = [
       {
-        label: 'Exportar Excel',
-        icon: 'pi pi-file-excel',
-        severity: 'secondary',
+        label: 'Exportar PDF',
+        icon: 'pi pi-file-pdf',
+        severity: 'danger',
         callback: () => this.exportarExcel()
       }
     ];
@@ -194,7 +226,7 @@ export class CuentasCorrientesListComponent implements OnInit, OnDestroy {
         this.reportesService.getCuentaCorrienteCliente({ clienteId: id, obraIds: filtroObraIds })
       );
       (reqs.length ? forkJoin(reqs) : of([] as CuentaCorrienteClienteResponse[])).subscribe({
-        next: (clientes) => { this.generarExcelCombinado(clientes, []); this.generandoPdf = false; },
+        next: (clientes) => { this.generarPdfCombinado(clientes, []); this.generandoPdf = false; },
         error: () => { this.generandoPdf = false; }
       });
     } else {
@@ -207,7 +239,7 @@ export class CuentasCorrientesListComponent implements OnInit, OnDestroy {
         this.reportesService.getCuentaCorrienteProveedor({ proveedorId: id, obraIds: filtroObraIds })
       );
       (reqs.length ? forkJoin(reqs) : of([] as CuentaCorrienteProveedorResponse[])).subscribe({
-        next: (proveedores) => { this.generarExcelCombinado([], proveedores); this.generandoPdf = false; },
+        next: (proveedores) => { this.generarPdfCombinado([], proveedores); this.generandoPdf = false; },
         error: () => { this.generandoPdf = false; }
       });
     }
@@ -245,145 +277,311 @@ export class CuentasCorrientesListComponent implements OnInit, OnDestroy {
       proveedores: proveedorReqs.length ? forkJoin(proveedorReqs) : of([] as CuentaCorrienteProveedorResponse[])
     }).subscribe({
       next: ({ clientes, proveedores }) => {
-        this.generarExcelCombinado(clientes, proveedores);
+        this.generarPdfCombinado(clientes, proveedores);
         this.generandoPdf = false;
       },
       error: () => { this.generandoPdf = false; }
     });
   }
 
-  private generarExcelCombinado(
+  private generarPdfCombinado(
     clientes: CuentaCorrienteClienteResponse[],
     proveedores: CuentaCorrienteProveedorResponse[]
   ): void {
-    const hoy = new Date().toISOString().split('T')[0];
-    const obraIdsFiltro: number[] = this.currentFilters['obraIds'] || [];
-    const wb = XLSX.utils.book_new();
+    const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+    const pageW = doc.internal.pageSize.getWidth();
+    const pageH = doc.internal.pageSize.getHeight();
+    const ml = 20;
+    const mr = 20;
+    const hoyStr = new Date().toISOString().split('T')[0];
+    const empresaNombre = this.configService.get(CONFIG_KEYS.EMPRESA_NOMBRE, 'Sistema de Gestión');
 
-    const buildPivotSheet = (
-      nombre: string,
-      movimientos: CuentaCorrienteMovimiento[],
-      presupuestoMap: Map<string, number>,
-      totalLabel: string,
-      totalValue: number,
-      saldoFinal: number
-    ) => {
-      // Recopilar todas las fechas únicas ordenadas
-      const fechaSet = new Set<string>();
-      for (const mov of movimientos) {
-        const f = (mov.fecha || '').substring(0, 10);
-        if (f) fechaSet.add(f);
-      }
-      const fechas = Array.from(fechaSet).sort();
+    const fmt = (n: number) =>
+      `$ ${(n ?? 0).toLocaleString('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
-      // Pivot: obra → { fecha → sumatoria }
-      const obraMap = new Map<string, Record<string, number>>();
-      for (const [obraNombre] of presupuestoMap) {
-        obraMap.set(obraNombre, {});
-      }
-      for (const mov of movimientos) {
-        const key = mov.obraNombre || 'Sin obra';
-        if (!obraMap.has(key)) obraMap.set(key, {});
-        const f = (mov.fecha || '').substring(0, 10);
-        const entry = obraMap.get(key)!;
-        entry[f] = (entry[f] || 0) + mov.monto;
-      }
-
-      const header = ['Obra', 'Presupuesto', ...fechas, 'Saldo'];
-      const rows: any[][] = [];
-
-      for (const [obraNombre, porFecha] of obraMap) {
-        const presupuesto = presupuestoMap.get(obraNombre) ?? 0;
-        const totalObra = Object.values(porFecha).reduce((a, b) => a + b, 0);
-        const saldo = presupuesto - totalObra;
-        rows.push([
-          obraNombre,
-          presupuesto,
-          ...fechas.map(f => porFecha[f] ?? 0),
-          saldo
-        ]);
-      }
-
-      // Fila totales
-      const totalPres = Array.from(presupuestoMap.values()).reduce((a, b) => a + b, 0);
-      rows.push([
-        'TOTAL',
-        totalPres,
-        ...fechas.map(f => {
-          let sum = 0;
-          for (const porFecha of obraMap.values()) sum += porFecha[f] ?? 0;
-          return sum;
-        }),
-        saldoFinal
-      ]);
-
-      const wsData = [header, ...rows];
-      const ws = XLSX.utils.aoa_to_sheet(wsData);
-
-      // Formato monetario: separador de miles, 2 decimales, "-" para cero
-      const moneyFmt = '#,##0.00;-#,##0.00;"-"';
-      const numRows = wsData.length;
-      // Columnas monetarias: presupuesto (1), fechas (2..2+N-1), saldo (2+N)
-      const moneyCols = [1, ...fechas.map((_, i) => 2 + i), 2 + fechas.length];
-      for (let r = 1; r < numRows; r++) {
-        for (const c of moneyCols) {
-          const addr = XLSX.utils.encode_cell({ r, c });
-          if (ws[addr] && typeof ws[addr].v === 'number') {
-            ws[addr].z = moneyFmt;
-          }
-        }
-      }
-
-      // Ancho de columnas
-      ws['!cols'] = [
-        { wch: 40 },  // Obra
-        { wch: 18 },  // Presupuesto
-        ...fechas.map(() => ({ wch: 14 })),
-        { wch: 18 }   // Saldo
-      ];
-
-      // Nombre de hoja: truncar a 31 chars (límite Excel)
-      const sheetName = nombre.substring(0, 31);
-      XLSX.utils.book_append_sheet(wb, ws, sheetName);
+    const fmtFecha = (s: string) => {
+      if (!s) return '-';
+      const d = new Date(s);
+      return isNaN(d.getTime()) ? s.substring(0, 10) : d.toLocaleDateString('es-AR');
     };
 
-    for (const c of clientes) {
-      const presupuestoMap = new Map<string, number>();
-      this.datos!.detalleDeudaClientes
-        .filter(d => d.clienteId === c.clienteId)
-        .filter(d => !obraIdsFiltro.length || obraIdsFiltro.includes(d.obraId))
-        .forEach(d => presupuestoMap.set(d.obraNombre, d.presupuesto));
+    const logoSize = 14;
+    const logoY = 8;
 
-      buildPivotSheet(
-        c.clienteNombre || `Cliente ${c.clienteId}`,
-        c.movimientos ?? [],
-        presupuestoMap,
-        'Total cobrado', c.totalCobros, c.saldoFinal
+    const drawHeader = (title: string) => {
+      if (this.logoDataUrl) {
+        doc.addImage(this.logoDataUrl, 'PNG', ml, logoY, logoSize, logoSize);
+      }
+      doc.setFontSize(20);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(30, 30, 30);
+      doc.text(empresaNombre.toUpperCase(), pageW / 2, 18, { align: 'center' });
+      doc.setDrawColor(180, 180, 180);
+      doc.setLineWidth(0.5);
+      doc.line(ml, 24, pageW - mr, 24);
+      doc.setFontSize(13);
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(60, 60, 60);
+      doc.text(title, pageW / 2, 34, { align: 'center' });
+      doc.line(ml, 40, pageW - mr, 40);
+      doc.setTextColor(0, 0, 0);
+    };
+
+    const drawFooter = (finalY: number) => {
+      const footerY = Math.min(finalY + 10, pageH - 12);
+      doc.setDrawColor(180, 180, 180);
+      doc.setLineWidth(0.3);
+      doc.line(ml, footerY - 3, pageW - mr, footerY - 3);
+      doc.setFontSize(8);
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(100, 100, 100);
+      doc.text(
+        'Nota: Ante cualquier consulta sobre su cuenta, comuníquese con nuestro departamento de administración.',
+        ml, footerY + 3, { maxWidth: pageW - ml - mr }
       );
+      doc.setTextColor(0, 0, 0);
+    };
+
+    let isFirst = true;
+
+    // ── CLIENTES ──────────────────────────────────────────────────────────
+    for (const c of clientes) {
+      if (!isFirst) doc.addPage();
+      isFirst = false;
+
+      drawHeader('Detalle de cuenta corriente');
+
+      let y = 48;
+
+      doc.setFontSize(12);
+      doc.setFont('helvetica', 'bold');
+      doc.text(`Cliente: ${c.clienteNombre || ''}`, ml, y);
+      y += 7;
+
+      const obrasCliente = (this.datos?.detalleDeudaClientes || [])
+        .filter(d => d.clienteId === c.clienteId);
+
+      if (obrasCliente.length === 1) {
+        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(11);
+        doc.text(`Obra: ${obrasCliente[0].obraNombre}`, ml, y);
+        y += 7;
+      }
+      y += 4;
+
+      const presupuestoTotal = obrasCliente.reduce((s, d) => s + (d.presupuesto || 0), 0);
+
+      // Calcular desde movimientos si backend devuelve 0
+      const allMovsC = c.movimientos || [];
+      const calcTotalCobros = allMovsC.reduce((sum, mov) => {
+        const esCredito = (mov.tipo || '').toUpperCase().includes('COBRO');
+        return sum + (esCredito ? (mov.monto || 0) : 0);
+      }, 0);
+      const ultimoMovC = allMovsC[allMovsC.length - 1];
+      const saldoFinalC = ultimoMovC?.saldoCliente ?? (c.saldoFinal || 0);
+      const totalCobrosC = c.totalCobros || calcTotalCobros;
+
+      autoTable(doc, {
+        startY: y,
+        margin: { left: ml, right: mr },
+        head: [['RESUMEN DEL PRESUPUESTO', '']],
+        body: [
+          ['Monto del Presupuesto:', fmt(presupuestoTotal)],
+          ['Total Abonado:', fmt(totalCobrosC)]
+        ],
+        styles: { fontSize: 10, cellPadding: { top: 2, bottom: 2, left: 4, right: 4 } },
+        headStyles: { fillColor: [230, 230, 230], textColor: [40, 40, 40], fontStyle: 'bold', fontSize: 9 },
+        columnStyles: { 0: { cellWidth: 100 }, 1: { fontStyle: 'bold', halign: 'right' } },
+        theme: 'plain'
+      });
+
+      y = (doc as any).lastAutoTable.finalY + 8;
+
+      doc.setFontSize(9);
+      doc.setFont('helvetica', 'bold');
+      doc.setFillColor(230, 230, 230);
+      doc.rect(ml, y, pageW - ml - mr, 7, 'F');
+      doc.text('DETALLE DE MOVIMIENTOS', ml + 3, y + 5);
+      y += 9;
+
+      const movRowsC = (c.movimientos || []).map(mov => {
+        const esCredito = (mov.tipo || '').toUpperCase().includes('COBRO');
+        const esDebito = !esCredito && !!(mov.tipo);
+        const saldo = mov.saldoCliente ?? 0;
+        return [
+          fmtFecha(mov.fecha),
+          mov.concepto || mov.referencia || mov.tipo || '-',
+          esDebito ? fmt(mov.monto) : '-',
+          esCredito ? fmt(mov.monto) : '-',
+          fmt(saldo)
+        ];
+      });
+
+      autoTable(doc, {
+        startY: y,
+        margin: { left: ml, right: mr },
+        head: [['FECHA', 'DESCRIPCIÓN', 'DÉBITO', 'CRÉDITO', 'SALDO']],
+        body: movRowsC.length ? movRowsC : [['', 'Sin movimientos', '', '', '']],
+        styles: { fontSize: 9, cellPadding: { top: 2, bottom: 2, left: 3, right: 3 } },
+        headStyles: {
+          fillColor: [255, 255, 255], textColor: [80, 80, 80],
+          fontStyle: 'bold', lineWidth: { bottom: 0.3 }, lineColor: [180, 180, 180]
+        },
+        columnStyles: {
+          0: { cellWidth: 26 },
+          1: { cellWidth: 'auto' },
+          2: { cellWidth: 30, halign: 'right' },
+          3: { cellWidth: 30, halign: 'right' },
+          4: { cellWidth: 33, halign: 'right', fontStyle: 'bold' }
+        },
+        theme: 'plain',
+        alternateRowStyles: { fillColor: [248, 248, 248] }
+      });
+
+      y = (doc as any).lastAutoTable.finalY + 6;
+
+      doc.setDrawColor(180, 180, 180);
+      doc.setLineWidth(0.3);
+      doc.line(ml, y, pageW - mr, y);
+      y += 7;
+      doc.setFontSize(12);
+      doc.setFont('helvetica', 'normal');
+      doc.text('Saldo:', pageW - mr - 55, y);
+      doc.setFont('helvetica', 'bold');
+      doc.text(fmt(saldoFinalC), pageW - mr, y, { align: 'right' });
+
+      drawFooter(y + 4);
     }
 
+    // ── PROVEEDORES ───────────────────────────────────────────────────────
     for (const p of proveedores) {
-      const presupuestoMap = new Map<string, number>();
-      this.datos!.detalleDeudaProveedores
-        .filter(d => d.proveedorId === p.proveedorId)
-        .filter(d => !obraIdsFiltro.length || obraIdsFiltro.includes(d.obraId))
-        .forEach(d => presupuestoMap.set(d.obraNombre, d.presupuestado));
+      if (!isFirst) doc.addPage();
+      isFirst = false;
 
-      buildPivotSheet(
-        p.proveedorNombre || `Proveedor ${p.proveedorId}`,
-        p.movimientos ?? [],
-        presupuestoMap,
-        'Total pagado', p.totalPagos, p.saldoFinal
-      );
+      drawHeader('DETALLE DE CUENTA CORRIENTE — PROVEEDOR');
+
+      let y = 48;
+
+      doc.setFontSize(11);
+      doc.setFont('helvetica', 'normal');
+      doc.text(`Proveedor: ${p.proveedorNombre || ''}`, ml, y);
+      y += 12;
+
+      // Calcular totales desde movimientos (backend puede devolver 0 en los agregados)
+      const allMovsProv = p.movimientos || [];
+      const calcTotalCostos = allMovsProv.reduce((sum, mov) => {
+        const tipoUp = (mov.tipo || '').toUpperCase();
+        const esD = tipoUp.includes('COSTO') || tipoUp.includes('TRABAJO') || tipoUp.includes('MANO');
+        return sum + (esD ? (mov.monto || 0) : 0);
+      }, 0);
+      const calcTotalPagos = allMovsProv.reduce((sum, mov) => {
+        const tipoUp = (mov.tipo || '').toUpperCase();
+        const esC = tipoUp.includes('PAGO') || tipoUp.includes('RETENCION');
+        return sum + (esC ? (mov.monto || 0) : 0);
+      }, 0);
+      const ultimoMovProv = allMovsProv[allMovsProv.length - 1];
+      const saldoActualProv = ultimoMovProv?.saldoProveedor ?? (calcTotalCostos - calcTotalPagos);
+
+      autoTable(doc, {
+        startY: y,
+        margin: { left: ml, right: mr },
+        head: [['RESUMEN GENERAL', '']],
+        body: [
+          ['Total Costos:', fmt(calcTotalCostos)],
+          ['Pagos Realizados:', fmt(calcTotalPagos)],
+          [
+            { content: 'Saldo Actual:', styles: { fontStyle: 'bold' } },
+            { content: fmt(saldoActualProv), styles: { fontStyle: 'bold', halign: 'right' } }
+          ]
+        ],
+        styles: { fontSize: 10, cellPadding: { top: 2, bottom: 2, left: 4, right: 4 } },
+        headStyles: { fillColor: [230, 230, 230], textColor: [40, 40, 40], fontStyle: 'bold', fontSize: 9 },
+        columnStyles: { 0: { cellWidth: 100 }, 1: { halign: 'right' } },
+        theme: 'plain'
+      });
+
+      y = (doc as any).lastAutoTable.finalY + 8;
+
+      doc.setFontSize(9);
+      doc.setFont('helvetica', 'bold');
+      doc.setFillColor(230, 230, 230);
+      doc.rect(ml, y, pageW - ml - mr, 7, 'F');
+      doc.text('DETALLE DE OBRAS', ml + 3, y + 5);
+      y += 10;
+
+      const obraGroups = new Map<string, CuentaCorrienteMovimiento[]>();
+      for (const mov of (p.movimientos || [])) {
+        const key = mov.obraNombre || 'Sin obra';
+        if (!obraGroups.has(key)) obraGroups.set(key, []);
+        obraGroups.get(key)!.push(mov);
+      }
+
+      for (const [obraNombre, movs] of obraGroups) {
+        doc.setFontSize(10);
+        doc.setFont('helvetica', 'bold');
+        doc.text(`Obra: ${obraNombre}`, ml, y);
+        y += 5;
+
+        const movRowsP = movs.map(mov => {
+          const tipoUp = (mov.tipo || '').toUpperCase();
+          const esDebito = tipoUp.includes('COSTO') || tipoUp.includes('TRABAJO') || tipoUp.includes('MANO');
+          const esCredito = tipoUp.includes('PAGO') || tipoUp.includes('RETENCION');
+          const saldo = mov.saldoProveedor ?? 0;
+          return [
+            fmtFecha(mov.fecha),
+            mov.concepto || mov.referencia || mov.tipo || '-',
+            esDebito ? fmt(mov.monto) : '-',
+            esCredito ? fmt(mov.monto) : '-',
+            fmt(saldo)
+          ];
+        });
+
+        autoTable(doc, {
+          startY: y,
+          margin: { left: ml, right: mr },
+          head: [['FECHA', 'DESCRIPCIÓN', 'DÉBITO', 'CRÉDITO', 'SALDO']],
+          body: movRowsP.length ? movRowsP : [['', '-', '', '', '']],
+          styles: { fontSize: 9, cellPadding: { top: 2, bottom: 2, left: 3, right: 3 } },
+          headStyles: {
+            fillColor: [255, 255, 255], textColor: [80, 80, 80],
+            fontStyle: 'bold', lineWidth: { bottom: 0.3 }, lineColor: [180, 180, 180]
+          },
+          columnStyles: {
+            0: { cellWidth: 26 },
+            1: { cellWidth: 'auto' },
+            2: { cellWidth: 30, halign: 'right' },
+            3: { cellWidth: 30, halign: 'right' },
+            4: { cellWidth: 33, halign: 'right', fontStyle: 'bold' }
+          },
+          theme: 'plain',
+          alternateRowStyles: { fillColor: [248, 248, 248] }
+        });
+
+        y = (doc as any).lastAutoTable.finalY + 8;
+      }
+
+      doc.setDrawColor(180, 180, 180);
+      doc.setLineWidth(0.3);
+      doc.line(ml, y, pageW - mr, y);
+      y += 7;
+      doc.setFontSize(12);
+      doc.setFont('helvetica', 'normal');
+      doc.text('Saldo:', pageW - mr - 55, y);
+      doc.setFont('helvetica', 'bold');
+      doc.text(fmt(saldoActualProv), pageW - mr, y, { align: 'right' });
+
+      drawFooter(y + 4);
     }
 
     const esUnicoCliente = clientes.length === 1 && proveedores.length === 0;
     const esUnicoProveedor = proveedores.length === 1 && clientes.length === 0;
-    const fileLabel = esUnicoCliente ? (clientes[0].clienteNombre || 'clientes')
-      : esUnicoProveedor ? (proveedores[0].proveedorNombre || 'proveedores')
-      : (clientes.length > 0 && proveedores.length > 0) ? 'combinada'
+    const fileLabel = esUnicoCliente
+      ? (clientes[0].clienteNombre || 'cliente')
+      : esUnicoProveedor
+      ? (proveedores[0].proveedorNombre || 'proveedor')
+      : (clientes.length > 0 && proveedores.length > 0) ? 'combinado'
       : clientes.length > 0 ? 'clientes' : 'proveedores';
 
-    XLSX.writeFile(wb, `cuentas-corrientes-${fileLabel}-${hoy}.xlsx`);
+    doc.save(`cuentas-corrientes-${fileLabel}-${hoyStr}.pdf`);
   }
 }
