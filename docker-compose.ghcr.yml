@@ -225,6 +225,10 @@ services:
       - SPRING_JPA_PROPERTIES_HIBERNATE_DIALECT=org.hibernate.dialect.SQLServerDialect
       - SPRING_FLYWAY_ENABLED=true
       - JWT_SECRET=${JWT_SECRET:-your-super-secret-key-min-32-chars-long-for-hs256-algorithm}
+      - VAPID_PUBLIC_KEY=${VAPID_PUBLIC_KEY:-BElyDmJ9s0A6s-1lh2EDvrkxQD8xXYYU0zIYWgvh-HuCJV6ssGPCd6LF37C_UO1XtDR0ETeM3JVlcXy19inen4o}
+      - VAPID_PRIVATE_KEY=${VAPID_PRIVATE_KEY:--rqkiqdFYHxPuDrdoLmMV3oI_0WJVUqxLCx3-egi7HU}
+      - VAPID_SUBJECT=${VAPID_SUBJECT:-mailto:admin@buildrr.cloud}
+      - PUSH_INTERNAL_SECRET=${PUSH_INTERNAL_SECRET:-sgo-internal-push-secret-2026}
     depends_on:
       sqlserver:
         condition: service_healthy
