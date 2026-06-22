@@ -1,5 +1,6 @@
 package com.apigateway.controller;
 
+import com.apigateway.service.PushTriggerService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -24,6 +25,7 @@ public class ProveedorBffController {
     private String PROVEEDORES_URL;
 
     private final WebClient.Builder webClientBuilder;
+    private final PushTriggerService pushTriggerService;
 
     // ===============================
     // 🔸 GET /bff/proveedores
@@ -122,7 +124,10 @@ public class ProveedorBffController {
     // ===============================
     @PostMapping
     public Mono<ResponseEntity<Map<String, Object>>> crearProveedor(
-            @RequestBody Map<String, Object> proveedorData) {
+            @RequestBody Map<String, Object> proveedorData,
+            @RequestHeader(value = "X-Organizacion-Id", required = false) String organizacionId,
+            @RequestHeader(value = "X-User-Id", required = false) String userId,
+            @RequestHeader(value = "X-User-Name", required = false) String userName) {
 
         return webClientBuilder.build()
                 .post()
@@ -130,6 +135,9 @@ public class ProveedorBffController {
                 .bodyValue(proveedorData)
                 .retrieve()
                 .bodyToMono(new ParameterizedTypeReference<Map<String, Object>>() {})
+                .doOnNext(body -> pushTriggerService.triggerNotification(
+                        organizacionId, userId, userName,
+                        "proveedor", String.valueOf(body.getOrDefault("nombre", body.getOrDefault("razon_social", "")))))
                 .map(ResponseEntity::ok)
                 .onErrorResume(ex -> {
                     log.error("Error en operación de proveedor", ex);

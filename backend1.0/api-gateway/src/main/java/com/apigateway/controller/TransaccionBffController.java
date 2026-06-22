@@ -1,5 +1,6 @@
 package com.apigateway.controller;
 
+import com.apigateway.service.PushTriggerService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -34,6 +35,7 @@ public class TransaccionBffController {
 
     private final WebClient.Builder webClientBuilder;
     private final ObjectMapper objectMapper;
+    private final PushTriggerService pushTriggerService;
 
     // ✅ GET /bff/transacciones
     @GetMapping
@@ -131,7 +133,9 @@ public class TransaccionBffController {
     @PostMapping
     public Mono<ResponseEntity<Map<String, Object>>> createTransaccion(
             @RequestBody Map<String, Object> body,
-            @RequestHeader(value = "X-Organizacion-Id", defaultValue = "0") String organizacionId) {
+            @RequestHeader(value = "X-Organizacion-Id", defaultValue = "0") String organizacionId,
+            @RequestHeader(value = "X-User-Id", required = false) String userId,
+            @RequestHeader(value = "X-User-Name", required = false) String userName) {
         WebClient client = webClientBuilder.build();
 
         return client.post()
@@ -140,6 +144,9 @@ public class TransaccionBffController {
                 .bodyValue(body)
                 .retrieve()
                 .bodyToMono(new ParameterizedTypeReference<Map<String, Object>>() {})
+                .doOnNext(resp -> pushTriggerService.triggerNotification(
+                        organizacionId, userId, userName,
+                        "movimiento", String.valueOf(resp.getOrDefault("descripcion", ""))))
                 .map(ResponseEntity::ok);
     }
 

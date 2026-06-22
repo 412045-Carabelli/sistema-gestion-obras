@@ -23,6 +23,15 @@ public class PushTriggerService {
     @Value("${push.internal.secret:push-internal-secret-2024}")
     private String internalSecret;
 
+    public void triggerNotification(String organizacionId, String fromUserId, String fromUsername,
+                                    String entity, String entityName) {
+        Long orgId = null;
+        try { if (organizacionId != null) orgId = Long.parseLong(organizacionId); } catch (NumberFormatException ignored) {}
+        Long uid = null;
+        try { if (fromUserId != null) uid = Long.parseLong(fromUserId); } catch (NumberFormatException ignored) {}
+        triggerNotification(orgId, uid, fromUsername, entity, entityName);
+    }
+
     public void triggerNotification(Long organizacionId, Long fromUserId, String fromUsername,
                                     String entity, String entityName) {
         if (organizacionId == null) return;

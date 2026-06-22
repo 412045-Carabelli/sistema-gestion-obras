@@ -1,5 +1,6 @@
 package com.apigateway.controller;
 
+import com.apigateway.service.PushTriggerService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.ParameterizedTypeReference;
@@ -39,6 +40,7 @@ public class FacturaBffController {
     );
 
     private final WebClient.Builder webClientBuilder;
+    private final PushTriggerService pushTriggerService;
 
     @GetMapping
     public Mono<ResponseEntity<List<Map<String, Object>>>> getAll(
@@ -137,7 +139,9 @@ public class FacturaBffController {
             @RequestPart(value = "estado", required = false) String estado,
             @RequestPart(value = "impacta_cta_cte", required = false) String impactaCtaCte,
             @RequestPart(value = "file", required = false) FilePart filePart,
-            @RequestHeader(value = "X-Organizacion-Id", required = false) String organizacionId
+            @RequestHeader(value = "X-Organizacion-Id", required = false) String organizacionId,
+            @RequestHeader(value = "X-User-Id", required = false) String userId,
+            @RequestHeader(value = "X-User-Name", required = false) String userName
     ) {
         MultipartBodyBuilder builder = buildMultipart(idCliente, idObra, monto, montoRestante, fecha, descripcion, estado, impactaCtaCte, filePart);
         return webClientBuilder.build()
@@ -148,6 +152,13 @@ public class FacturaBffController {
                 .body(BodyInserters.fromMultipartData(builder.build()))
                 .exchangeToMono(response -> response
                         .bodyToMono(new ParameterizedTypeReference<Map<String, Object>>() {})
+                        .doOnNext(body -> {
+                            if (response.statusCode().is2xxSuccessful()) {
+                                pushTriggerService.triggerNotification(
+                                        organizacionId, userId, userName,
+                                        "factura", descripcion != null ? descripcion : "Factura $" + monto);
+                            }
+                        })
                         .map(body -> ResponseEntity.status(response.statusCode()).body(body)));
     }
 

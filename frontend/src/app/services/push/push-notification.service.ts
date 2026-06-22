@@ -35,8 +35,8 @@ export class PushNotificationService {
           auth: subJson.keys?.['auth']
         })
       );
-    } catch (err) {
-      console.warn('Push subscription failed:', err);
+    } catch (err: any) {
+      console.warn('Push subscription failed:', err?.message ?? err);
     }
   }
 

@@ -11,7 +11,6 @@ import {MessageService} from 'primeng/api';
 import {LoadingServerInterceptor} from './core/loading-server.interceptor';
 import {AuthInterceptor} from './core/interceptors/auth.interceptor';
 import {provideServiceWorker} from '@angular/service-worker';
-import {isDevMode} from '@angular/core';
 
 registerLocaleData(localeEsAr);
 
@@ -43,7 +42,7 @@ export const appConfig: ApplicationConfig = {
       multi: true
     },
     provideServiceWorker('ngsw-worker.js', {
-      enabled: !isDevMode(),
+      enabled: true,
       registrationStrategy: 'registerWhenStable:30000'
     })
   ]

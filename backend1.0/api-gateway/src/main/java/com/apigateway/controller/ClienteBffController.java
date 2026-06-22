@@ -1,5 +1,6 @@
 package com.apigateway.controller;
 
+import com.apigateway.service.PushTriggerService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.ParameterizedTypeReference;
@@ -23,6 +24,7 @@ public class ClienteBffController {
     private String CLIENTES_URL;
 
     private final WebClient.Builder webClientBuilder;
+    private final PushTriggerService pushTriggerService;
 
     // ================================
     // 📥 GET - Listar todos los clientes (LITE, rápido)
@@ -112,7 +114,9 @@ public class ClienteBffController {
     @PostMapping
     public Mono<ResponseEntity<Map<String, Object>>> createCliente(
             @RequestBody Map<String, Object> clienteData,
-            @RequestHeader(value = "X-Organizacion-Id", required = false) String organizacionId
+            @RequestHeader(value = "X-Organizacion-Id", required = false) String organizacionId,
+            @RequestHeader(value = "X-User-Id", required = false) String userId,
+            @RequestHeader(value = "X-User-Name", required = false) String userName
     ) {
         WebClient client = webClientBuilder.build();
 
@@ -123,6 +127,9 @@ public class ClienteBffController {
                 .bodyValue(clienteData)
                 .retrieve()
                 .bodyToMono(new ParameterizedTypeReference<Map<String, Object>>() {})
+                .doOnNext(body -> pushTriggerService.triggerNotification(
+                        organizacionId, userId, userName,
+                        "cliente", String.valueOf(body.getOrDefault("nombre", ""))))
                 .map(ResponseEntity::ok)
                 .onErrorResume(ex -> Mono.just(ResponseEntity.badRequest().build()));
     }
