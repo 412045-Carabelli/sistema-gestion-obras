@@ -1,0 +1,229 @@
+<p-toast></p-toast>
+
+<!-- ======= NAVBAR ======= -->
+<header class="navbar" [class.scrolled]="scrolled">
+  <div class="nav-inner">
+    <a class="brand" (click)="scrollTo('hero')">
+      <img src="/buildr-logo.svg" alt="buildrr" class="nav-logo" />
+    </a>
+
+    <!-- Desktop nav -->
+    <nav class="nav-links desktop-only">
+      <a (click)="scrollTo('features')">Soluciones</a>
+      <a (click)="scrollTo('plans')">Planes</a>
+      <a (click)="scrollTo('contact')">Contacto</a>
+    </nav>
+
+    <button class="btn-login desktop-only" (click)="openLogin()">{{ isLoggedIn ? 'Dashboard' : 'Iniciar sesión' }}</button>
+
+    <!-- Hamburger -->
+    <button class="hamburger mobile-only" (click)="mobileMenuOpen = !mobileMenuOpen" [class.open]="mobileMenuOpen">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+
+  <!-- Mobile menu -->
+  <div class="mobile-menu" [class.open]="mobileMenuOpen">
+    <a (click)="scrollTo('features')">Soluciones</a>
+    <a (click)="scrollTo('plans')">Planes</a>
+    <a (click)="scrollTo('contact')">Contacto</a>
+    <button class="btn-login-mobile" (click)="openLogin()">{{ isLoggedIn ? 'Dashboard' : 'Iniciar sesión' }}</button>
+  </div>
+</header>
+
+<!-- ======= HERO ======= -->
+<section class="hero" id="hero">
+  <div class="hero-bg">
+    <div class="grid-lines"></div>
+    <div class="glow glow-1"></div>
+    <div class="glow glow-2"></div>
+  </div>
+
+  <div class="hero-content">
+    <div class="hero-badge reveal">
+      <span class="badge-dot"></span>
+      Plataforma de gestión para construcción
+    </div>
+
+    <h1 class="hero-title reveal">
+      Gestioná tus obras<br/>
+      <span class="lime">sin fricción.</span>
+    </h1>
+
+    <p class="hero-sub reveal">
+      Presupuestos, proveedores, clientes, facturas y reportes en un solo sistema.<br class="desktop-only"/>
+      Diseñado para empresas constructoras que quieren escalar.
+    </p>
+
+    <div class="hero-cta reveal">
+      <button class="btn-primary" (click)="openLogin()">Comenzar ahora</button>
+      <button class="btn-ghost" (click)="scrollTo('features')">Ver soluciones →</button>
+    </div>
+
+    <div class="hero-stats reveal">
+      <div class="stat">
+        <span class="stat-num">8+</span>
+        <span class="stat-label">módulos integrados</span>
+      </div>
+      <div class="stat-div"></div>
+      <div class="stat">
+        <span class="stat-num">100%</span>
+        <span class="stat-label">en la nube</span>
+      </div>
+      <div class="stat-div"></div>
+      <div class="stat">
+        <span class="stat-num">Real‑time</span>
+        <span class="stat-label">dashboard financiero</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="hero-visual reveal">
+    <div class="dashboard-mock">
+      <div class="mock-bar">
+        <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
+        <span class="mock-title">buildrr — Dashboard</span>
+      </div>
+      <div class="mock-body">
+        <div class="mock-kpis">
+          <div class="mock-kpi"><span class="kpi-label">Obras activas</span><span class="kpi-val">12</span></div>
+          <div class="mock-kpi"><span class="kpi-label">Facturado</span><span class="kpi-val lime">$4.2M</span></div>
+          <div class="mock-kpi"><span class="kpi-label">Por cobrar</span><span class="kpi-val">$890K</span></div>
+        </div>
+        <div class="mock-chart">
+          <div class="bar-wrap">
+            <div class="bar" style="height:55%"></div>
+            <div class="bar" style="height:70%"></div>
+            <div class="bar" style="height:45%"></div>
+            <div class="bar" style="height:90%"></div>
+            <div class="bar" style="height:60%"></div>
+            <div class="bar" style="height:80%"></div>
+            <div class="bar lime-bar" style="height:100%"></div>
+          </div>
+        </div>
+        <div class="mock-rows">
+          <div class="mock-row"><span class="row-dot"></span><span>Edificio Central Norte</span><span class="lime">EN PROGRESO</span></div>
+          <div class="mock-row"><span class="row-dot"></span><span>Complejo Residencial A</span><span class="muted">COTIZADA</span></div>
+          <div class="mock-row"><span class="row-dot"></span><span>Torre Empresarial 8</span><span class="lime">EN PROGRESO</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ======= FEATURES ======= -->
+<section class="features" id="features">
+  <div class="section-inner">
+    <div class="section-header reveal">
+      <span class="section-tag">Soluciones</span>
+      <h2>Todo lo que necesitás,<br/><span class="lime">en un solo sistema</span></h2>
+      <p>Desde el primer presupuesto hasta el cierre de obra. Cubrimos cada proceso de tu empresa constructora.</p>
+    </div>
+
+    <div class="features-grid">
+      @for (f of features; track f.title) {
+        <div class="feature-card reveal">
+          <div class="feature-icon"><i [class]="f.icon"></i></div>
+          <h3>{{ f.title }}</h3>
+          <p>{{ f.desc }}</p>
+        </div>
+      }
+    </div>
+  </div>
+</section>
+
+<!-- ======= PLANS ======= -->
+<section class="plans" id="plans">
+  <div class="section-inner">
+    <div class="section-header reveal">
+      <span class="section-tag">Planes</span>
+      <h2>Elegí el plan<br/><span class="lime">que más te conviene</span></h2>
+      <p>Precios y características adaptados al tamaño de tu empresa. Próximamente.</p>
+    </div>
+
+    <div class="plans-grid">
+      @for (p of plans; track p.name) {
+        <div class="plan-card reveal" [class.highlight]="p.highlight">
+          @if (p.highlight) {
+            <div class="plan-badge">Más popular</div>
+          }
+          <h3 class="plan-name">{{ p.name }}</h3>
+          <div class="plan-price">{{ p.price }}</div>
+          <p class="plan-desc">{{ p.desc }}</p>
+          <ul class="plan-features">
+            @for (feat of p.features; track feat) {
+              <li><span class="check">✓</span> {{ feat }}</li>
+            }
+          </ul>
+          <button class="btn-plan" [class.lime-btn]="p.highlight" (click)="scrollTo('contact')">
+            {{ p.highlight ? 'Contactar' : 'Consultar' }}
+          </button>
+        </div>
+      }
+    </div>
+  </div>
+</section>
+
+<!-- ======= CONTACT ======= -->
+<section class="contact" id="contact">
+  <div class="section-inner contact-inner">
+    <div class="contact-left reveal">
+      <span class="section-tag">Contacto</span>
+      <h2>¿Listo para escalar<br/><span class="lime">tu empresa?</span></h2>
+      <p>Dejanos tus datos y un asesor se va a comunicar con vos para armar el plan que mejor se adapte a tu empresa.</p>
+      <div class="contact-info">
+        <div class="info-item">📧 <span>hola&#64;buildrr.cloud</span></div>
+        <div class="info-item">🌐 <span>buildrr.cloud</span></div>
+      </div>
+    </div>
+
+    <div class="contact-right reveal">
+      <form [formGroup]="contactForm" (ngSubmit)="submitContact()" class="contact-form">
+        <div class="form-row">
+          <div class="form-field">
+            <label>Nombre *</label>
+            <input type="text" formControlName="nombre" placeholder="Tu nombre" />
+            @if (contactForm.get('nombre')?.invalid && contactForm.get('nombre')?.touched) {
+              <small class="err">Campo requerido</small>
+            }
+          </div>
+          <div class="form-field">
+            <label>Empresa</label>
+            <input type="text" formControlName="empresa" placeholder="Tu empresa" />
+          </div>
+        </div>
+        <div class="form-field">
+          <label>Email *</label>
+          <input type="email" formControlName="email" placeholder="tu&#64;empresa.com" />
+          @if (contactForm.get('email')?.invalid && contactForm.get('email')?.touched) {
+            <small class="err">Email inválido</small>
+          }
+        </div>
+        <div class="form-field">
+          <label>Mensaje *</label>
+          <textarea formControlName="mensaje" rows="4" placeholder="Contanos sobre tu empresa y qué necesitás..."></textarea>
+          @if (contactForm.get('mensaje')?.invalid && contactForm.get('mensaje')?.touched) {
+            <small class="err">Campo requerido</small>
+          }
+        </div>
+        <button type="submit" class="btn-primary w-full">Enviar mensaje</button>
+      </form>
+    </div>
+  </div>
+</section>
+
+<!-- ======= FOOTER ======= -->
+<footer class="footer">
+  <div class="footer-inner">
+    <img src="/buildr-wordmark.svg" alt="buildrr" class="footer-logo" />
+    <p class="footer-copy">© 2025 buildrr. Todos los derechos reservados.</p>
+    <nav class="footer-links">
+      <a (click)="scrollTo('features')">Soluciones</a>
+      <a (click)="scrollTo('plans')">Planes</a>
+      <a (click)="scrollTo('contact')">Contacto</a>
+      <a href="/terminos" target="_blank">Términos</a>
+      <a href="/privacidad" target="_blank">Privacidad</a>
+    </nav>
+  </div>
+</footer>
+
