@@ -129,11 +129,14 @@ public class TransaccionBffController {
 
     // ✅ POST /bff/transacciones
     @PostMapping
-    public Mono<ResponseEntity<Map<String, Object>>> createTransaccion(@RequestBody Map<String, Object> body) {
+    public Mono<ResponseEntity<Map<String, Object>>> createTransaccion(
+            @RequestBody Map<String, Object> body,
+            @RequestHeader(value = "X-Organizacion-Id", defaultValue = "0") String organizacionId) {
         WebClient client = webClientBuilder.build();
 
         return client.post()
                 .uri(TRANSACCIONES_URL)
+                .header("X-Organizacion-Id", organizacionId)
                 .bodyValue(body)
                 .retrieve()
                 .bodyToMono(new ParameterizedTypeReference<Map<String, Object>>() {})

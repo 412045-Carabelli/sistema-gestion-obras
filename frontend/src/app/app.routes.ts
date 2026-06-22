@@ -34,7 +34,24 @@ import {MovimientosLayoutComponent} from './features/movimientos-layout/movimien
 import {MovimientosListComponent} from './features/components/movimientos-list/movimientos-list.component';
 
 export const routes: Routes = [
-  // Auth routes (públicas)
+  // Root: redirect según autenticación
+  {
+    path: '',
+    redirectTo: (route) => {
+      const token = localStorage.getItem('sgo_access_token');
+      return token ? '/dashboard' : '/home';
+    },
+    pathMatch: 'full'
+  },
+
+  // Landing publica
+  {
+    path: 'home',
+    loadComponent: () => import('./features/pages/landing/landing.component')
+      .then(m => m.LandingComponent)
+  },
+
+  // Auth routes (publicas)
   {
     path: 'login',
     loadComponent: () => import('./features/pages/login/login.component')
@@ -46,11 +63,18 @@ export const routes: Routes = [
       .then(m => m.RegisterComponent)
   },
 
+  // Legal pages (publicas)
   {
-    path: '',
-    redirectTo: '/dashboard',
-    pathMatch: 'full'
+    path: 'terminos',
+    loadComponent: () => import('./features/pages/legal/terms.component')
+      .then(m => m.TermsComponent)
   },
+  {
+    path: 'privacidad',
+    loadComponent: () => import('./features/pages/legal/privacy.component')
+      .then(m => m.PrivacyComponent)
+  },
+
   {
     path: 'dashboard',
     loadComponent: () => import('./features/pages/dashboard/dashboard.component')
@@ -166,5 +190,5 @@ export const routes: Routes = [
       }
     ]
   },
-  {path: '**', redirectTo: 'dashboard'},
+  {path: '**', redirectTo: ''},
 ];

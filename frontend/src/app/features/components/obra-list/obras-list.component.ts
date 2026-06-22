@@ -25,6 +25,8 @@ interface EstadoOption {
 
 const ESTADOS_CON_FACTURACION = ['ADJUDICADA', 'EN_PROGRESO', 'FINALIZADA'];
 
+const ESTADOS_OPERATIVOS = ['PRESUPUESTADA', 'ADJUDICADA', 'EN_PROGRESO', 'FINALIZADA', 'PERDIDA'];
+
 const ORDEN_ESTADOS = [
   'PRESUPUESTADA', 'COTIZADA', 'PERDIDA', 'ADJUDICADA',
   'EN_PROGRESO', 'FINALIZADA', 'FACTURADA_PARCIAL', 'FACTURADA', 'COBRADA'
@@ -72,8 +74,9 @@ export class ObrasListComponent implements OnInit {
   mostrarInactivos = false;
   searchValue = '';
 
-  // Filtro cliente (client-side)
+  // Filtros client-side
   estadoFacturacionFiltro: string[] = [];
+  clienteSearch = '';
 
   estadosOptions: EstadoOption[] = [];
   readonly estadosFacturacionOptions: EstadoOption[] = [
@@ -116,6 +119,7 @@ export class ObrasListComponent implements OnInit {
     this.currentPage = page;
     const filtros: { estado?: string; activo?: boolean; q?: string } = {};
     if (this.estadoFiltro.length === 1) filtros.estado = this.estadoFiltro[0];
+    // con múltiples estados se filtra client-side en aplicarFiltroFacturacion
     if (!this.mostrarInactivos) filtros.activo = true;
     if (this.searchValue.trim()) filtros.q = this.searchValue.trim();
 
@@ -144,13 +148,21 @@ export class ObrasListComponent implements OnInit {
   }
 
   private aplicarFiltroFacturacion() {
-    if (this.estadoFacturacionFiltro.length === 0) {
-      this.obrasFiltradas = [...this.obras];
-      return;
-    }
+    const clienteQ = this.clienteSearch.trim().toLowerCase();
     this.obrasFiltradas = this.obras.filter(obra => {
-      const ef = this.getEstadoFacturacion(obra);
-      return ef != null && this.estadoFacturacionFiltro.includes(ef.value);
+      if (this.estadoFiltro.length > 1) {
+        const estadoObra = this.estadoValorObra(obra).toUpperCase();
+        if (!this.estadoFiltro.includes(estadoObra)) return false;
+      }
+      if (this.estadoFacturacionFiltro.length > 0) {
+        const ef = this.getEstadoFacturacion(obra);
+        if (ef == null || !this.estadoFacturacionFiltro.includes(ef.value)) return false;
+      }
+      if (clienteQ) {
+        const nombreCliente = ((obra as any).cliente?.nombre || '').toLowerCase();
+        if (!nombreCliente.includes(clienteQ)) return false;
+      }
+      return true;
     });
   }
 
@@ -220,6 +232,7 @@ export class ObrasListComponent implements OnInit {
     const nuevoFacturacion = filters['facturacion']
       ? (Array.isArray(filters['facturacion']) ? filters['facturacion'] : [filters['facturacion']])
       : [];
+    const nuevoClienteSearch = filters['clienteSearch'] || '';
 
     const serverFiltrosChanged =
       nuevoSearch !== this.searchValue ||
@@ -230,6 +243,7 @@ export class ObrasListComponent implements OnInit {
     this.estadoFiltro = nuevoEstado;
     this.mostrarInactivos = nuevoInactivos;
     this.estadoFacturacionFiltro = nuevoFacturacion;
+    this.clienteSearch = nuevoClienteSearch;
 
     if (serverFiltrosChanged) {
       this.recargar();
@@ -243,6 +257,7 @@ export class ObrasListComponent implements OnInit {
     this.searchValue = '';
     this.estadoFiltro = [];
     this.estadoFacturacionFiltro = [];
+    this.clienteSearch = '';
     this.mostrarInactivos = false;
     this.recargar();
   }
@@ -255,8 +270,9 @@ export class ObrasListComponent implements OnInit {
 
   private setupFilterDefinitions(): void {
     this.filterDefinitions = [
-      { key: 'search', label: 'Buscar', type: 'input', placeholder: 'Por nombre o dirección' },
-      { key: 'estado', label: 'Estado', type: 'select', placeholder: 'Todos', options: this.estadosOptions },
+      { key: 'clienteSearch', label: 'Cliente', type: 'input', placeholder: 'Por nombre de cliente' },
+      { key: 'search', label: 'Obra', type: 'input', placeholder: 'Por nombre o dirección' },
+      { key: 'estado', label: 'Estado', type: 'multiselect', placeholder: 'Todos', options: this.estadosOptions.filter(e => ESTADOS_OPERATIVOS.includes(e.value)) },
       { key: 'facturacion', label: 'Facturación', type: 'select', placeholder: 'Todos', options: this.estadosFacturacionOptions },
       { key: 'mostrarInactivos', label: 'Ver inactivos', type: 'checkbox' }
     ];

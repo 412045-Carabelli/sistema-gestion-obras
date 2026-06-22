@@ -100,7 +100,7 @@
       <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
         <!-- Cronograma Cards -->
-        <div class="lg:col-span-2 bg-white rounded-xl border border-gray-100 p-6">
+        <div class="lg:col-span-2 bg-white rounded-xl shadow-md p-6">
           <h3 class="font-poppins font-bold text-gray-900 mb-4 flex items-center gap-2">
             <i class="pi pi-calendar text-blue-600"></i>
             Cronograma
@@ -156,7 +156,7 @@
         </div>
 
         <!-- Progreso de la obra -->
-        <div class="bg-white rounded-xl border border-gray-100 p-6">
+        <div class="bg-white rounded-xl shadow-md p-6">
           <h3 class="font-poppins font-bold text-gray-900 mb-4 flex items-center gap-2">
             <i class="pi pi-chart-line text-blue-500"></i>
             Progreso de la obra
@@ -176,7 +176,7 @@
       </div>
 
       <!-- ===================== TABS MEJORADOS ===================== -->
-      <div class="bg-white rounded-xl border border-gray-100 overflow-hidden">
+      <div class="bg-white rounded-xl shadow-md overflow-hidden">
         <p-tabs [value]="activeTab" (onChange)="onTabChange($event)" [scrollable]="true">
           <p-tablist pStyleClass="border-b border-gray-200 px-6">
             <p-tab value="0" pStyleClass="px-6 py-4">
@@ -628,7 +628,7 @@
                       <td>
                         <p-tag
                           [value]="ag.estado"
-                          [severity]="ag.estado === 'COMPLETADA' ? 'success' : ag.estado === 'EN_PROGRESO' ? 'warn' : 'info'">
+                          [severity]="ag.estado === 'COMPLETADA' ? 'secondary' : ag.estado === 'EN_PROGRESO' ? 'success' : 'danger'">
                         </p-tag>
                       </td>
                       <td class="text-base font-poppins font-normal text-gray-700">

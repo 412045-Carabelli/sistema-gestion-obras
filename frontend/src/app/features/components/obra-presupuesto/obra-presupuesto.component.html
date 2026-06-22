@@ -211,9 +211,10 @@
 
 <!-- Tabla de costos -->
   @if (costosFiltrados.length > 0) {
+    <div class="w-full overflow-x-auto">
     <p-table
       [value]="costosFiltrados"
-      class="text-sm p-datatable-sm border border-gray-200 rounded-lg overflow-hidden"
+      class="text-sm p-datatable-sm border border-gray-200 rounded-lg overflow-hidden w-full"
       responsiveLayout="scroll"
     >
       <!-- Encabezado -->
@@ -363,8 +364,6 @@
             <div class="flex justify-start">{{ calcularBeneficioNeto() | currency:'ARS' }}</div>
           </td>
           <td class="px-3 py-2"></td>
-          <td class="px-3 py-2"></td>
-          <td class="px-3 py-2"></td>
         </tr>
 
         <tr class="bg-gray-50 text-sm">
@@ -374,7 +373,6 @@
             <div class="flex justify-start">{{ calcularTotalReal() | currency:'ARS' }}</div>
           </td>
           <td class="px-3 py-2"></td>
-          <td class="px-3 py-2"></td>
         </tr>
 
         <tr class="bg-gray-50 text-sm">
@@ -383,7 +381,6 @@
           <td class="px-3 py-2 text-red-600 font-medium">
             <div class="flex justify-start">{{ calcularDemaseaTotal() | currency:'ARS' }}</div>
           </td>
-          <td class="px-3 py-2"></td>
           <td class="px-3 py-2"></td>
         </tr>
 
@@ -402,10 +399,10 @@
             </div>
           </td>
           <td class="px-3 py-2"></td>
-          <td class="px-3 py-2"></td>
         </tr>
       </ng-template>
     </p-table>
+    </div>
   } @else {
     <div class="text-center text-gray-500 py-10">
       No hay costos cargados para esta obra.
