@@ -72,7 +72,7 @@ import { CommonModule } from '@angular/common';
             <li><strong>Acceso (Art. 14):</strong> Solicitar qué datos tenemos de ti. Respuesta en 10 días hábiles.</li>
             <li><strong>Rectificación (Art. 16):</strong> Corregir datos inexactos o incompletos.</li>
             <li><strong>Cancelación (Art. 16):</strong> Eliminar tus datos (salvo obligaciones legales/tributarias).</li>
-            <li><strong>Oposición (Art. 17):</strong> Oponerteial tratamiento de datos.</li>
+            <li><strong>Oposición (Art. 17):</strong> Oponerte al tratamiento de datos.</li>
           </ul>
           <p><strong>Cómo ejercer:</strong> Envía solicitud a ginocarabellimd&#64;gmail.com con descripción clara del derecho. Respuesta en 10-30 días hábiles.</p>
         </section>

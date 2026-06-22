@@ -74,7 +74,7 @@ Corregir datos inexactos o incompletos.
 Eliminar tus datos (salvo obligaciones legales/tributarias).
 
 ### Oposición (Art. 17)
-Oponerteial tratamiento de datos.
+Oponerte al tratamiento de datos.
 
 **Cómo ejercer derechos:**
 Envía solicitud a: ginocarabellimd@gmail.com
@@ -158,12 +158,11 @@ Esta Política fue registrada ante la **Autoridad de Protección de Datos** de A
 
 **Preguntas sobre privacidad:**
 📧 ginocarabellimd@gmail.com
-📧 ginocarabellimd@gmail.com
-🌐 buildrr.cloud/privacy
+📱 +54 351 812 7383
 
 **Derecho a reclamar:**
 Si consideras que tu privacidad fue violada, puedes presentar reclamo ante:
-- Meliquina Inc. (nosotros)
+- Buildrr (nosotros)
 - Autoridad de Protección de Datos (AEPD)
 
 ---
