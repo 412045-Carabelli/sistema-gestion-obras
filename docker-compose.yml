@@ -11,7 +11,7 @@ services:
       - "1433:1433"
     environment:
       - ACCEPT_EULA=Y
-      - MSSQL_SA_PASSWORD=${DB_PASSWORD:-SgoAdmin2024!}
+      - MSSQL_SA_PASSWORD=${DB_PASSWORD}
       - MSSQL_PID=Express
     volumes:
       - sqlserver_data:/var/opt/mssql
@@ -19,7 +19,7 @@ services:
     entrypoint: ["/bin/bash", "/init/entrypoint.sh"]
     healthcheck:
       test: ["CMD", "/opt/mssql-tools18/bin/sqlcmd", "-S", "localhost",
-             "-U", "sa", "-P", "${DB_PASSWORD:-SgoAdmin2024!}", "-C", "-Q", "SELECT 1"]
+             "-U", "sa", "-P", "${DB_PASSWORD}", "-C", "-Q", "SELECT 1"]
       interval: 10s
       timeout: 10s
       retries: 30
@@ -35,7 +35,7 @@ services:
       - DB_HOST=sqlserver
       - DB_PORT=1433
       - DB_USER=sa
-      - DB_PASSWORD=${DB_PASSWORD:-SgoAdmin2024!}
+      - DB_PASSWORD=${DB_PASSWORD}
     volumes:
       - ./data/obras:/data/obras
       - ./data/clientes:/data/clientes
@@ -60,10 +60,10 @@ services:
       - SPRING_PROFILES_ACTIVE=prod
       - DB_HOST=sqlserver
       - DB_USER=sa
-      - DB_PASSWORD=${DB_PASSWORD:-SgoAdmin2024!}
+      - DB_PASSWORD=${DB_PASSWORD}
       - SPRING_DATASOURCE_URL=jdbc:sqlserver://sqlserver:1433;databaseName=sgo_obras;encrypt=false;trustServerCertificate=true
       - SPRING_DATASOURCE_USERNAME=sa
-      - SPRING_DATASOURCE_PASSWORD=${DB_PASSWORD:-SgoAdmin2024!}
+      - SPRING_DATASOURCE_PASSWORD=${DB_PASSWORD}
       - SPRING_JPA_PROPERTIES_HIBERNATE_DIALECT=org.hibernate.dialect.SQLServerDialect
       - SPRING_FLYWAY_ENABLED=true
     depends_on:
@@ -82,10 +82,10 @@ services:
       - SPRING_PROFILES_ACTIVE=prod
       - DB_HOST=sqlserver
       - DB_USER=sa
-      - DB_PASSWORD=${DB_PASSWORD:-SgoAdmin2024!}
+      - DB_PASSWORD=${DB_PASSWORD}
       - SPRING_DATASOURCE_URL=jdbc:sqlserver://sqlserver:1433;databaseName=sgo_clientes;encrypt=false;trustServerCertificate=true
       - SPRING_DATASOURCE_USERNAME=sa
-      - SPRING_DATASOURCE_PASSWORD=${DB_PASSWORD:-SgoAdmin2024!}
+      - SPRING_DATASOURCE_PASSWORD=${DB_PASSWORD}
       - SPRING_JPA_PROPERTIES_HIBERNATE_DIALECT=org.hibernate.dialect.SQLServerDialect
       - SPRING_FLYWAY_ENABLED=true
     depends_on:
@@ -104,10 +104,10 @@ services:
       - SPRING_PROFILES_ACTIVE=prod
       - DB_HOST=sqlserver
       - DB_USER=sa
-      - DB_PASSWORD=${DB_PASSWORD:-SgoAdmin2024!}
+      - DB_PASSWORD=${DB_PASSWORD}
       - SPRING_DATASOURCE_URL=jdbc:sqlserver://sqlserver:1433;databaseName=sgo_proveedores;encrypt=false;trustServerCertificate=true
       - SPRING_DATASOURCE_USERNAME=sa
-      - SPRING_DATASOURCE_PASSWORD=${DB_PASSWORD:-SgoAdmin2024!}
+      - SPRING_DATASOURCE_PASSWORD=${DB_PASSWORD}
       - SPRING_JPA_PROPERTIES_HIBERNATE_DIALECT=org.hibernate.dialect.SQLServerDialect
       - SPRING_FLYWAY_ENABLED=true
     depends_on:
@@ -128,10 +128,10 @@ services:
       - SPRING_PROFILES_ACTIVE=prod
       - DB_HOST=sqlserver
       - DB_USER=sa
-      - DB_PASSWORD=${DB_PASSWORD:-SgoAdmin2024!}
+      - DB_PASSWORD=${DB_PASSWORD}
       - SPRING_DATASOURCE_URL=jdbc:sqlserver://sqlserver:1433;databaseName=sgo_documentos;encrypt=false;trustServerCertificate=true
       - SPRING_DATASOURCE_USERNAME=sa
-      - SPRING_DATASOURCE_PASSWORD=${DB_PASSWORD:-SgoAdmin2024!}
+      - SPRING_DATASOURCE_PASSWORD=${DB_PASSWORD}
       - SPRING_JPA_PROPERTIES_HIBERNATE_DIALECT=org.hibernate.dialect.SQLServerDialect
       - SPRING_FLYWAY_ENABLED=true
       - MINIO_ENABLED=true
@@ -157,10 +157,10 @@ services:
       - SPRING_PROFILES_ACTIVE=prod
       - DB_HOST=sqlserver
       - DB_USER=sa
-      - DB_PASSWORD=${DB_PASSWORD:-SgoAdmin2024!}
+      - DB_PASSWORD=${DB_PASSWORD}
       - SPRING_DATASOURCE_URL=jdbc:sqlserver://sqlserver:1433;databaseName=sgo_transacciones;encrypt=false;trustServerCertificate=true
       - SPRING_DATASOURCE_USERNAME=sa
-      - SPRING_DATASOURCE_PASSWORD=${DB_PASSWORD:-SgoAdmin2024!}
+      - SPRING_DATASOURCE_PASSWORD=${DB_PASSWORD}
       - SPRING_JPA_PROPERTIES_HIBERNATE_DIALECT=org.hibernate.dialect.SQLServerDialect
       - SPRING_FLYWAY_ENABLED=true
     depends_on:
@@ -179,10 +179,10 @@ services:
       - SPRING_PROFILES_ACTIVE=prod
       - DB_HOST=sqlserver
       - DB_USER=sa
-      - DB_PASSWORD=${DB_PASSWORD:-SgoAdmin2024!}
+      - DB_PASSWORD=${DB_PASSWORD}
       - SPRING_DATASOURCE_URL=jdbc:sqlserver://sqlserver:1433;databaseName=sgo_agendas;encrypt=false;trustServerCertificate=true
       - SPRING_DATASOURCE_USERNAME=sa
-      - SPRING_DATASOURCE_PASSWORD=${DB_PASSWORD:-SgoAdmin2024!}
+      - SPRING_DATASOURCE_PASSWORD=${DB_PASSWORD}
       - SPRING_JPA_PROPERTIES_HIBERNATE_DIALECT=org.hibernate.dialect.SQLServerDialect
       - SPRING_FLYWAY_ENABLED=true
     depends_on:
@@ -202,10 +202,10 @@ services:
       - SERVER_PORT=8084
       - DB_HOST=sqlserver
       - DB_USER=sa
-      - DB_PASSWORD=${DB_PASSWORD:-SgoAdmin2024!}
+      - DB_PASSWORD=${DB_PASSWORD}
       - SPRING_DATASOURCE_URL=jdbc:sqlserver://sqlserver:1433;databaseName=sgo_reportes;encrypt=false;trustServerCertificate=true
       - SPRING_DATASOURCE_USERNAME=sa
-      - SPRING_DATASOURCE_PASSWORD=${DB_PASSWORD:-SgoAdmin2024!}
+      - SPRING_DATASOURCE_PASSWORD=${DB_PASSWORD}
       - SPRING_JPA_PROPERTIES_HIBERNATE_DIALECT=org.hibernate.dialect.SQLServerDialect
       - SPRING_FLYWAY_ENABLED=true
       - SERVICIOS_OBRAS_BASE_URL=http://obras-service:8081
@@ -229,10 +229,10 @@ services:
       - SPRING_PROFILES_ACTIVE=prod
       - SPRING_DATASOURCE_URL=jdbc:sqlserver://sqlserver:1433;databaseName=sgo_auth;encrypt=false;trustServerCertificate=true
       - SPRING_DATASOURCE_USERNAME=sa
-      - SPRING_DATASOURCE_PASSWORD=${DB_PASSWORD:-SgoAdmin2024!}
+      - SPRING_DATASOURCE_PASSWORD=${DB_PASSWORD}
       - SPRING_JPA_PROPERTIES_HIBERNATE_DIALECT=org.hibernate.dialect.SQLServerDialect
       - SPRING_FLYWAY_ENABLED=true
-      - JWT_SECRET=${JWT_SECRET:-your-super-secret-key-min-32-chars-long-for-hs256-algorithm}
+      - JWT_SECRET=${JWT_SECRET}
     depends_on:
       sqlserver:
         condition: service_healthy
@@ -258,7 +258,7 @@ services:
       - SERVICES_OBRAS_TAREAS_URL=http://obras-service:8081/api/obras/tareas
       - SERVICES_AGENDAS_TAREAS_URL=http://agendas-service:8085/api/agenda/tareas
       - SERVICES_REPORTES_URL=http://reportes-service:8084/api/reportes
-      - JWT_SECRET=${JWT_SECRET:-your-super-secret-key-min-32-chars-long-for-hs256-algorithm}
+      - JWT_SECRET=${JWT_SECRET}
     # depends_on:
     #   obras-service:
     #     condition: service_started
@@ -324,7 +324,7 @@ services:
       - DB_MSSQL_PORT=1433
       - DB_MSSQL_DATABASE=n8n
       - DB_MSSQL_USER=sa
-      - DB_MSSQL_PASSWORD=SgoAdmin2024!
+      - DB_MSSQL_PASSWORD=${DB_PASSWORD}
     volumes:
       - n8n_data:/home/node/.n8n
     depends_on:
