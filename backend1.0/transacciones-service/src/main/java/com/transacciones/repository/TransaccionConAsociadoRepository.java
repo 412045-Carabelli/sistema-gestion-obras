@@ -33,12 +33,7 @@ public class TransaccionConAsociadoRepository {
     public Map<String, Object> listarConAsociadosPaginado(int page, int size, Long idObra, String tipoAsociado, Long idAsociado, Long organizacionId) {
         try {
             Query query = entityManager.createNativeQuery(
-                "DECLARE @page INT = ?1; " +
-                "DECLARE @size INT = ?2; " +
-                "DECLARE @idObra BIGINT = ?3; " +
-                "DECLARE @tipoAsociado NVARCHAR(50) = ?4; " +
-                "DECLARE @idAsociado BIGINT = ?5; " +
-                "EXEC sp_transacciones_con_asociados_paginado @page, @size, @idObra, @tipoAsociado, @idAsociado"
+                "{call sp_transacciones_con_asociados_paginado(?, ?, ?, ?, ?)}"
             );
             query.setParameter(1, page);
             query.setParameter(2, size);
@@ -102,7 +97,7 @@ public class TransaccionConAsociadoRepository {
         String tipoAsoc   = (String) row[3];
         Long idAsoc       = row[4] != null ? ((Number) row[4]).longValue() : null;
         String nombreAsoc = (String) row[5];
-        String tipoTxStr  = (String) row[6]; // id_tipo_transaccion = EnumType.STRING → "COBRO"/"PAGO"
+        String tipoTxStr  = (String) row[7]; // tipo_transaccion (tt.nombre) = "COBRO"/"PAGO" — row[6] es id_tipo_transaccion (Number)
         LocalDate fecha   = row[8] != null ? ((java.sql.Date) row[8]).toLocalDate() : null;
         Double monto      = row[9] != null ? ((Number) row[9]).doubleValue() : null;
         String formaPago  = (String) row[10];

@@ -40,7 +40,7 @@ class TransaccionBffControllerTest {
         ResponseEntity<List<Map<String, Object>>> listResp = controller.getAllTransacciones("1").block();
         ResponseEntity<Map<String, Object>> getResp = controller.getTransaccionById(1L).block();
         ResponseEntity<List<Map<String, Object>>> porObra = controller.getTransaccionesByObra(1L).block();
-        ResponseEntity<Map<String, Object>> createResp = controller.createTransaccion((Map<String, Object>) (Map) Map.of("x", 1)).block();
+        ResponseEntity<Map<String, Object>> createResp = controller.createTransaccion((Map<String, Object>) (Map) Map.of("x", 1), "1").block();
         ResponseEntity<Map<String, Object>> updateResp = controller.updateTransaccion(1L, (Map<String, Object>) (Map) Map.of("x", 2)).block();
         ResponseEntity<Void> deleteResp = controller.deleteTransaccion(1L).block();
         ResponseEntity<List<Map<String, Object>>> porAsociado = controller.getTransaccionesPorAsociado("PROVEEDOR", 10L).block();

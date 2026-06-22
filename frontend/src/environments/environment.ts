@@ -1,7 +1,7 @@
 // src/environments/environment.ts
 export const environment = {
   production: false,
-  apiGateway: 'https://buildrr.cloud',
+  apiGateway: 'http://localhost:8080',
   endpoints: {
     auth: '/auth',
     obras: '/bff/obras',
