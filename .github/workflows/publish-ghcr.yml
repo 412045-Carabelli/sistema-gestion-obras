@@ -179,9 +179,10 @@ jobs:
         if: matrix.service != 'frontend' && matrix.service != 'bot-whatsapp'
         run: |
           set -e
+          cd backend1.0
           for attempt in 1 2 3; do
             echo "::group::Build attempt $attempt - ${{ matrix.service }}"
-            if cd backend1.0 && mvn -B -DskipTests -q package -pl ${{ matrix.service }} 2>&1; then
+            if mvn -B -DskipTests -q install -am -pl ${{ matrix.service }} 2>&1; then
               echo "✅ Build successful on attempt $attempt"
               echo "::endgroup::"
               exit 0

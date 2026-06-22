@@ -65,5 +65,5 @@ export class SidebarComponent {
     }
   ];
 
-  version: string = 'v1.17.0';
+  version: string = 'v1.17.25';
 }
