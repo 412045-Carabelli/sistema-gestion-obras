@@ -23,12 +23,23 @@
       }
     </nav>
 
-    <div class="sidebar-footer">
+    <div class="sidebar-footer flex flex-col items-center gap-2">
+      <!-- Logo o nombre de la organización -->
+      @if (logoUrl) {
+        <img
+          [src]="logoUrl"
+          alt="Logo organización"
+          class="h-10 max-w-[140px] object-contain rounded"
+          (error)="logoUrl = ''"
+        />
+      } @else if (empresaNombre) {
+        <span class="text-sm font-poppins font-semibold text-gray-700 text-center leading-tight">{{ empresaNombre }}</span>
+      }
       <!-- Versión -->
       <p class="m-0 text-xs font-poppins font-normal text-gray-500 cursor-pointer hover:text-gray-900 transition-colors duration-200 text-center"
          (click)="abrirChangelog()"
          title="Ver novedades">
-        Sistema de Gestion {{ version }}
+        {{ version }}
       </p>
     </div>
 

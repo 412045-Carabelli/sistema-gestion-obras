@@ -144,9 +144,13 @@ public class TransaccionBffController {
                 .bodyValue(body)
                 .retrieve()
                 .bodyToMono(new ParameterizedTypeReference<Map<String, Object>>() {})
-                .doOnNext(resp -> pushTriggerService.triggerNotification(
-                        organizacionId, userId, userName,
-                        "movimiento", String.valueOf(resp.getOrDefault("descripcion", ""))))
+                .doOnNext(resp -> {
+                    String tipo = String.valueOf(resp.getOrDefault("tipo_transaccion", ""));
+                    Object montoObj = resp.get("monto");
+                    String monto = montoObj != null ? "$" + montoObj : "";
+                    String desc = (tipo + " " + monto).trim();
+                    pushTriggerService.triggerNotification(organizacionId, userId, userName, "movimiento", desc);
+                })
                 .map(ResponseEntity::ok);
     }
 

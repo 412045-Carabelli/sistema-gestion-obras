@@ -11,18 +11,19 @@ import { Select } from 'primeng/select';
 import { InputNumberModule } from 'primeng/inputnumber';
 import { DatePickerModule } from 'primeng/datepicker';
 import { ToastModule } from 'primeng/toast';
-import { DialogModule } from 'primeng/dialog';
-import { InputTextarea } from 'primeng/inputtextarea';
-import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { RadioButtonModule } from 'primeng/radiobutton';
+import { TagModule } from 'primeng/tag';
 import { MessageService } from 'primeng/api';
 import { forkJoin } from 'rxjs';
+import { ModalComponent } from '../../../shared/modal/modal.component';
 
-import { Movimiento, Obra, Cliente, Proveedor, RecordOption } from '../../../core/models/models';
+import { Movimiento, Obra, ObraCosto, Cliente, Proveedor } from '../../../core/models/models';
 import { MovimientosService } from '../../../services/movimientos/movimientos.service';
 import { MovimientosModalService } from '../../../services/movimientos/movimientos-modal.service';
 import { ObrasService } from '../../../services/obras/obras.service';
 import { ClientesService } from '../../../services/clientes/clientes.service';
 import { ProveedoresService } from '../../../services/proveedores/proveedores.service';
+import { CostosService } from '../../../services/costos/costos.service';
 import { GenericFilterBarComponent, FilterDefinition, FilterAction } from '../generic-filter-bar/generic-filter-bar.component';
 import { EstadoFormatPipe } from '../../../shared/pipes/estado-format.pipe';
 import jsPDF from 'jspdf';
@@ -36,7 +37,6 @@ import autoTable from 'jspdf-autotable';
     CurrencyPipe,
     DatePipe,
     FormsModule,
-    ReactiveFormsModule,
     TableModule,
     InputTextModule,
     IconFieldModule,
@@ -46,8 +46,9 @@ import autoTable from 'jspdf-autotable';
     InputNumberModule,
     DatePickerModule,
     ToastModule,
-    DialogModule,
-    InputTextarea,
+    RadioButtonModule,
+    TagModule,
+    ModalComponent,
     GenericFilterBarComponent,
     EstadoFormatPipe
   ],
@@ -62,40 +63,38 @@ export class MovimientosListComponent implements OnInit {
   movimientosFiltrados: Movimiento[] = [];
   datosCargados = false;
   showModal = false;
-  isEditMode = false;
+  modoEdicion = false;
   isViewMode = false;
-  form!: FormGroup;
-  movimientoEditando: Movimiento | null = null;
-  saldoAsociado: number = 0;
+
+  // Modal form state (ngModel-based)
+  tipoEntidad: 'PROVEEDOR' | 'CLIENTE' = 'CLIENTE';
+  selectedObra: Obra | null = null;
+  selectedProveedor: Proveedor | null = null;
+  selectedCliente: Cliente | null = null;
+  clientesFiltrados: Cliente[] = [];
+  proveedoresFiltrados: Proveedor[] = [];
+  nuevoMovimiento: any = {};
+
   filterDefinitions: FilterDefinition[] = [];
   filterActions: FilterAction[] = [];
 
   // Opciones para filtros y modal
   obraNombresMap: { [key: number]: string } = {};
-  asociadoNombresMap: { [key: string]: string } = {};
   obrasOptions: Obra[] = [];
-  obrasFiltradas: Obra[] = [];
   clientesOptions: Cliente[] = [];
-  clientesFiltrados: Cliente[] = [];
   proveedoresOptions: Proveedor[] = [];
-  proveedoresFiltrados: Proveedor[] = [];
+  costosObra: ObraCosto[] = [];
+  saldoPorProveedor: Map<number, number> = new Map();
 
-  tiposTransaccion: { label: string; name: string }[] = [
+  tiposTransaccionFiltro: { label: string; name: string }[] = [
     { label: 'Todos', name: 'todos' },
     { label: 'Cobro', name: 'COBRO' },
     { label: 'Pago', name: 'PAGO' }
   ];
-  tiposAsociado: { label: string; name: string }[] = [
-    { label: 'Todos', name: 'todos' },
-    { label: 'Cliente', name: 'CLIENTE' },
-    { label: 'Proveedor', name: 'PROVEEDOR' }
+  tiposTransaccionModal: { label: string; name: string }[] = [
+    { label: 'Cobro', name: 'COBRO' },
+    { label: 'Pago', name: 'PAGO' }
   ];
-  formasPago: { label: string; name: string }[] = [
-    { label: 'Todas', name: 'todos' },
-    { label: 'Parcial', name: 'PARCIAL' },
-    { label: 'Total', name: 'TOTAL' }
-  ];
-  mediosPago: { label: string; name: string }[] = [];
 
   // Filtros
   searchValue: string = '';
@@ -114,21 +113,9 @@ export class MovimientosListComponent implements OnInit {
     private obrasService: ObrasService,
     private clientesService: ClientesService,
     private proveedoresService: ProveedoresService,
-    private messageService: MessageService,
-    private fb: FormBuilder
-  ) {
-    this.form = this.fb.group({
-      id_obra: [null, Validators.required],
-      id_asociado: [null, Validators.required],
-      tipo_asociado: ['CLIENTE', Validators.required],
-      tipo_transaccion: ['COBRO', Validators.required],
-      fecha: [null, Validators.required],
-      monto: [null, Validators.required],
-      forma_pago: ['TOTAL', Validators.required],
-      medio_pago: [''],
-      concepto: ['']
-    });
-  }
+    private costosService: CostosService,
+    private messageService: MessageService
+  ) {}
 
   ngOnInit() {
     this.cargarDatos();
@@ -159,7 +146,7 @@ export class MovimientosListComponent implements OnInit {
         label: 'Tipo Transacción',
         type: 'select',
         placeholder: 'Todos',
-        options: this.tiposTransaccion.map((t) => ({ label: t.label, value: t.name }))
+        options: this.tiposTransaccionFiltro.map((t) => ({ label: t.label, value: t.name }))
       },
       {
         key: 'fechaInicio',
@@ -188,7 +175,6 @@ export class MovimientosListComponent implements OnInit {
         this.clientesOptions = [...clientes].sort((a, b) => (a.nombre || '').localeCompare(b.nombre || ''));
         this.proveedoresOptions = [...proveedores].sort((a, b) => (a.nombre || '').localeCompare(b.nombre || ''));
 
-        // Mapear nombres de obras
         obras.forEach(o => {
           this.obraNombresMap[o.id!] = o.nombre;
         });
@@ -261,150 +247,249 @@ export class MovimientosListComponent implements OnInit {
     return `${mov.tipo_asociado} ${mov.id_asociado}`;
   }
 
-  onTipoAsociadoChange(): void {
-    if (this.isEditMode || this.isViewMode) return;
-    this.form.patchValue({ id_asociado: null, id_obra: null });
-    this.obrasFiltradas = [];
-    this.saldoAsociado = 0;
+  // --- MODAL ---
+
+  onTipoEntidadChange(): void {
+    this.selectedCliente = null;
+    this.selectedProveedor = null;
+    this.asegurarTipoTransaccionSegunAsociado();
+    this._filtrarAsociadosPorObra();
   }
 
-  onAsociadoChange(): void {
-    const idAsociado = this.form.get('id_asociado')?.value;
-    const tipoAsociado = this.form.get('tipo_asociado')?.value;
+  onObraChange(): void {
+    this.selectedCliente = null;
+    this.selectedProveedor = null;
+    this.nuevoMovimiento.id_obra = this.selectedObra?.id ?? null;
+    this.costosObra = [];
+    this.saldoPorProveedor.clear();
+    this._filtrarAsociadosPorObra();
 
-    this.saldoAsociado = 0;
+    if (this.selectedObra?.id) {
+      this.costosService.getByObra(this.selectedObra.id).subscribe({
+        next: (costos) => {
+          this.costosObra = costos || [];
+          this._computarSaldosPorProveedor();
+        },
+        error: () => { this.costosObra = []; }
+      });
+    }
+  }
 
-    if (!idAsociado) {
-      if (!this.isEditMode && !this.isViewMode) {
-        this.obrasFiltradas = [];
-      }
+  private _filtrarAsociadosPorObra(): void {
+    if (!this.selectedObra) {
+      this.clientesFiltrados = [];
+      this.proveedoresFiltrados = [];
       return;
     }
+    const obraClienteId = this.selectedObra.id_cliente ?? this.selectedObra.cliente?.id;
+    this.clientesFiltrados = obraClienteId
+      ? this.clientesOptions.filter(c => c.id === obraClienteId)
+      : this.clientesOptions;
+    this.proveedoresFiltrados = this.proveedoresOptions;
+  }
 
-    if (tipoAsociado === 'CLIENTE') {
-      const cliente = this.clientesOptions.find(c => c.id === idAsociado);
-      if (cliente) {
-        this.saldoAsociado = cliente.saldoCliente || 0;
-      }
-      // Filtrar obras por cliente
-      if (!this.isEditMode && !this.isViewMode) {
-        this.obrasFiltradas = this.obrasOptions.filter(
-          o => o.id_cliente === idAsociado || o.cliente?.id === idAsociado
-        );
-        this.form.patchValue({ id_obra: null });
-      }
-    } else if (tipoAsociado === 'PROVEEDOR') {
-      const proveedor = this.proveedoresOptions.find(p => p.id === idAsociado);
-      if (proveedor) {
-        this.saldoAsociado = proveedor.saldoProveedor || 0;
-      }
-      // Mostrar todas las obras activas para proveedor
-      if (!this.isEditMode && !this.isViewMode) {
-        this.obrasFiltradas = this.obrasOptions;
-        this.form.patchValue({ id_obra: null });
-      }
+  onClienteSeleccionado(): void {
+    this.aplicarMontoSegunAsociado();
+  }
+
+  onProveedorSeleccionado(): void {
+    this.aplicarMontoSegunAsociado();
+  }
+
+  onFormaPagoChange(value: 'TOTAL' | 'PARCIAL'): void {
+    if (value === 'PARCIAL') {
+      this.nuevoMovimiento.monto = 0;
+      return;
     }
+    this.aplicarMontoSegunAsociado();
+  }
 
-    // Auto-rellenar monto si forma_pago es TOTAL (solo en create, no en edit/view)
-    if (!this.isEditMode && !this.isViewMode) {
-      this.actualizarMonto();
+  onMontoChange(value: any): void {
+    const monto = Number(value ?? this.nuevoMovimiento.monto ?? 0);
+    if (!Number.isFinite(monto) || monto < 0) return;
+    this.nuevoMovimiento.monto = monto;
+    this.ajustarFormaPagoSegunMonto(monto);
+  }
+
+  private _computarSaldosPorProveedor(): void {
+    this.saldoPorProveedor.clear();
+    if (!this.selectedObra || !this.costosObra.length) return;
+    const obraId = this.selectedObra.id!;
+
+    for (const costo of this.costosObra) {
+      const provId = Number((costo as any).id_proveedor ?? (costo as any).proveedor?.id ?? 0);
+      if (!provId) continue;
+      const totalCosto = this._getMontoBaseCosto(costo);
+      const pagado = this.movimientos
+        .filter(m => m.id_obra === obraId && m.id_asociado === provId && m.tipo_asociado === 'PROVEEDOR')
+        .reduce((sum, m) => sum + (m.monto || 0), 0);
+      const prev = this.saldoPorProveedor.get(provId) || 0;
+      this.saldoPorProveedor.set(provId, prev + Math.max(0, totalCosto - pagado));
     }
   }
 
-  onFormaPagoChange(): void {
-    this.actualizarMonto();
+  private _getMontoBaseCosto(costo: ObraCosto): number {
+    const montoReal = Number((costo as any).monto_real ?? NaN);
+    if (!Number.isNaN(montoReal) && montoReal > 0) return montoReal;
+    const subtotal = Number(costo.subtotal ?? NaN);
+    if (!Number.isNaN(subtotal) && subtotal > 0) return subtotal;
+    return Number(costo.cantidad ?? 0) * Number(costo.precio_unitario ?? 0);
   }
 
-  private actualizarMonto(): void {
-    const formaPago = this.form.get('forma_pago')?.value;
+  getSaldoProveedor(proveedorId: number): number {
+    return this.saldoPorProveedor.get(proveedorId) || 0;
+  }
 
-    if (formaPago === 'TOTAL') {
-      this.form.patchValue({ monto: this.saldoAsociado });
-    } else if (formaPago === 'PARCIAL') {
-      this.form.patchValue({ monto: 0 });
+  private _getSaldoAsociadoActual(): number {
+    if (this.tipoEntidad === 'CLIENTE') return this.selectedCliente?.saldoCliente || 0;
+    if (this.selectedProveedor) return this.getSaldoProveedor(this.selectedProveedor.id);
+    return 0;
+  }
+
+  get saldoAsociadoActual(): number {
+    return this._getSaldoAsociadoActual();
+  }
+
+  private aplicarMontoSegunAsociado(): void {
+    const formaPago = (this.nuevoMovimiento.forma_pago || '').toUpperCase();
+    if (formaPago === 'PARCIAL') return;
+    this.nuevoMovimiento.monto = this._getSaldoAsociadoActual();
+  }
+
+  private ajustarFormaPagoSegunMonto(monto: number): void {
+    const EPS = 0.01;
+    const saldo = this._getSaldoAsociadoActual();
+    if (Math.abs(monto - saldo) < EPS) {
+      this.nuevoMovimiento.forma_pago = 'TOTAL';
+    } else if (monto < saldo) {
+      this.nuevoMovimiento.forma_pago = 'PARCIAL';
     }
   }
 
-  onRowClick(mov: Movimiento) {
-    this.isViewMode = true;
-    this.isEditMode = false;
+  private asegurarTipoTransaccionSegunAsociado(): void {
+    this.nuevoMovimiento.tipo_transaccion = this.tipoEntidad === 'PROVEEDOR' ? 'PAGO' : 'COBRO';
+  }
+
+  getTiposTransaccionDisponibles(): { label: string; name: string }[] {
+    const requerido = this.tipoEntidad === 'PROVEEDOR' ? 'PAGO' : 'COBRO';
+    const filtrados = this.tiposTransaccionModal.filter(t => t.name === requerido);
+    if (filtrados.length > 0) return filtrados;
+    return [{ label: requerido === 'PAGO' ? 'Pago' : 'Cobro', name: requerido }];
+  }
+
+  getTipoTransaccionDisponibleLabel(): string {
+    const opciones = this.getTiposTransaccionDisponibles();
+    if (!opciones.length) return '';
+    return opciones[0].label || opciones[0].name;
+  }
+
+  getTipoTransaccionSeverity(): 'success' | 'danger' | 'info' {
+    const opciones = this.getTiposTransaccionDisponibles();
+    const name = (opciones[0]?.name || '').toUpperCase();
+    if (name === 'COBRO') return 'success';
+    if (name === 'PAGO') return 'danger';
+    return 'info';
+  }
+
+  // --- ROW CLICK / OPEN MODALS ---
+
+  onRowClick(mov: Movimiento): void {
     this.openViewModal(mov);
   }
 
-  openViewModal(mov: Movimiento) {
-    this.movimientoEditando = mov;
-    this.clientesFiltrados = this.clientesOptions;
-    this.proveedoresFiltrados = this.proveedoresOptions;
-    this.obrasFiltradas = this.obrasOptions;
-    this.form.patchValue({
-      id_obra: mov.id_obra,
-      id_asociado: mov.id_asociado,
-      tipo_asociado: mov.tipo_asociado,
-      tipo_transaccion: mov.tipo_transaccion,
-      fecha: new Date(mov.fecha),
-      monto: mov.monto,
-      forma_pago: mov.forma_pago,
-      medio_pago: mov.medio_pago || '',
-      concepto: mov.concepto || ''
-    });
-    this.onAsociadoChange();
-    this.form.disable();
+  openViewModal(mov: Movimiento): void {
+    this.modoEdicion = false;
+    this.isViewMode = true;
+    this._poblarModal(mov);
     this.showModal = true;
   }
 
-  openCreateModal() {
-    this.isEditMode = false;
+  openCreateModal(): void {
+    this.modoEdicion = false;
     this.isViewMode = false;
-    this.form.enable();
-    this.form.reset({
-      tipo_asociado: 'CLIENTE',
+    this.selectedObra = null;
+    this.selectedCliente = null;
+    this.selectedProveedor = null;
+    this.clientesFiltrados = [];
+    this.proveedoresFiltrados = [];
+    this.tipoEntidad = 'CLIENTE';
+    this.nuevoMovimiento = {
       tipo_transaccion: 'COBRO',
+      fecha: new Date(),
+      monto: 0,
       forma_pago: 'TOTAL',
-      fecha: new Date()
-    });
-    this.clientesFiltrados = this.clientesOptions;
-    this.proveedoresFiltrados = this.proveedoresOptions;
-    this.obrasFiltradas = [];
-    this.saldoAsociado = 0;
+      medio_pago: 'Transferencia',
+      tipo_asociado: 'CLIENTE',
+      concepto: ''
+    };
     this.showModal = true;
   }
 
-  openEditModal(mov: Movimiento) {
-    this.isEditMode = true;
+  openEditModal(mov: Movimiento): void {
+    this.modoEdicion = true;
     this.isViewMode = false;
-    this.movimientoEditando = mov;
-    this.clientesFiltrados = this.clientesOptions;
-    this.proveedoresFiltrados = this.proveedoresOptions;
-    this.obrasFiltradas = this.obrasOptions;
-    this.form.enable();
-    this.form.patchValue({
-      id_obra: mov.id_obra,
-      id_asociado: mov.id_asociado,
-      tipo_asociado: mov.tipo_asociado,
-      tipo_transaccion: mov.tipo_transaccion,
-      fecha: new Date(mov.fecha),
-      monto: mov.monto,
-      forma_pago: mov.forma_pago,
-      medio_pago: mov.medio_pago || '',
-      concepto: mov.concepto || ''
-    });
-    this.onAsociadoChange();
+    this._poblarModal(mov);
     this.showModal = true;
   }
 
-  guardarMovimiento() {
-    if (this.form.invalid) {
-      this.form.markAllAsTouched();
+  private _poblarModal(mov: Movimiento): void {
+    this.tipoEntidad = (mov.tipo_asociado || 'CLIENTE').toUpperCase() as 'CLIENTE' | 'PROVEEDOR';
+    this.selectedObra = this.obrasOptions.find(o => o.id === mov.id_obra) || null;
+    this.selectedCliente = null;
+    this.selectedProveedor = null;
+
+    if (this.tipoEntidad === 'CLIENTE') {
+      this.selectedCliente = this.clientesOptions.find(c => c.id === mov.id_asociado) || null;
+      this.clientesFiltrados = this.clientesOptions;
+      this.proveedoresFiltrados = [];
+    } else {
+      this.selectedProveedor = this.proveedoresOptions.find(p => p.id === mov.id_asociado) || null;
+      this.clientesFiltrados = [];
+      this.proveedoresFiltrados = this.proveedoresOptions;
+    }
+
+    this.nuevoMovimiento = {
+      ...mov,
+      fecha: this.parseFechaLocal(mov.fecha) ?? new Date()
+    };
+  }
+
+  cerrarModal(): void {
+    this.showModal = false;
+  }
+
+  guardarMovimiento(): void {
+    const asociadoId = this.tipoEntidad === 'PROVEEDOR'
+      ? this.selectedProveedor?.id
+      : this.selectedCliente?.id;
+
+    if (!asociadoId) {
+      this.messageService.add({
+        severity: 'warn',
+        summary: 'Falta asociado',
+        detail: `Selecciona un ${this.tipoEntidad === 'CLIENTE' ? 'cliente' : 'proveedor'}`
+      });
+      return;
+    }
+
+    if (!this.nuevoMovimiento.id_obra) {
+      this.messageService.add({
+        severity: 'warn',
+        summary: 'Falta obra',
+        detail: 'Selecciona una obra'
+      });
       return;
     }
 
     const payload = {
-      ...this.form.getRawValue(),
-      fecha: (() => { const d = this.form.get('fecha')?.value; return d ? `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}` : null; })()
+      ...this.nuevoMovimiento,
+      id_asociado: asociadoId,
+      tipo_asociado: this.tipoEntidad,
+      fecha: this.formatFechaLocal(this.nuevoMovimiento.fecha)
     };
 
-    const accion = this.isEditMode && this.movimientoEditando
-      ? this.movimientosService.actualizar(this.movimientoEditando.id, payload)
+    const accion = this.modoEdicion && this.nuevoMovimiento.id
+      ? this.movimientosService.actualizar(this.nuevoMovimiento.id, payload)
       : this.movimientosService.crear(payload);
 
     accion.subscribe({
@@ -412,24 +497,38 @@ export class MovimientosListComponent implements OnInit {
         this.messageService.add({
           severity: 'success',
           summary: 'Éxito',
-          detail: this.isEditMode ? 'Movimiento actualizado' : 'Movimiento creado'
+          detail: this.modoEdicion ? 'Movimiento actualizado' : 'Movimiento creado'
         });
         this.showModal = false;
-        this.movimientoEditando = null;
-        this.isViewMode = false;
         this.cargarDatos();
       },
       error: (err) => {
-        this.messageService.add({
-          severity: 'error',
-          summary: 'Error',
-          detail: 'No se pudo guardar el movimiento'
-        });
+        const detail = err?.error?.message || 'No se pudo guardar el movimiento';
+        this.messageService.add({ severity: 'error', summary: 'Error', detail });
       }
     });
   }
 
-  exportarPDF() {
+  eliminarMovimiento(mov: Movimiento): void {
+    this.movimientosService.eliminar(mov.id).subscribe({
+      next: () => {
+        this.messageService.add({
+          severity: 'success',
+          summary: 'Éxito',
+          detail: 'Movimiento eliminado'
+        });
+        this.showModal = false;
+        this.isViewMode = false;
+        this.cargarDatos();
+      },
+      error: (err) => {
+        const detail = err?.error?.message || 'No se pudo eliminar el movimiento';
+        this.messageService.add({ severity: 'error', summary: 'Error', detail });
+      }
+    });
+  }
+
+  exportarPDF(): void {
     const doc = new jsPDF({ orientation: 'landscape' });
     const fecha = new Date().toLocaleDateString('es-AR');
 
@@ -461,25 +560,25 @@ export class MovimientosListComponent implements OnInit {
     doc.save(`movimientos-${fecha.replace(/\//g, '-')}.pdf`);
   }
 
-  eliminarMovimiento(mov: Movimiento) {
-    this.movimientosService.eliminar(mov.id).subscribe({
-      next: () => {
-        this.messageService.add({
-          severity: 'success',
-          summary: 'Éxito',
-          detail: 'Movimiento eliminado'
-        });
-        this.showModal = false;
-        this.isViewMode = false;
-        this.cargarDatos();
-      },
-      error: (err) => {
-        this.messageService.add({
-          severity: 'error',
-          summary: 'Error',
-          detail: 'No se pudo eliminar el movimiento'
-        });
-      }
-    });
+  private parseFechaLocal(value: unknown): Date | null {
+    if (!value) return null;
+    if (value instanceof Date) return value;
+    const raw = String(value).split('T')[0];
+    const match = raw.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+    if (!match) {
+      const parsed = new Date(String(value));
+      return Number.isNaN(parsed.getTime()) ? null : parsed;
+    }
+    const [, year, month, day] = match;
+    return new Date(Number(year), Number(month) - 1, Number(day));
+  }
+
+  private formatFechaLocal(value: unknown): string | null {
+    const date = this.parseFechaLocal(value);
+    if (!date) return null;
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
   }
 }
