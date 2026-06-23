@@ -24,15 +24,8 @@
     </nav>
 
     <div class="sidebar-footer flex flex-col items-center gap-2">
-      <!-- Logo o nombre de la organización -->
-      @if (logoUrl) {
-        <img
-          [src]="logoUrl"
-          alt="Logo organización"
-          class="h-10 max-w-[140px] object-contain rounded"
-          (error)="logoUrl = ''"
-        />
-      } @else if (empresaNombre) {
+      <!-- Nombre de la organización -->
+      @if (empresaNombre) {
         <span class="text-sm font-poppins font-semibold text-gray-700 text-center leading-tight">{{ empresaNombre }}</span>
       }
       <!-- Versión -->
