@@ -13,6 +13,7 @@ public class ReportFilterRequest {
     private List<Long> obraIds;
     private Long clienteId;
     private Long proveedorId;
+    private Long organizacionId;
     @JsonFormat(pattern = "yyyy-MM-dd")
     private LocalDate fechaInicio;
     @JsonFormat(pattern = "yyyy-MM-dd")

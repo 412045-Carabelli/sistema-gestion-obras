@@ -26,14 +26,15 @@ public class DeudasGlobalesRepository {
             Long clienteId,
             Long proveedorId,
             LocalDate fechaInicio,
-            LocalDate fechaFin) {
+            LocalDate fechaFin,
+            Long organizacionId) {
 
-        String sql = "EXEC [sgo_transacciones].[dbo].[sp_deudas_globales_con_grupo] ?, ?, ?, ?, ?, ?";
+        String sql = "EXEC [sgo_transacciones].[dbo].[sp_deudas_globales_con_grupo] ?, ?, ?, ?, ?, ?, ?";
         List<DeudasGlobalesResponse.DetalleDeudaCliente> resultados = new ArrayList<>();
 
         try {
-            log.info("Ejecutando sp_deudas_globales_con_grupo con parámetros: grupoId={}, obraId={}, clienteId={}, proveedorId={}, fechaInicio={}, fechaFin={}",
-                grupoId, obraId, clienteId, proveedorId, fechaInicio, fechaFin);
+            log.info("Ejecutando sp_deudas_globales_con_grupo con parámetros: grupoId={}, obraId={}, clienteId={}, proveedorId={}, fechaInicio={}, fechaFin={}, organizacionId={}",
+                grupoId, obraId, clienteId, proveedorId, fechaInicio, fechaFin, organizacionId);
             jdbcTemplate.query(sql, (rs, rowNum) -> {
                 DeudasGlobalesResponse.DetalleDeudaCliente detalle = new DeudasGlobalesResponse.DetalleDeudaCliente();
                 detalle.setGrupoId(rs.getObject("grupoId") != null ? rs.getLong("grupoId") : null);
@@ -53,7 +54,8 @@ public class DeudasGlobalesRepository {
                     clienteId,
                     proveedorId,
                     fechaInicio != null ? Date.valueOf(fechaInicio) : null,
-                    fechaFin != null ? Date.valueOf(fechaFin) : null
+                    fechaFin != null ? Date.valueOf(fechaFin) : null,
+                    organizacionId
             );
             log.info("sp_deudas_globales_con_grupo retornó {} registros", resultados.size());
         } catch (Exception e) {
@@ -70,14 +72,15 @@ public class DeudasGlobalesRepository {
             Long obraId,
             Long proveedorId,
             LocalDate fechaInicio,
-            LocalDate fechaFin) {
+            LocalDate fechaFin,
+            Long organizacionId) {
 
-        String sql = "EXEC [sgo_transacciones].[dbo].[sp_deudas_proveedores_con_grupo] @grupoId=?, @obraId=?, @proveedorId=?, @fechaInicio=?, @fechaFin=?";
+        String sql = "EXEC [sgo_transacciones].[dbo].[sp_deudas_proveedores_con_grupo] @grupoId=?, @obraId=?, @proveedorId=?, @fechaInicio=?, @fechaFin=?, @organizacion_id=?";
         List<DeudasGlobalesResponse.DetalleDeudaProveedor> resultados = new ArrayList<>();
 
         try {
-            log.info("Ejecutando sp_deudas_proveedores_con_grupo con parámetros: grupoId={}, clienteId={}, obraId={}, proveedorId={}, fechaInicio={}, fechaFin={}",
-                grupoId, clienteId, obraId, proveedorId, fechaInicio, fechaFin);
+            log.info("Ejecutando sp_deudas_proveedores_con_grupo con parámetros: grupoId={}, clienteId={}, obraId={}, proveedorId={}, fechaInicio={}, fechaFin={}, organizacionId={}",
+                grupoId, clienteId, obraId, proveedorId, fechaInicio, fechaFin, organizacionId);
             jdbcTemplate.query(sql, (rs, rowNum) -> {
                 DeudasGlobalesResponse.DetalleDeudaProveedor detalle = new DeudasGlobalesResponse.DetalleDeudaProveedor();
                 detalle.setGrupoId(rs.getObject("grupoId") != null ? rs.getLong("grupoId") : null);
@@ -96,7 +99,8 @@ public class DeudasGlobalesRepository {
                     obraId,
                     proveedorId,
                     fechaInicio != null ? Date.valueOf(fechaInicio) : null,
-                    fechaFin != null ? Date.valueOf(fechaFin) : null
+                    fechaFin != null ? Date.valueOf(fechaFin) : null,
+                    organizacionId
             );
             log.info("sp_deudas_proveedores_con_grupo retornó {} registros", resultados.size());
         } catch (Exception e) {
