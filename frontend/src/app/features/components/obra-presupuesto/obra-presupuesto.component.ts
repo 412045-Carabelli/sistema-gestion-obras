@@ -112,7 +112,7 @@ export class ObraPresupuestoComponent implements OnInit, OnChanges, AfterViewIni
     { label: 'Original', value: 'ORIGINAL' },
     { label: 'Adicional', value: 'ADICIONAL' },
     { label: 'Ajuste', value: 'AJUSTE' },
-    { label: 'Demasía', value: 'DEMASIA' }
+    { label: 'Economía', value: 'ECONOMIA' }
   ];
   private pdfMakeReady = false;
   showCostoDetalleModal = false;
@@ -340,7 +340,7 @@ export class ObraPresupuestoComponent implements OnInit, OnChanges, AfterViewIni
       });
       return;
     }
-    if (this.nuevoCosto.tipo_costo === 'DEMASIA' && subtotalNuevo >= 0) {
+    if (this.nuevoCosto.tipo_costo === 'ECONOMIA' && subtotalNuevo >= 0) {
       this.messageService.add({
         severity: 'warn',
         summary: 'Importe invalido',
@@ -348,7 +348,7 @@ export class ObraPresupuestoComponent implements OnInit, OnChanges, AfterViewIni
       });
       return;
     }
-    if (esAdicional && this.nuevoCosto.tipo_costo !== 'DEMASIA' && subtotalNuevo <= 0) {
+    if (esAdicional && this.nuevoCosto.tipo_costo !== 'ECONOMIA' && subtotalNuevo <= 0) {
       this.messageService.add({
         severity: 'warn',
         summary: 'Importe invalido',
@@ -527,11 +527,11 @@ export class ObraPresupuestoComponent implements OnInit, OnChanges, AfterViewIni
     const { subtotal, total } = this.calcularMontosPayload(costo);
     costo.subtotal = subtotal;
     costo.total = total;
-    costo.tipo_costo = (costo.tipo_costo as 'ORIGINAL' | 'ADICIONAL' | 'AJUSTE' | 'DEMASIA') || 'ORIGINAL';
+    costo.tipo_costo = (costo.tipo_costo as 'ORIGINAL' | 'ADICIONAL' | 'AJUSTE' | 'ECONOMIA') || 'ORIGINAL';
   }
 
-  onTipoCostoNuevoChange(tipo: 'ORIGINAL' | 'ADICIONAL' | 'AJUSTE' | 'DEMASIA') {
-    if (tipo === 'DEMASIA') {
+  onTipoCostoNuevoChange(tipo: 'ORIGINAL' | 'ADICIONAL' | 'AJUSTE' | 'ECONOMIA') {
+    if (tipo === 'ECONOMIA') {
       this.nuevoCosto.beneficio = 0;
       if ((this.nuevoCosto.precio_unitario ?? 0) > 0) {
         this.nuevoCosto.precio_unitario = -(this.nuevoCosto.precio_unitario ?? 0);
@@ -1283,13 +1283,13 @@ export class ObraPresupuestoComponent implements OnInit, OnChanges, AfterViewIni
 
     const subtotal = cantidad * precio;
 
-    const tipoCosto: 'ORIGINAL' | 'ADICIONAL' | 'AJUSTE' | 'DEMASIA' =
-      costo.tipo_costo === 'ADICIONAL' || costo.tipo_costo === 'AJUSTE' || costo.tipo_costo === 'DEMASIA'
+    const tipoCosto: 'ORIGINAL' | 'ADICIONAL' | 'AJUSTE' | 'ECONOMIA' =
+      costo.tipo_costo === 'ADICIONAL' || costo.tipo_costo === 'AJUSTE' || costo.tipo_costo === 'ECONOMIA'
         ? costo.tipo_costo
         : 'ORIGINAL';
 
     // DEMASIA: sin beneficio, el subtotal es negativo (resta presupuesto)
-    const beneficio = tipoCosto === 'DEMASIA'
+    const beneficio = tipoCosto === 'ECONOMIA'
       ? 0
       : tipoCosto !== 'ORIGINAL'
         ? Number(costo.beneficio ?? 0)
@@ -1297,7 +1297,7 @@ export class ObraPresupuestoComponent implements OnInit, OnChanges, AfterViewIni
           ? this.beneficioGlobal
           : Number(costo.beneficio ?? 0);
 
-    const total = tipoCosto === 'DEMASIA' ? subtotal : subtotal * (1 + beneficio / 100);
+    const total = tipoCosto === 'ECONOMIA' ? subtotal : subtotal * (1 + beneficio / 100);
 
     const idProveedorVal =
       typeof costo.id_proveedor === 'object'

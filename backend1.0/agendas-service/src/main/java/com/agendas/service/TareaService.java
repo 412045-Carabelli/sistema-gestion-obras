@@ -12,7 +12,7 @@ public interface TareaService {
     List<TareaResponse> listar(Long organizacionId);
     List<TareaResponse> obtenerTareasPorProveedor(Long proveedorId);
     List<TareaResponse> obtenerTareasAntiguasAgenda(int limit);
-    List<TareaAntiguaAgendaResponse> obtenerTareasAntiguasAgendaEnriquecidas(int limit);
+    List<TareaAntiguaAgendaResponse> obtenerTareasAntiguasAgendaEnriquecidas(int limit, Long organizacionId);
     void eliminar(Long id);
     TareaResponse cambiarEstado(Long id, String nuevoEstado);
 }

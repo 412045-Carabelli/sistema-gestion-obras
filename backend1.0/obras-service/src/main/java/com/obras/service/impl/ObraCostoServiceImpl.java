@@ -29,7 +29,7 @@ public class ObraCostoServiceImpl implements ObraCostoService {
     @Override
     public ObraCostoDTO crear(ObraCostoDTO dto) {
         if (dto.getTipo_costo() == null) {
-            throw new IllegalArgumentException("Debes indicar el tipo de costo (ORIGINAL, ADICIONAL, AJUSTE o DEMASIA).");
+            throw new IllegalArgumentException("Debes indicar el tipo de costo (ORIGINAL, ADICIONAL, AJUSTE o ECONOMIA).");
         }
         ObraCosto entity = fromDto(dto);
         entity.setBajaObra(Boolean.FALSE);
@@ -123,10 +123,10 @@ public class ObraCostoServiceImpl implements ObraCostoService {
                 ? entity.getCantidad().multiply(entity.getPrecioUnitario()).setScale(2, RoundingMode.HALF_UP)
                 : BigDecimal.ZERO;
 
-        // DEMASIA: sin beneficio, solo resta presupuesto. Debe tener subtotal negativo.
-        if (TipoCostoEnum.DEMASIA.equals(tipoCosto)) {
+        // ECONOMIA: sin beneficio, solo resta presupuesto. Debe tener subtotal negativo.
+        if (TipoCostoEnum.ECONOMIA.equals(tipoCosto)) {
             if (subtotal.compareTo(BigDecimal.ZERO) >= 0) {
-                throw new IllegalArgumentException("El monto de un costo DEMASIA debe ser negativo (precio unitario < 0).");
+                throw new IllegalArgumentException("El monto de un costo ECONOMIA debe ser negativo (precio unitario < 0).");
             }
             entity.setBeneficio(BigDecimal.ZERO);
             entity.setSubtotal(subtotal);
@@ -206,7 +206,7 @@ public class ObraCostoServiceImpl implements ObraCostoService {
 
     private void validarTipoCosto(TipoCostoEnum tipo) {
         if (tipo == null) {
-            throw new IllegalArgumentException("El tipo de costo es obligatorio (ORIGINAL, ADICIONAL, AJUSTE o DEMASIA).");
+            throw new IllegalArgumentException("El tipo de costo es obligatorio (ORIGINAL, ADICIONAL, AJUSTE o ECONOMIA).");
         }
     }
 
@@ -258,8 +258,8 @@ public class ObraCostoServiceImpl implements ObraCostoService {
             }
 
             boolean esAdicional = !TipoCostoEnum.ORIGINAL.equals(costo.getTipoCosto());
-            // DEMASIA no aplica beneficio: solo resta el monto base al presupuesto
-            BigDecimal beneficioAplicado = TipoCostoEnum.DEMASIA.equals(costo.getTipoCosto())
+            // ECONOMIA no aplica beneficio: solo resta el monto base al presupuesto
+            BigDecimal beneficioAplicado = TipoCostoEnum.ECONOMIA.equals(costo.getTipoCosto())
                     ? BigDecimal.ZERO
                     : (esAdicional
                         ? Optional.ofNullable(costo.getBeneficio()).orElse(BigDecimal.ZERO)

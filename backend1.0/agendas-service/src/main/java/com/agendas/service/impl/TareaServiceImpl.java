@@ -98,9 +98,12 @@ public class TareaServiceImpl implements TareaService {
     }
 
     @Override
-    public List<TareaAntiguaAgendaResponse> obtenerTareasAntiguasAgendaEnriquecidas(int limit) {
+    public List<TareaAntiguaAgendaResponse> obtenerTareasAntiguasAgendaEnriquecidas(int limit, Long organizacionId) {
         Pageable pageable = PageRequest.of(0, limit);
-        return repository.findAllByOrderByCreadoEnAsc(pageable).stream()
+        List<Tarea> tareas = (organizacionId != null && organizacionId > 0)
+                ? repository.findByOrganizacionIdOrderByCreadoEnAsc(organizacionId, pageable)
+                : repository.findAllByOrderByCreadoEnAsc(pageable);
+        return tareas.stream()
                 .map(this::mapearRespuestaEnriquecida)
                 .toList();
     }

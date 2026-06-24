@@ -4,5 +4,5 @@ public enum TipoCostoEnum {
     ORIGINAL,
     ADICIONAL,
     AJUSTE,
-    DEMASIA
+    ECONOMIA
 }

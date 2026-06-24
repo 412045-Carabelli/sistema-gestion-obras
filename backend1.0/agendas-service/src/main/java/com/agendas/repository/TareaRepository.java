@@ -15,6 +15,7 @@ import java.util.List;
 public interface TareaRepository extends JpaRepository<Tarea, Long> {
     List<Tarea> findAllByOrderByCreadoEnAsc(Pageable pageable);
     List<Tarea> findByOrganizacionIdOrderByCreadoEnAsc(Long organizacionId);
+    List<Tarea> findByOrganizacionIdOrderByCreadoEnAsc(Long organizacionId, Pageable pageable);
     List<Tarea> findByProveedorId(Long proveedorId);
 
     @Query("SELECT t FROM Tarea t WHERE t.fechaVencimiento BETWEEN :desde AND :hasta AND t.estado <> :estadoExcluir")

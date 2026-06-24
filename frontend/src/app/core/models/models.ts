@@ -213,7 +213,7 @@ export interface ObraCosto {
   item_numero?: string;
   id_proveedor?: number;
   proveedor?: Proveedor;
-  tipo_costo?: 'ORIGINAL' | 'ADICIONAL' | 'AJUSTE' | 'DEMASIA';
+  tipo_costo?: 'ORIGINAL' | 'ADICIONAL' | 'AJUSTE' | 'ECONOMIA';
   descripcion: string;
   unidad: string;
   cantidad: number;

@@ -39,8 +39,9 @@ public class TareaController {
 
     @GetMapping("/antiguas")
     public List<TareaAntiguaAgendaResponse> obtenerTareasAntiguasAgenda(
-            @RequestParam(name = "limit", defaultValue = "10") int limit) {
-        return service.obtenerTareasAntiguasAgendaEnriquecidas(limit);
+            @RequestParam(name = "limit", defaultValue = "10") int limit,
+            @RequestHeader(value = "X-Organizacion-Id", required = false) Long organizacionId) {
+        return service.obtenerTareasAntiguasAgendaEnriquecidas(limit, organizacionId);
     }
 
     @GetMapping("/{id}")

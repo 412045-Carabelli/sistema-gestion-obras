@@ -459,12 +459,14 @@ public class ReportesBffController {
     // ---------- MOVIMIENTOS ----------
 
     @GetMapping("/movimientos/recientes")
-    public Mono<ResponseEntity<Object>> getUltimosMovimientos() {
+    public Mono<ResponseEntity<Object>> getUltimosMovimientos(
+            @RequestHeader(value = "X-Organizacion-Id", required = false, defaultValue = "0") String organizacionId) {
         String baseUrl = extractBaseUrl(transaccionesServiceUrl);
         String url = baseUrl + "/api/transacciones/recientes";
         return webClientBuilder.build()
                 .get()
                 .uri(url)
+                .header("X-Organizacion-Id", organizacionId)
                 .accept(MediaType.APPLICATION_JSON)
                 .retrieve()
                 .bodyToMono(new ParameterizedTypeReference<Object>() {})
