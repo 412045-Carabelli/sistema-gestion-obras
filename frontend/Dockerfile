@@ -1,14 +1,20 @@
-# ---- Etapa 1: Servidor (Nginx) ----
+# ---- Etapa 1: Build ----
+FROM node:20-alpine AS builder
+
+WORKDIR /app
+
+COPY package*.json ./
+RUN npm ci
+
+COPY . .
+RUN npm run build
+
+# ---- Etapa 2: Servidor (Nginx) ----
 FROM nginx:alpine
 
-# Eliminamos los archivos por defecto de Nginx
 RUN rm -rf /usr/share/nginx/html/*
 
-# Copiamos el dist pre-compilado a Nginx
-COPY dist/sistema-gestion-obras/browser /usr/share/nginx/html
-
-# Copiamos la configuración personalizada de Nginx
+COPY --from=builder /app/dist/sistema-gestion-obras/browser /usr/share/nginx/html
 COPY nginx.conf /etc/nginx/conf.d/default.conf
 
-# Exponemos el puerto 80
 EXPOSE 80
