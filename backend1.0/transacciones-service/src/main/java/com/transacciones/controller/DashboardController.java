@@ -61,7 +61,8 @@ public class DashboardController {
 
   @GetMapping("/graficos")
   public ResponseEntity<List<TopObraFinancieroDto>> obtenerGraficos(
-      @RequestParam(defaultValue = "10") int topN) {
-    return ResponseEntity.ok(dashboardService.obtenerTopObras(topN));
+      @RequestParam(defaultValue = "10") int topN,
+      @RequestHeader(value = "X-Organizacion-Id", defaultValue = "0") Long organizacionId) {
+    return ResponseEntity.ok(dashboardService.obtenerTopObras(topN, organizacionId > 0 ? organizacionId : null));
   }
 }

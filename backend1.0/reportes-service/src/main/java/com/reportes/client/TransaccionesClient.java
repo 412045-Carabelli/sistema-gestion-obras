@@ -6,6 +6,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
@@ -46,12 +48,17 @@ public class TransaccionesClient {
         }
     }
 
-    public List<TopObraFinancieroExternalDto> obtenerTopObras(int topN) {
+    public List<TopObraFinancieroExternalDto> obtenerTopObras(int topN, Long organizacionId) {
         try {
+            HttpHeaders headers = new HttpHeaders();
+            if (organizacionId != null && organizacionId > 0) {
+                headers.set("X-Organizacion-Id", String.valueOf(organizacionId));
+            }
+            HttpEntity<Void> entity = new HttpEntity<>(headers);
             ResponseEntity<List<TopObraFinancieroExternalDto>> response = restTemplate.exchange(
                     baseUrl + "/api/transacciones/dashboard/graficos?topN=" + topN,
                     HttpMethod.GET,
-                    null,
+                    entity,
                     TOP_OBRAS_TYPE
             );
             return response.getBody() != null ? response.getBody() : Collections.emptyList();

@@ -127,7 +127,7 @@ export class AuthService {
       rol: response.rol,
       nombre: response.nombre,
       apellido: response.apellido,
-      organizacionId: response.organizacion_id || null
+      organizacionId: response.organizacion_id ?? null
     };
     this.setCookie('sgo_user_info', JSON.stringify(userInfo), 1);
     this.currentUserSubject.next(userInfo);

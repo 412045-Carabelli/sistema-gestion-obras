@@ -39,9 +39,7 @@ export class AuthInterceptor implements HttpInterceptor {
   private addToken(req: HttpRequest<any>, token: string): HttpRequest<any> {
     const headers: Record<string, string> = { Authorization: `Bearer ${token}` };
     const user = this.authService.getCurrentUser();
-    if (user?.organizacionId != null) {
-      headers['X-Organizacion-Id'] = String(user.organizacionId);
-    }
+    headers['X-Organizacion-Id'] = String(user?.organizacionId ?? 0);
     if (user?.userId != null) {
       headers['X-User-Id'] = String(user.userId);
     }

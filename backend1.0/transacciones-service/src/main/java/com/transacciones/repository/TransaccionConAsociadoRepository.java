@@ -41,11 +41,13 @@ public class TransaccionConAsociadoRepository {
             spQuery.registerStoredProcedureParameter(3, Long.class, ParameterMode.IN);
             spQuery.registerStoredProcedureParameter(4, String.class, ParameterMode.IN);
             spQuery.registerStoredProcedureParameter(5, Long.class, ParameterMode.IN);
+            spQuery.registerStoredProcedureParameter(6, Long.class, ParameterMode.IN);
             spQuery.setParameter(1, page);
             spQuery.setParameter(2, size);
             spQuery.setParameter(3, idObra);
             spQuery.setParameter(4, tipoAsociado);
             spQuery.setParameter(5, idAsociado);
+            spQuery.setParameter(6, organizacionId > 0 ? organizacionId : null);
 
             List<Object[]> rows = (List<Object[]>) spQuery.getResultList();
 
