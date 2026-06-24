@@ -296,7 +296,8 @@ export class ObraDocumentosComponent implements OnInit {
     if (this.descargandoIds.has(docId)) return;
     this.descargandoIds.add(docId);
 
-    const popup = this.abrirPopup();
+    const url = this.documentosService.getDocumentoUrl(docId);
+    const popup = window.open(url, '_blank', 'noopener,noreferrer');
     if (!popup) {
       this.messageService.add({
         severity: 'warn',
@@ -306,17 +307,7 @@ export class ObraDocumentosComponent implements OnInit {
       this.descargandoIds.delete(docId);
       return;
     }
-    popup.location.href = this.documentosService.getDocumentoUrl(docId);
     setTimeout(() => this.descargandoIds.delete(docId), 3000);
-  }
-
-  private abrirPopup(): Window | null {
-    const popup = window.open('', '_blank');
-    if (popup) {
-      popup.opener = null;
-      popup.document.write('<p>Cargando documento...</p>');
-    }
-    return popup;
   }
 
   private mergeDocumentos(base: Documento[], nuevos: Documento[]): Documento[] {
