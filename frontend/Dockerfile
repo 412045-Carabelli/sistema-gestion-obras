@@ -7,7 +7,7 @@ COPY package*.json ./
 RUN npm ci --legacy-peer-deps
 
 COPY . .
-RUN npm run build
+RUN node --max-old-space-size=4096 node_modules/.bin/ng build --configuration production
 
 # ---- Etapa 2: Servidor (Nginx) ----
 FROM nginx:alpine
