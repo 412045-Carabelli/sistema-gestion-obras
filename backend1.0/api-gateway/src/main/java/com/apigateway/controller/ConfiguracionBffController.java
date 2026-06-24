@@ -22,10 +22,12 @@ public class ConfiguracionBffController {
     private String obrasBaseUrl;
 
     @GetMapping
-    public Mono<ResponseEntity<Map<String, String>>> obtener() {
+    public Mono<ResponseEntity<Map<String, String>>> obtener(
+            @RequestHeader(value = "X-Organizacion-Id", required = false) String organizacionId) {
         return webClientBuilder.build()
             .get()
             .uri(obrasBaseUrl + "/api/configuracion")
+            .headers(h -> { if (organizacionId != null) h.set("X-Organizacion-Id", organizacionId); })
             .retrieve()
             .bodyToMono(new ParameterizedTypeReference<Map<String, String>>() {})
             .map(ResponseEntity::ok);
@@ -33,10 +35,12 @@ public class ConfiguracionBffController {
 
     @PutMapping
     public Mono<ResponseEntity<Map<String, String>>> actualizar(
-            @RequestBody Map<String, String> valores) {
+            @RequestBody Map<String, String> valores,
+            @RequestHeader(value = "X-Organizacion-Id", required = false) String organizacionId) {
         return webClientBuilder.build()
             .put()
             .uri(obrasBaseUrl + "/api/configuracion")
+            .headers(h -> { if (organizacionId != null) h.set("X-Organizacion-Id", organizacionId); })
             .bodyValue(valores)
             .retrieve()
             .bodyToMono(new ParameterizedTypeReference<Map<String, String>>() {})

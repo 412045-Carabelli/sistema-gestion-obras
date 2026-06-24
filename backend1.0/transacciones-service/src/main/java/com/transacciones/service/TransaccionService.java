@@ -391,8 +391,10 @@ public class TransaccionService {
     }
 
     @Transactional(readOnly = true)
-    public List<MovimientoRecenteDTO> obtenerUltimos10Movimientos() {
-        List<Transaccion> movimientos = transaccionRepository.obtenerMovimientosActivos()
+    public List<MovimientoRecenteDTO> obtenerUltimos10Movimientos(Long organizacionId) {
+        List<Transaccion> movimientos = (organizacionId != null && organizacionId > 0
+                ? transaccionRepository.obtenerMovimientosActivosPorOrganizacion(organizacionId)
+                : transaccionRepository.obtenerMovimientosActivos())
                 .stream()
                 .limit(10)
                 .collect(Collectors.toList());

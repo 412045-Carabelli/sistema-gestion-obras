@@ -139,7 +139,7 @@
             [maxFractionDigits]="2"
             inputStyleClass="w-full text-right"
             placeholder="0"
-            [min]="nuevoCosto.tipo_costo === 'DEMASIA' ? -9999999999 : 0">
+            [min]="nuevoCosto.tipo_costo === 'ECONOMIA' ? -9999999999 : 0">
           </p-inputNumber>
         </div>
 
@@ -376,7 +376,7 @@
         </tr>
 
         <tr class="bg-gray-50 text-sm">
-          <td class="text-right px-3 py-2 text-gray-600" colspan="6">Demasia de obra:</td>
+          <td class="text-right px-3 py-2 text-gray-600" colspan="6">Economía de obra:</td>
           <td class="px-3 py-2"></td>
           <td class="px-3 py-2 text-red-600 font-medium">
             <div class="flex justify-start">{{ calcularDemaseaTotal() | currency:'ARS' }}</div>
@@ -561,7 +561,7 @@
                   [minFractionDigits]="2"
                   [maxFractionDigits]="2"
                   inputStyleClass="w-full max-w-[220px] text-left text-sm py-1"
-                  [min]="costoDetalleDraft?.tipo_costo === 'DEMASIA' ? -9999999999 : 0">
+                  [min]="costoDetalleDraft?.tipo_costo === 'ECONOMIA' ? -9999999999 : 0">
                 </p-inputNumber>
             } @else {
               <input

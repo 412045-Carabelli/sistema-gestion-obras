@@ -42,7 +42,8 @@ public class AgendaBffController {
     // ✅ Tareas antiguas de la agenda (enriquecidas con nombres) - DEBE IR ANTES DE /{idObra}
     @GetMapping("/antiguas")
     public Mono<ResponseEntity<List<TareaAntiguaAgendaResponse>>> getTareasAntiguasAgenda(
-            @RequestParam(name = "limit", defaultValue = "10") int limit) {
+            @RequestParam(name = "limit", defaultValue = "10") int limit,
+            @RequestHeader(value = "X-Organizacion-Id", required = false) String organizacionId) {
         String uri = UriComponentsBuilder.fromUriString(AGENDA_TAREAS_URL + "/antiguas")
                 .queryParam("limit", limit)
                 .toUriString();
@@ -50,6 +51,7 @@ public class AgendaBffController {
         return webClientBuilder.build()
                 .get()
                 .uri(uri)
+                .headers(h -> { if (organizacionId != null && !organizacionId.isBlank()) h.set("X-Organizacion-Id", organizacionId); })
                 .retrieve()
                 .bodyToFlux(TareaAntiguaAgendaResponse.class)
                 .collectList()

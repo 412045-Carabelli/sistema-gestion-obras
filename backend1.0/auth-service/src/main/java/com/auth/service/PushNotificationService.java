@@ -86,7 +86,7 @@ public class PushNotificationService {
                 ? " " + req.getEntityName() : "";
         String body = req.getFromUsername() + " agregó " + entityLabel + entitySuffix;
 
-        String payload = buildPayload("Nueva actividad en buildrr", body);
+        String payload = buildPayload("Buildrr", body);
 
         for (PushSubscription sub : subscriptions) {
             if (sub.getUsuarioId().equals(req.getFromUserId())) continue;
@@ -108,8 +108,9 @@ public class PushNotificationService {
     }
 
     private String buildPayload(String title, String body) {
+        String tag = "buildrr-" + System.currentTimeMillis();
         return "{\"notification\":{\"title\":\"" + escapeJson(title) + "\",\"body\":\"" + escapeJson(body)
-                + "\",\"icon\":\"/buildr-icono.svg\",\"badge\":\"/buildr-icono.svg\"}}";
+                + "\",\"icon\":\"/buildr-icono.svg\",\"badge\":\"/buildr-icono.svg\",\"tag\":\"" + tag + "\"}}";
     }
 
     private String escapeJson(String s) {

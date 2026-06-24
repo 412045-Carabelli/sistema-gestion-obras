@@ -67,8 +67,9 @@ public class TransaccionController {
     }
 
     @GetMapping("/recientes")
-    public ResponseEntity<List<MovimientoRecenteDTO>> getUltimos10() {
-        List<MovimientoRecenteDTO> lista = transaccionService.obtenerUltimos10Movimientos();
+    public ResponseEntity<List<MovimientoRecenteDTO>> getUltimos10(
+            @RequestHeader(value = "X-Organizacion-Id", defaultValue = "0") Long organizacionId) {
+        List<MovimientoRecenteDTO> lista = transaccionService.obtenerUltimos10Movimientos(organizacionId);
         return ResponseEntity.ok(lista);
     }
 

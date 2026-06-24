@@ -18,8 +18,9 @@ public class ConfiguracionController {
     private final AppConfigRepository repository;
 
     @GetMapping
-    public ResponseEntity<Map<String, String>> obtener() {
-        Map<String, String> config = repository.findAll().stream()
+    public ResponseEntity<Map<String, String>> obtener(
+            @RequestHeader(value = "X-Organizacion-Id", required = false) Long organizacionId) {
+        Map<String, String> config = repository.findByOrganizacionId(organizacionId).stream()
             .collect(Collectors.toMap(
                 AppConfig::getClave,
                 c -> c.getValor() != null ? c.getValor() : ""
@@ -28,17 +29,21 @@ public class ConfiguracionController {
     }
 
     @PutMapping
-    public ResponseEntity<Map<String, String>> actualizar(@RequestBody Map<String, String> valores) {
+    public ResponseEntity<Map<String, String>> actualizar(
+            @RequestBody Map<String, String> valores,
+            @RequestHeader(value = "X-Organizacion-Id", required = false) Long organizacionId) {
         valores.forEach((clave, valor) -> {
-            AppConfig config = repository.findById(clave).orElseGet(() -> {
-                AppConfig nuevo = new AppConfig();
-                nuevo.setClave(clave);
-                return nuevo;
-            });
+            AppConfig config = repository.findByClaveAndOrganizacionId(clave, organizacionId)
+                .orElseGet(() -> {
+                    AppConfig nuevo = new AppConfig();
+                    nuevo.setClave(clave);
+                    nuevo.setOrganizacionId(organizacionId);
+                    return nuevo;
+                });
             config.setValor(valor != null ? valor : "");
             config.setActualizadoEn(Instant.now());
             repository.save(config);
         });
-        return obtener();
+        return obtener(organizacionId);
     }
 }

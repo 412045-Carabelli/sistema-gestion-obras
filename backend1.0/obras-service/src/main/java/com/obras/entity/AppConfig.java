@@ -15,6 +15,10 @@ import java.time.Instant;
 public class AppConfig {
 
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id")
+    private Long id;
+
     @Column(name = "clave", nullable = false, length = 100)
     private String clave;
 
@@ -26,4 +30,7 @@ public class AppConfig {
 
     @Column(name = "actualizado_en", nullable = false)
     private Instant actualizadoEn;
+
+    @Column(name = "organizacion_id")
+    private Long organizacionId;
 }
