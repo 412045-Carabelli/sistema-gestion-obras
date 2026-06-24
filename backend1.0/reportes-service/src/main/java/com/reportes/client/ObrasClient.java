@@ -5,6 +5,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
@@ -35,12 +37,20 @@ public class ObrasClient {
             new ParameterizedTypeReference<>() {};
 
     public List<ObraExternalDto> obtenerObras() {
+        return obtenerObras(null);
+    }
+
+    public List<ObraExternalDto> obtenerObras(Long organizacionId) {
         try {
-            // Obtener TODAS las obras sin paginación (size=1000 es un número arbitrariamente grande)
+            HttpHeaders headers = new HttpHeaders();
+            if (organizacionId != null && organizacionId > 0) {
+                headers.set("X-Organizacion-Id", String.valueOf(organizacionId));
+            }
+            HttpEntity<Void> entity = new HttpEntity<>(headers);
             ResponseEntity<List<ObraExternalDto>> response = restTemplate.exchange(
                     baseUrl + "/api/obras?size=1000",
                     HttpMethod.GET,
-                    null,
+                    entity,
                     OBRAS_TYPE
             );
             return response.getBody() != null ? response.getBody() : Collections.emptyList();

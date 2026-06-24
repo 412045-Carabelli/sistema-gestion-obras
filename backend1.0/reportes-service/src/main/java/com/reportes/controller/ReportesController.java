@@ -47,7 +47,11 @@ public class ReportesController {
     }
 
     @PostMapping("/financieros/deudas-globales")
-    public ResponseEntity<DeudasGlobalesResponse> deudasGlobales(@RequestBody(required = false) ReportFilterRequest filtro) {
+    public ResponseEntity<DeudasGlobalesResponse> deudasGlobales(
+            @RequestBody(required = false) ReportFilterRequest filtro,
+            @RequestHeader(value = "X-Organizacion-Id", required = false) Long organizacionId) {
+        if (filtro == null) filtro = new ReportFilterRequest();
+        filtro.setOrganizacionId(organizacionId);
         return ResponseEntity.ok(reportesService.generarDeudasGlobales(filtro));
     }
 
@@ -266,7 +270,8 @@ public class ReportesController {
 
     @GetMapping("/dashboard/graficos")
     public ResponseEntity<DashboardGraficosResponse> dashboardGraficos(
-            @RequestParam(defaultValue = "10") int topN) {
-        return ResponseEntity.ok(reportesService.generarDashboardGraficos(topN));
+            @RequestParam(defaultValue = "10") int topN,
+            @RequestHeader(value = "X-Organizacion-Id", required = false) Long organizacionId) {
+        return ResponseEntity.ok(reportesService.generarDashboardGraficos(topN, organizacionId));
     }
 }
