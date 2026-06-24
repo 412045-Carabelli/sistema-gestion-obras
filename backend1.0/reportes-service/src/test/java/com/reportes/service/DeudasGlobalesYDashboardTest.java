@@ -160,9 +160,9 @@ class DeudasGlobalesYDashboardTest {
         DeudasGlobalesResponse.DetalleDeudaCliente d4 = new DeudasGlobalesResponse.DetalleDeudaCliente();
         d4.setObraId(4L); d4.setSaldo(new java.math.BigDecimal("5000"));
 
-        when(deudasGlobalesRepository.obtenerDeudaClientes(any(), any(), any(), any(), any(), any()))
+        when(deudasGlobalesRepository.obtenerDeudaClientes(any(), any(), any(), any(), any(), any(), any()))
                 .thenReturn(Arrays.asList(d1, d2, d3, d4));
-        when(deudasGlobalesRepository.obtenerDeudaProveedores(any(), any(), any(), any(), any(), any()))
+        when(deudasGlobalesRepository.obtenerDeudaProveedores(any(), any(), any(), any(), any(), any(), any()))
                 .thenReturn(Collections.emptyList());
 
         DeudasGlobalesResponse response = reportesService.generarDeudasGlobales(null);
@@ -188,9 +188,9 @@ class DeudasGlobalesYDashboardTest {
         d2.setObraId(2L); d2.setSaldo(new BigDecimal("2500"));
         // Obra 3 no aparece (saldo 0 filtrado por el SP)
 
-        when(deudasGlobalesRepository.obtenerDeudaClientes(any(), any(), any(), any(), any(), any()))
+        when(deudasGlobalesRepository.obtenerDeudaClientes(any(), any(), any(), any(), any(), any(), any()))
                 .thenReturn(Arrays.asList(d1, d2));
-        when(deudasGlobalesRepository.obtenerDeudaProveedores(any(), any(), any(), any(), any(), any()))
+        when(deudasGlobalesRepository.obtenerDeudaProveedores(any(), any(), any(), any(), any(), any(), any()))
                 .thenReturn(Collections.emptyList());
 
         DeudasGlobalesResponse response = reportesService.generarDeudasGlobales(null);
@@ -221,9 +221,9 @@ class DeudasGlobalesYDashboardTest {
         DeudasGlobalesResponse.DetalleDeudaCliente d1 = new DeudasGlobalesResponse.DetalleDeudaCliente();
         d1.setObraId(1L); d1.setPresupuesto(new BigDecimal("26000")); d1.setCobrado(new BigDecimal("3000")); d1.setSaldo(new BigDecimal("23000"));
 
-        when(deudasGlobalesRepository.obtenerDeudaClientes(any(), any(), any(), any(), any(), any()))
+        when(deudasGlobalesRepository.obtenerDeudaClientes(any(), any(), any(), any(), any(), any(), any()))
                 .thenReturn(Collections.singletonList(d1));
-        when(deudasGlobalesRepository.obtenerDeudaProveedores(any(), any(), any(), any(), any(), any()))
+        when(deudasGlobalesRepository.obtenerDeudaProveedores(any(), any(), any(), any(), any(), any(), any()))
                 .thenReturn(Collections.emptyList());
 
         DeudasGlobalesResponse response = reportesService.generarDeudasGlobales(null);

@@ -405,9 +405,9 @@ class ReportesServiceTest {
         DeudasGlobalesResponse.DetalleDeudaProveedor dp3 = new DeudasGlobalesResponse.DetalleDeudaProveedor();
         dp3.setSaldo(new BigDecimal("70.0"));
 
-        when(deudasGlobalesRepository.obtenerDeudaClientes(any(), any(), any(), any(), any(), any()))
+        when(deudasGlobalesRepository.obtenerDeudaClientes(any(), any(), any(), any(), any(), any(), any()))
                 .thenReturn(List.of(dc1, dc2));
-        when(deudasGlobalesRepository.obtenerDeudaProveedores(any(), any(), any(), any(), any(), any()))
+        when(deudasGlobalesRepository.obtenerDeudaProveedores(any(), any(), any(), any(), any(), any(), any()))
                 .thenReturn(List.of(dp1, dp2, dp3));
 
         DeudasGlobalesResponse response = reportesService.generarDeudasGlobales(new ReportFilterRequest());
