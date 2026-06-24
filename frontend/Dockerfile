@@ -1,5 +1,5 @@
 # ---- Etapa 1: Build ----
-FROM node:20-alpine AS builder
+FROM node:18-alpine AS builder
 
 WORKDIR /app
 
@@ -7,7 +7,7 @@ COPY package*.json ./
 RUN npm ci --legacy-peer-deps
 
 COPY . .
-RUN node --max-old-space-size=4096 node_modules/.bin/ng build --configuration production
+RUN npm run build
 
 # ---- Etapa 2: Servidor (Nginx) ----
 FROM nginx:alpine
