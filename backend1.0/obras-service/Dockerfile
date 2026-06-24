@@ -1,9 +1,13 @@
+# ---- Etapa 1: Build ----
+FROM maven:3.9-eclipse-temurin-17 AS builder
+WORKDIR /build
+COPY backend1.0/ .
+RUN mvn clean package -pl obras-service -am -DskipTests -Dmaven.test.skip=true
+
+# ---- Etapa 2: Runtime ----
 FROM eclipse-temurin:17-jre-jammy
 WORKDIR /app
-
-# Copia solo el JAR ya compilado
-COPY target/*.jar app.jar
 RUN mkdir -p data
-
+COPY --from=builder /build/obras-service/target/*.jar app.jar
 EXPOSE 8081
 ENTRYPOINT ["java", "-jar", "app.jar"]
