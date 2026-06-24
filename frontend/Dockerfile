@@ -1,10 +1,16 @@
 # ---- Etapa 1: Build ----
-FROM node:18-alpine AS builder
+FROM node:20-alpine AS builder
+
+# Instalar dependencias de sistema para compilar binarios nativos
+RUN apk add --no-cache python3 make g++
 
 WORKDIR /app
 
 COPY package*.json ./
 RUN npm install --legacy-peer-deps
+
+# Forzar instalacion del binario nativo correcto para linux-musl
+RUN npm rebuild lightningcss --update-binary || true
 
 COPY . .
 RUN npm run build
