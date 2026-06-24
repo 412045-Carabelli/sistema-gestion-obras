@@ -113,12 +113,18 @@ jobs:
             ${{ runner.os }}-maven-${{ matrix.service }}-
             ${{ runner.os }}-maven-
 
+      - name: Install common module (backend only)
+        if: matrix.service != 'frontend' && matrix.service != 'bot-whatsapp'
+        run: |
+          cd backend1.0/common
+          mvn -B -DskipTests install
+
       - name: Run tests & lint (${{ matrix.service }})
         if: matrix.service != 'frontend' && matrix.service != 'bot-whatsapp'
         run: |
           echo "::group::Testing ${{ matrix.service }}"
-          cd backend1.0
-          mvn -B test -pl $(echo "${{ matrix.service }}" | sed 's/-service//g') 2>&1 | tail -50
+          cd backend1.0/${{ matrix.service }}
+          mvn -B test 2>&1 | tail -50
           echo "::endgroup::"
 
       - name: Node setup (frontend only)
@@ -152,47 +158,10 @@ jobs:
         id: context
         run: |
           case "${{ matrix.service }}" in
-            api-gateway)   echo "path=backend1.0/api-gateway" >> $GITHUB_OUTPUT ;;
-            frontend)      echo "path=frontend" >> $GITHUB_OUTPUT ;;
-            bot-whatsapp)  echo "path=bot-whatsapp" >> $GITHUB_OUTPUT ;;
-            *)             echo "path=backend1.0/${{ matrix.service }}" >> $GITHUB_OUTPUT ;;
+            frontend)      echo "path=frontend" >> $GITHUB_OUTPUT; echo "dockerfile=frontend/Dockerfile" >> $GITHUB_OUTPUT ;;
+            bot-whatsapp)  echo "path=bot-whatsapp" >> $GITHUB_OUTPUT; echo "dockerfile=bot-whatsapp/Dockerfile" >> $GITHUB_OUTPUT ;;
+            *)             echo "path=." >> $GITHUB_OUTPUT; echo "dockerfile=backend1.0/${{ matrix.service }}/Dockerfile" >> $GITHUB_OUTPUT ;;
           esac
-
-      - name: Set up Java 17 (backend only)
-        if: matrix.service != 'frontend' && matrix.service != 'bot-whatsapp'
-        uses: actions/setup-java@v4
-        with:
-          distribution: 'temurin'
-          java-version: '17'
-
-      - name: Cache Maven (backend only)
-        if: matrix.service != 'frontend' && matrix.service != 'bot-whatsapp'
-        uses: actions/cache@v4
-        with:
-          path: ~/.m2/repository
-          key: ${{ runner.os }}-maven-${{ matrix.service }}-${{ hashFiles('**/pom.xml') }}
-          restore-keys: |
-            ${{ runner.os }}-maven-${{ matrix.service }}-
-            ${{ runner.os }}-maven-
-
-      - name: Build backend JAR (${{ matrix.service }})
-        if: matrix.service != 'frontend' && matrix.service != 'bot-whatsapp'
-        run: |
-          set -e
-          cd backend1.0
-          for attempt in 1 2 3; do
-            echo "::group::Build attempt $attempt - ${{ matrix.service }}"
-            if mvn -B -DskipTests -q install -am -pl ${{ matrix.service }} 2>&1; then
-              echo "✅ Build successful on attempt $attempt"
-              echo "::endgroup::"
-              exit 0
-            else
-              echo "❌ Build failed on attempt $attempt, retrying..."
-              echo "::endgroup::"
-              [ $attempt -lt 3 ] && sleep 10
-            fi
-          done
-          echo "❌ Build failed after 3 attempts" && exit 1
 
       - name: Normalize owner to lowercase
         id: owner
@@ -212,6 +181,7 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           context: ${{ steps.context.outputs.path }}
+          file: ${{ steps.context.outputs.dockerfile }}
           push: true
           tags: |
             ${{ env.REGISTRY }}/${{ steps.owner.outputs.owner }}/sgo-${{ matrix.service }}:${{ needs.detect-changes.outputs.tag }}
