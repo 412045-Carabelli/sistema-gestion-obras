@@ -54,9 +54,9 @@ public class DashboardServiceImpl implements DashboardService {
   }
 
   @Override
-  public List<TopObraFinancieroDto> obtenerTopObras(int topN) {
+  public List<TopObraFinancieroDto> obtenerTopObras(int topN, Long organizacionId) {
     try {
-      return dashboardRepository.obtenerTopObras(topN > 0 ? topN : 10);
+      return dashboardRepository.obtenerTopObras(topN > 0 ? topN : 10, organizacionId);
     } catch (Exception ex) {
       log.error("Error al obtener top obras financiero", ex);
       return Collections.emptyList();

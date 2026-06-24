@@ -89,7 +89,7 @@ public class DashboardRepository {
    * @return lista de TopObraFinancieroDto
    */
   @SuppressWarnings("unchecked")
-  public List<TopObraFinancieroDto> obtenerTopObras(int topN) {
+  public List<TopObraFinancieroDto> obtenerTopObras(int topN, Long organizacionId) {
     try {
       Query query = entityManager.createNativeQuery(
           "SELECT TOP (:topN) " +
@@ -100,11 +100,13 @@ public class DashboardRepository {
           "  SUM(CASE WHEN UPPER(t.id_tipo_transaccion) = 'PAGO' THEN t.monto ELSE 0 END) AS totalPagos " +
           "FROM transacciones t " +
           "WHERE t.activo = 1 " +
+          "AND (:organizacionId = 0 OR t.organizacion_id = :organizacionId) " +
           "GROUP BY t.id_obra " +
           "ORDER BY (SUM(CASE WHEN UPPER(t.id_tipo_transaccion) = 'COBRO' THEN t.monto ELSE 0 END) + " +
           "          SUM(CASE WHEN UPPER(t.id_tipo_transaccion) = 'PAGO' THEN t.monto ELSE 0 END)) DESC"
       );
       query.setParameter("topN", topN);
+      query.setParameter("organizacionId", organizacionId != null ? organizacionId : 0L);
 
       List<Object[]> rows = query.getResultList();
       List<TopObraFinancieroDto> result = new ArrayList<>();

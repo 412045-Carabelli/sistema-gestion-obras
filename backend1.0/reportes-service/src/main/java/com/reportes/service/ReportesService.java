@@ -190,7 +190,8 @@ public class ReportesService {
             filtros.getClienteId(),
             filtros.getProveedorId(),
             filtros.getFechaInicio(),
-            filtros.getFechaFin()
+            filtros.getFechaFin(),
+            filtros.getOrganizacionId()
         );
 
         // Obtener deudas de proveedores
@@ -202,7 +203,8 @@ public class ReportesService {
             filtros.getObraId(),
             filtros.getProveedorId(),
             filtros.getFechaInicio(),
-            filtros.getFechaFin()
+            filtros.getFechaFin(),
+            filtros.getOrganizacionId()
         );
 
         List<Long> obraIdsFiltro = filtros.getObraIds();
@@ -2738,8 +2740,8 @@ public class ReportesService {
         return pdfBuilder.crearTabla(widths, encabezados, filas);
     }
 
-    public DashboardGraficosResponse generarDashboardGraficos(int topN) {
-        List<ObraExternalDto> obras = obrasClient.obtenerObras();
+    public DashboardGraficosResponse generarDashboardGraficos(int topN, Long organizacionId) {
+        List<ObraExternalDto> obras = obrasClient.obtenerObras(organizacionId);
         if (obras == null) obras = java.util.Collections.emptyList();
 
         // distribucion de estados
@@ -2759,7 +2761,7 @@ public class ReportesService {
                 .collect(java.util.stream.Collectors.toList());
 
         // top obras financiero desde transacciones-service
-        List<TopObraFinancieroExternalDto> topRaw = transaccionesClient.obtenerTopObras(topN);
+        List<TopObraFinancieroExternalDto> topRaw = transaccionesClient.obtenerTopObras(topN, organizacionId);
         Map<Long, ObraExternalDto> obrasPorId = obras.stream()
                 .collect(java.util.stream.Collectors.toMap(ObraExternalDto::getId, o -> o, (a, b) -> a));
         List<DashboardGraficosResponse.TopObraDto> topObras = topRaw.stream()

@@ -19,5 +19,5 @@ public interface DashboardService {
    */
   DashboardCuentaCorrienteResponse obtenerCuentaCorriente(DashboardFilterRequest filtro);
 
-  List<TopObraFinancieroDto> obtenerTopObras(int topN);
+  List<TopObraFinancieroDto> obtenerTopObras(int topN, Long organizacionId);
 }

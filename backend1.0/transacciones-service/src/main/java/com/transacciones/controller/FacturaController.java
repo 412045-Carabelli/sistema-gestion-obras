@@ -22,7 +22,7 @@ public class FacturaController {
 
     @GetMapping
     public ResponseEntity<List<FacturaDto>> getAll(
-            @RequestHeader(value = "X-Empresa-Id", required = false) Long empresaId
+            @RequestHeader(value = "X-Organizacion-Id", required = false) Long empresaId
     ) {
         return ResponseEntity.ok(facturaService.listar(empresaId));
     }
@@ -35,7 +35,7 @@ public class FacturaController {
     @GetMapping("/cliente/{idCliente}")
     public ResponseEntity<List<FacturaDto>> getByCliente(
             @PathVariable("idCliente") Long idCliente,
-            @RequestHeader(value = "X-Empresa-Id", required = false) Long empresaId
+            @RequestHeader(value = "X-Organizacion-Id", required = false) Long empresaId
     ) {
         return ResponseEntity.ok(facturaService.listarPorCliente(idCliente, empresaId));
     }
@@ -43,7 +43,7 @@ public class FacturaController {
     @GetMapping("/obra/{idObra}")
     public ResponseEntity<List<FacturaDto>> getByObra(
             @PathVariable("idObra") Long idObra,
-            @RequestHeader(value = "X-Empresa-Id", required = false) Long empresaId
+            @RequestHeader(value = "X-Organizacion-Id", required = false) Long empresaId
     ) {
         return ResponseEntity.ok(facturaService.listarPorObra(idObra, empresaId));
     }
@@ -59,7 +59,7 @@ public class FacturaController {
             @RequestParam(value = "estado", required = false) String estado,
             @RequestParam(value = "impacta_cta_cte", required = false) Boolean impactaCtaCte,
             @RequestParam(value = "file", required = false) MultipartFile file,
-            @RequestHeader(value = "X-Empresa-Id", required = false) Long empresaId
+            @RequestHeader(value = "X-Organizacion-Id", required = false) Long empresaId
     ) {
         FacturaDto dto = FacturaDto.builder()
                 .empresa_id(empresaId)
