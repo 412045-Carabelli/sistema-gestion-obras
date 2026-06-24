@@ -1,10 +1,12 @@
-# ---- Etapa 1: Build (Debian, evita problemas de musl con binarios nativos) ----
+# ---- Etapa 1: Build ----
 FROM node:20 AS builder
 
 WORKDIR /app
 
 COPY package*.json ./
 RUN npm install --legacy-peer-deps
+# Forzar binario nativo correcto para linux-x64 (cache previa puede tener binarios Windows)
+RUN npm install lightningcss-linux-x64-gnu@1.30.1 --no-save || true
 
 COPY . .
 RUN npm run build
