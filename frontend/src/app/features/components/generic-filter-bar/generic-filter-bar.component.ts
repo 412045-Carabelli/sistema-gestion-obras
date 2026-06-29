@@ -1,6 +1,7 @@
 import { Component, Input, Output, EventEmitter, OnInit, OnDestroy, OnChanges, SimpleChanges } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { RouterLink } from '@angular/router';
 import { ButtonModule } from 'primeng/button';
 import { SelectModule } from 'primeng/select';
 import { InputTextModule } from 'primeng/inputtext';
@@ -8,6 +9,12 @@ import { DatePickerModule } from 'primeng/datepicker';
 import { CheckboxModule } from 'primeng/checkbox';
 import { MultiSelectModule } from 'primeng/multiselect';
 import { Subscription } from 'rxjs';
+
+export interface ViewToggleOption {
+  label: string;
+  icon: string;
+  routerLink: string;
+}
 
 export interface FilterDefinition {
   key: string;
@@ -32,6 +39,7 @@ export interface FilterAction {
   imports: [
     CommonModule,
     ReactiveFormsModule,
+    RouterLink,
     ButtonModule,
     SelectModule,
     InputTextModule,
@@ -45,6 +53,7 @@ export interface FilterAction {
 export class GenericFilterBarComponent implements OnInit, OnDestroy, OnChanges {
   @Input() filterDefinitions: FilterDefinition[] = [];
   @Input() actions: FilterAction[] = [];
+  @Input() viewToggle?: { options: ViewToggleOption[]; activeRoute: string };
   @Output() filterChange = new EventEmitter<Record<string, any>>();
   @Output() clearFilters = new EventEmitter<void>();
 
