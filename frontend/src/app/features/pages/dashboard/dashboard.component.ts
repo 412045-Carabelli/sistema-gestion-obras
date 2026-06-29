@@ -184,6 +184,11 @@ export class DashboardComponent implements OnInit {
   nuevoGremioNombre = '';
   guardandoTipoProveedor = false;
   guardandoGremio = false;
+  guardandoMovimiento = false;
+  guardandoTarea = false;
+  guardandoCliente = false;
+  guardandoProveedor = false;
+  guardandoFactura = false;
 
   constructor(
     private router: Router,
@@ -651,8 +656,10 @@ export class DashboardComponent implements OnInit {
       medio_pago: this.movimientoForm.medio_pago ?? 'Transferencia'
     };
 
+    this.guardandoMovimiento = true;
     this.transaccionesService.create(payload).subscribe({
       next: () => {
+        this.guardandoMovimiento = false;
         this.showMovimientoModal = false;
         this.messageService.add({
           severity: 'success',
@@ -661,6 +668,7 @@ export class DashboardComponent implements OnInit {
         });
       },
       error: () => {
+        this.guardandoMovimiento = false;
         this.messageService.add({
           severity: 'error',
           summary: 'Error',
@@ -720,8 +728,10 @@ export class DashboardComponent implements OnInit {
       fecha_inicio: this.normalizarFechaInicio(this.tareaForm.fecha_inicio)
     };
 
+    this.guardandoTarea = true;
     this.tareasService.createTarea(payload as any).subscribe({
       next: () => {
+        this.guardandoTarea = false;
         this.showTareaModal = false;
         this.messageService.add({
           severity: 'success',
@@ -730,6 +740,7 @@ export class DashboardComponent implements OnInit {
         });
       },
       error: (err) => {
+        this.guardandoTarea = false;
         this.messageService.add({
           severity: 'error',
           summary: 'Error',
@@ -750,8 +761,10 @@ export class DashboardComponent implements OnInit {
       return;
     }
 
+    this.guardandoCliente = true;
     this.clientesService.createCliente(this.clienteForm as Cliente).subscribe({
       next: () => {
+        this.guardandoCliente = false;
         this.showClienteModal = false;
         this.messageService.add({
           severity: 'success',
@@ -760,6 +773,7 @@ export class DashboardComponent implements OnInit {
         });
       },
       error: () => {
+        this.guardandoCliente = false;
         this.messageService.add({
           severity: 'error',
           summary: 'Error',
@@ -780,8 +794,10 @@ export class DashboardComponent implements OnInit {
       return;
     }
 
+    this.guardandoProveedor = true;
     this.proveedoresService.createProveedor(this.proveedorForm).subscribe({
       next: () => {
+        this.guardandoProveedor = false;
         this.showProveedorModal = false;
         this.messageService.add({
           severity: 'success',
@@ -790,6 +806,7 @@ export class DashboardComponent implements OnInit {
         });
       },
       error: () => {
+        this.guardandoProveedor = false;
         this.messageService.add({
           severity: 'error',
           summary: 'Error',
@@ -836,8 +853,10 @@ export class DashboardComponent implements OnInit {
       estado: this.facturaForm.estado || 'EMITIDA'
     };
 
+    this.guardandoFactura = true;
     this.facturasService.createFactura(payload, this.facturaFile).subscribe({
       next: () => {
+        this.guardandoFactura = false;
         this.messageService.add({
           severity: 'success',
           summary: 'Factura creada',
@@ -847,6 +866,7 @@ export class DashboardComponent implements OnInit {
         this.resetFacturaForm();
       },
       error: (err: any) => {
+        this.guardandoFactura = false;
         this.messageService.add({
           severity: 'error',
           summary: 'Error',

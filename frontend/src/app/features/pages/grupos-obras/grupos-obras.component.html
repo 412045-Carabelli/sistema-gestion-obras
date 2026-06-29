@@ -161,6 +161,8 @@
       [label]="isEditing ? 'Actualizar' : 'Crear'"
       icon="pi pi-check"
       (click)="guardar()"
+      [loading]="guardando"
+      [disabled]="guardando"
     ></p-button>
   </ng-template>
 </p-dialog>

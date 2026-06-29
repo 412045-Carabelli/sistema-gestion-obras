@@ -96,7 +96,8 @@
           fallback="/clientes">
         </p-button>
         <p-button
-          [disabled]="form.invalid"
+          [disabled]="form.invalid || guardando"
+          [loading]="guardando"
           icon="pi pi-check"
           label="Guardar"
           styleClass="p-button-primary"

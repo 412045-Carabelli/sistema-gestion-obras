@@ -25,6 +25,7 @@ public class TareaAntiguaAgendaResponse {
     private String estado;
     private String prioridad;
     private String descripcion;
+    private Instant fechaInicio;
     private Instant fechaVencimiento;
     private Instant creadoEn;
     private Instant ultimaActualizacion;

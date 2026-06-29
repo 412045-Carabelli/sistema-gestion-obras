@@ -24,6 +24,7 @@ export class ClientesCreateComponent implements OnInit {
   editing = false;
   clienteId!: number;
   ivaOptions: { label: string; name: string }[] = [];
+  guardando = false;
 
   constructor(
     private fb: FormBuilder,
@@ -72,14 +73,16 @@ export class ClientesCreateComponent implements OnInit {
   }
 
   onSubmit() {
-    if (this.form.invalid) return;
+    if (this.form.invalid || this.guardando) return;
 
     const data: Cliente = this.form.value;
     if (data.telefono) data.telefono = this.normalizarTelefono(data.telefono);
 
+    this.guardando = true;
     if (this.editing) {
       this.clientesService.updateCliente(this.clienteId, data).subscribe({
         next: () => {
+          this.guardando = false;
           this.messageService.add({
             severity: 'success',
             summary: 'Cliente actualizado',
@@ -88,6 +91,7 @@ export class ClientesCreateComponent implements OnInit {
           this.router.navigate(['/clientes', this.clienteId]);
         },
         error: () => {
+          this.guardando = false;
           this.messageService.add({
             severity: 'error',
             summary: 'Error',
@@ -98,6 +102,7 @@ export class ClientesCreateComponent implements OnInit {
     } else {
       this.clientesService.createCliente(data).subscribe({
         next: (nuevo) => {
+          this.guardando = false;
           this.messageService.add({
             severity: 'success',
             summary: 'Cliente creado',
@@ -106,6 +111,7 @@ export class ClientesCreateComponent implements OnInit {
           this.router.navigate(['/clientes', nuevo.id]);
         },
         error: () => {
+          this.guardando = false;
           this.messageService.add({
             severity: 'error',
             summary: 'Error',

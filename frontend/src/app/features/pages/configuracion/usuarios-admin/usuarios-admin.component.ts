@@ -38,6 +38,7 @@ export class UsuariosAdminComponent implements OnInit, OnDestroy {
   usuarios: UsuarioInfoResponse[] = [];
   cargando = false;
   guardando = false;
+  cambiandoEstado = false;
   mostrarFormulario = false;
   usuarioEditando: UsuarioInfoResponse | null = null;
   formCrear!: FormGroup;
@@ -161,15 +162,19 @@ export class UsuariosAdminComponent implements OnInit, OnDestroy {
   }
 
   private cambiarEstado(usuario: UsuarioInfoResponse): void {
+    if (this.cambiandoEstado) return;
     const nuevoEstado = !usuario.activo;
+    this.cambiandoEstado = true;
     this.sub.add(
       this.authService.cambiarEstadoUsuario(usuario.id, nuevoEstado).subscribe({
         next: (actualizado) => {
+          this.cambiandoEstado = false;
           this.usuarios = this.usuarios.map(u => u.id === actualizado.id ? actualizado : u);
           const msg = nuevoEstado ? 'Usuario reactivado' : 'Usuario dado de baja';
           this.messageService.add({ severity: 'success', summary: 'Listo', detail: msg });
         },
         error: (err) => {
+          this.cambiandoEstado = false;
           const msg = err?.error?.message ?? 'No se pudo cambiar el estado';
           this.messageService.add({ severity: 'error', summary: 'Error', detail: msg });
         }

@@ -15,6 +15,7 @@ import {MessageService} from 'primeng/api';
   templateUrl: './proveedores-create.component.html'
 })
 export class ProveedoresCreateComponent {
+  guardando = false;
 
   constructor(
     private proveedoresService: ProveedoresService,
@@ -34,9 +35,12 @@ export class ProveedoresCreateComponent {
   }
 
   onFormSubmit(proveedor: Proveedor) {
+    if (this.guardando) return;
     if (proveedor.telefono) proveedor.telefono = this.normalizarTelefono(proveedor.telefono);
+    this.guardando = true;
     this.proveedoresService.createProveedor(proveedor).subscribe({
       next: () => {
+        this.guardando = false;
         this.messageService.add({
           severity: 'success',
           summary: 'Proveedor creado',
@@ -45,6 +49,7 @@ export class ProveedoresCreateComponent {
         setTimeout(() => this.router.navigate(['/proveedores']), 800);
       },
       error: () => {
+        this.guardando = false;
         this.messageService.add({
           severity: 'error',
           summary: 'Error',
