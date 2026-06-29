@@ -2,16 +2,35 @@
 <p-confirmDialog></p-confirmDialog>
 
 @switch (true) {
-  @case (currentRoute === '/agendas') {
+  @case (currentRoute === '/agendas' || currentRoute === '/agendas/gantt') {
     <app-layout-header type="list" title="Agendas" subtitle="Gestión de tareas y agendas del proyecto">
-      <p-button
-        header-actions
-        label="Nuevo Evento"
-        icon="pi pi-plus"
-        (onClick)="abrirModalCrearAgenda()"
-        class="btn-mobile-icon"
-        styleClass="p-button">
-      </p-button>
+      <ng-container header-actions>
+        <div class="view-toggle">
+          <button
+            class="view-toggle-btn"
+            [class.active]="currentRoute === '/agendas'"
+            (click)="navegarVista('/agendas')"
+            pTooltip="Vista Lista" tooltipPosition="bottom">
+            <i class="pi pi-list"></i>
+            <span class="toggle-label">Lista</span>
+          </button>
+          <button
+            class="view-toggle-btn"
+            [class.active]="currentRoute === '/agendas/gantt'"
+            (click)="navegarVista('/agendas/gantt')"
+            pTooltip="Vista Gantt" tooltipPosition="bottom">
+            <i class="pi pi-chart-bar"></i>
+            <span class="toggle-label">Gantt</span>
+          </button>
+        </div>
+        <p-button
+          label="Nuevo Evento"
+          icon="pi pi-plus"
+          (onClick)="abrirModalCrearAgenda()"
+          class="btn-mobile-icon"
+          styleClass="p-button">
+        </p-button>
+      </ng-container>
     </app-layout-header>
   }
   @default {

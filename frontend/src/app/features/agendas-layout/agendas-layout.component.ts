@@ -47,6 +47,10 @@ export class AgendasLayoutComponent implements OnInit, OnDestroy {
     this.router.navigate(['/agendas']);
   }
 
+  navegarVista(ruta: string) {
+    this.router.navigate([ruta]);
+  }
+
   abrirModalCrearAgenda() {
     this.agendasService.emitirCrearNuevaAgenda();
   }
