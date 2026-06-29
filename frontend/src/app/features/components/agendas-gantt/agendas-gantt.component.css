@@ -1,0 +1,608 @@
+/* ============================================================
+   Barra de filtros + controles unificada
+   ============================================================ */
+
+.gantt-bar-wrapper {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 1rem;
+  justify-content: space-between;
+}
+
+.gantt-bar-filters {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 0.75rem;
+}
+
+.gantt-bar-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 0.75rem;
+}
+
+.filter-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.gantt-controls-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.5rem 0;
+}
+
+.gantt-controls-left {
+  display: flex;
+  align-items: flex-end;
+  gap: 0.75rem;
+}
+
+/* Campo de filtro con label */
+.filter-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.filter-label {
+  font-size: 0.68rem;
+  font-weight: 600;
+  color: #9ca3af;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.filter-input {
+  width: 12rem;
+  height: 2.35rem;
+  padding: 0 0.75rem;
+  font-size: 0.85rem;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.375rem;
+  outline: none;
+  box-sizing: border-box;
+  transition: border-color 0.15s;
+}
+
+.filter-input:focus {
+  border-color: #93c5fd;
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.15);
+}
+
+/* Select override */
+::ng-deep .filter-select {
+  width: 11rem !important;
+  font-size: 0.85rem !important;
+}
+
+/* Toggle de controles */
+.ctrl-toggle {
+  display: flex;
+  background: #f3f4f6;
+  border-radius: 0.5rem;
+  padding: 0.18rem;
+  gap: 0.1rem;
+  height: 2.35rem;
+  box-sizing: border-box;
+  align-items: center;
+}
+
+.ctrl-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.35rem 0.65rem;
+  border: none;
+  background: transparent;
+  border-radius: 0.35rem;
+  cursor: pointer;
+  font-size: 0.78rem;
+  font-weight: 500;
+  color: #6b7280;
+  transition: background 0.15s, color 0.15s;
+  white-space: nowrap;
+  line-height: 1;
+}
+
+.ctrl-btn:hover {
+  background: #e5e7eb;
+  color: #374151;
+}
+
+.ctrl-btn-active {
+  background: #ffffff !important;
+  color: #1f2937 !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+}
+
+.ctrl-btn i {
+  font-size: 0.78rem;
+}
+
+/* Año */
+.ctrl-year {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  background: #f3f4f6;
+  border-radius: 0.5rem;
+  padding: 0.18rem 0.4rem;
+  height: 2.35rem;
+  box-sizing: border-box;
+}
+
+.ctrl-year-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.6rem;
+  height: 1.6rem;
+  border: none;
+  background: transparent;
+  border-radius: 0.3rem;
+  cursor: pointer;
+  color: #6b7280;
+  transition: background 0.15s, color 0.15s;
+}
+
+.ctrl-year-btn:hover {
+  background: #e5e7eb;
+  color: #111827;
+}
+
+.ctrl-year-label {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #111827;
+  min-width: 2.8rem;
+  text-align: center;
+}
+
+/* Botón Limpiar */
+.ctrl-clear-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.45rem 0.9rem;
+  border: 1px solid #e5e7eb;
+  background: #ffffff;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: #6b7280;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+  white-space: nowrap;
+}
+
+.ctrl-clear-btn:hover {
+  background: #f9fafb;
+  color: #374151;
+  border-color: #d1d5db;
+}
+
+.ctrl-pdf-btn {
+  color: #dc2626;
+  border-color: #fecaca;
+}
+
+.ctrl-pdf-btn:hover {
+  background: #fef2f2;
+  color: #b91c1c;
+  border-color: #fca5a5;
+}
+
+/* Leyenda — fuera de la card, arriba del diagrama, alineada a la derecha */
+.gantt-legend-bar {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 1.25rem;
+  flex-wrap: wrap;
+  padding: 0;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+}
+
+.legend-dot {
+  width: 0.55rem;
+  height: 0.55rem;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.legend-text {
+  font-size: 0.78rem;
+  color: #6b7280;
+}
+
+/* ============================================================
+   Gantt — contenedor principal
+   ============================================================ */
+
+.gantt-outer {
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.75rem;
+  overflow: hidden;
+  box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.07);
+}
+
+.gantt-scroll-wrapper {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.gantt-table {
+  min-width: 720px;
+  width: 100%;
+  position: relative;
+}
+
+/* ============================================================
+   Gantt — filas
+   ============================================================ */
+
+.gantt-row {
+  display: flex;
+  align-items: stretch;
+  border-bottom: 1px solid #f3f4f6;
+}
+
+.gantt-row:last-child {
+  border-bottom: none;
+}
+
+/* Fila de cabecera */
+.gantt-header-row {
+  background: #f9fafb;
+  border-bottom: 2px solid #e5e7eb !important;
+  height: 2.75rem;
+}
+
+/* Fila de datos */
+.gantt-data-row {
+  height: 3.25rem;
+  cursor: pointer;
+  transition: background 0.1s;
+}
+
+.gantt-data-row:hover {
+  background: #f0f9ff;
+}
+
+.gantt-row-odd {
+  background: #fafafa;
+}
+
+.gantt-row-odd:hover {
+  background: #f0f9ff;
+}
+
+.gantt-row-completed {
+  opacity: 0.65;
+}
+
+/* ============================================================
+   Gantt — columna izquierda (sticky)
+   ============================================================ */
+
+.gantt-label-col {
+  width: 190px;
+  min-width: 190px;
+  flex-shrink: 0;
+  position: sticky;
+  left: 0;
+  z-index: 10;
+  background: #ffffff;
+  border-right: 2px solid #e5e7eb;
+  padding: 0 0.875rem;
+  display: flex;
+  align-items: center;
+}
+
+.gantt-label-odd {
+  background: #fafafa;
+}
+
+.gantt-header-row .gantt-label-col {
+  background: #f9fafb;
+}
+
+.header-label-text {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #374151;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+/* Task info */
+.task-name-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-width: 0;
+  width: 100%;
+}
+
+.task-dot {
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.task-info {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.task-title {
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: #1f2937;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.task-sub {
+  font-size: 0.68rem;
+  color: #9ca3af;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ============================================================
+   Gantt — columna de timeline
+   ============================================================ */
+
+.gantt-timeline-col {
+  flex: 1;
+  position: relative;
+  min-width: 0;
+  overflow: hidden;
+}
+
+/* Celdas de meses en cabecera */
+.gantt-month-cell {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: #374151;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  border-right: 1px solid #e5e7eb;
+  box-sizing: border-box;
+}
+
+.gantt-month-alt {
+  background: #f3f4f6;
+}
+
+/* Fondo alternado de meses en filas de datos */
+.gantt-bg-cell {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  border-right: 1px solid #f0f0f0;
+  box-sizing: border-box;
+}
+
+.gantt-bg-alt {
+  background: rgba(0, 0, 0, 0.018);
+}
+
+/* ============================================================
+   Gantt — barra de tarea
+   ============================================================ */
+
+.gantt-bar {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  height: 52%;
+  min-height: 1.1rem;
+  border-radius: 0.3rem;
+  display: flex;
+  align-items: center;
+  overflow: hidden;
+  transition: filter 0.15s, box-shadow 0.15s;
+  cursor: pointer;
+  z-index: 2;
+  box-sizing: border-box;
+}
+
+.gantt-bar:hover {
+  filter: brightness(1.06);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.18);
+  z-index: 3;
+}
+
+.bar-label {
+  font-size: 0.65rem;
+  font-weight: 500;
+  color: #ffffff;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  padding: 0 0.4rem;
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+
+.gantt-bar:hover .bar-label {
+  opacity: 1;
+}
+
+/* Colores de barra por estado */
+.bar-pendiente {
+  background: linear-gradient(90deg, #f87171 0%, #ef4444 100%);
+  border: 1px solid #dc2626;
+}
+
+.bar-en-progreso {
+  background: linear-gradient(90deg, #60a5fa 0%, #3b82f6 100%);
+  border: 1px solid #2563eb;
+}
+
+.bar-completada {
+  background: linear-gradient(90deg, #4ade80 0%, #22c55e 100%);
+  border: 1px solid #16a34a;
+}
+
+/* ============================================================
+   Gantt — colores de dot (estado)
+   ============================================================ */
+
+.dot-pendiente   { background-color: #ef4444; }
+.dot-en-progreso { background-color: #3b82f6; }
+.dot-completada  { background-color: #22c55e; }
+
+/* ============================================================
+   Gantt — línea de hoy
+   ============================================================ */
+
+.today-line {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: #f59e0b;
+  z-index: 4;
+  opacity: 0.85;
+}
+
+.today-label {
+  position: absolute;
+  top: -1.1rem;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 0.6rem;
+  font-weight: 700;
+  color: #d97706;
+  white-space: nowrap;
+  background: #fffbeb;
+  padding: 0.05rem 0.25rem;
+  border-radius: 0.2rem;
+  display: none;
+}
+
+.gantt-header-row .today-line .today-label {
+  display: block;
+}
+
+/* ============================================================
+   Gantt — badge sin fechas
+   ============================================================ */
+
+.no-date-badge {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 0.68rem;
+  color: #d1d5db;
+  font-style: italic;
+  pointer-events: none;
+}
+
+/* ============================================================
+   Gantt — estados vacío/carga
+   ============================================================ */
+
+.gantt-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 4rem 1rem;
+  color: #9ca3af;
+}
+
+/* ============================================================
+   Gantt — vista semanal
+   ============================================================ */
+
+/* En modo semana: sin scroll, 7 columnas caben en el ancho disponible */
+.gantt-week-mode {
+  min-width: 0;
+}
+
+.gantt-week-mode .gantt-month-cell {
+  font-size: 0.68rem;
+  letter-spacing: 0;
+  text-transform: none;
+  font-weight: 600;
+  color: #374151;
+}
+
+/* ============================================================
+   Gantt — footer
+   ============================================================ */
+
+.gantt-footer {
+  margin-top: 0.5rem;
+  text-align: right;
+  font-size: 0.75rem;
+  color: #9ca3af;
+  padding-right: 0.25rem;
+}
+
+/* ============================================================
+   Responsivo
+   ============================================================ */
+
+@media (max-width: 768px) {
+  .gantt-controls {
+    gap: 0.75rem;
+  }
+
+  .toggle-label {
+    display: none;
+  }
+
+  .gantt-legend {
+    gap: 0.75rem;
+  }
+
+  .legend-text {
+    font-size: 0.72rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .gantt-label-col {
+    width: 120px;
+    min-width: 120px;
+    padding: 0 0.5rem;
+  }
+
+  .task-title {
+    font-size: 0.72rem;
+  }
+
+  .task-sub {
+    display: none;
+  }
+}

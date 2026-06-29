@@ -1,0 +1,229 @@
+<p-toast position="bottom-right"></p-toast>
+
+<!-- ============================================================
+     Barra de filtros y controles unificada
+     ============================================================ -->
+<div class="bg-white rounded-lg shadow-sm border border-gray-100 p-4 mb-1">
+
+  <!-- Fila 1: filtros + acciones -->
+  <div class="gantt-bar-wrapper">
+
+    <div class="gantt-bar-filters">
+      <div class="filter-field">
+        <label class="filter-label">Buscar</label>
+        <input
+          pInputText
+          [value]="searchValue()"
+          (input)="onSearchInput($event)"
+          placeholder="Por título o descripción"
+          class="filter-input" />
+      </div>
+
+      <div class="filter-field">
+        <label class="filter-label">Estado</label>
+        <p-select
+          [ngModel]="estadoSeleccionado()"
+          (ngModelChange)="onEstadoChange($event)"
+          [options]="estadosOptions"
+          optionLabel="label"
+          optionValue="value"
+          placeholder="Todos"
+          [showClear]="true"
+          appendTo="body"
+          styleClass="filter-select">
+        </p-select>
+      </div>
+
+      <div class="filter-field">
+        <label class="filter-label">Visualización</label>
+        <div class="ctrl-toggle">
+          <button class="ctrl-btn" (click)="navegarALista()">
+            <i class="pi pi-list"></i>
+            <span>Lista</span>
+          </button>
+          <button class="ctrl-btn ctrl-btn-active">
+            <i class="pi pi-chart-bar"></i>
+            <span>Gantt</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div class="filter-actions">
+      <p-button label="Limpiar" icon="pi pi-times" severity="secondary" (onClick)="onClearFilters()"></p-button>
+      <p-button label="Exportar PDF" icon="pi pi-file-pdf" severity="success" (onClick)="exportarPDF()"></p-button>
+    </div>
+
+  </div>
+
+
+</div>
+
+<!-- Controles gantt: fuera de la barra de filtros -->
+<div class="gantt-controls-row">
+  <div class="gantt-controls-left">
+    <div class="filter-field">
+      <label class="filter-label">Vista</label>
+      <div class="ctrl-toggle">
+        <button class="ctrl-btn" [class.ctrl-btn-active]="viewMode() === 'month'" (click)="toggleViewMode('month')">
+          <i class="pi pi-calendar"></i>
+          <span>Mensual</span>
+        </button>
+        <button class="ctrl-btn" [class.ctrl-btn-active]="viewMode() === 'week'" (click)="toggleViewMode('week')">
+          <i class="pi pi-calendar-times"></i>
+          <span>Semanal</span>
+        </button>
+      </div>
+    </div>
+
+    <div class="filter-field">
+      <label class="filter-label">Año</label>
+      <div class="ctrl-year">
+        <button class="ctrl-year-btn" (click)="prevYear()"><i class="pi pi-chevron-left"></i></button>
+        <span class="ctrl-year-label">{{ yearSelected() }}</span>
+        <button class="ctrl-year-btn" (click)="nextYear()"><i class="pi pi-chevron-right"></i></button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Leyenda en la misma fila, alineada a la derecha -->
+  <div class="gantt-legend-bar">
+    <span class="legend-item">
+      <span class="legend-dot dot-pendiente"></span>
+      <span class="legend-text">Pendiente ({{ resumen().pendiente }})</span>
+    </span>
+    <span class="legend-item">
+      <span class="legend-dot dot-en-progreso"></span>
+      <span class="legend-text">En Progreso ({{ resumen().enProgreso }})</span>
+    </span>
+    <span class="legend-item">
+      <span class="legend-dot dot-completada"></span>
+      <span class="legend-text">Completada ({{ resumen().completada }})</span>
+    </span>
+  </div>
+</div>
+
+<!-- ============================================================
+     Tabla Gantt
+     ============================================================ -->
+<div class="gantt-outer">
+
+  @if (!datosCargados()) {
+    <div class="gantt-empty">
+      <i class="pi pi-spin pi-spinner text-2xl"></i>
+      <span>Cargando agendas...</span>
+    </div>
+  } @else if (ganttRows().length === 0) {
+    <div class="gantt-empty">
+      <i class="pi pi-calendar text-4xl mb-2 text-gray-300"></i>
+      <p class="text-gray-500 font-medium">No hay agendas para mostrar</p>
+      <p class="text-gray-400 text-sm">Cambia los filtros o crea una nueva agenda</p>
+    </div>
+  } @else {
+    <div class="gantt-scroll-wrapper">
+      <div class="gantt-table" [class.gantt-week-mode]="viewMode() === 'week'">
+
+        <!-- Cabecera -->
+        <div class="gantt-row gantt-header-row">
+          <div class="gantt-label-col">
+            <span class="header-label-text">Tarea</span>
+          </div>
+          <div class="gantt-timeline-col">
+            @if (viewMode() === 'month') {
+              @for (month of months(); track month.index) {
+                <div
+                  class="gantt-month-cell"
+                  [class.gantt-month-alt]="month.index % 2 === 1"
+                  [style.left.%]="month.left"
+                  [style.width.%]="month.width">
+                  {{ month.name }}
+                </div>
+              }
+            } @else {
+              @for (day of days(); track $index) {
+                <div
+                  class="gantt-month-cell"
+                  [class.gantt-month-alt]="$index % 2 === 1"
+                  [style.left.%]="day.left"
+                  [style.width.%]="day.width">
+                  {{ day.label }}
+                </div>
+              }
+            }
+          </div>
+        </div>
+
+        <!-- Filas de datos -->
+        @for (row of ganttRows(); track row.agenda.id; let odd = $odd) {
+          <div
+            class="gantt-row gantt-data-row"
+            [class.gantt-row-odd]="odd"
+            [class.gantt-row-completed]="row.agenda.estado === 'COMPLETADA'"
+            (click)="abrirModalDetalle(row.agenda)">
+
+            <div class="gantt-label-col" [class.gantt-label-odd]="odd">
+              <div class="task-name-wrapper">
+                <span class="task-dot" [ngClass]="getDotClass(row.agenda.estado)"></span>
+                <div class="task-info">
+                  <span class="task-title" [title]="row.agenda.titulo">{{ row.agenda.titulo }}</span>
+                  @if (row.obraNombre) {
+                    <span class="task-sub">{{ row.obraNombre }}</span>
+                  }
+                </div>
+              </div>
+            </div>
+
+            <div class="gantt-timeline-col">
+              @if (viewMode() === 'month') {
+                @for (month of months(); track month.index) {
+                  <div class="gantt-bg-cell" [class.gantt-bg-alt]="month.index % 2 === 1"
+                    [style.left.%]="month.left" [style.width.%]="month.width"></div>
+                }
+              } @else {
+                @for (day of days(); track $index) {
+                  <div class="gantt-bg-cell" [class.gantt-bg-alt]="$index % 2 === 1"
+                    [style.left.%]="day.left" [style.width.%]="day.width"></div>
+                }
+              }
+
+              @if (todayPercent() >= 0) {
+                <div class="today-line" [style.left.%]="todayPercent()">
+                  <span class="today-label">Hoy</span>
+                </div>
+              }
+
+              @if (row.hasBar) {
+                <div
+                  class="gantt-bar"
+                  [ngClass]="getBarClass(row.agenda.estado)"
+                  [style.left.%]="row.startPercent"
+                  [style.width.%]="row.widthPercent"
+                  [title]="row.tooltipText">
+                  <span class="bar-label">{{ row.agenda.titulo }}</span>
+                </div>
+              } @else {
+                <div class="no-date-badge">Sin fechas</div>
+              }
+            </div>
+          </div>
+        }
+
+      </div>
+    </div>
+  }
+
+</div>
+
+@if (datosCargados() && ganttRows().length > 0) {
+  <div class="gantt-footer">
+    <span>{{ resumen().total }} tarea{{ resumen().total !== 1 ? 's' : '' }} — {{ yearSelected() }} — vista {{ viewMode() === 'month' ? 'mensual' : 'semanal' }}</span>
+  </div>
+}
+
+<app-agenda-modal
+  [visible]="mostrarModal()"
+  [agenda]="agendaSeleccionada()"
+  (onClose)="cerrarModal()"
+  (onGuardada)="onAgendaGuardada($event)"
+  (onEliminada)="onAgendaEliminada($event)">
+</app-agenda-modal>
