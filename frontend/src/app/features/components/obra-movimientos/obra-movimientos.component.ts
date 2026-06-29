@@ -58,6 +58,9 @@ export class ObraMovimientosComponent implements OnInit {
   modoEdicion = false;
   showDetalleMovimientoModal = false;
   movimientoDetalle?: Transaccion;
+  showSaldosPendientesModal = false;
+  guardandoMovimiento = false;
+  private volverASaldos = false;
 
   nuevoMovimiento: Transaccion = {
     id_obra: this.obraId,
@@ -124,6 +127,54 @@ export class ObraMovimientosComponent implements OnInit {
 
   get saldoProveedorResumen(): number {
     return this.totalProveedores - this.totalPagos;
+  }
+
+  get saldosPorProveedor(): { id: number; nombre: string; totalCosto: number; totalPagado: number; saldoPendiente: number }[] {
+    return this.proveedoresDeObra()
+      .map(p => {
+        const proveedorId = Number(p.id);
+        const totalCosto = (this.costosObra || []).reduce((acc, c) => {
+          const id = Number((c as any)?.id_proveedor ?? (c as any)?.proveedor?.id ?? 0);
+          if (id !== proveedorId) return acc;
+          return acc + this.getMontoBaseCosto(c);
+        }, 0);
+        const totalPagado = this.transacciones
+          .filter(t => (t.tipo_asociado || '').toUpperCase() === 'PROVEEDOR')
+          .filter(t => Number(t.id_asociado) === proveedorId)
+          .filter(t => this.tipoValue(t) === 'PAGO')
+          .reduce((acc, t) => acc + (t.monto || 0), 0);
+        return { id: proveedorId, nombre: p.nombre, totalCosto, totalPagado, saldoPendiente: totalCosto - totalPagado };
+      })
+      .filter(r => r.totalCosto > 0);
+  }
+
+  abrirSaldosPendientes(): void {
+    this.showSaldosPendientesModal = true;
+  }
+
+  pagarDesdeRastreo(fila: { id: number; nombre: string; saldoPendiente: number }): void {
+    this.volverASaldos = true;
+    this.showSaldosPendientesModal = false;
+    this.costosService.getByObra(this.obraId).subscribe(costos => {
+      this.costosObra = costos || [];
+      this.modoEdicion = false;
+      this.tipoEntidad = 'PROVEEDOR';
+      this.selectedProveedor = this.proveedores.find(p => Number(p.id) === fila.id) || null;
+      this.nuevoMovimiento = {
+        id_obra: this.obraId,
+        tipo_transaccion: 'PAGO',
+        fecha: new Date(),
+        monto: fila.saldoPendiente,
+        forma_pago: 'TOTAL',
+        medio_pago: 'Transferencia',
+        factura_cobrada: false,
+        activo: true,
+        id_asociado: fila.id,
+        tipo_asociado: 'PROVEEDOR',
+        concepto: ''
+      };
+      this.showAddMovementModal = true;
+    });
   }
 
   get saldo(): number {
@@ -419,6 +470,10 @@ export class ObraMovimientosComponent implements OnInit {
 
   cerrarModal() {
     this.showAddMovementModal = false;
+    if (this.volverASaldos) {
+      this.volverASaldos = false;
+      this.showSaldosPendientesModal = true;
+    }
   }
 
   guardarMovimiento() {
@@ -460,6 +515,7 @@ export class ObraMovimientosComponent implements OnInit {
       ? this.transaccionesService.update(mov.id!, mov)
       : this.transaccionesService.create(mov);
 
+    this.guardandoMovimiento = true;
     action.subscribe({
         next: (resp) => {
           const movGuardado = this.normalizarTransaccion(resp);
@@ -471,10 +527,15 @@ export class ObraMovimientosComponent implements OnInit {
             this.transacciones = [movGuardado, ...this.transacciones];
           }
 
+          this.guardandoMovimiento = false;
           this.refrescarCostosObra();
           this.movimientosActualizados.emit();
 
           this.showAddMovementModal = false;
+          if (this.volverASaldos) {
+            this.volverASaldos = false;
+            this.showSaldosPendientesModal = true;
+          }
           this.messageService.add({
             severity: 'success',
             summary: 'Movimiento creado con éxito',
@@ -482,6 +543,7 @@ export class ObraMovimientosComponent implements OnInit {
         });
       },
       error: () => {
+        this.guardandoMovimiento = false;
         this.messageService.add({
           severity: 'error',
           summary: 'Error',
@@ -501,8 +563,10 @@ export class ObraMovimientosComponent implements OnInit {
       acceptButtonStyleClass: 'p-button-danger p-button-sm',
       rejectButtonStyleClass: 'p-button-text p-button-sm',
         accept: () => {
+          this.guardandoMovimiento = true;
           this.transaccionesService.delete(t.id!).subscribe({
             next: () => {
+              this.guardandoMovimiento = false;
               this.cargarDatos();
               if (this.movimientoDetalle?.id === t.id) {
                 this.cerrarDetalleMovimiento();
@@ -515,6 +579,7 @@ export class ObraMovimientosComponent implements OnInit {
             });
           },
           error: () => {
+            this.guardandoMovimiento = false;
             this.messageService.add({
               severity: 'error',
               summary: 'Error',

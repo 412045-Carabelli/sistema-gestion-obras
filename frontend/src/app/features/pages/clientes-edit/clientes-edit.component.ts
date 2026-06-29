@@ -24,6 +24,7 @@ export class ClientesEditComponent implements OnInit {
   form!: FormGroup;
   clienteId!: number;
   loading = true;
+  guardando = false;
   ivaOptions: { label: string; name: string }[] = [];
 
   constructor(
@@ -69,13 +70,15 @@ export class ClientesEditComponent implements OnInit {
   }
 
   onSubmit() {
-    if (this.form.invalid) return;
+    if (this.form.invalid || this.guardando) return;
 
     const data: Cliente = this.form.value;
     if (data.telefono) data.telefono = this.normalizarTelefono(data.telefono);
 
+    this.guardando = true;
     this.clientesService.updateCliente(this.clienteId, data).subscribe({
       next: () => {
+        this.guardando = false;
         this.messageService.add({
           severity: 'success',
           summary: 'Cliente actualizado',
@@ -88,6 +91,7 @@ export class ClientesEditComponent implements OnInit {
         }, 1000);
       },
       error: () => {
+        this.guardando = false;
         this.messageService.add({
           severity: 'error',
           summary: 'Error',

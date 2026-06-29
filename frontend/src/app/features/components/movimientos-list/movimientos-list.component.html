@@ -131,6 +131,8 @@
     [title]="isViewMode ? 'Ver movimiento' : (modoEdicion ? 'Editar movimiento' : 'Nuevo movimiento')"
     [visible]="showModal"
     [showFooter]="!isViewMode"
+    [confirmLoading]="guardandoMovimiento"
+    [confirmDisabled]="guardandoMovimiento"
   >
     <div class="p-3 space-y-3">
 

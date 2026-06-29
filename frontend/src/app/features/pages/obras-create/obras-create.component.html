@@ -357,7 +357,8 @@
       ></p-button>
 
       <p-button
-        [disabled]="form.invalid"
+        [disabled]="form.invalid || guardando"
+        [loading]="guardando"
         icon="pi pi-save"
         label="Guardar Obra"
         styleClass="p-button-lg"

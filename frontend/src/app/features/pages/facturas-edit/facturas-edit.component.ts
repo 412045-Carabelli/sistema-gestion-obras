@@ -50,6 +50,7 @@ export class FacturasEditComponent implements OnInit {
   obrasFiltradas: Obra[] = [];
   selectedFile: File | null = null;
   loading = true;
+  guardando = false;
   restanteObra: number | null = null;
   estadoOptions = [
     {label: 'Emitida', value: 'EMITIDA'},
@@ -168,7 +169,7 @@ export class FacturasEditComponent implements OnInit {
   }
 
   onSubmit() {
-    if (this.form.invalid) {
+    if (this.form.invalid || this.guardando) {
       this.form.markAllAsTouched();
       return;
     }
@@ -202,8 +203,10 @@ export class FacturasEditComponent implements OnInit {
       impacta_cta_cte: !!raw.impacta_cta_cte
     };
 
+    this.guardando = true;
     this.facturasService.updateFactura(this.facturaId, payload, this.selectedFile).subscribe({
       next: () => {
+        this.guardando = false;
         this.messageService.add({
           severity: 'success',
           summary: 'Factura actualizada',
@@ -212,6 +215,7 @@ export class FacturasEditComponent implements OnInit {
         this.router.navigate(['/facturas', this.facturaId]);
       },
       error: (err: any) => {
+        this.guardando = false;
         this.messageService.add({
           severity: 'error',
           summary: 'Error',
