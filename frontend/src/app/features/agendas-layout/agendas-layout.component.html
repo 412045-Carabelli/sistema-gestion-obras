@@ -9,7 +9,7 @@
           <button
             class="view-toggle-btn"
             [class.active]="currentRoute === '/agendas'"
-            (click)="navegarVista('/agendas')"
+            routerLink="/agendas"
             pTooltip="Vista Lista" tooltipPosition="bottom">
             <i class="pi pi-list"></i>
             <span class="toggle-label">Lista</span>
@@ -17,7 +17,7 @@
           <button
             class="view-toggle-btn"
             [class.active]="currentRoute === '/agendas/gantt'"
-            (click)="navegarVista('/agendas/gantt')"
+            routerLink="/agendas/gantt"
             pTooltip="Vista Gantt" tooltipPosition="bottom">
             <i class="pi pi-chart-bar"></i>
             <span class="toggle-label">Gantt</span>
