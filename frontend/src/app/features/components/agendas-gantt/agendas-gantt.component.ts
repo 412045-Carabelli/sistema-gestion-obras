@@ -1,4 +1,4 @@
-import {Component, OnInit, OnDestroy, signal, computed, inject, ElementRef} from '@angular/core';
+import {Component, OnInit, OnDestroy, signal, computed, inject, ElementRef, Input, Output, EventEmitter} from '@angular/core';
 import {CommonModule} from '@angular/common';
 import {FormsModule} from '@angular/forms';
 import {Router} from '@angular/router';
@@ -51,6 +51,9 @@ const MONTH_NAMES_SHORT = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago
   styleUrls: ['./agendas-gantt.component.css']
 })
 export class AgendasGanttComponent implements OnInit, OnDestroy {
+  @Input() modoEmbebido = false;
+  @Output() volverALista = new EventEmitter<void>();
+
   private agendasService = inject(AgendasService);
   private obrasService = inject(ObrasService);
   private clientesService = inject(ClientesService);
@@ -277,7 +280,13 @@ export class AgendasGanttComponent implements OnInit, OnDestroy {
 
   prevYear() {this.yearSelected.update(y => y - 1);}
   nextYear() {this.yearSelected.update(y => y + 1);}
-  navegarALista() {this.router.navigate(['/agendas']);}
+  navegarALista() {
+    if (this.modoEmbebido) {
+      this.volverALista.emit();
+    } else {
+      this.router.navigate(['/agendas']);
+    }
+  }
   toggleViewMode(mode: 'month' | 'week') {this.viewMode.set(mode);}
 
   abrirModalCrear() {

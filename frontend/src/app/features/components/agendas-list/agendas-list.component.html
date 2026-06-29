@@ -12,7 +12,7 @@
     ></app-generic-filter-bar>
 
     @if (vistaActual() === 'gantt') {
-      <app-agendas-gantt></app-agendas-gantt>
+      <app-agendas-gantt [modoEmbebido]="true" (volverALista)="vistaActual.set('lista')"></app-agendas-gantt>
     } @else {
 
     <!-- Tabla (tablet/desktop) -->
