@@ -52,7 +52,7 @@ export interface ViewToggleOption {
 export class GenericFilterBarComponent implements OnInit, OnDestroy, OnChanges {
   @Input() filterDefinitions: FilterDefinition[] = [];
   @Input() actions: FilterAction[] = [];
-  @Input() viewToggle?: { activeRoute: string; options: ViewToggleOption[] };
+  @Input() viewToggle?: { options: ViewToggleOption[] };
   @Output() filterChange = new EventEmitter<Record<string, any>>();
   @Output() clearFilters = new EventEmitter<void>();
 
