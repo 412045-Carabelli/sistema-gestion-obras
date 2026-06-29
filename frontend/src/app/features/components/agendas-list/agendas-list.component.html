@@ -1,14 +1,62 @@
 <p-toast position="bottom-right"></p-toast>
 
+<!-- Barra de filtros: siempre visible, fuera del defer -->
+<div class="bg-white rounded-lg shadow-sm border border-gray-100 p-4 mb-4">
+      <div class="gantt-bar-wrapper">
+
+        <!-- Izquierda: filtros + visualización -->
+        <div class="gantt-bar-filters">
+          <div class="filter-field">
+            <label class="filter-label">Buscar</label>
+            <input
+              pInputText
+              [value]="searchValue()"
+              (input)="onSearchInput($event)"
+              placeholder="Por título o descripción"
+              class="filter-input" />
+          </div>
+          <div class="filter-field">
+            <label class="filter-label">Estado</label>
+            <p-select
+              [ngModel]="estadoSeleccionado()"
+              (ngModelChange)="onEstadoChange($event)"
+              [options]="estadosSelectOptions"
+              optionLabel="label"
+              optionValue="value"
+              placeholder="Todos"
+              [showClear]="true"
+              appendTo="body"
+              styleClass="filter-select">
+            </p-select>
+          </div>
+          <div class="filter-field">
+            <label class="filter-label">Visualización</label>
+            <div class="ctrl-toggle">
+              <button class="ctrl-btn ctrl-btn-active">
+                <i class="pi pi-list"></i>
+                <span>Lista</span>
+              </button>
+              <button class="ctrl-btn" routerLink="/agendas/gantt">
+                <i class="pi pi-chart-bar"></i>
+                <span>Gantt</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Derecha: acciones -->
+        <div class="gantt-bar-controls">
+          <div class="filter-actions">
+            <p-button label="Limpiar" icon="pi pi-times" severity="secondary" (onClick)="onClearFilters()"></p-button>
+            <p-button label="Exportar PDF" icon="pi pi-file-pdf" severity="success" (onClick)="exportarPDF()"></p-button>
+          </div>
+        </div>
+
+      </div>
+</div>
+
 @defer (when datosCargados(); on interaction; prefetch on timer(2s)) {
   <div class="flex flex-col gap-4">
-    <!-- Filtros - Generic Filter Bar -->
-    <app-generic-filter-bar
-      [filterDefinitions]="filterDefinitions"
-      [actions]="filterActions"
-      (filterChange)="onFilterChange($event)"
-      (clearFilters)="onClearFilters()"
-    ></app-generic-filter-bar>
 
     <!-- Tabla (tablet/desktop) -->
     <div class="hidden lg:block bg-white rounded-lg border border-gray-200 overflow-hidden">

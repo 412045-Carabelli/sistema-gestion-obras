@@ -3,9 +3,8 @@ import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import {CommonModule} from '@angular/common';
 import {FormsModule} from '@angular/forms';
-import {ActivatedRoute} from '@angular/router';
+import {ActivatedRoute, Router, RouterLink} from '@angular/router';
 import {Subscription} from 'rxjs';
-import {RouterLink} from '@angular/router';
 import {TableModule} from 'primeng/table';
 import {InputTextModule} from 'primeng/inputtext';
 import {MultiSelectModule} from 'primeng/multiselect';
@@ -17,7 +16,7 @@ import {MessageService} from 'primeng/api';
 import {ToastModule} from 'primeng/toast';
 import {DialogModule} from 'primeng/dialog';
 import {InputTextarea} from 'primeng/inputtextarea';
-import {DropdownModule} from 'primeng/dropdown';
+import {SelectModule} from 'primeng/select';
 import {TooltipModule} from 'primeng/tooltip';
 
 import {Agenda, ESTADOS_AGENDA_OPCIONES, Obra, Cliente, Proveedor} from '../../../core/models/models';
@@ -28,7 +27,6 @@ import {ClientesService} from '../../../services/clientes/clientes.service';
 import {ProveedoresService} from '../../../services/proveedores/proveedores.service';
 import {WhatsAppService} from '../../../services/whatsapp/whatsapp.service';
 import {AgendaModalComponent} from './agenda-modal/agenda-modal.component';
-import {GenericFilterBarComponent, FilterDefinition, FilterAction} from '../generic-filter-bar/generic-filter-bar.component';
 
 interface EstadoOption {
   label: string;
@@ -49,13 +47,12 @@ interface EstadoOption {
     InputIconModule,
     ButtonModule,
     ToastModule,
-    RouterLink,
     DialogModule,
     InputTextarea,
-    DropdownModule,
     TooltipModule,
     AgendaModalComponent,
-    GenericFilterBarComponent
+    SelectModule,
+    RouterLink
   ],
   providers: [MessageService],
   templateUrl: './agendas-list.component.html',
@@ -70,8 +67,10 @@ export class AgendasListComponent implements OnInit, OnDestroy {
   private proveedoresService = inject(ProveedoresService);
   private whatsAppService = inject(WhatsAppService);
   private route = inject(ActivatedRoute);
+  private router = inject(Router);
 
   enviandoWhatsApp = false;
+  readonly currentYear = new Date().getFullYear();
   private subscription = new Subscription();
 
   // Signals
@@ -85,10 +84,8 @@ export class AgendasListComponent implements OnInit, OnDestroy {
   clientes = signal<Cliente[]>([]);
   proveedores = signal<Proveedor[]>([]);
 
-  // Filter Bar
-  filterDefinitions: FilterDefinition[] = [];
-  filterActions: FilterAction[] = [];
-  currentFilters: Record<string, any> = {};
+  estadoSeleccionado = signal<string | null>(null);
+  readonly estadosSelectOptions = ESTADOS_AGENDA_OPCIONES.map(e => ({label: e.label, value: e.name}));
 
   // Computed
   agendasFiltradas = computed(() => {
@@ -112,10 +109,7 @@ export class AgendasListComponent implements OnInit, OnDestroy {
     });
   });
 
-  estadosOptions: EstadoOption[] = ESTADOS_AGENDA_OPCIONES;
-
   ngOnInit() {
-    this.setupFilterDefinitions();
     this.cargarDatos();
     this.subscription.add(
       this.agendasService.crearNuevaAgenda$.subscribe(() => {
@@ -128,55 +122,18 @@ export class AgendasListComponent implements OnInit, OnDestroy {
     this.subscription.unsubscribe();
   }
 
-  private setupFilterDefinitions(): void {
-    this.filterActions = [
-      {
-        label: 'Exportar PDF',
-        icon: 'pi pi-file-pdf',
-        severity: 'danger',
-        callback: () => this.exportarPDF()
-      },
-      // TODO: WhatsApp deshabilitado temporalmente
-      // {
-      //   label: 'WhatsApp (24h)',
-      //   icon: 'pi pi-whatsapp',
-      //   severity: 'success',
-      //   callback: () => this.triggerWhatsApp24h()
-      // },
-      // {
-      //   label: 'Resumen semanal',
-      //   icon: 'pi pi-calendar',
-      //   severity: 'info',
-      //   callback: () => this.triggerResumenSemanal()
-      // }
-    ];
-
-    this.filterDefinitions = [
-      {
-        key: 'search',
-        label: 'Buscar',
-        type: 'input',
-        placeholder: 'Por título o descripción'
-      },
-      {
-        key: 'estado',
-        label: 'Estado',
-        type: 'select',
-        placeholder: 'Todos',
-        options: ESTADOS_AGENDA_OPCIONES.map(e => ({ label: e.label, value: e.name }))
-      }
-    ];
+  onSearchInput(event: Event) {
+    this.searchValue.set((event.target as HTMLInputElement).value);
   }
 
-  onFilterChange(filters: Record<string, any>): void {
-    this.currentFilters = filters;
-    this.searchValue.set(filters['search'] || '');
-    this.estadoFiltro.set(filters['estado'] ? (Array.isArray(filters['estado']) ? filters['estado'] : [filters['estado']]) : []);
+  onEstadoChange(value: string | null) {
+    this.estadoSeleccionado.set(value);
+    this.estadoFiltro.set(value ? [value] : []);
   }
 
   onClearFilters(): void {
-    this.currentFilters = {};
     this.searchValue.set('');
+    this.estadoSeleccionado.set(null);
     this.estadoFiltro.set([]);
   }
 
@@ -312,6 +269,10 @@ export class AgendasListComponent implements OnInit, OnDestroy {
     if (!proveedorId) return 'N/A';
     const proveedor = this.proveedores().find(p => p.id === proveedorId);
     return proveedor?.nombre || 'N/A';
+  }
+
+  navegarAGantt() {
+    this.router.navigateByUrl('/agendas/gantt');
   }
 
   exportarPDF() {
