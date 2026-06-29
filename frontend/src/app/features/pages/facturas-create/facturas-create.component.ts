@@ -48,6 +48,7 @@ export class FacturasCreateComponent implements OnInit {
   selectedFile: File | null = null;
   restanteObra: number | null = null;
   montoSugerido: number | null = null;
+  guardando = false;
   estadoOptions = [
     {label: 'Emitida', value: 'EMITIDA'},
     {label: 'Cobrada', value: 'COBRADA'}
@@ -127,7 +128,7 @@ export class FacturasCreateComponent implements OnInit {
   }
 
   onSubmit() {
-    if (this.form.invalid) {
+    if (this.form.invalid || this.guardando) {
       this.form.markAllAsTouched();
       return;
     }
@@ -163,8 +164,10 @@ export class FacturasCreateComponent implements OnInit {
       impacta_cta_cte: !!raw.impacta_cta_cte
     };
 
+    this.guardando = true;
     this.facturasService.createFactura(payload, this.selectedFile).subscribe({
       next: (factura) => {
+        this.guardando = false;
         this.messageService.add({
           severity: 'success',
           summary: 'Factura creada',
@@ -173,6 +176,7 @@ export class FacturasCreateComponent implements OnInit {
         this.router.navigate(['/facturas', factura.id]);
       },
       error: (err) => {
+        this.guardando = false;
         this.messageService.add({
           severity: 'error',
           summary: 'Error',

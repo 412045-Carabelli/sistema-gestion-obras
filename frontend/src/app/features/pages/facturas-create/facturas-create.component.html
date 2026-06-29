@@ -149,7 +149,7 @@
 
     <div class="flex justify-end gap-3">
       <p-button label="Volver" icon="pi pi-arrow-left" styleClass="p-button-text" routerLink="/facturas"></p-button>
-      <p-button type="submit" label="Guardar factura" icon="pi pi-save" styleClass="p-button-primary"></p-button>
+      <p-button type="submit" label="Guardar factura" icon="pi pi-save" styleClass="p-button-primary" [loading]="guardando" [disabled]="guardando"></p-button>
     </div>
   </form>
 </div>

@@ -131,6 +131,8 @@
   (confirmed)="guardarMovimientoRapido()"
   [title]="'Nuevo movimiento'"
   [visible]="showMovimientoModal"
+  [confirmLoading]="guardandoMovimiento"
+  [confirmDisabled]="guardandoMovimiento"
 >
   <div class="p-3 space-y-3">
     <label class="block text-sm font-poppins font-semibold mb-1 text-gray-700">Obra</label>
@@ -253,6 +255,8 @@
   (confirmed)="guardarTareaRapida()"
   [title]="'Nueva tarea'"
   [visible]="showTareaModal"
+  [confirmLoading]="guardandoTarea"
+  [confirmDisabled]="guardandoTarea"
 >
   <div class="p-3 space-y-3">
     <label class="block text-sm font-poppins font-semibold mb-1 text-gray-700">Obra</label>
@@ -311,6 +315,8 @@
   (confirmed)="guardarClienteRapido()"
   [title]="'Nuevo cliente'"
   [visible]="showClienteModal"
+  [confirmLoading]="guardandoCliente"
+  [confirmDisabled]="guardandoCliente"
 >
   <div class="p-3 space-y-3">
     <label class="block text-sm font-poppins font-semibold mb-1 text-gray-700">Nombre</label>
@@ -359,6 +365,8 @@
   (confirmed)="guardarFacturaRapida()"
   [title]="'Nueva factura'"
   [visible]="showFacturaModal"
+  [confirmLoading]="guardandoFactura"
+  [confirmDisabled]="guardandoFactura"
 >
   <div class="p-3 space-y-3">
     <label class="block text-sm font-poppins font-semibold mb-1 text-gray-700">Cliente</label>

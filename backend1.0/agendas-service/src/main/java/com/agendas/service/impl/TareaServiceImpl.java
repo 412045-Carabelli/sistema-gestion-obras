@@ -134,6 +134,7 @@ public class TareaServiceImpl implements TareaService {
         tarea.setProveedorId(request.getProveedorId());
         tarea.setEstado(ESTADOS_VALIDOS.get(request.getEstado().toUpperCase()));
         tarea.setDescripcion(request.getDescripcion());
+        tarea.setFechaInicio(request.getFechaInicio());
         tarea.setFechaVencimiento(request.getFechaVencimiento());
         tarea.setPrioridad(request.getPrioridad() != null ? request.getPrioridad().toUpperCase() : "MEDIA");
         return tarea;
@@ -146,6 +147,7 @@ public class TareaServiceImpl implements TareaService {
         tarea.setProveedorId(request.getProveedorId());
         tarea.setEstado(ESTADOS_VALIDOS.get(request.getEstado().toUpperCase()));
         tarea.setDescripcion(request.getDescripcion());
+        tarea.setFechaInicio(request.getFechaInicio());
         tarea.setFechaVencimiento(request.getFechaVencimiento());
         tarea.setPrioridad(request.getPrioridad() != null ? request.getPrioridad().toUpperCase() : "MEDIA");
     }
@@ -159,6 +161,7 @@ public class TareaServiceImpl implements TareaService {
         response.setProveedorId(tarea.getProveedorId());
         response.setEstado(tarea.getEstado().name());
         response.setDescripcion(tarea.getDescripcion());
+        response.setFechaInicio(tarea.getFechaInicio());
         response.setFechaVencimiento(tarea.getFechaVencimiento());
         response.setCreadoEn(tarea.getCreadoEn());
         response.setUltimaActualizacion(tarea.getUltimaActualizacion());
@@ -181,6 +184,7 @@ public class TareaServiceImpl implements TareaService {
         response.setProveedorId(tarea.getProveedorId());
         response.setEstado(tarea.getEstado().name());
         response.setDescripcion(tarea.getDescripcion());
+        response.setFechaInicio(tarea.getFechaInicio());
         response.setFechaVencimiento(tarea.getFechaVencimiento());
         response.setCreadoEn(tarea.getCreadoEn());
         response.setUltimaActualizacion(tarea.getUltimaActualizacion());

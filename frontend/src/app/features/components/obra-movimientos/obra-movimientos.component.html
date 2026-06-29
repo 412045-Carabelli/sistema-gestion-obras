@@ -120,8 +120,23 @@
         <span class="flex justify-start">{{ totalPagos | currency: 'ARS' }}</span>
       </div>
       <div class="flex justify-between font-semibold text-base border-t pt-2">
-        <span>Saldo proveedor:</span>
-        <span class="flex justify-start">{{ saldoProveedorResumen | currency: 'ARS' }}</span>
+        <div class="flex items-center gap-2">
+          <span>Saldo proveedor:</span>
+          @if (saldoProveedorResumen > 0) {
+            <p-button
+              label="Rastrear"
+              icon="pi pi-search"
+              severity="warn"
+              styleClass="p-button-sm p-button-outlined cursor-pointer"
+              (onClick)="abrirSaldosPendientes()"
+              pTooltip="Ver detalle por proveedor"
+              tooltipPosition="top"
+            ></p-button>
+          }
+        </div>
+        <span [ngClass]="saldoProveedorResumen > 0 ? 'text-amber-600' : 'text-gray-800'" class="flex justify-start">
+          {{ saldoProveedorResumen | currency: 'ARS' }}
+        </span>
       </div>
     </div>
   } @else {
@@ -137,6 +152,8 @@
     (confirmed)="guardarMovimiento()"
     [title]="modoEdicion ? 'Editar movimiento' : 'Nuevo movimiento'"
     [visible]="showAddMovementModal"
+    [confirmLoading]="guardandoMovimiento"
+    [confirmDisabled]="guardandoMovimiento"
   >
     <div class="p-3 space-y-3">
       <div class="grid grid-cols-5 gap-3">
@@ -405,6 +422,121 @@
           </p-button>
         </div>
       }
+    </div>
+  </app-modal>
+
+  <!-- Modal saldos pendientes por proveedor -->
+  <app-modal
+    [visible]="showSaldosPendientesModal"
+    title="Saldos pendientes por proveedor"
+    width="680px"
+    [showFooter]="false"
+    (closed)="showSaldosPendientesModal = false"
+  >
+    <div class="p-1 space-y-4">
+      <p class="text-sm text-gray-500 font-poppins">
+        Proveedores con gastos registrados. Los que tienen saldo pendiente aún necesitan que cargues su gasto real.
+      </p>
+
+      @if (saldosPorProveedor.length === 0) {
+        <div class="text-center py-8 text-gray-400">
+          <i class="pi pi-check-circle text-3xl text-green-400 block mb-2"></i>
+          <span class="text-sm">No hay proveedores con costos registrados.</span>
+        </div>
+      } @else {
+        <div class="overflow-x-auto rounded-lg border border-gray-200">
+          <table class="w-full text-sm font-poppins">
+            <thead class="bg-gray-50 text-gray-600 uppercase text-xs tracking-wide">
+              <tr>
+                <th class="px-4 py-3 text-left font-semibold">Proveedor</th>
+                <th class="px-4 py-3 text-right font-semibold">Total costo</th>
+                <th class="px-4 py-3 text-right font-semibold">Pagado</th>
+                <th class="px-4 py-3 text-right font-semibold">Saldo</th>
+                <th class="px-4 py-3"></th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-100">
+              @for (fila of saldosPorProveedor; track fila.nombre) {
+                <tr [ngClass]="fila.saldoPendiente > 0 ? 'bg-amber-50 hover:bg-amber-100' : 'bg-white hover:bg-gray-50'" class="transition-colors">
+                  <td class="px-4 py-3 font-medium text-gray-900">
+                    <div class="flex items-center gap-2">
+                      @if (fila.saldoPendiente > 0) {
+                        <span class="w-2 h-2 rounded-full bg-amber-400 flex-shrink-0"></span>
+                      } @else {
+                        <span class="w-2 h-2 rounded-full bg-green-400 flex-shrink-0"></span>
+                      }
+                      {{ fila.nombre }}
+                    </div>
+                  </td>
+                  <td class="px-4 py-3 text-right text-gray-700">
+                    {{ fila.totalCosto | currency:'ARS':'symbol':'1.0-2' }}
+                  </td>
+                  <td class="px-4 py-3 text-right text-green-700">
+                    {{ fila.totalPagado | currency:'ARS':'symbol':'1.0-2' }}
+                  </td>
+                  <td class="px-4 py-3 text-right font-semibold" [ngClass]="fila.saldoPendiente > 0 ? 'text-amber-700' : 'text-green-700'">
+                    @if (fila.saldoPendiente > 0) {
+                      <span class="inline-flex items-center gap-1">
+                        <i class="pi pi-exclamation-triangle text-xs"></i>
+                        {{ fila.saldoPendiente | currency:'ARS':'symbol':'1.0-2' }}
+                      </span>
+                    } @else {
+                      <span class="inline-flex items-center gap-1">
+                        <i class="pi pi-check text-xs"></i>
+                        Saldado
+                      </span>
+                    }
+                  </td>
+                  <td class="px-4 py-3 text-center">
+                    @if (fila.saldoPendiente > 0) {
+                      <p-button
+                        label="Pagar"
+                        icon="pi pi-credit-card"
+                        severity="success"
+                        styleClass="p-button-sm p-button-outlined"
+                        (onClick)="pagarDesdeRastreo(fila)"
+                      ></p-button>
+                    }
+                  </td>
+                </tr>
+              }
+            </tbody>
+            <tfoot class="border-t-2 border-gray-300 bg-gray-50">
+              <tr class="font-semibold text-gray-800">
+                <td class="px-4 py-3">Total</td>
+                <td class="px-4 py-3 text-right">
+                  {{ totalProveedores | currency:'ARS':'symbol':'1.0-2' }}
+                </td>
+                <td class="px-4 py-3 text-right text-green-700">
+                  {{ totalPagos | currency:'ARS':'symbol':'1.0-2' }}
+                </td>
+                <td class="px-4 py-3 text-right font-semibold" [ngClass]="saldoProveedorResumen > 0 ? 'text-amber-700' : 'text-green-700'">
+                  {{ saldoProveedorResumen | currency:'ARS':'symbol':'1.0-2' }}
+                </td>
+                <td></td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+
+        <div class="flex items-center gap-4 text-xs text-gray-500 pt-1">
+          <span class="flex items-center gap-1.5">
+            <span class="w-2 h-2 rounded-full bg-amber-400"></span> Saldo pendiente
+          </span>
+          <span class="flex items-center gap-1.5">
+            <span class="w-2 h-2 rounded-full bg-green-400"></span> Saldado
+          </span>
+        </div>
+      }
+
+      <div class="flex justify-end pt-2">
+        <p-button
+          label="Cerrar"
+          icon="pi pi-times"
+          severity="secondary"
+          (onClick)="showSaldosPendientesModal = false"
+        ></p-button>
+      </div>
     </div>
   </app-modal>
 </div>

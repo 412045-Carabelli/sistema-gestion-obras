@@ -65,6 +65,8 @@ export class MovimientosListComponent implements OnInit {
   showModal = false;
   modoEdicion = false;
   isViewMode = false;
+  guardandoMovimiento = false;
+  eliminandoMovimiento = false;
 
   // Modal form state (ngModel-based)
   tipoEntidad: 'PROVEEDOR' | 'CLIENTE' = 'CLIENTE';
@@ -492,8 +494,10 @@ export class MovimientosListComponent implements OnInit {
       ? this.movimientosService.actualizar(this.nuevoMovimiento.id, payload)
       : this.movimientosService.crear(payload);
 
+    this.guardandoMovimiento = true;
     accion.subscribe({
       next: () => {
+        this.guardandoMovimiento = false;
         this.messageService.add({
           severity: 'success',
           summary: 'Éxito',
@@ -503,6 +507,7 @@ export class MovimientosListComponent implements OnInit {
         this.cargarDatos();
       },
       error: (err) => {
+        this.guardandoMovimiento = false;
         const detail = err?.error?.message || 'No se pudo guardar el movimiento';
         this.messageService.add({ severity: 'error', summary: 'Error', detail });
       }
@@ -510,8 +515,10 @@ export class MovimientosListComponent implements OnInit {
   }
 
   eliminarMovimiento(mov: Movimiento): void {
+    this.eliminandoMovimiento = true;
     this.movimientosService.eliminar(mov.id).subscribe({
       next: () => {
+        this.eliminandoMovimiento = false;
         this.messageService.add({
           severity: 'success',
           summary: 'Éxito',
@@ -522,6 +529,7 @@ export class MovimientosListComponent implements OnInit {
         this.cargarDatos();
       },
       error: (err) => {
+        this.eliminandoMovimiento = false;
         const detail = err?.error?.message || 'No se pudo eliminar el movimiento';
         this.messageService.add({ severity: 'error', summary: 'Error', detail });
       }

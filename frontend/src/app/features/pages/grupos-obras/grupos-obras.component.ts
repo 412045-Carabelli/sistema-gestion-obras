@@ -53,6 +53,8 @@ export class GruposObrasComponent implements OnInit, OnDestroy {
   clientesOptions: any[] = [];
   searchValue: string = '';
   mostrarInactivos: boolean = false;
+  guardando = false;
+  eliminando = false;
 
   private subs = new Subscription();
 
@@ -142,10 +144,12 @@ export class GruposObrasComponent implements OnInit, OnDestroy {
 
     const payload = this.form.getRawValue();
 
+    this.guardando = true;
     if (this.isEditing) {
       this.subs.add(
         this.grupoObrasService.actualizar(payload.id, payload).subscribe({
           next: () => {
+            this.guardando = false;
             this.messageService.add({
               severity: 'success',
               summary: 'Actualizado',
@@ -155,6 +159,7 @@ export class GruposObrasComponent implements OnInit, OnDestroy {
             this.showModal = false;
           },
           error: (err) => {
+            this.guardando = false;
             this.messageService.add({
               severity: 'error',
               summary: 'Error',
@@ -167,6 +172,7 @@ export class GruposObrasComponent implements OnInit, OnDestroy {
       this.subs.add(
         this.grupoObrasService.crear(payload).subscribe({
           next: () => {
+            this.guardando = false;
             this.messageService.add({
               severity: 'success',
               summary: 'Creado',
@@ -176,6 +182,7 @@ export class GruposObrasComponent implements OnInit, OnDestroy {
             this.showModal = false;
           },
           error: (err) => {
+            this.guardando = false;
             this.messageService.add({
               severity: 'error',
               summary: 'Error',
@@ -193,9 +200,11 @@ export class GruposObrasComponent implements OnInit, OnDestroy {
       header: 'Confirmar',
       icon: 'pi pi-exclamation-triangle',
       accept: () => {
+        this.eliminando = true;
         this.subs.add(
           this.grupoObrasService.eliminar(grupo.id!).subscribe({
             next: () => {
+              this.eliminando = false;
               this.messageService.add({
                 severity: 'success',
                 summary: 'Eliminado',
@@ -204,6 +213,7 @@ export class GruposObrasComponent implements OnInit, OnDestroy {
               this.cargarDatos();
             },
             error: () => {
+              this.eliminando = false;
               this.messageService.add({
                 severity: 'error',
                 summary: 'Error',

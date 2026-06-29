@@ -18,6 +18,7 @@ import {ProgressSpinner} from 'primeng/progressspinner';
 export class ProveedoresEditComponent implements OnInit {
   proveedor!: Proveedor;
   loading = true;
+  guardando = false;
 
   constructor(
     private route: ActivatedRoute,
@@ -58,9 +59,12 @@ export class ProveedoresEditComponent implements OnInit {
   }
 
   onFormSubmit(proveedor: Proveedor) {
+    if (this.guardando) return;
     if (proveedor.telefono) proveedor.telefono = this.normalizarTelefono(proveedor.telefono);
+    this.guardando = true;
     this.proveedoresService.updateProveedor(this.proveedor.id!, proveedor).subscribe({
       next: () => {
+        this.guardando = false;
         this.messageService.add({
           severity: 'success',
           summary: 'Proveedor actualizado',
@@ -69,6 +73,7 @@ export class ProveedoresEditComponent implements OnInit {
         setTimeout(() => this.router.navigate(['/proveedores', this.proveedor.id!]), 800);
       },
       error: () => {
+        this.guardando = false;
         this.messageService.add({
           severity: 'error',
           summary: 'Error',

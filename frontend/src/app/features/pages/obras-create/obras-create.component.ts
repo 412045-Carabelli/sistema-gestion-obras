@@ -71,6 +71,7 @@ export class ObrasCreateComponent implements OnInit {
   showGrupoModal = false;
   creandoCliente = false;
   creandoGrupo = false;
+  guardando = false;
 
   constructor(
     private fb: FormBuilder,
@@ -317,11 +318,14 @@ export class ObrasCreateComponent implements OnInit {
     };
 
 
+    this.guardando = true;
     this.obrasService.createObra(payload).subscribe({
       next: (obraCreada) => {
+        this.guardando = false;
         this.router.navigate(['/obras', obraCreada.id]);
       },
       error: (err) => {
+        this.guardando = false;
         console.error('❌ Error al crear obra', err);
         this.messageService.add({
           severity: 'error',
