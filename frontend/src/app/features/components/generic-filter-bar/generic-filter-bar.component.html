@@ -76,16 +76,17 @@
       <div class="flex flex-col gap-1">
         <label class="block text-xs font-poppins font-semibold text-gray-600 uppercase tracking-wide">Vista</label>
         <div class="flex bg-gray-100 rounded-lg p-0.5 gap-0.5 items-center h-[2.375rem]">
-          @for (opt of viewToggle.options; track opt.route) {
-            <a [routerLink]="opt.route"
-               class="flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium transition-all no-underline"
-               [class.bg-white]="viewToggle.activeRoute === opt.route"
-               [class.shadow-sm]="viewToggle.activeRoute === opt.route"
-               [class.text-gray-900]="viewToggle.activeRoute === opt.route"
-               [class.text-gray-500]="viewToggle.activeRoute !== opt.route">
+          @for (opt of viewToggle.options; track opt.label) {
+            <button type="button"
+               (click)="opt.callback()"
+               class="flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium transition-all border-0 cursor-pointer"
+               [class.bg-white]="opt.isActive?.()"
+               [class.shadow-sm]="opt.isActive?.()"
+               [class.text-gray-900]="opt.isActive?.()"
+               [class.text-gray-500]="!opt.isActive?.()">
               <i [class]="'pi ' + opt.icon + ' text-sm'"></i>
               <span>{{ opt.label }}</span>
-            </a>
+            </button>
           }
         </div>
       </div>

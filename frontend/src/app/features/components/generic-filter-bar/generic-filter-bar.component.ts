@@ -1,7 +1,6 @@
 import { Component, Input, Output, EventEmitter, OnInit, OnDestroy, OnChanges, SimpleChanges } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { RouterLink } from '@angular/router';
 import { ButtonModule } from 'primeng/button';
 import { SelectModule } from 'primeng/select';
 import { InputTextModule } from 'primeng/inputtext';
@@ -30,7 +29,8 @@ export interface FilterAction {
 export interface ViewToggleOption {
   label: string;
   icon: string;
-  route: string;
+  callback: () => void;
+  isActive?: () => boolean;
 }
 
 @Component({
@@ -39,7 +39,6 @@ export interface ViewToggleOption {
   imports: [
     CommonModule,
     ReactiveFormsModule,
-    RouterLink,
     ButtonModule,
     SelectModule,
     InputTextModule,

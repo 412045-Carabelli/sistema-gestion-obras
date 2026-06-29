@@ -11,6 +11,10 @@
       (clearFilters)="onClearFilters()"
     ></app-generic-filter-bar>
 
+    @if (vistaActual() === 'gantt') {
+      <app-agendas-gantt></app-agendas-gantt>
+    } @else {
+
     <!-- Tabla (tablet/desktop) -->
     <div class="hidden lg:block bg-white rounded-lg border border-gray-200 overflow-hidden">
       <p-table
@@ -139,6 +143,7 @@
         </div>
       }
     </div>
+    } <!-- end @else lista -->
   </div>
 } @placeholder {
   <div class="flex flex-col gap-4 animate-pulse">

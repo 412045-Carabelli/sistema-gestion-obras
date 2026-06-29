@@ -28,6 +28,7 @@ import {ClientesService} from '../../../services/clientes/clientes.service';
 import {ProveedoresService} from '../../../services/proveedores/proveedores.service';
 import {WhatsAppService} from '../../../services/whatsapp/whatsapp.service';
 import {AgendaModalComponent} from './agenda-modal/agenda-modal.component';
+import {AgendasGanttComponent} from '../agendas-gantt/agendas-gantt.component';
 import {GenericFilterBarComponent, FilterDefinition, FilterAction, ViewToggleOption} from '../generic-filter-bar/generic-filter-bar.component';
 
 interface EstadoOption {
@@ -55,6 +56,7 @@ interface EstadoOption {
     DropdownModule,
     TooltipModule,
     AgendaModalComponent,
+    AgendasGanttComponent,
     GenericFilterBarComponent
   ],
   providers: [MessageService],
@@ -89,13 +91,8 @@ export class AgendasListComponent implements OnInit, OnDestroy {
   filterDefinitions: FilterDefinition[] = [];
   filterActions: FilterAction[] = [];
   currentFilters: Record<string, any> = {};
-  readonly viewToggle = {
-    activeRoute: '/agendas',
-    options: [
-      { label: 'Lista', icon: 'pi-list', route: '/agendas' },
-      { label: 'Gantt', icon: 'pi-chart-bar', route: '/agendas/gantt' }
-    ] as ViewToggleOption[]
-  };
+  vistaActual = signal<'lista' | 'gantt'>('lista');
+  viewToggle!: { options: ViewToggleOption[] };
 
   // Computed
   agendasFiltradas = computed(() => {
@@ -122,6 +119,12 @@ export class AgendasListComponent implements OnInit, OnDestroy {
   estadosOptions: EstadoOption[] = ESTADOS_AGENDA_OPCIONES;
 
   ngOnInit() {
+    this.viewToggle = {
+      options: [
+        { label: 'Lista', icon: 'pi-list', callback: () => this.vistaActual.set('lista'), isActive: () => this.vistaActual() === 'lista' },
+        { label: 'Gantt', icon: 'pi-chart-bar', callback: () => this.vistaActual.set('gantt'), isActive: () => this.vistaActual() === 'gantt' }
+      ]
+    };
     this.setupFilterDefinitions();
     this.cargarDatos();
     this.subscription.add(
