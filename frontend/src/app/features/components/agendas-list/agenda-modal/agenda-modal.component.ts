@@ -73,7 +73,9 @@ export class AgendaModalComponent {
 
   constructor() {
     effect(() => {
-      if (this.visible()) {
+      const visible = this.visible();
+      const agenda = this.agenda(); // track always, even when visible=false
+      if (visible) {
         this.cargarDatos();
         this.inicializarFormulario();
       }
@@ -158,12 +160,17 @@ export class AgendaModalComponent {
     let fechaVencimientoFormato: string | null = null;
 
     if (agenda?.fechaInicio) {
-      const fecha = new Date(agenda.fechaInicio);
-      const y = fecha.getFullYear();
-      const m = String(fecha.getMonth() + 1).padStart(2, '0');
-      const d = String(fecha.getDate()).padStart(2, '0');
-      fechaInicioFormato = `${y}-${m}-${d}`;
-    } else if (!agenda?.id) {
+      try {
+        const fecha = new Date(agenda.fechaInicio);
+        if (!isNaN(fecha.getTime())) {
+          const y = fecha.getFullYear();
+          const m = String(fecha.getMonth() + 1).padStart(2, '0');
+          const d = String(fecha.getDate()).padStart(2, '0');
+          fechaInicioFormato = `${y}-${m}-${d}`;
+        }
+      } catch {}
+    }
+    if (!fechaInicioFormato && !agenda?.id) {
       // Alta nueva: default hoy (fecha local, no UTC)
       const hoy = new Date();
       const y = hoy.getFullYear();
