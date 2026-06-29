@@ -163,7 +163,7 @@
 
             <div class="gantt-label-col" [class.gantt-label-odd]="odd">
               <div class="task-name-wrapper">
-                <span class="task-dot" [ngClass]="getDotClass(row.agenda.estado)"></span>
+                <span class="task-dot" [ngClass]="row.dotClass"></span>
                 <div class="task-info">
                   <span class="task-title" [title]="row.agenda.titulo">{{ row.agenda.titulo }}</span>
                   @if (row.obraNombre) {
@@ -195,7 +195,7 @@
               @if (row.hasBar) {
                 <div
                   class="gantt-bar"
-                  [ngClass]="getBarClass(row.agenda.estado)"
+                  [ngClass]="row.barClass"
                   [style.left.%]="row.startPercent"
                   [style.width.%]="row.widthPercent"
                   [title]="row.tooltipText">

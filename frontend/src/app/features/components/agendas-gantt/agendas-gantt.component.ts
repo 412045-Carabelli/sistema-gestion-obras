@@ -27,6 +27,8 @@ interface GanttRow {
   startPercent: number;
   widthPercent: number;
   hasBar: boolean;
+  dotClass: string;
+  barClass: string;
 }
 
 const MONTH_NAMES_SHORT = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
@@ -140,6 +142,17 @@ export class AgendasGanttComponent implements OnInit, OnDestroy {
     const start = this.ganttStart();
     const total = this.totalMs();
 
+    const dotClasses: Record<string, string> = {
+      'PENDIENTE': 'dot-pendiente',
+      'EN_PROGRESO': 'dot-en-progreso',
+      'COMPLETADA': 'dot-completada'
+    };
+    const barClasses: Record<string, string> = {
+      'PENDIENTE': 'bar-pendiente',
+      'EN_PROGRESO': 'bar-en-progreso',
+      'COMPLETADA': 'bar-completada'
+    };
+
     return this.agendas()
       .filter(a => {
         if (search && !a.titulo.toLowerCase().includes(search) && !(a.descripcion?.toLowerCase().includes(search))) return false;
@@ -181,7 +194,9 @@ export class AgendasGanttComponent implements OnInit, OnDestroy {
           tooltipText: `${a.titulo} | ${iStr} → ${vStr}`,
           startPercent,
           widthPercent,
-          hasBar
+          hasBar,
+          dotClass: dotClasses[a.estado] || 'dot-pendiente',
+          barClass: barClasses[a.estado] || 'bar-pendiente'
         };
       });
   });
@@ -223,21 +238,28 @@ export class AgendasGanttComponent implements OnInit, OnDestroy {
   }
 
   private cargarDatos() {
-    this.obrasService.getObrasAll().subscribe({next: o => this.obras.set(o), error: () => {}});
-    this.clientesService.getClientes().subscribe({next: c => this.clientes.set(c), error: () => {}});
-    this.proveedoresService.getProveedores().subscribe({next: p => this.proveedores.set(p), error: () => {}});
-
-    this.agendasService.getAgendas().subscribe({
-      next: (agendas) => {
-        this.agendas.set(agendas);
-        this.datosCargados.set(true);
-        this.autoSetYear(agendas);
-      },
-      error: () => {
-        this.messageService.add({severity: 'error', summary: 'Error', detail: 'No se pudieron cargar las agendas'});
-        this.datosCargados.set(true);
-      }
-    });
+    this.subscription.add(
+      this.obrasService.getObrasAll().subscribe({next: o => this.obras.set(o), error: () => {}})
+    );
+    this.subscription.add(
+      this.clientesService.getClientes().subscribe({next: c => this.clientes.set(c), error: () => {}})
+    );
+    this.subscription.add(
+      this.proveedoresService.getProveedores().subscribe({next: p => this.proveedores.set(p), error: () => {}})
+    );
+    this.subscription.add(
+      this.agendasService.getAgendas().subscribe({
+        next: (agendas) => {
+          this.agendas.set(agendas);
+          this.datosCargados.set(true);
+          this.autoSetYear(agendas);
+        },
+        error: () => {
+          this.messageService.add({severity: 'error', summary: 'Error', detail: 'No se pudieron cargar las agendas'});
+          this.datosCargados.set(true);
+        }
+      })
+    );
   }
 
   private autoSetYear(agendas: Agenda[]) {
@@ -290,24 +312,6 @@ export class AgendasGanttComponent implements OnInit, OnDestroy {
     this.cerrarModal();
   }
 
-  getBarClass(estado: string): string {
-    const map: Record<string, string> = {
-      'PENDIENTE': 'bar-pendiente',
-      'EN_PROGRESO': 'bar-en-progreso',
-      'COMPLETADA': 'bar-completada'
-    };
-    return map[estado] || 'bar-pendiente';
-  }
-
-  getDotClass(estado: string): string {
-    const map: Record<string, string> = {
-      'PENDIENTE': 'dot-pendiente',
-      'EN_PROGRESO': 'dot-en-progreso',
-      'COMPLETADA': 'dot-completada'
-    };
-    return map[estado] || 'dot-pendiente';
-  }
-
   getEstadoLabel(estado: string): string {
     return ESTADOS_AGENDA_OPCIONES.find(e => e.name === estado)?.label || estado;
   }
@@ -338,26 +342,36 @@ export class AgendasGanttComponent implements OnInit, OnDestroy {
     `;
     document.head.appendChild(tmpStyle);
 
-    // Forzar reflow sincrónico
-    void tableEl.getBoundingClientRect();
-    await new Promise(r => setTimeout(r, 50));
+    let canvas: HTMLCanvasElement;
+    try {
+      // Forzar reflow sincrónico
+      void tableEl.getBoundingClientRect();
+      await new Promise(r => setTimeout(r, 50));
 
-    const fullW = tableEl.scrollWidth;
-    const fullH = tableEl.scrollHeight;
+      const fullW = tableEl.scrollWidth;
+      const fullH = tableEl.scrollHeight;
 
-    const canvas = await html2canvas(tableEl, {
-      scale: 2,
-      useCORS: true,
-      backgroundColor: '#ffffff',
-      scrollX: 0,
-      scrollY: 0,
-      width: fullW,
-      height: fullH,
-      windowWidth: fullW,
-      ignoreElements: el => el.classList.contains('today-line')
-    });
-
-    document.head.removeChild(tmpStyle);
+      canvas = await html2canvas(tableEl, {
+        scale: 2,
+        useCORS: true,
+        backgroundColor: '#ffffff',
+        scrollX: 0,
+        scrollY: 0,
+        width: fullW,
+        height: fullH,
+        windowWidth: fullW,
+        ignoreElements: el => el.classList.contains('today-line')
+      });
+    } catch (err) {
+      this.messageService.add({
+        severity: 'error',
+        summary: 'Error',
+        detail: 'No se pudo generar el PDF del diagrama'
+      });
+      return;
+    } finally {
+      document.head.removeChild(tmpStyle);
+    }
 
     const imgData = canvas.toDataURL('image/png');
     const doc = new jsPDF({orientation: 'landscape', unit: 'mm', format: 'a4'});
