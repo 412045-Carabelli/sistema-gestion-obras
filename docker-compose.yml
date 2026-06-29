@@ -13,6 +13,7 @@ services:
       - ACCEPT_EULA=Y
       - MSSQL_SA_PASSWORD=${DB_PASSWORD}
       - MSSQL_PID=Express
+      - MSSQL_MEMORY_LIMIT_MB=1536
     volumes:
       - sqlserver_data:/var/opt/mssql
       - ./db/sqlserver-init:/init
@@ -25,6 +26,10 @@ services:
       retries: 30
       start_period: 90s
     restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 1792M
     networks:
       - sgo_backend
 
@@ -66,10 +71,15 @@ services:
       - SPRING_DATASOURCE_PASSWORD=${DB_PASSWORD}
       - SPRING_JPA_PROPERTIES_HIBERNATE_DIALECT=org.hibernate.dialect.SQLServerDialect
       - SPRING_FLYWAY_ENABLED=true
+      - JAVA_OPTS=-Xms64m -Xmx256m -XX:+UseG1GC -XX:MaxGCPauseMillis=200
     depends_on:
       sqlserver:
         condition: service_healthy
     restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 512M
     networks:
       - sgo_backend
 
@@ -88,10 +98,15 @@ services:
       - SPRING_DATASOURCE_PASSWORD=${DB_PASSWORD}
       - SPRING_JPA_PROPERTIES_HIBERNATE_DIALECT=org.hibernate.dialect.SQLServerDialect
       - SPRING_FLYWAY_ENABLED=true
+      - JAVA_OPTS=-Xms64m -Xmx256m -XX:+UseG1GC -XX:MaxGCPauseMillis=200
     depends_on:
       sqlserver:
         condition: service_healthy
     restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 512M
     networks:
       - sgo_backend
 
@@ -110,10 +125,15 @@ services:
       - SPRING_DATASOURCE_PASSWORD=${DB_PASSWORD}
       - SPRING_JPA_PROPERTIES_HIBERNATE_DIALECT=org.hibernate.dialect.SQLServerDialect
       - SPRING_FLYWAY_ENABLED=true
+      - JAVA_OPTS=-Xms64m -Xmx256m -XX:+UseG1GC -XX:MaxGCPauseMillis=200
     depends_on:
       sqlserver:
         condition: service_healthy
     restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 512M
     networks:
       - sgo_backend
 
@@ -139,12 +159,17 @@ services:
       - MINIO_ACCESS_KEY=minioadmin
       - MINIO_SECRET_KEY=minioadmin
       - MINIO_BUCKET=documentos
+      - JAVA_OPTS=-Xms64m -Xmx192m -XX:+UseG1GC -XX:MaxGCPauseMillis=200
     depends_on:
       sqlserver:
         condition: service_healthy
       minio:
         condition: service_started
     restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 512M
     networks:
       - sgo_backend
 
@@ -163,10 +188,15 @@ services:
       - SPRING_DATASOURCE_PASSWORD=${DB_PASSWORD}
       - SPRING_JPA_PROPERTIES_HIBERNATE_DIALECT=org.hibernate.dialect.SQLServerDialect
       - SPRING_FLYWAY_ENABLED=true
+      - JAVA_OPTS=-Xms128m -Xmx384m -XX:+UseG1GC -XX:MaxGCPauseMillis=200
     depends_on:
       sqlserver:
         condition: service_healthy
     restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 512M
     networks:
       - sgo_backend
 
@@ -185,10 +215,15 @@ services:
       - SPRING_DATASOURCE_PASSWORD=${DB_PASSWORD}
       - SPRING_JPA_PROPERTIES_HIBERNATE_DIALECT=org.hibernate.dialect.SQLServerDialect
       - SPRING_FLYWAY_ENABLED=true
+      - JAVA_OPTS=-Xms64m -Xmx256m -XX:+UseG1GC -XX:MaxGCPauseMillis=200
     depends_on:
       sqlserver:
         condition: service_healthy
     restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 512M
     networks:
       - sgo_backend
 
@@ -213,10 +248,15 @@ services:
       - SERVICIOS_PROVEEDORES_BASE_URL=http://proveedores-service:8083
       - SERVICIOS_TRANSACCIONES_BASE_URL=http://transacciones-service:8086
       - SERVICIOS_FACTURAS_BASE_URL=http://transacciones-service:8086
+      - JAVA_OPTS=-Xms128m -Xmx384m -XX:+UseG1GC -XX:MaxGCPauseMillis=200
     depends_on:
       sqlserver:
         condition: service_healthy
     restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 512M
     networks:
       - sgo_backend
 
@@ -233,10 +273,15 @@ services:
       - SPRING_JPA_PROPERTIES_HIBERNATE_DIALECT=org.hibernate.dialect.SQLServerDialect
       - SPRING_FLYWAY_ENABLED=true
       - JWT_SECRET=${JWT_SECRET}
+      - JAVA_OPTS=-Xms64m -Xmx256m -XX:+UseG1GC -XX:MaxGCPauseMillis=200
     depends_on:
       sqlserver:
         condition: service_healthy
     restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 512M
     networks:
       - sgo_backend
 
@@ -259,6 +304,7 @@ services:
       - SERVICES_AGENDAS_TAREAS_URL=http://agendas-service:8085/api/agenda/tareas
       - SERVICES_REPORTES_URL=http://reportes-service:8084/api/reportes
       - JWT_SECRET=${JWT_SECRET}
+      - JAVA_OPTS=-Xms64m -Xmx256m -XX:+UseG1GC -XX:MaxGCPauseMillis=200
     # depends_on:
     #   obras-service:
     #     condition: service_started
@@ -277,6 +323,10 @@ services:
     #   migrador:
     #     condition: service_completed_successfully
     restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 512M
     networks:
       - sgo_backend
 
@@ -333,6 +383,10 @@ services:
     networks:
       - n8n_network
     restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 512M
 
   waha:
     image: devlikeapro/waha
@@ -342,7 +396,7 @@ services:
     volumes:
       - waha_data:/app/.waha/sessions
     environment:
-      - WHATSAPP_DEFAULT_ENGINE=WEBJS
+      - WHATSAPP_DEFAULT_ENGINE=NOWEB
       - WAHA_DASHBOARD_ENABLED=true
       - WAHA_DASHBOARD_USERNAME=${WAHA_USER:-admin}
       - WAHA_DASHBOARD_PASSWORD=${WAHA_PASSWORD:-admin123}
@@ -350,6 +404,10 @@ services:
       - WHATSAPP_HOOK_URL=http://bot-whatsapp:4000/webhook
       - WHATSAPP_HOOK_EVENTS=message
     restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 512M
     networks:
       - sgo_backend
 
