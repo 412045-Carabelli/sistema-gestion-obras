@@ -28,7 +28,7 @@ import {ClientesService} from '../../../services/clientes/clientes.service';
 import {ProveedoresService} from '../../../services/proveedores/proveedores.service';
 import {WhatsAppService} from '../../../services/whatsapp/whatsapp.service';
 import {AgendaModalComponent} from './agenda-modal/agenda-modal.component';
-import {GenericFilterBarComponent, FilterDefinition, FilterAction, ViewToggleOption} from '../generic-filter-bar/generic-filter-bar.component';
+import {GenericFilterBarComponent, FilterDefinition, FilterAction} from '../generic-filter-bar/generic-filter-bar.component';
 
 interface EstadoOption {
   label: string;
@@ -89,13 +89,6 @@ export class AgendasListComponent implements OnInit, OnDestroy {
   filterDefinitions: FilterDefinition[] = [];
   filterActions: FilterAction[] = [];
   currentFilters: Record<string, any> = {};
-  viewToggle = {
-    activeRoute: '/agendas',
-    options: [
-      { label: 'Lista', icon: 'pi-list', routerLink: '/agendas' },
-      { label: 'Gantt', icon: 'pi-chart-bar', routerLink: '/agendas/gantt' }
-    ] as ViewToggleOption[]
-  };
 
   // Computed
   agendasFiltradas = computed(() => {
