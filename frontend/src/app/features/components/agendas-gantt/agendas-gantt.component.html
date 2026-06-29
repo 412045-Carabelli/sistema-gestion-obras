@@ -3,6 +3,7 @@
 <!-- ============================================================
      Barra de filtros y controles unificada
      ============================================================ -->
+@if (!modoEmbebido) {
 <div class="bg-white rounded-lg shadow-sm border border-gray-100 p-4 mb-1">
 
   <!-- Fila 1: filtros + acciones -->
@@ -58,6 +59,7 @@
 
 
 </div>
+} <!-- end @if (!modoEmbebido) -->
 
 <!-- Controles gantt: fuera de la barra de filtros -->
 <div class="gantt-controls-row">
