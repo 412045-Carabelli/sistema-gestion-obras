@@ -983,11 +983,11 @@ public class ReportesService {
         Map<Long, BigDecimal> costosPorObra = new HashMap<>();
         Map<Long, ObraExternalDto> obrasPorId = mapearPorId(todasObras, ObraExternalDto::getId);
 
-        Map<Long, List<ObraCostoExternalDto>> costosPorObra = obrasClient.obtenerCostosBulk(
+        Map<Long, List<ObraCostoExternalDto>> costosBulk = obrasClient.obtenerCostosBulk(
                 todasObras.stream().map(ObraExternalDto::getId).toList());
         for (ObraExternalDto obra : todasObras) {
             if (!obrasConDeuda.contains(obra.getId())) continue;
-            List<ObraCostoExternalDto> costosObra = costosPorObra.getOrDefault(obra.getId(), List.of());
+            List<ObraCostoExternalDto> costosObra = costosBulk.getOrDefault(obra.getId(), List.of());
             for (ObraCostoExternalDto costo : costosObra) {
                 if (!Objects.equals(proveedorId, costo.getIdProveedor()) || Boolean.FALSE.equals(costo.getActivo())) {
                     continue;
