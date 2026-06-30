@@ -15,7 +15,9 @@ import org.springframework.web.client.RestTemplate;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Component
@@ -34,6 +36,8 @@ public class ObrasClient {
     private static final ParameterizedTypeReference<List<TareaExternalDto>> TAREAS_TYPE =
             new ParameterizedTypeReference<>() {};
     private static final ParameterizedTypeReference<List<EstadoPagoExternalDto>> ESTADOS_PAGO_TYPE =
+            new ParameterizedTypeReference<>() {};
+    private static final ParameterizedTypeReference<Map<Long, List<ObraCostoExternalDto>>> COSTOS_BULK_TYPE =
             new ParameterizedTypeReference<>() {};
 
     public List<ObraExternalDto> obtenerObras() {
@@ -85,6 +89,23 @@ public class ObrasClient {
         } catch (RestClientException e) {
             log.warn("No se pudieron obtener los costos de la obra {}: {}", obraId, e.getMessage());
             return Collections.emptyList();
+        }
+    }
+
+    public Map<Long, List<ObraCostoExternalDto>> obtenerCostosBulk(List<Long> obraIds) {
+        if (obraIds == null || obraIds.isEmpty()) return Collections.emptyMap();
+        try {
+            String idsParam = obraIds.stream().map(String::valueOf).collect(Collectors.joining(","));
+            ResponseEntity<Map<Long, List<ObraCostoExternalDto>>> response = restTemplate.exchange(
+                    baseUrl + "/api/obras/costos/bulk?obraIds=" + idsParam,
+                    HttpMethod.GET,
+                    null,
+                    COSTOS_BULK_TYPE
+            );
+            return response.getBody() != null ? response.getBody() : Collections.emptyMap();
+        } catch (RestClientException e) {
+            log.warn("No se pudieron obtener costos bulk: {}", e.getMessage());
+            return Collections.emptyMap();
         }
     }
 

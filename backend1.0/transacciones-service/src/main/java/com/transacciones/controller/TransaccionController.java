@@ -66,6 +66,11 @@ public class TransaccionController {
         return ResponseEntity.ok(lista);
     }
 
+    @GetMapping("/activas")
+    public ResponseEntity<List<TransaccionDto>> getActivas() {
+        return ResponseEntity.ok(transaccionService.listarActivas());
+    }
+
     @GetMapping("/recientes")
     public ResponseEntity<List<MovimientoRecenteDTO>> getUltimos10(
             @RequestHeader(value = "X-Organizacion-Id", defaultValue = "0") Long organizacionId) {
