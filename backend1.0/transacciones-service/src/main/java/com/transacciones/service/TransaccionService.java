@@ -58,6 +58,14 @@ public class TransaccionService {
         return lista.stream().map(this::toDto).collect(Collectors.toList());
     }
 
+    @Transactional(readOnly = true)
+    public List<TransaccionDto> listarActivas() {
+        return transaccionRepository.obtenerMovimientosActivos()
+                .stream()
+                .map(this::toDto)
+                .collect(Collectors.toList());
+    }
+
     public TransaccionDto crear(Transaccion dto) {
         if (dto.getTipo_transaccion() == null) {
             throw new IllegalArgumentException("Debe especificarse un tipo de transaccion valido");

@@ -5,6 +5,7 @@ import com.obras.enums.EstadoPagoEnum;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Map;
 
 public interface ObraCostoService {
 
@@ -17,5 +18,8 @@ public interface ObraCostoService {
 
     @Transactional(readOnly = true)
     List<ObraCostoDTO> listarPorObra(Long idObra);
+
+    @Transactional(readOnly = true)
+    Map<Long, List<ObraCostoDTO>> listarPorObras(List<Long> obraIds);
 }
 

@@ -94,12 +94,6 @@ public class NotificacionAgendaScheduler {
 
         log.info("[WA] Tareas encontradas en rango (excluyendo COMPLETADA): {}", tareas.size());
 
-        // Debug: mostrar todas las tareas con su fechaVencimiento y estado
-        tareaRepository.findAll().forEach(t ->
-            log.info("[WA] Tarea id={} titulo='{}' estado={} fechaVencimiento={} prioridad={}",
-                t.getId(), t.getTitulo(), t.getEstado(), t.getFechaVencimiento(), t.getPrioridad())
-        );
-
         if (tareas.isEmpty()) {
             log.info("Sin tareas por vencer en las próximas {}h", horasVentana);
             return 0;
