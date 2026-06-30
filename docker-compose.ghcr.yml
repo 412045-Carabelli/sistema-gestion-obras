@@ -9,6 +9,7 @@ services:
       - ACCEPT_EULA=Y
       - MSSQL_SA_PASSWORD=${DB_PASSWORD}
       - MSSQL_PID=Express
+      - MSSQL_MEMORY_LIMIT_MB=1536
     volumes:
       - sqlserver_data_v2:/var/opt/mssql
       - ./db/sqlserver-init:/init
@@ -23,6 +24,10 @@ services:
     restart: unless-stopped
     networks:
       - sgo_backend
+    deploy:
+      resources:
+        limits:
+          memory: 1792M
 
   minio:
     image: minio/minio:latest
@@ -39,6 +44,10 @@ services:
     restart: unless-stopped
     networks:
       - sgo_backend
+    deploy:
+      resources:
+        limits:
+          memory: 512M
 
   obras-service:
     pull_policy: always
@@ -56,12 +65,17 @@ services:
       - SPRING_DATASOURCE_PASSWORD=${DB_PASSWORD}
       - SPRING_JPA_PROPERTIES_HIBERNATE_DIALECT=org.hibernate.dialect.SQLServerDialect
       - SPRING_FLYWAY_ENABLED=true
+      - JAVA_TOOL_OPTIONS=-Xms64m -Xmx256m -XX:+UseG1GC -XX:MaxGCPauseMillis=200
     depends_on:
       sqlserver:
         condition: service_healthy
     restart: unless-stopped
     networks:
       - sgo_backend
+    deploy:
+      resources:
+        limits:
+          memory: 512M
 
   clientes-service:
     pull_policy: always
@@ -79,12 +93,17 @@ services:
       - SPRING_DATASOURCE_PASSWORD=${DB_PASSWORD}
       - SPRING_JPA_PROPERTIES_HIBERNATE_DIALECT=org.hibernate.dialect.SQLServerDialect
       - SPRING_FLYWAY_ENABLED=true
+      - JAVA_TOOL_OPTIONS=-Xms64m -Xmx256m -XX:+UseG1GC -XX:MaxGCPauseMillis=200
     depends_on:
       sqlserver:
         condition: service_healthy
     restart: unless-stopped
     networks:
       - sgo_backend
+    deploy:
+      resources:
+        limits:
+          memory: 512M
 
   proveedores-service:
     pull_policy: always
@@ -102,12 +121,17 @@ services:
       - SPRING_DATASOURCE_PASSWORD=${DB_PASSWORD}
       - SPRING_JPA_PROPERTIES_HIBERNATE_DIALECT=org.hibernate.dialect.SQLServerDialect
       - SPRING_FLYWAY_ENABLED=true
+      - JAVA_TOOL_OPTIONS=-Xms64m -Xmx256m -XX:+UseG1GC -XX:MaxGCPauseMillis=200
     depends_on:
       sqlserver:
         condition: service_healthy
     restart: unless-stopped
     networks:
       - sgo_backend
+    deploy:
+      resources:
+        limits:
+          memory: 512M
 
   documentos-service:
     pull_policy: always
@@ -127,12 +151,17 @@ services:
       - SPRING_DATASOURCE_PASSWORD=${DB_PASSWORD}
       - SPRING_JPA_PROPERTIES_HIBERNATE_DIALECT=org.hibernate.dialect.SQLServerDialect
       - SPRING_FLYWAY_ENABLED=true
+      - JAVA_TOOL_OPTIONS=-Xms64m -Xmx256m -XX:+UseG1GC -XX:MaxGCPauseMillis=200
     depends_on:
       sqlserver:
         condition: service_healthy
     restart: unless-stopped
     networks:
       - sgo_backend
+    deploy:
+      resources:
+        limits:
+          memory: 512M
 
   transacciones-service:
     pull_policy: always
@@ -150,12 +179,17 @@ services:
       - SPRING_DATASOURCE_PASSWORD=${DB_PASSWORD}
       - SPRING_JPA_PROPERTIES_HIBERNATE_DIALECT=org.hibernate.dialect.SQLServerDialect
       - SPRING_FLYWAY_ENABLED=true
+      - JAVA_TOOL_OPTIONS=-Xms64m -Xmx384m -XX:+UseG1GC -XX:MaxGCPauseMillis=200
     depends_on:
       sqlserver:
         condition: service_healthy
     restart: unless-stopped
     networks:
       - sgo_backend
+    deploy:
+      resources:
+        limits:
+          memory: 512M
 
   agendas-service:
     pull_policy: always
@@ -175,12 +209,17 @@ services:
       - SPRING_DATASOURCE_PASSWORD=${DB_PASSWORD}
       - SPRING_JPA_PROPERTIES_HIBERNATE_DIALECT=org.hibernate.dialect.SQLServerDialect
       - SPRING_FLYWAY_ENABLED=true
+      - JAVA_TOOL_OPTIONS=-Xms64m -Xmx256m -XX:+UseG1GC -XX:MaxGCPauseMillis=200
     depends_on:
       sqlserver:
         condition: service_healthy
     restart: unless-stopped
     networks:
       - sgo_backend
+    deploy:
+      resources:
+        limits:
+          memory: 512M
 
   reportes-service:
     pull_policy: always
@@ -204,12 +243,17 @@ services:
       - SERVICIOS_PROVEEDORES_BASE_URL=http://proveedores-service:8083
       - SERVICIOS_TRANSACCIONES_BASE_URL=http://transacciones-service:8086
       - SERVICIOS_FACTURAS_BASE_URL=http://transacciones-service:8086
+      - JAVA_TOOL_OPTIONS=-Xms64m -Xmx384m -XX:+UseG1GC -XX:MaxGCPauseMillis=200
     depends_on:
       sqlserver:
         condition: service_healthy
     restart: unless-stopped
     networks:
       - sgo_backend
+    deploy:
+      resources:
+        limits:
+          memory: 512M
 
   auth-service:
     pull_policy: always
@@ -229,12 +273,17 @@ services:
       - VAPID_PRIVATE_KEY=${VAPID_PRIVATE_KEY}
       - VAPID_SUBJECT=${VAPID_SUBJECT:-mailto:admin@buildrr.cloud}
       - PUSH_INTERNAL_SECRET=${PUSH_INTERNAL_SECRET}
+      - JAVA_TOOL_OPTIONS=-Xms64m -Xmx256m -XX:+UseG1GC -XX:MaxGCPauseMillis=200
     depends_on:
       sqlserver:
         condition: service_healthy
     restart: unless-stopped
     networks:
       - sgo_backend
+    deploy:
+      resources:
+        limits:
+          memory: 512M
 
   api-gateway:
     pull_policy: always
@@ -256,6 +305,7 @@ services:
       - JWT_SECRET=${JWT_SECRET}
       - PUSH_INTERNAL_SECRET=${PUSH_INTERNAL_SECRET}
       - CORS_ALLOWED_ORIGINS=http://localhost:4200,https://buildrr.cloud,http://buildrr.cloud
+      - JAVA_TOOL_OPTIONS=-Xms64m -Xmx256m -XX:+UseG1GC -XX:MaxGCPauseMillis=200
     depends_on:
       obras-service:
         condition: service_started
@@ -276,6 +326,10 @@ services:
     restart: unless-stopped
     networks:
       - sgo_backend
+    deploy:
+      resources:
+        limits:
+          memory: 512M
 
   frontend:
     pull_policy: always
@@ -289,6 +343,10 @@ services:
     networks:
       - sgo_backend
       - dokploy-network
+    deploy:
+      resources:
+        limits:
+          memory: 256M
 
   n8n:
     image: n8nio/n8n:latest
@@ -315,6 +373,10 @@ services:
     networks:
       - n8n_network
     restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 512M
 
   waha:
     image: devlikeapro/waha
@@ -324,7 +386,7 @@ services:
     volumes:
       - waha_data:/app/.waha/sessions
     environment:
-      - WHATSAPP_DEFAULT_ENGINE=WEBJS
+      - WHATSAPP_DEFAULT_ENGINE=NOWEB
       - WAHA_DASHBOARD_ENABLED=true
       - WAHA_DASHBOARD_USERNAME=${WAHA_USER:-admin}
       - WAHA_DASHBOARD_PASSWORD=${WAHA_PASSWORD:-admin123}
@@ -334,6 +396,10 @@ services:
     restart: unless-stopped
     networks:
       - sgo_backend
+    deploy:
+      resources:
+        limits:
+          memory: 512M
 
   bot-whatsapp:
     pull_policy: always
@@ -357,6 +423,10 @@ services:
     restart: unless-stopped
     networks:
       - sgo_backend
+    deploy:
+      resources:
+        limits:
+          memory: 256M
 
 networks:
   sgo_backend:
