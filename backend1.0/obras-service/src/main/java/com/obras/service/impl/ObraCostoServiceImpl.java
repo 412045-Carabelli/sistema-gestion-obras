@@ -13,7 +13,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -111,6 +113,18 @@ public class ObraCostoServiceImpl implements ObraCostoService {
             })
             .map(this::toDto)
             .collect(Collectors.toList());
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Map<Long, List<ObraCostoDTO>> listarPorObras(List<Long> obraIds) {
+        if (obraIds == null || obraIds.isEmpty()) return Collections.emptyMap();
+        return costoRepo.findByObra_IdInAndActivoTrue(obraIds)
+                .stream()
+                .collect(Collectors.groupingBy(
+                        c -> c.getObra().getId(),
+                        Collectors.mapping(this::toDto, Collectors.toList())
+                ));
     }
 
     // Calcular totales

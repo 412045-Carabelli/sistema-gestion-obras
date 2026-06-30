@@ -63,8 +63,10 @@ public class ReportesService {
 
         BigDecimal totalCostos = BigDecimal.ZERO;
         if (filtros.getClienteId() == null) {
+            Map<Long, List<ObraCostoExternalDto>> costosPorObra = obrasClient.obtenerCostosBulk(
+                    obrasFiltradas.stream().map(ObraExternalDto::getId).toList());
             for (ObraExternalDto obra : obrasFiltradas) {
-                List<ObraCostoExternalDto> costos = obrasClient.obtenerCostos(obra.getId());
+                List<ObraCostoExternalDto> costos = costosPorObra.getOrDefault(obra.getId(), List.of());
                 for (ObraCostoExternalDto costo : costos) {
                     if (Boolean.FALSE.equals(costo.getActivo())) continue;
                     if (!costoTieneProveedor(costo)) continue;
@@ -134,8 +136,10 @@ public class ReportesService {
         // Costos
         BigDecimal totalCostos = BigDecimal.ZERO;
         if (filtros.getClienteId() == null) {
+            Map<Long, List<ObraCostoExternalDto>> costosPorObra = obrasClient.obtenerCostosBulk(
+                    obrasFiltradas.stream().map(ObraExternalDto::getId).toList());
             for (ObraExternalDto obra : obrasFiltradas) {
-                List<ObraCostoExternalDto> costos = obrasClient.obtenerCostos(obra.getId());
+                List<ObraCostoExternalDto> costos = costosPorObra.getOrDefault(obra.getId(), List.of());
                 for (ObraCostoExternalDto costo : costos) {
                     if (Boolean.FALSE.equals(costo.getActivo())) continue;
                     if (!costoTieneProveedor(costo)) continue;
@@ -319,8 +323,10 @@ public class ReportesService {
         // Cuando filtro por proveedor, sumar costos asociados como egresos (crédito del proveedor)
         if (filtros.getProveedorId() != null) {
             Map<Long, BigDecimal> egresosPorObra = new HashMap<>();
+            Map<Long, List<ObraCostoExternalDto>> costosPorObra = obrasClient.obtenerCostosBulk(
+                    obras.stream().map(ObraExternalDto::getId).toList());
             for (ObraExternalDto obra : obras) {
-                List<ObraCostoExternalDto> costos = obrasClient.obtenerCostos(obra.getId());
+                List<ObraCostoExternalDto> costos = costosPorObra.getOrDefault(obra.getId(), List.of());
                 for (ObraCostoExternalDto costo : costos) {
                     if (Boolean.FALSE.equals(costo.getActivo())) continue;
                     if (!Objects.equals(filtros.getProveedorId(), costo.getIdProveedor())) continue;
@@ -434,8 +440,10 @@ public class ReportesService {
 
         // Si se filtra por proveedor, agregar costos como egresos (crédito del proveedor)
         if (filtros.getProveedorId() != null) {
+            Map<Long, List<ObraCostoExternalDto>> costosPorObra = obrasClient.obtenerCostosBulk(
+                    obras.stream().map(ObraExternalDto::getId).toList());
             for (ObraExternalDto obra : obras) {
-                List<ObraCostoExternalDto> costos = obrasClient.obtenerCostos(obra.getId());
+                List<ObraCostoExternalDto> costos = costosPorObra.getOrDefault(obra.getId(), List.of());
                 for (ObraCostoExternalDto costo : costos) {
                     if (Boolean.FALSE.equals(costo.getActivo())) continue;
                     if (!Objects.equals(filtros.getProveedorId(), costo.getIdProveedor())) continue;
@@ -479,8 +487,10 @@ public class ReportesService {
         BigDecimal totalCostos = BigDecimal.ZERO;
         PendientesResponse response = new PendientesResponse();
 
+        Map<Long, List<ObraCostoExternalDto>> costosPorObra = obrasClient.obtenerCostosBulk(
+                obras.stream().map(ObraExternalDto::getId).toList());
         for (ObraExternalDto obra : obras) {
-            List<ObraCostoExternalDto> costos = obrasClient.obtenerCostos(obra.getId());
+            List<ObraCostoExternalDto> costos = costosPorObra.getOrDefault(obra.getId(), List.of());
             for (ObraCostoExternalDto costo : costos) {
                 if (Boolean.FALSE.equals(costo.getActivo())) {
                     continue;
@@ -592,8 +602,10 @@ public class ReportesService {
         Map<String, BigDecimal> acumuladoPorCategoria = new LinkedHashMap<>();
         BigDecimal totalGeneral = BigDecimal.ZERO;
 
+        Map<Long, List<ObraCostoExternalDto>> costosPorObra = obrasClient.obtenerCostosBulk(
+                obras.stream().map(ObraExternalDto::getId).toList());
         for (ObraExternalDto obra : obras) {
-            List<ObraCostoExternalDto> costos = obrasClient.obtenerCostos(obra.getId());
+            List<ObraCostoExternalDto> costos = costosPorObra.getOrDefault(obra.getId(), List.of());
             for (ObraCostoExternalDto costo : costos) {
                 if (Boolean.FALSE.equals(costo.getActivo())) {
                     continue;
@@ -757,11 +769,13 @@ public class ReportesService {
 
         List<CuentaCorrienteProveedorResponse.Movimiento> movimientos = new ArrayList<>();
 
+        Map<Long, List<ObraCostoExternalDto>> costosPorObra = obrasClient.obtenerCostosBulk(
+                obras.stream().map(ObraExternalDto::getId).toList());
         for (ObraExternalDto obra : obras) {
             if (!obrasConDeuda.contains(obra.getId())) {
                 continue;
             }
-            List<ObraCostoExternalDto> costosObra = obrasClient.obtenerCostos(obra.getId());
+            List<ObraCostoExternalDto> costosObra = costosPorObra.getOrDefault(obra.getId(), List.of());
             for (ObraCostoExternalDto costo : costosObra) {
                 if (!Objects.equals(proveedorId, costo.getIdProveedor()) || Boolean.FALSE.equals(costo.getActivo())) {
                     continue;
@@ -969,9 +983,11 @@ public class ReportesService {
         Map<Long, BigDecimal> costosPorObra = new HashMap<>();
         Map<Long, ObraExternalDto> obrasPorId = mapearPorId(todasObras, ObraExternalDto::getId);
 
+        Map<Long, List<ObraCostoExternalDto>> costosPorObra = obrasClient.obtenerCostosBulk(
+                todasObras.stream().map(ObraExternalDto::getId).toList());
         for (ObraExternalDto obra : todasObras) {
             if (!obrasConDeuda.contains(obra.getId())) continue;
-            List<ObraCostoExternalDto> costosObra = obrasClient.obtenerCostos(obra.getId());
+            List<ObraCostoExternalDto> costosObra = costosPorObra.getOrDefault(obra.getId(), List.of());
             for (ObraCostoExternalDto costo : costosObra) {
                 if (!Objects.equals(proveedorId, costo.getIdProveedor()) || Boolean.FALSE.equals(costo.getActivo())) {
                     continue;
@@ -1056,9 +1072,11 @@ public class ReportesService {
                 .filter(Objects::nonNull)
                 .collect(Collectors.toSet());
 
+        Map<Long, List<ObraCostoExternalDto>> costosPorObra = obrasClient.obtenerCostosBulk(
+                obras.stream().map(ObraExternalDto::getId).toList());
         for (ObraExternalDto obra : obras) {
             if (!obrasConDeuda.contains(obra.getId())) continue;
-            List<ObraCostoExternalDto> costosObra = obrasClient.obtenerCostos(obra.getId());
+            List<ObraCostoExternalDto> costosObra = costosPorObra.getOrDefault(obra.getId(), List.of());
             for (ObraCostoExternalDto costo : costosObra) {
                 if (Boolean.FALSE.equals(costo.getActivo())) continue;
                 Long proveedorId = costo.getIdProveedor();
@@ -1537,8 +1555,10 @@ public class ReportesService {
         Map<Long, RankingProveedoresResponse.ItemRankingProveedor> ranking = new HashMap<>();
         Map<Long, Set<Long>> obrasPorProveedor = new HashMap<>();
 
+        Map<Long, List<ObraCostoExternalDto>> costosPorObra = obrasClient.obtenerCostosBulk(
+                obras.stream().map(ObraExternalDto::getId).toList());
         for (ObraExternalDto obra : obras) {
-            List<ObraCostoExternalDto> costos = obrasClient.obtenerCostos(obra.getId());
+            List<ObraCostoExternalDto> costos = costosPorObra.getOrDefault(obra.getId(), List.of());
             for (ObraCostoExternalDto costo : costos) {
                 if (Boolean.FALSE.equals(costo.getActivo())) {
                     continue;
@@ -1709,8 +1729,10 @@ public class ReportesService {
         Map<Long, ProveedorExternalDto> proveedores = mapearPorId(proveedoresClient.obtenerProveedores(), ProveedorExternalDto::getId);
 
         Map<String, BigDecimal> presupuestadoPorObraProveedor = new HashMap<>();
+        Map<Long, List<ObraCostoExternalDto>> costosPorObra = obrasClient.obtenerCostosBulk(
+                obras.stream().map(ObraExternalDto::getId).toList());
         for (ObraExternalDto obra : obras) {
-            List<ObraCostoExternalDto> costos = obrasClient.obtenerCostos(obra.getId());
+            List<ObraCostoExternalDto> costos = costosPorObra.getOrDefault(obra.getId(), List.of());
             for (ObraCostoExternalDto costo : costos) {
                 if (Boolean.FALSE.equals(costo.getActivo()) || !costoTieneProveedor(costo)) {
                     continue;
@@ -2363,10 +2385,12 @@ public class ReportesService {
         BigDecimal[] costosYPagos = {BigDecimal.ZERO, BigDecimal.ZERO}; // [costos, pagos]
 
         // Procesar costos (desde costos de obra)
+        Map<Long, List<ObraCostoExternalDto>> costosPorObra = obrasClient.obtenerCostosBulk(
+                obras.stream().filter(o -> obrasValidas.contains(o.getId())).map(ObraExternalDto::getId).toList());
         for (ObraExternalDto obra : obras) {
             if (!obrasValidas.contains(obra.getId())) continue;
 
-            List<ObraCostoExternalDto> costosObra = obrasClient.obtenerCostos(obra.getId());
+            List<ObraCostoExternalDto> costosObra = costosPorObra.getOrDefault(obra.getId(), List.of());
             for (ObraCostoExternalDto costo : costosObra) {
                 if (!Objects.equals(proveedorId, costo.getIdProveedor()) ||
                         Boolean.FALSE.equals(costo.getActivo())) {
