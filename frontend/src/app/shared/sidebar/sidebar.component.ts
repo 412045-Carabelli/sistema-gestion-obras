@@ -1,13 +1,16 @@
-import {Component, Input, Output, EventEmitter, OnInit} from '@angular/core';
-import {CommonModule} from '@angular/common';
-import {RouterModule} from '@angular/router';
-import {ChangelogService} from '../../services/changelog/changelog.service';
-import {ConfiguracionService, CONFIG_KEYS} from '../../services/configuracion/configuracion.service';
+import { Component, Input, Output, EventEmitter, OnInit, inject, computed } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { Router, RouterModule } from '@angular/router';
+import { ChangelogService } from '../../services/changelog/changelog.service';
+import { ConfiguracionService, CONFIG_KEYS } from '../../services/configuracion/configuracion.service';
+import { PlanService } from '../../services/plan/plan.service';
+import { PlanFeature } from '../../core/models/models';
 
 interface MenuItem {
   label: string;
   icon: string;
   path: string;
+  feature?: PlanFeature;  // null = siempre visible; definido = requiere feature
 }
 
 interface MenuGroup {
@@ -18,10 +21,7 @@ interface MenuGroup {
 @Component({
   selector: 'app-sidebar',
   standalone: true,
-  imports: [
-    CommonModule,
-    RouterModule
-  ],
+  imports: [CommonModule, RouterModule],
   templateUrl: './sidebar.component.html',
   styleUrls: ['./sidebar.component.css']
 })
@@ -32,10 +32,10 @@ export class SidebarComponent implements OnInit {
   logoUrl: string = '';
   empresaNombre: string = '';
 
-  constructor(
-    private changelogService: ChangelogService,
-    private configuracionService: ConfiguracionService
-  ) {}
+  private changelogService = inject(ChangelogService);
+  private configuracionService = inject(ConfiguracionService);
+  planService = inject(PlanService);
+  private router = inject(Router);
 
   ngOnInit(): void {
     this.configuracionService.config$.subscribe(config => {
@@ -48,37 +48,51 @@ export class SidebarComponent implements OnInit {
     this.changelogService.abrir();
   }
 
+  isLocked(item: MenuItem): boolean {
+    if (!item.feature) return false;
+    return this.planService.isLocked(item.feature);
+  }
+
+  navegarItem(item: MenuItem): void {
+    if (this.isLocked(item)) {
+      this.router.navigate(['/planes'], { queryParams: { feature: item.feature } });
+      return;
+    }
+    this.router.navigate([item.path]);
+    this.navClicked.emit();
+  }
+
   menuGroups: MenuGroup[] = [
     {
       label: 'Principal',
       items: [
-        {label: 'Dashboard', icon: 'pi-home', path: '/dashboard'}
+        { label: 'Dashboard', icon: 'pi-home', path: '/dashboard' }
       ]
     },
     {
       label: 'Gestión de Obras',
       items: [
-        {label: 'Obras', icon: 'pi-building', path: '/obras'},
-        {label: 'Agendas', icon: 'pi-calendar', path: '/agendas'},
-        {label: 'Clientes', icon: 'pi-users', path: '/clientes'},
-        {label: 'Proveedores', icon: 'pi-truck', path: '/proveedores'}
+        { label: 'Obras',       icon: 'pi-building',  path: '/obras' },
+        { label: 'Agendas',     icon: 'pi-calendar',  path: '/agendas',    feature: 'agenda' },
+        { label: 'Clientes',    icon: 'pi-users',     path: '/clientes' },
+        { label: 'Proveedores', icon: 'pi-truck',     path: '/proveedores' }
       ]
     },
     {
       label: 'Financiero',
       items: [
-        {label: 'Movimientos', icon: 'pi-arrow-right-arrow-left', path: '/movimientos'},
-        {label: 'Facturas', icon: 'pi-receipt', path: '/facturas'},
-        {label: 'Cuentas Corrientes', icon: 'pi-wallet', path: '/cuentas-corrientes'}
+        { label: 'Movimientos',        icon: 'pi-arrow-right-arrow-left', path: '/movimientos' },
+        { label: 'Facturas',           icon: 'pi-receipt',                path: '/facturas',          feature: 'facturas' },
+        { label: 'Cuentas Corrientes', icon: 'pi-wallet',                 path: '/cuentas-corrientes' }
       ]
     },
     {
       label: 'Reportes',
       items: [
-        {label: 'Reportes', icon: 'pi-chart-bar', path: '/reportes'}
+        { label: 'Reportes', icon: 'pi-chart-bar', path: '/reportes' }
       ]
     }
   ];
 
-  version: string = 'v1.17.40';
+  version: string = 'v1.17.41';
 }

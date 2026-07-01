@@ -1,0 +1,157 @@
+<p-toast position="bottom-right"></p-toast>
+
+<div class="planes-page">
+
+  <!-- Header -->
+  <div class="planes-header">
+    <button class="btn-back" (click)="volver()">
+      <i class="pi pi-arrow-left"></i> Volver
+    </button>
+
+    <div class="planes-hero">
+      <div class="hero-badge">
+        <span class="badge-dot"></span>
+        Planes y Precios
+      </div>
+      <h1 class="planes-title">
+        Elegí el plan que<br/>
+        <span class="lime">impulsa tu empresa</span>
+      </h1>
+      <p class="planes-sub">
+        Sin contratos de permanencia. Cancelá cuando quieras.
+      </p>
+
+      <!-- Alerta si viene de feature bloqueada -->
+      @if (featureRequerida()) {
+        <div class="feature-alert">
+          <i class="pi pi-lock"></i>
+          La funcionalidad <strong>{{ featureRequerida() }}</strong> requiere un plan superior.
+          Elegí un plan para desbloquearla.
+        </div>
+      }
+
+      <!-- Toggle mensual / anual -->
+      <div class="ciclo-toggle">
+        <button
+          class="ciclo-btn"
+          [class.active]="ciclo() === 'mensual'"
+          (click)="ciclo.set('mensual')">
+          Mensual
+        </button>
+        <button
+          class="ciclo-btn"
+          [class.active]="ciclo() === 'anual'"
+          (click)="ciclo.set('anual')">
+          Anual
+          <span class="ahorro-badge">2 meses gratis</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Grid de planes -->
+  <div class="planes-grid">
+    @for (plan of planes; track plan.codigo) {
+      <div class="plan-card" [class.highlight]="plan.highlight" [class.actual]="esPlanActual(plan.codigo)">
+
+        @if (plan.badge) {
+          <div class="plan-badge">{{ plan.badge }}</div>
+        }
+
+        @if (esPlanActual(plan.codigo)) {
+          <div class="plan-badge actual-badge">Plan actual</div>
+        }
+
+        <!-- Nombre y descripción -->
+        <div class="plan-header">
+          <span class="plan-name">{{ plan.nombre }}</span>
+          <p class="plan-desc">{{ plan.descripcion }}</p>
+        </div>
+
+        <!-- Precio -->
+        <div class="plan-price-wrap">
+          @if (plan.precioMensual === 0) {
+            <span class="plan-price lime">Gratis</span>
+          } @else {
+            <div class="price-row">
+              <span class="currency">USD</span>
+              <span class="plan-price">{{ precioMensualEfectivo(plan) }}</span>
+              <span class="period">/mes</span>
+            </div>
+            @if (ciclo() === 'anual') {
+              <span class="precio-anual">USD {{ precio(plan) | number:'1.0-0' }} facturado anualmente</span>
+            }
+          }
+        </div>
+
+        <div class="plan-divider"></div>
+
+        <!-- Límites -->
+        <div class="limites-section">
+          <span class="section-label">Incluye</span>
+          <ul class="limites-list">
+            <li><i class="pi pi-users"></i> {{ plan.limites.usuarios }}</li>
+            <li><i class="pi pi-building"></i> {{ plan.limites.obras }}</li>
+            <li><i class="pi pi-id-card"></i> {{ plan.limites.clientes }}</li>
+            <li><i class="pi pi-truck"></i> {{ plan.limites.proveedores }}</li>
+            <li><i class="pi pi-arrow-right-arrow-left"></i> {{ plan.limites.transacciones }}</li>
+            <li><i class="pi pi-database"></i> {{ plan.limites.storage }}</li>
+            <li><i class="pi pi-chart-bar"></i> {{ plan.limites.reportes }}</li>
+          </ul>
+        </div>
+
+        <div class="plan-divider"></div>
+
+        <!-- Features -->
+        <ul class="plan-features">
+          @for (f of plan.features; track f.label) {
+            <li [class.locked]="!f.incluido">
+              @if (f.incluido) {
+                <span class="check"><i class="pi pi-check"></i></span>
+              } @else {
+                <span class="cross"><i class="pi pi-times"></i></span>
+              }
+              {{ f.label }}
+            </li>
+          }
+        </ul>
+
+        <!-- CTA -->
+        <button
+          class="btn-plan"
+          [class.lime-btn]="plan.highlight && !esPlanActual(plan.codigo)"
+          [class.current-btn]="esPlanActual(plan.codigo)"
+          [disabled]="esPlanActual(plan.codigo)"
+          (click)="elegirPlan(plan)">
+          @if (esPlanActual(plan.codigo)) {
+            <i class="pi pi-check-circle"></i> Plan actual
+          } @else {
+            {{ plan.ctaLabel }}
+          }
+        </button>
+
+      </div>
+    }
+  </div>
+
+  <!-- FAQ / Garantías -->
+  <div class="garantias">
+    <div class="garantia-item">
+      <i class="pi pi-shield"></i>
+      <span>Sin contratos de permanencia</span>
+    </div>
+    <div class="garantia-item">
+      <i class="pi pi-refresh"></i>
+      <span>Cambiá de plan en cualquier momento</span>
+    </div>
+    <div class="garantia-item">
+      <i class="pi pi-lock"></i>
+      <span>Pago seguro con Mercado Pago</span>
+    </div>
+    <div class="garantia-item">
+      <i class="pi pi-headphones"></i>
+      <span>Soporte por WhatsApp</span>
+    </div>
+  </div>
+
+</div>

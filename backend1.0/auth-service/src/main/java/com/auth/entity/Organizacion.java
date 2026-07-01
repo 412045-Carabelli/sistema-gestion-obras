@@ -37,6 +37,14 @@ public class Organizacion {
   @Column(nullable = false)
   private Boolean activo = Boolean.TRUE;
 
+  @ManyToOne(fetch = FetchType.LAZY)
+  @JoinColumn(name = "plan_id")
+  private Plan plan;
+
+  // ID de la suscripción activa (no FK directa para evitar circular reference)
+  @Column(name = "suscripcion_activa_id")
+  private Long suscripcionActivaId;
+
   @Column(name = "creado_en", nullable = false)
   private Instant creadoEn;
 

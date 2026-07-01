@@ -1,5 +1,6 @@
 import {Routes} from '@angular/router';
 import {authGuard, authMatchGuard, adminGuard} from './core/guards/auth.guard';
+import {planGuard} from './core/guards/plan.guard';
 import {ConfiguracionLayoutComponent} from './features/pages/configuracion/configuracion-layout.component';
 import {ConfiguracionComponent} from './features/pages/configuracion/configuracion.component';
 import {UsuariosAdminComponent} from './features/pages/configuracion/usuarios-admin/usuarios-admin.component';
@@ -26,6 +27,7 @@ import {FacturasDetailComponent} from './features/pages/facturas-detail/facturas
 import {FacturasEditComponent} from './features/pages/facturas-edit/facturas-edit.component';
 import {AgendasLayoutComponent} from './features/agendas-layout/agendas-layout.component';
 import {AgendasListComponent} from './features/components/agendas-list/agendas-list.component';
+import {AgendasGanttComponent} from './features/components/agendas-gantt/agendas-gantt.component';
 import {GruposLayoutComponent} from './features/grupos-layout/grupos-layout.component';
 import {GruposObrasComponent} from './features/pages/grupos-obras/grupos-obras.component';
 import {CuentaCorrienteLayoutComponent} from './features/cuenta-corriente-layout/cuenta-corriente-layout.component';
@@ -129,7 +131,7 @@ export const routes: Routes = [
     path: 'facturas',
     component: FacturasLayoutComponent,
     canMatch: [authMatchGuard],
-    canActivate: [authGuard],
+    canActivate: [authGuard, planGuard('facturas')],
     children: [
       {path: '', component: FacturasListComponent},
       {path: 'nueva', component: FacturasCreateComponent},
@@ -141,9 +143,10 @@ export const routes: Routes = [
     path: 'agendas',
     component: AgendasLayoutComponent,
     canMatch: [authMatchGuard],
-    canActivate: [authGuard],
+    canActivate: [authGuard, planGuard('agenda')],
     children: [
       {path: '', component: AgendasListComponent},
+      {path: 'gantt', component: AgendasGanttComponent},
     ],
   },
   {path: 'reportes', component: ReportesComponent, canMatch: [authMatchGuard], canActivate: [authGuard]},
@@ -151,7 +154,7 @@ export const routes: Routes = [
     path: 'grupos',
     component: GruposLayoutComponent,
     canMatch: [authMatchGuard],
-    canActivate: [authGuard],
+    canActivate: [authGuard, planGuard('grupos_obras')],
     children: [
       {path: '', component: GruposObrasComponent},
     ],
@@ -189,6 +192,11 @@ export const routes: Routes = [
         ]
       }
     ]
+  },
+  {
+    path: 'planes',
+    loadComponent: () => import('./features/pages/planes/planes.component').then(m => m.PlanesComponent),
+    canActivate: [authGuard],
   },
   {path: '**', redirectTo: ''},
 ];

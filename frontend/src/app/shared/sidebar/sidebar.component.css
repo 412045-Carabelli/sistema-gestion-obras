@@ -72,6 +72,89 @@
   background-color: #e5e7eb;
 }
 
+/* ===== ITEM BLOQUEADO POR PLAN ===== */
+.nav-item-locked {
+  color: #9ca3af;
+  cursor: pointer;
+  user-select: none;
+}
+.nav-item-locked:hover {
+  background-color: rgba(232, 255, 71, 0.06);
+  color: #6b7280;
+}
+.nav-item-locked i:first-child {
+  opacity: 0.4;
+}
+.lock-icon {
+  color: #d1d5db;
+  font-size: 0.7rem;
+}
+.nav-item-locked:hover .lock-icon {
+  color: #E8FF47;
+}
+
+/* ===== UPGRADE BANNER ===== */
+.upgrade-banner {
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+  border: 1px solid rgba(99, 102, 241, 0.25);
+  border-radius: 12px;
+  padding: 12px 14px;
+  cursor: pointer;
+  transition: border-color 0.2s, transform 0.15s;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.upgrade-banner:hover {
+  border-color: rgba(232, 255, 71, 0.35);
+  transform: translateY(-1px);
+}
+.upgrade-plan-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.upgrade-plan-name {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #e5e7eb;
+  font-family: "Space Grotesk", "Poppins", sans-serif;
+}
+.upgrade-tag {
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 2px 8px;
+  border-radius: 100px;
+  background: rgba(156, 163, 175, 0.15);
+  color: #9ca3af;
+  border: 1px solid rgba(156, 163, 175, 0.2);
+}
+.upgrade-tag.active {
+  background: rgba(99, 102, 241, 0.15);
+  color: #818cf8;
+  border-color: rgba(99, 102, 241, 0.3);
+}
+.upgrade-hint {
+  font-size: 0.75rem;
+  color: #6b7280;
+  margin: 0;
+  line-height: 1.4;
+}
+.upgrade-cta {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: #E8FF47;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 2px;
+}
+.upgrade-cta.secondary {
+  color: #818cf8;
+}
+
 /* Mobile: overlay fijo, visible cuando está en DOM */
 @media (max-width: 768px) {
   .sidebar {

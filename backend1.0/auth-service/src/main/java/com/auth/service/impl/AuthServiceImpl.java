@@ -3,6 +3,7 @@ package com.auth.service.impl;
 import com.auth.dto.*;
 import com.auth.entity.AuditAuth;
 import com.auth.entity.Organizacion;
+import com.auth.entity.Plan;
 import com.auth.entity.RefreshToken;
 import com.auth.entity.Usuario;
 import com.auth.entity.UsuarioOrganizacion;
@@ -15,6 +16,7 @@ import com.auth.repository.RefreshTokenRepository;
 import com.auth.repository.UsuarioOrganizacionRepository;
 import com.auth.repository.UsuarioRepository;
 import com.auth.service.AuthService;
+import com.auth.service.PlanService;
 import com.auth.util.JwtUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -38,6 +40,7 @@ public class AuthServiceImpl implements AuthService {
   private final UsuarioOrganizacionRepository usuarioOrganizacionRepository;
   private final PasswordEncoder passwordEncoder;
   private final JwtUtil jwtUtil;
+  private final PlanService planService;
 
   private static final int MAX_LOGIN_ATTEMPTS = 5;
   private static final long LOCKOUT_DURATION_MINUTES = 15;
@@ -208,8 +211,16 @@ public class AuthServiceImpl implements AuthService {
 
   // Helpers
   private AuthResponse generarTokens(Usuario usuario, Long organizacionId) {
-    // Generar access token
-    String accessToken = jwtUtil.generateAccessToken(usuario, organizacionId);
+    // Incluir plan en JWT para enforcement sin DB calls en microservicios
+    Plan plan = null;
+    try {
+      if (organizacionId != null) {
+        plan = planService.obtenerPlanDeOrganizacion(organizacionId);
+      }
+    } catch (Exception e) {
+      log.warn("No se pudo obtener plan para org {}, token sin claims de plan", organizacionId);
+    }
+    String accessToken = jwtUtil.generateAccessToken(usuario, organizacionId, plan);
 
     // Generar refresh token (UUID aleatorio)
     String refreshTokenString = UUID.randomUUID().toString();

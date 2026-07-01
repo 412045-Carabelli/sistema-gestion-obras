@@ -3,6 +3,7 @@ package com.auth.handler;
 import com.auth.dto.ErrorApi;
 import com.auth.exception.AccountLockedException;
 import com.auth.exception.AuthException;
+import com.auth.exception.ResourceNotFoundException;
 import com.auth.exception.UserAlreadyExistsException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -53,6 +54,30 @@ public class RestExceptionHandler {
     error.setPath(request.getRequestURI());
     error.setTimestamp(Instant.now());
     return ResponseEntity.status(401).body(error);
+  }
+
+  @ExceptionHandler(ResourceNotFoundException.class)
+  public ResponseEntity<ErrorApi> handleNotFound(
+      ResourceNotFoundException ex,
+      HttpServletRequest request) {
+    ErrorApi error = new ErrorApi();
+    error.setMessage(ex.getMessage());
+    error.setStatus(404);
+    error.setPath(request.getRequestURI());
+    error.setTimestamp(Instant.now());
+    return ResponseEntity.status(404).body(error);
+  }
+
+  @ExceptionHandler(IllegalArgumentException.class)
+  public ResponseEntity<ErrorApi> handleIllegalArgument(
+      IllegalArgumentException ex,
+      HttpServletRequest request) {
+    ErrorApi error = new ErrorApi();
+    error.setMessage(ex.getMessage());
+    error.setStatus(400);
+    error.setPath(request.getRequestURI());
+    error.setTimestamp(Instant.now());
+    return ResponseEntity.status(400).body(error);
   }
 
   @ExceptionHandler(MethodArgumentNotValidException.class)

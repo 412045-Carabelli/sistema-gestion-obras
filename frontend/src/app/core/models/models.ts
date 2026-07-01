@@ -1,3 +1,60 @@
+// ===== PLAN / SUSCRIPCIÓN =====
+
+export type PlanCodigo = 'FREE' | 'BASICO' | 'PROFESIONAL' | 'ENTERPRISE';
+
+export type PlanFeature =
+  | 'facturas'
+  | 'agenda'
+  | 'grupos_obras'
+  | 'exportar'
+  | 'push_notifications'
+  | 'soporte_prioritario'
+  | 'api_access';
+
+export interface PlanLimites {
+  maxUsuarios: number | null;
+  maxObrasActivas: number | null;
+  maxClientes: number | null;
+  maxProveedores: number | null;
+  maxTransaccionesMes: number | null;
+  maxStorageMb: number | null;
+  diasHistorialReportes: number | null;
+}
+
+export interface PlanFeatures {
+  facturas: boolean;
+  agenda: boolean;
+  grupos_obras: boolean;
+  exportar: boolean;
+  push_notifications: boolean;
+  soporte_prioritario: boolean;
+  api_access: boolean;
+}
+
+export interface PlanConfig {
+  planCodigo: PlanCodigo;
+  planNombre: string;
+  precioMensualUsd: number;
+  precioAnualUsd: number;
+  suscripcionEstado: string;
+  ciclo?: string;
+  fechaVencimiento?: string;
+  precioFinalUsd?: number;
+  limites: PlanLimites;
+  features: PlanFeatures;
+  featuresHabilitadas: PlanFeature[];
+}
+
+/** Respuesta del backend para error de límite de plan (HTTP 402) */
+export interface PlanLimitError {
+  code: 'PLAN_LIMIT_EXCEEDED' | 'FEATURE_NOT_AVAILABLE';
+  message: string;
+  recurso?: string;
+  feature?: string;
+  limiteActual?: number;
+  cantidadActual?: number;
+}
+
 // ===== AUTH TYPES & INTERFACES =====
 export interface LoginRequest {
   email: string;

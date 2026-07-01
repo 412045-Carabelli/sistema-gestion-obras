@@ -14,4 +14,5 @@ public interface ProveedorRepository extends JpaRepository<Proveedor, Long> {
     Optional<Proveedor> findByIdAndActivoTrue(Long id);
 
     Optional<Proveedor> findByDniCuit(String dniCuit);
+    long countByActivoTrueAndOrganizacionId(Long organizacionId);
 }

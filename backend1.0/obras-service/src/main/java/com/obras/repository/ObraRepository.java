@@ -13,6 +13,7 @@ import java.util.List;
 public interface ObraRepository extends JpaRepository<Obra, Long> {
     Page<Obra> findAll(Pageable pageable);
     Page<Obra> findByOrganizacionId(Long organizacionId, Pageable pageable);
+    long countByOrganizacionIdAndActivoTrue(Long organizacionId);
     Page<Obra> findByIdCliente(Long idCliente, Pageable pageable);
     Page<Obra> findByIdClienteAndOrganizacionId(Long idCliente, Long organizacionId, Pageable pageable);
 

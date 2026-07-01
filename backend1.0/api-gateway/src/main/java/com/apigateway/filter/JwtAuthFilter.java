@@ -18,8 +18,11 @@ import org.springframework.web.server.WebFilter;
 import org.springframework.web.server.WebFilterChain;
 import reactor.core.publisher.Mono;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
+import java.util.Map;
 
 @Component
 @RequiredArgsConstructor
@@ -27,6 +30,7 @@ import java.util.List;
 public class JwtAuthFilter implements WebFilter {
 
   private final JwtProperties jwtProperties;
+  private final ObjectMapper objectMapper = new ObjectMapper();
 
   // Rutas públicas que no requieren JWT
   private static final List<String> PUBLIC_PATHS = List.of(
@@ -83,11 +87,19 @@ public class JwtAuthFilter implements WebFilter {
       Object orgIdObj = claims.get("organizacionId");
       String organizacionId = orgIdObj != null ? String.valueOf(((Number) orgIdObj).longValue()) : null;
 
+      // Claims de plan
+      String planCodigo = (String) claims.get("planCodigo");
+      String planLimitesJson = toJson(claims.get("planLimites"));
+      String planFeaturesJson = toJson(claims.get("planFeatures"));
+
       // Inyectar headers hacia downstream usando decorator (headers son read-only en WebFlux 6.1+)
       final String finalUserId = String.valueOf(userId);
       final String finalUsername = username != null ? username : "";
       final String finalRol = rol != null ? rol : "USER";
       final String finalEmpresaId = organizacionId != null ? organizacionId : "";
+      final String finalPlanCodigo = planCodigo != null ? planCodigo : "FREE";
+      final String finalPlanLimites = planLimitesJson;
+      final String finalPlanFeatures = planFeaturesJson;
 
       ServerHttpRequest decoratedRequest = new ServerHttpRequestDecorator(exchange.getRequest()) {
         @Override
@@ -98,6 +110,9 @@ public class JwtAuthFilter implements WebFilter {
           headers.set("X-Username", finalUsername);
           headers.set("X-User-Rol", finalRol);
           headers.set("X-Organizacion-Id", finalEmpresaId);
+          headers.set("X-Plan-Codigo", finalPlanCodigo);
+          if (finalPlanLimites != null) headers.set("X-Plan-Limites", finalPlanLimites);
+          if (finalPlanFeatures != null) headers.set("X-Plan-Features", finalPlanFeatures);
           return headers;
         }
       };
@@ -117,5 +132,15 @@ public class JwtAuthFilter implements WebFilter {
 
   private boolean isPublicPath(String path) {
     return PUBLIC_PATHS.stream().anyMatch(path::startsWith);
+  }
+
+  private String toJson(Object obj) {
+    if (obj == null) return null;
+    try {
+      return objectMapper.writeValueAsString(obj);
+    } catch (JsonProcessingException e) {
+      log.warn("No se pudo serializar claim a JSON: {}", e.getMessage());
+      return null;
+    }
   }
 }

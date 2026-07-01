@@ -1,5 +1,7 @@
 package com.obras.handler;
 
+import com.common.plan.FeatureNotAvailableException;
+import com.common.plan.PlanLimitExceededException;
 import com.obras.dto.ErrorApi;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -18,6 +20,30 @@ import java.util.Map;
 @RestControllerAdvice
 @Order(Ordered.HIGHEST_PRECEDENCE)
 public class RestExceptionHandler {
+
+    @ExceptionHandler(PlanLimitExceededException.class)
+    public ResponseEntity<Map<String, Object>> handlePlanLimit(PlanLimitExceededException ex, HttpServletRequest request) {
+        Map<String, Object> body = new HashMap<>();
+        body.put("code", "PLAN_LIMIT_EXCEEDED");
+        body.put("message", ex.getMessage());
+        body.put("recurso", ex.getRecurso());
+        body.put("limiteActual", ex.getLimiteActual());
+        body.put("cantidadActual", ex.getCantidadActual());
+        body.put("path", request.getRequestURI());
+        body.put("timestamp", Instant.now());
+        return ResponseEntity.status(HttpStatus.PAYMENT_REQUIRED).body(body);
+    }
+
+    @ExceptionHandler(FeatureNotAvailableException.class)
+    public ResponseEntity<Map<String, Object>> handleFeatureNotAvailable(FeatureNotAvailableException ex, HttpServletRequest request) {
+        Map<String, Object> body = new HashMap<>();
+        body.put("code", "FEATURE_NOT_AVAILABLE");
+        body.put("message", ex.getMessage());
+        body.put("feature", ex.getFeature());
+        body.put("path", request.getRequestURI());
+        body.put("timestamp", Instant.now());
+        return ResponseEntity.status(HttpStatus.PAYMENT_REQUIRED).body(body);
+    }
 
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<ErrorApi> handleIllegalArgument(IllegalArgumentException ex, HttpServletRequest request) {

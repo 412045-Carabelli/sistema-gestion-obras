@@ -3,7 +3,9 @@ package com.clientes.controller;
 import com.clientes.dto.ClienteRequest;
 import com.clientes.dto.ClienteResponse;
 import com.clientes.entity.CondicionIva;
+import com.clientes.repository.ClienteRepository;
 import com.clientes.service.ClienteService;
+import com.common.plan.PlanLimitChecker;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -18,11 +20,17 @@ import java.util.*;
 @RequiredArgsConstructor
 public class ClientesController {
     private final ClienteService service;
+    private final ClienteRepository clienteRepository;
 
     @PostMapping
     public ResponseEntity<ClienteResponse> save(
             @RequestBody @Valid ClienteRequest c,
-            @RequestHeader(value = "X-Organizacion-Id", defaultValue = "0") Long organizacionId) {
+            @RequestHeader(value = "X-Organizacion-Id", defaultValue = "0") Long organizacionId,
+            @RequestHeader(value = "X-Plan-Limites", required = false) String planLimites) {
+        PlanLimitChecker.assertCanCreate(
+            planLimites, "clientes", "maxClientes",
+            () -> clienteRepository.countByOrganizacionIdAndActivoTrue(organizacionId)
+        );
         c.setOrganizacionId(organizacionId);
         return ResponseEntity.ok(service.crear(c));
     }

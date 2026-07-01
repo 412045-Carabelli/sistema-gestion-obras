@@ -1,8 +1,10 @@
 package com.obras.controller;
 
+import com.common.plan.PlanLimitChecker;
 import com.obras.dto.*;
 import com.obras.entity.ObraProveedor;
 import com.obras.enums.EstadoObraEnum;
+import com.obras.repository.ObraRepository;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -20,12 +22,16 @@ import java.util.*;
 public class ObrasController {
 
     private final ObraService svc;
+    private final ObraRepository obraRepository;
 
     // OBRAS
     @PostMapping
     public ResponseEntity<ObraDTO> crear(
             @Valid @RequestBody ObraDTO dto,
-            @RequestHeader(value = "X-Organizacion-Id", defaultValue = "0") Long organizacionId) {
+            @RequestHeader(value = "X-Organizacion-Id", defaultValue = "0") Long organizacionId,
+            @RequestHeader(value = "X-Plan-Limites", required = false) String planLimites) {
+        PlanLimitChecker.assertCanCreate(planLimites, "obras", "maxObrasActivas",
+                () -> obraRepository.countByOrganizacionIdAndActivoTrue(organizacionId));
         dto.setOrganizacion_id(organizacionId);
         return ResponseEntity.ok(svc.crear(dto));
     }
