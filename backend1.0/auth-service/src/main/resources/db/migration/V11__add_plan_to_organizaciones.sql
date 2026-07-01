@@ -1,7 +1,11 @@
 -- V11: Vincular organizaciones con plan y suscripción activa
 ALTER TABLE organizaciones
-    ADD plan_id                 BIGINT REFERENCES planes(id),
-        suscripcion_activa_id   BIGINT;   -- FK circular → no REFERENCES, se gestiona por app
+    ADD plan_id               BIGINT NULL,
+        suscripcion_activa_id BIGINT NULL;
+
+ALTER TABLE organizaciones
+    ADD CONSTRAINT fk_organizaciones_plan
+    FOREIGN KEY (plan_id) REFERENCES planes(id);
 
 -- Por defecto todas las orgs existentes arrancan en FREE
 UPDATE organizaciones
