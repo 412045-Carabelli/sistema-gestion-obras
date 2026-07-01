@@ -59,6 +59,9 @@ public class Transaccion {
     @Column(name = "baja_obra")
     private Boolean bajaObra = Boolean.FALSE;
 
+    @Column(name = "creado_en")
+    private Instant creadoEn;
+
     @Column(name = "ultima_actualizacion")
     private Instant ultimaActualizacion;
 
@@ -67,6 +70,7 @@ public class Transaccion {
 
     @PrePersist
     public void prePersist() {
+        this.creadoEn = Instant.now();
         marcarAuditoria("CREATE");
     }
 

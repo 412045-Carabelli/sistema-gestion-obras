@@ -54,4 +54,13 @@ public interface TransaccionRepository extends JpaRepository<Transaccion, Long> 
         @Param("idAsociado") Long idAsociado,
         @Param("organizacionId") Long organizacionId
     );
+
+    @Query(nativeQuery = true, value =
+        "SELECT COUNT(1) FROM transacciones t " +
+        "WHERE t.activo = 1 " +
+        "AND t.organizacion_id = :organizacionId " +
+        "AND MONTH(t.creado_en) = MONTH(GETDATE()) " +
+        "AND YEAR(t.creado_en) = YEAR(GETDATE())"
+    )
+    long countMesActualByOrganizacionId(@Param("organizacionId") Long organizacionId);
 }

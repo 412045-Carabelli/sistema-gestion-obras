@@ -1,11 +1,13 @@
 package com.transacciones.controller;
 
+import com.common.plan.PlanLimitChecker;
 import com.transacciones.dto.ComisionPagoRequest;
 import com.transacciones.dto.TransaccionDto;
 import com.transacciones.dto.MovimientoRecenteDTO;
 import com.transacciones.entity.Transaccion;
 import com.transacciones.enums.TipoTransaccionEnum;
 import com.transacciones.repository.TransaccionConAsociadoRepository;
+import com.transacciones.repository.TransaccionRepository;
 import com.transacciones.service.TransaccionService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -24,6 +26,7 @@ public class TransaccionController {
 
     private final TransaccionService transaccionService;
     private final TransaccionConAsociadoRepository transaccionConAsociadoRepository;
+    private final TransaccionRepository transaccionRepository;
 
     @GetMapping
     public ResponseEntity<List<TransaccionDto>> getAll(
@@ -103,7 +106,12 @@ public class TransaccionController {
     @PostMapping
     public ResponseEntity<TransaccionDto> create(
             @RequestBody TransaccionDto dto,
-            @RequestHeader(value = "X-Organizacion-Id", defaultValue = "0") Long organizacionId) {
+            @RequestHeader(value = "X-Organizacion-Id", defaultValue = "0") Long organizacionId,
+            @RequestHeader(value = "X-Plan-Limites", required = false) String planLimites) {
+        PlanLimitChecker.assertCanCreate(
+            planLimites, "transacciones", "maxTransaccionesMes",
+            () -> transaccionRepository.countMesActualByOrganizacionId(organizacionId)
+        );
         Transaccion entity = toEntity(dto);
         entity.setOrganizacionId(organizacionId);
         return ResponseEntity.ok(transaccionService.crear(entity));
