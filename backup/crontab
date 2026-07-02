@@ -1,0 +1,8 @@
+# SGO - Backup semanal automático
+# Cada domingo a las 02:00 AM (hora del servidor)
+# Variables de entorno son pasadas por Docker (no disponibles aquí directamente)
+# El script las lee de /etc/backup.env inyectado al arrancar
+SHELL=/bin/bash
+PATH=/opt/mssql-tools18/bin:/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
+
+0 2 * * 0 root /backup.sh >> /var/log/sgo-backup.log 2>&1
