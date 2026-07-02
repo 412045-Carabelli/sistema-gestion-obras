@@ -12,6 +12,7 @@ services:
     volumes:
       - sqlserver_data_v2:/var/opt/mssql
       - ./db/sqlserver-init:/init
+      - backup_data:/backups
     entrypoint: ["/bin/bash", "/init/entrypoint.sh"]
     healthcheck:
       test: ["CMD", "/opt/mssql-tools18/bin/sqlcmd", "-S", "127.0.0.1",
@@ -290,6 +291,28 @@ services:
       - sgo_backend
       - dokploy-network
 
+  backup:
+    build: ./backup
+    container_name: sgo_backup
+    environment:
+      - DB_HOST=sqlserver
+      - DB_PORT=1433
+      - DB_USER=sa
+      - DB_PASSWORD=${DB_PASSWORD}
+    volumes:
+      - backup_data:/backups
+      - ./data/minio:/minio-data:ro
+    depends_on:
+      sqlserver:
+        condition: service_healthy
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+    networks:
+      - sgo_backend
+
   n8n:
     image: n8nio/n8n:latest
     container_name: n8n
@@ -378,3 +401,4 @@ volumes:
   reportes_data_v2:
   n8n_data:
   waha_data:
+  backup_data:
