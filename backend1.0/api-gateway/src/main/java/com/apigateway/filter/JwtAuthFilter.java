@@ -37,6 +37,7 @@ public class JwtAuthFilter implements WebFilter {
       "/auth/login",
       // "/auth/register",   // REGISTRO DESHABILITADO
       "/auth/refresh",
+      "/auth/planes",        // Pricing page — sin JWT
       "/bff/auth/login",
       // "/bff/auth/register",  // REGISTRO DESHABILITADO
       "/bff/auth/refresh",

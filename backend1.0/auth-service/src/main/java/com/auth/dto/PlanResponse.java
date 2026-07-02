@@ -40,6 +40,8 @@ public class PlanResponse {
     private Boolean tienePushNotifications;
     private Boolean tieneSoportePrioritario;
     private Boolean tieneApiAccess;
+    private Boolean tieneWhatsappBot;
+    private Boolean tieneGantt;
 
     private Boolean activo;
     private Instant creadoEn;
@@ -66,6 +68,8 @@ public class PlanResponse {
                 .tienePushNotifications(plan.getTienePushNotifications())
                 .tieneSoportePrioritario(plan.getTieneSoportePrioritario())
                 .tieneApiAccess(plan.getTieneApiAccess())
+                .tieneWhatsappBot(plan.getTieneWhatsappBot())
+                .tieneGantt(plan.getTieneGantt())
                 .activo(plan.getActivo())
                 .creadoEn(plan.getCreadoEn())
                 .build();

@@ -1,136 +1,146 @@
-<p-toast />
+<p-toast position="bottom-right" />
 <p-confirmDialog />
 
-<div class="mi-plan-page">
+<app-layout-header
+  type="list"
+  title="Mi Plan"
+  subtitle="Gestioná tu suscripción y el uso de recursos">
+</app-layout-header>
 
-  <!-- HEADER -->
-  <div class="page-header">
-    <div class="header-left">
-      <h1 class="page-title">Mi Plan</h1>
-      <p class="page-subtitle">Gestioná tu suscripción y el uso de recursos</p>
-    </div>
-    <button class="btn-cambiar" (click)="irAPlanes()">
-      <i class="pi pi-arrow-up-right"></i> Cambiar Plan
-    </button>
-  </div>
+<div class="p-8 space-y-6 max-w-full mx-auto">
 
   @if (cargando()) {
-    <div class="loading-state">
-      <i class="pi pi-spin pi-spinner"></i>
-      <span>Cargando información del plan...</span>
+    <div class="flex items-center justify-center gap-3 py-16 text-gray-500">
+      <i class="pi pi-spin pi-spinner text-2xl"></i>
+      <span class="font-poppins">Cargando información del plan...</span>
     </div>
   } @else {
 
-    <!-- PLAN ACTUAL CARD -->
-    <div class="plan-card">
-      <div class="plan-card-left">
-        <div class="plan-info">
-          <span [class]="planBadgeClass()">
-            {{ planConfig()?.planCodigo ?? 'FREE' }}
-          </span>
-          <h2 class="plan-nombre">{{ planDetalle()?.planNombre ?? planConfig()?.planCodigo }}</h2>
+    <!-- PLAN ACTUAL -->
+    <div class="bg-white rounded-xl shadow-md p-6">
+      <h2 class="font-poppins font-semibold text-gray-900 mb-5 flex items-center gap-2 pb-3 border-b border-gray-200">
+        <i class="pi pi-id-card text-blue-600"></i>
+        Plan actual
+      </h2>
+
+      <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
+
+        <!-- Info izquierda -->
+        <div class="flex flex-col gap-4">
+          <div class="flex items-center gap-3">
+            <span [class]="planBadgeClass()">
+              {{ planConfig()?.planCodigo ?? 'FREE' }}
+            </span>
+            <span class="text-2xl font-poppins font-bold text-gray-900">
+              {{ planDetalle()?.planNombre ?? planConfig()?.planCodigo ?? 'Free' }}
+            </span>
+          </div>
+
+          <div class="flex flex-wrap gap-6">
+            @if (planDetalle()?.suscripcionEstado; as estado) {
+              <div class="flex flex-col gap-1">
+                <span class="text-xs font-poppins font-semibold text-gray-400 uppercase tracking-wider">Estado</span>
+                <span class="estado-badge" [ngClass]="estadoBadgeClass()">{{ estadoLabel(estado) }}</span>
+              </div>
+            }
+            @if (planDetalle()?.ciclo) {
+              <div class="flex flex-col gap-1">
+                <span class="text-xs font-poppins font-semibold text-gray-400 uppercase tracking-wider">Ciclo</span>
+                <span class="font-poppins font-medium text-gray-700">{{ cicloLabel(planDetalle()?.ciclo) }}</span>
+              </div>
+            }
+            @if (planDetalle()?.fechaVencimiento) {
+              <div class="flex flex-col gap-1">
+                <span class="text-xs font-poppins font-semibold text-gray-400 uppercase tracking-wider">Próxima renovación</span>
+                <span class="font-poppins font-medium text-gray-700">
+                  {{ planDetalle()?.fechaVencimiento | date:'dd/MM/yyyy' }}
+                </span>
+              </div>
+            }
+            @if (planDetalle()?.precioFinalUsd != null || planConfig()?.planCodigo === 'FREE') {
+              <div class="flex flex-col gap-1">
+                <span class="text-xs font-poppins font-semibold text-gray-400 uppercase tracking-wider">Precio</span>
+                <span class="font-poppins font-bold text-gray-900 text-lg">
+                  ${{ planDetalle()?.precioFinalUsd ?? 0 }}
+                  <span class="text-sm font-normal text-gray-500">/ {{ planDetalle()?.ciclo === 'ANUAL' ? 'año' : 'mes' }}</span>
+                </span>
+              </div>
+            }
+          </div>
         </div>
 
-        <div class="plan-meta">
-          @if (planDetalle()?.suscripcionEstado; as estado) {
-            <div class="meta-item">
-              <span class="meta-label">Estado</span>
-              <span class="estado-badge" [ngClass]="estadoBadgeClass()">
-                {{ estadoLabel(estado) }}
-              </span>
-            </div>
-          }
-          @if (planDetalle()?.ciclo) {
-            <div class="meta-item">
-              <span class="meta-label">Ciclo</span>
-              <span class="meta-value">{{ cicloLabel(planDetalle()?.ciclo) }}</span>
-            </div>
-          }
-          @if (planDetalle()?.fechaVencimiento) {
-            <div class="meta-item">
-              <span class="meta-label">Próxima renovación</span>
-              <span class="meta-value">
-                {{ planDetalle()?.fechaVencimiento | date:'dd/MM/yyyy' }}
-              </span>
-            </div>
-          }
-        </div>
-      </div>
-
-      <div class="plan-card-right">
-        @if (planDetalle()?.precioFinalUsd; as precio) {
-          <div class="precio-bloque">
-            <span class="precio-amount">${{ precio }}</span>
-            <span class="precio-ciclo">/ {{ planDetalle()?.ciclo === 'ANUAL' ? 'año' : 'mes' }}</span>
-          </div>
-        } @else if (planConfig()?.planCodigo === 'FREE') {
-          <div class="precio-bloque">
-            <span class="precio-amount">$0</span>
-            <span class="precio-ciclo">/ mes</span>
-          </div>
-        }
-
-        @if (planDetalle()?.suscripcionEstado !== 'CANCELADA' && planConfig()?.planCodigo !== 'FREE') {
+        <!-- Acciones derecha -->
+        <div class="flex flex-col gap-3 items-start md:items-end">
           <button
-            class="btn-cancelar"
-            [disabled]="cancelando()"
-            (click)="confirmarCancelar()">
-            <i class="pi" [class.pi-times-circle]="!cancelando()" [class.pi-spin]="cancelando()" [class.pi-spinner]="cancelando()"></i>
-            {{ cancelando() ? 'Cancelando...' : 'Cancelar suscripción' }}
+            class="flex items-center gap-2 px-5 py-2.5 bg-gray-900 text-white font-poppins font-semibold text-sm rounded-lg hover:bg-gray-700 transition-colors"
+            (click)="irAPlanes()">
+            <i class="pi pi-arrow-up-right"></i>
+            Cambiar plan
           </button>
-        }
-        @if (planDetalle()?.suscripcionEstado === 'CANCELADA') {
-          <div class="cancelada-notice">
-            <i class="pi pi-info-circle"></i>
-            Suscripción cancelada — activa hasta el vencimiento
-          </div>
-        }
+
+          @if (planDetalle()?.suscripcionEstado !== 'CANCELADA' && planConfig()?.planCodigo !== 'FREE') {
+            <button
+              class="flex items-center gap-2 px-5 py-2.5 text-red-600 border border-red-200 font-poppins font-medium text-sm rounded-lg hover:bg-red-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              [disabled]="cancelando()"
+              (click)="confirmarCancelar()">
+              <i class="pi" [class.pi-times-circle]="!cancelando()" [class.pi-spin]="cancelando()" [class.pi-spinner]="cancelando()"></i>
+              {{ cancelando() ? 'Cancelando...' : 'Cancelar suscripción' }}
+            </button>
+          }
+
+          @if (planDetalle()?.suscripcionEstado === 'CANCELADA') {
+            <div class="flex items-center gap-2 text-xs text-gray-500 bg-gray-50 border border-gray-200 px-3 py-2 rounded-lg">
+              <i class="pi pi-info-circle"></i>
+              Cancelada — activa hasta vencimiento
+            </div>
+          }
+        </div>
       </div>
     </div>
 
     <!-- USO DE RECURSOS -->
-    <div class="section">
-      <h2 class="section-title">
-        <i class="pi pi-chart-pie"></i> Uso de recursos
+    <div class="bg-white rounded-xl shadow-md p-6">
+      <h2 class="font-poppins font-semibold text-gray-900 mb-5 flex items-center gap-2 pb-3 border-b border-gray-200">
+        <i class="pi pi-chart-pie text-blue-600"></i>
+        Uso de recursos
       </h2>
 
-      <div class="recursos-grid">
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         @for (recurso of recursos(); track recurso.label) {
-          <div class="recurso-card">
-            <div class="recurso-header">
-              <div class="recurso-label">
-                <i class="pi" [class]="recurso.icono"></i>
+          <div class="border border-gray-200 rounded-lg p-4 hover:shadow-sm transition-shadow">
+
+            <div class="flex justify-between items-center mb-3">
+              <div class="flex items-center gap-2 text-sm font-poppins font-semibold text-gray-700">
+                <i class="pi text-gray-400" [class]="recurso.icono"></i>
                 {{ recurso.label }}
               </div>
-              <div class="recurso-cantidad">
+              <div class="text-sm font-poppins text-right">
                 @if (recurso.actual !== null && recurso.limite !== null) {
-                  <strong>{{ recurso.actual }}</strong>
-                  <span class="de"> / {{ recurso.limite }}{{ recurso.sufijo ?? '' }}</span>
+                  <strong class="text-gray-900">{{ recurso.actual }}</strong>
+                  <span class="text-gray-400"> / {{ recurso.limite }}{{ recurso.sufijo ?? '' }}</span>
                 } @else if (recurso.limite !== null && recurso.actual === null) {
-                  <span class="limite-only">Límite: {{ recurso.limite }}{{ recurso.sufijo ?? '' }}</span>
+                  <span class="text-gray-500 text-xs">Límite: {{ recurso.limite }}{{ recurso.sufijo ?? '' }}</span>
                 } @else if (recurso.limite === null) {
-                  <span class="ilimitado">∞ Ilimitado</span>
+                  <span class="text-emerald-600 font-semibold">∞ Sin límite</span>
                 } @else {
-                  <span class="nd">—</span>
+                  <span class="text-gray-300">—</span>
                 }
               </div>
             </div>
 
             @if (recurso.actual !== null && recurso.limite !== null) {
-              <div class="progress-track">
+              <div class="h-1.5 bg-gray-100 rounded-full overflow-hidden mb-1">
                 <div
-                  class="progress-fill"
+                  class="h-full rounded-full transition-all duration-500"
                   [class]="colorBarra(porcentaje(recurso))"
                   [style.width.%]="porcentaje(recurso)">
                 </div>
               </div>
-              <div class="pct-label">{{ porcentaje(recurso) }}% utilizado</div>
+              <p class="text-xs text-gray-400 font-poppins text-right">{{ porcentaje(recurso) }}% utilizado</p>
             } @else if (recurso.limite === null) {
-              <div class="progress-track ilimitada">
-                <div class="progress-fill barra-verde" style="width: 0%"></div>
-              </div>
+              <div class="h-1.5 bg-gray-100 rounded-full"></div>
             } @else {
-              <div class="progress-track nd-track"></div>
+              <div class="h-1.5 bg-gray-50 rounded-full"></div>
             }
           </div>
         }
@@ -138,38 +148,48 @@
     </div>
 
     <!-- FUNCIONALIDADES -->
-    <div class="section">
-      <h2 class="section-title">
-        <i class="pi pi-list-check"></i> Funcionalidades incluidas
+    <div class="bg-white rounded-xl shadow-md p-6">
+      <h2 class="font-poppins font-semibold text-gray-900 mb-5 flex items-center gap-2 pb-3 border-b border-gray-200">
+        <i class="pi pi-list-check text-blue-600"></i>
+        Funcionalidades incluidas
       </h2>
 
-      <div class="features-grid">
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
         @for (f of features(); track f.key) {
-          <div class="feature-item" [class.feature-off]="!f.habilitada">
-            <span class="feature-icon">
-              @if (f.habilitada) {
-                <i class="pi pi-check-circle feature-check"></i>
-              } @else {
-                <i class="pi pi-times-circle feature-cross"></i>
-              }
-            </span>
-            <span class="feature-label">{{ f.label }}</span>
-            @if (!f.habilitada) {
-              <button class="btn-upgrade-inline" (click)="irAPlanes()">Activar</button>
+          <div
+            class="flex items-center gap-3 px-4 py-3 rounded-lg border transition-colors"
+            [class.border-gray-200]="f.habilitada"
+            [class.bg-white]="f.habilitada"
+            [class.border-gray-100]="!f.habilitada"
+            [class.bg-gray-50]="!f.habilitada">
+
+            @if (f.habilitada) {
+              <i class="pi pi-check-circle text-emerald-500 text-lg flex-shrink-0"></i>
+              <span class="text-sm font-poppins font-medium text-gray-800">{{ f.label }}</span>
+            } @else {
+              <i class="pi pi-times-circle text-gray-300 text-lg flex-shrink-0"></i>
+              <span class="text-sm font-poppins text-gray-400 flex-1">{{ f.label }}</span>
+              <button
+                class="text-xs font-poppins font-semibold text-blue-600 hover:text-blue-800 whitespace-nowrap border border-blue-100 hover:border-blue-300 px-2 py-1 rounded transition-colors"
+                (click)="irAPlanes()">
+                Activar
+              </button>
             }
           </div>
         }
       </div>
     </div>
 
-    <!-- UPGRADE CTA (solo si no es Enterprise) -->
+    <!-- UPGRADE CTA -->
     @if (planConfig()?.planCodigo !== 'ENTERPRISE') {
-      <div class="upgrade-cta-card">
-        <div class="upgrade-cta-text">
-          <h3>¿Necesitás más?</h3>
-          <p>Actualizá tu plan para desbloquear más capacidad y funcionalidades.</p>
+      <div class="bg-gradient-to-r from-blue-600 to-blue-800 rounded-xl shadow-md p-6 flex flex-col md:flex-row items-center justify-between gap-4">
+        <div>
+          <h3 class="font-poppins font-bold text-white text-lg mb-1">¿Necesitás más capacidad?</h3>
+          <p class="font-poppins text-blue-100 text-sm">Actualizá tu plan para desbloquear más recursos y funcionalidades.</p>
         </div>
-        <button class="btn-ver-planes" (click)="irAPlanes()">
+        <button
+          class="flex items-center gap-2 px-6 py-3 bg-white text-blue-700 font-poppins font-bold text-sm rounded-lg hover:bg-blue-50 transition-colors whitespace-nowrap shadow"
+          (click)="irAPlanes()">
           Ver planes disponibles <i class="pi pi-arrow-right"></i>
         </button>
       </div>

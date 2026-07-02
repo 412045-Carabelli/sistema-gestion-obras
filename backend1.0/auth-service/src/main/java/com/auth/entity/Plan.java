@@ -77,6 +77,12 @@ public class Plan {
     @Column(name = "tiene_api_access", nullable = false)
     private Boolean tieneApiAccess = Boolean.FALSE;
 
+    @Column(name = "tiene_whatsapp_bot", nullable = false)
+    private Boolean tieneWhatsappBot = Boolean.FALSE;
+
+    @Column(name = "tiene_gantt", nullable = false)
+    private Boolean tieneGantt = Boolean.FALSE;
+
     @Column(nullable = false)
     private Boolean activo = Boolean.TRUE;
 

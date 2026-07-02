@@ -3,6 +3,7 @@ package com.auth.repository;
 import com.auth.entity.Suscripcion;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -19,7 +20,7 @@ public interface SuscripcionRepository extends JpaRepository<Suscripcion, Long> 
           AND s.estado IN ('ACTIVA', 'TRIAL')
         ORDER BY s.fechaInicio DESC
         """)
-    Optional<Suscripcion> findActivaByOrganizacionId(Long organizacionId);
+    Optional<Suscripcion> findActivaByOrganizacionId(@Param("organizacionId") Long organizacionId);
 
     @Query("""
         SELECT s FROM Suscripcion s

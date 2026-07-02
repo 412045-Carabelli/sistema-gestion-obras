@@ -10,18 +10,7 @@
           </p>
 
           @for (item of group.items; track item.path) {
-            @if (isLocked(item)) {
-              <!-- Item bloqueado: clic redirige a /planes -->
-              <div
-                class="nav-item nav-item-locked flex items-center gap-3 px-3 py-2 rounded-lg cursor-pointer"
-                (click)="navegarItem(item)"
-                [title]="'Requiere plan superior — hacé clic para ver planes'">
-                <i [class]="'pi ' + item.icon + ' text-lg'"></i>
-                <span class="text-sm font-poppins font-semibold flex-1">{{ item.label }}</span>
-                <i class="pi pi-lock text-xs lock-icon"></i>
-              </div>
-            } @else {
-              <!-- Item normal -->
+            @if (!isLocked(item)) {
               <a
                 [routerLink]="item.path"
                 routerLinkActive="active-nav-item"
@@ -34,31 +23,6 @@
           }
         </div>
       }
-
-      <!-- Upgrade banner al fondo del nav -->
-      <div class="mt-4">
-        <div class="upgrade-banner" (click)="planService.esFree() ? router.navigate(['/planes']) : router.navigate(['/mi-plan'])">
-          <div class="upgrade-plan-row">
-            <span class="upgrade-plan-name">{{ planService.planConfig()?.planNombre ?? 'Free' }}</span>
-            @if (planService.esFree()) {
-              <span class="upgrade-tag">Gratis</span>
-            } @else {
-              <span class="upgrade-tag active">Activo</span>
-            }
-          </div>
-          @if (planService.esFree()) {
-            <p class="upgrade-hint">Actualizá para desbloquear más funciones</p>
-            <div class="upgrade-cta">
-              <i class="pi pi-arrow-up-right"></i> Ver planes
-            </div>
-          } @else {
-            <p class="upgrade-hint">Administrá tu suscripción</p>
-            <div class="upgrade-cta secondary">
-              <i class="pi pi-cog"></i> Mi plan
-            </div>
-          }
-        </div>
-      </div>
     </nav>
 
     <div class="sidebar-footer flex flex-col items-center gap-2">

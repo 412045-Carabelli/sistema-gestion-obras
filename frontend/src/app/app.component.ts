@@ -7,6 +7,7 @@ import {NavigationHistoryService} from './core/services/navigation-history.servi
 import {ChangelogModalComponent} from './shared/changelog-modal/changelog-modal.component';
 import {filter} from 'rxjs/operators';
 import {AuthService} from './services/auth/auth.service';
+import {PlanService} from './services/plan/plan.service';
 import {PushNotificationService} from './services/push/push-notification.service';
 
 const PUBLIC_ROUTES = ['/login', '/register'];
@@ -38,6 +39,7 @@ export class AppComponent implements OnInit{
     private navigationHistory: NavigationHistoryService,
     private router: Router,
     private authService: AuthService,
+    private planService: PlanService,
     private pushService: PushNotificationService
   ) {
     (window as any).navHistoryDebug = this.navigationHistory;
@@ -57,6 +59,10 @@ export class AppComponent implements OnInit{
 
   ngOnInit() {
     console.log("v1.2.4");
+    // Inicializar plan desde token existente (reload de página)
+    // Se hace aquí y no en AuthService para evitar circular dep en DI
+    const token = this.authService.getAccessToken();
+    if (token) this.planService.initFromToken(token);
     this.router.events.pipe(
       filter(e => e instanceof NavigationEnd)
     ).subscribe((e: NavigationEnd) => {

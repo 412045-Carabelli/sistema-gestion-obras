@@ -1,156 +1,188 @@
 <p-toast position="bottom-right"></p-toast>
 
-<div class="planes-page">
+<app-layout-header
+  type="list"
+  title="Planes y Precios"
+  subtitle="Sin contratos de permanencia. Cambiá de plan cuando quieras.">
+</app-layout-header>
 
-  <!-- Header -->
-  <div class="planes-header">
-    <button class="btn-back" (click)="volver()">
-      <i class="pi pi-arrow-left"></i> Volver
-    </button>
+<div class="p-4 space-y-6 max-w-full mx-auto">
 
-    <div class="planes-hero">
-      <div class="hero-badge">
-        <span class="badge-dot"></span>
-        Planes y Precios
-      </div>
-      <h1 class="planes-title">
-        Elegí el plan que<br/>
-        <span class="lime">impulsa tu empresa</span>
-      </h1>
-      <p class="planes-sub">
-        Sin contratos de permanencia. Cancelá cuando quieras.
-      </p>
+  <!-- Alerta si viene de feature bloqueada -->
+  @if (featureRequerida()) {
+    <div class="flex items-center gap-3 bg-amber-50 border border-amber-200 rounded-xl px-5 py-4">
+      <i class="pi pi-lock text-amber-500 text-lg"></i>
+      <span class="font-poppins text-sm text-amber-800">
+        La funcionalidad <strong>{{ featureRequerida() }}</strong> requiere un plan superior.
+        Elegí un plan para desbloquearla.
+      </span>
+    </div>
+  }
 
-      <!-- Alerta si viene de feature bloqueada -->
-      @if (featureRequerida()) {
-        <div class="feature-alert">
-          <i class="pi pi-lock"></i>
-          La funcionalidad <strong>{{ featureRequerida() }}</strong> requiere un plan superior.
-          Elegí un plan para desbloquearla.
-        </div>
-      }
-
-      <!-- Toggle mensual / anual -->
-      <div class="ciclo-toggle">
-        <button
-          class="ciclo-btn"
-          [class.active]="ciclo() === 'mensual'"
-          (click)="ciclo.set('mensual')">
-          Mensual
-        </button>
-        <button
-          class="ciclo-btn"
-          [class.active]="ciclo() === 'anual'"
-          (click)="ciclo.set('anual')">
-          Anual
-          <span class="ahorro-badge">2 meses gratis</span>
-        </button>
-      </div>
+  <!-- Toggle ciclo -->
+  <div class="flex justify-center">
+    <div class="inline-flex items-center gap-1 bg-gray-100 p-1 rounded-lg">
+      <button
+        class="px-5 py-2 rounded-md text-sm font-poppins font-semibold transition-all cursor-pointer"
+        [class.bg-white]="ciclo() === 'mensual'"
+        [class.shadow-sm]="ciclo() === 'mensual'"
+        [class.text-gray-900]="ciclo() === 'mensual'"
+        [class.text-gray-500]="ciclo() !== 'mensual'"
+        (click)="ciclo.set('mensual')">
+        Mensual
+      </button>
+      <button
+        class="px-5 py-2 rounded-md text-sm font-poppins font-semibold transition-all flex items-center gap-2 cursor-pointer"
+        [class.bg-white]="ciclo() === 'anual'"
+        [class.shadow-sm]="ciclo() === 'anual'"
+        [class.text-gray-900]="ciclo() === 'anual'"
+        [class.text-gray-500]="ciclo() !== 'anual'"
+        (click)="ciclo.set('anual')">
+        Anual
+        <span class="text-xs font-semibold bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-full">2 meses gratis</span>
+      </button>
     </div>
   </div>
 
   <!-- Grid de planes -->
-  <div class="planes-grid">
-    @for (plan of planes; track plan.codigo) {
-      <div class="plan-card" [class.highlight]="plan.highlight" [class.actual]="esPlanActual(plan.codigo)">
+  @if (cargando()) {
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+      @for (i of [1,2,3]; track i) {
+        <div class="bg-white rounded-xl border border-gray-200 shadow-sm h-96 animate-pulse"></div>
+      }
+    </div>
+  } @else {
+  <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+    @for (plan of planes(); track plan.codigo) {
+      <div
+        class="bg-white rounded-xl border flex flex-col relative"
+        [class.border-gray-200]="!plan.highlight"
+        [class.shadow-sm]="!plan.highlight"
+        [class.border-blue-500]="plan.highlight"
+        [class.shadow-lg]="plan.highlight"
+        [class.ring-2]="plan.highlight"
+        [class.ring-blue-500]="plan.highlight">
 
-        @if (plan.badge) {
-          <div class="plan-badge">{{ plan.badge }}</div>
+        @if (plan.badge && !esPlanActual(plan.codigo)) {
+          <div class="absolute -top-3 left-1/2 -translate-x-1/2">
+            <span class="bg-blue-600 text-white text-xs font-poppins font-bold px-3 py-1 rounded-full">{{ plan.badge }}</span>
+          </div>
         }
-
         @if (esPlanActual(plan.codigo)) {
-          <div class="plan-badge actual-badge">Plan actual</div>
+          <div class="absolute -top-3 left-1/2 -translate-x-1/2">
+            <span class="bg-emerald-600 text-white text-xs font-poppins font-bold px-3 py-1 rounded-full">Plan actual</span>
+          </div>
         }
 
-        <!-- Nombre y descripción -->
-        <div class="plan-header">
-          <span class="plan-name">{{ plan.nombre }}</span>
-          <p class="plan-desc">{{ plan.descripcion }}</p>
-        </div>
+        <div class="p-4 flex flex-col flex-1">
 
-        <!-- Precio -->
-        <div class="plan-price-wrap">
-          @if (plan.precioMensual === 0) {
-            <span class="plan-price lime">Gratis</span>
-          } @else {
-            <div class="price-row">
-              <span class="currency">USD</span>
-              <span class="plan-price">{{ precioMensualEfectivo(plan) }}</span>
-              <span class="period">/mes</span>
-            </div>
-            @if (ciclo() === 'anual') {
-              <span class="precio-anual">USD {{ precio(plan) | number:'1.0-0' }} facturado anualmente</span>
+          <div class="mb-5">
+            <h3 class="font-poppins font-bold text-gray-900 text-lg mb-1">{{ plan.nombre }}</h3>
+            <p class="text-sm font-poppins text-gray-500 leading-snug">{{ plan.descripcion }}</p>
+          </div>
+
+          <div class="mb-5 min-h-[72px]">
+            @if (plan.precioMensual === 0) {
+              <span class="text-4xl font-poppins font-extrabold text-gray-900">Gratis</span>
+              <p class="text-xs font-poppins text-gray-400 mt-1 invisible">-</p>
+            } @else {
+              <div class="flex items-baseline gap-1">
+                <span class="text-sm font-poppins text-gray-500">USD</span>
+                <span class="text-4xl font-poppins font-extrabold text-gray-900">{{ precioMensualEfectivo(plan) }}</span>
+                <span class="text-sm font-poppins text-gray-500">/mes</span>
+              </div>
+              <p class="text-xs font-poppins mt-1"
+                 [class.text-gray-400]="ciclo() === 'anual'"
+                 [class.invisible]="ciclo() !== 'anual'">
+                USD {{ precio(plan) | number:'1.0-0' }} facturado anualmente
+              </p>
             }
-          }
-        </div>
+          </div>
 
-        <div class="plan-divider"></div>
+          <button
+            class="w-full py-2.5 rounded-lg text-sm font-poppins font-semibold transition-colors mb-5 cursor-pointer"
+            [class.bg-blue-600]="plan.highlight && !esPlanActual(plan.codigo)"
+            [class.hover\:bg-blue-700]="plan.highlight && !esPlanActual(plan.codigo)"
+            [class.text-white]="!esPlanActual(plan.codigo)"
+            [class.bg-gray-900]="!plan.highlight && !esPlanActual(plan.codigo)"
+            [class.hover\:bg-gray-700]="!plan.highlight && !esPlanActual(plan.codigo)"
+            [class.bg-emerald-50]="esPlanActual(plan.codigo)"
+            [class.text-emerald-700]="esPlanActual(plan.codigo)"
+            [class.border]="esPlanActual(plan.codigo)"
+            [class.border-emerald-200]="esPlanActual(plan.codigo)"
+            [class.cursor-not-allowed]="esPlanActual(plan.codigo)"
+            [disabled]="esPlanActual(plan.codigo)"
+            (click)="elegirPlan(plan)">
+            @if (esPlanActual(plan.codigo)) {
+              <i class="pi pi-check-circle mr-1"></i> Plan actual
+            } @else {
+              {{ plan.ctaLabel }}
+            }
+          </button>
 
-        <!-- Límites -->
-        <div class="limites-section">
-          <span class="section-label">Incluye</span>
-          <ul class="limites-list">
-            <li><i class="pi pi-users"></i> {{ plan.limites.usuarios }}</li>
-            <li><i class="pi pi-building"></i> {{ plan.limites.obras }}</li>
-            <li><i class="pi pi-id-card"></i> {{ plan.limites.clientes }}</li>
-            <li><i class="pi pi-truck"></i> {{ plan.limites.proveedores }}</li>
-            <li><i class="pi pi-arrow-right-arrow-left"></i> {{ plan.limites.transacciones }}</li>
-            <li><i class="pi pi-database"></i> {{ plan.limites.storage }}</li>
-            <li><i class="pi pi-chart-bar"></i> {{ plan.limites.reportes }}</li>
+          <hr class="border-gray-100 mb-4">
+
+          <div class="mb-4">
+            <p class="text-xs font-poppins font-semibold text-gray-400 uppercase tracking-wider mb-2">Incluye</p>
+            <ul class="space-y-1.5">
+              <li class="flex items-center gap-2 text-sm font-poppins text-gray-600">
+                <i class="pi pi-users text-gray-400 text-xs"></i> {{ plan.limites.usuarios }}
+              </li>
+              <li class="flex items-center gap-2 text-sm font-poppins text-gray-600">
+                <i class="pi pi-building text-gray-400 text-xs"></i> {{ plan.limites.obras }}
+              </li>
+              <li class="flex items-center gap-2 text-sm font-poppins text-gray-600">
+                <i class="pi pi-id-card text-gray-400 text-xs"></i> {{ plan.limites.clientes }}
+              </li>
+              <li class="flex items-center gap-2 text-sm font-poppins text-gray-600">
+                <i class="pi pi-truck text-gray-400 text-xs"></i> {{ plan.limites.proveedores }}
+              </li>
+              <li class="flex items-center gap-2 text-sm font-poppins text-gray-600">
+                <i class="pi pi-arrow-right-arrow-left text-gray-400 text-xs"></i> {{ plan.limites.transacciones }}
+              </li>
+              <li class="flex items-center gap-2 text-sm font-poppins text-gray-600">
+                <i class="pi pi-database text-gray-400 text-xs"></i> {{ plan.limites.storage }}
+              </li>
+              <li class="flex items-center gap-2 text-sm font-poppins text-gray-600">
+                <i class="pi pi-chart-bar text-gray-400 text-xs"></i> {{ plan.limites.reportes }}
+              </li>
+            </ul>
+          </div>
+
+          <hr class="border-gray-100 mb-4">
+
+          <ul class="space-y-2 flex-1">
+            @for (f of plan.features; track f.label) {
+              <li class="flex items-center gap-2 text-sm font-poppins"
+                  [class.text-gray-700]="f.incluido"
+                  [class.text-gray-300]="!f.incluido">
+                @if (f.incluido) {
+                  <i class="pi pi-check-circle text-emerald-500 flex-shrink-0"></i>
+                } @else {
+                  <i class="pi pi-times-circle text-gray-200 flex-shrink-0"></i>
+                }
+                {{ f.label }}
+              </li>
+            }
           </ul>
+
         </div>
-
-        <div class="plan-divider"></div>
-
-        <!-- Features -->
-        <ul class="plan-features">
-          @for (f of plan.features; track f.label) {
-            <li [class.locked]="!f.incluido">
-              @if (f.incluido) {
-                <span class="check"><i class="pi pi-check"></i></span>
-              } @else {
-                <span class="cross"><i class="pi pi-times"></i></span>
-              }
-              {{ f.label }}
-            </li>
-          }
-        </ul>
-
-        <!-- CTA -->
-        <button
-          class="btn-plan"
-          [class.lime-btn]="plan.highlight && !esPlanActual(plan.codigo)"
-          [class.current-btn]="esPlanActual(plan.codigo)"
-          [disabled]="esPlanActual(plan.codigo)"
-          (click)="elegirPlan(plan)">
-          @if (esPlanActual(plan.codigo)) {
-            <i class="pi pi-check-circle"></i> Plan actual
-          } @else {
-            {{ plan.ctaLabel }}
-          }
-        </button>
-
       </div>
     }
   </div>
+  } <!-- end @else cargando -->
 
-  <!-- FAQ / Garantías -->
-  <div class="garantias">
-    <div class="garantia-item">
-      <i class="pi pi-shield"></i>
-      <span>Sin contratos de permanencia</span>
-    </div>
-    <div class="garantia-item">
-      <i class="pi pi-refresh"></i>
-      <span>Cambiá de plan en cualquier momento</span>
-    </div>
-    <div class="garantia-item">
-      <i class="pi pi-lock"></i>
-      <span>Pago seguro con Mercado Pago</span>
-    </div>
-    <div class="garantia-item">
-      <i class="pi pi-headphones"></i>
-      <span>Soporte por WhatsApp</span>
+  <!-- Garantías -->
+  <div class="bg-white rounded-xl shadow-md p-6">
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+      @for (g of garantias; track g.label) {
+        <div class="flex flex-col items-center gap-2 text-center">
+          <div class="w-10 h-10 bg-blue-50 rounded-full flex items-center justify-center">
+            <i class="pi text-blue-600" [class]="g.icon"></i>
+          </div>
+          <span class="text-sm font-poppins font-medium text-gray-700">{{ g.label }}</span>
+        </div>
+      }
     </div>
   </div>
 

@@ -1,4 +1,4 @@
-import { Injectable, inject } from '@angular/core';
+import { Injectable, inject, Injector } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { BehaviorSubject, Observable, throwError } from 'rxjs';
 import { map, catchError, tap } from 'rxjs/operators';
@@ -13,13 +13,15 @@ export class AuthService {
   private apiUrl = `${environment.apiGateway}${environment.endpoints.auth}`;
   private currentUserSubject = new BehaviorSubject<UserInfo | null>(this.getUserFromStorage());
   public currentUser$ = this.currentUserSubject.asObservable();
+  private injector = inject(Injector);
   private planService = inject(PlanService);
 
-  constructor(private http: HttpClient) {
+  private get http(): HttpClient {
+    return this.injector.get(HttpClient);
+  }
+
+  constructor() {
     this.loadUserFromStorage();
-    // Si ya hay token en cookie (reload de página), inicializar plan
-    const token = this.getAccessToken();
-    if (token) this.planService.initFromToken(token);
   }
 
   login(request: LoginRequest): Observable<AuthResponse> {

@@ -1,9 +1,13 @@
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { HttpClient } from '@angular/common/http';
 import { ActivatedRoute, Router } from '@angular/router';
 import { ToastModule } from 'primeng/toast';
 import { MessageService } from 'primeng/api';
+import { catchError, of } from 'rxjs';
 import { PlanService } from '../../../services/plan/plan.service';
+import { LayoutHeaderComponent } from '../../../shared/layout-header/layout-header.component';
+import { environment } from '../../../../environments/environment';
 import { PlanCodigo, PlanFeature } from '../../../core/models/models';
 
 interface PlanUI {
@@ -32,134 +36,95 @@ interface PlanUI {
   templateUrl: './planes.component.html',
   styleUrls: ['./planes.component.css'],
   standalone: true,
-  imports: [CommonModule, ToastModule],
+  imports: [CommonModule, ToastModule, LayoutHeaderComponent],
   providers: [MessageService]
 })
 export class PlanesComponent implements OnInit {
 
   private route = inject(ActivatedRoute);
   private router = inject(Router);
+  private http = inject(HttpClient);
   private messageService = inject(MessageService);
   planService = inject(PlanService);
 
   ciclo = signal<'mensual' | 'anual'>('mensual');
   featureRequerida = signal<string | null>(null);
+  cargando = signal(true);
+  planes = signal<PlanUI[]>([]);
 
   planActual = computed(() => this.planService.planCodigo());
 
-  planes: PlanUI[] = [
-    {
-      codigo: 'FREE',
-      nombre: 'Free',
-      descripcion: 'Para explorar la plataforma y proyectos pequeños.',
-      precioMensual: 0,
-      precioAnual: 0,
-      highlight: false,
-      limites: {
-        usuarios: '1 usuario',
-        obras: '3 obras activas',
-        clientes: '10 clientes',
-        proveedores: '10 proveedores',
-        transacciones: '10 transacciones/mes',
-        storage: '50 MB',
-        reportes: 'Sin reportes',
-      },
-      features: [
-        { label: 'Obras y clientes básicos', key: null, incluido: true },
-        { label: 'Facturas', key: 'facturas', incluido: false },
-        { label: 'Agenda y tareas', key: 'agenda', incluido: false },
-        { label: 'Grupos de obras', key: 'grupos_obras', incluido: false },
-        { label: 'Exportar PDF/Excel', key: 'exportar', incluido: false },
-        { label: 'Notificaciones push', key: 'push_notifications', incluido: false },
-      ],
-      ctaLabel: 'Plan actual',
-    },
-    {
-      codigo: 'BASICO',
-      nombre: 'Básico',
-      descripcion: 'Para empresas chicas que arrancan a gestionar obras.',
-      precioMensual: 149,
-      precioAnual: 1490,
-      highlight: false,
-      limites: {
-        usuarios: '3 usuarios',
-        obras: '20 obras activas',
-        clientes: '100 clientes',
-        proveedores: '50 proveedores',
-        transacciones: '150 transacciones/mes',
-        storage: '1 GB',
-        reportes: 'Últimos 30 días',
-      },
-      features: [
-        { label: 'Todo lo de Free', key: null, incluido: true },
-        { label: 'Facturas', key: 'facturas', incluido: true },
-        { label: 'Agenda y tareas', key: 'agenda', incluido: true },
-        { label: 'Grupos de obras', key: 'grupos_obras', incluido: false },
-        { label: 'Exportar PDF/Excel', key: 'exportar', incluido: false },
-        { label: 'Notificaciones push', key: 'push_notifications', incluido: false },
-      ],
-      ctaLabel: 'Elegir Básico',
-    },
-    {
-      codigo: 'PROFESIONAL',
-      nombre: 'Profesional',
-      descripcion: 'Para equipos en crecimiento con gestión completa.',
-      precioMensual: 399,
-      precioAnual: 3990,
-      badge: 'Más popular',
-      highlight: true,
-      limites: {
-        usuarios: '10 usuarios',
-        obras: '100 obras activas',
-        clientes: 'Ilimitados',
-        proveedores: 'Ilimitados',
-        transacciones: 'Ilimitadas',
-        storage: '10 GB',
-        reportes: 'Historial completo',
-      },
-      features: [
-        { label: 'Todo lo de Básico', key: null, incluido: true },
-        { label: 'Grupos de obras', key: 'grupos_obras', incluido: true },
-        { label: 'Exportar PDF/Excel', key: 'exportar', incluido: true },
-        { label: 'Notificaciones push', key: 'push_notifications', incluido: true },
-        { label: 'Soporte prioritario', key: 'soporte_prioritario', incluido: true },
-        { label: 'API Access', key: 'api_access', incluido: false },
-      ],
-      ctaLabel: 'Elegir Profesional',
-    },
-    {
-      codigo: 'ENTERPRISE',
-      nombre: 'Enterprise',
-      descripcion: 'Sin límites. Para constructoras grandes y multi-proyecto.',
-      precioMensual: 899,
-      precioAnual: 8990,
-      highlight: false,
-      limites: {
-        usuarios: 'Ilimitados',
-        obras: 'Ilimitadas',
-        clientes: 'Ilimitados',
-        proveedores: 'Ilimitados',
-        transacciones: 'Ilimitadas',
-        storage: '100 GB',
-        reportes: 'Historial completo',
-      },
-      features: [
-        { label: 'Todo lo de Profesional', key: null, incluido: true },
-        { label: 'API Access', key: 'api_access', incluido: true },
-        { label: 'Soporte dedicado', key: 'soporte_prioritario', incluido: true },
-        { label: 'Onboarding personalizado', key: null, incluido: true },
-        { label: 'SLA garantizado', key: null, incluido: true },
-        { label: 'Facturación personalizada', key: null, incluido: true },
-      ],
-      ctaLabel: 'Contactar ventas',
-    },
-  ];
-
   ngOnInit(): void {
     const feature = this.route.snapshot.queryParamMap.get('feature');
-    if (feature) {
-      this.featureRequerida.set(feature);
+    if (feature) this.featureRequerida.set(feature);
+    this.cargarPlanes();
+  }
+
+  private cargarPlanes(): void {
+    this.http.get<any[]>(`${environment.apiGateway}/auth/planes`).pipe(
+      catchError(() => of([]))
+    ).subscribe(data => {
+      const activos = data
+        .filter(p => p.activo && p.codigo !== 'FREE')
+        .map(p => this.mapBackendPlan(p));
+      this.planes.set(activos);
+      this.cargando.set(false);
+    });
+  }
+
+  private mapBackendPlan(data: any): PlanUI {
+    const codigo = data.codigo as PlanCodigo;
+    return {
+      codigo,
+      nombre: data.nombre,
+      descripcion: data.descripcion,
+      precioMensual: Number(data.precioMensualUsd),
+      precioAnual: Number(data.precioAnualUsd),
+      highlight: codigo === 'PROFESIONAL',
+      badge: codigo === 'PROFESIONAL' ? 'Más popular' : undefined,
+      limites: {
+        usuarios:      data.maxUsuarios     ? `${data.maxUsuarios} usuario${data.maxUsuarios > 1 ? 's' : ''}` : 'Multiusuario',
+        obras:         data.maxObrasActivas ? `${data.maxObrasActivas} obras activas`   : 'Ilimitadas',
+        clientes:      data.maxClientes     ? `${data.maxClientes} clientes`            : 'Ilimitados',
+        proveedores:   data.maxProveedores  ? `${data.maxProveedores} proveedores`      : 'Ilimitados',
+        transacciones: data.maxTransaccionesMes ? `${data.maxTransaccionesMes} transacciones/mes` : 'Ilimitadas',
+        storage:       data.maxStorageMb    ? this.formatStorage(data.maxStorageMb)     : 'Ilimitado',
+        reportes:      data.diasHistorialReportes === 0 ? 'Sin reportería'
+                      : data.diasHistorialReportes     ? `Últimos ${data.diasHistorialReportes} días`
+                      : 'Reportería completa',
+      },
+      features: this.buildFeatures(data),
+      ctaLabel: this.ctaLabel(codigo),
+    };
+  }
+
+  private buildFeatures(data: any): PlanUI['features'] {
+    return [
+      { label: 'Gestión de obras y clientes',        key: null,                 incluido: true },
+      { label: 'Proveedores y transacciones',         key: null,                 incluido: true },
+      { label: 'Bot de WhatsApp',                     key: 'whatsapp_bot',       incluido: !!data.tieneWhatsappBot },
+      { label: 'Reportería avanzada',                 key: 'exportar',           incluido: !!data.tieneExportar },
+      { label: 'Diagrama de Gantt',                   key: 'gantt',              incluido: !!data.tieneGantt },
+      { label: 'Facturación electrónica (próx.)',     key: 'facturas',           incluido: !!data.tieneFacturas },
+      { label: 'Soporte prioritario',                 key: 'soporte_prioritario', incluido: !!data.tieneSoportePrioritario },
+    ];
+  }
+
+  private formatStorage(mb: number): string {
+    if (mb >= 1024) {
+      const gb = mb / 1024;
+      return `${Number.isInteger(gb) ? gb : gb.toFixed(1)} GB`;
     }
+    return `${mb} MB`;
+  }
+
+  private ctaLabel(codigo: PlanCodigo): string {
+    const labels: Partial<Record<PlanCodigo, string>> = {
+      BASICO:       'Elegir Básico',
+      PROFESIONAL:  'Elegir Profesional',
+      ENTERPRISE:   'Contactar ventas',
+    };
+    return labels[codigo] ?? 'Elegir plan';
   }
 
   precio(plan: PlanUI): number {
@@ -178,7 +143,6 @@ export class PlanesComponent implements OnInit {
 
   elegirPlan(plan: PlanUI): void {
     if (plan.codigo === 'ENTERPRISE') {
-      // Por ahora redirige a contacto — Fase 5 conecta MP
       this.messageService.add({
         severity: 'info',
         summary: 'Enterprise',
@@ -188,13 +152,15 @@ export class PlanesComponent implements OnInit {
     }
     if (this.esPlanActual(plan.codigo)) return;
 
-    // Fase 5: navegar al checkout con Mercado Pago
     this.router.navigate(['/checkout'], {
       queryParams: { plan: plan.codigo, ciclo: this.ciclo() }
     });
   }
 
-  volver(): void {
-    this.router.navigate(['/dashboard']);
-  }
+  garantias = [
+    { icon: 'pi-shield',     label: 'Sin permanencia' },
+    { icon: 'pi-refresh',    label: 'Cambiá cuando quieras' },
+    { icon: 'pi-lock',       label: 'Pago seguro' },
+    { icon: 'pi-headphones', label: 'Soporte por WhatsApp' },
+  ];
 }

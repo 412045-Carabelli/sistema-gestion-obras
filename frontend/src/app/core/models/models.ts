@@ -9,7 +9,9 @@ export type PlanFeature =
   | 'exportar'
   | 'push_notifications'
   | 'soporte_prioritario'
-  | 'api_access';
+  | 'api_access'
+  | 'whatsapp_bot'
+  | 'gantt';
 
 export interface PlanLimites {
   maxUsuarios: number | null;
@@ -29,6 +31,8 @@ export interface PlanFeatures {
   push_notifications: boolean;
   soporte_prioritario: boolean;
   api_access: boolean;
+  whatsapp_bot: boolean;
+  gantt: boolean;
 }
 
 export interface PlanConfig {

@@ -7,6 +7,7 @@ import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { ToastModule } from 'primeng/toast';
 import { ConfirmationService, MessageService } from 'primeng/api';
 import { PlanService } from '../../../services/plan/plan.service';
+import { LayoutHeaderComponent } from '../../../shared/layout-header/layout-header.component';
 import { environment } from '../../../../environments/environment';
 import { PlanConfig } from '../../../core/models/models';
 
@@ -23,7 +24,7 @@ interface RecursoUso {
   templateUrl: './mi-plan.component.html',
   styleUrls: ['./mi-plan.component.css'],
   standalone: true,
-  imports: [CommonModule, ConfirmDialogModule, ToastModule],
+  imports: [CommonModule, ConfirmDialogModule, ToastModule, LayoutHeaderComponent],
   providers: [ConfirmationService, MessageService]
 })
 export class MiPlanComponent implements OnInit, OnDestroy {

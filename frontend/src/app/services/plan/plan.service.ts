@@ -1,6 +1,6 @@
-import { Injectable, signal, computed, inject } from '@angular/core';
+import { Injectable, signal, computed, inject, Injector } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { catchError, of, tap } from 'rxjs';
+import { catchError, of } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import {
   PlanConfig,
@@ -27,7 +27,7 @@ import {
 @Injectable({ providedIn: 'root' })
 export class PlanService {
 
-  private http = inject(HttpClient);
+  private injector = inject(Injector);
   private apiUrl = `${environment.apiGateway}`;
 
   // --- State (signals) ---
@@ -59,7 +59,8 @@ export class PlanService {
 
   /** Refresca el plan desde el backend (usar post-upgrade de plan) */
   fetchMiPlan(): void {
-    this.http.get<any>(`${this.apiUrl}/auth/mi-plan`).pipe(
+    const http = this.injector.get(HttpClient);
+    http.get<any>(`${this.apiUrl}/auth/mi-plan`).pipe(
       catchError(() => of(null))
     ).subscribe(data => {
       if (data) {
@@ -158,6 +159,8 @@ export class PlanService {
         push_notifications: data.tienePushNotifications ?? false,
         soporte_prioritario: data.tieneSoportePrioritario ?? false,
         api_access: data.tieneApiAccess ?? false,
+        whatsapp_bot: data.tieneWhatsappBot ?? false,
+        gantt: data.tieneGantt ?? false,
       },
       featuresHabilitadas: data.featuresHabilitadas ?? []
     };
@@ -181,7 +184,8 @@ export class PlanService {
     return {
       facturas: false, agenda: false, grupos_obras: false,
       exportar: false, push_notifications: false,
-      soporte_prioritario: false, api_access: false
+      soporte_prioritario: false, api_access: false,
+      whatsapp_bot: false, gantt: false
     };
   }
 }
