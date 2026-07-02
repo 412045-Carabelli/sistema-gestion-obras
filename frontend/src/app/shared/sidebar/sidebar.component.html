@@ -37,7 +37,7 @@
 
       <!-- Upgrade banner al fondo del nav -->
       <div class="mt-4">
-        <div class="upgrade-banner" (click)="navegarItem({ label: 'Planes', icon: 'pi-star', path: '/planes' })">
+        <div class="upgrade-banner" (click)="planService.esFree() ? router.navigate(['/planes']) : router.navigate(['/mi-plan'])">
           <div class="upgrade-plan-row">
             <span class="upgrade-plan-name">{{ planService.planConfig()?.planNombre ?? 'Free' }}</span>
             @if (planService.esFree()) {
@@ -54,7 +54,7 @@
           } @else {
             <p class="upgrade-hint">Administrá tu suscripción</p>
             <div class="upgrade-cta secondary">
-              <i class="pi pi-cog"></i> Gestionar plan
+              <i class="pi pi-cog"></i> Mi plan
             </div>
           }
         </div>

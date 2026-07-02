@@ -35,7 +35,7 @@ export class SidebarComponent implements OnInit {
   private changelogService = inject(ChangelogService);
   private configuracionService = inject(ConfiguracionService);
   planService = inject(PlanService);
-  private router = inject(Router);
+  router = inject(Router);
 
   ngOnInit(): void {
     this.configuracionService.config$.subscribe(config => {
