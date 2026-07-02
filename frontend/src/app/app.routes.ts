@@ -198,5 +198,10 @@ export const routes: Routes = [
     loadComponent: () => import('./features/pages/planes/planes.component').then(m => m.PlanesComponent),
     canActivate: [authGuard],
   },
+  {
+    path: 'mi-plan',
+    loadComponent: () => import('./features/pages/mi-plan/mi-plan.component').then(m => m.MiPlanComponent),
+    canActivate: [authGuard],
+  },
   {path: '**', redirectTo: ''},
 ];

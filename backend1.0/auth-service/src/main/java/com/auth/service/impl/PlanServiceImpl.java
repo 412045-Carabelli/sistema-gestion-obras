@@ -103,6 +103,16 @@ public class PlanServiceImpl implements PlanService {
                         .orElseThrow(() -> new IllegalStateException("Plan FREE no configurado")));
     }
 
+    @Override
+    public void cancelarSuscripcion(Long organizacionId) {
+        suscripcionRepository.findActivaByOrganizacionId(organizacionId)
+                .ifPresent(s -> {
+                    s.setEstado("CANCELADA");
+                    suscripcionRepository.save(s);
+                    log.info("Suscripción {} cancelada para organización {}", s.getId(), organizacionId);
+                });
+    }
+
     // --- helpers privados ---
 
     private Plan findOrThrow(Long id) {

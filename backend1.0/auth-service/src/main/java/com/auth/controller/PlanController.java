@@ -60,4 +60,16 @@ public class PlanController {
         planService.desactivar(id);
         return ResponseEntity.noContent().build();
     }
+
+    // --- Suscripción propia ---
+
+    @PatchMapping("/auth/mi-suscripcion/cancelar")
+    public ResponseEntity<Void> cancelarSuscripcion(
+            @RequestHeader(value = "X-Organizacion-Id", required = false) Long organizacionId) {
+        if (organizacionId == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+        planService.cancelarSuscripcion(organizacionId);
+        return ResponseEntity.noContent().build();
+    }
 }

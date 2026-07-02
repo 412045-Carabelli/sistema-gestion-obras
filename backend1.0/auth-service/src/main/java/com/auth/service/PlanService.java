@@ -20,4 +20,7 @@ public interface PlanService {
 
     // Usado internamente al generar JWT
     Plan obtenerPlanDeOrganizacion(Long organizacionId);
+
+    // Cancela la suscripción activa (pasa a CANCELADA, no elimina)
+    void cancelarSuscripcion(Long organizacionId);
 }

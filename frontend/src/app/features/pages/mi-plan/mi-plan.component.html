@@ -1,0 +1,179 @@
+<p-toast />
+<p-confirmDialog />
+
+<div class="mi-plan-page">
+
+  <!-- HEADER -->
+  <div class="page-header">
+    <div class="header-left">
+      <h1 class="page-title">Mi Plan</h1>
+      <p class="page-subtitle">Gestioná tu suscripción y el uso de recursos</p>
+    </div>
+    <button class="btn-cambiar" (click)="irAPlanes()">
+      <i class="pi pi-arrow-up-right"></i> Cambiar Plan
+    </button>
+  </div>
+
+  @if (cargando()) {
+    <div class="loading-state">
+      <i class="pi pi-spin pi-spinner"></i>
+      <span>Cargando información del plan...</span>
+    </div>
+  } @else {
+
+    <!-- PLAN ACTUAL CARD -->
+    <div class="plan-card">
+      <div class="plan-card-left">
+        <div class="plan-info">
+          <span [class]="planBadgeClass()">
+            {{ planConfig()?.planCodigo ?? 'FREE' }}
+          </span>
+          <h2 class="plan-nombre">{{ planDetalle()?.planNombre ?? planConfig()?.planCodigo }}</h2>
+        </div>
+
+        <div class="plan-meta">
+          @if (planDetalle()?.suscripcionEstado; as estado) {
+            <div class="meta-item">
+              <span class="meta-label">Estado</span>
+              <span class="estado-badge" [ngClass]="estadoBadgeClass()">
+                {{ estadoLabel(estado) }}
+              </span>
+            </div>
+          }
+          @if (planDetalle()?.ciclo) {
+            <div class="meta-item">
+              <span class="meta-label">Ciclo</span>
+              <span class="meta-value">{{ cicloLabel(planDetalle()?.ciclo) }}</span>
+            </div>
+          }
+          @if (planDetalle()?.fechaVencimiento) {
+            <div class="meta-item">
+              <span class="meta-label">Próxima renovación</span>
+              <span class="meta-value">
+                {{ planDetalle()?.fechaVencimiento | date:'dd/MM/yyyy' }}
+              </span>
+            </div>
+          }
+        </div>
+      </div>
+
+      <div class="plan-card-right">
+        @if (planDetalle()?.precioFinalUsd; as precio) {
+          <div class="precio-bloque">
+            <span class="precio-amount">${{ precio }}</span>
+            <span class="precio-ciclo">/ {{ planDetalle()?.ciclo === 'ANUAL' ? 'año' : 'mes' }}</span>
+          </div>
+        } @else if (planConfig()?.planCodigo === 'FREE') {
+          <div class="precio-bloque">
+            <span class="precio-amount">$0</span>
+            <span class="precio-ciclo">/ mes</span>
+          </div>
+        }
+
+        @if (planDetalle()?.suscripcionEstado !== 'CANCELADA' && planConfig()?.planCodigo !== 'FREE') {
+          <button
+            class="btn-cancelar"
+            [disabled]="cancelando()"
+            (click)="confirmarCancelar()">
+            <i class="pi" [class.pi-times-circle]="!cancelando()" [class.pi-spin]="cancelando()" [class.pi-spinner]="cancelando()"></i>
+            {{ cancelando() ? 'Cancelando...' : 'Cancelar suscripción' }}
+          </button>
+        }
+        @if (planDetalle()?.suscripcionEstado === 'CANCELADA') {
+          <div class="cancelada-notice">
+            <i class="pi pi-info-circle"></i>
+            Suscripción cancelada — activa hasta el vencimiento
+          </div>
+        }
+      </div>
+    </div>
+
+    <!-- USO DE RECURSOS -->
+    <div class="section">
+      <h2 class="section-title">
+        <i class="pi pi-chart-pie"></i> Uso de recursos
+      </h2>
+
+      <div class="recursos-grid">
+        @for (recurso of recursos(); track recurso.label) {
+          <div class="recurso-card">
+            <div class="recurso-header">
+              <div class="recurso-label">
+                <i class="pi" [class]="recurso.icono"></i>
+                {{ recurso.label }}
+              </div>
+              <div class="recurso-cantidad">
+                @if (recurso.actual !== null && recurso.limite !== null) {
+                  <strong>{{ recurso.actual }}</strong>
+                  <span class="de"> / {{ recurso.limite }}{{ recurso.sufijo ?? '' }}</span>
+                } @else if (recurso.limite !== null && recurso.actual === null) {
+                  <span class="limite-only">Límite: {{ recurso.limite }}{{ recurso.sufijo ?? '' }}</span>
+                } @else if (recurso.limite === null) {
+                  <span class="ilimitado">∞ Ilimitado</span>
+                } @else {
+                  <span class="nd">—</span>
+                }
+              </div>
+            </div>
+
+            @if (recurso.actual !== null && recurso.limite !== null) {
+              <div class="progress-track">
+                <div
+                  class="progress-fill"
+                  [class]="colorBarra(porcentaje(recurso))"
+                  [style.width.%]="porcentaje(recurso)">
+                </div>
+              </div>
+              <div class="pct-label">{{ porcentaje(recurso) }}% utilizado</div>
+            } @else if (recurso.limite === null) {
+              <div class="progress-track ilimitada">
+                <div class="progress-fill barra-verde" style="width: 0%"></div>
+              </div>
+            } @else {
+              <div class="progress-track nd-track"></div>
+            }
+          </div>
+        }
+      </div>
+    </div>
+
+    <!-- FUNCIONALIDADES -->
+    <div class="section">
+      <h2 class="section-title">
+        <i class="pi pi-list-check"></i> Funcionalidades incluidas
+      </h2>
+
+      <div class="features-grid">
+        @for (f of features(); track f.key) {
+          <div class="feature-item" [class.feature-off]="!f.habilitada">
+            <span class="feature-icon">
+              @if (f.habilitada) {
+                <i class="pi pi-check-circle feature-check"></i>
+              } @else {
+                <i class="pi pi-times-circle feature-cross"></i>
+              }
+            </span>
+            <span class="feature-label">{{ f.label }}</span>
+            @if (!f.habilitada) {
+              <button class="btn-upgrade-inline" (click)="irAPlanes()">Activar</button>
+            }
+          </div>
+        }
+      </div>
+    </div>
+
+    <!-- UPGRADE CTA (solo si no es Enterprise) -->
+    @if (planConfig()?.planCodigo !== 'ENTERPRISE') {
+      <div class="upgrade-cta-card">
+        <div class="upgrade-cta-text">
+          <h3>¿Necesitás más?</h3>
+          <p>Actualizá tu plan para desbloquear más capacidad y funcionalidades.</p>
+        </div>
+        <button class="btn-ver-planes" (click)="irAPlanes()">
+          Ver planes disponibles <i class="pi pi-arrow-right"></i>
+        </button>
+      </div>
+    }
+
+  }
+</div>
