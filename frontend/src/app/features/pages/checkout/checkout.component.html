@@ -1,0 +1,53 @@
+<app-layout-header titulo="Checkout" subtitulo="Confirmá tu suscripción" />
+
+<p-toast />
+
+<div class="checkout-wrapper">
+  <div class="checkout-card" *ngIf="!cargando()">
+
+    <!-- Header del plan -->
+    <div class="plan-header">
+      <h2>Plan {{ planDetalle()?.nombre }}</h2>
+      <p class="ciclo-badge">{{ ciclo() === 'ANUAL' ? 'Facturación anual' : 'Facturación mensual' }}</p>
+      <p class="precio-display">{{ precioDisplay }}</p>
+    </div>
+
+    <!-- Código de descuento -->
+    <div class="descuento-section" [formGroup]="form">
+      <label for="codigoDescuento">Código de descuento (opcional)</label>
+      <input
+        id="codigoDescuento"
+        type="text"
+        formControlName="codigoDescuento"
+        placeholder="Ej: LAUNCH50"
+        class="input-descuento"
+      />
+    </div>
+
+    <!-- Info de pago -->
+    <div class="pago-info">
+      <p><i class="pi pi-lock"></i> Pago seguro procesado por Mercado Pago</p>
+      <p><i class="pi pi-refresh"></i> Podés cancelar en cualquier momento desde Mi Plan</p>
+    </div>
+
+    <!-- Botones -->
+    <div class="checkout-actions">
+      <button class="btn-volver" (click)="volver()">
+        <i class="pi pi-arrow-left"></i> Volver
+      </button>
+      <button
+        class="btn-pagar"
+        (click)="confirmar()"
+        [disabled]="procesando()"
+      >
+        <i class="pi pi-credit-card"></i>
+        {{ procesando() ? 'Redirigiendo...' : 'Ir a Pagar con Mercado Pago' }}
+      </button>
+    </div>
+  </div>
+
+  <!-- Skeleton cargando -->
+  <div class="checkout-card cargando" *ngIf="cargando()">
+    <p>Cargando información del plan...</p>
+  </div>
+</div>

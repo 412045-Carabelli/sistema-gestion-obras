@@ -28,4 +28,6 @@ public interface SuscripcionRepository extends JpaRepository<Suscripcion, Long> 
           AND s.fechaVencimiento < CURRENT_TIMESTAMP
         """)
     List<Suscripcion> findVencidas();
+
+    Optional<Suscripcion> findByMpPreapprovalId(String mpPreapprovalId);
 }

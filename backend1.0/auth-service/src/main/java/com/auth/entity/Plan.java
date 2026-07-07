@@ -83,6 +83,13 @@ public class Plan {
     @Column(name = "tiene_gantt", nullable = false)
     private Boolean tieneGantt = Boolean.FALSE;
 
+    // Mercado Pago: IDs de preapproval_plan creados en el panel MP
+    @Column(name = "mp_preapproval_plan_id_mensual", length = 255)
+    private String mpPreapprovalPlanIdMensual;
+
+    @Column(name = "mp_preapproval_plan_id_anual", length = 255)
+    private String mpPreapprovalPlanIdAnual;
+
     @Column(nullable = false)
     private Boolean activo = Boolean.TRUE;
 

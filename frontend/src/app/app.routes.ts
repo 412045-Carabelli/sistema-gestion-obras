@@ -203,5 +203,26 @@ export const routes: Routes = [
     loadComponent: () => import('./features/pages/mi-plan/mi-plan.component').then(m => m.MiPlanComponent),
     canActivate: [authGuard],
   },
+  {
+    path: 'checkout',
+    loadComponent: () => import('./features/pages/checkout/checkout.component').then(m => m.CheckoutComponent),
+    canActivate: [authGuard],
+  },
+  // Páginas de retorno del checkout de Mercado Pago (sin sidebar, sin JWT guard — MP redirige aquí)
+  {
+    path: 'suscripcion/exito',
+    loadComponent: () => import('./features/pages/suscripcion-resultado/suscripcion-exito.component')
+      .then(m => m.SuscripcionExitoComponent),
+  },
+  {
+    path: 'suscripcion/pendiente',
+    loadComponent: () => import('./features/pages/suscripcion-resultado/suscripcion-pendiente.component')
+      .then(m => m.SuscripcionPendienteComponent),
+  },
+  {
+    path: 'suscripcion/error',
+    loadComponent: () => import('./features/pages/suscripcion-resultado/suscripcion-error.component')
+      .then(m => m.SuscripcionErrorComponent),
+  },
   {path: '**', redirectTo: ''},
 ];

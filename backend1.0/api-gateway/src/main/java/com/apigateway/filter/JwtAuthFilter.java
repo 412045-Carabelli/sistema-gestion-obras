@@ -41,6 +41,7 @@ public class JwtAuthFilter implements WebFilter {
       "/bff/auth/login",
       // "/bff/auth/register",  // REGISTRO DESHABILITADO
       "/bff/auth/refresh",
+      "/bff/mp/webhook",     // MP webhook — firma validada por auth-service
       "/api-docs",
       "/swagger-ui"
   );

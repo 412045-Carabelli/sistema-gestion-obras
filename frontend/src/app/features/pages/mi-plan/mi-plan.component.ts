@@ -7,6 +7,7 @@ import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { ToastModule } from 'primeng/toast';
 import { ConfirmationService, MessageService } from 'primeng/api';
 import { PlanService } from '../../../services/plan/plan.service';
+import { MercadoPagoService } from '../../../services/mercadopago/mercadopago.service';
 import { LayoutHeaderComponent } from '../../../shared/layout-header/layout-header.component';
 import { environment } from '../../../../environments/environment';
 import { PlanConfig } from '../../../core/models/models';
@@ -32,6 +33,7 @@ export class MiPlanComponent implements OnInit, OnDestroy {
   private router = inject(Router);
   private http = inject(HttpClient);
   private planService = inject(PlanService);
+  private mpService = inject(MercadoPagoService);
   private confirmationService = inject(ConfirmationService);
   private messageService = inject(MessageService);
   private subs = new Subscription();
@@ -165,25 +167,23 @@ export class MiPlanComponent implements OnInit, OnDestroy {
   private cancelarSuscripcion(): void {
     this.cancelando.set(true);
     this.subs.add(
-      this.http.patch(`${environment.apiGateway}/auth/mi-suscripcion/cancelar`, {}).pipe(
-        catchError(err => {
+      this.mpService.cancelarSuscripcion().pipe(
+        catchError(() => {
           this.messageService.add({
             severity: 'error',
             summary: 'Error',
             detail: 'No se pudo cancelar la suscripción. Intentá más tarde.'
           });
           this.cancelando.set(false);
-          return of(null);
+          return of(null as any);
         })
-      ).subscribe(res => {
-        if (res !== null) {
-          this.messageService.add({
-            severity: 'success',
-            summary: 'Suscripción cancelada',
-            detail: 'Tu cuenta continuará activa hasta el vencimiento del período.'
-          });
-          this.cargarDatos();
-        }
+      ).subscribe(() => {
+        this.messageService.add({
+          severity: 'success',
+          summary: 'Suscripción cancelada',
+          detail: 'Tu cuenta continuará activa hasta el vencimiento del período.'
+        });
+        this.cargarDatos();
         this.cancelando.set(false);
       })
     );

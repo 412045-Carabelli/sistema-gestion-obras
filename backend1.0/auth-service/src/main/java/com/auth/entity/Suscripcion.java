@@ -54,9 +54,18 @@ public class Suscripcion {
     @Column(name = "fecha_cancelacion")
     private Instant fechaCancelacion;
 
-    // Mercado Pago (Fase 5)
+    // Mercado Pago
     @Column(name = "mp_preapproval_id", length = 255)
     private String mpPreapprovalId;
+
+    @Column(name = "mp_preapproval_plan_id", length = 255)
+    private String mpPreapprovalPlanId;
+
+    @Column(name = "mp_external_reference", length = 255)
+    private String mpExternalReference;
+
+    @Column(name = "mp_init_point", length = 1000)
+    private String mpInitPoint;
 
     @Column(name = "mp_payment_id", length = 255)
     private String mpPaymentId;

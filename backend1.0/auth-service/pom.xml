@@ -88,6 +88,13 @@
       <version>1.70</version>
     </dependency>
 
+    <!-- Mercado Pago SDK -->
+    <dependency>
+      <groupId>com.mercadopago</groupId>
+      <artifactId>sdk-java</artifactId>
+      <version>2.1.19</version>
+    </dependency>
+
     <!-- Lombok -->
     <dependency>
       <groupId>org.projectlombok</groupId>
