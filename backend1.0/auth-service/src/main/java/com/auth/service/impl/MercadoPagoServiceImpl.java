@@ -11,12 +11,14 @@ import com.auth.repository.DescuentoRepository;
 import com.auth.repository.PlanRepository;
 import com.auth.repository.SuscripcionRepository;
 import com.auth.service.MercadoPagoService;
-import com.mercadopago.client.preapproval.PreApprovalClient;
-import com.mercadopago.client.preapproval.PreApprovalCreateRequest;
-import com.mercadopago.client.preapproval.PreApprovalUpdateRequest;
+import com.mercadopago.client.preapproval.PreApprovalAutoRecurringCreateRequest;
+import com.mercadopago.client.preapproval.PreApprovalAutoRecurringUpdateRequest;
+import com.mercadopago.client.preapproval.PreapprovalClient;
+import com.mercadopago.client.preapproval.PreapprovalCreateRequest;
+import com.mercadopago.client.preapproval.PreapprovalUpdateRequest;
 import com.mercadopago.exceptions.MPApiException;
 import com.mercadopago.exceptions.MPException;
-import com.mercadopago.resources.preapproval.PreApproval;
+import com.mercadopago.resources.preapproval.Preapproval;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -25,6 +27,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
 import java.time.temporal.ChronoUnit;
 
 @Service
@@ -40,6 +44,10 @@ public class MercadoPagoServiceImpl implements MercadoPagoService {
     @Value("${mp.app-base-url:http://localhost:4200}")
     private String appBaseUrl;
 
+    /** Moneda que usa MP para cobrar. ARS para Argentina, USD si la cuenta lo soporta. */
+    @Value("${mp.currency-id:ARS}")
+    private String currencyId;
+
     // -------------------------------------------------------------------------
     // iniciarSuscripcion
     // -------------------------------------------------------------------------
@@ -51,18 +59,9 @@ public class MercadoPagoServiceImpl implements MercadoPagoService {
         Plan plan = planRepository.findById(request.getPlanId())
                 .orElseThrow(() -> new ResourceNotFoundException("Plan " + request.getPlanId() + " no existe"));
 
-        // 2. Determinar preapproval_plan_id de MP según ciclo
         String ciclo = request.getCiclo().toUpperCase();
-        String mpPlanId = "MENSUAL".equals(ciclo)
-                ? plan.getMpPreapprovalPlanIdMensual()
-                : plan.getMpPreapprovalPlanIdAnual();
 
-        if (mpPlanId == null || mpPlanId.isBlank()) {
-            throw new IllegalStateException(
-                    "Plan " + plan.getCodigo() + " no tiene mp_preapproval_plan_id_" + ciclo.toLowerCase() + " configurado");
-        }
-
-        // 3. Resolver precio base y descuento
+        // 2. Resolver precio base y descuento
         BigDecimal precioBase = "MENSUAL".equals(ciclo) ? plan.getPrecioMensualUsd() : plan.getPrecioAnualUsd();
         BigDecimal descuentoMonto = BigDecimal.ZERO;
         Descuento descuentoEntidad = null;
@@ -73,12 +72,12 @@ public class MercadoPagoServiceImpl implements MercadoPagoService {
             if (descuentoEntidad != null && descuentoEntidad.estaVigente()) {
                 descuentoMonto = calcularDescuento(precioBase, descuentoEntidad);
             } else {
-                descuentoEntidad = null; // descuento inválido → ignorar
+                descuentoEntidad = null;
             }
         }
         BigDecimal precioFinal = precioBase.subtract(descuentoMonto).max(BigDecimal.ZERO);
 
-        // 4. Cancelar suscripción activa anterior si existe (cambio de plan)
+        // 3. Cancelar suscripción activa anterior si existe (cambio de plan)
         suscripcionRepository.findActivaByOrganizacionId(organizacionId)
                 .ifPresent(s -> {
                     if (s.getMpPreapprovalId() != null) {
@@ -89,14 +88,14 @@ public class MercadoPagoServiceImpl implements MercadoPagoService {
                     suscripcionRepository.save(s);
                 });
 
-        // 5. Crear preapproval en MP
-        String externalRef = "sgo_org_" + organizacionId + "_" + System.currentTimeMillis();
-        PreApproval preapproval = crearPreapprovalEnMp(mpPlanId, externalRef, plan.getNombre(), ciclo);
+        // 4. Crear preapproval en MP con autoRecurring inline
+        String externalRef = "buildrr_org_" + organizacionId + "_" + System.currentTimeMillis();
+        Preapproval preapproval = crearPreapprovalEnMp(plan, ciclo, precioFinal, externalRef);
 
-        // 6. Persistir Suscripcion local con estado PENDIENTE_PAGO
+        // 5. Persistir Suscripcion local con estado PENDIENTE_PAGO
         Instant ahora = Instant.now();
         Instant vencimiento = "MENSUAL".equals(ciclo)
-                ? ahora.plus(32, ChronoUnit.DAYS)   // margen generoso hasta que MP confirme
+                ? ahora.plus(32, ChronoUnit.DAYS)
                 : ahora.plus(367, ChronoUnit.DAYS);
 
         Suscripcion suscripcion = Suscripcion.builder()
@@ -111,7 +110,6 @@ public class MercadoPagoServiceImpl implements MercadoPagoService {
                 .fechaInicio(ahora)
                 .fechaVencimiento(vencimiento)
                 .mpPreapprovalId(preapproval.getId())
-                .mpPreapprovalPlanId(mpPlanId)
                 .mpExternalReference(externalRef)
                 .mpInitPoint(preapproval.getInitPoint())
                 .mpStatus(preapproval.getStatus())
@@ -143,16 +141,13 @@ public class MercadoPagoServiceImpl implements MercadoPagoService {
 
         if (suscripcion.getMpPreapprovalId() != null) {
             try {
-                PreApprovalClient client = new PreApprovalClient();
-                PreApproval mp = client.get(suscripcion.getMpPreapprovalId());
+                PreapprovalClient client = new PreapprovalClient();
+                Preapproval mp = client.get(suscripcion.getMpPreapprovalId());
                 mpStatusActual = mp.getStatus();
                 String estadoEsperado = mpStatusToLocal(mpStatusActual);
                 sincronizado = estadoEsperado.equals(suscripcion.getEstado());
-
-                // Auto-sincronizar si difieren
                 if (!sincronizado) {
-                    // hacemos una transacción nueva para no contaminar la readOnly
-                    log.warn("Estado MP={} difiere de local={} para suscripción {}. Sincronizando.",
+                    log.warn("Estado MP={} difiere de local={} para suscripción {}",
                             mpStatusActual, suscripcion.getEstado(), suscripcion.getId());
                 }
             } catch (MPException | MPApiException e) {
@@ -206,7 +201,6 @@ public class MercadoPagoServiceImpl implements MercadoPagoService {
                             suscripcion.setMpStatus(mpStatus);
                             suscripcion.setEstado(nuevoEstado);
 
-                            // Si MP acaba de autorizar: extender fecha de vencimiento real
                             if ("authorized".equals(mpStatus) && !"ACTIVA".equals(estadoAnterior)) {
                                 Instant ahora = Instant.now();
                                 Instant nuevaFecha = "MENSUAL".equals(suscripcion.getCiclo())
@@ -226,16 +220,31 @@ public class MercadoPagoServiceImpl implements MercadoPagoService {
     // helpers privados
     // -------------------------------------------------------------------------
 
-    private PreApproval crearPreapprovalEnMp(String mpPlanId, String externalRef, String planNombre, String ciclo) {
+    private Preapproval crearPreapprovalEnMp(Plan plan, String ciclo, BigDecimal monto, String externalRef) {
         try {
-            PreApprovalClient client = new PreApprovalClient();
-            PreApprovalCreateRequest req = PreApprovalCreateRequest.builder()
-                    .preapprovalPlanId(mpPlanId)
-                    .reason("Buildrr - Plan " + planNombre + " " + ciclo)
+            // MENSUAL: cobro cada 1 mes  |  ANUAL: cobro cada 12 meses
+            int frecuencia = "ANUAL".equals(ciclo) ? 12 : 1;
+
+            OffsetDateTime inicio = OffsetDateTime.now(ZoneOffset.UTC).plusMinutes(5);
+
+            PreApprovalAutoRecurringCreateRequest autoRecurring = PreApprovalAutoRecurringCreateRequest.builder()
+                    .frequency(frecuencia)
+                    .frequencyType("months")
+                    .transactionAmount(monto)
+                    .currencyId(currencyId)
+                    .startDate(inicio)
+                    .build();
+
+            PreapprovalCreateRequest req = PreapprovalCreateRequest.builder()
+                    .reason("Buildrr - Plan " + plan.getNombre() + " " + ciclo)
                     .externalReference(externalRef)
                     .backUrl(appBaseUrl + "/suscripcion/exito")
+                    .autoRecurring(autoRecurring)
                     .build();
+
+            PreapprovalClient client = new PreapprovalClient();
             return client.create(req);
+
         } catch (MPApiException e) {
             log.error("MP API error al crear preapproval: status={} body={}", e.getStatusCode(), e.getApiResponse().getContent());
             throw new IllegalStateException("Error al crear preapproval en Mercado Pago: " + e.getMessage(), e);
@@ -247,15 +256,14 @@ public class MercadoPagoServiceImpl implements MercadoPagoService {
 
     private void cancelarEnMp(String preapprovalId) {
         try {
-            PreApprovalClient client = new PreApprovalClient();
-            PreApprovalUpdateRequest req = PreApprovalUpdateRequest.builder()
+            PreapprovalClient client = new PreapprovalClient();
+            PreapprovalUpdateRequest req = PreapprovalUpdateRequest.builder()
                     .status("cancelled")
                     .build();
             client.update(preapprovalId, req);
             log.info("Preapproval {} cancelado en MP", preapprovalId);
         } catch (MPException | MPApiException e) {
             log.warn("No se pudo cancelar preapproval {} en MP: {}", preapprovalId, e.getMessage());
-            // No lanzar: si MP falla, igual cancelamos local
         }
     }
 
@@ -273,7 +281,7 @@ public class MercadoPagoServiceImpl implements MercadoPagoService {
     private BigDecimal calcularDescuento(BigDecimal precio, Descuento descuento) {
         if ("PORCENTAJE".equals(descuento.getTipo())) {
             return precio.multiply(descuento.getValor()).divide(BigDecimal.valueOf(100));
-        } else { // MONTO_FIJO
+        } else {
             return descuento.getValor().min(precio);
         }
     }

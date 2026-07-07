@@ -113,9 +113,9 @@ public class MercadoPagoController {
 
         // 3. Consultar estado real en MP y procesar
         try {
-            com.mercadopago.client.preapproval.PreApprovalClient client =
-                    new com.mercadopago.client.preapproval.PreApprovalClient();
-            com.mercadopago.resources.preapproval.PreApproval preapproval = client.get(preapprovalId);
+            com.mercadopago.client.preapproval.PreapprovalClient client =
+                    new com.mercadopago.client.preapproval.PreapprovalClient();
+            com.mercadopago.resources.preapproval.Preapproval preapproval = client.get(preapprovalId);
             mercadoPagoService.procesarWebhook(preapprovalId, preapproval.getStatus());
         } catch (Exception e) {
             log.error("Error procesando webhook MP para preapproval {}: {}", preapprovalId, e.getMessage());
