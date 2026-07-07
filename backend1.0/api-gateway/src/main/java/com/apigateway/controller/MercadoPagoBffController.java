@@ -92,17 +92,17 @@ public class MercadoPagoBffController {
     public Mono<ResponseEntity<Void>> cancelar(
             @RequestHeader(value = "X-Organizacion-Id", required = false) String organizacionId) {
 
+        ResponseEntity<Void> ok  = ResponseEntity.<Void>noContent().build();
+        ResponseEntity<Void> err = ResponseEntity.<Void>status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+
         return webClientBuilder.build()
                 .delete()
                 .uri(authServiceUrl + "/auth/mp/suscripcion/cancelar")
                 .header("X-Org-Id", organizacionId != null ? organizacionId : "0")
                 .retrieve()
                 .toBodilessEntity()
-                .thenReturn(ResponseEntity.<Void>noContent().build())
-                .onErrorResume(ex -> {
-                    log.error("Error cancelando suscripción MP", ex);
-                    return Mono.just(ResponseEntity.<Void>status(HttpStatus.INTERNAL_SERVER_ERROR).build());
-                });
+                .thenReturn(ok)
+                .onErrorReturn(err);
     }
 
     // -------------------------------------------------------------------------
@@ -122,6 +122,8 @@ public class MercadoPagoBffController {
         if (dataId != null) queryString += "data.id=" + dataId;
         if (type != null) queryString += (queryString.isEmpty() ? "" : "&") + "type=" + type;
 
+        ResponseEntity<Void> ok = ResponseEntity.<Void>ok().build();
+
         return webClientBuilder.build()
                 .post()
                 .uri(uriBuilder -> {
@@ -137,10 +139,7 @@ public class MercadoPagoBffController {
                 .bodyValue(body)
                 .retrieve()
                 .toBodilessEntity()
-                .thenReturn(ResponseEntity.<Void>ok().build())
-                .onErrorResume(ex -> {
-                    log.error("Error procesando webhook MP", ex);
-                    return Mono.just(ResponseEntity.<Void>ok().build()); // siempre 200 a MP
-                });
+                .thenReturn(ok)
+                .onErrorReturn(ok); // siempre 200 a MP
     }
 }
