@@ -49,7 +49,15 @@ export class LoginComponent implements OnInit {
           summary: 'Éxito',
           detail: 'Sesión iniciada correctamente'
         });
-        this.router.navigate(['/dashboard']);
+        // Si el usuario venía de la landing queriendo contratar un plan
+        const pendingCheckout = sessionStorage.getItem('pending_checkout');
+        if (pendingCheckout) {
+          sessionStorage.removeItem('pending_checkout');
+          const { plan, ciclo } = JSON.parse(pendingCheckout);
+          this.router.navigate(['/checkout'], { queryParams: { plan, ciclo } });
+        } else {
+          this.router.navigate(['/dashboard']);
+        }
       },
       error: (err) => {
         this.loading = false;
