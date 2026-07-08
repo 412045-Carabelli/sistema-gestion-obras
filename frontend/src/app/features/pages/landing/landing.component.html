@@ -165,7 +165,7 @@
     @if (!cargandoPlanes()) {
       <div class="plans-grid">
         @for (p of planes(); track p.codigo) {
-          <div class="plan-card reveal" [class.highlight]="p.highlight">
+          <div class="plan-card" [class.highlight]="p.highlight">
             @if (p.badge) {
               <div class="plan-badge">{{ p.badge }}</div>
             }
