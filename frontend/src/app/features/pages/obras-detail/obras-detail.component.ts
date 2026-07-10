@@ -955,8 +955,8 @@ export class ObrasDetailComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   private ordenarEstadosObra(records: { label: string; name: string }[]): { label: string; name: string }[] {
-    const estadosOperativos = ['PRESUPUESTADA', 'ADJUDICADA', 'EN_PROGRESO', 'FINALIZADA', 'PERDIDA'];
-    const ordenDeseado = ['PRESUPUESTADA', 'PERDIDA', 'ADJUDICADA', 'EN_PROGRESO', 'FINALIZADA'];
+    const estadosOperativos = ['PRESUPUESTADA', 'COTIZADA', 'ADJUDICADA', 'EN_PROGRESO', 'FINALIZADA', 'PERDIDA'];
+    const ordenDeseado = ['PRESUPUESTADA', 'COTIZADA', 'ADJUDICADA', 'EN_PROGRESO', 'FINALIZADA', 'PERDIDA'];
     const index = new Map(ordenDeseado.map((estado, i) => [estado, i]));
     const normalizar = (value?: string | null) =>
       (value || '').toString().trim().toUpperCase().replace(/\s+/g, '_');

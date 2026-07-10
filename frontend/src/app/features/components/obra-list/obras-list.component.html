@@ -47,7 +47,7 @@
             <td class="text-gray-700 font-poppins font-normal">{{ obra.cliente.nombre }}</td>
             <td>
               <p-tag
-                [severity]="getEstadoSeverity(obra.id_estado_obra)"
+                [severity]="getEstadoSeverity(estadoValorObra(obra))"
                 [value]="estadoLabelObra(obra) | estadoFormat"
                 styleClass="text-xs">
               </p-tag>
