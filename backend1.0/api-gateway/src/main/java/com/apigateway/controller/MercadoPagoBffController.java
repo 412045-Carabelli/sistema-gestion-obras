@@ -41,12 +41,14 @@ public class MercadoPagoBffController {
     @PostMapping("/suscribir")
     public Mono<ResponseEntity<Map<String, Object>>> suscribir(
             @RequestBody Map<String, Object> body,
-            @RequestHeader(value = "X-Organizacion-Id", required = false) String organizacionId) {
+            @RequestHeader(value = "X-Organizacion-Id", required = false) String organizacionId,
+            @RequestHeader(value = "X-Username", required = false) String username) {
 
         return webClientBuilder.build()
                 .post()
                 .uri(authServiceUrl + "/auth/mp/suscribir")
                 .header("X-Org-Id", organizacionId != null ? organizacionId : "0")
+                .header("X-Username", username != null ? username : "")
                 .bodyValue(body)
                 .retrieve()
                 .bodyToMono(new ParameterizedTypeReference<Map<String, Object>>() {})
@@ -101,7 +103,7 @@ public class MercadoPagoBffController {
                 .header("X-Org-Id", organizacionId != null ? organizacionId : "0")
                 .retrieve()
                 .toBodilessEntity()
-                .thenReturn(ok)
+                .<ResponseEntity<Void>>thenReturn(ok)
                 .onErrorReturn(err);
     }
 
@@ -139,7 +141,7 @@ public class MercadoPagoBffController {
                 .bodyValue(body)
                 .retrieve()
                 .toBodilessEntity()
-                .thenReturn(ok)
+                .<ResponseEntity<Void>>thenReturn(ok)
                 .onErrorReturn(ok); // siempre 200 a MP
     }
 }

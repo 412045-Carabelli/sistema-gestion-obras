@@ -134,7 +134,29 @@
       "Bash(python3 -c \":*)",
       "Bash(node:*)",
       "mcp__plugin_atlassian_atlassian__getTransitionsForJiraIssue",
-      "mcp__plugin_atlassian_atlassian__transitionJiraIssue"
+      "mcp__plugin_atlassian_atlassian__transitionJiraIssue",
+      "Bash(npx tsc:*)",
+      "Bash(gh api:*)",
+      "Bash(gh run:*)",
+      "Bash(python3 -c \"import json,sys; d=json.load\\(sys.stdin\\); pkgs=[''''@angular/compiler'''',''''@angular/localize'''',''''@angular/core'''']; [print\\(k,d[''''packages''''].get\\(''''node_modules/''''+k,{}\\).get\\(''''version'''',''''?''''\\)\\) for k in pkgs]\")",
+      "Bash(curl -s https://registry.npmjs.org/lightningcss-linux-x64-gnu/1.30.1)",
+      "Bash(node -e \"const d=JSON.parse\\(require\\(''''fs''''\\).readFileSync\\(''''/dev/stdin'''',''''utf8''''\\)\\); console.log\\(d.dist?.integrity || ''''not found''''\\)\")",
+      "Bash(cp /tmp/agendas-list.html \"C:/Users/Usuario/Desktop/my-work/sistema-gestion-obras/frontend/src/app/features/components/agendas-list/agendas-list.component.html\")",
+      "Bash(cp /tmp/agendas-list.ts \"C:/Users/Usuario/Desktop/my-work/sistema-gestion-obras/frontend/src/app/features/components/agendas-list/agendas-list.component.ts\")",
+      "Bash(cp /tmp/agendas-layout.html \"C:/Users/Usuario/Desktop/my-work/sistema-gestion-obras/frontend/src/app/features/agendas-layout/agendas-layout.component.html\")",
+      "Bash(cp /tmp/generic-filter-bar.ts \"C:/Users/Usuario/Desktop/my-work/sistema-gestion-obras/frontend/src/app/features/components/generic-filter-bar/generic-filter-bar.component.ts\")",
+      "Bash(cp /tmp/generic-filter-bar.html \"C:/Users/Usuario/Desktop/my-work/sistema-gestion-obras/frontend/src/app/features/components/generic-filter-bar/generic-filter-bar.component.html\")",
+      "Bash(node_modules/.bin/ng build:*)",
+      "Bash(find C:UsersUsuarioDesktopmy-worksistema-gestion-obrasbackend1.0agendas-servicesrcmainresources -name *.properties -o -name *.yml)",
+      "Bash(git pull:*)",
+      "Bash(find backend1.0 -name JwtAuthFilter* -o -name *GatewayFilter*)",
+      "Bash(find /c/Users/Usuario/Desktop/my-work/sistema-gestion-obras/backend1.0/common -name *.java)",
+      "Bash(npx ng:*)",
+      "Bash(find /c/Users/Usuario/Desktop/my-work/sistema-gestion-obras/frontend/src/app/features/components/clientes-list -name *.html)",
+      "Bash(git merge:*)",
+      "Bash(jar tf:*)",
+      "Bash(jar xf:*)",
+      "Read(//tmp/mp-src/com/mercadopago/client/preapproval/**)"
     ]
   }
 }

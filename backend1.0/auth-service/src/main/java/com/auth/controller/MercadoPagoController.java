@@ -4,8 +4,8 @@ import com.auth.dto.MpEstadoSuscripcionResponse;
 import com.auth.dto.MpIniciarSuscripcionRequest;
 import com.auth.dto.MpIniciarSuscripcionResponse;
 import com.auth.service.MercadoPagoService;
-import jakarta.crypto.Mac;
-import jakarta.crypto.spec.SecretKeySpec;
+import javax.crypto.Mac;
+import javax.crypto.spec.SecretKeySpec;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -39,12 +39,13 @@ public class MercadoPagoController {
     @PostMapping("/suscribir")
     public ResponseEntity<MpIniciarSuscripcionResponse> suscribir(
             @Valid @RequestBody MpIniciarSuscripcionRequest request,
-            @RequestHeader(value = "X-Org-Id", required = false) Long organizacionId) {
+            @RequestHeader(value = "X-Org-Id", required = false) Long organizacionId,
+            @RequestHeader(value = "X-Username", required = false) String username) {
 
         if (organizacionId == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
-        MpIniciarSuscripcionResponse response = mercadoPagoService.iniciarSuscripcion(organizacionId, request);
+        MpIniciarSuscripcionResponse response = mercadoPagoService.iniciarSuscripcion(organizacionId, username, request);
         return ResponseEntity.ok(response);
     }
 

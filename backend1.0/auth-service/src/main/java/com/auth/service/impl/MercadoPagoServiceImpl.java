@@ -4,12 +4,15 @@ import com.auth.dto.MpEstadoSuscripcionResponse;
 import com.auth.dto.MpIniciarSuscripcionRequest;
 import com.auth.dto.MpIniciarSuscripcionResponse;
 import com.auth.entity.Descuento;
+import com.auth.entity.Organizacion;
 import com.auth.entity.Plan;
 import com.auth.entity.Suscripcion;
 import com.auth.exception.ResourceNotFoundException;
 import com.auth.repository.DescuentoRepository;
+import com.auth.repository.OrganizacionRepository;
 import com.auth.repository.PlanRepository;
 import com.auth.repository.SuscripcionRepository;
+import com.auth.repository.UsuarioRepository;
 import com.auth.service.MercadoPagoService;
 import com.mercadopago.client.preapproval.PreApprovalAutoRecurringCreateRequest;
 import com.mercadopago.client.preapproval.PreApprovalAutoRecurringUpdateRequest;
@@ -40,6 +43,8 @@ public class MercadoPagoServiceImpl implements MercadoPagoService {
     private final PlanRepository planRepository;
     private final SuscripcionRepository suscripcionRepository;
     private final DescuentoRepository descuentoRepository;
+    private final OrganizacionRepository organizacionRepository;
+    private final UsuarioRepository usuarioRepository;
 
     @Value("${mp.app-base-url:http://localhost:4200}")
     private String appBaseUrl;
@@ -48,12 +53,17 @@ public class MercadoPagoServiceImpl implements MercadoPagoService {
     @Value("${mp.currency-id:ARS}")
     private String currencyId;
 
+    /** Override para sandbox: email de la cuenta compradora de prueba de MP. Dejar vacío en producción. */
+    @Value("${mp.payer-email-override:}")
+    private String payerEmailOverride;
+
     // -------------------------------------------------------------------------
     // iniciarSuscripcion
     // -------------------------------------------------------------------------
 
     @Override
     public MpIniciarSuscripcionResponse iniciarSuscripcion(Long organizacionId,
+                                                            String username,
                                                             MpIniciarSuscripcionRequest request) {
         // 1. Resolver plan
         Plan plan = planRepository.findById(request.getPlanId())
@@ -88,9 +98,25 @@ public class MercadoPagoServiceImpl implements MercadoPagoService {
                     suscripcionRepository.save(s);
                 });
 
-        // 4. Crear preapproval en MP con autoRecurring inline
+        // 4. Obtener email del payer (requerido por MP)
+        // En sandbox: usar override (debe ser email de cuenta compradora de prueba MP)
+        // En producción: usar email real del usuario
+        String payerEmail;
+        if (payerEmailOverride != null && !payerEmailOverride.isBlank()) {
+            payerEmail = payerEmailOverride;
+        } else {
+            payerEmail = usuarioRepository.findByUsername(username)
+                    .map(u -> u.getEmail())
+                    .filter(e -> e != null && !e.isBlank())
+                    .orElseGet(() -> username != null && username.contains("@") ? username : null);
+            if (payerEmail == null) {
+                throw new ResourceNotFoundException("No se pudo determinar el email del usuario para Mercado Pago");
+            }
+        }
+
+        // 5. Crear preapproval en MP con autoRecurring inline
         String externalRef = "buildrr_org_" + organizacionId + "_" + System.currentTimeMillis();
-        Preapproval preapproval = crearPreapprovalEnMp(plan, ciclo, precioFinal, externalRef);
+        Preapproval preapproval = crearPreapprovalEnMp(plan, ciclo, precioFinal, externalRef, payerEmail);
 
         // 5. Persistir Suscripcion local con estado PENDIENTE_PAGO
         Instant ahora = Instant.now();
@@ -131,10 +157,20 @@ public class MercadoPagoServiceImpl implements MercadoPagoService {
     // -------------------------------------------------------------------------
 
     @Override
-    @Transactional(readOnly = true)
     public MpEstadoSuscripcionResponse consultarEstado(Long organizacionId) {
-        Suscripcion suscripcion = suscripcionRepository.findActivaByOrganizacionId(organizacionId)
-                .orElseThrow(() -> new ResourceNotFoundException("No hay suscripción activa para org " + organizacionId));
+        java.util.Optional<Suscripcion> optSuscripcion = suscripcionRepository
+                .findUltimasVigentesByOrganizacionId(organizacionId)
+                .stream().findFirst();
+
+        if (optSuscripcion.isEmpty()) {
+            // No hay suscripción vigente (todas canceladas o nunca suscripto)
+            return MpEstadoSuscripcionResponse.builder()
+                    .estadoLocal("SIN_SUSCRIPCION")
+                    .sincronizado(true)
+                    .build();
+        }
+
+        Suscripcion suscripcion = optSuscripcion.get();
 
         String mpStatusActual = null;
         boolean sincronizado = true;
@@ -147,8 +183,26 @@ public class MercadoPagoServiceImpl implements MercadoPagoService {
                 String estadoEsperado = mpStatusToLocal(mpStatusActual);
                 sincronizado = estadoEsperado.equals(suscripcion.getEstado());
                 if (!sincronizado) {
-                    log.warn("Estado MP={} difiere de local={} para suscripción {}",
-                            mpStatusActual, suscripcion.getEstado(), suscripcion.getId());
+                    log.info("Auto-sincronizando: MP={} → local={} para suscripción {}",
+                            mpStatusActual, estadoEsperado, suscripcion.getId());
+                    suscripcion.setMpStatus(mpStatusActual);
+                    suscripcion.setEstado(estadoEsperado);
+                    if ("authorized".equals(mpStatusActual) && suscripcion.getFechaVencimiento().isBefore(Instant.now())) {
+                        Instant nuevaFecha = "MENSUAL".equals(suscripcion.getCiclo())
+                                ? Instant.now().plus(32, ChronoUnit.DAYS)
+                                : Instant.now().plus(367, ChronoUnit.DAYS);
+                        suscripcion.setFechaVencimiento(nuevaFecha);
+                    }
+                    suscripcionRepository.save(suscripcion);
+                    // Actualizar plan en la organización para que mi-plan lo refleje
+                    if ("ACTIVA".equals(estadoEsperado)) {
+                        organizacionRepository.findById(organizacionId).ifPresent(org -> {
+                            org.setPlan(suscripcion.getPlan());
+                            organizacionRepository.save(org);
+                            log.info("Org {} actualizada a plan {}", organizacionId, suscripcion.getPlan().getCodigo());
+                        });
+                    }
+                    sincronizado = true;
                 }
             } catch (MPException | MPApiException e) {
                 log.warn("No se pudo consultar MP para suscripción {}: {}", suscripcion.getMpPreapprovalId(), e.getMessage());
@@ -210,6 +264,13 @@ public class MercadoPagoServiceImpl implements MercadoPagoService {
                             }
 
                             suscripcionRepository.save(suscripcion);
+                            // Actualizar plan en la organización cuando el pago es autorizado
+                            if ("authorized".equals(mpStatus)) {
+                                organizacionRepository.findById(suscripcion.getOrganizacionId()).ifPresent(org -> {
+                                    org.setPlan(suscripcion.getPlan());
+                                    organizacionRepository.save(org);
+                                });
+                            }
                             log.info("Webhook MP: preapproval={} mpStatus={} → localEstado={}", preapprovalId, mpStatus, nuevoEstado);
                         },
                         () -> log.warn("Webhook MP: preapproval {} no encontrado en DB", preapprovalId)
@@ -220,7 +281,7 @@ public class MercadoPagoServiceImpl implements MercadoPagoService {
     // helpers privados
     // -------------------------------------------------------------------------
 
-    private Preapproval crearPreapprovalEnMp(Plan plan, String ciclo, BigDecimal monto, String externalRef) {
+    private Preapproval crearPreapprovalEnMp(Plan plan, String ciclo, BigDecimal monto, String externalRef, String payerEmail) {
         try {
             // MENSUAL: cobro cada 1 mes  |  ANUAL: cobro cada 12 meses
             int frecuencia = "ANUAL".equals(ciclo) ? 12 : 1;
@@ -238,6 +299,7 @@ public class MercadoPagoServiceImpl implements MercadoPagoService {
             PreapprovalCreateRequest req = PreapprovalCreateRequest.builder()
                     .reason("Buildrr - Plan " + plan.getNombre() + " " + ciclo)
                     .externalReference(externalRef)
+                    .payerEmail(payerEmail)
                     .backUrl(appBaseUrl + "/suscripcion/exito")
                     .autoRecurring(autoRecurring)
                     .build();

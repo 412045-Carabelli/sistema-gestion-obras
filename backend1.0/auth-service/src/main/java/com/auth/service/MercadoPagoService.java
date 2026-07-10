@@ -10,7 +10,7 @@ public interface MercadoPagoService {
      * Crea un preapproval en MP y una Suscripcion local con estado PENDIENTE_PAGO.
      * Devuelve el init_point para redirigir al usuario al checkout de MP.
      */
-    MpIniciarSuscripcionResponse iniciarSuscripcion(Long organizacionId, MpIniciarSuscripcionRequest request);
+    MpIniciarSuscripcionResponse iniciarSuscripcion(Long organizacionId, String username, MpIniciarSuscripcionRequest request);
 
     /**
      * Consulta el estado actual del preapproval en MP y sincroniza con DB si difiere.
