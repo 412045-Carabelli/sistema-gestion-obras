@@ -46,6 +46,7 @@ export class CuentasCorrientesListComponent implements OnInit, OnDestroy {
   obras: Array<{ id: number; nombre: string }> = [];
   clientes: Array<{ id: number; nombre: string }> = [];
   proveedores: Array<{ id: number; nombre: string }> = [];
+  obrasPorProveedor: Map<number, Set<number>> = new Map();
 
   @Output() clienteRowClicked = new EventEmitter<DetalleDeudaCliente>();
   @Output() proveedorRowClicked = new EventEmitter<DetalleDeudaProveedor>();
@@ -109,6 +110,7 @@ export class CuentasCorrientesListComponent implements OnInit, OnDestroy {
 
   onFilterChange(filters: Record<string, any>): void {
     this.currentFilters = filters;
+    this.actualizarOpcionesObra();
     this.cargar();
   }
 
@@ -177,6 +179,8 @@ export class CuentasCorrientesListComponent implements OnInit, OnDestroy {
       this.http.post<DeudasGlobalesResponse>(this.deudasUrl, filtro).subscribe({
         next: (response) => {
           this.datos = response;
+          this.construirMapaObrasPorProveedor();
+          this.actualizarOpcionesObra();
           this.loading = false;
           this.datosCargados = true;
         },
@@ -187,6 +191,46 @@ export class CuentasCorrientesListComponent implements OnInit, OnDestroy {
         }
       })
     );
+  }
+
+  private construirMapaObrasPorProveedor(): void {
+    this.obrasPorProveedor.clear();
+    if (!this.datos?.detalleDeudaProveedores) return;
+    this.datos.detalleDeudaProveedores.forEach(detalle => {
+      if (!this.obrasPorProveedor.has(detalle.proveedorId)) {
+        this.obrasPorProveedor.set(detalle.proveedorId, new Set());
+      }
+      this.obrasPorProveedor.get(detalle.proveedorId)!.add(detalle.obraId);
+    });
+  }
+
+  private actualizarOpcionesObra(): void {
+    const proveedorId = this.currentFilters['proveedorId'];
+    const clienteId = this.currentFilters['clienteId'];
+
+    let obrasDisponibles = this.obras;
+
+    if (proveedorId) {
+      const obrasProveedor = this.obrasPorProveedor.get(proveedorId) || new Set();
+      obrasDisponibles = this.obras.filter(o => obrasProveedor.has(o.id));
+    }
+
+    if (clienteId && this.datos?.detalleDeudaClientes) {
+      const obrasCliente = new Set(
+        this.datos.detalleDeudaClientes
+          .filter(d => d.clienteId === clienteId)
+          .map(d => d.obraId)
+      );
+      obrasDisponibles = obrasDisponibles.filter(o => obrasCliente.has(o.id));
+    }
+
+    const idx = this.filterDefinitions.findIndex(f => f.key === 'obraIds');
+    if (idx >= 0) {
+      this.filterDefinitions[idx].options = obrasDisponibles.map(o => ({
+        label: o.nombre,
+        value: o.id
+      }));
+    }
   }
 
   getRangeClientes(): number[] {
