@@ -274,4 +274,9 @@ public class ReportesController {
             @RequestHeader(value = "X-Organizacion-Id", required = false) Long organizacionId) {
         return ResponseEntity.ok(reportesService.generarDashboardGraficos(topN, organizacionId));
     }
+
+    @PostMapping("/sp/catalogos-cuenta-corriente")
+    public ResponseEntity<CatalogoCuentaCorrienteResponse> catalogosCuentaCorriente() {
+        return ResponseEntity.ok(reportesService.obtenerCatalogosCuentaCorriente());
+    }
 }

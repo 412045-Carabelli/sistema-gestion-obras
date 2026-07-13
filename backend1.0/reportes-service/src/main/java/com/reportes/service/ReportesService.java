@@ -19,6 +19,7 @@ import com.reportes.service.pdf.PdfBuilder;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.jdbc.core.JdbcTemplate;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -42,6 +43,7 @@ public class ReportesService {
     private final MovimientoReporteRepository movimientoReporteRepository;
     private final DeudasGlobalesRepository deudasGlobalesRepository;
     private final PdfBuilder pdfBuilder;
+    private final JdbcTemplate jdbcTemplate;
 
     public DashboardFinancieroResponse generarDashboardFinanciero(ReportFilterRequest filtro) {
         ReportFilterRequest filtros = filtroSeguro(filtro);
@@ -2825,6 +2827,42 @@ public class ReportesService {
                         .presupuestoTotal(presupuestoTotal)
                         .porcentajeCobroGlobal(pctCobro)
                         .build())
+                .build();
+    }
+
+    public CatalogoCuentaCorrienteResponse obtenerCatalogosCuentaCorriente() {
+        List<Map<String, Object>> obras = new ArrayList<>();
+        List<Map<String, Object>> clientes = new ArrayList<>();
+        List<Map<String, Object>> proveedores = new ArrayList<>();
+
+        try {
+            obras = jdbcTemplate.queryForList(
+                "SELECT id, nombre FROM [sgo_obras].[dbo].[obras] WHERE activo = 1 AND obra_estado IN ('ADJUDICADA', 'EN_PROGRESO', 'FINALIZADA') ORDER BY nombre"
+            );
+        } catch (Exception e) {
+            log.error("Error executing obras query", e);
+        }
+
+        try {
+            clientes = jdbcTemplate.queryForList(
+                "SELECT id, nombre FROM [sgo_clientes].[dbo].[clientes] WHERE activo = 1 ORDER BY nombre"
+            );
+        } catch (Exception e) {
+            log.error("Error executing clientes query", e);
+        }
+
+        try {
+            proveedores = jdbcTemplate.queryForList(
+                "SELECT id, nombre FROM [sgo_proveedores].[dbo].[proveedores] WHERE activo = 1 ORDER BY nombre"
+            );
+        } catch (Exception e) {
+            log.error("Error executing proveedores query", e);
+        }
+
+        return CatalogoCuentaCorrienteResponse.builder()
+                .obras(obras)
+                .clientes(clientes)
+                .proveedores(proveedores)
                 .build();
     }
 }
