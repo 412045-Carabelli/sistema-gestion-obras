@@ -80,5 +80,5 @@ export class SidebarComponent implements OnInit {
     }
   ];
 
-  version: string = 'v1.17.41';
+  version: string = 'v1.17.42';
 }

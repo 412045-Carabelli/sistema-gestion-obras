@@ -785,4 +785,8 @@ export class CuentasCorrientesListComponent implements OnInit, OnDestroy {
 
     doc.save(`cuentas-corrientes-${fileLabel}-${hoyIso}.pdf`);
   }
+
+  imprimirListado(): void {
+    window.print();
+  }
 }

@@ -6,7 +6,7 @@ import { TagModule } from 'primeng/tag';
 import { Subscription } from 'rxjs';
 import { ChangelogService } from '../../services/changelog/changelog.service';
 
-const VERSION = 'v1.17.41';
+const VERSION = 'v1.17.42';
 const STORAGE_KEY = `sgo-changelog-seen-${VERSION}`;
 
 interface ChangeItem {
@@ -32,6 +32,15 @@ export class ChangelogModalComponent implements OnInit, OnDestroy {
   private sub = new Subscription();
 
   grupos: ChangeGroup[] = [
+    {
+      modulo: 'UI Refinements 14/07/2026',
+      icon: 'pi pi-palette',
+      items: [
+        { texto: 'Memoria descriptiva de obra: mostrar como texto plano (sin tags HTML)', estado: 'done' },
+        { texto: 'Botón de impresión en todos los listados (obras, clientes, proveedores, agendas, facturas, movimientos, cuentas corrientes)', estado: 'done' },
+        { texto: 'Botón "Ver" para abrir PDF de facturas adjuntas', estado: 'done' },
+      ]
+    },
     {
       modulo: 'Cuentas Corrientes 14/07/2026',
       icon: 'pi pi-book',
