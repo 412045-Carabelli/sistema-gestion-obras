@@ -109,6 +109,7 @@ export class CuentasCorrientesListComponent implements OnInit, OnDestroy {
 
   onFilterChange(filters: Record<string, any>): void {
     this.currentFilters = filters;
+    this.actualizarOpcionesConFiltros(filters);
     this.cargar();
   }
 
@@ -116,6 +117,77 @@ export class CuentasCorrientesListComponent implements OnInit, OnDestroy {
     this.currentFilters = {};
     this.setupFilterDefinitions();
     this.cargar();
+  }
+
+  private actualizarOpcionesConFiltros(filters: Record<string, any>): void {
+    const obraIds = filters['obraIds'];
+
+    if (obraIds && Array.isArray(obraIds) && obraIds.length > 0) {
+      const proveedoresSet = new Set<number>();
+      const clientesSet = new Set<number>();
+      const proveedoresMap = new Map<number, string>();
+      const clientesMap = new Map<number, string>();
+      let completados = 0;
+
+      // Traer proveedores y clientes de TODAS las obras
+      obraIds.forEach(obraId => {
+        // Proveedores
+        this.subs.add(
+          this.http.get<Array<{id: number; nombre: string}>>(
+            `${environment.apiGateway}/bff/reportes/filtros/proveedores-por-obra?obraId=${obraId}`
+          ).subscribe({
+            next: (provs) => {
+              provs.forEach(p => {
+                proveedoresSet.add(p.id);
+                proveedoresMap.set(p.id, p.nombre);
+              });
+              completados++;
+              if (completados === obraIds.length * 2) {
+                const provsList = Array.from(proveedoresMap.entries()).map(([id, nombre]) => ({id, nombre}));
+                this.actualizarOpcionesEnFilterBar('proveedorId', provsList);
+              }
+            },
+            error: (err) => {
+              completados++;
+              console.error('Error cargando proveedores', err);
+            }
+          })
+        );
+
+        // Clientes
+        this.subs.add(
+          this.http.get<Array<{id: number; nombre: string}>>(
+            `${environment.apiGateway}/bff/reportes/filtros/clientes-por-obra?obraId=${obraId}`
+          ).subscribe({
+            next: (clients) => {
+              clients.forEach(c => {
+                clientesSet.add(c.id);
+                clientesMap.set(c.id, c.nombre);
+              });
+              completados++;
+              if (completados === obraIds.length * 2) {
+                const clientesList = Array.from(clientesMap.entries()).map(([id, nombre]) => ({id, nombre}));
+                this.actualizarOpcionesEnFilterBar('clienteId', clientesList);
+              }
+            },
+            error: (err) => {
+              completados++;
+              console.error('Error cargando clientes', err);
+            }
+          })
+        );
+      });
+    }
+  }
+
+  private actualizarOpcionesEnFilterBar(key: string, opciones: Array<{id: number; nombre: string}>): void {
+    const idx = this.filterDefinitions.findIndex(f => f.key === key);
+    if (idx >= 0) {
+      this.filterDefinitions[idx].options = opciones.map(o => ({
+        label: o.nombre,
+        value: o.id
+      }));
+    }
   }
 
   private cargarCatalogos(): void {

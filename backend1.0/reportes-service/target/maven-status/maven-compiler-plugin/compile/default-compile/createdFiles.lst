@@ -2,6 +2,7 @@ com\reportes\dto\external\ObraConTransaccionesDto.class
 com\reportes\client\ObrasClient$2.class
 com\reportes\dto\response\DeudasGlobalesResponse$DetalleDeudaCliente.class
 com\reportes\dto\response\CuentaCorrienteProveedorResponse.class
+com\reportes\dto\response\CatalogoCuentaCorrienteResponse$CatalogoCuentaCorrienteResponseBuilder.class
 com\reportes\dto\response\SaldosClienteResponse$SaldosClienteResponseBuilder.class
 com\reportes\dto\response\DashboardFinancieroResponse$CtaCte.class
 com\reportes\dto\response\SaldosProveedorResponse.class
@@ -26,7 +27,9 @@ com\reportes\dto\response\DashboardFinancieroResponse.class
 com\reportes\dto\response\FlujoCajaResponse$Movimiento.class
 com\reportes\repository\MovimientoReporteRepository.class
 com\reportes\client\TransaccionesClient.class
+com\reportes\client\ObrasClient$5.class
 com\reportes\dto\response\AvanceTareasResponse$AvanceObra.class
+com\reportes\dto\response\CatalogoCuentaCorrienteResponse.class
 com\reportes\dto\response\CuentaCorrienteObraResponse.class
 com\reportes\dto\response\EstadoObrasResponse$DetalleEstadoObra.class
 com\reportes\dto\external\ProgresoExternalDto.class

@@ -2837,7 +2837,7 @@ public class ReportesService {
 
         try {
             obras = jdbcTemplate.queryForList(
-                "SELECT id, nombre FROM [sgo_obras].[dbo].[obras] WHERE activo = 1 AND obra_estado IN ('ADJUDICADA', 'EN_PROGRESO', 'FINALIZADA') ORDER BY nombre"
+                "SELECT id, nombre FROM [sgo_obras].[dbo].[obras] WHERE activo = 1 ORDER BY nombre"
             );
         } catch (Exception e) {
             log.error("Error executing obras query", e);

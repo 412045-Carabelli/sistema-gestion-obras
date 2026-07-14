@@ -12,6 +12,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/reportes")
@@ -276,7 +277,12 @@ public class ReportesController {
     }
 
     @PostMapping("/sp/catalogos-cuenta-corriente")
-    public ResponseEntity<CatalogoCuentaCorrienteResponse> catalogosCuentaCorriente() {
-        return ResponseEntity.ok(reportesService.obtenerCatalogosCuentaCorriente());
+    public ResponseEntity<Map<String, Object>> catalogosCuentaCorriente() {
+        CatalogoCuentaCorrienteResponse response = reportesService.obtenerCatalogosCuentaCorriente();
+        Map<String, Object> result = new java.util.HashMap<>();
+        result.put("obras", response.getObras());
+        result.put("clientes", response.getClientes());
+        result.put("proveedores", response.getProveedores());
+        return ResponseEntity.ok(result);
     }
 }
