@@ -120,16 +120,44 @@ export class CuentasCorrientesListComponent implements OnInit, OnDestroy {
   }
 
   private actualizarOpcionesConFiltros(filters: Record<string, any>): void {
+    const proveedorId = filters['proveedorId'];
+    const clienteId = filters['clienteId'];
     const obraIds = filters['obraIds'];
 
+    // Si filtra por proveedor, traer obras de ese proveedor
+    if (proveedorId && !obraIds) {
+      this.subs.add(
+        this.http.get<Array<{id: number; nombre: string}>>(
+          `${environment.apiGateway}/bff/reportes/filtros/obras-por-proveedor?proveedorId=${proveedorId}`
+        ).subscribe({
+          next: (obras) => {
+            this.actualizarOpcionesEnFilterBar('obraIds', obras);
+          },
+          error: (err) => console.error('Error cargando obras', err)
+        })
+      );
+    }
+
+    // Si filtra por cliente, traer obras de ese cliente
+    if (clienteId && !obraIds) {
+      this.subs.add(
+        this.http.get<Array<{id: number; nombre: string}>>(
+          `${environment.apiGateway}/bff/reportes/filtros/obras-por-cliente?clienteId=${clienteId}`
+        ).subscribe({
+          next: (obras) => {
+            this.actualizarOpcionesEnFilterBar('obraIds', obras);
+          },
+          error: (err) => console.error('Error cargando obras', err)
+        })
+      );
+    }
+
+    // Si filtra por obra(s), traer proveedores y clientes de esas obras
     if (obraIds && Array.isArray(obraIds) && obraIds.length > 0) {
-      const proveedoresSet = new Set<number>();
-      const clientesSet = new Set<number>();
       const proveedoresMap = new Map<number, string>();
       const clientesMap = new Map<number, string>();
       let completados = 0;
 
-      // Traer proveedores y clientes de TODAS las obras
       obraIds.forEach(obraId => {
         // Proveedores
         this.subs.add(
@@ -138,7 +166,6 @@ export class CuentasCorrientesListComponent implements OnInit, OnDestroy {
           ).subscribe({
             next: (provs) => {
               provs.forEach(p => {
-                proveedoresSet.add(p.id);
                 proveedoresMap.set(p.id, p.nombre);
               });
               completados++;
@@ -161,7 +188,6 @@ export class CuentasCorrientesListComponent implements OnInit, OnDestroy {
           ).subscribe({
             next: (clients) => {
               clients.forEach(c => {
-                clientesSet.add(c.id);
                 clientesMap.set(c.id, c.nombre);
               });
               completados++;
