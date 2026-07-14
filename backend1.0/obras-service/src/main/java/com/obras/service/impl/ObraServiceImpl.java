@@ -554,7 +554,7 @@ public class ObraServiceImpl implements ObraService {
     @Override
     public List<Map<String, Object>> obtenerObrasPorProveedor(Long proveedorId) {
         try {
-            return repo.findAll().stream()
+            return obraRepo.findAll().stream()
                     .filter(o -> o.getActivo())
                     .filter(o -> {
                         try {
@@ -576,7 +576,7 @@ public class ObraServiceImpl implements ObraService {
     public List<Map<String, Object>> obtenerClientesPorProveedor(Long proveedorId) {
         try {
             Set<Long> clienteIds = new HashSet<>();
-            repo.findAll().stream()
+            obraRepo.findAll().stream()
                     .filter(o -> o.getActivo())
                     .filter(o -> {
                         try {
@@ -600,7 +600,7 @@ public class ObraServiceImpl implements ObraService {
     @Override
     public List<Map<String, Object>> obtenerObrasPorCliente(Long clienteId) {
         try {
-            return repo.findAll().stream()
+            return obraRepo.findAll().stream()
                     .filter(o -> o.getActivo() && clienteId.equals(o.getIdCliente()))
                     .map(o -> Map.of("id", o.getId(), "nombre", o.getNombre()))
                     .map(m -> (Map<String, Object>) (Map<?, ?>) m)
@@ -613,7 +613,7 @@ public class ObraServiceImpl implements ObraService {
     @Override
     public List<Map<String, Object>> obtenerProveedoresPorObra(Long obraId) {
         try {
-            return repo.findById(obraId)
+            return obraRepo.findById(obraId)
                     .map(o -> {
                         try {
                             return o.getProveedores() == null ? List.of() : o.getProveedores().stream()
