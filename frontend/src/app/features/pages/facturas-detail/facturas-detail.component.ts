@@ -339,6 +339,28 @@ export class FacturasDetailComponent implements OnInit, OnDestroy {
     );
   }
 
+  verArchivo(): void {
+    if (!this.factura?.id || !this.factura?.nombre_archivo) return;
+    this.subs.add(
+      this.facturasService.downloadFacturaResponse(this.factura.id).subscribe({
+        next: (response) => {
+          const blob = response.body;
+          if (!blob) return;
+          const url = URL.createObjectURL(blob);
+          window.open(url, '_blank');
+          setTimeout(() => URL.revokeObjectURL(url), 10000);
+        },
+        error: () => {
+          this.messageService.add({
+            severity: 'error',
+            summary: 'Error',
+            detail: 'No se pudo abrir el archivo.'
+          });
+        }
+      })
+    );
+  }
+
   protected isImageFile(nombre?: string): boolean {
     if (!nombre) return false;
     return /\.(jpg|jpeg|png)$/i.test(nombre);

@@ -193,4 +193,8 @@ export class ClientesListComponent implements OnInit {
   private compararTexto(a?: string | null, b?: string | null): number {
     return (a || '').localeCompare(b || '', 'es', {sensitivity: 'base'});
   }
+
+  imprimirListado(): void {
+    window.print();
+  }
 }

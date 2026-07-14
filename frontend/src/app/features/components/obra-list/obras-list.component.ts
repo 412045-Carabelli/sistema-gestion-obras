@@ -291,4 +291,8 @@ export class ObrasListComponent implements OnInit {
       return (a?.label || '').localeCompare(b?.label || '');
     });
   }
+
+  imprimirListado(): void {
+    window.print();
+  }
 }

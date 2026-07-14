@@ -204,7 +204,9 @@ export class ProveedoresListComponent implements OnInit {
     return limpio.charAt(0).toUpperCase() + limpio.slice(1);
   }
 
-
+  imprimirListado(): void {
+    window.print();
+  }
 }
 
 
