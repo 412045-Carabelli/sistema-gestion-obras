@@ -127,7 +127,7 @@ export class CuentasCorrientesListComponent implements OnInit, OnDestroy {
   private actualizarOpcionesConSwitchMap(filters: Record<string, any>): void {
     const proveedorId = filters['proveedorId'];
     const clienteId = filters['clienteId'];
-    const obraId = filters['obraId'];
+    const obraIds = filters['obraIds'];
 
     if (proveedorId) {
       this.subs.add(
@@ -157,10 +157,11 @@ export class CuentasCorrientesListComponent implements OnInit, OnDestroy {
       );
     }
 
-    if (obraId) {
+    if (obraIds && Array.isArray(obraIds) && obraIds.length > 0) {
+      const firstObraId = obraIds[0];
       this.subs.add(
         this.http.get<Array<{id: number; nombre: string}>>(
-          `${this.filtrosUrl}/proveedores-por-obra?obraId=${obraId}`
+          `${this.filtrosUrl}/proveedores-por-obra?obraId=${firstObraId}`
         ).subscribe(provs => {
           this.actualizarOpcionesEnFilterBar('proveedorId', provs);
         })
