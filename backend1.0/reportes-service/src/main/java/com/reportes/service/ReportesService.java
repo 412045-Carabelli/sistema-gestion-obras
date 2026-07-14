@@ -1624,6 +1624,7 @@ public class ReportesService {
         return obrasClient.obtenerObras().stream()
                 .filter(obra -> !Boolean.FALSE.equals(obra.getActivo()))
                 .filter(obra -> filtro.getObraId() == null || Objects.equals(obra.getId(), filtro.getObraId()))
+                .filter(obra -> filtro.getObraIds() == null || filtro.getObraIds().isEmpty() || filtro.getObraIds().contains(obra.getId()))
                 .filter(obra -> filtro.getClienteId() == null || Objects.equals(obra.getIdCliente(), filtro.getClienteId()))
                 .filter(obra -> dentroDeRango(obra.getFechaInicio() != null ? obra.getFechaInicio().toLocalDate() : null,
                         filtro.getFechaInicio(), filtro.getFechaFin()))
@@ -1654,6 +1655,7 @@ public class ReportesService {
                                                              Map<Long, ObraExternalDto> obrasPorId) {
         return obtenerTransaccionesActivas().stream()
                 .filter(tx -> filtro.getObraId() == null || Objects.equals(tx.getIdObra(), filtro.getObraId()))
+                .filter(tx -> filtro.getObraIds() == null || filtro.getObraIds().isEmpty() || filtro.getObraIds().contains(tx.getIdObra()))
                 // Si filtro por proveedor, solo excluyo pagos a otros proveedores; dejo pasar los del cliente u otros asociados
                 .filter(tx -> {
                     if (filtro.getProveedorId() == null) return true;
@@ -2436,9 +2438,9 @@ public class ReportesService {
             fechasUnicas.add(fecha);
         }
 
-        // Construir filas (una por obra)
+        // Construir filas (una por obra válida, incluso sin movimientos)
         List<CuentaCorrientePdfResponse.FilaObra> filas = new ArrayList<>();
-        for (Long obraId : movimientosAgrupadosPorObraYFecha.keySet()) {
+        for (Long obraId : obrasValidas) {
             ObraExternalDto obra = obrasPorId.get(obraId);
             CuentaCorrientePdfResponse.FilaObra fila = new CuentaCorrientePdfResponse.FilaObra();
             fila.setObraId(obraId);
@@ -2447,14 +2449,17 @@ public class ReportesService {
             // Mapear movimientos por fecha como strings
             Map<String, BigDecimal> movPorFecha = new LinkedHashMap<>();
             BigDecimal saldoObra = BigDecimal.ZERO;
-            for (LocalDate fecha : movimientosAgrupadosPorObraYFecha.get(obraId).entrySet()
-                    .stream()
-                    .sorted(Map.Entry.comparingByKey())
-                    .map(Map.Entry::getKey)
-                    .collect(Collectors.toList())) {
-                BigDecimal monto = movimientosAgrupadosPorObraYFecha.get(obraId).get(fecha);
-                movPorFecha.put(fecha.toString(), monto);
-                saldoObra = saldoObra.add(monto);
+            Map<LocalDate, BigDecimal> movObra = movimientosAgrupadosPorObraYFecha.get(obraId);
+            if (movObra != null) {
+                for (LocalDate fecha : movObra.entrySet()
+                        .stream()
+                        .sorted(Map.Entry.comparingByKey())
+                        .map(Map.Entry::getKey)
+                        .collect(Collectors.toList())) {
+                    BigDecimal monto = movObra.get(fecha);
+                    movPorFecha.put(fecha.toString(), monto);
+                    saldoObra = saldoObra.add(monto);
+                }
             }
 
             fila.setMovimientosPorFecha(movPorFecha);
@@ -2536,9 +2541,9 @@ public class ReportesService {
             }
         }
 
-        // Construir filas (una por obra)
+        // Construir filas (una por obra válida del cliente, incluso sin cobros)
         List<CuentaCorrientePdfResponse.FilaObra> filas = new ArrayList<>();
-        for (Long obraId : cobrosPorObraYFecha.keySet()) {
+        for (Long obraId : obrasValidas) {
             ObraExternalDto obra = obrasPorId.get(obraId);
             CuentaCorrientePdfResponse.FilaObra fila = new CuentaCorrientePdfResponse.FilaObra();
             fila.setObraId(obraId);
@@ -2547,14 +2552,17 @@ public class ReportesService {
             // Mapear cobros por fecha
             Map<String, BigDecimal> cobrosPorFecha = new LinkedHashMap<>();
             BigDecimal saldoObra = BigDecimal.ZERO;
-            for (LocalDate fecha : cobrosPorObraYFecha.get(obraId).entrySet()
-                    .stream()
-                    .sorted(Map.Entry.comparingByKey())
-                    .map(Map.Entry::getKey)
-                    .collect(Collectors.toList())) {
-                BigDecimal monto = cobrosPorObraYFecha.get(obraId).get(fecha);
-                cobrosPorFecha.put(fecha.toString(), monto);
-                saldoObra = saldoObra.add(monto);
+            Map<LocalDate, BigDecimal> cobrosObra = cobrosPorObraYFecha.get(obraId);
+            if (cobrosObra != null) {
+                for (LocalDate fecha : cobrosObra.entrySet()
+                        .stream()
+                        .sorted(Map.Entry.comparingByKey())
+                        .map(Map.Entry::getKey)
+                        .collect(Collectors.toList())) {
+                    BigDecimal monto = cobrosObra.get(fecha);
+                    cobrosPorFecha.put(fecha.toString(), monto);
+                    saldoObra = saldoObra.add(monto);
+                }
             }
 
             fila.setMovimientosPorFecha(cobrosPorFecha);

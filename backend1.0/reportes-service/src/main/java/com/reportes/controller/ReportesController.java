@@ -71,6 +71,11 @@ public class ReportesController {
         return ResponseEntity.ok(reportesService.generarCuentaCorrienteProveedorGlobal(filtro));
     }
 
+    @PostMapping("/financieros/cuenta-corriente-proveedor")
+    public ResponseEntity<CuentaCorrienteProveedorResponse> cuentaCorrienteProveedor(@RequestBody(required = false) ReportFilterRequest filtro) {
+        return ResponseEntity.ok(reportesService.generarCuentaCorrienteProveedorGlobal(filtro));
+    }
+
     @PostMapping("/financieros/cuenta-corriente-cliente")
     public ResponseEntity<CuentaCorrienteClienteResponse> cuentaCorrienteCliente(@RequestBody(required = false) ReportFilterRequest filtro) {
         return ResponseEntity.ok(reportesService.generarCuentaCorrienteCliente(filtro));

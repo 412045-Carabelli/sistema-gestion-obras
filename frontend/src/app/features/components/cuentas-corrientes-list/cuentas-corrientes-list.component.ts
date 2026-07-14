@@ -13,7 +13,7 @@ import { SelectModule } from 'primeng/select';
 import { DatePickerModule } from 'primeng/datepicker';
 import { CardModule } from 'primeng/card';
 import { TooltipModule } from 'primeng/tooltip';
-import { Subscription, forkJoin, of } from 'rxjs';
+import { Subscription, forkJoin, of, switchMap } from 'rxjs';
 import { GenericFilterBarComponent, FilterDefinition, FilterAction } from '../generic-filter-bar/generic-filter-bar.component';
 import { KpiCardComponent } from '../../../shared/kpi-card/kpi-card.component';
 import { ReportesService } from '../../../services/reportes/reportes.service';
@@ -109,8 +109,7 @@ export class CuentasCorrientesListComponent implements OnInit, OnDestroy {
 
   onFilterChange(filters: Record<string, any>): void {
     this.currentFilters = filters;
-    this.actualizarOpcionesConFiltros(filters);
-    this.cargar();
+    this.actualizarOpcionesConFiltros(filters).then(() => this.cargar());
   }
 
   onClearFilters(): void {
@@ -119,91 +118,120 @@ export class CuentasCorrientesListComponent implements OnInit, OnDestroy {
     this.cargar();
   }
 
-  private actualizarOpcionesConFiltros(filters: Record<string, any>): void {
-    const proveedorId = filters['proveedorId'];
+  private actualizarOpcionesConFiltros(filters: Record<string, any>): Promise<void> {
     const clienteId = filters['clienteId'];
+    const proveedorId = filters['proveedorId'];
     const obraIds = filters['obraIds'];
 
-    // Si filtra por proveedor, traer obras de ese proveedor
-    if (proveedorId && !obraIds) {
-      this.subs.add(
-        this.http.get<Array<{id: number; nombre: string}>>(
-          `${environment.apiGateway}/bff/reportes/filtros/obras-por-proveedor?proveedorId=${proveedorId}`
-        ).subscribe({
-          next: (obras) => {
-            this.actualizarOpcionesEnFilterBar('obraIds', obras);
-          },
-          error: (err) => console.error('Error cargando obras', err)
-        })
-      );
-    }
-
-    // Si filtra por cliente, traer obras de ese cliente
-    if (clienteId && !obraIds) {
-      this.subs.add(
-        this.http.get<Array<{id: number; nombre: string}>>(
-          `${environment.apiGateway}/bff/reportes/filtros/obras-por-cliente?clienteId=${clienteId}`
-        ).subscribe({
-          next: (obras) => {
-            this.actualizarOpcionesEnFilterBar('obraIds', obras);
-          },
-          error: (err) => console.error('Error cargando obras', err)
-        })
-      );
-    }
-
-    // Si filtra por obra(s), traer proveedores y clientes de esas obras
-    if (obraIds && Array.isArray(obraIds) && obraIds.length > 0) {
-      const proveedoresMap = new Map<number, string>();
-      const clientesMap = new Map<number, string>();
-      let completados = 0;
-
-      obraIds.forEach(obraId => {
-        // Proveedores
+    return new Promise(resolve => {
+      // Cliente: traer obras → traer proveedores de esas obras
+      if (clienteId) {
         this.subs.add(
           this.http.get<Array<{id: number; nombre: string}>>(
-            `${environment.apiGateway}/bff/reportes/filtros/proveedores-por-obra?obraId=${obraId}`
+            `${environment.apiGateway}/bff/reportes/filtros/obras-por-cliente?clienteId=${clienteId}`
+          ).pipe(
+            switchMap(obras => {
+              this.actualizarOpcionesEnFilterBar('obraIds', obras);
+              if (obras.length === 0) return of([]);
+              const provReqs = obras.map(o =>
+                this.http.get<Array<{id: number; nombre: string}>>(
+                  `${environment.apiGateway}/bff/reportes/filtros/proveedores-por-obra?obraId=${o.id}`
+                )
+              );
+              return forkJoin(provReqs);
+            })
           ).subscribe({
-            next: (provs) => {
-              provs.forEach(p => {
-                proveedoresMap.set(p.id, p.nombre);
+            next: (results: any) => {
+              const provSet = new Map<number, string>();
+              results.forEach((provs: any) => {
+                provs.forEach((p: any) => provSet.set(p.id, p.nombre));
               });
-              completados++;
-              if (completados === obraIds.length * 2) {
-                const provsList = Array.from(proveedoresMap.entries()).map(([id, nombre]) => ({id, nombre}));
-                this.actualizarOpcionesEnFilterBar('proveedorId', provsList);
-              }
+              this.actualizarOpcionesEnFilterBar('proveedorId',
+                Array.from(provSet.entries()).map(([id, nombre]) => ({id, nombre}))
+              );
+              resolve();
             },
-            error: (err) => {
-              completados++;
-              console.error('Error cargando proveedores', err);
-            }
+            error: () => resolve()
           })
         );
+        return;
+      }
 
-        // Clientes
+      // Proveedor: traer obras → traer clientes de esas obras
+      if (proveedorId) {
         this.subs.add(
           this.http.get<Array<{id: number; nombre: string}>>(
-            `${environment.apiGateway}/bff/reportes/filtros/clientes-por-obra?obraId=${obraId}`
+            `${environment.apiGateway}/bff/reportes/filtros/obras-por-proveedor?proveedorId=${proveedorId}`
+          ).pipe(
+            switchMap(obras => {
+              this.actualizarOpcionesEnFilterBar('obraIds', obras);
+              if (obras.length === 0) return of([]);
+              const climReqs = obras.map(o =>
+                this.http.get<Array<{id: number; nombre: string}>>(
+                  `${environment.apiGateway}/bff/reportes/filtros/clientes-por-obra?obraId=${o.id}`
+                )
+              );
+              return forkJoin(climReqs);
+            })
           ).subscribe({
-            next: (clients) => {
-              clients.forEach(c => {
-                clientesMap.set(c.id, c.nombre);
+            next: (results: any) => {
+              const climSet = new Map<number, string>();
+              results.forEach((clientes: any) => {
+                clientes.forEach((c: any) => climSet.set(c.id, c.nombre));
               });
-              completados++;
-              if (completados === obraIds.length * 2) {
-                const clientesList = Array.from(clientesMap.entries()).map(([id, nombre]) => ({id, nombre}));
-                this.actualizarOpcionesEnFilterBar('clienteId', clientesList);
-              }
+              this.actualizarOpcionesEnFilterBar('clienteId',
+                Array.from(climSet.entries()).map(([id, nombre]) => ({id, nombre}))
+              );
+              resolve();
             },
-            error: (err) => {
-              completados++;
-              console.error('Error cargando clientes', err);
-            }
+            error: () => resolve()
           })
         );
-      });
-    }
+        return;
+      }
+
+      // Obra(s): traer proveedores y clientes directamente
+      if (obraIds && Array.isArray(obraIds) && obraIds.length > 0) {
+        const provReqs = obraIds.map(id =>
+          this.http.get<Array<{id: number; nombre: string}>>(
+            `${environment.apiGateway}/bff/reportes/filtros/proveedores-por-obra?obraId=${id}`
+          )
+        );
+        const climReqs = obraIds.map(id =>
+          this.http.get<Array<{id: number; nombre: string}>>(
+            `${environment.apiGateway}/bff/reportes/filtros/clientes-por-obra?obraId=${id}`
+          )
+        );
+
+        this.subs.add(
+          forkJoin([...provReqs, ...climReqs]).subscribe({
+            next: (results) => {
+              const provSet = new Map<number, string>();
+              const climSet = new Map<number, string>();
+
+              results.slice(0, obraIds.length).forEach((proveeds: any) => {
+                proveeds.forEach((p: any) => provSet.set(p.id, p.nombre));
+              });
+              results.slice(obraIds.length).forEach((clientes: any) => {
+                clientes.forEach((c: any) => climSet.set(c.id, c.nombre));
+              });
+
+              this.actualizarOpcionesEnFilterBar('proveedorId',
+                Array.from(provSet.entries()).map(([id, nombre]) => ({id, nombre}))
+              );
+              this.actualizarOpcionesEnFilterBar('clienteId',
+                Array.from(climSet.entries()).map(([id, nombre]) => ({id, nombre}))
+              );
+              resolve();
+            },
+            error: () => resolve()
+          })
+        );
+        return;
+      }
+
+      resolve();
+    });
   }
 
   private actualizarOpcionesEnFilterBar(key: string, opciones: Array<{id: number; nombre: string}>): void {
@@ -316,27 +344,48 @@ export class CuentasCorrientesListComponent implements OnInit, OnDestroy {
     const proveedorIdFiltro = this.currentFilters['proveedorId'];
 
     if (tipo === 'clientes') {
-      const clienteIds = [...new Set(
-        this.datos.detalleDeudaClientes
-          .filter(d => d.clienteId && (!clienteIdFiltro || d.clienteId === clienteIdFiltro))
-          .map(d => d.clienteId!)
-      )];
-      const reqs = clienteIds.map(id =>
-        this.reportesService.getCuentaCorrienteCliente({ clienteId: id, obraIds: filtroObraIds })
-      );
+      const clientesFiltrados = this.datos.detalleDeudaClientes
+        .filter(d => d.clienteId && (!clienteIdFiltro || d.clienteId === clienteIdFiltro));
+      const clienteIds = [...new Set(clientesFiltrados.map(d => d.clienteId!))];
+      // Reutiliza las mismas obras que el SP ya determinó como deuda de cada cliente,
+      // en vez de dejar que el backend las re-derive con otro criterio (trae obras sin deuda real).
+      // Un cliente sin obras tras el filtro se excluye: mandar [] al backend equivale a "sin filtro".
+      const reqs = clienteIds
+        .map(id => ({
+          id,
+          obraIdsCliente: [...new Set(
+            clientesFiltrados
+              .filter(d => d.clienteId === id)
+              .map(d => d.obraId)
+              .filter(oid => !filtroObraIds || filtroObraIds.includes(oid))
+          )]
+        }))
+        .filter(({ obraIdsCliente }) => obraIdsCliente.length > 0)
+        .map(({ id, obraIdsCliente }) =>
+          this.reportesService.getCuentaCorrienteCliente({ clienteId: id, obraIds: obraIdsCliente })
+        );
       (reqs.length ? forkJoin(reqs) : of([] as CuentaCorrienteClienteResponse[])).subscribe({
         next: (clientes) => { this.generarPdfCombinado(clientes, []); this.generandoPdf = false; },
         error: () => { this.generandoPdf = false; }
       });
     } else {
-      const proveedorIds = [...new Set(
-        this.datos.detalleDeudaProveedores
-          .filter(d => !proveedorIdFiltro || d.proveedorId === proveedorIdFiltro)
-          .map(d => d.proveedorId)
-      )];
-      const reqs = proveedorIds.map(id =>
-        this.reportesService.getCuentaCorrienteProveedor({ proveedorId: id, obraIds: filtroObraIds })
-      );
+      const proveedoresFiltrados = this.datos.detalleDeudaProveedores
+        .filter(d => !proveedorIdFiltro || d.proveedorId === proveedorIdFiltro);
+      const proveedorIds = [...new Set(proveedoresFiltrados.map(d => d.proveedorId))];
+      const reqs = proveedorIds
+        .map(id => ({
+          id,
+          obraIdsProveedor: [...new Set(
+            proveedoresFiltrados
+              .filter(d => d.proveedorId === id)
+              .map(d => d.obraId)
+              .filter(oid => !filtroObraIds || filtroObraIds.includes(oid))
+          )]
+        }))
+        .filter(({ obraIdsProveedor }) => obraIdsProveedor.length > 0)
+        .map(({ id, obraIdsProveedor }) =>
+          this.reportesService.getCuentaCorrienteProveedor({ proveedorId: id, obraIds: obraIdsProveedor })
+        );
       (reqs.length ? forkJoin(reqs) : of([] as CuentaCorrienteProveedorResponse[])).subscribe({
         next: (proveedores) => { this.generarPdfCombinado([], proveedores); this.generandoPdf = false; },
         error: () => { this.generandoPdf = false; }
@@ -353,23 +402,40 @@ export class CuentasCorrientesListComponent implements OnInit, OnDestroy {
     const clienteIdFiltro = this.currentFilters['clienteId'];
     const proveedorIdFiltro = this.currentFilters['proveedorId'];
 
-    const clienteIds = [...new Set(
-      this.datos.detalleDeudaClientes
-        .filter(d => d.clienteId && (!clienteIdFiltro || d.clienteId === clienteIdFiltro))
-        .map(d => d.clienteId!)
-    )];
-    const proveedorIds = [...new Set(
-      this.datos.detalleDeudaProveedores
-        .filter(d => !proveedorIdFiltro || d.proveedorId === proveedorIdFiltro)
-        .map(d => d.proveedorId)
-    )];
+    const clientesFiltrados = this.datos.detalleDeudaClientes
+      .filter(d => d.clienteId && (!clienteIdFiltro || d.clienteId === clienteIdFiltro));
+    const proveedoresFiltrados = this.datos.detalleDeudaProveedores
+      .filter(d => !proveedorIdFiltro || d.proveedorId === proveedorIdFiltro);
 
-    const clienteReqs = clienteIds.map(id =>
-      this.reportesService.getCuentaCorrienteCliente({ clienteId: id, obraIds: filtroObraIds })
-    );
-    const proveedorReqs = proveedorIds.map(id =>
-      this.reportesService.getCuentaCorrienteProveedor({ proveedorId: id, obraIds: filtroObraIds })
-    );
+    const clienteIds = [...new Set(clientesFiltrados.map(d => d.clienteId!))];
+    const proveedorIds = [...new Set(proveedoresFiltrados.map(d => d.proveedorId))];
+
+    // Reutiliza las obras que el SP ya determinó como deuda de cada cliente/proveedor
+    // (mismo criterio que exportarPdfSolo, ver comentario ahí).
+    const clienteReqs = clienteIds
+      .map(id => ({
+        id,
+        obraIdsCliente: [...new Set(
+          clientesFiltrados.filter(d => d.clienteId === id).map(d => d.obraId)
+            .filter(oid => !filtroObraIds || filtroObraIds.includes(oid))
+        )]
+      }))
+      .filter(({ obraIdsCliente }) => obraIdsCliente.length > 0)
+      .map(({ id, obraIdsCliente }) =>
+        this.reportesService.getCuentaCorrienteCliente({ clienteId: id, obraIds: obraIdsCliente })
+      );
+    const proveedorReqs = proveedorIds
+      .map(id => ({
+        id,
+        obraIdsProveedor: [...new Set(
+          proveedoresFiltrados.filter(d => d.proveedorId === id).map(d => d.obraId)
+            .filter(oid => !filtroObraIds || filtroObraIds.includes(oid))
+        )]
+      }))
+      .filter(({ obraIdsProveedor }) => obraIdsProveedor.length > 0)
+      .map(({ id, obraIdsProveedor }) =>
+        this.reportesService.getCuentaCorrienteProveedor({ proveedorId: id, obraIds: obraIdsProveedor })
+      );
 
     forkJoin({
       clientes: clienteReqs.length ? forkJoin(clienteReqs) : of([] as CuentaCorrienteClienteResponse[]),
@@ -516,6 +582,8 @@ export class CuentasCorrientesListComponent implements OnInit, OnDestroy {
       y = drawSectionHeader('RESUMEN GENERAL', y);
 
       const allMovsProv = p.movimientos || [];
+      const obrasProveedor = (this.datos?.detalleDeudaProveedores || [])
+        .filter(d => d.proveedorId === p.proveedorId);
       let totalCreditos = 0;
       let totalDebitos = 0;
       for (const mov of allMovsProv) {
@@ -544,8 +612,15 @@ export class CuentasCorrientesListComponent implements OnInit, OnDestroy {
       // ── DETALLE DE OBRAS ─────────────────────────────────────────────
       y = drawSectionHeader('DETALLE DE OBRAS', y);
 
-      // Agrupar movimientos por obra
+      // Agrupar movimientos por obra. Se siembra primero con todas las obras del proveedor
+      // (obrasProveedor) para que las que no tienen movimientos igual aparezcan en el detalle.
       const obraGroupsProv = new Map<string, { obraId: number; movimientos: CuentaCorrienteMovimiento[] }>();
+      for (const o of obrasProveedor) {
+        const key = o.obraNombre || 'Sin obra';
+        if (!obraGroupsProv.has(key)) {
+          obraGroupsProv.set(key, { obraId: o.obraId, movimientos: [] });
+        }
+      }
       for (const mov of allMovsProv) {
         const key = mov.obraNombre || 'Sin obra';
         if (!obraGroupsProv.has(key)) {
@@ -627,12 +702,14 @@ export class CuentasCorrientesListComponent implements OnInit, OnDestroy {
         // ── SALDO DE ESTA OBRA ────────────────────────────────────────
         y = drawSubSectionHeader('SALDO DE ESTA OBRA', y);
 
-        const saldoObra = obraCreditos - obraDebitos;
+        const obraInfoProv = obrasProveedor.find(d => d.obraId === grupo.obraId);
+        const costosObra = obraCreditos || obraInfoProv?.presupuestado || 0;
+        const saldoObra = costosObra - obraDebitos;
         autoTable(doc, {
           startY: y,
           margin: { left: ml, right: mr },
           body: [
-            ['Total Costos:', fmt(obraCreditos)],
+            ['Total Costos:', fmt(costosObra)],
             ['Pagos:', fmt(obraDebitos)],
             [
               { content: 'Saldo:', styles: { fontStyle: 'bold' } },
@@ -677,6 +754,8 @@ export class CuentasCorrientesListComponent implements OnInit, OnDestroy {
       const obrasCliente = (this.datos?.detalleDeudaClientes || [])
         .filter(d => d.clienteId === c.clienteId);
       const presupuestoTotal = obrasCliente.reduce((s, d) => s + (d.presupuesto || 0), 0);
+      // `movimientos` solo trae obras con cobros registrados; `obrasCliente` (SP) trae TODA la
+      // deuda del cliente. Sin esta base, las obras sin cobros no aparecerían en el PDF.
 
       // Desde la óptica del CLIENTE:
       //   DÉBITO  = cargo/factura que aumenta lo que el cliente nos debe
@@ -709,8 +788,15 @@ export class CuentasCorrientesListComponent implements OnInit, OnDestroy {
       // ── DETALLE DE OBRAS ─────────────────────────────────────────────
       y = drawSectionHeader('DETALLE DE OBRAS', y);
 
-      // Agrupar movimientos por obra
+      // Agrupar movimientos por obra. Se siembra primero con todas las obras del cliente
+      // (obrasCliente) para que las que no tienen cobros igual aparezcan en el detalle.
       const obraGroupsC = new Map<string, { obraId: number; movimientos: CuentaCorrienteMovimiento[] }>();
+      for (const o of obrasCliente) {
+        const key = o.obraNombre || 'Sin obra';
+        if (!obraGroupsC.has(key)) {
+          obraGroupsC.set(key, { obraId: o.obraId, movimientos: [] });
+        }
+      }
       for (const mov of allMovsC) {
         const key = mov.obraNombre || 'Sin obra';
         if (!obraGroupsC.has(key)) {
@@ -812,7 +898,4 @@ export class CuentasCorrientesListComponent implements OnInit, OnDestroy {
     doc.save(`cuentas-corrientes-${fileLabel}-${hoyIso}.pdf`);
   }
 
-  imprimirListado(): void {
-    window.print();
-  }
 }

@@ -67,7 +67,7 @@ public class ObraServiceImpl implements ObraService {
         Page<Obra> page = (organizacionId != null && organizacionId > 0)
                 ? obraRepo.findByOrganizacionId(organizacionId, p)
                 : obraRepo.findAll(p);
-        List<ObraDTO> dtos = page.stream().map(this::toDto).toList();
+        List<ObraDTO> dtos = mapearObrasConCostosBulk(page.getContent());
         return new PageImpl<>(dtos, p, page.getTotalElements());
     }
 
@@ -80,8 +80,27 @@ public class ObraServiceImpl implements ObraService {
         Page<Obra> page = (organizacionId != null && organizacionId > 0)
                 ? obraRepo.findByIdClienteAndOrganizacionId(idCliente, organizacionId, p)
                 : obraRepo.findByIdCliente(idCliente, p);
-        List<ObraDTO> dtos = page.stream().map(this::toDto).toList();
+        List<ObraDTO> dtos = mapearObrasConCostosBulk(page.getContent());
         return new PageImpl<>(dtos, p, page.getTotalElements());
+    }
+
+    /** Evita N+1: trae los costos de todas las obras en una sola query. */
+    private List<ObraDTO> mapearObrasConCostosBulk(List<Obra> obras) {
+        if (obras.isEmpty()) return List.of();
+        List<Long> obraIds = obras.stream().map(Obra::getId).filter(Objects::nonNull).toList();
+        Map<Long, List<ObraCosto>> costosPorObra = costoRepo.findByObra_IdIn(obraIds).stream()
+                .collect(Collectors.groupingBy(c -> c.getObra().getId()));
+        return obras.stream()
+                .map(obra -> {
+                    List<ObraCosto> costosObra = costosPorObra.getOrDefault(obra.getId(), List.of());
+                    List<ObraCosto> costosFiltrados = Boolean.TRUE.equals(obra.getActivo())
+                            ? costosObra.stream().filter(c -> Boolean.TRUE.equals(c.getActivo())).toList()
+                            : costosObra.stream()
+                                .filter(c -> Boolean.TRUE.equals(c.getActivo()) || Boolean.TRUE.equals(c.getBajaObra()))
+                                .toList();
+                    return toDto(obra, costosFiltrados);
+                })
+                .toList();
     }
 
     @Override
@@ -259,6 +278,19 @@ public class ObraServiceImpl implements ObraService {
 
     private ObraDTO toDto(Obra entity) {
         if (entity == null) return null;
+        if (entity.getId() == null) return toDto(entity, List.of());
+
+        boolean obraActiva = Boolean.TRUE.equals(entity.getActivo());
+        List<ObraCosto> costosActivos = obraActiva
+                ? costoRepo.findByObra_IdAndActivoTrue(entity.getId())
+                : costoRepo.findByObra_Id(entity.getId()).stream()
+                .filter(c -> Boolean.TRUE.equals(c.getActivo()) || Boolean.TRUE.equals(c.getBajaObra()))
+                .collect(Collectors.toList());
+        return toDto(entity, costosActivos);
+    }
+
+    private ObraDTO toDto(Obra entity, List<ObraCosto> costosActivos) {
+        if (entity == null) return null;
 
         ObraDTO dto = new ObraDTO();
         dto.setId(entity.getId());
@@ -288,7 +320,7 @@ public class ObraServiceImpl implements ObraService {
         dto.setUltima_actualizacion(entity.getUltimaActualizacion());
         dto.setTipo_actualizacion(entity.getTipoActualizacion());
 
-        TotalesObra totales = calcularTotalesObra(entity);
+        TotalesObra totales = calcularTotalesObra(entity, costosActivos);
         dto.setSubtotal_costos(totales.subtotalCostos());
         dto.setBeneficio_costos(totales.beneficioCostos());
         dto.setTotal_con_beneficio(totales.totalConBeneficio());
@@ -299,48 +331,40 @@ public class ObraServiceImpl implements ObraService {
         dto.setDemasia_obra(totales.demasiasObra());
         dto.setDesvio_total(totales.desvioTotal());
 
-        if (entity.getId() != null) {
-            boolean obraActiva = Boolean.TRUE.equals(entity.getActivo());
-            List<ObraCosto> costosActivos = obraActiva
-                    ? costoRepo.findByObra_IdAndActivoTrue(entity.getId())
-                    : costoRepo.findByObra_Id(entity.getId()).stream()
-                    .filter(c -> Boolean.TRUE.equals(c.getActivo()) || Boolean.TRUE.equals(c.getBajaObra()))
-                    .collect(Collectors.toList());
-            if (costosActivos != null && !costosActivos.isEmpty()) {
-                dto.setCostos(
-                    costosActivos.stream()
-                        .sorted((a, b) -> {
-                            boolean aAdd = !com.obras.enums.TipoCostoEnum.ORIGINAL.equals(a.getTipoCosto());
-                            boolean bAdd = !com.obras.enums.TipoCostoEnum.ORIGINAL.equals(b.getTipoCosto());
-                            int tipoCompare = Boolean.compare(aAdd, bAdd);
-                            if (tipoCompare != 0) return tipoCompare;
-                            return Long.compare(
-                                    a.getId() != null ? a.getId() : 0,
-                                    b.getId() != null ? b.getId() : 0
-                            );
-                        })
-                        .map(c -> {
-                            ObraCostoDTO cdto = new ObraCostoDTO();
-                            cdto.setId(c.getId());
-                            cdto.setId_proveedor(c.getIdProveedor());
-                            cdto.setItem_numero(c.getItemNumero());
-                            cdto.setDescripcion(c.getDescripcion());
-                            cdto.setUnidad(c.getUnidad());
-                            cdto.setCantidad(c.getCantidad());
-                            cdto.setPrecio_unitario(c.getPrecioUnitario());
-                            cdto.setBeneficio(c.getBeneficio());
-                            cdto.setSubtotal(c.getSubtotal());
-                            cdto.setTotal(c.getTotal());
-                            cdto.setMonto_real(c.getMontoReal());
-                            cdto.setEstado_pago(c.getEstadoPago());
-                            cdto.setTipo_costo(c.getTipoCosto());
-                            cdto.setActivo(c.getActivo());
-                            cdto.setUltima_actualizacion(c.getUltimaActualizacion());
-                            cdto.setTipo_actualizacion(c.getTipoActualizacion());
-                            return cdto;
-                        }).toList()
-                );
-            }
+        if (costosActivos != null && !costosActivos.isEmpty()) {
+            dto.setCostos(
+                costosActivos.stream()
+                    .sorted((a, b) -> {
+                        boolean aAdd = !com.obras.enums.TipoCostoEnum.ORIGINAL.equals(a.getTipoCosto());
+                        boolean bAdd = !com.obras.enums.TipoCostoEnum.ORIGINAL.equals(b.getTipoCosto());
+                        int tipoCompare = Boolean.compare(aAdd, bAdd);
+                        if (tipoCompare != 0) return tipoCompare;
+                        return Long.compare(
+                                a.getId() != null ? a.getId() : 0,
+                                b.getId() != null ? b.getId() : 0
+                        );
+                    })
+                    .map(c -> {
+                        ObraCostoDTO cdto = new ObraCostoDTO();
+                        cdto.setId(c.getId());
+                        cdto.setId_proveedor(c.getIdProveedor());
+                        cdto.setItem_numero(c.getItemNumero());
+                        cdto.setDescripcion(c.getDescripcion());
+                        cdto.setUnidad(c.getUnidad());
+                        cdto.setCantidad(c.getCantidad());
+                        cdto.setPrecio_unitario(c.getPrecioUnitario());
+                        cdto.setBeneficio(c.getBeneficio());
+                        cdto.setSubtotal(c.getSubtotal());
+                        cdto.setTotal(c.getTotal());
+                        cdto.setMonto_real(c.getMontoReal());
+                        cdto.setEstado_pago(c.getEstadoPago());
+                        cdto.setTipo_costo(c.getTipoCosto());
+                        cdto.setActivo(c.getActivo());
+                        cdto.setUltima_actualizacion(c.getUltimaActualizacion());
+                        cdto.setTipo_actualizacion(c.getTipoActualizacion());
+                        return cdto;
+                    }).toList()
+            );
         }
 
         return dto;
@@ -447,6 +471,18 @@ public class ObraServiceImpl implements ObraService {
     }
     private TotalesObra calcularTotalesObra(Obra obra) {
         if (obra == null || obra.getId() == null) {
+            return calcularTotalesObra(obra, List.of());
+        }
+        List<ObraCosto> costos = Boolean.TRUE.equals(obra.getActivo())
+                ? costoRepo.findByObra_IdAndActivoTrue(obra.getId())
+                : costoRepo.findByObra_Id(obra.getId()).stream()
+                .filter(c -> Boolean.TRUE.equals(c.getActivo()) || Boolean.TRUE.equals(c.getBajaObra()))
+                .collect(Collectors.toList());
+        return calcularTotalesObra(obra, costos);
+    }
+
+    private TotalesObra calcularTotalesObra(Obra obra, List<ObraCosto> costos) {
+        if (obra == null || obra.getId() == null) {
             return new TotalesObra(
                 BigDecimal.ZERO,
                 BigDecimal.ZERO,
@@ -460,11 +496,6 @@ public class ObraServiceImpl implements ObraService {
             );
         }
 
-        List<ObraCosto> costos = Boolean.TRUE.equals(obra.getActivo())
-                ? costoRepo.findByObra_IdAndActivoTrue(obra.getId())
-                : costoRepo.findByObra_Id(obra.getId()).stream()
-                .filter(c -> Boolean.TRUE.equals(c.getActivo()) || Boolean.TRUE.equals(c.getBajaObra()))
-                .collect(Collectors.toList());
         if (costos == null || costos.isEmpty()) {
             return new TotalesObra(
                 BigDecimal.ZERO,

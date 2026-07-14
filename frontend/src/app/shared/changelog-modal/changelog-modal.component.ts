@@ -6,7 +6,7 @@ import { TagModule } from 'primeng/tag';
 import { Subscription } from 'rxjs';
 import { ChangelogService } from '../../services/changelog/changelog.service';
 
-const VERSION = 'v1.17.42';
+const VERSION = 'v1.17.43';
 const STORAGE_KEY = `sgo-changelog-seen-${VERSION}`;
 
 interface ChangeItem {
@@ -53,6 +53,16 @@ export class ChangelogModalComponent implements OnInit, OnDestroy {
         { texto: 'Al filtrar por obra(s), mostrar clientes de esa(s) obra(s)', estado: 'done' },
         { texto: 'Incluir todas las obras activas en catálogo (sin filtro de estado)', estado: 'done' },
         { texto: 'Soportar múltiples obras seleccionadas en filtros de cuentas corrientes', estado: 'done' },
+      ]
+    },
+    {
+      modulo: 'Cuentas Corrientes 14/07/2026 (2)',
+      icon: 'pi pi-book',
+      items: [
+        { texto: 'Corregir performance de listado de obras (N+1 queries de costos)', estado: 'done' },
+        { texto: 'Corregir performance de transacciones activas (N+1 llamadas a obras-service)', estado: 'done' },
+        { texto: 'PDF de cuenta corriente: incluir obras sin cobros/pagos registrados', estado: 'done' },
+        { texto: 'Sincronizar export de PDF/Excel con las obras reales de cada cliente/proveedor', estado: 'done' },
       ]
     },
   ];
