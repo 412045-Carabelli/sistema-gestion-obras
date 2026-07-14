@@ -13,7 +13,7 @@ import { SelectModule } from 'primeng/select';
 import { DatePickerModule } from 'primeng/datepicker';
 import { CardModule } from 'primeng/card';
 import { TooltipModule } from 'primeng/tooltip';
-import { Subscription, forkJoin, of, BehaviorSubject, switchMap, tap } from 'rxjs';
+import { Subscription, forkJoin, of } from 'rxjs';
 import { GenericFilterBarComponent, FilterDefinition, FilterAction } from '../generic-filter-bar/generic-filter-bar.component';
 import { KpiCardComponent } from '../../../shared/kpi-card/kpi-card.component';
 import { ReportesService } from '../../../services/reportes/reportes.service';
@@ -47,14 +47,11 @@ export class CuentasCorrientesListComponent implements OnInit, OnDestroy {
   clientes: Array<{ id: number; nombre: string }> = [];
   proveedores: Array<{ id: number; nombre: string }> = [];
 
-  private filtros$ = new BehaviorSubject<Record<string, any>>({});
-
   @Output() clienteRowClicked = new EventEmitter<DetalleDeudaCliente>();
   @Output() proveedorRowClicked = new EventEmitter<DetalleDeudaProveedor>();
 
   private subs = new Subscription();
   private catalogoUrl = `${environment.apiGateway}/bff/reportes/catalogos/filtros-cuenta-corriente`;
-  private filtrosUrl = `${environment.apiGateway}/bff/reportes/filtros`;
   private deudasUrl = `${environment.apiGateway}/bff/reportes/financieros/deudas-globales`;
   private pdfUrl = `${environment.apiGateway}/bff/reportes/financieros/cuentas-corrientes-combinadas-pdf`;
   private logoDataUrl: string | null = null;
@@ -112,71 +109,13 @@ export class CuentasCorrientesListComponent implements OnInit, OnDestroy {
 
   onFilterChange(filters: Record<string, any>): void {
     this.currentFilters = filters;
-    this.filtros$.next(filters);
-    this.actualizarOpcionesConSwitchMap(filters);
     this.cargar();
   }
 
   onClearFilters(): void {
     this.currentFilters = {};
-    this.filtros$.next({});
     this.setupFilterDefinitions();
     this.cargar();
-  }
-
-  private actualizarOpcionesConSwitchMap(filters: Record<string, any>): void {
-    const proveedorId = filters['proveedorId'];
-    const clienteId = filters['clienteId'];
-    const obraIds = filters['obraIds'];
-
-    if (proveedorId) {
-      this.subs.add(
-        this.http.get<Array<{id: number; nombre: string}>>(
-          `${this.filtrosUrl}/obras-por-proveedor?proveedorId=${proveedorId}`
-        ).subscribe(obras => {
-          this.actualizarOpcionesEnFilterBar('obraIds', obras);
-        })
-      );
-
-      this.subs.add(
-        this.http.get<Array<{id: number; nombre: string}>>(
-          `${this.filtrosUrl}/clientes-por-proveedor?proveedorId=${proveedorId}`
-        ).subscribe(cls => {
-          this.actualizarOpcionesEnFilterBar('clienteId', cls);
-        })
-      );
-    }
-
-    if (clienteId) {
-      this.subs.add(
-        this.http.get<Array<{id: number; nombre: string}>>(
-          `${this.filtrosUrl}/obras-por-cliente?clienteId=${clienteId}`
-        ).subscribe(obras => {
-          this.actualizarOpcionesEnFilterBar('obraIds', obras);
-        })
-      );
-    }
-
-    if (obraIds && Array.isArray(obraIds) && obraIds.length > 0) {
-      const firstObraId = obraIds[0];
-      this.subs.add(
-        this.http.get<Array<{id: number; nombre: string}>>(
-          `${this.filtrosUrl}/proveedores-por-obra?obraId=${firstObraId}`
-        ).subscribe(provs => {
-          this.actualizarOpcionesEnFilterBar('proveedorId', provs);
-        })
-      );
-    }
-  }
-
-  private actualizarOpcionesEnFilterBar(key: string, opciones: Array<{id: number; nombre: string}>): void {
-    const idx = this.filterDefinitions.findIndex(f => f.key === key);
-    if (idx >= 0) {
-      this.filterDefinitions[idx].options = opciones.map(o => ({
-        label: o.nombre,
-        value: o.id
-      }));
-    }
   }
 
   private cargarCatalogos(): void {
