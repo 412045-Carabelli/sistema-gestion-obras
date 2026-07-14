@@ -68,5 +68,26 @@ public class ObrasController {
     }
     @PatchMapping("/{id}/activo") public void activar(@PathVariable("id") Long id){ svc.activar(id); }
 
+    // FILTROS EN CASCADA
+    @GetMapping("/proveedores/{proveedorId}/obras")
+    public ResponseEntity<List<Map<String, Object>>> obrasPorProveedor(@PathVariable Long proveedorId) {
+        return ResponseEntity.ok(svc.obtenerObrasPorProveedor(proveedorId));
+    }
+
+    @GetMapping("/proveedores/{proveedorId}/clientes")
+    public ResponseEntity<List<Map<String, Object>>> clientesPorProveedor(@PathVariable Long proveedorId) {
+        return ResponseEntity.ok(svc.obtenerClientesPorProveedor(proveedorId));
+    }
+
+    @GetMapping("/clientes/{clienteId}/obras")
+    public ResponseEntity<List<Map<String, Object>>> obrasPorCliente(@PathVariable Long clienteId) {
+        return ResponseEntity.ok(svc.obtenerObrasPorCliente(clienteId));
+    }
+
+    @GetMapping("/{obraId}/proveedores")
+    public ResponseEntity<List<Map<String, Object>>> proveedoresPorObra(@PathVariable Long obraId) {
+        return ResponseEntity.ok(svc.obtenerProveedoresPorObra(obraId));
+    }
+
 }
 

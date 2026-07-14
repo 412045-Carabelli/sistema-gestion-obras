@@ -551,4 +551,52 @@ public class ObraServiceImpl implements ObraService {
             BigDecimal desvioTotal
     ) {
     }
+
+    @Override
+    public List<Map<String, Object>> obtenerObrasPorProveedor(Long proveedorId) {
+        return repo.findAll().stream()
+                .filter(o -> o.getActivo() && o.getProveedores() != null
+                        && o.getProveedores().stream()
+                        .anyMatch(p -> p.getId().getIdProveedor().equals(proveedorId)))
+                .map(o -> Map.of("id", o.getId(), "nombre", o.getNombre()))
+                .map(m -> (Map<String, Object>) (Map<?, ?>) m)
+                .toList();
+    }
+
+    @Override
+    public List<Map<String, Object>> obtenerClientesPorProveedor(Long proveedorId) {
+        Set<Long> clienteIds = new HashSet<>();
+        repo.findAll().stream()
+                .filter(o -> o.getActivo() && o.getProveedores() != null
+                        && o.getProveedores().stream()
+                        .anyMatch(p -> p.getId().getIdProveedor().equals(proveedorId)))
+                .forEach(o -> clienteIds.add(o.getIdCliente()));
+
+        return clienteIds.stream()
+                .map(cId -> Map.of("id", cId, "nombre", "Cliente #" + cId))
+                .map(m -> (Map<String, Object>) (Map<?, ?>) m)
+                .toList();
+    }
+
+    @Override
+    public List<Map<String, Object>> obtenerObrasPorCliente(Long clienteId) {
+        return repo.findAll().stream()
+                .filter(o -> o.getActivo() && o.getIdCliente().equals(clienteId))
+                .map(o -> Map.of("id", o.getId(), "nombre", o.getNombre()))
+                .map(m -> (Map<String, Object>) (Map<?, ?>) m)
+                .toList();
+    }
+
+    @Override
+    public List<Map<String, Object>> obtenerProveedoresPorObra(Long obraId) {
+        return repo.findById(obraId)
+                .map(o -> o.getProveedores().stream()
+                        .map(p -> Map.of(
+                                "id", (Object) p.getId().getIdProveedor(),
+                                "nombre", (Object) ("Proveedor #" + p.getId().getIdProveedor())
+                        ))
+                        .map(m -> (Map<String, Object>) (Map<?, ?>) m)
+                        .toList())
+                .orElse(List.of());
+    }
 }

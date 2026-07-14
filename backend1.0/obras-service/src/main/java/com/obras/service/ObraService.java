@@ -17,4 +17,10 @@ public interface ObraService {
     Optional<ObraDTO> obtenerUltimaCondicion();
     void cambiarEstado(Long idObra, com.obras.enums.EstadoObraEnum estado);
     void activar(Long idObra);
+
+    // Filtros en cascada
+    List<Map<String, Object>> obtenerObrasPorProveedor(Long proveedorId);
+    List<Map<String, Object>> obtenerClientesPorProveedor(Long proveedorId);
+    List<Map<String, Object>> obtenerObrasPorCliente(Long clienteId);
+    List<Map<String, Object>> obtenerProveedoresPorObra(Long obraId);
 }

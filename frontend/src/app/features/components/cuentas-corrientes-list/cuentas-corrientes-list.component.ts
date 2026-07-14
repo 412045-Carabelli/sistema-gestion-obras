@@ -13,7 +13,7 @@ import { SelectModule } from 'primeng/select';
 import { DatePickerModule } from 'primeng/datepicker';
 import { CardModule } from 'primeng/card';
 import { TooltipModule } from 'primeng/tooltip';
-import { Subscription, forkJoin, of } from 'rxjs';
+import { Subscription, forkJoin, of, BehaviorSubject, switchMap, tap } from 'rxjs';
 import { GenericFilterBarComponent, FilterDefinition, FilterAction } from '../generic-filter-bar/generic-filter-bar.component';
 import { KpiCardComponent } from '../../../shared/kpi-card/kpi-card.component';
 import { ReportesService } from '../../../services/reportes/reportes.service';
@@ -46,13 +46,15 @@ export class CuentasCorrientesListComponent implements OnInit, OnDestroy {
   obras: Array<{ id: number; nombre: string }> = [];
   clientes: Array<{ id: number; nombre: string }> = [];
   proveedores: Array<{ id: number; nombre: string }> = [];
-  obrasPorProveedor: Map<number, Set<number>> = new Map();
+
+  private filtros$ = new BehaviorSubject<Record<string, any>>({});
 
   @Output() clienteRowClicked = new EventEmitter<DetalleDeudaCliente>();
   @Output() proveedorRowClicked = new EventEmitter<DetalleDeudaProveedor>();
 
   private subs = new Subscription();
   private catalogoUrl = `${environment.apiGateway}/bff/reportes/catalogos/filtros-cuenta-corriente`;
+  private filtrosUrl = `${environment.apiGateway}/bff/reportes/filtros`;
   private deudasUrl = `${environment.apiGateway}/bff/reportes/financieros/deudas-globales`;
   private pdfUrl = `${environment.apiGateway}/bff/reportes/financieros/cuentas-corrientes-combinadas-pdf`;
   private logoDataUrl: string | null = null;
@@ -110,13 +112,70 @@ export class CuentasCorrientesListComponent implements OnInit, OnDestroy {
 
   onFilterChange(filters: Record<string, any>): void {
     this.currentFilters = filters;
-    this.actualizarOpcionesObra();
+    this.filtros$.next(filters);
+    this.actualizarOpcionesConSwitchMap(filters);
     this.cargar();
   }
 
   onClearFilters(): void {
     this.currentFilters = {};
+    this.filtros$.next({});
+    this.setupFilterDefinitions();
     this.cargar();
+  }
+
+  private actualizarOpcionesConSwitchMap(filters: Record<string, any>): void {
+    const proveedorId = filters['proveedorId'];
+    const clienteId = filters['clienteId'];
+    const obraId = filters['obraId'];
+
+    if (proveedorId) {
+      this.subs.add(
+        this.http.get<Array<{id: number; nombre: string}>>(
+          `${this.filtrosUrl}/obras-por-proveedor?proveedorId=${proveedorId}`
+        ).subscribe(obras => {
+          this.actualizarOpcionesEnFilterBar('obraIds', obras);
+        })
+      );
+
+      this.subs.add(
+        this.http.get<Array<{id: number; nombre: string}>>(
+          `${this.filtrosUrl}/clientes-por-proveedor?proveedorId=${proveedorId}`
+        ).subscribe(cls => {
+          this.actualizarOpcionesEnFilterBar('clienteId', cls);
+        })
+      );
+    }
+
+    if (clienteId) {
+      this.subs.add(
+        this.http.get<Array<{id: number; nombre: string}>>(
+          `${this.filtrosUrl}/obras-por-cliente?clienteId=${clienteId}`
+        ).subscribe(obras => {
+          this.actualizarOpcionesEnFilterBar('obraIds', obras);
+        })
+      );
+    }
+
+    if (obraId) {
+      this.subs.add(
+        this.http.get<Array<{id: number; nombre: string}>>(
+          `${this.filtrosUrl}/proveedores-por-obra?obraId=${obraId}`
+        ).subscribe(provs => {
+          this.actualizarOpcionesEnFilterBar('proveedorId', provs);
+        })
+      );
+    }
+  }
+
+  private actualizarOpcionesEnFilterBar(key: string, opciones: Array<{id: number; nombre: string}>): void {
+    const idx = this.filterDefinitions.findIndex(f => f.key === key);
+    if (idx >= 0) {
+      this.filterDefinitions[idx].options = opciones.map(o => ({
+        label: o.nombre,
+        value: o.id
+      }));
+    }
   }
 
   private cargarCatalogos(): void {
@@ -179,8 +238,6 @@ export class CuentasCorrientesListComponent implements OnInit, OnDestroy {
       this.http.post<DeudasGlobalesResponse>(this.deudasUrl, filtro).subscribe({
         next: (response) => {
           this.datos = response;
-          this.construirMapaObrasPorProveedor();
-          this.actualizarOpcionesObra();
           this.loading = false;
           this.datosCargados = true;
         },
@@ -191,46 +248,6 @@ export class CuentasCorrientesListComponent implements OnInit, OnDestroy {
         }
       })
     );
-  }
-
-  private construirMapaObrasPorProveedor(): void {
-    this.obrasPorProveedor.clear();
-    if (!this.datos?.detalleDeudaProveedores) return;
-    this.datos.detalleDeudaProveedores.forEach(detalle => {
-      if (!this.obrasPorProveedor.has(detalle.proveedorId)) {
-        this.obrasPorProveedor.set(detalle.proveedorId, new Set());
-      }
-      this.obrasPorProveedor.get(detalle.proveedorId)!.add(detalle.obraId);
-    });
-  }
-
-  private actualizarOpcionesObra(): void {
-    const proveedorId = this.currentFilters['proveedorId'];
-    const clienteId = this.currentFilters['clienteId'];
-
-    let obrasDisponibles = this.obras;
-
-    if (proveedorId) {
-      const obrasProveedor = this.obrasPorProveedor.get(proveedorId) || new Set();
-      obrasDisponibles = this.obras.filter(o => obrasProveedor.has(o.id));
-    }
-
-    if (clienteId && this.datos?.detalleDeudaClientes) {
-      const obrasCliente = new Set(
-        this.datos.detalleDeudaClientes
-          .filter(d => d.clienteId === clienteId)
-          .map(d => d.obraId)
-      );
-      obrasDisponibles = obrasDisponibles.filter(o => obrasCliente.has(o.id));
-    }
-
-    const idx = this.filterDefinitions.findIndex(f => f.key === 'obraIds');
-    if (idx >= 0) {
-      this.filterDefinitions[idx].options = obrasDisponibles.map(o => ({
-        label: o.nombre,
-        value: o.id
-      }));
-    }
   }
 
   getRangeClientes(): number[] {
