@@ -63,7 +63,7 @@
               </tr>
             </thead>
             <tbody>
-              @for (item of datos?.detalleDeudaClientes ?? []; track item.clienteId) {
+              @for (item of datos?.detalleDeudaClientes ?? []; track item.obraId + '-' + item.clienteId) {
                 <tr class="border-t border-gray-100 hover:bg-gray-50 cursor-pointer transition-colors" (click)="onClienteRowClick(item)">
                   <td class="px-4 py-3 font-poppins font-semibold text-gray-900 max-w-[120px] truncate" [pTooltip]="item.obraNombre" tooltipPosition="top">{{ item.obraNombre }}</td>
                   <td class="px-4 py-3 font-poppins font-normal text-gray-700 max-w-[120px] truncate" [pTooltip]="item.clienteNombre" tooltipPosition="top">{{ item.clienteNombre }}</td>
@@ -77,7 +77,7 @@
         </div>
         <!-- Cards (mobile) -->
         <div class="md:hidden flex flex-col gap-2">
-          @for (item of datos?.detalleDeudaClientes ?? []; track item.clienteId) {
+          @for (item of datos?.detalleDeudaClientes ?? []; track item.obraId + '-' + item.clienteId) {
             <div class="border border-green-100 rounded-lg p-3 cursor-pointer hover:bg-green-50 transition-colors" (click)="onClienteRowClick(item)">
               <div class="flex items-start justify-between gap-2 mb-2">
                 <div class="flex flex-col gap-0.5 flex-1 min-w-0">
@@ -133,7 +133,7 @@
               </tr>
             </thead>
             <tbody>
-              @for (item of datos?.detalleDeudaProveedores ?? []; track item.proveedorId) {
+              @for (item of datos?.detalleDeudaProveedores ?? []; track item.obraId + '-' + item.proveedorId) {
                 <tr class="border-t border-gray-100 hover:bg-gray-50 cursor-pointer transition-colors" (click)="onProveedorRowClick(item)">
                   <td class="px-4 py-3 font-poppins font-semibold text-gray-900 max-w-[120px] truncate" [pTooltip]="item.obraNombre" tooltipPosition="top">{{ item.obraNombre }}</td>
                   <td class="px-4 py-3 font-poppins font-normal text-gray-700 max-w-[120px] truncate" [pTooltip]="item.proveedorNombre" tooltipPosition="top">{{ item.proveedorNombre }}</td>
@@ -147,7 +147,7 @@
         </div>
         <!-- Cards (mobile) -->
         <div class="md:hidden flex flex-col gap-2">
-          @for (item of datos?.detalleDeudaProveedores ?? []; track item.proveedorId) {
+          @for (item of datos?.detalleDeudaProveedores ?? []; track item.obraId + '-' + item.proveedorId) {
             <div class="border border-red-100 rounded-lg p-3 cursor-pointer hover:bg-red-50 transition-colors" (click)="onProveedorRowClick(item)">
               <div class="flex items-start justify-between gap-2 mb-2">
                 <div class="flex flex-col gap-0.5 flex-1 min-w-0">

@@ -13,7 +13,7 @@ import { SelectModule } from 'primeng/select';
 import { DatePickerModule } from 'primeng/datepicker';
 import { CardModule } from 'primeng/card';
 import { TooltipModule } from 'primeng/tooltip';
-import { Subscription, forkJoin, of, switchMap } from 'rxjs';
+import { Subscription, forkJoin, of, switchMap, Observable } from 'rxjs';
 import { GenericFilterBarComponent, FilterDefinition, FilterAction } from '../generic-filter-bar/generic-filter-bar.component';
 import { KpiCardComponent } from '../../../shared/kpi-card/kpi-card.component';
 import { ReportesService } from '../../../services/reportes/reportes.service';
@@ -42,6 +42,7 @@ export class CuentasCorrientesListComponent implements OnInit, OnDestroy {
   filterDefinitions: FilterDefinition[] = [];
   filterActions: FilterAction[] = [];
   currentFilters: Record<string, any> = {};
+  private cargarRequestId = 0;
   grupos: Array<{ id: number; nombre: string }> = [];
   obras: Array<{ id: number; nombre: string }> = [];
   clientes: Array<{ id: number; nombre: string }> = [];
@@ -151,7 +152,7 @@ export class CuentasCorrientesListComponent implements OnInit, OnDestroy {
               );
               resolve();
             },
-            error: () => resolve()
+            error: (err) => { console.error('Error al filtrar obras/proveedores por cliente', err); resolve(); }
           })
         );
         return;
@@ -184,7 +185,7 @@ export class CuentasCorrientesListComponent implements OnInit, OnDestroy {
               );
               resolve();
             },
-            error: () => resolve()
+            error: (err) => { console.error('Error al filtrar obras/clientes por proveedor', err); resolve(); }
           })
         );
         return;
@@ -224,7 +225,7 @@ export class CuentasCorrientesListComponent implements OnInit, OnDestroy {
               );
               resolve();
             },
-            error: () => resolve()
+            error: (err) => { console.error('Error al filtrar clientes/proveedores por obra(s)', err); resolve(); }
           })
         );
         return;
@@ -290,8 +291,8 @@ export class CuentasCorrientesListComponent implements OnInit, OnDestroy {
     ];
   }
 
-  private cargar(): void {
-    this.loading = true;
+  /** Arma el filtro actual y pide /deudas-globales. Fuente única para tabla y exports. */
+  private obtenerDeudasActuales(): Observable<DeudasGlobalesResponse> {
     const obraIds: number[] = this.currentFilters['obraIds'] || [];
     const filtro: ReportFilter = {
       grupoId: this.currentFilters['grupoId'],
@@ -299,15 +300,29 @@ export class CuentasCorrientesListComponent implements OnInit, OnDestroy {
       clienteId: this.currentFilters['clienteId'],
       proveedorId: this.currentFilters['proveedorId']
     };
+    console.log('[cuentas-corrientes] currentFilters:', this.currentFilters, '-> filtro enviado:', filtro);
+    return this.http.post<DeudasGlobalesResponse>(this.deudasUrl, filtro);
+  }
+
+  private cargar(): void {
+    this.loading = true;
+
+    // Evita condición de carrera: si el usuario cambia filtros rápido (ej. proveedor y
+    // luego obra), dos requests quedan en vuelo. Sin este guard, si la más vieja (sin
+    // filtro de obra, más data) tarda más y responde después de la nueva, pisa this.datos
+    // con datos sin filtrar — eso rompía tanto la tabla como el export a PDF.
+    const requestId = ++this.cargarRequestId;
 
     this.subs.add(
-      this.http.post<DeudasGlobalesResponse>(this.deudasUrl, filtro).subscribe({
+      this.obtenerDeudasActuales().subscribe({
         next: (response) => {
+          if (requestId !== this.cargarRequestId) return;
           this.datos = response;
           this.loading = false;
           this.datosCargados = true;
         },
         error: (err) => {
+          if (requestId !== this.cargarRequestId) return;
           console.error('Error al cargar cuentas corrientes', err);
           this.loading = false;
           this.datosCargados = true;
@@ -335,123 +350,108 @@ export class CuentasCorrientesListComponent implements OnInit, OnDestroy {
   }
 
   exportarPdfSolo(tipo: 'clientes' | 'proveedores'): void {
-    if (!this.datos) return;
+    if (!this.datosCargados) return;
     this.generandoPdf = true;
 
-    const obraIds: number[] = this.currentFilters['obraIds'] || [];
-    const filtroObraIds = obraIds.length ? obraIds : undefined;
-    const clienteIdFiltro = this.currentFilters['clienteId'];
-    const proveedorIdFiltro = this.currentFilters['proveedorId'];
-
-    if (tipo === 'clientes') {
-      const clientesFiltrados = this.datos.detalleDeudaClientes
-        .filter(d => d.clienteId && (!clienteIdFiltro || d.clienteId === clienteIdFiltro));
-      const clienteIds = [...new Set(clientesFiltrados.map(d => d.clienteId!))];
-      // Reutiliza las mismas obras que el SP ya determinó como deuda de cada cliente,
-      // en vez de dejar que el backend las re-derive con otro criterio (trae obras sin deuda real).
-      // Un cliente sin obras tras el filtro se excluye: mandar [] al backend equivale a "sin filtro".
-      const reqs = clienteIds
-        .map(id => ({
-          id,
-          obraIdsCliente: [...new Set(
-            clientesFiltrados
-              .filter(d => d.clienteId === id)
-              .map(d => d.obraId)
-              .filter(oid => !filtroObraIds || filtroObraIds.includes(oid))
-          )]
-        }))
-        .filter(({ obraIdsCliente }) => obraIdsCliente.length > 0)
-        .map(({ id, obraIdsCliente }) =>
-          this.reportesService.getCuentaCorrienteCliente({ clienteId: id, obraIds: obraIdsCliente })
-        );
-      (reqs.length ? forkJoin(reqs) : of([] as CuentaCorrienteClienteResponse[])).subscribe({
-        next: (clientes) => { this.generarPdfCombinado(clientes, []); this.generandoPdf = false; },
+    // Pide los datos frescos con el filtro actual en vez de confiar en this.datos:
+    // si el usuario cambió de filtro justo antes de exportar, this.datos puede
+    // reflejar todavía el filtro anterior (ver bug de obras "de más" en el PDF
+    // pese a tener una sola obra tildada en el filtro).
+    this.subs.add(
+      this.obtenerDeudasActuales().subscribe({
+        next: (datos) => {
+          if (tipo === 'clientes') {
+            const clienteIds = [...new Set(
+              datos.detalleDeudaClientes.map(d => d.clienteId).filter((id): id is number => id != null)
+            )];
+            const reqs = clienteIds.map(id => {
+              const obraIdsCliente = [...new Set(
+                datos.detalleDeudaClientes.filter(d => d.clienteId === id).map(d => d.obraId)
+              )];
+              return this.reportesService.getCuentaCorrienteCliente({ clienteId: id, obraIds: obraIdsCliente });
+            });
+            (reqs.length ? forkJoin(reqs) : of([] as CuentaCorrienteClienteResponse[])).subscribe({
+              next: (clientes) => { this.generarPdfCombinado(clientes, [], datos); this.generandoPdf = false; },
+              error: () => { this.generandoPdf = false; }
+            });
+          } else {
+            console.log('[cuentas-corrientes] datos.detalleDeudaProveedores (fresco):',
+              datos.detalleDeudaProveedores.map(d => ({ proveedorId: d.proveedorId, obraId: d.obraId, obraNombre: d.obraNombre })));
+            const proveedorIds = [...new Set(datos.detalleDeudaProveedores.map(d => d.proveedorId))];
+            const reqs = proveedorIds.map(id => {
+              const obraIdsProveedor = [...new Set(
+                datos.detalleDeudaProveedores.filter(d => d.proveedorId === id).map(d => d.obraId)
+              )];
+              console.log('[cuentas-corrientes] request proveedor', id, 'obraIds:', obraIdsProveedor);
+              return this.reportesService.getCuentaCorrienteProveedor({ proveedorId: id, obraIds: obraIdsProveedor });
+            });
+            (reqs.length ? forkJoin(reqs) : of([] as CuentaCorrienteProveedorResponse[])).subscribe({
+              next: (proveedores) => {
+                console.log('[cuentas-corrientes] respuesta movimientos por obra:',
+                  proveedores.map(p => ({ proveedorId: p.proveedorId, obras: [...new Set((p.movimientos || []).map(m => m.obraId))] })));
+                this.generarPdfCombinado([], proveedores, datos); this.generandoPdf = false;
+              },
+              error: () => { this.generandoPdf = false; }
+            });
+          }
+        },
         error: () => { this.generandoPdf = false; }
-      });
-    } else {
-      const proveedoresFiltrados = this.datos.detalleDeudaProveedores
-        .filter(d => !proveedorIdFiltro || d.proveedorId === proveedorIdFiltro);
-      const proveedorIds = [...new Set(proveedoresFiltrados.map(d => d.proveedorId))];
-      const reqs = proveedorIds
-        .map(id => ({
-          id,
-          obraIdsProveedor: [...new Set(
-            proveedoresFiltrados
-              .filter(d => d.proveedorId === id)
-              .map(d => d.obraId)
-              .filter(oid => !filtroObraIds || filtroObraIds.includes(oid))
-          )]
-        }))
-        .filter(({ obraIdsProveedor }) => obraIdsProveedor.length > 0)
-        .map(({ id, obraIdsProveedor }) =>
-          this.reportesService.getCuentaCorrienteProveedor({ proveedorId: id, obraIds: obraIdsProveedor })
-        );
-      (reqs.length ? forkJoin(reqs) : of([] as CuentaCorrienteProveedorResponse[])).subscribe({
-        next: (proveedores) => { this.generarPdfCombinado([], proveedores); this.generandoPdf = false; },
-        error: () => { this.generandoPdf = false; }
-      });
-    }
+      })
+    );
   }
 
   private exportarExcel(): void {
-    if (!this.datos) return;
+    if (!this.datosCargados) return;
     this.generandoPdf = true;
 
-    const obraIds: number[] = this.currentFilters['obraIds'] || [];
-    const filtroObraIds = obraIds.length ? obraIds : undefined;
-    const clienteIdFiltro = this.currentFilters['clienteId'];
-    const proveedorIdFiltro = this.currentFilters['proveedorId'];
+    this.subs.add(
+      this.obtenerDeudasActuales().subscribe({
+        next: (datos) => {
+          console.log('[cuentas-corrientes][excel] datos frescos:', {
+            clientes: datos.detalleDeudaClientes.map(d => ({ clienteId: d.clienteId, obraId: d.obraId, obraNombre: d.obraNombre })),
+            proveedores: datos.detalleDeudaProveedores.map(d => ({ proveedorId: d.proveedorId, obraId: d.obraId, obraNombre: d.obraNombre }))
+          });
+          const clienteIds = [...new Set(
+            datos.detalleDeudaClientes.map(d => d.clienteId).filter((id): id is number => id != null)
+          )];
+          const proveedorIds = [...new Set(datos.detalleDeudaProveedores.map(d => d.proveedorId))];
 
-    const clientesFiltrados = this.datos.detalleDeudaClientes
-      .filter(d => d.clienteId && (!clienteIdFiltro || d.clienteId === clienteIdFiltro));
-    const proveedoresFiltrados = this.datos.detalleDeudaProveedores
-      .filter(d => !proveedorIdFiltro || d.proveedorId === proveedorIdFiltro);
+          const clienteReqs = clienteIds.map(id => {
+            const obraIdsCliente = [...new Set(
+              datos.detalleDeudaClientes.filter(d => d.clienteId === id).map(d => d.obraId)
+            )];
+            return this.reportesService.getCuentaCorrienteCliente({ clienteId: id, obraIds: obraIdsCliente });
+          });
+          const proveedorReqs = proveedorIds.map(id => {
+            const obraIdsProveedor = [...new Set(
+              datos.detalleDeudaProveedores.filter(d => d.proveedorId === id).map(d => d.obraId)
+            )];
+            console.log('[cuentas-corrientes][excel] request proveedor', id, 'obraIds:', obraIdsProveedor);
+            return this.reportesService.getCuentaCorrienteProveedor({ proveedorId: id, obraIds: obraIdsProveedor });
+          });
 
-    const clienteIds = [...new Set(clientesFiltrados.map(d => d.clienteId!))];
-    const proveedorIds = [...new Set(proveedoresFiltrados.map(d => d.proveedorId))];
-
-    // Reutiliza las obras que el SP ya determinó como deuda de cada cliente/proveedor
-    // (mismo criterio que exportarPdfSolo, ver comentario ahí).
-    const clienteReqs = clienteIds
-      .map(id => ({
-        id,
-        obraIdsCliente: [...new Set(
-          clientesFiltrados.filter(d => d.clienteId === id).map(d => d.obraId)
-            .filter(oid => !filtroObraIds || filtroObraIds.includes(oid))
-        )]
-      }))
-      .filter(({ obraIdsCliente }) => obraIdsCliente.length > 0)
-      .map(({ id, obraIdsCliente }) =>
-        this.reportesService.getCuentaCorrienteCliente({ clienteId: id, obraIds: obraIdsCliente })
-      );
-    const proveedorReqs = proveedorIds
-      .map(id => ({
-        id,
-        obraIdsProveedor: [...new Set(
-          proveedoresFiltrados.filter(d => d.proveedorId === id).map(d => d.obraId)
-            .filter(oid => !filtroObraIds || filtroObraIds.includes(oid))
-        )]
-      }))
-      .filter(({ obraIdsProveedor }) => obraIdsProveedor.length > 0)
-      .map(({ id, obraIdsProveedor }) =>
-        this.reportesService.getCuentaCorrienteProveedor({ proveedorId: id, obraIds: obraIdsProveedor })
-      );
-
-    forkJoin({
-      clientes: clienteReqs.length ? forkJoin(clienteReqs) : of([] as CuentaCorrienteClienteResponse[]),
-      proveedores: proveedorReqs.length ? forkJoin(proveedorReqs) : of([] as CuentaCorrienteProveedorResponse[])
-    }).subscribe({
-      next: ({ clientes, proveedores }) => {
-        this.generarPdfCombinado(clientes, proveedores);
-        this.generandoPdf = false;
-      },
-      error: () => { this.generandoPdf = false; }
-    });
+          forkJoin({
+            clientes: clienteReqs.length ? forkJoin(clienteReqs) : of([] as CuentaCorrienteClienteResponse[]),
+            proveedores: proveedorReqs.length ? forkJoin(proveedorReqs) : of([] as CuentaCorrienteProveedorResponse[])
+          }).subscribe({
+            next: ({ clientes, proveedores }) => {
+              console.log('[cuentas-corrientes][excel] respuesta movimientos por obra:',
+                proveedores.map(p => ({ proveedorId: p.proveedorId, obras: [...new Set((p.movimientos || []).map(m => m.obraId))] })));
+              this.generarPdfCombinado(clientes, proveedores, datos);
+              this.generandoPdf = false;
+            },
+            error: () => { this.generandoPdf = false; }
+          });
+        },
+        error: () => { this.generandoPdf = false; }
+      })
+    );
   }
 
   private generarPdfCombinado(
     clientes: CuentaCorrienteClienteResponse[],
-    proveedores: CuentaCorrienteProveedorResponse[]
+    proveedores: CuentaCorrienteProveedorResponse[],
+    datos: DeudasGlobalesResponse
   ): void {
     const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
     const pageW = doc.internal.pageSize.getWidth();
@@ -582,7 +582,7 @@ export class CuentasCorrientesListComponent implements OnInit, OnDestroy {
       y = drawSectionHeader('RESUMEN GENERAL', y);
 
       const allMovsProv = p.movimientos || [];
-      const obrasProveedor = (this.datos?.detalleDeudaProveedores || [])
+      const obrasProveedor = datos.detalleDeudaProveedores
         .filter(d => d.proveedorId === p.proveedorId);
       let totalCreditos = 0;
       let totalDebitos = 0;
@@ -636,7 +636,7 @@ export class CuentasCorrientesListComponent implements OnInit, OnDestroy {
         }
 
         // Buscar cliente de esta obra en los datos globales
-        const clienteDeObra = (this.datos?.detalleDeudaClientes || [])
+        const clienteDeObra = datos.detalleDeudaClientes
           .find(d => d.obraId === grupo.obraId)?.clienteNombre || '-';
 
         doc.setFontSize(10);
@@ -751,7 +751,7 @@ export class CuentasCorrientesListComponent implements OnInit, OnDestroy {
       y = drawSectionHeader('RESUMEN GENERAL', y);
 
       const allMovsC = c.movimientos || [];
-      const obrasCliente = (this.datos?.detalleDeudaClientes || [])
+      const obrasCliente = datos.detalleDeudaClientes
         .filter(d => d.clienteId === c.clienteId);
       const presupuestoTotal = obrasCliente.reduce((s, d) => s + (d.presupuesto || 0), 0);
       // `movimientos` solo trae obras con cobros registrados; `obrasCliente` (SP) trae TODA la

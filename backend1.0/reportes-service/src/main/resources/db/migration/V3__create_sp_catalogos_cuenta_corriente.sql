@@ -12,7 +12,7 @@ BEGIN
         nombre
     FROM [sgo_obras].[dbo].[obras]
     WHERE activo = 1
-      AND obra_estado IN ('ADJUDICADA', 'EN_PROGRESO', 'FINALIZADA')
+      AND estado_obra IN ('ADJUDICADA', 'EN_PROGRESO', 'FINALIZADA')
     ORDER BY nombre;
 
     -- Clientes activos

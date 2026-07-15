@@ -327,12 +327,8 @@ public class ReportesBffController {
     }
 
     @PostMapping("/financieros/cuenta-corriente-proveedor")
-    public Mono<ResponseEntity<Object>> cuentaCorrienteProveedor(@RequestBody(required = false) Map<String, Object> filtro) {
-        Long proveedorId = extractLong(filtro, "proveedorId");
-        if (proveedorId == null) {
-            return Mono.just(ResponseEntity.badRequest().body("proveedorId es requerido"));
-        }
-        return proxyGet("/cuenta-corriente/proveedor/" + proveedorId, new ParameterizedTypeReference<>() {});
+    public Mono<ResponseEntity<Object>> cuentaCorrienteProveedor(@RequestBody(required = false) Object filtro) {
+        return proxyPost("/financieros/cuenta-corriente-proveedor", filtro, new ParameterizedTypeReference<>() {});
     }
 
     @PostMapping("/financieros/cuenta-corriente-proveedores")

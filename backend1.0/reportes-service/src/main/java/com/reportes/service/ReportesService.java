@@ -18,6 +18,7 @@ import com.reportes.repository.MovimientoReporteRepository;
 import com.reportes.service.pdf.PdfBuilder;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.jdbc.core.JdbcTemplate;
 
@@ -44,6 +45,18 @@ public class ReportesService {
     private final DeudasGlobalesRepository deudasGlobalesRepository;
     private final PdfBuilder pdfBuilder;
     private final JdbcTemplate jdbcTemplate;
+
+    // Mismo problema que en DeudasGlobalesRepository: en dev cada servicio tiene su
+    // propia base con sufijo _test; hardcodear el nombre de produccion hace que
+    // obtenerCatalogosCuentaCorriente() lea datos de produccion en dev.
+    @Value("${db.schema.obras:sgo_obras}")
+    private String schemaObras;
+
+    @Value("${db.schema.clientes:sgo_clientes}")
+    private String schemaClientes;
+
+    @Value("${db.schema.proveedores:sgo_proveedores}")
+    private String schemaProveedores;
 
     public DashboardFinancieroResponse generarDashboardFinanciero(ReportFilterRequest filtro) {
         ReportFilterRequest filtros = filtroSeguro(filtro);
@@ -1264,7 +1277,7 @@ public class ReportesService {
 
     public CuentaCorrienteClienteResponse generarCuentaCorrienteCliente(ReportFilterRequest filtro) {
         ReportFilterRequest filtros = filtroSeguro(filtro);
-        List<ObraExternalDto> obrasConDeuda = filtrarObrasConDeuda(filtros);
+        List<ObraExternalDto> obrasConDeuda = filtrarObrasCuentaCorrienteCliente(filtros);
         Map<Long, ObraExternalDto> obrasPorId = mapearPorId(obrasConDeuda, ObraExternalDto::getId);
         BigDecimal totalCostos = obrasConDeuda.stream()
                 .map(this::presupuestoEfectivo)
@@ -1637,6 +1650,20 @@ public class ReportesService {
                 .collect(Collectors.toList());
     }
 
+    /** Igual a filtrarObrasConDeuda pero con el criterio de estado propio de cuentas corrientes
+     * (COTIZADA/ADJUDICADA/EN_PROGRESO/FINALIZADA) — no comparte estado con Comisiones. */
+    private List<ObraExternalDto> filtrarObrasCuentaCorrienteCliente(ReportFilterRequest filtro) {
+        return filtrarObras(filtro).stream()
+                .filter(obra -> estadoGeneraSaldoCliente(obra.getObraEstado()))
+                .collect(Collectors.toList());
+    }
+
+    private List<ObraExternalDto> filtrarObrasCuentaCorrienteProveedor(ReportFilterRequest filtro) {
+        return filtrarObras(filtro).stream()
+                .filter(obra -> estadoGeneraSaldoProveedor(obra.getObraEstado()))
+                .collect(Collectors.toList());
+    }
+
     private List<ObraExternalDto> filtrarObrasPorEstado(EstadoObraFilterRequest filtro) {
         return obrasClient.obtenerObras().stream()
                 .filter(obra -> !Boolean.FALSE.equals(obra.getActivo()))
@@ -1687,7 +1714,7 @@ public class ReportesService {
     }
 
     private List<DeudasGlobalesResponse.DetalleDeudaCliente> construirDetalleDeudaClientes(ReportFilterRequest filtro) {
-        List<ObraExternalDto> obras = filtrarObrasConDeuda(filtro);
+        List<ObraExternalDto> obras = filtrarObrasCuentaCorrienteCliente(filtro);
         Map<Long, ObraExternalDto> obrasPorId = mapearPorId(obras, ObraExternalDto::getId);
         Map<Long, ClienteExternalDto> clientes = mapearPorId(clientesClient.obtenerClientes(), ClienteExternalDto::getId);
 
@@ -1728,7 +1755,7 @@ public class ReportesService {
     }
 
     private List<DeudasGlobalesResponse.DetalleDeudaProveedor> construirDetalleDeudaProveedores(ReportFilterRequest filtro) {
-        List<ObraExternalDto> obras = filtrarObrasConDeuda(filtro);
+        List<ObraExternalDto> obras = filtrarObrasCuentaCorrienteProveedor(filtro);
         Map<Long, ObraExternalDto> obrasPorId = mapearPorId(obras, ObraExternalDto::getId);
         Map<Long, ProveedorExternalDto> proveedores = mapearPorId(proveedoresClient.obtenerProveedores(), ProveedorExternalDto::getId);
 
@@ -2011,6 +2038,7 @@ public class ReportesService {
     );
 
     private static final Set<String> ESTADOS_SALDO_PROVEEDOR = Set.of(
+            "COTIZADA",
             "ADJUDICADA",
             "EN_PROGRESO",
             "FINALIZADA"
@@ -2583,7 +2611,7 @@ public class ReportesService {
         if (estado == null) return false;
         String normalizado = normalizarEstado(estado);
         return new HashSet<>(Arrays.asList(
-                "ADJUDICADA", "EN_PROGRESO", "FINALIZADA", "COBRADA", "FACTURADA", "FACTURADA_PARCIAL"
+                "COTIZADA", "ADJUDICADA", "EN_PROGRESO", "FINALIZADA"
         )).contains(normalizado);
     }
 
@@ -2845,7 +2873,8 @@ public class ReportesService {
 
         try {
             obras = jdbcTemplate.queryForList(
-                "SELECT id, nombre FROM [sgo_obras].[dbo].[obras] WHERE activo = 1 ORDER BY nombre"
+                "SELECT id, nombre FROM [" + schemaObras + "].[dbo].[obras] WHERE activo = 1 " +
+                "AND estado_obra IN ('COTIZADA', 'ADJUDICADA', 'EN_PROGRESO', 'FINALIZADA') ORDER BY nombre"
             );
         } catch (Exception e) {
             log.error("Error executing obras query", e);
@@ -2853,7 +2882,7 @@ public class ReportesService {
 
         try {
             clientes = jdbcTemplate.queryForList(
-                "SELECT id, nombre FROM [sgo_clientes].[dbo].[clientes] WHERE activo = 1 ORDER BY nombre"
+                "SELECT id, nombre FROM [" + schemaClientes + "].[dbo].[clientes] WHERE activo = 1 ORDER BY nombre"
             );
         } catch (Exception e) {
             log.error("Error executing clientes query", e);
@@ -2861,7 +2890,7 @@ public class ReportesService {
 
         try {
             proveedores = jdbcTemplate.queryForList(
-                "SELECT id, nombre FROM [sgo_proveedores].[dbo].[proveedores] WHERE activo = 1 ORDER BY nombre"
+                "SELECT id, nombre FROM [" + schemaProveedores + "].[dbo].[proveedores] WHERE activo = 1 ORDER BY nombre"
             );
         } catch (Exception e) {
             log.error("Error executing proveedores query", e);
