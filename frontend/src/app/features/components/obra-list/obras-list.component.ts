@@ -25,7 +25,7 @@ interface EstadoOption {
 
 const ESTADOS_CON_FACTURACION = ['ADJUDICADA', 'EN_PROGRESO', 'FINALIZADA'];
 
-const ESTADOS_OPERATIVOS = ['PRESUPUESTADA', 'ADJUDICADA', 'EN_PROGRESO', 'FINALIZADA', 'PERDIDA'];
+const ESTADOS_OPERATIVOS = ['PRESUPUESTADA', 'COTIZADA', 'ADJUDICADA', 'EN_PROGRESO', 'FINALIZADA', 'PERDIDA'];
 
 const ORDEN_ESTADOS = [
   'PRESUPUESTADA', 'COTIZADA', 'PERDIDA', 'ADJUDICADA',
@@ -176,7 +176,7 @@ export class ObrasListComponent implements OnInit {
     return { label: 'Pendiente', severity: 'warn', value: 'PENDIENTE' };
   }
 
-  private estadoValorObra(obra: any): string {
+  estadoValorObra(obra: any): string {
     const raw = obra?.obra_estado;
     if (!raw) return '';
     if (typeof raw === 'string') return raw;
@@ -203,12 +203,21 @@ export class ObrasListComponent implements OnInit {
     return Number(obra.id ?? 0);
   }
 
-  getEstadoSeverity(id_estado: number): string {
-    const severities: { [key: number]: string } = {
-      1: 'secondary', 2: 'info', 3: 'success',
-      4: 'success', 5: 'warning', 6: 'contrast', 7: 'danger'
+  getEstadoSeverity(estadoNombre?: string): string {
+    if (!estadoNombre) return 'secondary';
+    const estado = (estadoNombre || '').toUpperCase().trim();
+    const severities: { [key: string]: string } = {
+      'PRESUPUESTADA': 'secondary',
+      'COTIZADA': 'info',
+      'ADJUDICADA': 'success',
+      'EN_PROGRESO': 'info',
+      'FINALIZADA': 'contrast',
+      'PERDIDA': 'danger',
+      'FACTURADA_PARCIAL': 'success',
+      'FACTURADA': 'success',
+      'COBRADA': 'success'
     };
-    return severities[id_estado] || 'secondary';
+    return severities[estado] || 'secondary';
   }
 
   getProgreso(obra: Obra): number {
@@ -281,5 +290,9 @@ export class ObrasListComponent implements OnInit {
       if (aKey !== bKey) return aKey - bKey;
       return (a?.label || '').localeCompare(b?.label || '');
     });
+  }
+
+  imprimirListado(): void {
+    window.print();
   }
 }

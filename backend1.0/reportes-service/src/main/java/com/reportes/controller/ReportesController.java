@@ -12,6 +12,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/reportes")
@@ -67,6 +68,11 @@ public class ReportesController {
 
     @PostMapping("/financieros/cuenta-corriente-proveedor-global")
     public ResponseEntity<CuentaCorrienteProveedorResponse> cuentaCorrienteProveedorGlobal(@RequestBody(required = false) ReportFilterRequest filtro) {
+        return ResponseEntity.ok(reportesService.generarCuentaCorrienteProveedorGlobal(filtro));
+    }
+
+    @PostMapping("/financieros/cuenta-corriente-proveedor")
+    public ResponseEntity<CuentaCorrienteProveedorResponse> cuentaCorrienteProveedor(@RequestBody(required = false) ReportFilterRequest filtro) {
         return ResponseEntity.ok(reportesService.generarCuentaCorrienteProveedorGlobal(filtro));
     }
 
@@ -273,5 +279,15 @@ public class ReportesController {
             @RequestParam(defaultValue = "10") int topN,
             @RequestHeader(value = "X-Organizacion-Id", required = false) Long organizacionId) {
         return ResponseEntity.ok(reportesService.generarDashboardGraficos(topN, organizacionId));
+    }
+
+    @PostMapping("/sp/catalogos-cuenta-corriente")
+    public ResponseEntity<Map<String, Object>> catalogosCuentaCorriente() {
+        CatalogoCuentaCorrienteResponse response = reportesService.obtenerCatalogosCuentaCorriente();
+        Map<String, Object> result = new java.util.HashMap<>();
+        result.put("obras", response.getObras());
+        result.put("clientes", response.getClientes());
+        result.put("proveedores", response.getProveedores());
+        return ResponseEntity.ok(result);
     }
 }

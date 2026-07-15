@@ -589,4 +589,8 @@ export class MovimientosListComponent implements OnInit {
     const day = String(date.getDate()).padStart(2, '0');
     return `${year}-${month}-${day}`;
   }
+
+  imprimirListado(): void {
+    window.print();
+  }
 }

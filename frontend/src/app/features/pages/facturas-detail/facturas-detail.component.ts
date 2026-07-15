@@ -312,6 +312,55 @@ export class FacturasDetailComponent implements OnInit, OnDestroy {
     });
   }
 
+  descargarArchivo(): void {
+    if (!this.factura?.id || !this.factura?.nombre_archivo) return;
+    this.subs.add(
+      this.facturasService.downloadFacturaResponse(this.factura.id).subscribe({
+        next: (response) => {
+          const blob = response.body;
+          if (!blob) return;
+          const url = URL.createObjectURL(blob);
+          const link = document.createElement('a');
+          link.href = url;
+          link.download = this.factura!.nombre_archivo || `factura_${this.factura!.id}`;
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+          URL.revokeObjectURL(url);
+        },
+        error: () => {
+          this.messageService.add({
+            severity: 'error',
+            summary: 'Error',
+            detail: 'No se pudo descargar el archivo.'
+          });
+        }
+      })
+    );
+  }
+
+  verArchivo(): void {
+    if (!this.factura?.id || !this.factura?.nombre_archivo) return;
+    this.subs.add(
+      this.facturasService.downloadFacturaResponse(this.factura.id).subscribe({
+        next: (response) => {
+          const blob = response.body;
+          if (!blob) return;
+          const url = URL.createObjectURL(blob);
+          window.open(url, '_blank');
+          setTimeout(() => URL.revokeObjectURL(url), 10000);
+        },
+        error: () => {
+          this.messageService.add({
+            severity: 'error',
+            summary: 'Error',
+            detail: 'No se pudo abrir el archivo.'
+          });
+        }
+      })
+    );
+  }
+
   protected isImageFile(nombre?: string): boolean {
     if (!nombre) return false;
     return /\.(jpg|jpeg|png)$/i.test(nombre);

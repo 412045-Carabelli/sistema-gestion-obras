@@ -134,7 +134,10 @@
       "Bash(python3 -c \":*)",
       "Bash(node:*)",
       "mcp__plugin_atlassian_atlassian__getTransitionsForJiraIssue",
-      "mcp__plugin_atlassian_atlassian__transitionJiraIssue"
+      "mcp__plugin_atlassian_atlassian__transitionJiraIssue",
+      "Bash(head -552 backend1.0/obras-service/src/main/java/com/obras/service/impl/ObraServiceImpl.java)",
+      "Bash(echo \"}\")",
+      "Bash(mv /tmp/ObraServiceImpl.tmp backend1.0/obras-service/src/main/java/com/obras/service/impl/ObraServiceImpl.java)"
     ]
   }
 }

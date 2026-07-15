@@ -672,5 +672,7 @@ export class FacturasListComponent implements OnInit, OnDestroy {
     return html.replace(/<[^>]*>/g, '').trim();
   }
 
- 
+  imprimirListado(): void {
+    window.print();
+  }
 }

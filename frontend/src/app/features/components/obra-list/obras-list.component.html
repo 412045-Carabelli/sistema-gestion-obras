@@ -1,11 +1,16 @@
 @defer (when datosCargados; on interaction; prefetch on timer(2s)) {
   <div class="flex flex-col gap-4">
     <!-- Filtros - Generic Filter Bar -->
-    <app-generic-filter-bar
-      [filterDefinitions]="filterDefinitions"
-      (filterChange)="onFilterChange($event)"
-      (clearFilters)="onClearFilters()"
-    ></app-generic-filter-bar>
+    <div class="flex items-center justify-between gap-3">
+      <div class="flex-1">
+        <app-generic-filter-bar
+          [filterDefinitions]="filterDefinitions"
+          (filterChange)="onFilterChange($event)"
+          (clearFilters)="onClearFilters()"
+        ></app-generic-filter-bar>
+      </div>
+      <button pButton type="button" icon="pi pi-print" class="p-button-sm p-button-outlined" (click)="imprimirListado()" title="Imprimir listado"></button>
+    </div>
 
     <!-- Tabla (tablet/desktop) -->
     <div class="hidden lg:block bg-white rounded-lg border border-gray-200 overflow-hidden">
@@ -47,7 +52,7 @@
             <td class="text-gray-700 font-poppins font-normal">{{ obra.cliente.nombre }}</td>
             <td>
               <p-tag
-                [severity]="getEstadoSeverity(obra.id_estado_obra)"
+                [severity]="getEstadoSeverity(estadoValorObra(obra))"
                 [value]="estadoLabelObra(obra) | estadoFormat"
                 styleClass="text-xs">
               </p-tag>

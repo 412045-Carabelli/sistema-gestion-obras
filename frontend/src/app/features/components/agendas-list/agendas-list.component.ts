@@ -402,4 +402,8 @@ export class AgendasListComponent implements OnInit, OnDestroy {
       }
     });
   }
+
+  imprimirListado(): void {
+    window.print();
+  }
 }
