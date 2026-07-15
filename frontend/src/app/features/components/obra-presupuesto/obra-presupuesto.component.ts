@@ -1171,9 +1171,10 @@ export class ObraPresupuestoComponent implements OnInit, OnChanges, AfterViewIni
         file
       ).subscribe({
         next: (doc) => {
-          const url = this.documentosService.getDocumentoUrl(doc.id_documento!);
           this.documentoCreado.emit();
-          const opened = window.open(url, '_blank');
+          const blobUrl = URL.createObjectURL(blob);
+          const opened = window.open(blobUrl, '_blank');
+          setTimeout(() => URL.revokeObjectURL(blobUrl), 30000);
           if (!opened) {
             this.messageService.add({
               severity: 'warn',
