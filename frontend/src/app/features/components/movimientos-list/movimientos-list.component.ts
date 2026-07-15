@@ -590,7 +590,4 @@ export class MovimientosListComponent implements OnInit {
     return `${year}-${month}-${day}`;
   }
 
-  imprimirListado(): void {
-    window.print();
-  }
 }
