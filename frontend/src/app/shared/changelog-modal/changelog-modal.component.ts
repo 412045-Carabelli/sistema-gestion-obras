@@ -6,7 +6,7 @@ import { TagModule } from 'primeng/tag';
 import { Subscription } from 'rxjs';
 import { ChangelogService } from '../../services/changelog/changelog.service';
 
-const VERSION = 'v1.17.43';
+const VERSION = 'v1.17.44';
 const STORAGE_KEY = `sgo-changelog-seen-${VERSION}`;
 
 interface ChangeItem {
@@ -63,6 +63,18 @@ export class ChangelogModalComponent implements OnInit, OnDestroy {
         { texto: 'Corregir performance de transacciones activas (N+1 llamadas a obras-service)', estado: 'done' },
         { texto: 'PDF de cuenta corriente: incluir obras sin cobros/pagos registrados', estado: 'done' },
         { texto: 'Sincronizar export de PDF/Excel con las obras reales de cada cliente/proveedor', estado: 'done' },
+      ]
+    },
+    {
+      modulo: 'Cuentas Corrientes 15/07/2026',
+      icon: 'pi pi-book',
+      items: [
+        { texto: 'Corregir condición de carrera al exportar PDF/Excel con filtros recién cambiados', estado: 'done' },
+        { texto: 'Export de cuenta corriente pide datos frescos en vez de usar caché desactualizado', estado: 'done' },
+        { texto: 'Corregir ruta del gateway que ignoraba el filtro de obra en cuenta corriente proveedor', estado: 'done' },
+        { texto: 'Unificar estados válidos de obra en cuentas corrientes (COTIZADA/ADJUDICADA/EN_PROGRESO/FINALIZADA)', estado: 'done' },
+        { texto: 'Corregir bases de datos dev/prod cruzadas en SPs de deudas y filtros en cascada', estado: 'done' },
+        { texto: 'Corregir catálogo de obras que no filtraba por estado ni por base correcta en dev', estado: 'done' },
       ]
     },
   ];
