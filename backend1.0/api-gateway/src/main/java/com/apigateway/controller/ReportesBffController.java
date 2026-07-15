@@ -43,22 +43,20 @@ public class ReportesBffController {
 
     @GetMapping("/catalogos/filtros-cuenta-corriente")
     public Mono<ResponseEntity<Map<String, Object>>> getCatalogosFiltroCuentaCorriente() {
-        return Mono.zip(
-                fetchObras(),
-                fetchClientes(),
-                fetchProveedores()
-        ).map(tuple -> {
-            Map<String, Object> result = new java.util.HashMap<>();
-            result.put("obras", tuple.getT1());
-            result.put("clientes", tuple.getT2());
-            result.put("proveedores", tuple.getT3());
-            return ResponseEntity.ok(result);
-        }).onErrorResume(e -> {
-            Map<String, Object> errorResult = new java.util.HashMap<>();
-            errorResult.put("error", "Error al cargar catálogos: " + e.getMessage());
-            return Mono.just(ResponseEntity.internalServerError().body(errorResult));
-        });
+        return webClientBuilder.build()
+                .post()
+                .uri(reportesServiceUrl + "/sp/catalogos-cuenta-corriente")
+                .accept(MediaType.APPLICATION_JSON)
+                .retrieve()
+                .bodyToMono(new ParameterizedTypeReference<Map<String, Object>>() {})
+                .map(ResponseEntity::ok)
+                .onErrorResume(e -> {
+                    Map<String, Object> errorResult = new java.util.HashMap<>();
+                    errorResult.put("error", "Error al cargar catálogos: " + e.getMessage());
+                    return Mono.just(ResponseEntity.internalServerError().body(errorResult));
+                });
     }
+
 
     private Mono<List<Map<String, Object>>> fetchGrupos() {
         return webClientBuilder.build()
@@ -329,12 +327,8 @@ public class ReportesBffController {
     }
 
     @PostMapping("/financieros/cuenta-corriente-proveedor")
-    public Mono<ResponseEntity<Object>> cuentaCorrienteProveedor(@RequestBody(required = false) Map<String, Object> filtro) {
-        Long proveedorId = extractLong(filtro, "proveedorId");
-        if (proveedorId == null) {
-            return Mono.just(ResponseEntity.badRequest().body("proveedorId es requerido"));
-        }
-        return proxyGet("/cuenta-corriente/proveedor/" + proveedorId, new ParameterizedTypeReference<>() {});
+    public Mono<ResponseEntity<Object>> cuentaCorrienteProveedor(@RequestBody(required = false) Object filtro) {
+        return proxyPost("/financieros/cuenta-corriente-proveedor", filtro, new ParameterizedTypeReference<>() {});
     }
 
     @PostMapping("/financieros/cuenta-corriente-proveedores")

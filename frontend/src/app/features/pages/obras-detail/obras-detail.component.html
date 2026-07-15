@@ -559,7 +559,8 @@
                     <button pButton type="button" icon="pi pi-pencil" label="Editar" class="p-button-text p-button-sm" (click)="iniciarEditarMemoria()"></button>
                   </div>
                   <div class="bg-white rounded-lg border border-gray-200 p-6 prose max-w-none">
-                    <div class="text-gray-700 leading-relaxed" [innerHTML]="obra.memoria_descriptiva">
+                    <div class="text-gray-700 leading-relaxed whitespace-pre-wrap">
+                      {{ obra.memoria_descriptiva }}
                     </div>
                   </div>
                 } @else {

@@ -25,6 +25,9 @@ public interface TransaccionRepository extends JpaRepository<Transaccion, Long> 
     @Query("SELECT COALESCE(SUM(t.monto), 0) FROM Transaccion t WHERE t.idObra = :idObra AND t.tipo_transaccion = com.transacciones.enums.TipoTransaccionEnum.COBRO AND UPPER(t.tipoAsociado) = 'CLIENTE'")
     Double sumarCobrosPorObra(@Param("idObra") Long idObra);
 
+    @Query("SELECT t.idObra, COALESCE(SUM(t.monto), 0) FROM Transaccion t WHERE t.idObra IN :obraIds AND t.tipo_transaccion = com.transacciones.enums.TipoTransaccionEnum.COBRO AND UPPER(t.tipoAsociado) = 'CLIENTE' GROUP BY t.idObra")
+    List<Object[]> sumarCobrosPorObras(@Param("obraIds") List<Long> obraIds);
+
     @Transactional
     @Modifying
     @Query("UPDATE Transaccion t SET t.activo = false, t.bajaObra = true WHERE t.idObra = :obraId and t.activo = true")

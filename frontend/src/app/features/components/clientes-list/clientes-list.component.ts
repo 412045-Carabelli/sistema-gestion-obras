@@ -7,14 +7,14 @@ import {InputTextModule} from 'primeng/inputtext';
 import {TagModule} from 'primeng/tag';
 import {IconFieldModule} from 'primeng/iconfield';
 import {InputIconModule} from 'primeng/inputicon';
-import {ButtonModule} from 'primeng/button';
 import {CheckboxModule} from 'primeng/checkbox';
 import {Select} from 'primeng/select';
 import {forkJoin} from 'rxjs';
 
 import {Cliente, CondicionIva, CONDICION_IVA_LABELS} from '../../../core/models/models';
 import {ClientesService} from '../../../services/clientes/clientes.service';
-import {GenericFilterBarComponent, FilterDefinition} from '../generic-filter-bar/generic-filter-bar.component';
+import {GenericFilterBarComponent, FilterDefinition, FilterAction} from '../generic-filter-bar/generic-filter-bar.component';
+import {exportarListadoPdf} from '../../../shared/utils/pdf-export.util';
 
 @Component({
   selector: 'app-clientes-list',
@@ -28,7 +28,6 @@ import {GenericFilterBarComponent, FilterDefinition} from '../generic-filter-bar
     TagModule,
     IconFieldModule,
     InputIconModule,
-    ButtonModule,
     CheckboxModule,
     Select,
     GenericFilterBarComponent
@@ -44,6 +43,9 @@ export class ClientesListComponent implements OnInit {
   datosCargados = false;
   ivaOptions: { label: string; name: string }[] = [];
   filterDefinitions: FilterDefinition[] = [];
+  filterActions: FilterAction[] = [
+    { label: 'Exportar PDF', icon: 'pi pi-file-pdf', severity: 'danger', callback: () => this.exportarPdf() }
+  ];
 
   searchValue: string = '';
   condicionIvaFiltro: string | 'todos' = 'todos';
@@ -192,5 +194,24 @@ export class ClientesListComponent implements OnInit {
 
   private compararTexto(a?: string | null, b?: string | null): number {
     return (a || '').localeCompare(b || '', 'es', {sensitivity: 'base'});
+  }
+
+  private exportarPdf(): void {
+    const columnas = ['Nombre', 'Contacto', 'Teléfono', 'Email', 'CUIT', 'Condición IVA', 'Activo'];
+    const filas = this.clientesFiltrados.map(c => [
+      c.nombre,
+      c.contacto || '-',
+      c.telefono || '-',
+      c.email || '-',
+      c.cuit || '-',
+      this.getCondicionIvaLabel(c.condicionIva ?? c.condicion_iva),
+      c.activo ? 'Sí' : 'No'
+    ]);
+    exportarListadoPdf({
+      titulo: 'Listado de Clientes',
+      columnas,
+      filas,
+      nombreArchivo: 'listado-clientes'
+    });
   }
 }

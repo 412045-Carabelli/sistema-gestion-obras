@@ -60,9 +60,40 @@ public class TransaccionService {
 
     @Transactional(readOnly = true)
     public List<TransaccionDto> listarActivas() {
-        return transaccionRepository.obtenerMovimientosActivos()
-                .stream()
-                .map(this::toDto)
+        List<Transaccion> transacciones = transaccionRepository.obtenerMovimientosActivos();
+        return mapearActivasConCacheDeObras(transacciones);
+    }
+
+    /**
+     * Evita N+1: en vez de llamar a obras-service y sumar cobros por cada transacción,
+     * precalcula ambos datos una sola vez por obra distinta involucrada.
+     */
+    private List<TransaccionDto> mapearActivasConCacheDeObras(List<Transaccion> transacciones) {
+        Set<Long> obraIds = transacciones.stream()
+                .filter(t -> t.getTipo_transaccion() == TipoTransaccionEnum.COBRO
+                        && "CLIENTE".equalsIgnoreCase(Optional.ofNullable(t.getTipoAsociado()).orElse("")))
+                .map(Transaccion::getIdObra)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toSet());
+
+        Map<Long, ObraResumenDto> obrasPorId = new HashMap<>();
+        for (Long obraId : obraIds) {
+            try {
+                obrasPorId.put(obraId, obraCostoClient.obtenerObra(obraId));
+            } catch (Exception ex) {
+                log.debug("No se pudo obtener obra {}", obraId, ex);
+            }
+        }
+
+        Map<Long, Double> cobradoPorObra = new HashMap<>();
+        if (!obraIds.isEmpty()) {
+            for (Object[] fila : transaccionRepository.sumarCobrosPorObras(new ArrayList<>(obraIds))) {
+                cobradoPorObra.put((Long) fila[0], ((Number) fila[1]).doubleValue());
+            }
+        }
+
+        return transacciones.stream()
+                .map(t -> toDto(t, obrasPorId, cobradoPorObra))
                 .collect(Collectors.toList());
     }
 
@@ -206,6 +237,10 @@ public class TransaccionService {
     }
 
     private TransaccionDto toDto(Transaccion transaccion) {
+        return toDto(transaccion, null, null);
+    }
+
+    private TransaccionDto toDto(Transaccion transaccion, Map<Long, ObraResumenDto> obrasPorId, Map<Long, Double> cobradoPorObra) {
         if (transaccion == null) return null;
 
         TransaccionDto dto = TransaccionDto.builder()
@@ -225,11 +260,16 @@ public class TransaccionService {
                 .tipo_actualizacion(transaccion.getTipoActualizacion())
                 .build();
 
-        completarPagadoRestante(transaccion, dto);
+        completarPagadoRestante(transaccion, dto, obrasPorId, cobradoPorObra);
         return dto;
     }
 
     private void completarPagadoRestante(Transaccion transaccion, TransaccionDto dto) {
+        completarPagadoRestante(transaccion, dto, null, null);
+    }
+
+    private void completarPagadoRestante(Transaccion transaccion, TransaccionDto dto,
+                                          Map<Long, ObraResumenDto> obrasPorId, Map<Long, Double> cobradoPorObra) {
         if (transaccion == null || dto == null) return;
         if (transaccion.getTipo_transaccion() == null) return;
 
@@ -238,9 +278,13 @@ public class TransaccionService {
                 && "CLIENTE".equals(tipoAsociado)
                 && transaccion.getIdObra() != null) {
             try {
-                ObraResumenDto obra = obraCostoClient.obtenerObra(transaccion.getIdObra());
+                ObraResumenDto obra = obrasPorId != null
+                        ? obrasPorId.get(transaccion.getIdObra())
+                        : obraCostoClient.obtenerObra(transaccion.getIdObra());
                 if (obra == null || obra.getPresupuesto() == null) return;
-                Double cobrado = transaccionRepository.sumarCobrosPorObra(transaccion.getIdObra());
+                Double cobrado = cobradoPorObra != null
+                        ? cobradoPorObra.get(transaccion.getIdObra())
+                        : transaccionRepository.sumarCobrosPorObra(transaccion.getIdObra());
                 double cobradoVal = cobrado != null ? cobrado : 0d;
                 dto.setPagado(cobradoVal);
                 dto.setRestante(Math.max(0d, obra.getPresupuesto() - cobradoVal));

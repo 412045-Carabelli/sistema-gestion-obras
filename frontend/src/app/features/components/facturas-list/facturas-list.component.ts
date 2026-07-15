@@ -25,8 +25,9 @@ import {FacturasService, FacturasResumenResponse} from '../../../services/factur
 import {EstadoFormatPipe} from '../../../shared/pipes/estado-format.pipe';
 import {ModalComponent} from '../../../shared/modal/modal.component';
 import {FacturasStateService} from '../../../services/facturas/facturas-state.service';
-import {GenericFilterBarComponent, FilterDefinition} from '../generic-filter-bar/generic-filter-bar.component';
+import {GenericFilterBarComponent, FilterDefinition, FilterAction} from '../generic-filter-bar/generic-filter-bar.component';
 import {KpiCardComponent} from '../../../shared/kpi-card/kpi-card.component';
+import {exportarListadoPdf} from '../../../shared/utils/pdf-export.util';
 
 interface FacturaView extends Factura {
   clienteNombre?: string;
@@ -155,6 +156,9 @@ export class FacturasListComponent implements OnInit, OnDestroy {
   // Filter Bar
   filterDefinitions: FilterDefinition[] = [];
   currentFilters: Record<string, any> = {};
+  filterActions: FilterAction[] = [
+    { label: 'Exportar PDF', icon: 'pi pi-file-pdf', severity: 'danger', callback: () => this.exportarPdf() }
+  ];
 
   private subscription = new Subscription();
 
@@ -672,5 +676,21 @@ export class FacturasListComponent implements OnInit, OnDestroy {
     return html.replace(/<[^>]*>/g, '').trim();
   }
 
- 
+  private exportarPdf(): void {
+    const columnas = ['N°', 'Cliente', 'Obra', 'Fecha', 'Monto', 'Estado'];
+    const filas = this.facturasFiltradas.map(f => [
+      f.id ?? '-',
+      f.clienteNombre || '-',
+      f.obraNombre || '-',
+      f.fecha ? new Date(f.fecha).toLocaleDateString('es-AR') : '-',
+      `$ ${Number(f.monto ?? 0).toLocaleString('es-AR', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`,
+      f.estado || '-'
+    ]);
+    exportarListadoPdf({
+      titulo: 'Listado de Facturas',
+      columnas,
+      filas,
+      nombreArchivo: 'listado-facturas'
+    });
+  }
 }

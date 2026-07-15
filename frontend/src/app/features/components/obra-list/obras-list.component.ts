@@ -8,7 +8,6 @@ import {DropdownModule} from 'primeng/dropdown';
 import {TagModule} from 'primeng/tag';
 import {IconFieldModule} from 'primeng/iconfield';
 import {InputIconModule} from 'primeng/inputicon';
-import {ButtonModule} from 'primeng/button';
 import {CheckboxModule} from 'primeng/checkbox';
 import {MultiSelectModule} from 'primeng/multiselect';
 
@@ -16,7 +15,8 @@ import {Obra} from '../../../core/models/models';
 import {ObrasService} from '../../../services/obras/obras.service';
 import {Select} from 'primeng/select';
 import {EstadoFormatPipe} from '../../../shared/pipes/estado-format.pipe';
-import {GenericFilterBarComponent, FilterDefinition} from '../generic-filter-bar/generic-filter-bar.component';
+import {GenericFilterBarComponent, FilterDefinition, FilterAction} from '../generic-filter-bar/generic-filter-bar.component';
+import {exportarListadoPdf} from '../../../shared/utils/pdf-export.util';
 
 interface EstadoOption {
   label: string;
@@ -25,7 +25,7 @@ interface EstadoOption {
 
 const ESTADOS_CON_FACTURACION = ['ADJUDICADA', 'EN_PROGRESO', 'FINALIZADA'];
 
-const ESTADOS_OPERATIVOS = ['PRESUPUESTADA', 'ADJUDICADA', 'EN_PROGRESO', 'FINALIZADA', 'PERDIDA'];
+const ESTADOS_OPERATIVOS = ['PRESUPUESTADA', 'COTIZADA', 'ADJUDICADA', 'EN_PROGRESO', 'FINALIZADA', 'PERDIDA'];
 
 const ORDEN_ESTADOS = [
   'PRESUPUESTADA', 'COTIZADA', 'PERDIDA', 'ADJUDICADA',
@@ -46,7 +46,6 @@ const ORDEN_ESTADOS = [
     InputIconModule,
     DatePipe,
     Select,
-    ButtonModule,
     CheckboxModule,
     MultiSelectModule,
     EstadoFormatPipe,
@@ -86,6 +85,9 @@ export class ObrasListComponent implements OnInit {
 
   filterDefinitions: FilterDefinition[] = [];
   currentFilters: Record<string, any> = {};
+  filterActions: FilterAction[] = [
+    { label: 'Exportar PDF', icon: 'pi pi-file-pdf', severity: 'danger', callback: () => this.exportarPdf() }
+  ];
 
   private estadoInicialDesdeRuta: string[] = [];
 
@@ -176,7 +178,7 @@ export class ObrasListComponent implements OnInit {
     return { label: 'Pendiente', severity: 'warn', value: 'PENDIENTE' };
   }
 
-  private estadoValorObra(obra: any): string {
+  estadoValorObra(obra: any): string {
     const raw = obra?.obra_estado;
     if (!raw) return '';
     if (typeof raw === 'string') return raw;
@@ -203,12 +205,21 @@ export class ObrasListComponent implements OnInit {
     return Number(obra.id ?? 0);
   }
 
-  getEstadoSeverity(id_estado: number): string {
-    const severities: { [key: number]: string } = {
-      1: 'secondary', 2: 'info', 3: 'success',
-      4: 'success', 5: 'warning', 6: 'contrast', 7: 'danger'
+  getEstadoSeverity(estadoNombre?: string): string {
+    if (!estadoNombre) return 'secondary';
+    const estado = (estadoNombre || '').toUpperCase().trim();
+    const severities: { [key: string]: string } = {
+      'PRESUPUESTADA': 'secondary',
+      'COTIZADA': 'info',
+      'ADJUDICADA': 'success',
+      'EN_PROGRESO': 'info',
+      'FINALIZADA': 'contrast',
+      'PERDIDA': 'danger',
+      'FACTURADA_PARCIAL': 'success',
+      'FACTURADA': 'success',
+      'COBRADA': 'success'
     };
-    return severities[id_estado] || 'secondary';
+    return severities[estado] || 'secondary';
   }
 
   getProgreso(obra: Obra): number {
@@ -280,6 +291,26 @@ export class ObrasListComponent implements OnInit {
       const bKey = index.get(norm(b?.name || b?.label)) ?? 999;
       if (aKey !== bKey) return aKey - bKey;
       return (a?.label || '').localeCompare(b?.label || '');
+    });
+  }
+
+  private exportarPdf(): void {
+    const columnas = ['N°', 'Obra', 'Cliente', 'Estado', 'Facturación', 'Fecha inicio', 'Fecha fin', 'Presupuesto'];
+    const filas = this.obrasFiltradas.map(obra => [
+      this.getNumeroOrden(obra),
+      obra.nombre,
+      (obra as any).cliente?.nombre || '-',
+      this.estadoLabelObra(obra),
+      this.getEstadoFacturacion(obra)?.label || '-',
+      obra.fecha_inicio ? new Date(obra.fecha_inicio).toLocaleDateString('es-AR') : '-',
+      obra.fecha_fin ? new Date(obra.fecha_fin).toLocaleDateString('es-AR') : '-',
+      `$ ${(obra.presupuesto ?? 0).toLocaleString('es-AR', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`
+    ]);
+    exportarListadoPdf({
+      titulo: 'Listado de Obras',
+      columnas,
+      filas,
+      nombreArchivo: 'listado-obras'
     });
   }
 }

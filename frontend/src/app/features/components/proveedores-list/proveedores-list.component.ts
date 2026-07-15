@@ -6,13 +6,13 @@ import {IconField} from 'primeng/iconfield';
 import {InputIcon} from 'primeng/inputicon';
 import {InputText} from 'primeng/inputtext';
 import {Select} from 'primeng/select';
-import {ButtonModule} from 'primeng/button';
 import {CheckboxModule} from 'primeng/checkbox';
 import {forkJoin} from 'rxjs';
 import {Proveedor} from '../../../core/models/models';
 import {ProveedoresService} from '../../../services/proveedores/proveedores.service';
 import {Router} from '@angular/router';
-import {GenericFilterBarComponent, FilterDefinition} from '../generic-filter-bar/generic-filter-bar.component';
+import {GenericFilterBarComponent, FilterDefinition, FilterAction} from '../generic-filter-bar/generic-filter-bar.component';
+import {exportarListadoPdf} from '../../../shared/utils/pdf-export.util';
 
 interface TipoOption { label: string; name: string | 'todos'; }
 interface SaldoOption { label: string; value: 'todos' | 'con_saldo' | 'saldo_cero_o_menor'; }
@@ -28,7 +28,6 @@ interface SaldoOption { label: string; value: 'todos' | 'con_saldo' | 'saldo_cer
     InputIcon,
     InputText,
     Select,
-    ButtonModule,
     CheckboxModule,
     GenericFilterBarComponent
   ],
@@ -48,6 +47,9 @@ export class ProveedoresListComponent implements OnInit {
   totalesProveedor: Record<number, number> = {};
   ultimoMovimientoProveedor: Record<number, number> = {};
   filterDefinitions: FilterDefinition[] = [];
+  filterActions: FilterAction[] = [
+    { label: 'Exportar PDF', icon: 'pi pi-file-pdf', severity: 'danger', callback: () => this.exportarPdf() }
+  ];
 
   searchValue: string = '';
   tipoFiltro: number | 'todos' = 'todos';
@@ -204,7 +206,24 @@ export class ProveedoresListComponent implements OnInit {
     return limpio.charAt(0).toUpperCase() + limpio.slice(1);
   }
 
-
+  private exportarPdf(): void {
+    const columnas = ['Nombre', 'Tipo', 'Contacto', 'Teléfono', 'Email', 'Saldo', 'Activo'];
+    const filas = this.proveedoresFiltrados.map((p: any) => [
+      p.nombre,
+      this.formatearTipo(p.tipo_proveedor),
+      p.contacto || '-',
+      p.telefono || '-',
+      p.email || '-',
+      `$ ${this.obtenerSaldoProveedor(p.id).toLocaleString('es-AR', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`,
+      p.activo ? 'Sí' : 'No'
+    ]);
+    exportarListadoPdf({
+      titulo: 'Listado de Proveedores',
+      columnas,
+      filas,
+      nombreArchivo: 'listado-proveedores'
+    });
+  }
 }
 
 

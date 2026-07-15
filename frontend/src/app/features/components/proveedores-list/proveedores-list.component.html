@@ -3,7 +3,7 @@
     <!-- Barra de filtros genérica -->
     <app-generic-filter-bar
       [filterDefinitions]="filterDefinitions"
-      [actions]="[]"
+      [actions]="filterActions"
       (filterChange)="onFilterChange($event)"
       (clearFilters)="onClearFilters()"
     ></app-generic-filter-bar>

@@ -402,4 +402,5 @@ export class AgendasListComponent implements OnInit, OnDestroy {
       }
     });
   }
+
 }
