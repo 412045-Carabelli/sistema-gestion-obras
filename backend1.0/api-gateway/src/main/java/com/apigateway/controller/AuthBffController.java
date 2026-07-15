@@ -71,7 +71,8 @@ public class AuthBffController {
                 .onErrorResume(WebClientResponseException.class, ex -> {
                     log.warn("Error en register desde auth-service: {} {}", ex.getStatusCode(), ex.getResponseBodyAsString());
                     // Propaga el body del auth-service tal cual (ya tiene estructura {message: ...})
-                    return Mono.just(ResponseEntity.<Map<String, Object>>status(ex.getStatusCode()).build());
+                    Map<String, Object> errorBody = ex.getResponseBodyAs(new ParameterizedTypeReference<Map<String, Object>>() {});
+                    return Mono.just(ResponseEntity.<Map<String, Object>>status(ex.getStatusCode()).body(errorBody));
                 })
                 .onErrorResume(ex -> {
                     log.error("Error inesperado en register", ex);

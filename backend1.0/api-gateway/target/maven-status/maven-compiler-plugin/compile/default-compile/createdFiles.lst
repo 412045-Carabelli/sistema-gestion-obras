@@ -33,6 +33,7 @@ com\apigateway\controller\ObraBffController$2.class
 com\apigateway\controller\ReportesBffController$13.class
 com\apigateway\controller\GremioBffController.class
 com\apigateway\controller\ReportesBffController$4.class
+com\apigateway\controller\AuthBffController$3.class
 com\apigateway\controller\ProveedorBffController$3.class
 com\apigateway\controller\ReportesBffController$26.class
 com\apigateway\filter\SecurityHeadersFilter.class
