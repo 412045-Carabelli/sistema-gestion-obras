@@ -261,21 +261,6 @@ public class MercadoPagoServiceImpl implements MercadoPagoService {
     }
 
     // -------------------------------------------------------------------------
-    // sincronizarPendientes
-    // -------------------------------------------------------------------------
-
-    @Override
-    public void sincronizarPendientes() {
-        var pendientes = suscripcionRepository.findByEstadoAndMpPreapprovalIdIsNotNull("PENDIENTE_PAGO");
-        if (pendientes.isEmpty()) return;
-
-        log.info("Sincronizando {} suscripción(es) PENDIENTE_PAGO contra MP", pendientes.size());
-        for (Suscripcion s : pendientes) {
-            sincronizarConMp(s);
-        }
-    }
-
-    // -------------------------------------------------------------------------
     // helpers privados
     // -------------------------------------------------------------------------
 
