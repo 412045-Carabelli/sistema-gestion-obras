@@ -38,4 +38,6 @@ public interface SuscripcionRepository extends JpaRepository<Suscripcion, Long> 
         ORDER BY s.fechaInicio DESC
         """)
     List<Suscripcion> findUltimasVigentesByOrganizacionId(@Param("organizacionId") Long organizacionId);
+
+    List<Suscripcion> findByEstadoAndMpPreapprovalIdIsNotNull(String estado);
 }

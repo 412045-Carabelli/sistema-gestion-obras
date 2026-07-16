@@ -1,125 +1,115 @@
 <p-toast></p-toast>
 
-<div class="flex justify-center items-center min-h-screen bg-gray-100">
-  <p-card [style]="{ width: '580px' }" class="shadow-lg">
-    <ng-template pTemplate="header">
-      <div class="text-center py-3">
-        <h1 class="text-2xl font-bold">SGO</h1>
-        <p class="text-gray-600">Sistema de Gestión de Obras</p>
-      </div>
-    </ng-template>
+<div class="login-page">
+  <div class="login-bg">
+    <div class="grid-lines"></div>
+    <div class="glow glow-1"></div>
+    <div class="glow glow-2"></div>
+  </div>
 
-    <h2 class="text-xl font-semibold mb-4 text-center">Crear Cuenta</h2>
+  <div class="login-wrapper">
+    <div class="login-brand">
+      <img src="/buildr-logo.svg" alt="buildrr" class="login-logo" />
+    </div>
 
-    <form [formGroup]="form" (ngSubmit)="register()" class="space-y-3">
-
-      <!-- Nombre de Empresa (ancho completo) -->
-      <div class="field">
-        <label for="empresaNombre" class="block text-sm font-medium mb-1">Nombre de Empresa</label>
-        <input
-          pInputText
-          id="empresaNombre"
-          formControlName="empresaNombre"
-          type="text"
-          placeholder="Ej: Constructora García"
-          class="w-full"
-          [ngClass]="{ 'ng-invalid ng-touched': form.get('empresaNombre')?.invalid && form.get('empresaNombre')?.touched }"
-        />
-        <small class="text-red-600" *ngIf="form.get('empresaNombre')?.invalid && form.get('empresaNombre')?.touched">
-          Ingresa el nombre de tu empresa (mín. 2 caracteres)
-        </small>
+    <div class="login-card">
+      <div class="login-card-header">
+        <h1 class="login-title">Crear cuenta</h1>
+        <p class="login-sub">Empezá a gestionar tus obras en minutos</p>
       </div>
 
-      <!-- Email + Usuario en la misma fila -->
-      <div class="grid grid-cols-2 gap-3">
+      <form [formGroup]="form" (ngSubmit)="register()" class="login-form">
         <div class="field">
-          <label for="email" class="block text-sm font-medium mb-1">Email</label>
+          <label for="empresaNombre" class="field-label">Nombre de empresa</label>
           <input
-            pInputText
-            id="email"
-            formControlName="email"
-            type="email"
-            placeholder="tu@email.com"
-            class="w-full"
-            [ngClass]="{ 'ng-invalid ng-touched': form.get('email')?.invalid && form.get('email')?.touched }"
+            id="empresaNombre"
+            formControlName="empresaNombre"
+            type="text"
+            placeholder="Ej: Constructora García"
+            class="field-input"
+            [class.field-error-input]="form.get('empresaNombre')?.invalid && form.get('empresaNombre')?.touched"
           />
-          <small class="text-red-600" *ngIf="form.get('email')?.invalid && form.get('email')?.touched">
-            Email inválido
+          <small class="field-error" *ngIf="form.get('empresaNombre')?.invalid && form.get('empresaNombre')?.touched">
+            Ingresá el nombre de tu empresa (mín. 2 caracteres)
           </small>
         </div>
 
         <div class="field">
-          <label for="username" class="block text-sm font-medium mb-1">Usuario</label>
+          <label for="email" class="field-label">Email</label>
           <input
-            pInputText
+            id="email"
+            formControlName="email"
+            type="email"
+            placeholder="tu@empresa.com"
+            class="field-input"
+            [class.field-error-input]="form.get('email')?.invalid && form.get('email')?.touched"
+          />
+          <small class="field-error" *ngIf="form.get('email')?.invalid && form.get('email')?.touched">
+            Ingresá un email válido
+          </small>
+        </div>
+
+        <div class="field">
+          <label for="username" class="field-label">Usuario</label>
+          <input
             id="username"
             formControlName="username"
             type="text"
             placeholder="Tu nombre de usuario"
-            class="w-full"
-            [ngClass]="{ 'ng-invalid ng-touched': form.get('username')?.invalid && form.get('username')?.touched }"
+            class="field-input"
+            [class.field-error-input]="form.get('username')?.invalid && form.get('username')?.touched"
           />
-          <small class="text-red-600" *ngIf="form.get('username')?.invalid && form.get('username')?.touched">
+          <small class="field-error" *ngIf="form.get('username')?.invalid && form.get('username')?.touched">
             Entre 3 y 100 caracteres
           </small>
         </div>
-      </div>
 
-      <!-- Contraseña + Confirmar en la misma fila -->
-      <div class="grid grid-cols-2 gap-3">
         <div class="field">
-          <label for="password" class="block text-sm font-medium mb-1">Contraseña</label>
+          <label for="password" class="field-label">Contraseña</label>
           <input
-            pInputText
             id="password"
             formControlName="password"
             type="password"
             placeholder="Mínimo 8 caracteres"
-            class="w-full"
-            [ngClass]="{ 'ng-invalid ng-touched': form.get('password')?.invalid && form.get('password')?.touched }"
+            class="field-input"
+            [class.field-error-input]="form.get('password')?.invalid && form.get('password')?.touched"
           />
-          <small class="text-red-600" *ngIf="form.get('password')?.invalid && form.get('password')?.touched">
+          <small class="field-error" *ngIf="form.get('password')?.invalid && form.get('password')?.touched">
             Mínimo 8 caracteres
           </small>
         </div>
 
         <div class="field">
-          <label for="confirmPassword" class="block text-sm font-medium mb-1">Confirmar Contraseña</label>
+          <label for="confirmPassword" class="field-label">Confirmar contraseña</label>
           <input
-            pInputText
             id="confirmPassword"
             formControlName="confirmPassword"
             type="password"
-            placeholder="Repite tu contraseña"
-            class="w-full"
-            [ngClass]="{ 'ng-invalid ng-touched': form.get('confirmPassword')?.invalid && form.get('confirmPassword')?.touched }"
+            placeholder="Repetí tu contraseña"
+            class="field-input"
+            [class.field-error-input]="form.get('confirmPassword')?.errors?.['passwordMismatch']"
           />
-          <small class="text-red-600" *ngIf="form.get('confirmPassword')?.errors?.['passwordMismatch']">
+          <small class="field-error" *ngIf="form.get('confirmPassword')?.errors?.['passwordMismatch']">
             Las contraseñas no coinciden
           </small>
         </div>
-      </div>
 
-      <!-- Submit -->
-      <p-button
-        label="Registrarse"
-        [loading]="loading"
-        [disabled]="form.invalid || loading"
-        (onClick)="register()"
-        [style]="{ width: '100%' }"
-        icon="pi pi-user-plus"
-      ></p-button>
-    </form>
+        <button
+          type="submit"
+          class="btn-submit"
+          [disabled]="form.invalid || loading">
+          @if (loading) {
+            <i class="pi pi-spin pi-spinner"></i> Creando cuenta...
+          } @else {
+            Crear cuenta
+          }
+        </button>
+      </form>
 
-    <ng-template pTemplate="footer">
-      <div class="text-center pt-3 border-t">
-        <p class="text-sm text-gray-600">
-          ¿Ya tienes cuenta?
-          <a (click)="goToLogin()" class="text-blue-600 cursor-pointer font-semibold hover:underline">
-            Inicia sesión aquí
-          </a>
-        </p>
-      </div>
-    </ng-template>
-  </p-card>
+      <p class="login-footer">
+        ¿Ya tenés cuenta?
+        <a (click)="goToLogin()" class="login-footer-link">Iniciá sesión</a>
+      </p>
+    </div>
+  </div>
 </div>

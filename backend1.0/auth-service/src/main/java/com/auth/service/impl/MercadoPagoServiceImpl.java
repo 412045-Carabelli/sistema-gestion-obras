@@ -189,43 +189,9 @@ public class MercadoPagoServiceImpl implements MercadoPagoService {
 
         Suscripcion suscripcion = optSuscripcion.get();
 
-        String mpStatusActual = null;
-        boolean sincronizado = true;
-
-        if (suscripcion.getMpPreapprovalId() != null) {
-            try {
-                PreapprovalClient client = new PreapprovalClient();
-                Preapproval mp = client.get(suscripcion.getMpPreapprovalId());
-                mpStatusActual = mp.getStatus();
-                String estadoEsperado = mpStatusToLocal(mpStatusActual);
-                sincronizado = estadoEsperado.equals(suscripcion.getEstado());
-                if (!sincronizado) {
-                    log.info("Auto-sincronizando: MP={} → local={} para suscripción {}",
-                            mpStatusActual, estadoEsperado, suscripcion.getId());
-                    suscripcion.setMpStatus(mpStatusActual);
-                    suscripcion.setEstado(estadoEsperado);
-                    if ("authorized".equals(mpStatusActual) && suscripcion.getFechaVencimiento().isBefore(Instant.now())) {
-                        Instant nuevaFecha = "MENSUAL".equals(suscripcion.getCiclo())
-                                ? Instant.now().plus(32, ChronoUnit.DAYS)
-                                : Instant.now().plus(367, ChronoUnit.DAYS);
-                        suscripcion.setFechaVencimiento(nuevaFecha);
-                    }
-                    suscripcionRepository.save(suscripcion);
-                    // Actualizar plan en la organización para que mi-plan lo refleje
-                    if ("ACTIVA".equals(estadoEsperado)) {
-                        organizacionRepository.findById(organizacionId).ifPresent(org -> {
-                            org.setPlan(suscripcion.getPlan());
-                            organizacionRepository.save(org);
-                            log.info("Org {} actualizada a plan {}", organizacionId, suscripcion.getPlan().getCodigo());
-                        });
-                    }
-                    sincronizado = true;
-                }
-            } catch (MPException | MPApiException e) {
-                log.warn("No se pudo consultar MP para suscripción {}: {}", suscripcion.getMpPreapprovalId(), e.getMessage());
-                sincronizado = false;
-            }
-        }
+        boolean tieneMp = suscripcion.getMpPreapprovalId() != null;
+        String mpStatusActual = tieneMp ? sincronizarConMp(suscripcion) : null;
+        boolean sincronizado = !tieneMp || mpStatusActual != null;
 
         return MpEstadoSuscripcionResponse.builder()
                 .preapprovalId(suscripcion.getMpPreapprovalId())
@@ -295,8 +261,63 @@ public class MercadoPagoServiceImpl implements MercadoPagoService {
     }
 
     // -------------------------------------------------------------------------
+    // sincronizarPendientes
+    // -------------------------------------------------------------------------
+
+    @Override
+    public void sincronizarPendientes() {
+        var pendientes = suscripcionRepository.findByEstadoAndMpPreapprovalIdIsNotNull("PENDIENTE_PAGO");
+        if (pendientes.isEmpty()) return;
+
+        log.info("Sincronizando {} suscripción(es) PENDIENTE_PAGO contra MP", pendientes.size());
+        for (Suscripcion s : pendientes) {
+            sincronizarConMp(s);
+        }
+    }
+
+    // -------------------------------------------------------------------------
     // helpers privados
     // -------------------------------------------------------------------------
+
+    /**
+     * Consulta el estado real de una suscripción en MP y actualiza estado/plan local si difiere.
+     * Devuelve el mpStatus consultado, o null si no se pudo consultar (MP caído, etc).
+     */
+    private String sincronizarConMp(Suscripcion suscripcion) {
+        if (suscripcion.getMpPreapprovalId() == null) return null;
+        try {
+            PreapprovalClient client = new PreapprovalClient();
+            Preapproval mp = client.get(suscripcion.getMpPreapprovalId());
+            String mpStatusActual = mp.getStatus();
+            String estadoEsperado = mpStatusToLocal(mpStatusActual);
+
+            if (!estadoEsperado.equals(suscripcion.getEstado())) {
+                log.info("Auto-sincronizando: MP={} → local={} para suscripción {}",
+                        mpStatusActual, estadoEsperado, suscripcion.getId());
+                suscripcion.setMpStatus(mpStatusActual);
+                suscripcion.setEstado(estadoEsperado);
+                if ("authorized".equals(mpStatusActual) && suscripcion.getFechaVencimiento().isBefore(Instant.now())) {
+                    Instant nuevaFecha = "MENSUAL".equals(suscripcion.getCiclo())
+                            ? Instant.now().plus(32, ChronoUnit.DAYS)
+                            : Instant.now().plus(367, ChronoUnit.DAYS);
+                    suscripcion.setFechaVencimiento(nuevaFecha);
+                }
+                suscripcionRepository.save(suscripcion);
+                // Actualizar plan en la organización para que mi-plan lo refleje
+                if ("ACTIVA".equals(estadoEsperado)) {
+                    organizacionRepository.findById(suscripcion.getOrganizacionId()).ifPresent(org -> {
+                        org.setPlan(suscripcion.getPlan());
+                        organizacionRepository.save(org);
+                        log.info("Org {} actualizada a plan {}", suscripcion.getOrganizacionId(), suscripcion.getPlan().getCodigo());
+                    });
+                }
+            }
+            return mpStatusActual;
+        } catch (MPException | MPApiException e) {
+            log.warn("No se pudo consultar MP para suscripción {}: {}", suscripcion.getMpPreapprovalId(), e.getMessage());
+            return null;
+        }
+    }
 
     private Preapproval crearPreapprovalEnMp(Plan plan, String ciclo, BigDecimal monto, String externalRef, String payerEmail) {
         try {

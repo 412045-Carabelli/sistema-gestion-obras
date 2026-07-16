@@ -138,9 +138,9 @@ export class LandingComponent implements OnInit, AfterViewInit, OnDestroy {
     if (this.isLoggedIn) {
       this.router.navigate(['/checkout'], { queryParams: { plan: plan.codigo, ciclo: 'mensual' } });
     } else {
-      // Guarda intención y redirige al login
+      // Guarda intención y redirige a crear cuenta (la mayoría no tiene una todavía)
       sessionStorage.setItem('pending_checkout', JSON.stringify({ plan: plan.codigo, ciclo: 'mensual' }));
-      this.router.navigate(['/login']);
+      this.router.navigate(['/register']);
     }
   }
 

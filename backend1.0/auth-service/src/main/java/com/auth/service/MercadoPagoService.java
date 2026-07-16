@@ -27,4 +27,11 @@ public interface MercadoPagoService {
      * Valida la firma antes de llamar a este método.
      */
     void procesarWebhook(String preapprovalId, String mpStatus);
+
+    /**
+     * Red de seguridad: sincroniza contra MP todas las suscripciones en PENDIENTE_PAGO,
+     * por si el webhook no llegó o el cliente nunca volvió a la página de éxito.
+     * Pensado para ser llamado periódicamente por un scheduler.
+     */
+    void sincronizarPendientes();
 }
