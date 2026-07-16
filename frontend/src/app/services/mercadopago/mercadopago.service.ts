@@ -14,6 +14,8 @@ export interface MpIniciarResponse {
   preapprovalId: string;
   externalReference: string;
   estado: string;
+  montoArs: number;
+  cotizacionUsdArs: number;
 }
 
 export interface MpEstadoResponse {

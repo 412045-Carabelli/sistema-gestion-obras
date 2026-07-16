@@ -30,4 +30,12 @@ public interface SuscripcionRepository extends JpaRepository<Suscripcion, Long> 
     List<Suscripcion> findVencidas();
 
     Optional<Suscripcion> findByMpPreapprovalId(String mpPreapprovalId);
+
+    @Query("""
+        SELECT s FROM Suscripcion s
+        WHERE s.organizacionId = :organizacionId
+          AND s.estado <> 'CANCELADA'
+        ORDER BY s.fechaInicio DESC
+        """)
+    List<Suscripcion> findUltimasVigentesByOrganizacionId(@Param("organizacionId") Long organizacionId);
 }

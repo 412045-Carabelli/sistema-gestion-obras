@@ -45,6 +45,13 @@ public class Suscripcion {
     @Column(name = "precio_final_usd", nullable = false, precision = 10, scale = 2)
     private BigDecimal precioFinalUsd;
 
+    // Snapshot de conversión de moneda al contratar (MP cobra en ARS)
+    @Column(name = "cotizacion_usd_ars", precision = 10, scale = 4)
+    private BigDecimal cotizacionUsdArs;
+
+    @Column(name = "precio_final_ars", precision = 14, scale = 2)
+    private BigDecimal precioFinalArs;
+
     @Column(name = "fecha_inicio", nullable = false)
     private Instant fechaInicio;
 

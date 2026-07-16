@@ -64,6 +64,10 @@ export class CheckoutComponent implements OnInit {
     return `USD ${precio.toFixed(2)} / ${this.ciclo() === 'ANUAL' ? 'año' : 'mes'}`;
   }
 
+  get precioNota(): string {
+    return 'El precio se muestra en USD como referencia. El cobro se realiza en su equivalente en pesos argentinos al tipo de cambio del día.';
+  }
+
   confirmar(): void {
     const plan = this.planDetalle();
     if (!plan) return;
@@ -84,8 +88,18 @@ export class CheckoutComponent implements OnInit {
       })
     ).subscribe(res => {
       if (res?.initPoint) {
-        // Redirigir al checkout de Mercado Pago
-        window.location.href = res.initPoint;
+        const montoArs = res.montoArs != null ? Number(res.montoArs).toLocaleString('es-AR', { minimumFractionDigits: 2 }) : null;
+        if (montoArs) {
+          this.messageService.add({
+            severity: 'info',
+            summary: 'Redirigiendo a Mercado Pago',
+            detail: `Se cobrará ARS ${montoArs} (equivalente a ${this.precioDisplay} al tipo de cambio del día)`,
+            life: 4000
+          });
+        }
+        setTimeout(() => {
+          window.location.href = res.initPoint;
+        }, montoArs ? 1500 : 0);
       }
     });
   }

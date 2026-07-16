@@ -13,6 +13,7 @@ import com.auth.repository.OrganizacionRepository;
 import com.auth.repository.PlanRepository;
 import com.auth.repository.SuscripcionRepository;
 import com.auth.repository.UsuarioRepository;
+import com.auth.service.ExchangeRateService;
 import com.auth.service.MercadoPagoService;
 import com.mercadopago.client.preapproval.PreApprovalAutoRecurringCreateRequest;
 import com.mercadopago.client.preapproval.PreApprovalAutoRecurringUpdateRequest;
@@ -29,6 +30,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.Instant;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
@@ -45,6 +47,7 @@ public class MercadoPagoServiceImpl implements MercadoPagoService {
     private final DescuentoRepository descuentoRepository;
     private final OrganizacionRepository organizacionRepository;
     private final UsuarioRepository usuarioRepository;
+    private final ExchangeRateService exchangeRateService;
 
     @Value("${mp.app-base-url:http://localhost:4200}")
     private String appBaseUrl;
@@ -87,6 +90,10 @@ public class MercadoPagoServiceImpl implements MercadoPagoService {
         }
         BigDecimal precioFinal = precioBase.subtract(descuentoMonto).max(BigDecimal.ZERO);
 
+        // 2b. Convertir a ARS (MP Argentina cobra en pesos, no en el USD de referencia del plan)
+        BigDecimal cotizacion = exchangeRateService.getUsdToArsRate();
+        BigDecimal precioFinalArs = precioFinal.multiply(cotizacion).setScale(2, RoundingMode.HALF_UP);
+
         // 3. Cancelar suscripción activa anterior si existe (cambio de plan)
         suscripcionRepository.findActivaByOrganizacionId(organizacionId)
                 .ifPresent(s -> {
@@ -114,9 +121,9 @@ public class MercadoPagoServiceImpl implements MercadoPagoService {
             }
         }
 
-        // 5. Crear preapproval en MP con autoRecurring inline
+        // 5. Crear preapproval en MP con autoRecurring inline (monto ya convertido a ARS)
         String externalRef = "buildrr_org_" + organizacionId + "_" + System.currentTimeMillis();
-        Preapproval preapproval = crearPreapprovalEnMp(plan, ciclo, precioFinal, externalRef, payerEmail);
+        Preapproval preapproval = crearPreapprovalEnMp(plan, ciclo, precioFinalArs, externalRef, payerEmail);
 
         // 5. Persistir Suscripcion local con estado PENDIENTE_PAGO
         Instant ahora = Instant.now();
@@ -133,6 +140,8 @@ public class MercadoPagoServiceImpl implements MercadoPagoService {
                 .precioBaseUsd(precioBase)
                 .descuentoAplicadoUsd(descuentoMonto)
                 .precioFinalUsd(precioFinal)
+                .cotizacionUsdArs(cotizacion)
+                .precioFinalArs(precioFinalArs)
                 .fechaInicio(ahora)
                 .fechaVencimiento(vencimiento)
                 .mpPreapprovalId(preapproval.getId())
@@ -149,6 +158,8 @@ public class MercadoPagoServiceImpl implements MercadoPagoService {
                 .preapprovalId(preapproval.getId())
                 .externalReference(externalRef)
                 .estado("PENDIENTE_PAGO")
+                .montoArs(precioFinalArs)
+                .cotizacionUsdArs(cotizacion)
                 .build();
     }
 
