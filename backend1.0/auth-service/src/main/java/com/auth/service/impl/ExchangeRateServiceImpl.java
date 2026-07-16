@@ -73,5 +73,5 @@ public class ExchangeRateServiceImpl implements ExchangeRateService {
     private record CachedRate(BigDecimal valor, Instant obtenidoEn) {}
 
     @JsonIgnoreProperties(ignoreUnknown = true)
-    private record DolarApiResponse(BigDecimal compra, BigDecimal venta) {}
+    record DolarApiResponse(BigDecimal compra, BigDecimal venta) {}
 }
