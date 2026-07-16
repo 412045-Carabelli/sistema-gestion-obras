@@ -74,8 +74,14 @@ public class MercadoPagoServiceImpl implements MercadoPagoService {
 
         String ciclo = request.getCiclo().toUpperCase();
 
+        // Ciclo ANUAL deshabilitado: convertido a ARS supera el tope de MP para
+        // preapproval (ARS 2.000.000) en todos los planes pagos a la cotización actual.
+        if (!"MENSUAL".equals(ciclo)) {
+            throw new IllegalArgumentException("Solo se admite ciclo MENSUAL para suscripciones vía Mercado Pago");
+        }
+
         // 2. Resolver precio base y descuento
-        BigDecimal precioBase = "MENSUAL".equals(ciclo) ? plan.getPrecioMensualUsd() : plan.getPrecioAnualUsd();
+        BigDecimal precioBase = plan.getPrecioMensualUsd();
         BigDecimal descuentoMonto = BigDecimal.ZERO;
         Descuento descuentoEntidad = null;
 

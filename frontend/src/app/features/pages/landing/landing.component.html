@@ -141,17 +141,6 @@
       <p>Sin permanencia. Cambiá o cancelá cuando quieras.</p>
     </div>
 
-    <!-- Toggle mensual / anual -->
-    <div class="ciclo-toggle reveal">
-      <button class="ciclo-btn" [class.active]="ciclo() === 'mensual'" (click)="ciclo.set('mensual')">Mensual</button>
-      <button class="ciclo-btn" [class.active]="ciclo() === 'anual'" (click)="ciclo.set('anual')">
-        Anual
-        @if (planes().length > 0 && ahorroPct(planes()[0]) > 0) {
-          <span class="ahorro-tag">-{{ ahorroPct(planes()[0]) }}%</span>
-        }
-      </button>
-    </div>
-
     <!-- Skeleton mientras carga -->
     @if (cargandoPlanes()) {
       <div class="plans-grid">
@@ -172,7 +161,7 @@
             <h3 class="plan-name">{{ p.nombre }}</h3>
             <div class="plan-price-wrap">
               <span class="plan-price">{{ precio(p) }}</span>
-              <span class="plan-price-sub">{{ precioSubtexto(p) }}</span>
+              <span class="plan-price-sub">/ mes</span>
             </div>
             <p class="plan-desc">{{ p.descripcion }}</p>
 

@@ -15,7 +15,6 @@ interface PlanUI {
   nombre: string;
   descripcion: string;
   precioMensual: number;
-  precioAnual: number;
   badge?: string;
   highlight: boolean;
   limites: {
@@ -47,7 +46,6 @@ export class PlanesComponent implements OnInit {
   private messageService = inject(MessageService);
   planService = inject(PlanService);
 
-  ciclo = signal<'mensual' | 'anual'>('mensual');
   featureRequerida = signal<string | null>(null);
   cargando = signal(true);
   planes = signal<PlanUI[]>([]);
@@ -79,7 +77,6 @@ export class PlanesComponent implements OnInit {
       nombre: data.nombre,
       descripcion: data.descripcion,
       precioMensual: Number(data.precioMensualUsd),
-      precioAnual: Number(data.precioAnualUsd),
       highlight: codigo === 'PROFESIONAL',
       badge: codigo === 'PROFESIONAL' ? 'Más popular' : undefined,
       limites: {
@@ -127,16 +124,6 @@ export class PlanesComponent implements OnInit {
     return labels[codigo] ?? 'Elegir plan';
   }
 
-  precio(plan: PlanUI): number {
-    return this.ciclo() === 'anual' ? plan.precioAnual : plan.precioMensual * 12;
-  }
-
-  precioMensualEfectivo(plan: PlanUI): number {
-    return this.ciclo() === 'anual'
-      ? Math.round(plan.precioAnual / 12)
-      : plan.precioMensual;
-  }
-
   esPlanActual(codigo: PlanCodigo): boolean {
     return this.planActual() === codigo;
   }
@@ -153,7 +140,7 @@ export class PlanesComponent implements OnInit {
     if (this.esPlanActual(plan.codigo)) return;
 
     this.router.navigate(['/checkout'], {
-      queryParams: { plan: plan.codigo, ciclo: this.ciclo() }
+      queryParams: { plan: plan.codigo, ciclo: 'mensual' }
     });
   }
 

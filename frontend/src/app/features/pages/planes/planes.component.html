@@ -19,31 +19,6 @@
     </div>
   }
 
-  <!-- Toggle ciclo -->
-  <div class="flex justify-center">
-    <div class="inline-flex items-center gap-1 bg-gray-100 p-1 rounded-lg">
-      <button
-        class="px-5 py-2 rounded-md text-sm font-poppins font-semibold transition-all cursor-pointer"
-        [class.bg-white]="ciclo() === 'mensual'"
-        [class.shadow-sm]="ciclo() === 'mensual'"
-        [class.text-gray-900]="ciclo() === 'mensual'"
-        [class.text-gray-500]="ciclo() !== 'mensual'"
-        (click)="ciclo.set('mensual')">
-        Mensual
-      </button>
-      <button
-        class="px-5 py-2 rounded-md text-sm font-poppins font-semibold transition-all flex items-center gap-2 cursor-pointer"
-        [class.bg-white]="ciclo() === 'anual'"
-        [class.shadow-sm]="ciclo() === 'anual'"
-        [class.text-gray-900]="ciclo() === 'anual'"
-        [class.text-gray-500]="ciclo() !== 'anual'"
-        (click)="ciclo.set('anual')">
-        Anual
-        <span class="text-xs font-semibold bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-full">2 meses gratis</span>
-      </button>
-    </div>
-  </div>
-
   <!-- Grid de planes -->
   @if (cargando()) {
     <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
@@ -88,14 +63,10 @@
             } @else {
               <div class="flex items-baseline gap-1">
                 <span class="text-sm font-poppins text-gray-500">USD</span>
-                <span class="text-4xl font-poppins font-extrabold text-gray-900">{{ precioMensualEfectivo(plan) }}</span>
+                <span class="text-4xl font-poppins font-extrabold text-gray-900">{{ plan.precioMensual }}</span>
                 <span class="text-sm font-poppins text-gray-500">/mes</span>
               </div>
-              <p class="text-xs font-poppins mt-1"
-                 [class.text-gray-400]="ciclo() === 'anual'"
-                 [class.invisible]="ciclo() !== 'anual'">
-                USD {{ precio(plan) | number:'1.0-0' }} facturado anualmente
-              </p>
+              <p class="text-xs font-poppins mt-1 text-gray-400 invisible">-</p>
             }
           </div>
 

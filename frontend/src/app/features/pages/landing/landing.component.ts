@@ -15,7 +15,6 @@ interface PlanLanding {
   nombre: string;
   descripcion: string;
   precioMensual: number;
-  precioAnual: number;
   highlight: boolean;
   badge?: string;
   limites: string[];
@@ -44,7 +43,6 @@ export class LandingComponent implements OnInit, AfterViewInit, OnDestroy {
   isLoggedIn = false;
   private observer!: IntersectionObserver;
 
-  ciclo = signal<'mensual' | 'anual'>('mensual');
   planes = signal<PlanLanding[]>([]);
   cargandoPlanes = signal(true);
 
@@ -90,7 +88,6 @@ export class LandingComponent implements OnInit, AfterViewInit, OnDestroy {
       nombre: p.nombre,
       descripcion: p.descripcion ?? '',
       precioMensual: Number(p.precioMensualUsd ?? 0),
-      precioAnual:   Number(p.precioAnualUsd   ?? 0),
       highlight: codigo === 'PROFESIONAL',
       badge:     codigo === 'PROFESIONAL' ? 'Más popular' : undefined,
       limites: this.buildLimites(p),
@@ -130,18 +127,7 @@ export class LandingComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   precio(plan: PlanLanding): string {
-    const val = this.ciclo() === 'anual' ? plan.precioAnual : plan.precioMensual;
-    return val > 0 ? `USD ${val.toFixed(0)}` : 'Gratis';
-  }
-
-  precioSubtexto(plan: PlanLanding): string {
-    return this.ciclo() === 'anual' ? '/ año' : '/ mes';
-  }
-
-  ahorroPct(plan: PlanLanding): number {
-    if (plan.precioMensual === 0) return 0;
-    const mensualAnualizado = plan.precioMensual * 12;
-    return Math.round((1 - plan.precioAnual / mensualAnualizado) * 100);
+    return plan.precioMensual > 0 ? `USD ${plan.precioMensual.toFixed(0)}` : 'Gratis';
   }
 
   elegirPlan(plan: PlanLanding): void {
@@ -149,12 +135,11 @@ export class LandingComponent implements OnInit, AfterViewInit, OnDestroy {
       this.scrollTo('contact');
       return;
     }
-    const cicloParam = this.ciclo() === 'anual' ? 'anual' : 'mensual';
     if (this.isLoggedIn) {
-      this.router.navigate(['/checkout'], { queryParams: { plan: plan.codigo, ciclo: cicloParam } });
+      this.router.navigate(['/checkout'], { queryParams: { plan: plan.codigo, ciclo: 'mensual' } });
     } else {
       // Guarda intención y redirige al login
-      sessionStorage.setItem('pending_checkout', JSON.stringify({ plan: plan.codigo, ciclo: cicloParam }));
+      sessionStorage.setItem('pending_checkout', JSON.stringify({ plan: plan.codigo, ciclo: 'mensual' }));
       this.router.navigate(['/login']);
     }
   }
