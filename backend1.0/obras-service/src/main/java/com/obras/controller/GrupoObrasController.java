@@ -1,5 +1,6 @@
 package com.obras.controller;
 
+import com.common.plan.PlanLimitChecker;
 import com.obras.dto.GrupoObraDTO;
 import com.obras.service.GrupoObrasService;
 import lombok.RequiredArgsConstructor;
@@ -20,7 +21,9 @@ public class GrupoObrasController {
   @PostMapping
   public ResponseEntity<GrupoObraDTO> crear(
       @RequestBody GrupoObraDTO dto,
-      @RequestHeader(value = "X-Organizacion-Id", defaultValue = "0") Long organizacionId) {
+      @RequestHeader(value = "X-Organizacion-Id", defaultValue = "0") Long organizacionId,
+      @RequestHeader(value = "X-Plan-Features", required = false) String planFeatures) {
+    PlanLimitChecker.assertFeatureEnabled(planFeatures, "grupos_obras");
     GrupoObraDTO created = service.crear(dto, organizacionId);
     return ResponseEntity.status(HttpStatus.CREATED).body(created);
   }

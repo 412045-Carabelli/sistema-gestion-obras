@@ -1,5 +1,6 @@
 package com.transacciones.controller;
 
+import com.common.plan.PlanLimitChecker;
 import com.transacciones.dto.FacturaDto;
 import com.transacciones.service.FacturaService;
 import lombok.RequiredArgsConstructor;
@@ -59,8 +60,10 @@ public class FacturaController {
             @RequestParam(value = "estado", required = false) String estado,
             @RequestParam(value = "impacta_cta_cte", required = false) Boolean impactaCtaCte,
             @RequestParam(value = "file", required = false) MultipartFile file,
-            @RequestHeader(value = "X-Organizacion-Id", required = false) Long empresaId
+            @RequestHeader(value = "X-Organizacion-Id", required = false) Long empresaId,
+            @RequestHeader(value = "X-Plan-Features", required = false) String planFeatures
     ) {
+        PlanLimitChecker.assertFeatureEnabled(planFeatures, "facturas");
         FacturaDto dto = FacturaDto.builder()
                 .empresa_id(empresaId)
                 .id_cliente(idCliente)
