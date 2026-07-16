@@ -6,7 +6,7 @@ import { TagModule } from 'primeng/tag';
 import { Subscription } from 'rxjs';
 import { ChangelogService } from '../../services/changelog/changelog.service';
 
-const VERSION = 'v1.17.44';
+const VERSION = 'v1.17.45';
 const STORAGE_KEY = `sgo-changelog-seen-${VERSION}`;
 
 interface ChangeItem {
@@ -75,6 +75,14 @@ export class ChangelogModalComponent implements OnInit, OnDestroy {
         { texto: 'Unificar estados válidos de obra en cuentas corrientes (COTIZADA/ADJUDICADA/EN_PROGRESO/FINALIZADA)', estado: 'done' },
         { texto: 'Corregir bases de datos dev/prod cruzadas en SPs de deudas y filtros en cascada', estado: 'done' },
         { texto: 'Corregir catálogo de obras que no filtraba por estado ni por base correcta en dev', estado: 'done' },
+      ]
+    },
+    {
+      modulo: 'Listados 15/07/2026',
+      icon: 'pi pi-list',
+      items: [
+        { texto: 'Reemplazar botón de imprimir por "Exportar PDF" en la barra de filtros (obras, clientes, proveedores, agendas, facturas, movimientos)', estado: 'done' },
+        { texto: 'El PDF exportado respeta los filtros aplicados en el listado', estado: 'done' },
       ]
     },
   ];

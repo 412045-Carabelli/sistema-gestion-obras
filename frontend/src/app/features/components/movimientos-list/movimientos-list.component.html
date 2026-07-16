@@ -3,17 +3,12 @@
 @defer (when datosCargados; on interaction; prefetch on timer(2s)) {
   <div class="flex flex-col gap-4">
     <!-- Barra de filtros genérica -->
-    <div class="flex items-center gap-2">
-      <div class="flex-1">
-        <app-generic-filter-bar
-          [filterDefinitions]="filterDefinitions"
-          [actions]="filterActions"
-          (filterChange)="onFilterChange($event)"
-          (clearFilters)="onClearFilters()"
-        ></app-generic-filter-bar>
-      </div>
-      <button pButton type="button" icon="pi pi-print" class="p-button-sm p-button-outlined" (click)="imprimirListado()" title="Imprimir listado"></button>
-    </div>
+    <app-generic-filter-bar
+      [filterDefinitions]="filterDefinitions"
+      [actions]="filterActions"
+      (filterChange)="onFilterChange($event)"
+      (clearFilters)="onClearFilters()"
+    ></app-generic-filter-bar>
 
     <!-- Tabla (tablet/desktop) -->
     <div class="hidden lg:block bg-white rounded-lg border border-gray-200 overflow-hidden">

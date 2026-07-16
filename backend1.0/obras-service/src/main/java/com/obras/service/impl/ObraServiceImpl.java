@@ -87,20 +87,31 @@ public class ObraServiceImpl implements ObraService {
     /** Evita N+1: trae los costos de todas las obras en una sola query. */
     private List<ObraDTO> mapearObrasConCostosBulk(List<Obra> obras) {
         if (obras.isEmpty()) return List.of();
+        Map<Long, List<ObraCosto>> costosPorObra = obtenerCostosActivosBulk(obras);
+        return obras.stream()
+                .map(obra -> toDto(obra, costosPorObra.getOrDefault(obra.getId(), List.of())))
+                .toList();
+    }
+
+    /** Trae los costos "activos" (según reglas de baja/estado de cada obra) de todas las obras en una sola query. */
+    private Map<Long, List<ObraCosto>> obtenerCostosActivosBulk(List<Obra> obras) {
+        if (obras.isEmpty()) return Map.of();
         List<Long> obraIds = obras.stream().map(Obra::getId).filter(Objects::nonNull).toList();
         Map<Long, List<ObraCosto>> costosPorObra = costoRepo.findByObra_IdIn(obraIds).stream()
+                .filter(c -> c.getObra() != null && c.getObra().getId() != null)
                 .collect(Collectors.groupingBy(c -> c.getObra().getId()));
-        return obras.stream()
-                .map(obra -> {
-                    List<ObraCosto> costosObra = costosPorObra.getOrDefault(obra.getId(), List.of());
-                    List<ObraCosto> costosFiltrados = Boolean.TRUE.equals(obra.getActivo())
-                            ? costosObra.stream().filter(c -> Boolean.TRUE.equals(c.getActivo())).toList()
-                            : costosObra.stream()
-                                .filter(c -> Boolean.TRUE.equals(c.getActivo()) || Boolean.TRUE.equals(c.getBajaObra()))
-                                .toList();
-                    return toDto(obra, costosFiltrados);
-                })
-                .toList();
+
+        Map<Long, List<ObraCosto>> resultado = new HashMap<>();
+        for (Obra obra : obras) {
+            List<ObraCosto> costosObra = costosPorObra.getOrDefault(obra.getId(), List.of());
+            List<ObraCosto> costosFiltrados = Boolean.TRUE.equals(obra.getActivo())
+                    ? costosObra.stream().filter(c -> Boolean.TRUE.equals(c.getActivo())).toList()
+                    : costosObra.stream()
+                        .filter(c -> Boolean.TRUE.equals(c.getActivo()) || Boolean.TRUE.equals(c.getBajaObra()))
+                        .toList();
+            resultado.put(obra.getId(), costosFiltrados);
+        }
+        return resultado;
     }
 
     @Override
@@ -127,11 +138,15 @@ public class ObraServiceImpl implements ObraService {
             Long organizacionId) {
         String qParam = (q != null && !q.isBlank()) ? q.trim() : null;
         org.springframework.data.domain.Page<Obra> page = obraRepo.findByFiltros(estado, activo, organizacionId, qParam, p);
-        java.util.List<com.obras.dto.ObraListDTO> dtos = page.stream().map(this::toListDto).toList();
+        List<Obra> obras = page.getContent();
+        Map<Long, List<ObraCosto>> costosPorObra = obtenerCostosActivosBulk(obras);
+        java.util.List<com.obras.dto.ObraListDTO> dtos = obras.stream()
+                .map(obra -> toListDto(obra, costosPorObra.getOrDefault(obra.getId(), List.of())))
+                .toList();
         return new org.springframework.data.domain.PageImpl<>(dtos, p, page.getTotalElements());
     }
 
-    private com.obras.dto.ObraListDTO toListDto(Obra entity) {
+    private com.obras.dto.ObraListDTO toListDto(Obra entity, List<ObraCosto> costosActivos) {
         com.obras.dto.ObraListDTO dto = new com.obras.dto.ObraListDTO();
         dto.setId(entity.getId());
         dto.setId_cliente(entity.getIdCliente());
@@ -141,7 +156,7 @@ public class ObraServiceImpl implements ObraService {
         dto.setDireccion(entity.getDireccion());
         dto.setFecha_inicio(entity.getFechaInicio());
         dto.setFecha_fin(entity.getFechaFin());
-        TotalesObra totalesLista = calcularTotalesObra(entity);
+        TotalesObra totalesLista = calcularTotalesObra(entity, costosActivos);
         dto.setPresupuesto(totalesLista.presupuestoFinal());
         dto.setRequiere_factura(entity.getRequiereFactura());
         dto.setActivo(entity.getActivo());
