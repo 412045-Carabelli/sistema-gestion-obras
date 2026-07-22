@@ -19,6 +19,7 @@ public interface SuscripcionRepository extends JpaRepository<Suscripcion, Long> 
         WHERE s.organizacionId = :organizacionId
           AND s.estado IN ('ACTIVA', 'TRIAL')
         ORDER BY s.fechaInicio DESC
+        LIMIT 1
         """)
     Optional<Suscripcion> findActivaByOrganizacionId(@Param("organizacionId") Long organizacionId);
 
