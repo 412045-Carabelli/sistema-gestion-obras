@@ -125,15 +125,11 @@ public class MercadoPagoBffController {
         if (type != null) queryString += (queryString.isEmpty() ? "" : "&") + "type=" + type;
 
         ResponseEntity<Void> ok = ResponseEntity.<Void>ok().build();
+        String url = authServiceUrl + "/auth/mp/webhook" + (queryString.isEmpty() ? "" : "?" + queryString);
 
         return webClientBuilder.build()
                 .post()
-                .uri(uriBuilder -> {
-                    var builder = uriBuilder.path(authServiceUrl + "/auth/mp/webhook");
-                    if (dataId != null) builder.queryParam("data.id", dataId);
-                    if (type != null)   builder.queryParam("type", type);
-                    return builder.build();
-                })
+                .uri(url)
                 .headers(h -> {
                     if (signature != null)  h.set("x-signature", signature);
                     if (requestId != null)  h.set("x-request-id", requestId);
