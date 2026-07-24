@@ -1,3 +1,10 @@
 .env
 *.env
 .env.*
+
+# Build artifacts
+target/
+**/target/
+*.class
+*.jar
+*.war

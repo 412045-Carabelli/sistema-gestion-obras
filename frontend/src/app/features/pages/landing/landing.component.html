@@ -192,6 +192,31 @@
   </div>
 </section>
 
+<!-- ======= FAQ ======= -->
+<section class="faq" id="faq">
+  <div class="section-inner">
+    <div class="section-header reveal">
+      <span class="section-tag">FAQ</span>
+      <h2>Preguntas<br/><span class="lime">frecuentes</span></h2>
+      <p>Todo lo que necesitás saber antes de empezar.</p>
+    </div>
+
+    <div class="faq-list">
+      @for (item of faqItems; track item.q; let i = $index) {
+        <div class="faq-item reveal" [class.open]="item.open" (click)="toggleFaq(i)">
+          <div class="faq-question">
+            <span>{{ item.q }}</span>
+            <i class="faq-icon pi" [class.pi-plus]="!item.open" [class.pi-minus]="item.open"></i>
+          </div>
+          <div class="faq-answer">
+            <p>{{ item.a }}</p>
+          </div>
+        </div>
+      }
+    </div>
+  </div>
+</section>
+
 <!-- ======= CONTACT ======= -->
 <section class="contact" id="contact">
   <div class="section-inner contact-inner">

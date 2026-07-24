@@ -2,6 +2,7 @@ package com.documentos.controller;
 
 import com.documentos.dto.DocumentoDto;
 import com.documentos.enums.TipoDocumentoEnum;
+import com.documentos.exception.ArchivoNoEncontradoException;
 import com.documentos.service.DocumentoService;
 import org.springframework.core.io.Resource;
 import lombok.RequiredArgsConstructor;
@@ -101,6 +102,8 @@ public class DocumentoController {
 
     @GetMapping("/{id}/view")
     public Mono<ResponseEntity<Resource>> view(@PathVariable("id") Long id) {
-        return documentoService.downloadFile(id);
+        return documentoService.downloadFile(id)
+                .onErrorResume(ArchivoNoEncontradoException.class,
+                        ex -> Mono.just(ResponseEntity.status(HttpStatus.NOT_FOUND).build()));
     }
 }

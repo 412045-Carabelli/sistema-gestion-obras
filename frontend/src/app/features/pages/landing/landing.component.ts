@@ -46,6 +46,56 @@ export class LandingComponent implements OnInit, AfterViewInit, OnDestroy {
   planes = signal<PlanLanding[]>([]);
   cargandoPlanes = signal(true);
 
+  faqItems: { q: string; a: string; open: boolean }[] = [
+    {
+      q: '¿Para qué tipo de empresa es Buildrr?',
+      a: 'Buildrr está diseñado para empresas constructoras, estudios de arquitectura e ingeniería, y cualquier empresa que gestione múltiples obras simultáneas. Si manejás presupuestos, proveedores, clientes y facturas por proyecto, Buildrr es para vos.',
+      open: false
+    },
+    {
+      q: '¿En qué se diferencia de usar Excel o WhatsApp?',
+      a: 'Excel y WhatsApp no están pensados para gestión de obras: se desactualizan, no integran datos entre módulos y no permiten visibilidad en tiempo real. Buildrr centraliza presupuestos, proveedores, facturas y reportes en un solo sistema, con datos siempre actualizados y accesibles desde cualquier dispositivo.',
+      open: false
+    },
+    {
+      q: '¿Cuánto tarda en empezar a usarlo?',
+      a: 'Podés crear tu cuenta y registrar tu primera obra en menos de 10 minutos. No necesitás instalaciones ni configuraciones técnicas: todo funciona desde el navegador.',
+      open: false
+    },
+    {
+      q: '¿Puedo dar acceso a mi equipo?',
+      a: 'Sí. Según el plan que elijas, podés sumar múltiples usuarios para que cada integrante del equipo gestione sus responsabilidades dentro del sistema.',
+      open: false
+    },
+    {
+      q: '¿Funciona desde el celular?',
+      a: 'Sí, la plataforma es responsive y funciona desde cualquier navegador en computadora, tablet o celular, sin necesidad de instalar ninguna aplicación.',
+      open: false
+    },
+    {
+      q: '¿Puedo cambiar de plan en cualquier momento?',
+      a: 'Sí. Podés subir o bajar de plan cuando lo necesites, sin permanencia mínima. Los cambios se aplican en el próximo ciclo de facturación.',
+      open: false
+    },
+    {
+      q: '¿Cómo se paga?',
+      a: 'La facturación es mensual a través de MercadoPago. Podés pagar con tarjeta de crédito, débito o cualquier medio disponible en la plataforma.',
+      open: false
+    },
+    {
+      q: '¿Mis datos están seguros?',
+      a: 'Tus datos se almacenan en servidores en la nube con cifrado y backups automáticos. Solo vos y los usuarios de tu organización tienen acceso a tu información.',
+      open: false
+    },
+  ];
+
+  toggleFaq(index: number): void {
+    this.faqItems = this.faqItems.map((item, i) => ({
+      ...item,
+      open: i === index ? !item.open : false
+    }));
+  }
+
   features = [
     { icon: 'pi pi-building',               title: 'Gestión de Obras',    desc: 'Seguí cada etapa de tus proyectos: presupuesto, estado, responsables y fechas en un solo lugar.' },
     { icon: 'pi pi-calculator',             title: 'Presupuestos',         desc: 'Calculá costos detallados por rubro, gremio y proveedor. Exportá y comparaá sin esfuerzo.' },
