@@ -123,7 +123,7 @@ export class UpgradeBannerComponent {
   @Input() feature?: PlanFeature | string;
   @Input() limiteActual?: number;
   @Input() cantidadActual?: number;
-  @Input() mensaje?: string;
+  @Input('mensaje') mensajeInput?: string;
 
   private router = inject(Router);
 
@@ -147,7 +147,7 @@ export class UpgradeBannerComponent {
   }
 
   get mensaje(): string {
-    if (this._mensaje) return this._mensaje;
+    if (this.mensajeInput) return this.mensajeInput;
     switch (this.tipo) {
       case 'limite':
         return `Llegaste al límite de ${this.cantidadActual}/${this.limiteActual} ${this.recurso ?? 'registros'} de tu plan actual. Actualizá para crear más.`;
@@ -156,11 +156,6 @@ export class UpgradeBannerComponent {
       case 'seccion':
         return 'Esta sección requiere un plan superior.';
     }
-  }
-
-  private _mensaje?: string;
-  ngOnChanges(): void {
-    this._mensaje = (this as any)['mensaje'];
   }
 
   irAPlanes(): void {
