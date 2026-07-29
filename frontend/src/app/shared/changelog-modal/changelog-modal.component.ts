@@ -33,71 +33,18 @@ export class ChangelogModalComponent implements OnInit, OnDestroy {
 
   grupos: ChangeGroup[] = [
     {
-      modulo: 'UI Refinements 14/07/2026',
-      icon: 'pi pi-palette',
+      modulo: 'Fixes Pablo 28/07/2026',
+      icon: 'pi pi-check-circle',
       items: [
-        { texto: 'Memoria descriptiva de obra: mostrar como texto plano (sin tags HTML)', estado: 'done' },
-        { texto: 'Botón de impresión en todos los listados (obras, clientes, proveedores, agendas, facturas, movimientos, cuentas corrientes)', estado: 'done' },
-        { texto: 'Botón "Ver" para abrir PDF de facturas adjuntas', estado: 'done' },
-      ]
-    },
-    {
-      modulo: 'Cuentas Corrientes 14/07/2026',
-      icon: 'pi pi-book',
-      items: [
-        { texto: 'Agregar estado COTIZADA a obras', estado: 'done' },
-        { texto: 'Mapear estados de obras a colores en listado', estado: 'done' },
-        { texto: 'Botón de descarga para documentos adjuntos en facturas', estado: 'done' },
-        { texto: 'Optimizar catálogo de cuentas corrientes con queries directas a BD', estado: 'done' },
-        { texto: 'Al filtrar por obra(s), mostrar proveedores de esa(s) obra(s)', estado: 'done' },
-        { texto: 'Al filtrar por obra(s), mostrar clientes de esa(s) obra(s)', estado: 'done' },
-        { texto: 'Incluir todas las obras activas en catálogo (sin filtro de estado)', estado: 'done' },
-        { texto: 'Soportar múltiples obras seleccionadas en filtros de cuentas corrientes', estado: 'done' },
-      ]
-    },
-    {
-      modulo: 'Cuentas Corrientes 14/07/2026 (2)',
-      icon: 'pi pi-book',
-      items: [
-        { texto: 'Corregir performance de listado de obras (N+1 queries de costos)', estado: 'done' },
-        { texto: 'Corregir performance de transacciones activas (N+1 llamadas a obras-service)', estado: 'done' },
-        { texto: 'PDF de cuenta corriente: incluir obras sin cobros/pagos registrados', estado: 'done' },
-        { texto: 'Sincronizar export de PDF/Excel con las obras reales de cada cliente/proveedor', estado: 'done' },
-      ]
-    },
-    {
-      modulo: 'Cuentas Corrientes 15/07/2026',
-      icon: 'pi pi-book',
-      items: [
-        { texto: 'Corregir condición de carrera al exportar PDF/Excel con filtros recién cambiados', estado: 'done' },
-        { texto: 'Export de cuenta corriente pide datos frescos en vez de usar caché desactualizado', estado: 'done' },
-        { texto: 'Corregir ruta del gateway que ignoraba el filtro de obra en cuenta corriente proveedor', estado: 'done' },
-        { texto: 'Unificar estados válidos de obra en cuentas corrientes (COTIZADA/ADJUDICADA/EN_PROGRESO/FINALIZADA)', estado: 'done' },
-        { texto: 'Corregir bases de datos dev/prod cruzadas en SPs de deudas y filtros en cascada', estado: 'done' },
-        { texto: 'Corregir catálogo de obras que no filtraba por estado ni por base correcta en dev', estado: 'done' },
-      ]
-    },
-    {
-      modulo: 'Listados 15/07/2026',
-      icon: 'pi pi-list',
-      items: [
-        { texto: 'Reemplazar botón de imprimir por "Exportar PDF" en la barra de filtros (obras, clientes, proveedores, agendas, facturas, movimientos)', estado: 'done' },
-        { texto: 'El PDF exportado respeta los filtros aplicados en el listado', estado: 'done' },
-      ]
-    },
-    {
-      modulo: 'Pendientes Pablo 28/07/2026',
-      icon: 'pi pi-exclamation-triangle',
-      items: [
-        { texto: 'Verificar obras que muestran detalle de facturación pendiente sin estar marcadas para facturar (ej. Talar Center - Ingresos y rampas)', estado: 'pending' },
-        { texto: 'Cuentas Corrientes: al filtrar por proveedor, el filtro de obra debe ofrecer solo las obras en las que participa (hoy muestra todas)', estado: 'pending' },
-        { texto: 'Verificar formato de texto al editar la memoria descriptiva de una obra', estado: 'pending' },
-        { texto: 'Habilitar impresión/exportación en todos los listados filtrados (ej. obras adjudicadas)', estado: 'pending' },
-        { texto: 'Módulo Facturas: poder revisar el PDF de una factura ya cargada', estado: 'pending' },
-        { texto: 'Botón "Impacta en Cta Cte" da error y no permite seleccionarlo: se quita', estado: 'pending' },
-        { texto: 'Restaurar opción COTIZADA en estados de obras (desapareció)', estado: 'pending' },
-        { texto: 'PDF de cuenta corriente (cliente + obra): respetar la obra seleccionada en vez de traer todas', estado: 'pending' },
-        { texto: 'Al seleccionar cliente, el filtro de obras debe mostrar solo las obras de ese cliente', estado: 'pending' },
+        { texto: 'Verificar obras que muestran detalle de facturación pendiente sin estar marcadas para facturar (ej. Talar Center - Ingresos y rampas)', estado: 'done' },
+        { texto: 'Cuentas Corrientes: al filtrar por proveedor, el filtro de obra ofrece solo las obras en las que participa', estado: 'done' },
+        { texto: 'Verificar formato de texto al editar la memoria descriptiva de una obra', estado: 'done' },
+        { texto: 'Habilitar impresión/exportación en todos los listados filtrados (ej. obras adjudicadas)', estado: 'done' },
+        { texto: 'Módulo Facturas: poder revisar el PDF de una factura ya cargada', estado: 'done' },
+        { texto: 'Botón "Impacta en Cta Cte" daba error: se quita', estado: 'done' },
+        { texto: 'Restaurar opción COTIZADA en estados de obras', estado: 'done' },
+        { texto: 'PDF de cuenta corriente (cliente + obra): respeta la obra seleccionada en vez de traer todas', estado: 'done' },
+        { texto: 'Al seleccionar cliente, el filtro de obras muestra solo las obras de ese cliente', estado: 'done' },
       ]
     },
   ];
