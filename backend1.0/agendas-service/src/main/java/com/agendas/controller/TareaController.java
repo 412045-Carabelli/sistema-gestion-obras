@@ -3,6 +3,7 @@ package com.agendas.controller;
 import com.common.dto.tareas.TareaRequest;
 import com.common.dto.tareas.TareaResponse;
 import com.common.dto.tareas.TareaAntiguaAgendaResponse;
+import com.common.plan.PlanLimitChecker;
 import com.agendas.service.TareaService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -22,7 +23,9 @@ public class TareaController {
     @PostMapping
     public ResponseEntity<TareaResponse> crear(
             @RequestBody @Valid TareaRequest request,
-            @RequestHeader(value = "X-Organizacion-Id", required = false) Long organizacionId) {
+            @RequestHeader(value = "X-Organizacion-Id", required = false) Long organizacionId,
+            @RequestHeader(value = "X-Plan-Features", required = false) String planFeatures) {
+        PlanLimitChecker.assertFeatureEnabled(planFeatures, "agenda");
         return ResponseEntity.ok(service.crear(request, organizacionId));
     }
 

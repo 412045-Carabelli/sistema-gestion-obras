@@ -58,7 +58,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
           {
             label: 'Mi plan',
             icon: 'pi pi-star',
-            command: () => {}
+            command: () => this.router.navigate(['/mi-plan'])
           },
           {
             label: 'Configuración',

@@ -1,5 +1,6 @@
 package proveedores.controller;
 
+import com.common.plan.PlanLimitChecker;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -7,6 +8,7 @@ import proveedores.dto.ProveedorDTO;
 import proveedores.entity.Gremio;
 import proveedores.entity.Proveedor;
 import proveedores.entity.TipoProveedor;
+import proveedores.repository.ProveedorRepository;
 import proveedores.service.ProveedorFinanzasService;
 import proveedores.service.ProveedorService;
 
@@ -20,6 +22,7 @@ public class ProveedoresController {
 
     private final ProveedorService service;
     private final ProveedorFinanzasService finanzasService;
+    private final ProveedorRepository proveedorRepository;
 
     // ======== HELPERS ========
 
@@ -153,7 +156,12 @@ public class ProveedoresController {
     @PostMapping
     public ResponseEntity<ProveedorDTO> create(
             @RequestBody ProveedorDTO dto,
-            @RequestHeader(value = "X-Organizacion-Id", defaultValue = "0") Long organizacionId) {
+            @RequestHeader(value = "X-Organizacion-Id", defaultValue = "0") Long organizacionId,
+            @RequestHeader(value = "X-Plan-Limites", required = false) String planLimites) {
+        PlanLimitChecker.assertCanCreate(
+            planLimites, "proveedores", "maxProveedores",
+            () -> proveedorRepository.countByActivoTrueAndOrganizacionId(organizacionId)
+        );
         try {
             Proveedor saved = service.saveWithOrganizacion(toEntity(dto), organizacionId);
             return ResponseEntity.ok(toDTO(saved));

@@ -1,9 +1,10 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject, Injector } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { BehaviorSubject, Observable, throwError } from 'rxjs';
 import { map, catchError, tap } from 'rxjs/operators';
 import { environment } from '../../../environments/environment';
 import { LoginRequest, RegisterRequest, ChangePasswordRequest, UpdatePerfilRequest, AuthResponse, UserInfo, CreateUsuarioOrganizacionRequest, UpdateUsuarioOrganizacionRequest, UsuarioInfoResponse } from '../../core/models/models';
+import { PlanService } from '../plan/plan.service';
 
 @Injectable({
   providedIn: 'root'
@@ -12,8 +13,14 @@ export class AuthService {
   private apiUrl = `${environment.apiGateway}${environment.endpoints.auth}`;
   private currentUserSubject = new BehaviorSubject<UserInfo | null>(this.getUserFromStorage());
   public currentUser$ = this.currentUserSubject.asObservable();
+  private injector = inject(Injector);
+  private planService = inject(PlanService);
 
-  constructor(private http: HttpClient) {
+  private get http(): HttpClient {
+    return this.injector.get(HttpClient);
+  }
+
+  constructor() {
     this.loadUserFromStorage();
   }
 
@@ -131,6 +138,9 @@ export class AuthService {
     };
     this.setCookie('sgo_user_info', JSON.stringify(userInfo), 1);
     this.currentUserSubject.next(userInfo);
+
+    // Inicializar plan desde el JWT (fast path) + refresco desde API
+    this.planService.initFromToken(response.access_token);
   }
 
   private clearStorageAndState(): void {
@@ -138,6 +148,7 @@ export class AuthService {
     this.deleteCookie('sgo_refresh_token');
     this.deleteCookie('sgo_user_info');
     this.currentUserSubject.next(null);
+    this.planService.clear();
   }
 
   private loadUserFromStorage(): void {

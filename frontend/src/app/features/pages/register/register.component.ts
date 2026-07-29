@@ -2,9 +2,6 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators, AbstractControl, ValidationErrors } from '@angular/forms';
 import { Router } from '@angular/router';
-import { ButtonModule } from 'primeng/button';
-import { InputTextModule } from 'primeng/inputtext';
-import { CardModule } from 'primeng/card';
 import { MessageService } from 'primeng/api';
 import { ToastModule } from 'primeng/toast';
 import { AuthService } from '../../../services/auth/auth.service';
@@ -13,7 +10,7 @@ import { RegisterRequest } from '../../../core/models/models';
 @Component({
   selector: 'app-register',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, ButtonModule, InputTextModule, CardModule, ToastModule],
+  imports: [CommonModule, ReactiveFormsModule, ToastModule],
   providers: [MessageService],
   templateUrl: './register.component.html',
   styleUrls: ['./register.component.css']
@@ -56,7 +53,15 @@ export class RegisterComponent implements OnInit {
           detail: 'Cuenta creada correctamente. Iniciando sesión...'
         });
         setTimeout(() => {
-          this.router.navigate(['/dashboard']);
+          // Si venía de la landing queriendo contratar un plan
+          const pendingCheckout = sessionStorage.getItem('pending_checkout');
+          if (pendingCheckout) {
+            sessionStorage.removeItem('pending_checkout');
+            const { plan, ciclo } = JSON.parse(pendingCheckout);
+            this.router.navigate(['/checkout'], { queryParams: { plan, ciclo } });
+          } else {
+            this.router.navigate(['/dashboard']);
+          }
         }, 1500);
       },
       error: (err) => {

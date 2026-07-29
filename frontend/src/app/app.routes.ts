@@ -1,5 +1,6 @@
 import {Routes} from '@angular/router';
 import {authGuard, authMatchGuard, adminGuard} from './core/guards/auth.guard';
+import {planGuard} from './core/guards/plan.guard';
 import {ConfiguracionLayoutComponent} from './features/pages/configuracion/configuracion-layout.component';
 import {ConfiguracionComponent} from './features/pages/configuracion/configuracion.component';
 import {UsuariosAdminComponent} from './features/pages/configuracion/usuarios-admin/usuarios-admin.component';
@@ -23,6 +24,7 @@ import {FacturasLayoutComponent} from './features/facturas-layout/facturas-layou
 import {FacturasListComponent} from './features/components/facturas-list/facturas-list.component';
 import {AgendasLayoutComponent} from './features/agendas-layout/agendas-layout.component';
 import {AgendasListComponent} from './features/components/agendas-list/agendas-list.component';
+import {AgendasGanttComponent} from './features/components/agendas-gantt/agendas-gantt.component';
 import {GruposLayoutComponent} from './features/grupos-layout/grupos-layout.component';
 import {GruposObrasComponent} from './features/pages/grupos-obras/grupos-obras.component';
 import {CuentaCorrienteLayoutComponent} from './features/cuenta-corriente-layout/cuenta-corriente-layout.component';
@@ -126,7 +128,7 @@ export const routes: Routes = [
     path: 'facturas',
     component: FacturasLayoutComponent,
     canMatch: [authMatchGuard],
-    canActivate: [authGuard],
+    canActivate: [authGuard, planGuard('facturas')],
     children: [
       {path: '', component: FacturasListComponent},
     ],
@@ -135,9 +137,10 @@ export const routes: Routes = [
     path: 'agendas',
     component: AgendasLayoutComponent,
     canMatch: [authMatchGuard],
-    canActivate: [authGuard],
+    canActivate: [authGuard, planGuard('agenda')],
     children: [
       {path: '', component: AgendasListComponent},
+      {path: 'gantt', component: AgendasGanttComponent},
     ],
   },
   {path: 'reportes', component: ReportesComponent, canMatch: [authMatchGuard], canActivate: [authGuard]},
@@ -145,7 +148,7 @@ export const routes: Routes = [
     path: 'grupos',
     component: GruposLayoutComponent,
     canMatch: [authMatchGuard],
-    canActivate: [authGuard],
+    canActivate: [authGuard, planGuard('grupos_obras')],
     children: [
       {path: '', component: GruposObrasComponent},
     ],
@@ -183,6 +186,37 @@ export const routes: Routes = [
         ]
       }
     ]
+  },
+  {
+    path: 'planes',
+    loadComponent: () => import('./features/pages/planes/planes.component').then(m => m.PlanesComponent),
+    canActivate: [authGuard],
+  },
+  {
+    path: 'mi-plan',
+    loadComponent: () => import('./features/pages/mi-plan/mi-plan.component').then(m => m.MiPlanComponent),
+    canActivate: [authGuard],
+  },
+  {
+    path: 'checkout',
+    loadComponent: () => import('./features/pages/checkout/checkout.component').then(m => m.CheckoutComponent),
+    canActivate: [authGuard],
+  },
+  // Páginas de retorno del checkout de Mercado Pago (sin sidebar, sin JWT guard — MP redirige aquí)
+  {
+    path: 'suscripcion/exito',
+    loadComponent: () => import('./features/pages/suscripcion-resultado/suscripcion-exito.component')
+      .then(m => m.SuscripcionExitoComponent),
+  },
+  {
+    path: 'suscripcion/pendiente',
+    loadComponent: () => import('./features/pages/suscripcion-resultado/suscripcion-pendiente.component')
+      .then(m => m.SuscripcionPendienteComponent),
+  },
+  {
+    path: 'suscripcion/error',
+    loadComponent: () => import('./features/pages/suscripcion-resultado/suscripcion-error.component')
+      .then(m => m.SuscripcionErrorComponent),
   },
   {path: '**', redirectTo: ''},
 ];

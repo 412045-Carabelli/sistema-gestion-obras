@@ -3,6 +3,7 @@ package com.documentos.service;
 import com.documentos.dto.DocumentoDto;
 import com.documentos.entity.Documento;
 import com.documentos.enums.TipoDocumentoEnum;
+import com.documentos.exception.ArchivoNoEncontradoException;
 import com.documentos.mapper.DocumentosMapper;
 import com.documentos.repository.DocumentoRepository;
 import io.minio.GetObjectArgs;
@@ -11,6 +12,7 @@ import io.minio.RemoveObjectArgs;
 import io.minio.StatObjectArgs;
 import io.minio.StatObjectResponse;
 import io.minio.UploadObjectArgs;
+import io.minio.errors.ErrorResponseException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -215,20 +217,29 @@ public class DocumentoService {
             }
 
             if (minioEnabled) {
-                StatObjectResponse stat = minioClient.statObject(
-                        StatObjectArgs.builder()
-                                .bucket(minioBucket)
-                                .object(documento.getPathArchivo())
-                                .build()
-                );
+                StatObjectResponse stat;
                 byte[] bytes;
-                try (InputStream in = minioClient.getObject(
-                        GetObjectArgs.builder()
-                                .bucket(minioBucket)
-                                .object(documento.getPathArchivo())
-                                .build()
-                )) {
-                    bytes = in.readAllBytes();
+                try {
+                    stat = minioClient.statObject(
+                            StatObjectArgs.builder()
+                                    .bucket(minioBucket)
+                                    .object(documento.getPathArchivo())
+                                    .build()
+                    );
+                    try (InputStream in = minioClient.getObject(
+                            GetObjectArgs.builder()
+                                    .bucket(minioBucket)
+                                    .object(documento.getPathArchivo())
+                                    .build()
+                    )) {
+                        bytes = in.readAllBytes();
+                    }
+                } catch (ErrorResponseException ex) {
+                    if ("NoSuchKey".equals(ex.errorResponse().code())) {
+                        throw new ArchivoNoEncontradoException(
+                                "El archivo " + documento.getNombreArchivo() + " ya no existe en el almacenamiento.");
+                    }
+                    throw new RuntimeException(ex);
                 }
 
                 MediaType contentType = MediaType.APPLICATION_OCTET_STREAM;
@@ -247,7 +258,7 @@ public class DocumentoService {
             FileSystemResource resource = new FileSystemResource(filePath);
 
             if (!resource.exists()) {
-                throw new RuntimeException("Archivo no encontrado: " + documento.getPathArchivo());
+                throw new ArchivoNoEncontradoException("El archivo " + documento.getNombreArchivo() + " ya no existe en el almacenamiento.");
             }
 
             MediaType contentType = MediaType.APPLICATION_OCTET_STREAM;

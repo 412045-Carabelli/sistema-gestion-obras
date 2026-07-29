@@ -315,12 +315,15 @@ export class ObraDocumentosComponent implements OnInit {
         setTimeout(() => URL.revokeObjectURL(url), 30000);
         this.descargandoIds.delete(docId);
       },
-      error: () => {
+      error: (err) => {
         popup.close();
+        const esArchivoInexistente = err?.status === 404;
         this.messageService.add({
-          severity: 'error',
-          summary: 'Error',
-          detail: 'No se pudo abrir el documento.'
+          severity: esArchivoInexistente ? 'warn' : 'error',
+          summary: esArchivoInexistente ? 'Archivo no disponible' : 'Error',
+          detail: esArchivoInexistente
+            ? 'Este archivo ya no existe en el almacenamiento.'
+            : 'No se pudo abrir el documento.'
         });
         this.descargandoIds.delete(docId);
       }

@@ -55,6 +55,13 @@
             <version>2.6.0</version>
         </dependency>
 
+        <!-- Common (plan limits, exceptions) -->
+        <dependency>
+            <groupId>com.meliquina</groupId>
+            <artifactId>common</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
         <!-- Tests -->
         <dependency>
             <groupId>org.springframework.boot</groupId>

@@ -1,0 +1,46 @@
+:host {
+  display: block;
+  animation: fadeIn 0.3s ease-in;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* Plan tier badge */
+.plan-badge {
+  display: inline-block;
+  padding: 3px 12px;
+  border-radius: 100px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  font-family: 'Poppins', sans-serif;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.plan-free         { background: #f3f4f6; color: #6b7280; }
+.plan-basico       { background: #dbeafe; color: #1d4ed8; }
+.plan-profesional  { background: #ede9fe; color: #6d28d9; }
+.plan-enterprise   { background: #fef3c7; color: #b45309; }
+
+/* Estado badge */
+.estado-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 10px;
+  border-radius: 100px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  font-family: 'Poppins', sans-serif;
+}
+.badge-activa    { background: #dcfce7; color: #15803d; }
+.badge-trial     { background: #dbeafe; color: #1d4ed8; }
+.badge-vencida   { background: #fee2e2; color: #b91c1c; }
+.badge-cancelada { background: #f3f4f6; color: #6b7280; }
+.badge-free      { background: #f3f4f6; color: #6b7280; }
+
+/* Progress bar colors */
+.barra-verde   { background: #22c55e; }
+.barra-naranja { background: #f59e0b; }
+.barra-roja    { background: #ef4444; }

@@ -10,6 +10,7 @@ import localeEsAr from '@angular/common/locales/es-AR'
 import {MessageService} from 'primeng/api';
 import {LoadingServerInterceptor} from './core/loading-server.interceptor';
 import {AuthInterceptor} from './core/interceptors/auth.interceptor';
+import {PlanLimitInterceptor} from './core/interceptors/plan-limit.interceptor';
 import {provideServiceWorker} from '@angular/service-worker';
 
 registerLocaleData(localeEsAr);
@@ -39,6 +40,11 @@ export const appConfig: ApplicationConfig = {
     {
       provide: HTTP_INTERCEPTORS,
       useClass: LoadingServerInterceptor,
+      multi: true
+    },
+    {
+      provide: HTTP_INTERCEPTORS,
+      useClass: PlanLimitInterceptor,
       multi: true
     },
     provideServiceWorker('ngsw-worker.js', {

@@ -138,26 +138,79 @@
     <div class="section-header reveal">
       <span class="section-tag">Planes</span>
       <h2>Elegí el plan<br/><span class="lime">que más te conviene</span></h2>
-      <p>Precios y características adaptados al tamaño de tu empresa. Próximamente.</p>
+      <p>Sin permanencia. Cambiá o cancelá cuando quieras.</p>
     </div>
 
-    <div class="plans-grid">
-      @for (p of plans; track p.name) {
-        <div class="plan-card reveal" [class.highlight]="p.highlight">
-          @if (p.highlight) {
-            <div class="plan-badge">Más popular</div>
-          }
-          <h3 class="plan-name">{{ p.name }}</h3>
-          <div class="plan-price">{{ p.price }}</div>
-          <p class="plan-desc">{{ p.desc }}</p>
-          <ul class="plan-features">
-            @for (feat of p.features; track feat) {
-              <li><span class="check">✓</span> {{ feat }}</li>
+    <!-- Skeleton mientras carga -->
+    @if (cargandoPlanes()) {
+      <div class="plans-grid">
+        @for (i of [1,2,3]; track i) {
+          <div class="plan-card skeleton-card reveal"></div>
+        }
+      </div>
+    }
+
+    <!-- Planes reales desde BD -->
+    @if (!cargandoPlanes()) {
+      <div class="plans-grid">
+        @for (p of planes(); track p.codigo) {
+          <div class="plan-card" [class.highlight]="p.highlight">
+            @if (p.badge) {
+              <div class="plan-badge">{{ p.badge }}</div>
             }
-          </ul>
-          <button class="btn-plan" [class.lime-btn]="p.highlight" (click)="scrollTo('contact')">
-            {{ p.highlight ? 'Contactar' : 'Consultar' }}
-          </button>
+            <h3 class="plan-name">{{ p.nombre }}</h3>
+            <div class="plan-price-wrap">
+              <span class="plan-price">{{ precio(p) }}</span>
+              <span class="plan-price-sub">/ mes</span>
+            </div>
+            <p class="plan-desc">{{ p.descripcion }}</p>
+
+            <!-- Límites -->
+            <ul class="plan-features plan-limites">
+              @for (lim of p.limites; track lim) {
+                <li><span class="check">✓</span> {{ lim }}</li>
+              }
+            </ul>
+
+            <!-- Features booleanas -->
+            <ul class="plan-features">
+              @for (feat of p.features; track feat.label) {
+                <li [class.feat-off]="!feat.incluido">
+                  <span class="check" [class.check-off]="!feat.incluido">{{ feat.incluido ? '✓' : '✗' }}</span>
+                  {{ feat.label }}
+                </li>
+              }
+            </ul>
+
+            <button class="btn-plan" [class.lime-btn]="p.highlight" (click)="elegirPlan(p)">
+              {{ p.codigo === 'ENTERPRISE' ? 'Contactar ventas' : 'Contratar ahora' }}
+            </button>
+          </div>
+        }
+      </div>
+    }
+  </div>
+</section>
+
+<!-- ======= FAQ ======= -->
+<section class="faq" id="faq">
+  <div class="section-inner">
+    <div class="section-header reveal">
+      <span class="section-tag">FAQ</span>
+      <h2>Preguntas<br/><span class="lime">frecuentes</span></h2>
+      <p>Todo lo que necesitás saber antes de empezar.</p>
+    </div>
+
+    <div class="faq-list">
+      @for (item of faqItems; track item.q; let i = $index) {
+        <div class="faq-item reveal" [class.open]="item.open" (click)="toggleFaq(i)">
+          <div class="faq-question">
+            <span>{{ item.q }}</span>
+            <i class="faq-icon pi" [class.pi-plus]="!item.open" [class.pi-minus]="item.open"></i>
+          </div>
+          <div class="faq-answer">
+            <p>{{ item.a }}</p>
+          </div>
         </div>
       }
     </div>
