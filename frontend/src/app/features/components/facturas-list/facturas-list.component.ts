@@ -1,7 +1,7 @@
-import {Component, EventEmitter, OnDestroy, OnInit, Output} from '@angular/core';
+import {Component, EventEmitter, Input, OnDestroy, OnInit, Output} from '@angular/core';
 import {CommonModule, CurrencyPipe, DatePipe} from '@angular/common';
-import {FormsModule} from '@angular/forms';
 import {Router} from '@angular/router';
+import {forkJoin} from 'rxjs';
 import {TableModule} from 'primeng/table';
 import {InputTextModule} from 'primeng/inputtext';
 import {ButtonModule} from 'primeng/button';
@@ -14,16 +14,14 @@ import {CheckboxModule} from 'primeng/checkbox';
 import {IconFieldModule} from 'primeng/iconfield';
 import {InputIconModule} from 'primeng/inputicon';
 import {ToastModule} from 'primeng/toast';
-import {InputNumber} from 'primeng/inputnumber';
-import {DatePicker} from 'primeng/datepicker';
-import {FileUploadModule} from 'primeng/fileupload';
 import {ConfirmationService, MessageService} from 'primeng/api';
 import {ConfirmDialog} from 'primeng/confirmdialog';
 
 import {Cliente, Factura, Obra} from '../../../core/models/models';
 import {FacturasService, FacturasResumenResponse} from '../../../services/facturas/facturas.service';
+import {ObrasService} from '../../../services/obras/obras.service';
 import {EstadoFormatPipe} from '../../../shared/pipes/estado-format.pipe';
-import {ModalComponent} from '../../../shared/modal/modal.component';
+import {FacturaModalComponent} from '../factura-modal/factura-modal.component';
 import {FacturasStateService} from '../../../services/facturas/facturas-state.service';
 import {GenericFilterBarComponent, FilterDefinition, FilterAction} from '../generic-filter-bar/generic-filter-bar.component';
 import {KpiCardComponent} from '../../../shared/kpi-card/kpi-card.component';
@@ -47,7 +45,6 @@ interface SelectOption<T> {
   standalone: true,
   imports: [
     CommonModule,
-    FormsModule,
     TableModule,
     InputTextModule,
     ButtonModule,
@@ -62,10 +59,7 @@ interface SelectOption<T> {
     CheckboxModule,
     EstadoFormatPipe,
     ToastModule,
-    InputNumber,
-    DatePicker,
-    FileUploadModule,
-    ModalComponent,
+    FacturaModalComponent,
     ConfirmDialog,
     GenericFilterBarComponent,
     KpiCardComponent
@@ -75,6 +69,8 @@ interface SelectOption<T> {
   styleUrls: ['./facturas-list.component.css']
 })
 export class FacturasListComponent implements OnInit, OnDestroy {
+  /** Cuando se setea, el listado queda acotado a esta obra (usado embebido en Obras/Detalle). */
+  @Input() obraId?: number;
   @Output() facturaClick = new EventEmitter<Factura>();
 
   // Estados permitidos para facturación (deben coincidir con backend)
@@ -132,26 +128,10 @@ export class FacturasListComponent implements OnInit, OnDestroy {
   datosCargados = false;
   kpis: FacturasResumenResponse['kpis'] = { totalFacturado: 0, totalCobrado: 0, totalPorCobrar: 0, totalPorFacturar: 0 };
 
-  // Modal nueva factura
-  showFacturaModal = false;
-  facturaForm: {
-    id_cliente: number | null;
-    id_obra: number | null;
-    fecha: Date;
-    monto: number | null;
-    descripcion: string;
-    estado: string;
-  } = {
-    id_cliente: null,
-    id_obra: null,
-    fecha: new Date(),
-    monto: null,
-    descripcion: '',
-    estado: 'EMITIDA'
-  };
-  facturaObrasFiltradas: Obra[] = [];
-  facturaFile: File | null = null;
-  facturaRestanteObra: number | null = null;
+  // Modal de factura (alta/detalle/edicion unificados)
+  modalVisible = false;
+  modalMode: 'crear' | 'detalle' = 'crear';
+  modalFacturaId: number | null = null;
 
   // Filter Bar
   filterDefinitions: FilterDefinition[] = [];
@@ -165,6 +145,7 @@ export class FacturasListComponent implements OnInit, OnDestroy {
   constructor(
     private router: Router,
     private facturasService: FacturasService,
+    private obrasService: ObrasService,
     private messageService: MessageService,
     private confirmationService: ConfirmationService,
     private facturasStateService: FacturasStateService
@@ -174,7 +155,7 @@ export class FacturasListComponent implements OnInit, OnDestroy {
   ngOnInit() {
     this.setupFilterDefinitions();
     this.subscription.add(
-      this.facturasStateService.openCreateModal$.subscribe(() => this.abrirFacturaModal())
+      this.facturasStateService.openCreateModal$.subscribe(() => this.abrirModalCrear())
     );
     this.cargarDatos();
   }
@@ -189,22 +170,25 @@ export class FacturasListComponent implements OnInit, OnDestroy {
         key: 'search',
         label: 'Buscar',
         type: 'input',
-        placeholder: 'Por cliente, obra o nro. de factura'
+        placeholder: this.obraId ? 'Por nro. de factura' : 'Por cliente, obra o nro. de factura'
       },
-      {
-        key: 'cliente',
-        label: 'Cliente',
-        type: 'select',
-        placeholder: 'Todos',
-        options: this.clientes.map((c) => ({ label: c.nombre, value: c.id }))
-      },
-      {
-        key: 'obra',
-        label: 'Obra',
-        type: 'select',
-        placeholder: 'Todas',
-        options: this.obras.map((o) => ({ label: o.nombre, value: o.id }))
-      },
+      // Cliente y Obra no aplican cuando el listado ya está acotado a una obra puntual.
+      ...(this.obraId ? [] : [
+        {
+          key: 'cliente',
+          label: 'Cliente',
+          type: 'select' as const,
+          placeholder: 'Todos',
+          options: this.clientes.map((c) => ({ label: c.nombre, value: c.id }))
+        },
+        {
+          key: 'obra',
+          label: 'Obra',
+          type: 'select' as const,
+          placeholder: 'Todas',
+          options: this.obras.map((o) => ({ label: o.nombre, value: o.id }))
+        }
+      ]),
       {
         key: 'estado',
         label: 'Estado',
@@ -242,6 +226,10 @@ export class FacturasListComponent implements OnInit, OnDestroy {
 
   private cargarDatos() {
     this.datosCargados = false;
+    if (this.obraId) {
+      this.cargarDatosObra(this.obraId);
+      return;
+    }
     this.facturasService.getResumen().subscribe({
       next: (resumen) => {
         this.kpis = resumen.kpis;
@@ -286,6 +274,50 @@ export class FacturasListComponent implements OnInit, OnDestroy {
           {label: 'Todos', value: 'todos'},
           ...this.clientes.map(c => ({label: c.nombre, value: Number(c.id)}))
         ];
+        this.updateObrasOptions();
+        this.setupFilterDefinitions();
+        this.applyFilter();
+        this.datosCargados = true;
+      },
+      error: () => {
+        this.datosCargados = true;
+      }
+    });
+  }
+
+  /** Carga acotada a una sola obra (uso embebido en Obras/Detalle): evita traer el resumen global. */
+  private cargarDatosObra(obraId: number): void {
+    forkJoin({
+      facturas: this.facturasService.getFacturasByObra(obraId),
+      obra: this.obrasService.getObraById(obraId)
+    }).subscribe({
+      next: ({facturas, obra}) => {
+        const clienteObra = (obra as any).cliente as Cliente | undefined;
+        this.clientes = clienteObra ? [clienteObra] : [];
+        this.obras = [obra as Obra];
+        this.obrasById = new Map<number, Obra>([[Number(obra.id), obra as Obra]]);
+        this.clientesIndex = clienteObra ? new Map([[Number(clienteObra.id), clienteObra.nombre]]) : new Map();
+
+        this.facturas = (facturas || []).map(f => ({
+          ...f,
+          clienteNombre: clienteObra?.nombre || 'Sin cliente',
+          obraNombre: obra.nombre,
+          porCobrarObra: this.obtenerPorCobrarFactura(f),
+          descripcionTexto: this.stripHtml(f.descripcion)
+        }));
+
+        const totalFacturado = this.facturas.reduce((sum, f) => sum + Number(f.monto || 0), 0);
+        const totalCobrado = this.facturas
+          .filter(f => (f.estado || '').toUpperCase() === 'COBRADA')
+          .reduce((sum, f) => sum + Number(f.monto || 0), 0);
+        const totalPorCobrar = this.facturas.reduce((sum, f) => sum + (f.porCobrarObra || 0), 0);
+        const presupuesto = Number(obra.presupuesto ?? 0);
+        const totalPorFacturar = Boolean(obra.requiere_factura) ? Math.max(0, presupuesto - totalFacturado) : 0;
+        this.kpis = {totalFacturado, totalCobrado, totalPorCobrar, totalPorFacturar};
+
+        this.clientesOptions = clienteObra
+          ? [{label: 'Todos', value: 'todos'}, {label: clienteObra.nombre, value: Number(clienteObra.id)}]
+          : [{label: 'Todos', value: 'todos'}];
         this.updateObrasOptions();
         this.setupFilterDefinitions();
         this.applyFilter();
@@ -379,7 +411,7 @@ export class FacturasListComponent implements OnInit, OnDestroy {
 
   onRowClick(factura: FacturaView) {
     this.facturaClick.emit(factura);
-    this.router.navigate(['/facturas', factura.id]);
+    this.abrirModalDetalle(Number(factura.id));
   }
 
   irAlObraDetalle(obraId: number) {
@@ -401,10 +433,6 @@ export class FacturasListComponent implements OnInit, OnDestroy {
 
   get totalPorCobrar(): number {
     return Number(this.kpis.totalPorCobrar ?? 0);
-  }
-
-  get facturaFormInvalid(): boolean {
-    return !this.facturaForm.id_cliente || !this.facturaForm.id_obra || !this.facturaForm.monto;
   }
 
   private get facturasScope(): FacturaView[] {
@@ -442,7 +470,25 @@ export class FacturasListComponent implements OnInit, OnDestroy {
   verAdjunto(factura: FacturaView, event: Event) {
     event.stopPropagation();
     if (!factura?.id || !factura?.nombre_archivo) return;
-    window.open(this.facturasService.getFacturaUrl(factura.id), '_blank', 'noopener');
+    const popup = window.open('', '_blank');
+    if (popup) {
+      popup.opener = null;
+      popup.document.write('<p>Cargando adjunto...</p>');
+    } else {
+      this.messageService.add({severity: 'warn', summary: 'Bloqueo de ventana', detail: 'Habilitá los pop-ups para ver el adjunto.'});
+      return;
+    }
+    this.facturasService.downloadFactura(factura.id).subscribe({
+      next: blob => {
+        const url = URL.createObjectURL(blob);
+        popup.location.href = url;
+        setTimeout(() => URL.revokeObjectURL(url), 10000);
+      },
+      error: () => {
+        popup.close();
+        this.messageService.add({severity: 'error', summary: 'Error', detail: 'No se pudo abrir el adjunto.'});
+      }
+    });
   }
 
   eliminarFactura(factura: FacturaView, event: Event) {
@@ -542,126 +588,30 @@ export class FacturasListComponent implements OnInit, OnDestroy {
       .replace(/^_+|_+$/g, '');
   }
 
-  // --- Modal nueva factura ---
+  // --- Modal de factura (alta/detalle/edicion) ---
 
-  abrirFacturaModal() {
-    this.resetFacturaForm();
-    this.facturaObrasFiltradas = this.obras.filter(o => this.esObraDisponibleParaFacturar(o));
-    this.showFacturaModal = true;
+  abrirModalCrear() {
+    this.modalMode = 'crear';
+    this.modalFacturaId = null;
+    this.modalVisible = true;
   }
 
-  cerrarFacturaModal() {
-    this.showFacturaModal = false;
+  abrirModalDetalle(facturaId: number) {
+    this.modalMode = 'detalle';
+    this.modalFacturaId = facturaId;
+    this.modalVisible = true;
   }
 
-  onFacturaClienteChange() {
-    if (!this.facturaForm.id_cliente) {
-      this.facturaObrasFiltradas = this.obras.filter(o => this.esObraDisponibleParaFacturar(o));
-      this.facturaForm.id_obra = null;
-      this.facturaRestanteObra = null;
-      return;
-    }
-    this.facturaObrasFiltradas = this.obras.filter(o =>
-      Number(o.id_cliente || o.cliente?.id) === Number(this.facturaForm.id_cliente) && this.esObraDisponibleParaFacturar(o)
-    );
-    this.facturaForm.id_obra = null;
-    this.facturaRestanteObra = null;
+  onModalClosed() {
+    this.modalVisible = false;
   }
 
-  onFacturaObraChange() {
-    const obraId = this.facturaForm.id_obra;
-    if (!obraId) {
-      this.facturaRestanteObra = null;
-      return;
-    }
-    this.actualizarRestanteFacturaObra(Number(obraId));
+  onFacturaGuardada() {
+    this.cargarDatos();
   }
 
-  onFacturaFileSelected(event: any) {
-    const files = event?.currentFiles ?? event?.files ?? [];
-    this.facturaFile = files?.[0] ?? null;
-  }
-
-  quitarFacturaArchivo() {
-    this.facturaFile = null;
-  }
-
-  guardarFactura() {
-    if (!this.facturaForm.id_cliente) {
-      this.messageService.add({severity: 'warn', summary: 'Campo requerido', detail: 'Selecciona un cliente.'});
-      return;
-    }
-    const monto = Number(this.facturaForm.monto ?? 0);
-    if (!monto || monto <= 0) {
-      this.messageService.add({severity: 'warn', summary: 'Monto invalido', detail: 'Ingresa un monto mayor a 0.'});
-      return;
-    }
-    if (this.facturaRestanteObra != null && monto > this.facturaRestanteObra + 0.01) {
-      this.messageService.add({severity: 'warn', summary: 'Monto invalido', detail: 'El monto supera el restante disponible de la obra.'});
-      return;
-    }
-    const estado = (this.facturaForm.estado || 'EMITIDA').toUpperCase();
-    const payload = {
-      id_cliente: Number(this.facturaForm.id_cliente),
-      id_obra: this.facturaForm.id_obra != null ? Number(this.facturaForm.id_obra) : null,
-      monto,
-      monto_restante: estado === 'COBRADA' ? 0 : monto,
-      fecha: this.formatDate(this.facturaForm.fecha),
-      descripcion: this.facturaForm.descripcion || '',
-      estado: this.facturaForm.estado || 'EMITIDA'
-    };
-    this.facturasService.createFactura(payload, this.facturaFile).subscribe({
-      next: () => {
-        this.messageService.add({severity: 'success', summary: 'Factura creada', detail: 'La factura se guardo correctamente.'});
-        this.cerrarFacturaModal();
-        this.resetFacturaForm();
-        this.cargarDatos();
-      },
-      error: (err) => {
-        const detail = err?.error?.message || 'No se pudo crear la factura.';
-        this.messageService.add({severity: 'error', summary: 'Error', detail});
-      }
-    });
-  }
-
-  private resetFacturaForm() {
-    this.facturaForm = {
-      id_cliente: null,
-      id_obra: null,
-      fecha: new Date(),
-      monto: null,
-      descripcion: '',
-      estado: 'EMITIDA'
-    };
-    this.facturaFile = null;
-    this.facturaRestanteObra = null;
-  }
-
-  private esObraDisponibleParaFacturar(obra: Obra): boolean {
-    if (!Boolean(obra.requiere_factura) || !Boolean(obra.activo ?? true)) {
-      return false;
-    }
-    // Verificar que el estado esté en los permitidos
-    const estadoNormalizado = this.sanitizarEstado(String(obra.obra_estado || ''));
-    return this.ESTADOS_PERMITIDOS.includes(estadoNormalizado);
-  }
-
-  private actualizarRestanteFacturaObra(obraId: number) {
-    const obra = this.obras.find(o => Number(o.id) === Number(obraId));
-    const presupuesto = Number(obra?.presupuesto ?? NaN);
-    if (!Number.isFinite(presupuesto)) {
-      this.facturaRestanteObra = null;
-      return;
-    }
-    this.facturasService.getFacturasByObra(obraId).subscribe({
-      next: (facturas) => {
-        const facturado = (facturas || []).reduce((sum, f) => sum + Number(f.monto || 0), 0);
-        this.facturaRestanteObra = Math.max(0, presupuesto - facturado);
-      },
-      error: () => {
-        this.facturaRestanteObra = null;
-      }
-    });
+  onFacturaEliminada() {
+    this.cargarDatos();
   }
 
   private formatDate(value: any): string {

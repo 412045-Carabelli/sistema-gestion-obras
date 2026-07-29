@@ -17,7 +17,6 @@ C:\Users\Usuario\Desktop\my-work\sistema-gestion-obras\backend1.0\proveedores-se
 C:\Users\Usuario\Desktop\my-work\sistema-gestion-obras\backend1.0\proveedores-service\src\main\java\proveedores\repository\TipoProveedorRepository.java
 C:\Users\Usuario\Desktop\my-work\sistema-gestion-obras\backend1.0\proveedores-service\src\main\java\proveedores\controller\ProveedoresController.java
 C:\Users\Usuario\Desktop\my-work\sistema-gestion-obras\backend1.0\proveedores-service\src\main\java\proveedores\repository\GremioRepository.java
-C:\Users\Usuario\Desktop\my-work\sistema-gestion-obras\backend1.0\proveedores-service\src\main\java\proveedores\exception\RestExceptionHandler.java
 C:\Users\Usuario\Desktop\my-work\sistema-gestion-obras\backend1.0\proveedores-service\src\main\java\proveedores\integration\ObrasClient.java
 C:\Users\Usuario\Desktop\my-work\sistema-gestion-obras\backend1.0\proveedores-service\src\main\java\proveedores\exception\ClaveInvalidaException.java
 C:\Users\Usuario\Desktop\my-work\sistema-gestion-obras\backend1.0\proveedores-service\src\main\java\proveedores\repository\MovimientoRepository.java

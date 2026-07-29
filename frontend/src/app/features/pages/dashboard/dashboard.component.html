@@ -360,91 +360,9 @@
   (gremioChange)="onGremioChange($event)"
 ></app-proveedor-quick-modal>
 
-<app-modal
+<app-factura-modal
+  [visible]="facturaModalVisible"
+  mode="crear"
   (closed)="cerrarFacturaModal()"
-  (confirmed)="guardarFacturaRapida()"
-  [title]="'Nueva factura'"
-  [visible]="showFacturaModal"
-  [confirmLoading]="guardandoFactura"
-  [confirmDisabled]="guardandoFactura"
->
-  <div class="p-3 space-y-3">
-    <label class="block text-sm font-poppins font-semibold mb-1 text-gray-700">Cliente</label>
-    <p-select
-      [(ngModel)]="facturaForm.id_cliente"
-      [options]="clientes"
-      optionLabel="nombre"
-      optionValue="id"
-      placeholder="Seleccionar cliente"
-      styleClass="w-full"
-      (onChange)="onFacturaClienteChange()"
-    ></p-select>
-
-    <label class="block text-sm font-poppins font-semibold mb-1 text-gray-700">Obra</label>
-    <p-select
-      [(ngModel)]="facturaForm.id_obra"
-      [options]="facturaObrasFiltradas"
-      optionLabel="nombre"
-      optionValue="id"
-      placeholder="Seleccionar obra"
-      styleClass="w-full"
-      (onChange)="onFacturaObraChange()"
-    ></p-select>
-
-    <div class="flex gap-5">
-      <div class="flex flex-col w-1/2">
-        <label class="block text-sm font-poppins font-semibold mb-1 text-gray-700">Fecha</label>
-        <p-datepicker
-          [(ngModel)]="facturaForm.fecha"
-          appendTo="body"
-          class="w-full"
-          dateFormat="dd/mm/yy"
-        ></p-datepicker>
-      </div>
-      <div class="flex flex-col w-1/2">
-        <label class="block text-sm font-poppins font-semibold mb-1 text-gray-700">Monto</label>
-        <p-inputNumber
-          [(ngModel)]="facturaForm.monto"
-          class="w-full"
-          mode="decimal"
-          locale="es-AR"
-        ></p-inputNumber>
-      </div>
-    </div>
-
-    <label class="block text-sm font-poppins font-semibold mb-1 text-gray-700">Estado</label>
-    <p-select
-      [(ngModel)]="facturaForm.estado"
-      [options]="[
-        { label: 'Emitida', value: 'EMITIDA' },
-        { label: 'Cobrada', value: 'COBRADA' }
-      ]"
-      optionLabel="label"
-      optionValue="value"
-      placeholder="Seleccionar estado"
-      styleClass="w-full"
-    ></p-select>
-
-    <label class="block text-sm font-poppins font-semibold mb-1 text-gray-700">Descripcion</label>
-    <p-editor
-      [(ngModel)]="facturaForm.descripcion"
-      [style]="{ height: '160px' }"
-    ></p-editor>
-
-    <label class="block text-sm font-poppins font-semibold mb-1 text-gray-700">Adjuntar factura (opcional)</label>
-    <p-fileUpload
-      mode="basic"
-      chooseLabel="Seleccionar archivo"
-      chooseIcon="pi pi-upload"
-      accept=".jpg,.jpeg,.png,.pdf"
-      [auto]="false"
-      (onSelect)="onFacturaFileSelected($event)"
-    ></p-fileUpload>
-    @if (facturaFile) {
-      <div class="flex items-center gap-2 text-sm text-gray-700">
-        <span>{{ facturaFile.name }}</span>
-        <button type="button" class="text-red-500 hover:text-red-700" (click)="quitarFacturaArchivo()">x</button>
-      </div>
-    }
-  </div>
-</app-modal>
+  (guardada)="cerrarFacturaModal()"
+></app-factura-modal>

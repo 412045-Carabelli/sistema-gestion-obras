@@ -300,7 +300,7 @@ export class CuentasCorrientesListComponent implements OnInit, OnDestroy {
       clienteId: this.currentFilters['clienteId'],
       proveedorId: this.currentFilters['proveedorId']
     };
-    console.log('[cuentas-corrientes] currentFilters:', this.currentFilters, '-> filtro enviado:', filtro);
+    console.log('[cuentas-corrientes] currentFilters:', JSON.parse(JSON.stringify(this.currentFilters)), '-> filtro enviado:', JSON.parse(JSON.stringify(filtro)));
     return this.http.post<DeudasGlobalesResponse>(this.deudasUrl, filtro);
   }
 

@@ -24,10 +24,10 @@ import {RadioButtonModule} from 'primeng/radiobutton';
 import {FileUploadModule} from 'primeng/fileupload';
 import {EditorModule} from 'primeng/editor';
 import {ModalComponent} from '../../../shared/modal/modal.component';
+import {FacturaModalComponent} from '../../components/factura-modal/factura-modal.component';
 import {ProveedorQuickModalComponent} from '../../components/proveedor-quick-modal/proveedor-quick-modal.component';
 import {ClientesService} from '../../../services/clientes/clientes.service';
 import {ProveedoresService, CatalogoOption} from '../../../services/proveedores/proveedores.service';
-import {FacturasService} from '../../../services/facturas/facturas.service';
 import {DashboardKpisComponent} from '../../components/dashboard-widgets/dashboard-kpis/dashboard-kpis.component';
 import {DashboardDeudasComponent} from '../../components/dashboard-widgets/dashboard-deudas/dashboard-deudas.component';
 import {DashboardTareasComponent} from '../../components/dashboard-widgets/dashboard-tareas/dashboard-tareas.component';
@@ -53,6 +53,7 @@ import { environment } from '../../../../environments/environment';
     FileUploadModule,
     EditorModule,
     ModalComponent,
+    FacturaModalComponent,
     ProveedorQuickModalComponent,
     DashboardKpisComponent,
     DashboardDeudasComponent,
@@ -105,7 +106,7 @@ export class DashboardComponent implements OnInit {
   showProveedorModal = false;
   showGremioModal = false;
   showTareaModal = false;
-  showFacturaModal = false;
+  facturaModalVisible = false;
 
   movimientoObra: Obra | null = null;
   movimientoObraDetalle: Obra | null = null;
@@ -161,24 +162,6 @@ export class DashboardComponent implements OnInit {
     activo: true
   };
 
-  facturaForm: {
-    id_cliente: number | null;
-    id_obra: number | null;
-    fecha: Date;
-    monto: number | null;
-    descripcion: string;
-    estado: string;
-  } = {
-    id_cliente: null,
-    id_obra: null,
-    fecha: new Date(),
-    monto: null,
-    descripcion: '',
-    estado: 'EMITIDA'
-  };
-  facturaObrasFiltradas: Obra[] = [];
-  facturaFile: File | null = null;
-  facturaRestanteObra: number | null = null;
   showTipoProveedorModal = false;
   nuevoTipoProveedorNombre = '';
   nuevoGremioNombre = '';
@@ -188,7 +171,6 @@ export class DashboardComponent implements OnInit {
   guardandoTarea = false;
   guardandoCliente = false;
   guardandoProveedor = false;
-  guardandoFactura = false;
 
   constructor(
     private router: Router,
@@ -198,7 +180,6 @@ export class DashboardComponent implements OnInit {
     private obrasService: ObrasService,
     private clientesService: ClientesService,
     private proveedoresService: ProveedoresService,
-    private facturasService: FacturasService,
     private messageService: MessageService,
     private http: HttpClient
   ) {}
@@ -224,7 +205,6 @@ export class DashboardComponent implements OnInit {
           .sort((a, b) => (a.nombre || '').localeCompare(b.nombre || ''));
         this.proveedores = (proveedores || []).sort((a, b) => (a.nombre || '').localeCompare(b.nombre || ''));
         this.clientes = (clientes || []).sort((a, b) => (a.nombre || '').localeCompare(b.nombre || ''));
-        this.facturaObrasFiltradas = [...this.obras];
         this.filteredObras = [...this.obras];
         this.filteredClientes = [...this.clientes];
         this.filteredProveedores = [...this.proveedores];
@@ -448,45 +428,11 @@ export class DashboardComponent implements OnInit {
   }
 
   abrirFacturaModal() {
-    this.resetFacturaForm();
-    this.facturaObrasFiltradas = this.obras.filter(o => this.esObraDisponibleParaFacturar(o));
-    this.showFacturaModal = true;
+    this.facturaModalVisible = true;
   }
 
   cerrarFacturaModal() {
-    this.showFacturaModal = false;
-  }
-
-  onFacturaClienteChange() {
-    if (!this.facturaForm.id_cliente) {
-      this.facturaObrasFiltradas = this.obras.filter(o => this.esObraDisponibleParaFacturar(o));
-      this.facturaForm.id_obra = null;
-      this.facturaRestanteObra = null;
-      return;
-    }
-    this.facturaObrasFiltradas = this.obras.filter(o =>
-      Number(o.cliente?.id) === Number(this.facturaForm.id_cliente) && this.esObraDisponibleParaFacturar(o)
-    );
-    this.facturaForm.id_obra = null;
-    this.facturaRestanteObra = null;
-  }
-
-  onFacturaObraChange() {
-    const obraId = this.facturaForm.id_obra;
-    if (!obraId) {
-      this.facturaRestanteObra = null;
-      return;
-    }
-    this.actualizarRestanteFacturaObra(Number(obraId));
-  }
-
-  onFacturaFileSelected(event: any) {
-    const files = event?.currentFiles ?? event?.files ?? [];
-    this.facturaFile = files?.[0] ?? null;
-  }
-
-  quitarFacturaArchivo() {
-    this.facturaFile = null;
+    this.facturaModalVisible = false;
   }
 
   onMovimientoObraSelect(obra: Obra | null) {
@@ -811,66 +757,6 @@ export class DashboardComponent implements OnInit {
           severity: 'error',
           summary: 'Error',
           detail: 'No se pudo crear el proveedor.'
-        });
-      }
-    });
-  }
-
-  guardarFacturaRapida() {
-    if (!this.facturaForm.id_cliente) {
-      this.messageService.add({
-        severity: 'warn',
-        summary: 'Faltan datos',
-        detail: 'Selecciona el cliente.'
-      });
-      return;
-    }
-    const monto = Number(this.facturaForm.monto ?? 0);
-    if (!monto || monto <= 0) {
-      this.messageService.add({
-        severity: 'warn',
-        summary: 'Monto invalido',
-        detail: 'Ingresa un monto mayor a 0.'
-      });
-      return;
-    }
-    if (this.facturaRestanteObra != null && monto > this.facturaRestanteObra + 0.01) {
-      this.messageService.add({
-        severity: 'warn',
-        summary: 'Monto invalido',
-        detail: 'El monto supera el restante disponible de la obra.'
-      });
-      return;
-    }
-
-    const payload = {
-      id_cliente: Number(this.facturaForm.id_cliente),
-      id_obra: this.facturaForm.id_obra != null ? Number(this.facturaForm.id_obra) : null,
-      monto,
-      monto_restante: (this.facturaForm.estado || 'EMITIDA') === 'COBRADA' ? 0 : monto,
-      fecha: this.formatDate(this.facturaForm.fecha),
-      descripcion: this.facturaForm.descripcion || '',
-      estado: this.facturaForm.estado || 'EMITIDA'
-    };
-
-    this.guardandoFactura = true;
-    this.facturasService.createFactura(payload, this.facturaFile).subscribe({
-      next: () => {
-        this.guardandoFactura = false;
-        this.messageService.add({
-          severity: 'success',
-          summary: 'Factura creada',
-          detail: 'La factura se guardo correctamente.'
-        });
-        this.cerrarFacturaModal();
-        this.resetFacturaForm();
-      },
-      error: (err: any) => {
-        this.guardandoFactura = false;
-        this.messageService.add({
-          severity: 'error',
-          summary: 'Error',
-          detail: err?.error?.message || 'No se pudo crear la factura.'
         });
       }
     });
@@ -1748,48 +1634,6 @@ export class DashboardComponent implements OnInit {
       email: '',
       activo: true
     };
-  }
-
-  private esObraDisponibleParaFacturar(obra: Obra): boolean {
-    const raw = (obra as any).obra_estado;
-    let nombre = '';
-    if (typeof raw === 'string') nombre = raw;
-    else if (raw && typeof raw === 'object') nombre = raw.nombre ?? raw.name ?? raw.label ?? raw.estado ?? '';
-    const estado = String(nombre)
-      .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
-      .toUpperCase().replace(/[^A-Z0-9]+/g, '_').replace(/^_+|_+$/g, '');
-    return estado !== 'FACTURADA';
-  }
-
-  private resetFacturaForm() {
-    this.facturaForm = {
-      id_cliente: null,
-      id_obra: null,
-      fecha: new Date(),
-      monto: null,
-      descripcion: '',
-      estado: 'EMITIDA'
-    };
-    this.facturaFile = null;
-    this.facturaRestanteObra = null;
-  }
-
-  private actualizarRestanteFacturaObra(obraId: number) {
-    const obra = this.obras.find(o => Number(o.id) === Number(obraId));
-    const presupuesto = Number(obra?.presupuesto ?? NaN);
-    if (!Number.isFinite(presupuesto)) {
-      this.facturaRestanteObra = null;
-      return;
-    }
-    this.facturasService.getFacturasByObra(obraId).subscribe({
-      next: (facturas) => {
-        const facturado = (facturas || []).reduce((sum, f) => sum + Number(f.monto || 0), 0);
-        this.facturaRestanteObra = Math.max(0, presupuesto - facturado);
-      },
-      error: () => {
-        this.facturaRestanteObra = null;
-      }
-    });
   }
 
   private normalizarFechaInicio(valor?: string) {

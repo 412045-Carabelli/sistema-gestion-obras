@@ -137,7 +137,30 @@
       "mcp__plugin_atlassian_atlassian__transitionJiraIssue",
       "Bash(head -552 backend1.0/obras-service/src/main/java/com/obras/service/impl/ObraServiceImpl.java)",
       "Bash(echo \"}\")",
-      "Bash(mv /tmp/ObraServiceImpl.tmp backend1.0/obras-service/src/main/java/com/obras/service/impl/ObraServiceImpl.java)"
+      "Bash(mv /tmp/ObraServiceImpl.tmp backend1.0/obras-service/src/main/java/com/obras/service/impl/ObraServiceImpl.java)",
+      "Bash(git fetch *)",
+      "Bash(git merge *)",
+      "Bash(npx tsc *)",
+      "Bash(echo \"EXIT:$?\")",
+      "Bash(mvn -q -pl obras-service -am compile)",
+      "Bash(mvn -q -pl obras-service,api-gateway -am compile)",
+      "Bash(cp obras-service/src/main/resources/db/migration/V28__drop_redundant_tareas_index.sql obras-service/target/classes/db/migration/)",
+      "Bash(cp auth-service/src/main/resources/db/migration/V15__create_sp_recursos_organizacion.sql auth-service/target/classes/db/migration/)",
+      "Bash(mvn -q -pl obras-service,api-gateway,auth-service -am compile)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://localhost:8080/actuator/health)",
+      "Bash(powershell -NoProfile -Command \"Test-NetConnection -ComputerName localhost -Port 1433 -WarningAction SilentlyContinue | Select-Object -ExpandProperty TcpTestSucceeded\")",
+      "Bash(pandoc -t markdown \"C:\\\\Users\\\\Usuario\\\\Desktop\\\\my-work\\\\pablo-pezzini\\\\devoluciones\\\\sistema al 26072026.docx\")",
+      "PowerShell(pandoc -t markdown \"C:\\\\Users\\\\Usuario\\\\Desktop\\\\my-work\\\\pablo-pezzini\\\\devoluciones\\\\sistema al 26072026.docx\")",
+      "Bash(mkdir -p unpacked)",
+      "Bash(unzip -o -q \"C:\\\\Users\\\\Usuario\\\\Desktop\\\\my-work\\\\pablo-pezzini\\\\devoluciones\\\\sistema al 26072026.docx\" -d unpacked)",
+      "Bash(py -3 -c \"print\\(1\\)\")",
+      "Bash(where python *)",
+      "Bash(py -3 -c ' *)",
+      "Skill(artifact-design)",
+      "Skill(artifact-design:*)",
+      "Bash(mvn -q -pl api-gateway -am clean compile)",
+      "Bash(mvn -q -pl transacciones-service -am compile)",
+      "Bash(echo \"TSC_EXIT:$?\")"
     ]
   }
 }

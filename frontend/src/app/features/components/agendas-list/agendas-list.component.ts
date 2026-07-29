@@ -1,4 +1,4 @@
-import {Component, OnInit, OnDestroy, signal, computed, inject} from '@angular/core';
+import {Component, Input, OnInit, OnDestroy, signal, computed, inject} from '@angular/core';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import {CommonModule} from '@angular/common';
@@ -64,6 +64,9 @@ interface EstadoOption {
   styleUrls: ['./agendas-list.component.css']
 })
 export class AgendasListComponent implements OnInit, OnDestroy {
+  /** Cuando se setea, el listado queda acotado a esta obra (usado embebido en Obras/Detalle). */
+  @Input() obraId?: number;
+
   private messageService = inject(MessageService);
   private agendasService = inject(AgendasService);
   private tareasService = inject(TareasService);
@@ -210,7 +213,10 @@ export class AgendasListComponent implements OnInit, OnDestroy {
   }
 
   private cargarAgendas() {
-    this.agendasService.getAgendas().subscribe({
+    const fuente = this.obraId
+      ? this.agendasService.getAgendasByObra(this.obraId)
+      : this.agendasService.getAgendas();
+    fuente.subscribe({
       next: (agendas: Agenda[]) => {
         this.agendas.set(agendas);
         this.datosCargados.set(true);
@@ -227,7 +233,8 @@ export class AgendasListComponent implements OnInit, OnDestroy {
   }
 
   abrirModalCrear() {
-    this.agendaSeleccionada.set(null);
+    // Pre-completa la obra cuando el listado está acotado a una obra puntual (embebido).
+    this.agendaSeleccionada.set(this.obraId ? ({obraId: this.obraId} as Agenda) : null);
     this.mostrarModal.set(true);
   }
 

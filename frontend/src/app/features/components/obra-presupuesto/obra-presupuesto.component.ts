@@ -965,16 +965,22 @@ export class ObraPresupuestoComponent implements OnInit, OnChanges, AfterViewIni
     const formatCurrency = (valor: number) =>
       (Number(valor) || 0).toLocaleString('es-AR', {style: 'currency', currency: 'ARS'});
 
-    const subtotalBase = costos.reduce(
-      (acc, c) => acc + Number(c.subtotal ?? (Number(c.cantidad ?? 0) * Number(c.precio_unitario ?? 0))),
-      0
-    );
-    const beneficioMonto = costos.reduce((acc, c) => {
+    const aporteCosto = (c: any) => {
+      const subtotal = Number(c.subtotal ?? (Number(c.cantidad ?? 0) * Number(c.precio_unitario ?? 0)));
+      const idProveedorVal = typeof c.id_proveedor === 'object' ? c.id_proveedor?.id : (c.id_proveedor ?? c.proveedor?.id);
+      const esAdicionalSinProveedor = (c.tipo_costo === 'ADICIONAL' || c.tipo_costo === 'AJUSTE') && idProveedorVal == null;
+      if (c.tipo_costo === 'ECONOMIA' || esAdicionalSinProveedor) {
+        return { subtotalEfectivo: esAdicionalSinProveedor ? 0 : subtotal, beneficio: esAdicionalSinProveedor ? subtotal : 0, total: subtotal };
+      }
       const beneficioAplicado = this.usarBeneficioGlobal && c.tipo_costo === 'ORIGINAL'
         ? this.beneficioGlobal
         : Number(c.beneficio ?? 0);
-      return acc + Number(c.subtotal ?? 0) * (beneficioAplicado / 100);
-    }, 0);
+      const beneficio = subtotal * (beneficioAplicado / 100);
+      return { subtotalEfectivo: subtotal, beneficio, total: subtotal + beneficio };
+    };
+
+    const subtotalBase = costos.reduce((acc, c) => acc + aporteCosto(c).subtotalEfectivo, 0);
+    const beneficioMonto = costos.reduce((acc, c) => acc + aporteCosto(c).beneficio, 0);
     const totalConBeneficio = subtotalBase + beneficioMonto;
     const comisionMonto = this.tieneComision ? totalConBeneficio * (this.comision / 100) : 0;
     // El PDF de cotizacion no debe sumar comisiones al total cotizado.
@@ -1021,11 +1027,7 @@ export class ObraPresupuestoComponent implements OnInit, OnChanges, AfterViewIni
       : null;
 
     const filasCostos = costos.map((c, index) => {
-      const subtotalBase = Number(c.subtotal ?? (Number(c.cantidad ?? 0) * Number(c.precio_unitario ?? 0)));
-      const beneficioAplicado = this.usarBeneficioGlobal && c.tipo_costo === 'ORIGINAL'
-        ? this.beneficioGlobal
-        : Number(c.beneficio ?? 0);
-      const subtotalConBeneficio = subtotalBase * (1 + beneficioAplicado / 100);
+      const subtotalConBeneficio = aporteCosto(c).total;
 
       return [
         pdfCell(this.getItemNumeroDisplay(c, index), { alignment: 'center', valign: 'middle' }),
@@ -1289,8 +1291,16 @@ export class ObraPresupuestoComponent implements OnInit, OnChanges, AfterViewIni
         ? costo.tipo_costo
         : 'ORIGINAL';
 
+    const idProveedorVal =
+      typeof costo.id_proveedor === 'object'
+        ? (costo.id_proveedor as any)?.id
+        : costo.id_proveedor ?? costo.proveedor?.id;
+
+    // ADICIONAL/AJUSTE sin proveedor: no hay costo real, el monto entero es beneficio (sin markup).
+    const esAdicionalSinProveedor = (tipoCosto === 'ADICIONAL' || tipoCosto === 'AJUSTE') && idProveedorVal == null;
+
     // DEMASIA: sin beneficio, el subtotal es negativo (resta presupuesto)
-    const beneficio = tipoCosto === 'ECONOMIA'
+    const beneficio = tipoCosto === 'ECONOMIA' || esAdicionalSinProveedor
       ? 0
       : tipoCosto !== 'ORIGINAL'
         ? Number(costo.beneficio ?? 0)
@@ -1298,12 +1308,9 @@ export class ObraPresupuestoComponent implements OnInit, OnChanges, AfterViewIni
           ? this.beneficioGlobal
           : Number(costo.beneficio ?? 0);
 
-    const total = tipoCosto === 'ECONOMIA' ? subtotal : subtotal * (1 + beneficio / 100);
-
-    const idProveedorVal =
-      typeof costo.id_proveedor === 'object'
-        ? (costo.id_proveedor as any)?.id
-        : costo.id_proveedor ?? costo.proveedor?.id;
+    const total = tipoCosto === 'ECONOMIA' || esAdicionalSinProveedor
+      ? subtotal
+      : subtotal * (1 + beneficio / 100);
 
     return {
       item_numero: itemNumeroRaw || undefined,

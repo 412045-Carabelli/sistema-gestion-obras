@@ -21,9 +21,6 @@ import {ProveedoresDetailComponent} from './features/pages/proveedores-detail/pr
 import {ObrasListComponent} from './features/components/obra-list/obras-list.component';
 import {FacturasLayoutComponent} from './features/facturas-layout/facturas-layout.component';
 import {FacturasListComponent} from './features/components/facturas-list/facturas-list.component';
-import {FacturasCreateComponent} from './features/pages/facturas-create/facturas-create.component';
-import {FacturasDetailComponent} from './features/pages/facturas-detail/facturas-detail.component';
-import {FacturasEditComponent} from './features/pages/facturas-edit/facturas-edit.component';
 import {AgendasLayoutComponent} from './features/agendas-layout/agendas-layout.component';
 import {AgendasListComponent} from './features/components/agendas-list/agendas-list.component';
 import {GruposLayoutComponent} from './features/grupos-layout/grupos-layout.component';
@@ -132,9 +129,6 @@ export const routes: Routes = [
     canActivate: [authGuard],
     children: [
       {path: '', component: FacturasListComponent},
-      {path: 'nueva', component: FacturasCreateComponent},
-      {path: ':id', component: FacturasDetailComponent},
-      {path: 'editar/:id', component: FacturasEditComponent},
     ],
   },
   {

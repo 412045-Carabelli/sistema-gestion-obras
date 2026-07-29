@@ -60,6 +60,7 @@ export class ObrasListComponent implements OnInit {
   obras: Obra[] = [];
   obrasFiltradas: Obra[] = [];
   datosCargados = false;
+  loading = false;
   estados: { label: string; name: string }[] = [];
 
   // Paginación servidor
@@ -89,7 +90,7 @@ export class ObrasListComponent implements OnInit {
     { label: 'Exportar PDF', icon: 'pi pi-file-pdf', severity: 'danger', callback: () => this.exportarPdf() }
   ];
 
-  private estadoInicialDesdeRuta: string[] = [];
+  filtrosIniciales: Record<string, any> = {};
 
   constructor(
     private router: Router,
@@ -100,6 +101,7 @@ export class ObrasListComponent implements OnInit {
   ngOnInit() {
     this.route.queryParams.subscribe(params => {
       const nuevoEstado = this.parseEstadoFiltro(params['estado'] ?? null);
+      this.filtrosIniciales = {...this.filtrosIniciales, estado: nuevoEstado};
       if (this.datosCargados && JSON.stringify(nuevoEstado) !== JSON.stringify(this.estadoFiltro)) {
         this.estadoFiltro = nuevoEstado;
         this.recargar();
@@ -118,6 +120,7 @@ export class ObrasListComponent implements OnInit {
 
   cargarPagina(page: number) {
     this.currentPage = page;
+    this.loading = true;
     const filtros: { estado?: string; activo?: boolean } = {};
     if (this.estadoFiltro.length === 1) filtros.estado = this.estadoFiltro[0];
     // múltiples estados y búsqueda de texto se filtran client-side
@@ -137,6 +140,10 @@ export class ObrasListComponent implements OnInit {
 
         this.aplicarFiltroFacturacion();
         this.datosCargados = true;
+        this.loading = false;
+      },
+      error: () => {
+        this.loading = false;
       }
     });
   }
@@ -172,10 +179,10 @@ export class ObrasListComponent implements OnInit {
     if (!ESTADOS_CON_FACTURACION.includes(estado)) return undefined;
 
     const ef = (obra as any).estado_financiero as string | undefined;
-    if (!ef || ef === 'PENDIENTE') return { label: 'Pendiente', severity: 'warn', value: 'PENDIENTE' };
+    if (ef === 'PENDIENTE') return { label: 'Pendiente', severity: 'warn', value: 'PENDIENTE' };
     if (ef === 'TOTAL') return { label: 'Total', severity: 'success', value: 'TOTAL' };
     if (ef === 'PARCIAL') return { label: 'Parcial', severity: 'info', value: 'PARCIAL' };
-    return { label: 'Pendiente', severity: 'warn', value: 'PENDIENTE' };
+    return undefined;
   }
 
   estadoValorObra(obra: any): string {
@@ -210,7 +217,7 @@ export class ObrasListComponent implements OnInit {
     const estado = (estadoNombre || '').toUpperCase().trim();
     const severities: { [key: string]: string } = {
       'PRESUPUESTADA': 'secondary',
-      'COTIZADA': 'info',
+      'COTIZADA': 'warn',
       'ADJUDICADA': 'success',
       'EN_PROGRESO': 'info',
       'FINALIZADA': 'contrast',

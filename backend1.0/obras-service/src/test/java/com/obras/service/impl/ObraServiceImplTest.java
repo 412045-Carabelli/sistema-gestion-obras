@@ -115,7 +115,8 @@ class ObraServiceImplTest {
 
         assertNull(adicional.getItemNumero());
         assertEquals(new BigDecimal("50"), adicional.getSubtotal());
-        assertEquals(new BigDecimal("60.00"), adicional.getTotal());
+        // ADICIONAL sin proveedor: el monto entero va directo al beneficio, sin markup adicional.
+        assertEquals(new BigDecimal("50.00"), adicional.getTotal());
         assertEquals(EstadoPagoEnum.PENDIENTE, adicional.getEstadoPago());
         assertEquals(Boolean.TRUE, adicional.getActivo());
 
@@ -167,12 +168,13 @@ class ObraServiceImplTest {
 
         ObraDTO dto = service.obtener(10L).orElseThrow();
 
-        assertEquals(new BigDecimal("550.00"), dto.getSubtotal_costos());
-        assertEquals(new BigDecimal("57.50"), dto.getBeneficio_costos());
-        assertEquals(new BigDecimal("607.50"), dto.getTotal_con_beneficio());
-        assertEquals(new BigDecimal("30.38"), dto.getComision_monto());
-        assertEquals(new BigDecimal("27.13"), dto.getBeneficio_neto());
-        assertEquals(new BigDecimal("607.50"), dto.getPresupuesto());
+        // adicional (sin proveedor) manda su monto completo (50) directo al beneficio, no al subtotal de costos.
+        assertEquals(new BigDecimal("500.00"), dto.getSubtotal_costos());
+        assertEquals(new BigDecimal("100.00"), dto.getBeneficio_costos());
+        assertEquals(new BigDecimal("600.00"), dto.getTotal_con_beneficio());
+        assertEquals(new BigDecimal("30.00"), dto.getComision_monto());
+        assertEquals(new BigDecimal("70.00"), dto.getBeneficio_neto());
+        assertEquals(new BigDecimal("600.00"), dto.getPresupuesto());
 
         assertNotNull(dto.getCostos());
         assertEquals(3, dto.getCostos().size());
