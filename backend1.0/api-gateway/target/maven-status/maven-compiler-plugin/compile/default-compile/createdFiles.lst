@@ -10,6 +10,7 @@ com\apigateway\controller\ObraBffController$12.class
 com\apigateway\controller\CostoBffController$4.class
 com\apigateway\controller\TransaccionBffController$4.class
 com\apigateway\controller\ObraBffController.class
+com\apigateway\controller\ReportesBffController$41.class
 com\apigateway\controller\WhatsAppBffController$3.class
 com\apigateway\controller\ObraBffController$17.class
 com\apigateway\filter\JwtAuthFilter$1.class
@@ -19,6 +20,7 @@ com\apigateway\controller\ReportesBffController$21.class
 com\apigateway\controller\LegalController.class
 com\apigateway\controller\FacturaBffController$7.class
 com\apigateway\controller\ReportesBffController$5.class
+com\apigateway\controller\AuthBffController$2.class
 com\apigateway\controller\ObraBffController$1.class
 com\apigateway\controller\ObrasBffController$4.class
 com\apigateway\controller\ObrasBffController$3.class
@@ -37,6 +39,7 @@ com\apigateway\controller\AuthBffController$3.class
 com\apigateway\controller\ProveedorBffController$3.class
 com\apigateway\controller\ReportesBffController$26.class
 com\apigateway\filter\SecurityHeadersFilter.class
+com\apigateway\controller\AuthBffController.class
 com\apigateway\controller\ObraBffController$13.class
 com\apigateway\controller\ClienteBffController$2.class
 com\apigateway\controller\ReportesBffController$14.class
@@ -172,6 +175,7 @@ com\apigateway\controller\ClienteBffController$4.class
 com\apigateway\controller\TipoProveedorBffController.class
 com\apigateway\controller\TipoTransaccionBffController$2.class
 com\apigateway\service\ResilientWebClientService.class
+com\apigateway\controller\AuthBffController$1.class
 com\apigateway\controller\FacturaBffController$1.class
 com\apigateway\controller\ReportesBffController$1.class
 com\apigateway\controller\GremioBffController$4.class

@@ -1,44 +1,48 @@
 @defer (when datosCargados; on interaction; prefetch on timer(2s)) {
   <div class="space-y-6">
-    <!-- Filtros - Generic Filter Bar -->
-    <app-generic-filter-bar
-      [filterDefinitions]="filterDefinitions"
-      [actions]="filterActions"
-      (filterChange)="onFilterChange($event)"
-      (clearFilters)="onClearFilters()"
-    ></app-generic-filter-bar>
+    <!-- Filtros - Generic Filter Bar (no aplica cuando el listado ya está acotado a una obra) -->
+    @if (!obraId) {
+      <app-generic-filter-bar
+        [filterDefinitions]="filterDefinitions"
+        [actions]="filterActions"
+        (filterChange)="onFilterChange($event)"
+        (clearFilters)="onClearFilters()"
+      ></app-generic-filter-bar>
+    }
 
-    <!-- KPIs -->
-    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-      <app-kpi-card
-        [title]="'Facturado'"
-        [color]="'emerald'"
-        [value]="(totalFacturado | currency:'ARS':'symbol':'1.0-2') ?? ''"
-        [tooltip]="'Total facturado de las obras que requieren factura.'"
-        [valueFontSize]="18"
-      ></app-kpi-card>
-      <app-kpi-card
-        [title]="'Cobrado'"
-        [color]="'blue'"
-        [value]="(totalCobrado | currency:'ARS':'symbol':'1.0-2') ?? ''"
-        [tooltip]="'Cobros de obras facturadas que requieren factura.'"
-        [valueFontSize]="18"
-      ></app-kpi-card>
-      <app-kpi-card
-        [title]="'Por cobrar'"
-        [color]="'rose'"
-        [value]="(totalPorCobrar | currency:'ARS':'symbol':'1.0-2') ?? ''"
-        [tooltip]="'Facturado menos cobrado en obras facturadas.'"
-        [valueFontSize]="18"
-      ></app-kpi-card>
-      <app-kpi-card
-        [title]="'Por facturar'"
-        [color]="'amber'"
-        [value]="(totalPorFacturar | currency:'ARS':'symbol':'1.0-2') ?? ''"
-        [tooltip]="'Obras con requiere factura sin facturas emitidas.'"
-        [valueFontSize]="18"
-      ></app-kpi-card>
-    </div>
+    <!-- KPIs (no aplica cuando el listado ya está acotado a una obra) -->
+    @if (!obraId) {
+      <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <app-kpi-card
+          [title]="'Facturado'"
+          [color]="'emerald'"
+          [value]="(totalFacturado | currency:'ARS':'symbol':'1.0-2') ?? ''"
+          [tooltip]="'Total facturado de las obras que requieren factura.'"
+          [valueFontSize]="18"
+        ></app-kpi-card>
+        <app-kpi-card
+          [title]="'Cobrado'"
+          [color]="'blue'"
+          [value]="(totalCobrado | currency:'ARS':'symbol':'1.0-2') ?? ''"
+          [tooltip]="'Cobros de obras facturadas que requieren factura.'"
+          [valueFontSize]="18"
+        ></app-kpi-card>
+        <app-kpi-card
+          [title]="'Por cobrar'"
+          [color]="'rose'"
+          [value]="(totalPorCobrar | currency:'ARS':'symbol':'1.0-2') ?? ''"
+          [tooltip]="'Facturado menos cobrado en obras facturadas.'"
+          [valueFontSize]="18"
+        ></app-kpi-card>
+        <app-kpi-card
+          [title]="'Por facturar'"
+          [color]="'amber'"
+          [value]="(totalPorFacturar | currency:'ARS':'symbol':'1.0-2') ?? ''"
+          [tooltip]="'Obras con requiere factura sin facturas emitidas.'"
+          [valueFontSize]="18"
+        ></app-kpi-card>
+      </div>
+    }
 
     <!-- Tabla (tablet/desktop) -->
     <div class="hidden lg:block">
@@ -55,7 +59,9 @@
             <th pSortableColumn="id" class="font-poppins font-semibold">ID <p-sortIcon field="id"></p-sortIcon></th>
             <th pSortableColumn="fecha" class="font-poppins font-semibold">Fecha <p-sortIcon field="fecha"></p-sortIcon></th>
             <th pSortableColumn="clienteNombre" class="font-poppins font-semibold">Cliente <p-sortIcon field="clienteNombre"></p-sortIcon></th>
-            <th pSortableColumn="obraNombre" class="font-poppins font-semibold">Obra <p-sortIcon field="obraNombre"></p-sortIcon></th>
+            @if (!obraId) {
+              <th pSortableColumn="obraNombre" class="font-poppins font-semibold">Obra <p-sortIcon field="obraNombre"></p-sortIcon></th>
+            }
             <th pSortableColumn="monto" class="font-poppins font-semibold text-right">Monto <p-sortIcon field="monto"></p-sortIcon></th>
             <th class="font-poppins font-semibold text-center">Estado</th>
             <th class="font-poppins font-semibold text-center"></th>
@@ -71,9 +77,11 @@
             <td class="font-poppins font-normal text-gray-700 max-w-[160px]">
               <span class="block truncate" [pTooltip]="factura.clienteNombre" tooltipPosition="top">{{ factura.clienteNombre }}</span>
             </td>
-            <td class="font-poppins font-normal text-gray-700 max-w-[200px]">
-              <span class="block truncate" [pTooltip]="factura.obraNombre" tooltipPosition="top">{{ factura.obraNombre }}</span>
-            </td>
+            @if (!obraId) {
+              <td class="font-poppins font-normal text-gray-700 max-w-[200px]">
+                <span class="block truncate" [pTooltip]="factura.obraNombre" tooltipPosition="top">{{ factura.obraNombre }}</span>
+              </td>
+            }
             <td class="text-right font-poppins font-semibold text-gray-900">{{ factura.monto | currency:'ARS':'symbol':'1.0-2' }}</td>
             <td class="text-center" (click)="$event.stopPropagation()">
               <p-tag [value]="factura.estado === 'COBRADA' ? 'Cobrada' : 'Emitida'" [severity]="factura.estado === 'COBRADA' ? 'success' : 'warn'"></p-tag>
@@ -84,7 +92,7 @@
                 @if (factura.nombre_archivo) {
                   <button type="button" pButton icon="pi pi-file" class="p-button-text p-button-sm text-blue-500" pTooltip="Ver adjunto" tooltipPosition="top" (click)="verAdjunto(factura, $event)"></button>
                 }
-                @if (factura.id_obra) {
+                @if (factura.id_obra && !obraId) {
                   <button type="button" pButton icon="pi pi-arrow-right" class="p-button-text p-button-sm text-gray-400" pTooltip="Ver obra" tooltipPosition="top" (click)="irAlObraDetalle(factura.id_obra); $event.stopPropagation()"></button>
                 }
                 <button type="button" pButton icon="pi pi-trash" class="p-button-text p-button-sm text-red-400" pTooltip="Eliminar" tooltipPosition="top" (click)="eliminarFactura(factura, $event)"></button>
@@ -94,7 +102,7 @@
         </ng-template>
         <ng-template pTemplate="emptymessage">
           <tr>
-            <td colspan="7" class="text-center py-10 text-gray-500">
+            <td [attr.colspan]="obraId ? 6 : 7" class="text-center py-10 text-gray-500">
               <i class="pi pi-inbox text-4xl mb-2"></i>
               <p class="font-poppins font-normal">No hay facturas.</p>
             </td>
@@ -118,7 +126,9 @@
           <div class="flex items-start justify-between gap-2 mb-2">
             <div class="flex flex-col gap-0.5 flex-1 min-w-0">
               <span class="font-poppins font-semibold text-indigo-600 text-xs">#{{ factura.id }}</span>
-              <span class="font-poppins font-semibold text-gray-900 text-sm truncate">{{ factura.obraNombre }}</span>
+              @if (!obraId) {
+                <span class="font-poppins font-semibold text-gray-900 text-sm truncate">{{ factura.obraNombre }}</span>
+              }
               <span class="font-poppins text-xs text-gray-500 truncate">{{ factura.clienteNombre }}</span>
             </div>
             <div class="flex flex-col items-end gap-1 flex-shrink-0">
@@ -133,7 +143,7 @@
               @if (factura.nombre_archivo) {
                 <button type="button" pButton icon="pi pi-file" class="p-button-text p-button-sm text-blue-500" (click)="verAdjunto(factura, $event)"></button>
               }
-              @if (factura.id_obra) {
+              @if (factura.id_obra && !obraId) {
                 <button type="button" pButton icon="pi pi-arrow-right" class="p-button-text p-button-sm text-gray-400" (click)="irAlObraDetalle(factura.id_obra); $event.stopPropagation()"></button>
               }
               <button type="button" pButton icon="pi pi-trash" class="p-button-text p-button-sm text-red-400" (click)="eliminarFactura(factura, $event)"></button>
@@ -200,94 +210,12 @@
 <p-confirmDialog></p-confirmDialog>
 <p-toast position="bottom-right"></p-toast>
 
-<app-modal
-  [visible]="showFacturaModal"
-  [title]="'Nueva factura'"
-  [width]="'600px'"
-  [confirmDisabled]="facturaFormInvalid"
-  (closed)="cerrarFacturaModal()"
-  (confirmed)="guardarFactura()"
->
-  <div class="space-y-3">
-    <div class="grid grid-cols-2 gap-4">
-      <div>
-        <label class="block text-sm font-poppins font-semibold mb-1 text-gray-700">Cliente</label>
-        <p-select
-          [(ngModel)]="facturaForm.id_cliente"
-          [options]="clientes"
-          optionLabel="nombre"
-          optionValue="id"
-          placeholder="Seleccionar cliente"
-          styleClass="w-full"
-          appendTo="body"
-          (onChange)="onFacturaClienteChange()"
-        ></p-select>
-      </div>
-      <div>
-        <label class="block text-sm font-poppins font-semibold mb-1 text-gray-700">Obra</label>
-        <p-select
-          [(ngModel)]="facturaForm.id_obra"
-          [options]="facturaObrasFiltradas"
-          optionLabel="nombre"
-          optionValue="id"
-          placeholder="Seleccionar obra"
-          styleClass="w-full"
-          appendTo="body"
-          (onChange)="onFacturaObraChange()"
-        ></p-select>
-      </div>
-    </div>
-
-    <div class="grid grid-cols-2 gap-4">
-      <div>
-        <label class="block text-sm font-poppins font-semibold mb-1 text-gray-700">Fecha</label>
-        <p-datepicker
-          [(ngModel)]="facturaForm.fecha"
-          appendTo="body"
-          styleClass="w-full"
-          dateFormat="dd/mm/yy"
-        ></p-datepicker>
-      </div>
-      <div>
-        <label class="block text-sm font-poppins font-semibold mb-1 text-gray-700">Monto</label>
-        <p-inputNumber
-          [(ngModel)]="facturaForm.monto"
-          styleClass="w-full"
-          mode="decimal"
-          locale="es-AR"
-        ></p-inputNumber>
-        @if (facturaRestanteObra != null) {
-          <p class="text-xs font-poppins font-normal text-gray-500 mt-1">
-            Restante por facturar: {{ facturaRestanteObra | currency:'ARS' }}
-          </p>
-        }
-      </div>
-    </div>
-
-    <label class="block text-sm font-poppins font-semibold mb-1 text-gray-700">Descripcion</label>
-    <input
-      type="text"
-      class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm font-poppins focus:outline-none focus:ring-2 focus:ring-blue-500"
-      [(ngModel)]="facturaForm.descripcion"
-      placeholder="Descripción de la factura"
-    />
-
-    <label class="block text-sm font-poppins font-semibold mb-1 text-gray-700">Adjuntar factura (opcional)</label>
-    <div class="flex">
-      <p-fileUpload
-        mode="basic"
-        chooseLabel="Seleccionar archivo"
-        chooseIcon="pi pi-upload"
-        accept=".jpg,.jpeg,.png,.pdf"
-        [auto]="false"
-        (onSelect)="onFacturaFileSelected($event)"
-      ></p-fileUpload>
-    </div>
-    @if (facturaFile) {
-      <div class="flex items-center gap-2 text-sm text-gray-700">
-        <span>{{ facturaFile.name }}</span>
-        <button type="button" class="text-red-500 hover:text-red-700" (click)="quitarFacturaArchivo()">x</button>
-      </div>
-    }
-  </div>
-</app-modal>
+<app-factura-modal
+  [visible]="modalVisible"
+  [mode]="modalMode"
+  [facturaId]="modalFacturaId"
+  [obraIdPreseleccionado]="obraId ?? null"
+  (closed)="onModalClosed()"
+  (guardada)="onFacturaGuardada()"
+  (eliminada)="onFacturaEliminada()"
+></app-factura-modal>

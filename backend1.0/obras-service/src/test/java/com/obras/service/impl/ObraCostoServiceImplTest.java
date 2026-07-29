@@ -162,6 +162,31 @@ class ObraCostoServiceImplTest {
     }
 
     @Test
+    void crear_adicional_sin_proveedor_monto_va_directo_a_beneficio() {
+        Obra obra = new Obra();
+        obra.setId(50L);
+        obra.setBeneficioGlobal(true);
+
+        ObraCostoDTO dto = new ObraCostoDTO();
+        dto.setId_obra(50L);
+        dto.setTipo_costo(TipoCostoEnum.ADICIONAL);
+        dto.setId_proveedor(null);
+        dto.setCantidad(new BigDecimal("1"));
+        dto.setPrecio_unitario(new BigDecimal("50"));
+        dto.setBeneficio(new BigDecimal("25")); // debe ignorarse: sin proveedor no hay markup, todo es beneficio
+
+        when(obraRepo.findById(50L)).thenReturn(Optional.of(obra));
+        when(costoRepo.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
+        when(costoRepo.findByObra_IdAndActivoTrue(50L)).thenReturn(List.of());
+        when(obraRepo.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
+
+        ObraCostoDTO saved = service.crear(dto);
+
+        assertEquals(new BigDecimal("50.00"), saved.getSubtotal());
+        assertEquals(new BigDecimal("50.00"), saved.getTotal());
+    }
+
+    @Test
     void actualizar_estado_pago_null_default() {
         Obra obra = new Obra();
         obra.setId(6L);
@@ -409,7 +434,8 @@ class ObraCostoServiceImplTest {
 
         ArgumentCaptor<Obra> captor = ArgumentCaptor.forClass(Obra.class);
         verify(obraRepo).save(captor.capture());
-        assertEquals(new BigDecimal("390.00"), captor.getValue().getPresupuesto());
+        // adicional (sin proveedor) manda su monto completo (50) directo al beneficio, no al subtotal de costos.
+        assertEquals(new BigDecimal("380.00"), captor.getValue().getPresupuesto());
     }
 
     @Test

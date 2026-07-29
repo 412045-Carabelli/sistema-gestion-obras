@@ -6,7 +6,7 @@ import { TagModule } from 'primeng/tag';
 import { Subscription } from 'rxjs';
 import { ChangelogService } from '../../services/changelog/changelog.service';
 
-const VERSION = 'v1.17.45';
+const VERSION = 'v1.17.50';
 const STORAGE_KEY = `sgo-changelog-seen-${VERSION}`;
 
 interface ChangeItem {
@@ -83,6 +83,21 @@ export class ChangelogModalComponent implements OnInit, OnDestroy {
       items: [
         { texto: 'Reemplazar botón de imprimir por "Exportar PDF" en la barra de filtros (obras, clientes, proveedores, agendas, facturas, movimientos)', estado: 'done' },
         { texto: 'El PDF exportado respeta los filtros aplicados en el listado', estado: 'done' },
+      ]
+    },
+    {
+      modulo: 'Pendientes Pablo 28/07/2026',
+      icon: 'pi pi-exclamation-triangle',
+      items: [
+        { texto: 'Verificar obras que muestran detalle de facturación pendiente sin estar marcadas para facturar (ej. Talar Center - Ingresos y rampas)', estado: 'pending' },
+        { texto: 'Cuentas Corrientes: al filtrar por proveedor, el filtro de obra debe ofrecer solo las obras en las que participa (hoy muestra todas)', estado: 'pending' },
+        { texto: 'Verificar formato de texto al editar la memoria descriptiva de una obra', estado: 'pending' },
+        { texto: 'Habilitar impresión/exportación en todos los listados filtrados (ej. obras adjudicadas)', estado: 'pending' },
+        { texto: 'Módulo Facturas: poder revisar el PDF de una factura ya cargada', estado: 'pending' },
+        { texto: 'Botón "Impacta en Cta Cte" da error y no permite seleccionarlo: se quita', estado: 'pending' },
+        { texto: 'Restaurar opción COTIZADA en estados de obras (desapareció)', estado: 'pending' },
+        { texto: 'PDF de cuenta corriente (cliente + obra): respetar la obra seleccionada en vez de traer todas', estado: 'pending' },
+        { texto: 'Al seleccionar cliente, el filtro de obras debe mostrar solo las obras de ese cliente', estado: 'pending' },
       ]
     },
   ];
