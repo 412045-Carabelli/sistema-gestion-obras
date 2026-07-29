@@ -60,6 +60,14 @@
   font-weight: 600;
 }
 
+::ng-deep .memoria-editor .p-editor-container {
+  min-height: 200px;
+}
+
+::ng-deep .memoria-editor .p-editor-content {
+  min-height: 160px;
+}
+
 /* Cronograma Cards Compactas */
 .cronograma-card {
   animation: fadeInUp 0.35s ease-out both;

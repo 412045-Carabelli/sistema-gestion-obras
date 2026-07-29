@@ -585,6 +585,8 @@ public class ObraBffController {
     private static final List<String> ESTADOS_CON_FACTURACION = List.of("ADJUDICADA", "EN_PROGRESO", "FINALIZADA");
 
     private String calcularEstadoFacturacion(Map<String, Object> obra, List<Map<String, Object>> facturas) {
+        if (!Boolean.TRUE.equals(obra.get("requiere_factura"))) return null;
+
         Object estadoObj = obra.get("obra_estado");
         if (estadoObj == null) return null;
         if (!ESTADOS_CON_FACTURACION.contains(estadoObj.toString().toUpperCase())) return null;

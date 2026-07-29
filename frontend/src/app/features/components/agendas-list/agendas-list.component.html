@@ -2,14 +2,16 @@
 
 @defer (when datosCargados(); on interaction; prefetch on timer(2s)) {
   <div class="flex flex-col gap-4">
-    <!-- Filtros - Generic Filter Bar -->
-    <app-generic-filter-bar
-      [filterDefinitions]="filterDefinitions"
-      [actions]="filterActions"
-      [viewToggle]="viewToggle"
-      (filterChange)="onFilterChange($event)"
-      (clearFilters)="onClearFilters()"
-    ></app-generic-filter-bar>
+    <!-- Filtros - Generic Filter Bar (no aplica cuando el listado ya está acotado a una obra) -->
+    @if (!obraId) {
+      <app-generic-filter-bar
+        [filterDefinitions]="filterDefinitions"
+        [actions]="filterActions"
+        [viewToggle]="viewToggle"
+        (filterChange)="onFilterChange($event)"
+        (clearFilters)="onClearFilters()"
+      ></app-generic-filter-bar>
+    }
 
     @if (vistaActual() === 'gantt') {
       <app-agendas-gantt [modoEmbebido]="true" (volverALista)="vistaActual.set('lista')"></app-agendas-gantt>
@@ -30,7 +32,9 @@
           <tr>
             <th pSortableColumn="id" class="text-left font-poppins font-semibold w-20">N° <p-sortIcon field="id"></p-sortIcon></th>
             <th pSortableColumn="titulo" class="text-left font-poppins font-semibold">Título <p-sortIcon field="titulo"></p-sortIcon></th>
-            <th pSortableColumn="obraId" class="text-left font-poppins font-semibold">Obra <p-sortIcon field="obraId"></p-sortIcon></th>
+            @if (!obraId) {
+              <th pSortableColumn="obraId" class="text-left font-poppins font-semibold">Obra <p-sortIcon field="obraId"></p-sortIcon></th>
+            }
             <th pSortableColumn="clienteId" class="text-left font-poppins font-semibold">Cliente <p-sortIcon field="clienteId"></p-sortIcon></th>
             <th pSortableColumn="proveedorId" class="text-left font-poppins font-semibold">Proveedor <p-sortIcon field="proveedorId"></p-sortIcon></th>
             <th pSortableColumn="estado" class="text-left font-poppins font-semibold">Estado <p-sortIcon field="estado"></p-sortIcon></th>
@@ -45,7 +49,9 @@
               <span (click)="abrirModalDetalle(agenda)" class="text-blue-600 underline cursor-pointer hover:text-blue-800">{{ agenda.id }}</span>
             </td>
             <td><span class="font-poppins font-semibold text-gray-900 text-sm">{{ agenda.titulo }}</span></td>
-            <td class="text-gray-600 text-sm font-poppins font-normal">{{ getNombreObra(agenda.obraId) }}</td>
+            @if (!obraId) {
+              <td class="text-gray-600 text-sm font-poppins font-normal">{{ getNombreObra(agenda.obraId) }}</td>
+            }
             <td class="text-gray-600 text-sm font-poppins font-normal">{{ getNombreCliente(agenda.clienteId) }}</td>
             <td class="text-gray-600 text-sm font-poppins font-normal">{{ getNombreProveedor(agenda.proveedorId) }}</td>
             <td>
@@ -74,7 +80,7 @@
         </ng-template>
         <ng-template pTemplate="emptymessage">
           <tr>
-            <td class="text-center py-10" colspan="9">
+            <td class="text-center py-10" [attr.colspan]="obraId ? 8 : 9">
               <div class="flex flex-col items-center justify-center gap-2 text-gray-500">
                 <i class="pi pi-inbox text-3xl"></i>
                 <p class="text-base font-medium">No hay agendas para mostrar</p>
@@ -106,7 +112,7 @@
             <p-tag [severity]="getEstadoSeverity(agenda.estado)" [value]="getEstadoLabel(agenda.estado)" styleClass="text-xs flex-shrink-0"></p-tag>
           </div>
           <div class="grid grid-cols-2 gap-x-4 gap-y-1.5 text-xs mt-3">
-            @if (getNombreObra(agenda.obraId)) {
+            @if (!obraId && getNombreObra(agenda.obraId)) {
               <div class="flex flex-col">
                 <span class="text-gray-400">Obra</span>
                 <span class="text-gray-700 font-poppins font-medium">{{ getNombreObra(agenda.obraId) }}</span>

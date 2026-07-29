@@ -91,10 +91,6 @@ export class FacturasService {
     });
   }
 
-  getFacturaUrl(id: number): string {
-    return `${this.apiUrl}/${id}/download`;
-  }
-
   private buildFormData(payload: FacturaPayload, file?: File): FormData {
     const formData = new FormData();
     formData.append('id_cliente', String(payload.id_cliente));

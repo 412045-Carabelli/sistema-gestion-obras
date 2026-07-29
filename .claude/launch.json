@@ -4,8 +4,62 @@
     {
       "name": "frontend",
       "runtimeExecutable": "npm",
-      "runtimeArgs": ["run", "start"],
+      "runtimeArgs": ["--prefix", "frontend", "run", "start"],
       "port": 4200
+    },
+    {
+      "name": "api-gateway",
+      "runtimeExecutable": "mvn",
+      "runtimeArgs": ["-f", "backend1.0/pom.xml", "-pl", "api-gateway", "spring-boot:run"],
+      "port": 8080
+    },
+    {
+      "name": "obras-service",
+      "runtimeExecutable": "mvn",
+      "runtimeArgs": ["-f", "backend1.0/pom.xml", "-pl", "obras-service", "spring-boot:run"],
+      "port": 8081
+    },
+    {
+      "name": "clientes-service",
+      "runtimeExecutable": "mvn",
+      "runtimeArgs": ["-f", "backend1.0/pom.xml", "-pl", "clientes-service", "spring-boot:run"],
+      "port": 8082
+    },
+    {
+      "name": "proveedores-service",
+      "runtimeExecutable": "mvn",
+      "runtimeArgs": ["-f", "backend1.0/pom.xml", "-pl", "proveedores-service", "spring-boot:run"],
+      "port": 8083
+    },
+    {
+      "name": "reportes-service",
+      "runtimeExecutable": "mvn",
+      "runtimeArgs": ["-f", "backend1.0/pom.xml", "-pl", "reportes-service", "spring-boot:run"],
+      "port": 8084
+    },
+    {
+      "name": "agendas-service",
+      "runtimeExecutable": "mvn",
+      "runtimeArgs": ["-f", "backend1.0/pom.xml", "-pl", "agendas-service", "spring-boot:run"],
+      "port": 8085
+    },
+    {
+      "name": "transacciones-service",
+      "runtimeExecutable": "mvn",
+      "runtimeArgs": ["-f", "backend1.0/pom.xml", "-pl", "transacciones-service", "spring-boot:run"],
+      "port": 8086
+    },
+    {
+      "name": "documentos-service",
+      "runtimeExecutable": "mvn",
+      "runtimeArgs": ["-f", "backend1.0/pom.xml", "-pl", "documentos-service", "spring-boot:run"],
+      "port": 8087
+    },
+    {
+      "name": "auth-service",
+      "runtimeExecutable": "mvn",
+      "runtimeArgs": ["-f", "backend1.0/pom.xml", "-pl", "auth-service", "spring-boot:run"],
+      "port": 8089
     }
   ]
 }

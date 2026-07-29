@@ -7,6 +7,8 @@ import com.obras.enums.TipoCostoEnum;
 import com.obras.repository.ObraCostoRepository;
 import com.obras.repository.ObraRepository;
 import com.obras.service.ObraCostoService;
+import com.obras.service.costo.CostoTipoStrategy;
+import com.obras.service.costo.CostoTipoStrategyFactory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -137,26 +139,15 @@ public class ObraCostoServiceImpl implements ObraCostoService {
                 ? entity.getCantidad().multiply(entity.getPrecioUnitario()).setScale(2, RoundingMode.HALF_UP)
                 : BigDecimal.ZERO;
 
-        // ECONOMIA: sin beneficio, solo resta presupuesto. Debe tener subtotal negativo.
+        CostoTipoStrategy strategy = CostoTipoStrategyFactory.obtener(tipoCosto, entity.getIdProveedor());
+        strategy.validar(subtotal);
+
         if (TipoCostoEnum.ECONOMIA.equals(tipoCosto)) {
-            if (subtotal.compareTo(BigDecimal.ZERO) >= 0) {
-                throw new IllegalArgumentException("El monto de un costo ECONOMIA debe ser negativo (precio unitario < 0).");
-            }
             entity.setBeneficio(BigDecimal.ZERO);
-            entity.setSubtotal(subtotal);
-            entity.setTotal(subtotal);
-            entity.setActivo(true);
-            return;
         }
 
-        boolean esAdicional = tipoCosto != TipoCostoEnum.ORIGINAL;
-        BigDecimal beneficioAplicado = !esAdicional && Boolean.TRUE.equals(entity.getObra().getBeneficioGlobal())
-                ? Optional.ofNullable(entity.getObra().getBeneficio()).orElse(BigDecimal.ZERO)
-                : Optional.ofNullable(entity.getBeneficio()).orElse(BigDecimal.ZERO);
-
-        BigDecimal total = subtotal.multiply(
-                BigDecimal.ONE.add(beneficioAplicado.divide(new BigDecimal("100"), 6, RoundingMode.HALF_UP))
-        ).setScale(2, RoundingMode.HALF_UP);
+        BigDecimal beneficioMonto = strategy.beneficioMonto(subtotal, entity.getBeneficio(), entity.getObra());
+        BigDecimal total = strategy.subtotalEfectivo(subtotal).add(beneficioMonto).setScale(2, RoundingMode.HALF_UP);
 
         entity.setSubtotal(subtotal);
         entity.setTotal(total);
@@ -271,20 +262,9 @@ public class ObraCostoServiceImpl implements ObraCostoService {
                 base = cantidad.multiply(precio);
             }
 
-            boolean esAdicional = !TipoCostoEnum.ORIGINAL.equals(costo.getTipoCosto());
-            // ECONOMIA no aplica beneficio: solo resta el monto base al presupuesto
-            BigDecimal beneficioAplicado = TipoCostoEnum.ECONOMIA.equals(costo.getTipoCosto())
-                    ? BigDecimal.ZERO
-                    : (esAdicional
-                        ? Optional.ofNullable(costo.getBeneficio()).orElse(BigDecimal.ZERO)
-                        : (Boolean.TRUE.equals(obra.getBeneficioGlobal())
-                            ? Optional.ofNullable(obra.getBeneficio()).orElse(BigDecimal.ZERO)
-                            : Optional.ofNullable(costo.getBeneficio()).orElse(BigDecimal.ZERO)));
-
-            subtotalCostos = subtotalCostos.add(base);
-            beneficioCostos = beneficioCostos.add(
-                    base.multiply(beneficioAplicado).divide(new BigDecimal("100"), 6, RoundingMode.HALF_UP)
-            );
+            CostoTipoStrategy strategy = CostoTipoStrategyFactory.obtener(costo.getTipoCosto(), costo.getIdProveedor());
+            subtotalCostos = subtotalCostos.add(strategy.subtotalEfectivo(base));
+            beneficioCostos = beneficioCostos.add(strategy.beneficioMonto(base, costo.getBeneficio(), obra));
         }
 
         BigDecimal totalConBeneficio = subtotalCostos.add(beneficioCostos);

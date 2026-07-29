@@ -1,7 +1,7 @@
 ﻿import {AfterViewInit, Component, ElementRef, OnDestroy, OnInit, ViewChild} from '@angular/core';
 import {ActivatedRoute, Router} from '@angular/router';
 import {CommonModule, CurrencyPipe, DatePipe, NgClass} from '@angular/common';
-import {forkJoin, Subscription, tap} from 'rxjs';
+import {forkJoin, Subscription} from 'rxjs';
 
 import {ButtonModule} from 'primeng/button';
 import {CardModule} from 'primeng/card';
@@ -19,7 +19,7 @@ import {ConfirmationService, MessageService} from 'primeng/api';
 import {ToastModule} from 'primeng/toast';
 import {TagModule} from 'primeng/tag';
 
-import {Cliente, EstadoObra, Obra, ObraCosto, Proveedor, Tarea, CuentaCorrienteMovimiento, Factura, Agenda} from '../../../core/models/models';
+import {Cliente, EstadoObra, Obra, ObraCosto, Proveedor, Tarea, CuentaCorrienteMovimiento} from '../../../core/models/models';
 import {ObraMovimientosComponent} from '../../components/obra-movimientos/obra-movimientos.component';
 import {ObraTareasComponent} from '../../components/obra-tareas/obra-tareas.component';
 
@@ -27,6 +27,7 @@ import {ObrasService} from '../../../services/obras/obras.service';
 import {ProveedoresService} from '../../../services/proveedores/proveedores.service';
 import {EstadoObraService} from '../../../services/estado-obra/estado-obra.service';
 import {ObraDocumentosComponent} from '../../components/obra-documentos/obra-documentos.component';
+import {FacturasListComponent} from '../../components/facturas-list/facturas-list.component';
 
 import {Tab, TabList, TabPanel, TabPanels, Tabs} from 'primeng/tabs';
 import {ClientesService} from '../../../services/clientes/clientes.service';
@@ -35,13 +36,14 @@ import {StyleClassModule} from 'primeng/styleclass';
 import {ObraPresupuestoComponent} from '../../components/obra-presupuesto/obra-presupuesto.component';
 import {ReportesService} from '../../../services/reportes/reportes.service';
 import {CuentaCorrienteObraResponse, ReportFilter} from '../../../core/models/models';
-import {FacturasService} from '../../../services/facturas/facturas.service';
+import {FacturasStateService} from '../../../services/facturas/facturas-state.service';
 import {ModalComponent} from '../../../shared/modal/modal.component';
 import {ConfirmDialog} from 'primeng/confirmdialog';
 import {KpiCardComponent} from '../../../shared/kpi-card/kpi-card.component';
 import {AgendasService} from '../../../services/agendas/agendas.service';
-import {AgendaModalComponent} from '../../components/agendas-list/agenda-modal/agenda-modal.component';
+import {AgendasListComponent} from '../../components/agendas-list/agendas-list.component';
 import {EstadoFormatPipe} from '../../../shared/pipes/estado-format.pipe';
+import {EditorModule} from 'primeng/editor';
 
 @Component({
   selector: 'app-obra-detail',
@@ -78,8 +80,10 @@ import {EstadoFormatPipe} from '../../../shared/pipes/estado-format.pipe';
     TagModule,
     ConfirmDialog,
     KpiCardComponent,
-    AgendaModalComponent,
+    AgendasListComponent,
     EstadoFormatPipe,
+    EditorModule,
+    FacturasListComponent,
   ],
   providers: [MessageService, ConfirmationService],
   templateUrl: './obras-detail.component.html',
@@ -98,21 +102,6 @@ export class ObrasDetailComponent implements OnInit, OnDestroy, AfterViewInit {
   proveedores!: Proveedor[];
   clientes!: Cliente[];
   cuentaCorrienteObra: CuentaCorrienteObraResponse | null = null;
-  facturasObra: Factura[] = [];
-  facturasFiltradas: Factura[] = [];
-  agendasObra: Agenda[] = [];
-  showAgendaModal = false;
-  agendaSeleccionadaObra: Agenda | null = null;
-  showFacturaModal = false;
-  showFacturaDetalleModal = false;
-  facturaDetalle?: Factura;
-  facturaForm = {
-    fecha: new Date(),
-    monto: null as number | null,
-    descripcion: '',
-    estado: 'EMITIDA'
-  };
-  facturaFile: File | null = null;
   progresoFisico = 0;
   estadosObra: EstadoObra[] = [];
   estadoSeleccionado: string | null = null;
@@ -145,9 +134,9 @@ export class ObrasDetailComponent implements OnInit, OnDestroy, AfterViewInit {
     private messageService: MessageService,
     private obraStateService: ObrasStateService,
     private reportesService: ReportesService,
-    private facturasService: FacturasService,
+    public facturasStateService: FacturasStateService,
     private confirmationService: ConfirmationService,
-    private agendasService: AgendasService
+    public agendasService: AgendasService
   ) {}
 
   ngOnInit(): void {
@@ -295,11 +284,10 @@ export class ObrasDetailComponent implements OnInit, OnDestroy, AfterViewInit {
       obra: this.obraService.getObraById(idObra),
       estados: this.estadoObraService.getEstados(),
       clientes: this.clientesService.getClientes(),
-      proveedores: this.proveedoresService.getProveedoresSimple(),
-      facturas: this.facturasService.getFacturasByObra(idObra)
+      proveedores: this.proveedoresService.getProveedoresSimple()
     }).subscribe({
 
-      next: ({ obra, estados, clientes, proveedores, facturas }) => {
+      next: ({ obra, estados, clientes, proveedores }) => {
         this.obra = { ...obra, id: Number(obra.id) };
         if (this.activeTab === '3' && !obra.requiere_factura) {
           this.activeTab = '0';
@@ -312,9 +300,6 @@ export class ObrasDetailComponent implements OnInit, OnDestroy, AfterViewInit {
 
         this.clientes = clientes;
         this.proveedores = proveedores;
-
-        this.facturasObra = facturas || [];
-        this.facturasFiltradas = [...this.facturasObra].sort((a, b) => Number(b.id ?? 0) - Number(a.id ?? 0));
 
         this.progresoFisico = this.getProgresoFisico();
         this.beneficioCostos = obra.beneficio_costos != null
@@ -504,203 +489,6 @@ export class ObrasDetailComponent implements OnInit, OnDestroy, AfterViewInit {
       next: (data) => this.cuentaCorrienteObra = data,
       error: () => this.cuentaCorrienteObra = null
     });
-  }
-
-  private cargarFacturasObra() {
-    if (!this.obra?.id) return;
-    this.facturasService.getFacturasByObra(this.obra.id).subscribe({
-      next: (facturas) => {
-        this.facturasObra = facturas || [];
-        this.facturasFiltradas = [...this.facturasObra];
-      },
-      error: () => {
-        this.facturasObra = [];
-        this.facturasFiltradas = [];
-      }
-    });
-  }
-
-  abrirFacturaModal() {
-    this.resetFacturaForm();
-    this.showFacturaModal = true;
-  }
-
-  cerrarFacturaModal() {
-    this.showFacturaModal = false;
-  }
-
-  abrirDetalleFactura(factura: Factura) {
-    if (!factura) return;
-    this.facturaDetalle = factura;
-    this.showFacturaDetalleModal = true;
-  }
-
-  cerrarDetalleFactura() {
-    this.showFacturaDetalleModal = false;
-  }
-
-  editarFacturaDetalle() {
-    if (!this.facturaDetalle) return;
-    this.cerrarDetalleFactura();
-    this.editarFactura(this.facturaDetalle);
-  }
-
-  guardarFacturaObra() {
-    if (!this.obra?.id || !this.obra?.cliente?.id) return;
-    const monto = Number(this.facturaForm.monto ?? 0);
-    if (!monto || monto <= 0) {
-      this.messageService.add({
-        severity: 'warn',
-        summary: 'Monto invalido',
-        detail: 'Ingresa un monto mayor a 0.'
-      });
-      return;
-    }
-    const presupuesto = Number(this.obra.presupuesto ?? NaN);
-    if (!Number.isFinite(presupuesto)) {
-      this.messageService.add({
-        severity: 'warn',
-        summary: 'Sin presupuesto',
-        detail: 'No se pudo obtener el presupuesto de la obra.'
-      });
-      return;
-    }
-    const restante = Math.max(0, presupuesto - this.totalFacturasMonto);
-    if (monto > restante + 0.01) {
-      this.messageService.add({
-        severity: 'warn',
-        summary: 'Monto invalido',
-        detail: 'El monto supera el restante disponible de la obra.'
-      });
-      return;
-    }
-
-    const payload = {
-      id_cliente: Number(this.obra.cliente.id),
-      id_obra: Number(this.obra.id),
-      monto,
-      monto_restante: (this.facturaForm.estado || 'EMITIDA') === 'COBRADA' ? 0 : monto,
-      fecha: this.formatDate(this.facturaForm.fecha),
-      descripcion: this.facturaForm.descripcion || '',
-      estado: this.facturaForm.estado || 'EMITIDA'
-    };
-
-    this.facturasService.createFactura(payload, this.facturaFile).pipe(
-      tap(() => this.recargarObra())
-    ).subscribe({
-      next: () => {
-        this.showFacturaModal = false;
-        this.messageService.add({
-          severity: 'success',
-          summary: 'Factura creada',
-          detail: 'La factura se guardo correctamente.'
-        });
-        this.resetFacturaForm();
-        this.cargarFacturasObra();
-      },
-      error: (err: any) => {
-        this.messageService.add({
-          severity: 'error',
-          summary: 'Error',
-          detail: err?.error?.message || 'No se pudo crear la factura.'
-        });
-      }
-    });
-  }
-
-  onFacturaFileSelected(event: any) {
-    const files = event?.currentFiles ?? event?.files ?? [];
-    this.facturaFile = files?.[0] ?? null;
-  }
-
-  quitarFacturaArchivo() {
-    this.facturaFile = null;
-  }
-
-  descargarAdjuntoFactura(factura: Factura) {
-    if (!factura?.id || !factura?.nombre_archivo) return;
-    const popup = this.abrirPopup();
-    if (!popup) {
-      this.messageService.add({
-        severity: 'warn',
-        summary: 'Bloqueo de ventana',
-        detail: 'Habilita los pop-ups para abrir el adjunto.'
-      });
-      return;
-    }
-    this.facturasService.downloadFactura(factura.id).subscribe({
-      next: (blob) => {
-        const baseBlob = blob instanceof Blob ? blob : new Blob([blob]);
-        const tipo = this.detectarMime(factura.nombre_archivo, baseBlob.type);
-        const fileBlob = tipo ? new Blob([baseBlob], { type: tipo }) : baseBlob;
-        const url = window.URL.createObjectURL(fileBlob);
-        popup.location.href = url;
-        setTimeout(() => window.URL.revokeObjectURL(url), 10000);
-      },
-      error: () => {
-        this.messageService.add({
-          severity: 'error',
-          summary: 'Error',
-          detail: 'No se pudo abrir el adjunto.'
-        });
-      }
-    });
-  }
-
-  verDetalleFactura(factura: Factura) {
-    if (!factura) return;
-    this.abrirDetalleFactura(factura);
-  }
-
-  editarFactura(factura: Factura) {
-    if (!factura?.id) return;
-    this.router.navigate(['/facturas/editar', factura.id]);
-  }
-
-  eliminarFactura(factura: Factura, pedirConfirmacion = true) {
-    if (!factura?.id) return;
-    const eliminar = () => {
-      this.facturasService.deleteFactura(factura.id!).subscribe({
-        next: () => {
-          this.messageService.add({
-            severity: 'success',
-            summary: 'Factura eliminada',
-            detail: 'La factura se elimino correctamente.'
-          });
-          this.cargarFacturasObra();
-        },
-        error: () => {
-          this.messageService.add({
-            severity: 'error',
-            summary: 'Error',
-            detail: 'No se pudo eliminar la factura.'
-          });
-        }
-      });
-    };
-
-    if (!pedirConfirmacion) {
-      eliminar();
-      return;
-    }
-
-    this.confirmationService.confirm({
-      header: 'Confirmar eliminacion',
-      message: '¿Seguro que queres eliminar esta factura?',
-      icon: 'pi pi-exclamation-triangle',
-      acceptLabel: 'Eliminar',
-      rejectLabel: 'Cancelar',
-      acceptButtonStyleClass: 'p-button-danger p-button-sm',
-      rejectButtonStyleClass: 'p-button-text p-button-sm',
-      accept: () => eliminar()
-    });
-  }
-
-  eliminarFacturaDetalle() {
-    if (!this.facturaDetalle) return;
-    const factura = this.facturaDetalle;
-    this.cerrarDetalleFactura();
-    this.eliminarFactura(factura, true);
   }
 
   onTareasActualizadas(nuevasTareas: Tarea[]) {
@@ -988,43 +776,6 @@ export class ObrasDetailComponent implements OnInit, OnDestroy, AfterViewInit {
     const minute = String(value.getMinutes()).padStart(2, '0');
     const second = String(value.getSeconds()).padStart(2, '0');
     return `${year}-${month}-${day}T${hour}:${minute}:${second}`;
-  }
-
-  get totalFacturasMonto(): number {
-    return (this.facturasFiltradas || []).reduce((acc, factura) => acc + Number(factura.monto ?? 0), 0);
-  }
-
-  cargarAgendasObra() {
-    if (!this.obra?.id) return;
-    this.agendasService.getAgendasByObra(this.obra.id).subscribe({
-      next: (agendas) => this.agendasObra = agendas,
-      error: () => this.agendasObra = []
-    });
-  }
-
-  abrirModalNuevaAgenda() {
-    this.agendaSeleccionadaObra = null;
-    this.showAgendaModal = true;
-  }
-
-  abrirModalDetalleAgenda(agenda: Agenda) {
-    this.agendaSeleccionadaObra = agenda;
-    this.showAgendaModal = true;
-  }
-
-  cerrarModalAgenda() {
-    this.showAgendaModal = false;
-    this.agendaSeleccionadaObra = null;
-  }
-
-  onAgendaGuardadaObra(agenda: Agenda) {
-    this.cerrarModalAgenda();
-    this.cargarAgendasObra();
-  }
-
-  onAgendaEliminadaObra(id: number) {
-    this.cerrarModalAgenda();
-    this.cargarAgendasObra();
   }
 
   async exportarResumenPdf() {
@@ -1441,48 +1192,6 @@ export class ObrasDetailComponent implements OnInit, OnDestroy, AfterViewInit {
     return id > 0;
   }
 
-  private resetFacturaForm() {
-    this.facturaForm = {
-      fecha: new Date(),
-      monto: null,
-      descripcion: '',
-      estado: 'EMITIDA'
-    };
-    this.facturaFile = null;
-  }
-
-  stripFacturaDescripcion(raw?: string | null): string {
-    if (!raw) return '';
-    return raw.replace(/<[^>]*>/g, '').trim();
-  }
-
-  private abrirPopup(): Window | null {
-    const popup = window.open('', '_blank');
-    if (popup) {
-      popup.opener = null;
-      popup.document.write('<p>Cargando adjunto...</p>');
-    }
-    return popup;
-  }
-
-  private detectarMime(nombre?: string, baseType?: string | null): string | null {
-    if (baseType) return baseType;
-    if (!nombre) return null;
-    const lower = nombre.toLowerCase();
-    if (lower.endsWith('.pdf')) return 'application/pdf';
-    if (lower.endsWith('.jpg') || lower.endsWith('.jpeg')) return 'image/jpeg';
-    if (lower.endsWith('.png')) return 'image/png';
-    return null;
-  }
-
-  private formatDate(value: any): string {
-    if (!value) return '';
-    if (value instanceof Date) {
-      return value.toISOString().split('T')[0];
-    }
-    return String(value);
-  }
-
   tieneFechaCronograma(value?: string | Date | null): boolean {
     return !!value;
   }
@@ -1510,12 +1219,8 @@ export class ObrasDetailComponent implements OnInit, OnDestroy, AfterViewInit {
     if (newTab === '2') {
       this.cargarCuentaCorriente(this.obra.id!);
       this.refrescarMovimientos();
-    } else if (newTab === '3') {
-      this.cargarFacturasObra();
     } else if (newTab === '5') {
       this.refrescarDocumentos();
-    } else if (newTab === '6') {
-      this.cargarAgendasObra();
     }
   }
 

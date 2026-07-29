@@ -10,6 +10,8 @@ import com.obras.repository.ObraCostoRepository;
 import com.obras.repository.ObraRepository;
 import com.obras.repository.TareaRepository;
 import com.obras.service.ObraService;
+import com.obras.service.costo.CostoTipoStrategy;
+import com.obras.service.costo.CostoTipoStrategyFactory;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -405,13 +407,11 @@ public class ObraServiceImpl implements ObraService {
             TipoCostoEnum tipoCosto = cdto.getTipo_costo() != null ? cdto.getTipo_costo() : TipoCostoEnum.ORIGINAL;
 
             BigDecimal subtotal = cantidad.multiply(precio);
-            BigDecimal beneficioAplicado = Boolean.TRUE.equals(obra.getBeneficioGlobal()) && tipoCosto == TipoCostoEnum.ORIGINAL
-                    ? Optional.ofNullable(obra.getBeneficio()).orElse(BigDecimal.ZERO)
-                    : beneficioCosto;
-
-            BigDecimal total = subtotal.multiply(
-                    BigDecimal.ONE.add(beneficioAplicado.divide(new BigDecimal("100"), 6, java.math.RoundingMode.HALF_UP))
-            ).setScale(2, java.math.RoundingMode.HALF_UP);
+            CostoTipoStrategy strategy = CostoTipoStrategyFactory.obtener(tipoCosto, cdto.getId_proveedor());
+            BigDecimal beneficioMonto = strategy.beneficioMonto(subtotal, beneficioCosto, obra);
+            BigDecimal total = strategy.subtotalEfectivo(subtotal)
+                    .add(beneficioMonto)
+                    .setScale(2, java.math.RoundingMode.HALF_UP);
 
             return ObraCosto.builder()
                     .id(cdto.getId())
@@ -536,17 +536,9 @@ public class ObraServiceImpl implements ObraService {
                     : Optional.ofNullable(costo.getCantidad()).orElse(BigDecimal.ZERO)
                     .multiply(Optional.ofNullable(costo.getPrecioUnitario()).orElse(BigDecimal.ZERO));
 
-            boolean esAdicional = !TipoCostoEnum.ORIGINAL.equals(costo.getTipoCosto());
-            BigDecimal beneficioAplicado = esAdicional
-                    ? Optional.ofNullable(costo.getBeneficio()).orElse(BigDecimal.ZERO)
-                    : (Boolean.TRUE.equals(obra.getBeneficioGlobal())
-                    ? Optional.ofNullable(obra.getBeneficio()).orElse(BigDecimal.ZERO)
-                    : Optional.ofNullable(costo.getBeneficio()).orElse(BigDecimal.ZERO));
-
-            subtotalCostos = subtotalCostos.add(base);
-            beneficioCostos = beneficioCostos.add(
-                    base.multiply(beneficioAplicado).divide(new BigDecimal("100"), 6, RoundingMode.HALF_UP)
-            );
+            CostoTipoStrategy strategy = CostoTipoStrategyFactory.obtener(costo.getTipoCosto(), costo.getIdProveedor());
+            subtotalCostos = subtotalCostos.add(strategy.subtotalEfectivo(base));
+            beneficioCostos = beneficioCostos.add(strategy.beneficioMonto(base, costo.getBeneficio(), obra));
 
             // Calcular economía (ahorro) y demasia (sobrecosto)
             if (costo.getMontoReal() != null) {
