@@ -85,8 +85,27 @@ export class ClientesDocumentosComponent implements OnInit {
       this.descargandoIds.delete(docId);
       return;
     }
-    popup.location.href = this.documentosService.getDocumentoUrl(docId);
-    setTimeout(() => this.descargandoIds.delete(docId), 3000);
+
+    this.documentosService.downloadDocumento(docId).subscribe({
+      next: (blob) => {
+        const url = URL.createObjectURL(blob);
+        popup.location.href = url;
+        setTimeout(() => URL.revokeObjectURL(url), 30000);
+        this.descargandoIds.delete(docId);
+      },
+      error: (err) => {
+        popup.close();
+        const esArchivoInexistente = err?.status === 404;
+        this.messageService.add({
+          severity: esArchivoInexistente ? 'warn' : 'error',
+          summary: esArchivoInexistente ? 'Archivo no disponible' : 'Error',
+          detail: esArchivoInexistente
+            ? 'Este archivo ya no existe en el almacenamiento.'
+            : 'No se pudo abrir el documento.'
+        });
+        this.descargandoIds.delete(docId);
+      }
+    });
   }
 
   eliminarDocumento(doc: Documento) {

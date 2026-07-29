@@ -243,12 +243,15 @@
         icon="pi pi-times"
         label="Cancelar"
         severity="secondary"
+        [disabled]="guardandoDocumento"
       ></p-button>
       <p-button
         (onClick)="guardarDocumento()"
         icon="pi pi-check"
         label="Guardar"
         styleClass="p-button-primary"
+        [loading]="guardandoDocumento"
+        [disabled]="guardandoDocumento"
       ></p-button>
     </ng-template>
   </p-dialog>

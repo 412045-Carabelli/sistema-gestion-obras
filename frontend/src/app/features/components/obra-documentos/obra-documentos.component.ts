@@ -296,8 +296,7 @@ export class ObraDocumentosComponent implements OnInit {
     if (this.descargandoIds.has(docId)) return;
     this.descargandoIds.add(docId);
 
-    const url = this.documentosService.getDocumentoUrl(docId);
-    const popup = window.open(url, '_blank', 'noopener,noreferrer');
+    const popup = window.open('', '_blank');
     if (!popup) {
       this.messageService.add({
         severity: 'warn',
@@ -307,7 +306,28 @@ export class ObraDocumentosComponent implements OnInit {
       this.descargandoIds.delete(docId);
       return;
     }
-    setTimeout(() => this.descargandoIds.delete(docId), 3000);
+    popup.document.write('<p>Cargando documento...</p>');
+
+    this.documentosService.downloadDocumento(docId).subscribe({
+      next: (blob) => {
+        const url = URL.createObjectURL(blob);
+        popup.location.href = url;
+        setTimeout(() => URL.revokeObjectURL(url), 30000);
+        this.descargandoIds.delete(docId);
+      },
+      error: (err) => {
+        popup.close();
+        const esArchivoInexistente = err?.status === 404;
+        this.messageService.add({
+          severity: esArchivoInexistente ? 'warn' : 'error',
+          summary: esArchivoInexistente ? 'Archivo no disponible' : 'Error',
+          detail: esArchivoInexistente
+            ? 'Este archivo ya no existe en el almacenamiento.'
+            : 'No se pudo abrir el documento.'
+        });
+        this.descargandoIds.delete(docId);
+      }
+    });
   }
 
   private mergeDocumentos(base: Documento[], nuevos: Documento[]): Documento[] {

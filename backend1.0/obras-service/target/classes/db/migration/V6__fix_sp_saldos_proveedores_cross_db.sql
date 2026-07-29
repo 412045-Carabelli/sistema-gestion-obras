@@ -1,3 +1,0 @@
--- Placeholder migration
--- V6__fix_sp_saldos_proveedores_cross_db.sql was removed and replaced by V8__fix_sp_saldos_proveedores_final.sql
--- This migration exists only to satisfy Flyway's validation
