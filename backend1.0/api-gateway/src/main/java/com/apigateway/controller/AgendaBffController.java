@@ -96,12 +96,17 @@ public class AgendaBffController {
     public Mono<ResponseEntity<Map<String, Object>>> crearTarea(
             @RequestBody Map<String, Object> tareaDTO,
             @RequestHeader(value = "X-Organizacion-Id", required = false) String organizacionId,
+            @RequestHeader(value = "X-Plan-Features", required = false) String planFeatures,
             @RequestHeader(value = "X-User-Id", required = false) String userId,
             @RequestHeader(value = "X-User-Name", required = false) String userName) {
 
         return webClientBuilder.build()
                 .post()
                 .uri(AGENDA_TAREAS_URL)
+                .headers(h -> {
+                    if (organizacionId != null) h.set("X-Organizacion-Id", organizacionId);
+                    if (planFeatures != null) h.set("X-Plan-Features", planFeatures);
+                })
                 .bodyValue(tareaDTO)
                 .retrieve()
                 .bodyToMono(new ParameterizedTypeReference<Map<String, Object>>() {})
@@ -117,12 +122,17 @@ public class AgendaBffController {
             @PathVariable("idObra") Long idObra,
             @RequestBody Map<String, Object> tareaDTO,
             @RequestHeader(value = "X-Organizacion-Id", required = false) String organizacionId,
+            @RequestHeader(value = "X-Plan-Features", required = false) String planFeatures,
             @RequestHeader(value = "X-User-Id", required = false) String userId,
             @RequestHeader(value = "X-User-Name", required = false) String userName) {
 
         return webClientBuilder.build()
                 .post()
                 .uri(AGENDA_TAREAS_URL + "/{idObra}", idObra)
+                .headers(h -> {
+                    if (organizacionId != null) h.set("X-Organizacion-Id", organizacionId);
+                    if (planFeatures != null) h.set("X-Plan-Features", planFeatures);
+                })
                 .bodyValue(tareaDTO)
                 .retrieve()
                 .bodyToMono(new ParameterizedTypeReference<Map<String, Object>>() {})

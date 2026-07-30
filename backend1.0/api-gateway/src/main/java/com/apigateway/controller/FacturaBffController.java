@@ -140,6 +140,7 @@ public class FacturaBffController {
             @RequestPart(value = "impacta_cta_cte", required = false) String impactaCtaCte,
             @RequestPart(value = "file", required = false) FilePart filePart,
             @RequestHeader(value = "X-Organizacion-Id", required = false) String organizacionId,
+            @RequestHeader(value = "X-Plan-Features", required = false) String planFeatures,
             @RequestHeader(value = "X-User-Id", required = false) String userId,
             @RequestHeader(value = "X-User-Name", required = false) String userName
     ) {
@@ -147,7 +148,10 @@ public class FacturaBffController {
         return webClientBuilder.build()
                 .post()
                 .uri(FACTURAS_URL)
-                .headers(h -> { if (organizacionId != null) h.set("X-Organizacion-Id", organizacionId); })
+                .headers(h -> {
+                    if (organizacionId != null) h.set("X-Organizacion-Id", organizacionId);
+                    if (planFeatures != null) h.set("X-Plan-Features", planFeatures);
+                })
                 .contentType(MediaType.MULTIPART_FORM_DATA)
                 .body(BodyInserters.fromMultipartData(builder.build()))
                 .exchangeToMono(response -> response

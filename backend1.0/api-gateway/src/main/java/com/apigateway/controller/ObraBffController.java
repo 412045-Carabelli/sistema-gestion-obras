@@ -58,6 +58,7 @@ public class ObraBffController {
     public Mono<ResponseEntity<Map<String, Object>>> crearObra(
             @RequestBody Map<String, Object> obraDto,
             @RequestHeader(value = "X-Organizacion-Id", required = false) String organizacionId,
+            @RequestHeader(value = "X-Plan-Limites", required = false) String planLimites,
             @RequestHeader(value = "X-User-Id", required = false) String userId,
             @RequestHeader(value = "X-User-Name", required = false) String userName
     ) {
@@ -65,7 +66,10 @@ public class ObraBffController {
 
         return client.post()
                 .uri(OBRAS_URL)
-                .headers(h -> { if (organizacionId != null) h.set("X-Organizacion-Id", organizacionId); })
+                .headers(h -> {
+                    if (organizacionId != null) h.set("X-Organizacion-Id", organizacionId);
+                    if (planLimites != null) h.set("X-Plan-Limites", planLimites);
+                })
                 .contentType(MediaType.APPLICATION_JSON)
                 .bodyValue(obraDto)
                 .exchangeToMono(response -> {
