@@ -24,8 +24,11 @@ public class ObrasBffController {
   // ---------- GRUPOS DE OBRAS ----------
 
   @PostMapping("/grupos")
-  public Mono<ResponseEntity<Object>> crearGrupo(@RequestBody Object dto) {
-    return proxyPost("/grupos-obras", dto, new ParameterizedTypeReference<>() {});
+  public Mono<ResponseEntity<Object>> crearGrupo(
+      @RequestBody Object dto,
+      @RequestHeader(value = "X-Organizacion-Id", required = false) String organizacionId,
+      @RequestHeader(value = "X-Plan-Features", required = false) String planFeatures) {
+    return proxyPost("/grupos-obras", dto, organizacionId, planFeatures, new ParameterizedTypeReference<>() {});
   }
 
   @GetMapping("/grupos")
@@ -102,10 +105,15 @@ public class ObrasBffController {
   }
 
   @SuppressWarnings("unchecked")
-  private <T> Mono<ResponseEntity<T>> proxyPost(String path, Object body, ParameterizedTypeReference<T> type) {
+  private <T> Mono<ResponseEntity<T>> proxyPost(
+      String path, Object body, String organizacionId, String planFeatures, ParameterizedTypeReference<T> type) {
     return webClientBuilder.build()
         .post()
         .uri(obrasServiceUrl + path)
+        .headers(h -> {
+          if (organizacionId != null) h.set("X-Organizacion-Id", organizacionId);
+          if (planFeatures != null) h.set("X-Plan-Features", planFeatures);
+        })
         .contentType(MediaType.APPLICATION_JSON)
         .bodyValue(body)
         .retrieve()
