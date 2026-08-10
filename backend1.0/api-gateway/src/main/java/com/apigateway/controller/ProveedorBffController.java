@@ -126,12 +126,17 @@ public class ProveedorBffController {
     public Mono<ResponseEntity<Map<String, Object>>> crearProveedor(
             @RequestBody Map<String, Object> proveedorData,
             @RequestHeader(value = "X-Organizacion-Id", required = false) String organizacionId,
+            @RequestHeader(value = "X-Plan-Limites", required = false) String planLimites,
             @RequestHeader(value = "X-User-Id", required = false) String userId,
             @RequestHeader(value = "X-User-Name", required = false) String userName) {
 
         return webClientBuilder.build()
                 .post()
                 .uri(PROVEEDORES_URL)
+                .headers(h -> {
+                    if (organizacionId != null) h.set("X-Organizacion-Id", organizacionId);
+                    if (planLimites != null) h.set("X-Plan-Limites", planLimites);
+                })
                 .bodyValue(proveedorData)
                 .retrieve()
                 .bodyToMono(new ParameterizedTypeReference<Map<String, Object>>() {})
