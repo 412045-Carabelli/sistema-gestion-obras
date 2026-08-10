@@ -6,7 +6,7 @@ import { TagModule } from 'primeng/tag';
 import { Subscription } from 'rxjs';
 import { ChangelogService } from '../../services/changelog/changelog.service';
 
-const VERSION = 'v1.17.50';
+const VERSION = 'v1.18.5';
 const STORAGE_KEY = `sgo-changelog-seen-${VERSION}`;
 
 interface ChangeItem {
@@ -32,6 +32,18 @@ export class ChangelogModalComponent implements OnInit, OnDestroy {
   private sub = new Subscription();
 
   grupos: ChangeGroup[] = [
+    {
+      modulo: 'Fixes Agosto 10/08/2026',
+      icon: 'pi pi-check-circle',
+      items: [
+        { texto: 'Obras: fila de total con la sumatoria de presupuesto en el listado filtrado (todas las páginas, no solo la visible)', estado: 'done' },
+        { texto: 'Facturas: modal de edición unificado con el de detalle (mismo ancho, mismos campos), mensajes de error visibles y bloqueo de guardado sin cambios', estado: 'done' },
+        { texto: 'Facturas: no se podían crear ni editar — los mensajes de error quedaban invisibles y el gateway no reenviaba el plan al validar la funcionalidad', estado: 'done' },
+        { texto: 'Modales: ya no se pueden arrastrar por la pantalla', estado: 'done' },
+        { texto: 'Cuentas Corrientes: las obras COTIZADAS (cotización aún no confirmada) ya no impactan en el saldo de clientes ni proveedores', estado: 'done' },
+        { texto: 'Cuentas Corrientes: nuevo filtro "Incluir obras sin deuda (saldo 0)" en el listado y en el PDF/Excel exportado', estado: 'done' },
+      ]
+    },
     {
       modulo: 'Fixes Pablo 28/07/2026',
       icon: 'pi pi-check-circle',

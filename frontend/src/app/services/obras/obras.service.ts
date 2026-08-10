@@ -86,6 +86,15 @@ export class ObrasService {
     return this.http.get<ObrasConDetallesResponse>(`${this.apiUrl}/con-detalles`, {params});
   }
 
+  getTotalPresupuestoFiltrado(filtros: { estado?: string; activo?: boolean; q?: string; facturacion?: string } = {}): Observable<{ totalPresupuesto: number; totalObras: number }> {
+    let params = new HttpParams();
+    if (filtros.estado) params = params.set('estado', filtros.estado);
+    if (filtros.activo !== undefined) params = params.set('activo', String(filtros.activo));
+    if (filtros.q) params = params.set('q', filtros.q);
+    if (filtros.facturacion) params = params.set('facturacion', filtros.facturacion);
+    return this.http.get<{ totalPresupuesto: number; totalObras: number }>(`${this.apiUrl}/con-detalles/total-presupuesto`, { params });
+  }
+
   getObraById(id: number): Observable<Obra> {
     return this.http.get<Obra>(`${this.apiUrl}/${id}`);
   }

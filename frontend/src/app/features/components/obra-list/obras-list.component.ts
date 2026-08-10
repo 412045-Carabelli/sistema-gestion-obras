@@ -92,6 +92,8 @@ export class ObrasListComponent implements OnInit {
 
   filtrosIniciales: Record<string, any> = {};
 
+  totalPresupuestoFiltrado = 0;
+
   constructor(
     private router: Router,
     private route: ActivatedRoute,
@@ -171,6 +173,20 @@ export class ObrasListComponent implements OnInit {
         if (!nombreObra.includes(q) && !nombreCliente.includes(q)) return false;
       }
       return true;
+    });
+    this.cargarTotalPresupuesto();
+  }
+
+  private cargarTotalPresupuesto(): void {
+    const filtros: { estado?: string; activo?: boolean; q?: string; facturacion?: string } = {};
+    if (this.estadoFiltro.length > 0) filtros.estado = this.estadoFiltro.join(',');
+    if (!this.mostrarInactivos) filtros.activo = true;
+    if (this.searchValue.trim()) filtros.q = this.searchValue.trim();
+    if (this.estadoFacturacionFiltro.length > 0) filtros.facturacion = this.estadoFacturacionFiltro.join(',');
+
+    this.obrasService.getTotalPresupuestoFiltrado(filtros).subscribe({
+      next: resp => this.totalPresupuestoFiltrado = resp.totalPresupuesto ?? 0,
+      error: () => this.totalPresupuestoFiltrado = 0
     });
   }
 

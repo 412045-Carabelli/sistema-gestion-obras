@@ -287,6 +287,11 @@ export class CuentasCorrientesListComponent implements OnInit, OnDestroy {
         type: 'multiselect',
         placeholder: 'Todas',
         options: this.obras.map((o) => ({ label: o.nombre, value: o.id }))
+      },
+      {
+        key: 'incluirSaldoCero',
+        label: 'Incluir obras sin deuda (saldo 0)',
+        type: 'checkbox'
       }
     ];
   }
@@ -298,7 +303,8 @@ export class CuentasCorrientesListComponent implements OnInit, OnDestroy {
       grupoId: this.currentFilters['grupoId'],
       obraIds: obraIds.length ? obraIds : undefined,
       clienteId: this.currentFilters['clienteId'],
-      proveedorId: this.currentFilters['proveedorId']
+      proveedorId: this.currentFilters['proveedorId'],
+      incluirSaldoCero: this.currentFilters['incluirSaldoCero'] || false
     };
     console.log('[cuentas-corrientes] currentFilters:', JSON.parse(JSON.stringify(this.currentFilters)), '-> filtro enviado:', JSON.parse(JSON.stringify(filtro)));
     return this.http.post<DeudasGlobalesResponse>(this.deudasUrl, filtro);

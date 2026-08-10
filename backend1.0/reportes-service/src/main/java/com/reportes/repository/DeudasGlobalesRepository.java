@@ -51,14 +51,15 @@ public class DeudasGlobalesRepository {
             Long proveedorId,
             LocalDate fechaInicio,
             LocalDate fechaFin,
-            Long organizacionId) {
+            Long organizacionId,
+            boolean incluirSaldoCero) {
 
-        String sql = "EXEC [" + schemaTransacciones + "].[dbo].[sp_deudas_globales_con_grupo] ?, ?, ?, ?, ?, ?, ?, ?, ?, ?";
+        String sql = "EXEC [" + schemaTransacciones + "].[dbo].[sp_deudas_globales_con_grupo] ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?";
         List<DeudasGlobalesResponse.DetalleDeudaCliente> resultados = new ArrayList<>();
 
         try {
-            log.info("Ejecutando sp_deudas_globales_con_grupo con parámetros: grupoId={}, obraId={}, clienteId={}, proveedorId={}, fechaInicio={}, fechaFin={}, organizacionId={}",
-                grupoId, obraId, clienteId, proveedorId, fechaInicio, fechaFin, organizacionId);
+            log.info("Ejecutando sp_deudas_globales_con_grupo con parámetros: grupoId={}, obraId={}, clienteId={}, proveedorId={}, fechaInicio={}, fechaFin={}, organizacionId={}, incluirSaldoCero={}",
+                grupoId, obraId, clienteId, proveedorId, fechaInicio, fechaFin, organizacionId, incluirSaldoCero);
             jdbcTemplate.query(sql, (rs, rowNum) -> {
                 DeudasGlobalesResponse.DetalleDeudaCliente detalle = new DeudasGlobalesResponse.DetalleDeudaCliente();
                 detalle.setGrupoId(rs.getObject("grupoId") != null ? rs.getLong("grupoId") : null);
@@ -82,7 +83,8 @@ public class DeudasGlobalesRepository {
                     organizacionId,
                     schemaObras,
                     schemaClientes,
-                    schemaTransacciones
+                    schemaTransacciones,
+                    incluirSaldoCero
             );
             log.info("sp_deudas_globales_con_grupo retornó {} registros", resultados.size());
         } catch (Exception e) {
@@ -100,14 +102,15 @@ public class DeudasGlobalesRepository {
             Long proveedorId,
             LocalDate fechaInicio,
             LocalDate fechaFin,
-            Long organizacionId) {
+            Long organizacionId,
+            boolean incluirSaldoCero) {
 
-        String sql = "EXEC [" + schemaTransacciones + "].[dbo].[sp_deudas_proveedores_con_grupo] @grupoId=?, @obraId=?, @proveedorId=?, @fechaInicio=?, @fechaFin=?, @organizacion_id=?, @schemaObras=?, @schemaProveedores=?, @schemaTransacciones=?";
+        String sql = "EXEC [" + schemaTransacciones + "].[dbo].[sp_deudas_proveedores_con_grupo] @grupoId=?, @obraId=?, @proveedorId=?, @fechaInicio=?, @fechaFin=?, @organizacion_id=?, @schemaObras=?, @schemaProveedores=?, @schemaTransacciones=?, @incluirSaldoCero=?";
         List<DeudasGlobalesResponse.DetalleDeudaProveedor> resultados = new ArrayList<>();
 
         try {
-            log.info("Ejecutando sp_deudas_proveedores_con_grupo con parámetros: grupoId={}, clienteId={}, obraId={}, proveedorId={}, fechaInicio={}, fechaFin={}, organizacionId={}",
-                grupoId, clienteId, obraId, proveedorId, fechaInicio, fechaFin, organizacionId);
+            log.info("Ejecutando sp_deudas_proveedores_con_grupo con parámetros: grupoId={}, clienteId={}, obraId={}, proveedorId={}, fechaInicio={}, fechaFin={}, organizacionId={}, incluirSaldoCero={}",
+                grupoId, clienteId, obraId, proveedorId, fechaInicio, fechaFin, organizacionId, incluirSaldoCero);
             jdbcTemplate.query(sql, (rs, rowNum) -> {
                 DeudasGlobalesResponse.DetalleDeudaProveedor detalle = new DeudasGlobalesResponse.DetalleDeudaProveedor();
                 detalle.setGrupoId(rs.getObject("grupoId") != null ? rs.getLong("grupoId") : null);
@@ -130,7 +133,8 @@ public class DeudasGlobalesRepository {
                     organizacionId,
                     schemaObras,
                     schemaProveedores,
-                    schemaTransacciones
+                    schemaTransacciones,
+                    incluirSaldoCero
             );
             log.info("sp_deudas_proveedores_con_grupo retornó {} registros", resultados.size());
         } catch (Exception e) {
