@@ -6,7 +6,7 @@ import { TagModule } from 'primeng/tag';
 import { Subscription } from 'rxjs';
 import { ChangelogService } from '../../services/changelog/changelog.service';
 
-const VERSION = 'v1.18.5';
+const VERSION = 'v1.18.6';
 const STORAGE_KEY = `sgo-changelog-seen-${VERSION}`;
 
 interface ChangeItem {
@@ -42,6 +42,7 @@ export class ChangelogModalComponent implements OnInit, OnDestroy {
         { texto: 'Modales: ya no se pueden arrastrar por la pantalla', estado: 'done' },
         { texto: 'Cuentas Corrientes: las obras COTIZADAS (cotización aún no confirmada) ya no impactan en el saldo de clientes ni proveedores', estado: 'done' },
         { texto: 'Cuentas Corrientes: nuevo filtro "Incluir obras sin deuda (saldo 0)" en el listado y en el PDF/Excel exportado', estado: 'done' },
+        { texto: 'Cuentas Corrientes: el PDF general muestra el nombre del proveedor filtrado (antes decía "Todos los proveedores") y ya no mezcla pagos de otros proveedores', estado: 'done' },
       ]
     },
     {

@@ -1129,6 +1129,9 @@ public class ReportesService {
             if (!"PAGO".equalsIgnoreCase(Optional.ofNullable(tx.getTipoTransaccion()).orElse(""))) continue;
             Long proveedorId = tx.getIdAsociado();
             if (proveedorId == null) continue;
+            if (filtros.getProveedorId() != null && !Objects.equals(filtros.getProveedorId(), proveedorId)) {
+                continue;
+            }
             Long obraId = tx.getIdObra();
             if (obraId != null && !obrasConDeuda.contains(obraId)) continue;
 
@@ -1191,8 +1194,13 @@ public class ReportesService {
         List<CuentaCorrienteProveedorResponse> proveedores = generarCuentaCorrienteProveedores(filtros);
 
         CuentaCorrienteProveedorResponse response = new CuentaCorrienteProveedorResponse();
-        response.setProveedorId(null);
-        response.setProveedorNombre("Todos los proveedores");
+        response.setProveedorId(filtros.getProveedorId());
+        if (filtros.getProveedorId() != null) {
+            ProveedorExternalDto proveedor = obtenerProveedorById(filtros.getProveedorId());
+            response.setProveedorNombre(proveedor != null ? proveedor.getNombre() : null);
+        } else {
+            response.setProveedorNombre("Todos los proveedores");
+        }
 
         List<CuentaCorrienteProveedorResponse.Movimiento> movimientos = proveedores.stream()
                 .flatMap(p -> p.getMovimientos().stream())
