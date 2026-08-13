@@ -1,5 +1,6 @@
 package com.agendas.handler;
 
+import com.agendas.exception.TareaNotFoundException;
 import com.common.plan.FeatureNotAvailableException;
 import com.common.plan.PlanLimitExceededException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -40,5 +41,14 @@ public class RestExceptionHandler {
         body.put("path", request.getRequestURI());
         body.put("timestamp", Instant.now());
         return ResponseEntity.status(HttpStatus.PAYMENT_REQUIRED).body(body);
+    }
+
+    @ExceptionHandler(TareaNotFoundException.class)
+    public ResponseEntity<Map<String, Object>> handleTareaNotFound(TareaNotFoundException ex, HttpServletRequest request) {
+        Map<String, Object> body = new HashMap<>();
+        body.put("message", ex.getMessage());
+        body.put("path", request.getRequestURI());
+        body.put("timestamp", Instant.now());
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(body);
     }
 }
