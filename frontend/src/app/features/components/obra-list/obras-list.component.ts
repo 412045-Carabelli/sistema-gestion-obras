@@ -151,9 +151,33 @@ export class ObrasListComponent implements OnInit {
   }
 
   onLazyLoad(event: TableLazyLoadEvent) {
+    // En modo lazy, p-table delega el sort al app (no lo aplica solo):
+    // ordenamos client-side la página cargada en memoria.
+    if (event.sortField && typeof event.sortField === 'string') {
+      this.ordenarObrasFiltradas(event.sortField, event.sortOrder ?? 1);
+    }
     const page = Math.floor((event.first ?? 0) / this.pageSize);
     if (page === this.currentPage) return; // evita duplicado con carga inicial
     this.cargarPagina(page);
+  }
+
+  private ordenarObrasFiltradas(field: string, order: number) {
+    const resolver = (obj: any) => field.split('.').reduce((acc, key) => acc?.[key], obj);
+    this.obrasFiltradas = [...this.obrasFiltradas].sort((a, b) => {
+      const valA = resolver(a);
+      const valB = resolver(b);
+      if (valA == null && valB == null) return 0;
+      if (valA == null) return order;
+      if (valB == null) return -order;
+      if (typeof valA === 'string') return valA.localeCompare(valB) * order;
+      if (typeof valA === 'boolean') return (Number(valA) - Number(valB)) * order;
+      const numA = valA instanceof Date ? valA.getTime() : Number(valA);
+      const numB = valB instanceof Date ? valB.getTime() : Number(valB);
+      if (!Number.isNaN(numA) && !Number.isNaN(numB) && (valA instanceof Date || typeof valA === 'number' || /^\d{4}-\d{2}-\d{2}/.test(String(valA)))) {
+        return (numA - numB) * order;
+      }
+      return String(valA).localeCompare(String(valB)) * order;
+    });
   }
 
   private aplicarFiltroFacturacion() {

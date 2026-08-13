@@ -19,7 +19,6 @@ import {ObraPayload, ObrasService} from '../../../services/obras/obras.service';
 import {MessageService} from 'primeng/api';
 import {ToastModule} from 'primeng/toast';
 import {Select} from 'primeng/select';
-import {AutoCompleteModule} from 'primeng/autocomplete';
 import {Router, RouterLink} from '@angular/router';
 import {PreventInvalidSubmitDirective} from '../../../shared/directives/prevent-invalid-submit.directive';
 import {ModalComponent} from '../../../shared/modal/modal.component';
@@ -44,7 +43,6 @@ import {ProveedorQuickCreateComponent} from '../../components/proveedor-quick-cr
     ToastModule,
     DatePicker,
     Select,
-    AutoCompleteModule,
     RouterLink
     , PreventInvalidSubmitDirective,
     ModalComponent,
@@ -63,7 +61,6 @@ export class ObrasCreateComponent implements OnInit {
   estadosRecords: { label: string; name: string }[] = [];
   proveedores: Proveedor[] = [];
   ivaOptions: {label: string; name: string}[] = [];
-  filteredClientes: Cliente[] = [];
   clienteForm: FormGroup;
   grupoForm: FormGroup;
   showClienteModal = false;
@@ -72,6 +69,10 @@ export class ObrasCreateComponent implements OnInit {
   creandoCliente = false;
   creandoGrupo = false;
   guardando = false;
+
+  private readonly NUEVO_CLIENTE_ID = 0;
+  private readonly nuevoClienteOption: Cliente = { id: this.NUEVO_CLIENTE_ID, nombre: 'Crear cliente...' } as Cliente;
+  private proveedorTargetRowIndex: number | null = null;
 
   constructor(
     private fb: FormBuilder,
@@ -129,7 +130,6 @@ export class ObrasCreateComponent implements OnInit {
     this.clientesService.getClientes().subscribe(list =>
       {
         this.clientes = list.map(c => ({...c, id: Number(c.id)}));
-        this.filteredClientes = this.clientes;
       }
     );
 
@@ -342,22 +342,20 @@ export class ObrasCreateComponent implements OnInit {
     this.actualizarPresupuesto();
   }
 
-  filtrarClientes(event: any) {
-    const query = (event?.query || '').toLowerCase();
-    this.filteredClientes = this.clientes.filter(c => {
-      const nombre = (c.nombre || '').toLowerCase();
-      const cuit = (c.cuit || '').toString().toLowerCase();
-      return nombre.includes(query) || cuit.includes(query);
-    });
+  clientesConNuevo(): Cliente[] {
+    return [
+      ...[...(this.clientes || [])].sort((a, b) => (a.nombre || '').localeCompare(b.nombre || '')),
+      this.nuevoClienteOption
+    ];
   }
 
   onClienteSeleccionado(cliente: Cliente | null) {
+    if (Number(cliente?.id ?? -1) === this.NUEVO_CLIENTE_ID) {
+      this.form.get('cliente')?.setValue(null);
+      this.abrirModalCliente();
+      return;
+    }
     this.form.get('cliente')?.setValue(cliente);
-  }
-
-  onClienteLimpiar() {
-    this.form.get('cliente')?.setValue(null);
-    this.filteredClientes = this.clientes;
   }
 
   get fechasFueraDeRango(): boolean {
@@ -403,7 +401,6 @@ export class ObrasCreateComponent implements OnInit {
         const clienteId = Number((nuevo as any)?.id ?? (nuevo as any)?.id_cliente ?? 0);
         const cliente = {...nuevo, id: clienteId};
         this.clientes = [...this.clientes, cliente];
-        this.filteredClientes = this.clientes;
         this.form.get('cliente')?.setValue(cliente);
         this.messageService.add({
           severity: 'success',
@@ -423,12 +420,18 @@ export class ObrasCreateComponent implements OnInit {
     });
   }
 
+  onCrearProveedorSolicitado(rowIndex: number) {
+    this.proveedorTargetRowIndex = rowIndex;
+    this.abrirModalProveedor();
+  }
+
   abrirModalProveedor() {
     this.showProveedorModal = true;
   }
 
   cerrarModalProveedor() {
     this.showProveedorModal = false;
+    this.proveedorTargetRowIndex = null;
   }
 
   onProveedorCreado(proveedor: Proveedor) {
@@ -439,9 +442,12 @@ export class ObrasCreateComponent implements OnInit {
       summary: 'Proveedor creado',
       detail: 'Disponible en la matriz de costos.'
     });
-    const ultimaFila = this.costos.controls[this.costos.length - 1] as FormGroup | undefined;
-    if (ultimaFila && !ultimaFila.get('id_proveedor')?.value) {
-      ultimaFila.get('id_proveedor')?.setValue(proveedor.id);
+    const targetIndex = this.proveedorTargetRowIndex;
+    const fila = (targetIndex != null
+      ? this.costos.at(targetIndex)
+      : this.costos.controls[this.costos.length - 1]) as FormGroup | undefined;
+    if (fila && !fila.get('id_proveedor')?.value) {
+      fila.get('id_proveedor')?.setValue(proveedor.id);
     }
     this.cerrarModalProveedor();
   }
