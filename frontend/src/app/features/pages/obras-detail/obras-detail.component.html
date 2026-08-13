@@ -344,8 +344,8 @@
                   <div class="flex justify-end mb-2">
                     <button pButton type="button" icon="pi pi-pencil" label="Editar" class="p-button-text p-button-sm" (click)="iniciarEditarMemoria()"></button>
                   </div>
-                  <div class="bg-white rounded-lg border border-gray-200 p-6 prose max-w-none">
-                    <div class="text-gray-700 leading-relaxed" [innerHTML]="obra.memoria_descriptiva"></div>
+                  <div class="bg-white rounded-lg border border-gray-200 p-6 max-w-none">
+                    <div class="memoria-view text-gray-700 leading-relaxed" [innerHTML]="obra.memoria_descriptiva"></div>
                   </div>
                 } @else {
                   <div class="text-center py-12">

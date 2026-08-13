@@ -617,6 +617,9 @@ export class CuentasCorrientesListComponent implements OnInit, OnDestroy {
 
       // ── DETALLE DE OBRAS ─────────────────────────────────────────────
       y = drawSectionHeader('DETALLE DE OBRAS', y);
+      // jsPDF posiciona el texto por baseline: sin este margen, "Obra: ..." se
+      // superpone con la banda gris del encabezado de sección.
+      y += 4;
 
       // Agrupar movimientos por obra. Se siembra primero con todas las obras del proveedor
       // (obrasProveedor) para que las que no tienen movimientos igual aparezcan en el detalle.
@@ -793,6 +796,9 @@ export class CuentasCorrientesListComponent implements OnInit, OnDestroy {
 
       // ── DETALLE DE OBRAS ─────────────────────────────────────────────
       y = drawSectionHeader('DETALLE DE OBRAS', y);
+      // jsPDF posiciona el texto por baseline: sin este margen, "Obra: ..." se
+      // superpone con la banda gris del encabezado de sección.
+      y += 4;
 
       // Agrupar movimientos por obra. Se siembra primero con todas las obras del cliente
       // (obrasCliente) para que las que no tienen cobros igual aparezcan en el detalle.
