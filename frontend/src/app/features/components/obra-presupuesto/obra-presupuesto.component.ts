@@ -417,7 +417,7 @@ export class ObraPresupuestoComponent implements OnInit, OnChanges, AfterViewIni
     this.costoDetalle = costo;
     this.costoDetalleDraft = {
       ...costo,
-      proveedor: costo.proveedor ?? this.proveedores.find(p => Number(p.id) === Number(costo.id_proveedor))
+      proveedor: this.proveedores.find(p => Number(p.id) === Number(costo.id_proveedor)) ?? costo.proveedor
     };
     if (editar && !this.puedeEditarCosto(costo)) {
       this.messageService.add({
@@ -455,7 +455,7 @@ export class ObraPresupuestoComponent implements OnInit, OnChanges, AfterViewIni
     if (!this.costoDetalle) return;
     this.costoDetalleDraft = {
       ...this.costoDetalle,
-      proveedor: this.costoDetalle.proveedor ?? this.proveedores.find(p => Number(p.id) === Number(this.costoDetalle?.id_proveedor))
+      proveedor: this.proveedores.find(p => Number(p.id) === Number(this.costoDetalle?.id_proveedor)) ?? this.costoDetalle.proveedor
     };
     this.costoDetalleEditando = false;
   }
