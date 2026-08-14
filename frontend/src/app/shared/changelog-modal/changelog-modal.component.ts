@@ -6,7 +6,7 @@ import { TagModule } from 'primeng/tag';
 import { Subscription } from 'rxjs';
 import { ChangelogService } from '../../services/changelog/changelog.service';
 
-const VERSION = 'v1.17.50';
+const VERSION = 'v1.18.6';
 const STORAGE_KEY = `sgo-changelog-seen-${VERSION}`;
 
 interface ChangeItem {
@@ -32,6 +32,35 @@ export class ChangelogModalComponent implements OnInit, OnDestroy {
   private sub = new Subscription();
 
   grupos: ChangeGroup[] = [
+    {
+      modulo: 'Fixes Agosto 13/08/2026',
+      icon: 'pi pi-check-circle',
+      items: [
+        { texto: 'Cuentas Corrientes: el PDF general muestra el nombre del proveedor filtrado (antes decía "Todos los proveedores") y ya no mezcla pagos de otros proveedores', estado: 'done' },
+        { texto: 'Cuentas Corrientes: costos adicionales/ajustes sin proveedor ya no aparecen como deuda a proveedores (fila fantasma con proveedor NULL en el listado y en el KPI "por pagar" del dashboard)', estado: 'done' },
+        { texto: 'Cuentas Corrientes: el PDF general de proveedor ya no superpone "Obra: [nombre]" con el título "Detalle de Obras"', estado: 'done' },
+        { texto: 'Memoria descriptiva (obras-detail): se perdía el formato (viñetas, negrita, alineación) al guardar y volver a ver', estado: 'done' },
+        { texto: 'Agendas: al abrir una tarea inexistente el backend devolvía 500 y la pantalla quedaba clavada — ahora devuelve 404', estado: 'done' },
+        { texto: 'Sesión: se extiende de 15 minutos a 1 hora; al expirar y volver a loguear, redirige a la página donde estabas', estado: 'done' },
+        { texto: 'Presupuesto de obra: pagar la comisión daba error (organizacion_id NULL); labels "Costos originales" / "Costos adicionales" / "Demasía de obra" separados y ordenados', estado: 'done' },
+        { texto: 'Presupuesto de obra: "Total pagos" del detalle de movimientos incluía el pago de comisión, dando un saldo de proveedores distinto al del listado de cuentas corrientes', estado: 'done' },
+        { texto: 'Alta de obra: crear cliente y crear proveedor son ahora una opción dentro del select correspondiente (antes botón aparte)', estado: 'done' },
+        { texto: 'Movimientos: se agrega badge de color al tipo de transacción (cobro/pago) en el listado', estado: 'done' },
+        { texto: 'Listado de obras: no se podía ordenar por columna (el modo de paginación por servidor ignoraba el criterio de orden)', estado: 'done' },
+      ]
+    },
+    {
+      modulo: 'Fixes Agosto 10/08/2026',
+      icon: 'pi pi-check-circle',
+      items: [
+        { texto: 'Obras: fila de total con la sumatoria de presupuesto en el listado filtrado (todas las páginas, no solo la visible)', estado: 'done' },
+        { texto: 'Facturas: modal de edición unificado con el de detalle (mismo ancho, mismos campos), mensajes de error visibles y bloqueo de guardado sin cambios', estado: 'done' },
+        { texto: 'Facturas: no se podían crear ni editar — los mensajes de error quedaban invisibles y el gateway no reenviaba el plan al validar la funcionalidad', estado: 'done' },
+        { texto: 'Modales: ya no se pueden arrastrar por la pantalla', estado: 'done' },
+        { texto: 'Cuentas Corrientes: las obras COTIZADAS (cotización aún no confirmada) ya no impactan en el saldo de clientes ni proveedores', estado: 'done' },
+        { texto: 'Cuentas Corrientes: nuevo filtro "Incluir obras sin deuda (saldo 0)" en el listado y en el PDF/Excel exportado', estado: 'done' },
+      ]
+    },
     {
       modulo: 'Fixes Pablo 28/07/2026',
       icon: 'pi pi-check-circle',

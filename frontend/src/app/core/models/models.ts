@@ -392,6 +392,7 @@ export interface ReportFilter {
   proveedorId?: number;
   fechaInicio?: string | Date;
   fechaFin?: string | Date;
+  incluirSaldoCero?: boolean;
 }
 
 export interface DashboardFinancieroResponse {

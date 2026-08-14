@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { Router } from '@angular/router';
+import { Router, ActivatedRoute } from '@angular/router';
 import { MessageService } from 'primeng/api';
 import { ToastModule } from 'primeng/toast';
 import { AuthService } from '../../../services/auth/auth.service';
@@ -18,18 +18,23 @@ import { LoginRequest } from '../../../core/models/models';
 export class LoginComponent implements OnInit {
   form!: FormGroup;
   loading = false;
+  private returnUrl: string | null = null;
 
   constructor(
     private fb: FormBuilder,
     private authService: AuthService,
     private messageService: MessageService,
-    private router: Router
+    private router: Router,
+    private route: ActivatedRoute
   ) {}
 
   ngOnInit(): void {
     this.form = this.fb.group({
       email: ['', [Validators.required, Validators.email]],
       password: ['', [Validators.required, Validators.minLength(8)]]
+    });
+    this.route.queryParams.subscribe(params => {
+      this.returnUrl = params['returnUrl'] || null;
     });
   }
 
@@ -49,14 +54,19 @@ export class LoginComponent implements OnInit {
           summary: 'Éxito',
           detail: 'Sesión iniciada correctamente'
         });
-        // Si el usuario venía de la landing queriendo contratar un plan
-        const pendingCheckout = sessionStorage.getItem('pending_checkout');
-        if (pendingCheckout) {
-          sessionStorage.removeItem('pending_checkout');
-          const { plan, ciclo } = JSON.parse(pendingCheckout);
-          this.router.navigate(['/checkout'], { queryParams: { plan, ciclo } });
+        // Si hay returnUrl (desde authGuard), redirigir allí
+        if (this.returnUrl) {
+          this.router.navigateByUrl(this.returnUrl);
         } else {
-          this.router.navigate(['/dashboard']);
+          // Si el usuario venía de la landing queriendo contratar un plan
+          const pendingCheckout = sessionStorage.getItem('pending_checkout');
+          if (pendingCheckout) {
+            sessionStorage.removeItem('pending_checkout');
+            const { plan, ciclo } = JSON.parse(pendingCheckout);
+            this.router.navigate(['/checkout'], { queryParams: { plan, ciclo } });
+          } else {
+            this.router.navigate(['/dashboard']);
+          }
         }
       },
       error: (err) => {

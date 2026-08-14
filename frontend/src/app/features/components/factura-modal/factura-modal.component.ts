@@ -1,7 +1,7 @@
 import {Component, EventEmitter, Input, OnChanges, OnDestroy, Output, SimpleChanges} from '@angular/core';
 import {CommonModule, CurrencyPipe, DatePipe} from '@angular/common';
 import {FormBuilder, FormGroup, ReactiveFormsModule, Validators} from '@angular/forms';
-import {forkJoin, of, Subscription, switchMap} from 'rxjs';
+import {forkJoin, of, Subscription, switchMap, finalize, timeout} from 'rxjs';
 import {ButtonModule} from 'primeng/button';
 import {TagModule} from 'primeng/tag';
 import {TooltipModule} from 'primeng/tooltip';
@@ -44,7 +44,7 @@ type FacturaModalViewMode = 'crear' | 'detalle' | 'editar';
     CurrencyPipe,
     DatePipe
   ],
-  providers: [MessageService, ConfirmationService],
+  providers: [ConfirmationService],
   templateUrl: './factura-modal.component.html'
 })
 export class FacturaModalComponent implements OnChanges, OnDestroy {
@@ -249,11 +249,12 @@ export class FacturaModalComponent implements OnChanges, OnDestroy {
     this.form.patchValue({
       id_cliente: this.factura.id_cliente,
       id_obra: this.factura.id_obra,
-      fecha: this.parseDate(this.factura.fecha),
-      monto: this.factura.monto,
+      fecha: this.parseDate(this.factura.fecha) ?? new Date(),
+      monto: this.factura.monto ?? null,
       descripcion: this.factura.descripcion || '',
       estado: this.factura.estado || 'EMITIDA'
     });
+    this.form.markAsPristine();
     this.actualizarObrasFiltradas();
     if (this.factura.id_obra) {
       this.actualizarRestanteObra(Number(this.factura.id_obra), Number(this.factura.id));
@@ -319,9 +320,20 @@ export class FacturaModalComponent implements OnChanges, OnDestroy {
     }
   }
 
+  get puedeGuardar(): boolean {
+    if (this.guardando) return false;
+    if (this.viewMode === 'editar') return this.form.valid && (this.form.dirty || !!this.selectedFile);
+    return this.form.valid;
+  }
+
   guardar(): void {
-    if (this.form.invalid || this.guardando) {
+    if (!this.puedeGuardar) {
       this.form.markAllAsTouched();
+      if (this.form.invalid) {
+        this.messageService.add({severity: 'warn', summary: 'Faltan datos', detail: 'Completá cliente, fecha y monto antes de guardar.'});
+      } else if (this.viewMode === 'editar') {
+        this.messageService.add({severity: 'info', summary: 'Sin cambios', detail: 'No se detectaron cambios para guardar.'});
+      }
       return;
     }
     const raw = this.form.value;
@@ -343,32 +355,44 @@ export class FacturaModalComponent implements OnChanges, OnDestroy {
 
     this.guardando = true;
     if (this.viewMode === 'crear') {
-      this.facturasService.createFactura(payload, this.selectedFile).subscribe({
-        next: (factura) => {
-          this.guardando = false;
-          this.messageService.add({severity: 'success', summary: 'Factura creada', detail: 'La factura se guardo correctamente.'});
-          this.guardada.emit(factura);
-          this.cerrar();
-        },
-        error: (err) => {
-          this.guardando = false;
-          this.messageService.add({severity: 'error', summary: 'Error', detail: err?.error?.message || 'No se pudo crear la factura.'});
-        }
-      });
+      this.subs.add(
+        this.facturasService.createFactura(payload, this.selectedFile).pipe(
+          timeout(30000),
+          finalize(() => this.guardando = false)
+        ).subscribe({
+          next: (factura) => {
+            this.messageService.add({severity: 'success', summary: 'Factura creada', detail: 'La factura se guardo correctamente.'});
+            this.guardada.emit(factura);
+            this.cerrar();
+          },
+          error: (err) => {
+            const detail = err?.name === 'TimeoutError'
+              ? 'El servidor no respondio a tiempo. Intenta nuevamente.'
+              : (err?.error?.message || 'No se pudo crear la factura.');
+            this.messageService.add({severity: 'error', summary: 'Error', detail});
+          }
+        })
+      );
     } else if (this.viewMode === 'editar' && this.facturaId) {
-      this.facturasService.updateFactura(this.facturaId, payload, this.selectedFile).subscribe({
-        next: (factura) => {
-          this.guardando = false;
-          this.messageService.add({severity: 'success', summary: 'Factura actualizada', detail: 'Los cambios se guardaron correctamente.'});
-          this.guardada.emit(factura);
-          this.cargarDetalle(this.facturaId!);
-          this.viewMode = 'detalle';
-        },
-        error: (err) => {
-          this.guardando = false;
-          this.messageService.add({severity: 'error', summary: 'Error', detail: err?.error?.message || 'No se pudo actualizar la factura.'});
-        }
-      });
+      this.subs.add(
+        this.facturasService.updateFactura(this.facturaId, payload, this.selectedFile).pipe(
+          timeout(30000),
+          finalize(() => this.guardando = false)
+        ).subscribe({
+          next: (factura) => {
+            this.messageService.add({severity: 'success', summary: 'Factura actualizada', detail: 'Los cambios se guardaron correctamente.'});
+            this.guardada.emit(factura);
+            this.cargarDetalle(this.facturaId!);
+            this.viewMode = 'detalle';
+          },
+          error: (err) => {
+            const detail = err?.name === 'TimeoutError'
+              ? 'El servidor no respondio a tiempo. Intenta nuevamente.'
+              : (err?.error?.message || 'No se pudo actualizar la factura.');
+            this.messageService.add({severity: 'error', summary: 'Error', detail});
+          }
+        })
+      );
     }
   }
 
@@ -578,7 +602,9 @@ export class FacturaModalComponent implements OnChanges, OnDestroy {
   }
 
   private parseDate(value?: string): Date | null {
-    return value ? new Date(value) : null;
+    if (!value) return null;
+    const date = new Date(value);
+    return Number.isNaN(date.getTime()) ? null : date;
   }
 
   private esCobro(mov: Transaccion): boolean {

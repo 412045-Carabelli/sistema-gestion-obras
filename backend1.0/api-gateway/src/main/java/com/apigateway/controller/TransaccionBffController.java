@@ -134,6 +134,7 @@ public class TransaccionBffController {
     public Mono<ResponseEntity<Map<String, Object>>> createTransaccion(
             @RequestBody Map<String, Object> body,
             @RequestHeader(value = "X-Organizacion-Id", defaultValue = "0") String organizacionId,
+            @RequestHeader(value = "X-Plan-Limites", required = false) String planLimites,
             @RequestHeader(value = "X-User-Id", required = false) String userId,
             @RequestHeader(value = "X-User-Name", required = false) String userName) {
         WebClient client = webClientBuilder.build();
@@ -141,6 +142,7 @@ public class TransaccionBffController {
         return client.post()
                 .uri(TRANSACCIONES_URL)
                 .header("X-Organizacion-Id", organizacionId)
+                .headers(h -> { if (planLimites != null) h.set("X-Plan-Limites", planLimites); })
                 .bodyValue(body)
                 .retrieve()
                 .bodyToMono(new ParameterizedTypeReference<Map<String, Object>>() {})

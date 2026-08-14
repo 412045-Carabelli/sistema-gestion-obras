@@ -3,10 +3,10 @@
 <app-modal
   [visible]="visible"
   [title]="viewMode === 'crear' ? 'Nueva factura' : viewMode === 'editar' ? ('Editar factura #' + factura?.id) : ('Factura #' + (factura?.id ?? ''))"
-  [width]="viewMode === 'detalle' ? '900px' : '600px'"
+  width="800px"
   [showFooter]="viewMode !== 'detalle'"
   [confirmLabel]="viewMode === 'editar' ? 'Guardar cambios' : 'Guardar'"
-  [confirmDisabled]="form.invalid || guardando"
+  [confirmDisabled]="guardando"
   [confirmLoading]="guardando"
   (closed)="onModalClosed()"
   (confirmed)="guardar()"
@@ -26,6 +26,9 @@
             appendTo="body"
             (onChange)="onClienteChange()"
           ></p-select>
+          @if (form.get('id_cliente')?.invalid && form.get('id_cliente')?.touched) {
+            <small class="text-red-600 text-xs mt-1 block">El cliente es obligatorio.</small>
+          }
         </div>
         <div>
           <label class="block text-sm font-poppins font-semibold mb-1 text-gray-700">Obra</label>
@@ -71,6 +74,9 @@
             styleClass="w-full"
             dateFormat="dd/mm/yy"
           ></p-datepicker>
+          @if (form.get('fecha')?.invalid && form.get('fecha')?.touched) {
+            <small class="text-red-600 text-xs mt-1 block">La fecha es obligatoria.</small>
+          }
         </div>
         <div>
           <label class="block text-sm font-poppins font-semibold mb-1 text-gray-700">Monto</label>
@@ -80,6 +86,9 @@
             mode="decimal"
             locale="es-AR"
           ></p-inputNumber>
+          @if (form.get('monto')?.invalid && form.get('monto')?.touched) {
+            <small class="text-red-600 text-xs mt-1 block">Ingresá un monto válido.</small>
+          }
           <div class="flex flex-wrap gap-2 mt-2">
             <button
               type="button"
@@ -183,42 +192,42 @@
           </div>
         </div>
 
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div class="space-y-4">
-            <div>
-              <p class="text-xs uppercase text-gray-500 font-semibold mb-2">Cliente</p>
-              <p class="text-base font-poppins font-semibold text-gray-900">{{ cliente?.nombre || 'Sin cliente' }}</p>
-            </div>
-            <div>
-              <p class="text-xs uppercase text-gray-500 font-semibold mb-2">Obra asociada</p>
-              <p class="text-base font-poppins font-semibold text-gray-900">{{ obra?.nombre || 'Sin obra' }}</p>
-            </div>
-          </div>
-          <div class="space-y-4">
-            <div>
-              <p class="text-xs uppercase text-gray-500 font-semibold mb-2">Fecha emision</p>
-              <p class="text-base font-poppins font-semibold text-gray-900">{{ factura?.fecha | date:'dd/MM/yyyy' }}</p>
-            </div>
-            <div>
-              <p class="text-xs uppercase text-gray-500 font-semibold mb-2">Monto</p>
-              <p class="text-base font-poppins font-semibold text-gray-900">{{ factura?.monto | currency:'ARS':'symbol':'1.2-2' }}</p>
-            </div>
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <p class="text-xs uppercase text-gray-500 font-semibold mb-1">Cliente</p>
+            <p class="text-base font-poppins font-semibold text-gray-900">{{ cliente?.nombre || 'Sin cliente' }}</p>
           </div>
           <div>
-            <p class="text-xs uppercase text-gray-500 font-semibold mb-2">Archivo adjunto</p>
-            <p
-              class="font-semibold text-gray-900 truncate"
-              [pTooltip]="factura?.nombre_archivo || ''"
-              tooltipPosition="top">
-              {{ factura?.nombre_archivo || 'Sin archivo' }}
-            </p>
-            @if (factura?.nombre_archivo) {
-              <div class="flex items-center gap-1 mt-1">
-                <button type="button" pButton icon="pi pi-eye" class="p-button-text p-button-sm text-blue-600" pTooltip="Ver" tooltipPosition="top" (click)="verArchivo()"></button>
-                <button type="button" pButton icon="pi pi-download" class="p-button-text p-button-sm text-blue-600" pTooltip="Descargar" tooltipPosition="top" (click)="descargarArchivo()"></button>
-              </div>
-            }
+            <p class="text-xs uppercase text-gray-500 font-semibold mb-1">Obra asociada</p>
+            <p class="text-base font-poppins font-semibold text-gray-900">{{ obra?.nombre || 'Sin obra' }}</p>
           </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <p class="text-xs uppercase text-gray-500 font-semibold mb-1">Fecha emision</p>
+            <p class="text-base font-poppins font-semibold text-gray-900">{{ factura?.fecha | date:'dd/MM/yyyy' }}</p>
+          </div>
+          <div>
+            <p class="text-xs uppercase text-gray-500 font-semibold mb-1">Monto</p>
+            <p class="text-base font-poppins font-semibold text-gray-900">{{ factura?.monto | currency:'ARS':'symbol':'1.2-2' }}</p>
+          </div>
+        </div>
+
+        <div>
+          <p class="text-xs uppercase text-gray-500 font-semibold mb-1">Archivo adjunto</p>
+          <p
+            class="font-semibold text-gray-900 truncate"
+            [pTooltip]="factura?.nombre_archivo || ''"
+            tooltipPosition="top">
+            {{ factura?.nombre_archivo || 'Sin archivo' }}
+          </p>
+          @if (factura?.nombre_archivo) {
+            <div class="flex items-center gap-1 mt-1">
+              <button type="button" pButton icon="pi pi-eye" class="p-button-text p-button-sm text-blue-600" pTooltip="Ver" tooltipPosition="top" (click)="verArchivo()"></button>
+              <button type="button" pButton icon="pi pi-download" class="p-button-text p-button-sm text-blue-600" pTooltip="Descargar" tooltipPosition="top" (click)="descargarArchivo()"></button>
+            </div>
+          }
         </div>
 
         <div>

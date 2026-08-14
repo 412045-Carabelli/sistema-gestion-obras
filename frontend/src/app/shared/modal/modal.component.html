@@ -3,6 +3,7 @@
   [(visible)]="visible"
   [closable]="closable"
   [modal]="true"
+  [draggable]="false"
   [style]="{width: width}"
 >
   <ng-template pTemplate="header">
@@ -11,12 +12,12 @@
 
   <ng-content></ng-content>
 
-  @if (showFooter) {
-    <ng-template pTemplate="footer">
+  <ng-template pTemplate="footer">
+    @if (showFooter) {
       <div class="flex justify-end gap-2">
         <p-button label="Cancelar" icon="pi pi-times" severity="secondary" (onClick)="close()"></p-button>
         <p-button [label]="confirmLabel" icon="pi pi-check" (onClick)="confirm()" severity="primary" [disabled]="confirmDisabled" [loading]="confirmLoading"></p-button>
       </div>
-    </ng-template>
-  }
+    }
+  </ng-template>
 </p-dialog>

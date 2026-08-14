@@ -106,7 +106,7 @@ export class ObraMovimientosComponent implements OnInit {
 
   get totalPagos(): number {
     return this.transacciones
-      .filter(t => this.tipoValue(t) === 'PAGO')
+      .filter(t => this.tipoValue(t) === 'PAGO' && (t.tipo_asociado || '').toUpperCase() === 'PROVEEDOR')
       .reduce((acc, t) => acc + (t.monto || 0), 0);
   }
 

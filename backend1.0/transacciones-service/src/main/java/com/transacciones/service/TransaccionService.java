@@ -192,7 +192,7 @@ public class TransaccionService {
                 .collect(Collectors.toList());
     }
 
-    public TransaccionDto registrarPagoComision(Long obraId, Double monto, LocalDate fecha) {
+    public TransaccionDto registrarPagoComision(Long obraId, Double monto, LocalDate fecha, Long organizacionId) {
         if (obraId == null) {
             throw new IllegalArgumentException("obraId es requerido");
         }
@@ -229,6 +229,7 @@ public class TransaccionService {
                 .forma_pago("TOTAL")
                 .medio_pago(null)
                 .facturaCobrada(null)
+                .organizacionId(organizacionId != null && organizacionId > 0 ? organizacionId : null)
                 .activo(true)
                 .build();
 

@@ -44,21 +44,65 @@
   pointer-events: none;
 }
 
-.memoria-view :is(p, ul, ol) {
+/* El HTML del editor se inyecta con [innerHTML], por lo que no recibe el
+   atributo de encapsulación: sin ::ng-deep estas reglas no lo alcanzan.
+   Reponen lo que el preflight de Tailwind resetea (listas, encabezados). */
+::ng-deep .memoria-view :is(p, ul, ol) {
   margin: 0 0 0.75rem 0;
 }
 
-.memoria-view :is(ul, ol) {
-  padding-left: 1.25rem;
+::ng-deep .memoria-view :is(ul, ol) {
+  padding-left: 1.5rem;
 }
 
-.memoria-view li {
+::ng-deep .memoria-view ul {
+  list-style: disc outside;
+}
+
+::ng-deep .memoria-view ol {
+  list-style: decimal outside;
+}
+
+::ng-deep .memoria-view li {
   margin-bottom: 0.35rem;
 }
 
-.memoria-view :is(strong, b) {
+::ng-deep .memoria-view :is(strong, b) {
   font-weight: 600;
 }
+
+::ng-deep .memoria-view em {
+  font-style: italic;
+}
+
+::ng-deep .memoria-view u {
+  text-decoration: underline;
+}
+
+::ng-deep .memoria-view h1 {
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin: 0 0 0.75rem 0;
+}
+
+::ng-deep .memoria-view h2 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin: 0 0 0.75rem 0;
+}
+
+::ng-deep .memoria-view a {
+  color: #2563eb;
+  text-decoration: underline;
+}
+
+/* Alineación e indentación que el editor guarda como clases de Quill */
+::ng-deep .memoria-view .ql-align-center { text-align: center; }
+::ng-deep .memoria-view .ql-align-right { text-align: right; }
+::ng-deep .memoria-view .ql-align-justify { text-align: justify; }
+::ng-deep .memoria-view .ql-indent-1 { padding-left: 3rem; }
+::ng-deep .memoria-view .ql-indent-2 { padding-left: 6rem; }
+::ng-deep .memoria-view .ql-indent-3 { padding-left: 9rem; }
 
 ::ng-deep .memoria-editor .p-editor-container {
   min-height: 200px;

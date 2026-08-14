@@ -27,6 +27,7 @@ import { Subscription } from 'rxjs';
       [header]="'Historial - ' + (clienteSeleccionado?.clienteNombre || 'Cliente')"
       [closeOnEscape]="true"
       [maximizable]="true"
+      [draggable]="false"
     >
       <div class="flex flex-col h-full">
         <!-- Info resumida -->
@@ -119,6 +120,7 @@ import { Subscription } from 'rxjs';
       [header]="'Historial - ' + (proveedorSeleccionado?.proveedorNombre || 'Proveedor')"
       [closeOnEscape]="true"
       [maximizable]="true"
+      [draggable]="false"
     >
       <div class="flex flex-col h-full">
         <!-- Info resumida -->

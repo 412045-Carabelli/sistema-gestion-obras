@@ -287,6 +287,11 @@ export class CuentasCorrientesListComponent implements OnInit, OnDestroy {
         type: 'multiselect',
         placeholder: 'Todas',
         options: this.obras.map((o) => ({ label: o.nombre, value: o.id }))
+      },
+      {
+        key: 'incluirSaldoCero',
+        label: 'Incluir obras sin deuda (saldo 0)',
+        type: 'checkbox'
       }
     ];
   }
@@ -298,7 +303,8 @@ export class CuentasCorrientesListComponent implements OnInit, OnDestroy {
       grupoId: this.currentFilters['grupoId'],
       obraIds: obraIds.length ? obraIds : undefined,
       clienteId: this.currentFilters['clienteId'],
-      proveedorId: this.currentFilters['proveedorId']
+      proveedorId: this.currentFilters['proveedorId'],
+      incluirSaldoCero: this.currentFilters['incluirSaldoCero'] || false
     };
     console.log('[cuentas-corrientes] currentFilters:', JSON.parse(JSON.stringify(this.currentFilters)), '-> filtro enviado:', JSON.parse(JSON.stringify(filtro)));
     return this.http.post<DeudasGlobalesResponse>(this.deudasUrl, filtro);
@@ -611,6 +617,9 @@ export class CuentasCorrientesListComponent implements OnInit, OnDestroy {
 
       // ── DETALLE DE OBRAS ─────────────────────────────────────────────
       y = drawSectionHeader('DETALLE DE OBRAS', y);
+      // jsPDF posiciona el texto por baseline: sin este margen, "Obra: ..." se
+      // superpone con la banda gris del encabezado de sección.
+      y += 4;
 
       // Agrupar movimientos por obra. Se siembra primero con todas las obras del proveedor
       // (obrasProveedor) para que las que no tienen movimientos igual aparezcan en el detalle.
@@ -787,6 +796,9 @@ export class CuentasCorrientesListComponent implements OnInit, OnDestroy {
 
       // ── DETALLE DE OBRAS ─────────────────────────────────────────────
       y = drawSectionHeader('DETALLE DE OBRAS', y);
+      // jsPDF posiciona el texto por baseline: sin este margen, "Obra: ..." se
+      // superpone con la banda gris del encabezado de sección.
+      y += 4;
 
       // Agrupar movimientos por obra. Se siembra primero con todas las obras del cliente
       // (obrasCliente) para que las que no tienen cobros igual aparezcan en el detalle.

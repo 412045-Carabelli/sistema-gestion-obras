@@ -35,7 +35,7 @@
           @if (modoEdicion) {
             <p-select
               formControlName="id_proveedor"
-              [options]="sortedProveedores()"
+              [options]="proveedoresConNuevo()"
               optionLabel="nombre"
               [filter]="true"
               filterBy="nombre"
@@ -43,6 +43,7 @@
               placeholder="Seleccionar"
               appendTo="body"
               styleClass="w-full"
+              (onChange)="onProveedorChange(rowIndex, $event.value)"
             ></p-select>
           } @else {
             {{ getProveedorNombre(costos.at(rowIndex).get('id_proveedor')?.value) }}
