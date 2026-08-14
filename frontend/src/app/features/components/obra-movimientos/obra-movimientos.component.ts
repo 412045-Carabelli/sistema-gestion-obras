@@ -809,9 +809,13 @@ export class ObraMovimientosComponent implements OnInit {
   }
 
   private getMontoBaseCosto(costo: ObraCosto): number {
-    // Primero intentar con monto_real (lo que realmente se gastó)
-    const montoReal = Number((costo as any).monto_real ?? NaN);
-    if (!Number.isNaN(montoReal) && montoReal > 0) return montoReal;
+    // monto_real null/undefined = sin registrar -> usar presupuestado.
+    // monto_real === 0 es anulacion explicita del costo, no ausencia de dato.
+    const montoRealRaw = (costo as any).monto_real;
+    if (montoRealRaw !== null && montoRealRaw !== undefined) {
+      const montoReal = Number(montoRealRaw);
+      if (!Number.isNaN(montoReal)) return montoReal;
+    }
 
     // Si no tiene monto_real, usar subtotal
     const subtotal = Number(costo.subtotal ?? NaN);
