@@ -38,7 +38,7 @@ services:
       - "9000:9000"
       - "9001:9001"
     volumes:
-      - ./data/minio:/data
+      - minio_data:/data
     environment:
       - MINIO_ROOT_USER=minioadmin
       - MINIO_ROOT_PASSWORD=minioadmin
@@ -359,7 +359,7 @@ services:
       - DB_PASSWORD=${DB_PASSWORD}
     volumes:
       - backup_data:/backups
-      - ./data/minio:/minio-data:ro
+      - minio_data:/minio-data:ro
     depends_on:
       sqlserver:
         condition: service_healthy
@@ -472,3 +472,4 @@ volumes:
   n8n_data:
   waha_data:
   backup_data:
+  minio_data:
