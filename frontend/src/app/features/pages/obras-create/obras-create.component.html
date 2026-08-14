@@ -51,34 +51,18 @@
               <i class="pi pi-user text-gray-400 text-xs"></i>
               Cliente
             </label>
-            <div class="flex gap-2">
-              <div class="flex-1">
-                <p-autoComplete
-                  formControlName="cliente"
-                  [suggestions]="filteredClientes"
-                  [dropdown]="true"
-                  [showClear]="true"
-                  appendTo="body"
-                  fluid
-                  class="w-full"
-                  inputStyleClass="w-full"
-                  field="nombre"
-                  placeholder="Selecciona un cliente"
-                  (completeMethod)="filtrarClientes($event)"
-                  (onSelect)="onClienteSeleccionado($event?.value)"
-                  (onClear)="onClienteLimpiar()"
-                  (onDropdownClick)="filtrarClientes({ query: '' })"
-                ></p-autoComplete>
-              </div>
-              <p-button
-                icon="pi pi-plus"
-                label="Nuevo"
-                size="small"
-                (onClick)="abrirModalCliente()"
-                styleClass="h-[42px]"
-                type="button"
-              ></p-button>
-            </div>
+            <p-select
+              formControlName="cliente"
+              [options]="clientesConNuevo()"
+              optionLabel="nombre"
+              [filter]="true"
+              filterBy="nombre"
+              [showClear]="true"
+              placeholder="Selecciona un cliente"
+              appendTo="body"
+              styleClass="w-full"
+              (onChange)="onClienteSeleccionado($event.value)"
+            ></p-select>
             @if (form.get('cliente')?.touched && form.get('cliente')?.hasError('required')) {
               <small class="text-red-500 text-xs mt-1">Selecciona un cliente</small>
             }
@@ -311,15 +295,6 @@
         </h2>
         <div class="flex gap-3">
           <p-button
-            icon="pi pi-briefcase"
-            label="Nuevo proveedor"
-            severity="secondary"
-            size="small"
-            styleClass="p-button-sm"
-            type="button"
-            (onClick)="abrirModalProveedor()"
-          ></p-button>
-          <p-button
             (click)="nuevaFilaCosto()"
             icon="pi pi-plus"
             label="Agregar costo"
@@ -335,6 +310,7 @@
           [modoEdicion]="true"
           [proveedores]="proveedores"
           (costoEliminado)="recalcularTotales()"
+          (crearProveedorSolicitado)="onCrearProveedorSolicitado($event)"
         ></app-obra-costos-table>
       } @else {
         <div class="flex flex-col items-center justify-center py-12 text-gray-400">

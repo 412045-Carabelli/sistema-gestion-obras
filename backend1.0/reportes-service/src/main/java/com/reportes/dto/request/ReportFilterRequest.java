@@ -18,4 +18,5 @@ public class ReportFilterRequest {
     private LocalDate fechaInicio;
     @JsonFormat(pattern = "yyyy-MM-dd")
     private LocalDate fechaFin;
+    private Boolean incluirSaldoCero;
 }

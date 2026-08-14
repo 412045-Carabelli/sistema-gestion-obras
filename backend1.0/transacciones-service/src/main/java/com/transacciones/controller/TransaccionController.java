@@ -84,11 +84,12 @@ public class TransaccionController {
     @PostMapping("/obra/{obraId}/comisiones/pago")
     public ResponseEntity<TransaccionDto> pagarComision(
             @PathVariable("obraId") Long obraId,
+            @RequestHeader(value = "X-Organizacion-Id", defaultValue = "0") Long organizacionId,
             @RequestBody(required = false) ComisionPagoRequest request
     ) {
         Double monto = request != null ? request.getMonto() : null;
         LocalDate fecha = request != null ? request.getFecha() : null;
-        return ResponseEntity.ok(transaccionService.registrarPagoComision(obraId, monto, fecha));
+        return ResponseEntity.ok(transaccionService.registrarPagoComision(obraId, monto, fecha, organizacionId));
     }
 
     @PatchMapping("/obra/{obraId}/inactivar")

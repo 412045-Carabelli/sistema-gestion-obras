@@ -27,6 +27,10 @@ export class ObraCostosTableComponent implements OnInit, OnChanges {
   @Input({required: true}) proveedores!: Proveedor[];
   @Input() modoEdicion = false;
   @Output() costoEliminado = new EventEmitter<void>();
+  @Output() crearProveedorSolicitado = new EventEmitter<number>();
+
+  private readonly NUEVO_PROVEEDOR_ID = 0;
+  private readonly nuevoProveedorOption: Proveedor = { id: this.NUEVO_PROVEEDOR_ID, nombre: 'Crear proveedor...' } as Proveedor;
 
   ngOnInit() {
     this.normalizarValoresProveedor();
@@ -66,6 +70,18 @@ export class ObraCostosTableComponent implements OnInit, OnChanges {
 
   sortedProveedores(): Proveedor[] {
     return [...(this.proveedores || [])].sort((a, b) => (a.nombre || '').localeCompare(b.nombre || ''));
+  }
+
+  proveedoresConNuevo(): Proveedor[] {
+    return [...this.sortedProveedores(), this.nuevoProveedorOption];
+  }
+
+  onProveedorChange(rowIndex: number, value: any) {
+    const seleccionado = typeof value === 'object' ? value : undefined;
+    if (Number(seleccionado?.id ?? -1) === this.NUEVO_PROVEEDOR_ID) {
+      this.costos.at(rowIndex).get('id_proveedor')?.setValue(null);
+      this.crearProveedorSolicitado.emit(rowIndex);
+    }
   }
 
   private normalizarValoresProveedor() {

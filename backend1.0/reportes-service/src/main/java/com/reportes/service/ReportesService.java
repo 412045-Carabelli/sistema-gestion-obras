@@ -202,6 +202,8 @@ public class ReportesService {
         ReportFilterRequest filtros = filtroSeguro(filtro);
         DeudasGlobalesResponse response = new DeudasGlobalesResponse();
 
+        boolean incluirSaldoCero = Boolean.TRUE.equals(filtros.getIncluirSaldoCero());
+
         // Obtener deudas de clientes (filtrando por proveedor si se especifica)
         List<DeudasGlobalesResponse.DetalleDeudaCliente> detalleClientes = deudasGlobalesRepository.obtenerDeudaClientes(
             filtros.getGrupoId(),
@@ -210,7 +212,8 @@ public class ReportesService {
             filtros.getProveedorId(),
             filtros.getFechaInicio(),
             filtros.getFechaFin(),
-            filtros.getOrganizacionId()
+            filtros.getOrganizacionId(),
+            incluirSaldoCero
         );
 
         // Obtener deudas de proveedores
@@ -223,7 +226,8 @@ public class ReportesService {
             filtros.getProveedorId(),
             filtros.getFechaInicio(),
             filtros.getFechaFin(),
-            filtros.getOrganizacionId()
+            filtros.getOrganizacionId(),
+            incluirSaldoCero
         );
 
         List<Long> obraIdsFiltro = filtros.getObraIds();
@@ -1125,6 +1129,9 @@ public class ReportesService {
             if (!"PAGO".equalsIgnoreCase(Optional.ofNullable(tx.getTipoTransaccion()).orElse(""))) continue;
             Long proveedorId = tx.getIdAsociado();
             if (proveedorId == null) continue;
+            if (filtros.getProveedorId() != null && !Objects.equals(filtros.getProveedorId(), proveedorId)) {
+                continue;
+            }
             Long obraId = tx.getIdObra();
             if (obraId != null && !obrasConDeuda.contains(obraId)) continue;
 
@@ -1187,8 +1194,13 @@ public class ReportesService {
         List<CuentaCorrienteProveedorResponse> proveedores = generarCuentaCorrienteProveedores(filtros);
 
         CuentaCorrienteProveedorResponse response = new CuentaCorrienteProveedorResponse();
-        response.setProveedorId(null);
-        response.setProveedorNombre("Todos los proveedores");
+        response.setProveedorId(filtros.getProveedorId());
+        if (filtros.getProveedorId() != null) {
+            ProveedorExternalDto proveedor = obtenerProveedorById(filtros.getProveedorId());
+            response.setProveedorNombre(proveedor != null ? proveedor.getNombre() : null);
+        } else {
+            response.setProveedorNombre("Todos los proveedores");
+        }
 
         List<CuentaCorrienteProveedorResponse.Movimiento> movimientos = proveedores.stream()
                 .flatMap(p -> p.getMovimientos().stream())
@@ -1651,7 +1663,8 @@ public class ReportesService {
     }
 
     /** Igual a filtrarObrasConDeuda pero con el criterio de estado propio de cuentas corrientes
-     * (COTIZADA/ADJUDICADA/EN_PROGRESO/FINALIZADA) — no comparte estado con Comisiones. */
+     * (ADJUDICADA/EN_PROGRESO/FINALIZADA) — no comparte estado con Comisiones. Una obra
+     * COTIZADA es una cotizacion aun no confirmada por el cliente: no debe generar saldo. */
     private List<ObraExternalDto> filtrarObrasCuentaCorrienteCliente(ReportFilterRequest filtro) {
         return filtrarObras(filtro).stream()
                 .filter(obra -> estadoGeneraSaldoCliente(obra.getObraEstado()))
@@ -2038,7 +2051,6 @@ public class ReportesService {
     );
 
     private static final Set<String> ESTADOS_SALDO_PROVEEDOR = Set.of(
-            "COTIZADA",
             "ADJUDICADA",
             "EN_PROGRESO",
             "FINALIZADA"
@@ -2611,7 +2623,7 @@ public class ReportesService {
         if (estado == null) return false;
         String normalizado = normalizarEstado(estado);
         return new HashSet<>(Arrays.asList(
-                "COTIZADA", "ADJUDICADA", "EN_PROGRESO", "FINALIZADA"
+                "ADJUDICADA", "EN_PROGRESO", "FINALIZADA"
         )).contains(normalizado);
     }
 
@@ -2874,7 +2886,7 @@ public class ReportesService {
         try {
             obras = jdbcTemplate.queryForList(
                 "SELECT id, nombre FROM [" + schemaObras + "].[dbo].[obras] WHERE activo = 1 " +
-                "AND estado_obra IN ('COTIZADA', 'ADJUDICADA', 'EN_PROGRESO', 'FINALIZADA') ORDER BY nombre"
+                "AND estado_obra IN ('ADJUDICADA', 'EN_PROGRESO', 'FINALIZADA') ORDER BY nombre"
             );
         } catch (Exception e) {
             log.error("Error executing obras query", e);

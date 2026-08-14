@@ -586,6 +586,132 @@ public class ObraBffController {
         });
     }
 
+    // ================================
+    // 📊 GET - Sumatoria de presupuesto del listado filtrado (todas las páginas)
+    // ================================
+    @GetMapping("/con-detalles/total-presupuesto")
+    public Mono<ResponseEntity<Map<String, Object>>> getTotalPresupuestoFiltrado(
+            @RequestParam(required = false) String estado,
+            @RequestParam(required = false) Boolean activo,
+            @RequestParam(required = false) String q,
+            @RequestParam(required = false) String facturacion,
+            @RequestHeader(value = "X-Organizacion-Id", required = false) String organizacionId
+    ) {
+        WebClient client = webClientBuilder.build();
+        Set<String> estadosFiltro = splitCsv(estado);
+        Set<String> facturacionFiltro = splitCsv(facturacion);
+        String qNormalizado = (q != null && !q.isBlank()) ? q.trim().toLowerCase() : null;
+
+        // 1. Candidatos: todas las obras que cumplen "activo" (sin límite de página)
+        Mono<List<Map<String, Object>>> candidatosMono = client.get()
+                .uri(uriBuilder -> {
+                    URI base = URI.create(OBRAS_URL + "/resumen");
+                    var b = uriBuilder.scheme(base.getScheme()).host(base.getHost());
+                    if (base.getPort() != -1) b.port(base.getPort());
+                    if (base.getPath() != null) b.path(base.getPath());
+                    b.queryParam("page", 0).queryParam("size", 100000);
+                    if (activo != null) b.queryParam("activo", activo);
+                    return b.build();
+                })
+                .headers(h -> { if (organizacionId != null) h.set("X-Organizacion-Id", organizacionId); })
+                .retrieve()
+                .bodyToMono(new ParameterizedTypeReference<Map<String, Object>>() {})
+                .map(pagina -> {
+                    @SuppressWarnings("unchecked")
+                    List<Map<String, Object>> content = (List<Map<String, Object>>) pagina.getOrDefault("content", List.of());
+                    return content;
+                })
+                .onErrorResume(ex -> Mono.just(List.of()));
+
+        return candidatosMono.flatMap(candidatos -> {
+            List<Map<String, Object>> porEstado = candidatos.stream()
+                    .filter(o -> estadosFiltro.isEmpty() || estadosFiltro.contains(String.valueOf(o.get("obra_estado")).toUpperCase()))
+                    .toList();
+
+            if (porEstado.isEmpty()) {
+                return sumarPresupuesto(List.of());
+            }
+
+            Mono<Map<Long, String>> clienteNombresMono = qNormalizado == null
+                    ? Mono.just(Map.of())
+                    : Flux.fromIterable(porEstado.stream()
+                            .map(o -> o.get("id_cliente"))
+                            .filter(Objects::nonNull)
+                            .map(id -> ((Number) id).longValue())
+                            .collect(Collectors.toSet()))
+                        .flatMap(idCliente -> client.get()
+                                .uri(CLIENTES_URL + "/{id}", idCliente)
+                                .retrieve()
+                                .bodyToMono(new ParameterizedTypeReference<Map<String, Object>>() {})
+                                .onErrorResume(ex -> Mono.just(Map.of()))
+                                .map(c -> Map.entry(idCliente, (String) c.getOrDefault("nombre", ""))))
+                        .collectMap(Map.Entry::getKey, Map.Entry::getValue)
+                        .onErrorResume(ex -> Mono.just(Map.of()));
+
+            return clienteNombresMono.flatMap(clienteNombres -> {
+                List<Map<String, Object>> porTexto = porEstado.stream()
+                        .filter(o -> {
+                            if (qNormalizado == null) return true;
+                            String nombreObra = String.valueOf(o.getOrDefault("nombre", "")).toLowerCase();
+                            Object idClienteObj = o.get("id_cliente");
+                            String nombreCliente = idClienteObj != null
+                                    ? clienteNombres.getOrDefault(((Number) idClienteObj).longValue(), "").toLowerCase()
+                                    : "";
+                            return nombreObra.contains(qNormalizado) || nombreCliente.contains(qNormalizado);
+                        })
+                        .toList();
+
+                if (facturacionFiltro.isEmpty()) {
+                    return sumarPresupuesto(porTexto);
+                }
+                if (porTexto.isEmpty()) {
+                    return sumarPresupuesto(List.of());
+                }
+
+                // Facturación filtrada: requiere consultar facturas por obra
+                return Flux.fromIterable(porTexto)
+                        .flatMap(obra -> {
+                            Long idObra = ((Number) obra.get("id")).longValue();
+                            return client.get()
+                                    .uri(FACTURAS_URL + "/obra/{id}", idObra)
+                                    .headers(h -> { if (organizacionId != null) h.set("X-Organizacion-Id", organizacionId); })
+                                    .retrieve()
+                                    .bodyToFlux(new ParameterizedTypeReference<Map<String, Object>>() {})
+                                    .collectList()
+                                    .onErrorResume(ex -> Mono.just(List.<Map<String, Object>>of()))
+                                    .map(facturas -> Map.entry(obra, calcularEstadoFacturacion(obra, facturas)));
+                        })
+                        .filter(entry -> entry.getValue() != null && facturacionFiltro.contains(entry.getValue()))
+                        .map(Map.Entry::getKey)
+                        .collectList()
+                        .flatMap(this::sumarPresupuesto);
+            });
+        }).onErrorResume(ex -> {
+            log.error("Error en /bff/obras/con-detalles/total-presupuesto", ex);
+            return Mono.just(ResponseEntity.internalServerError().body(
+                    Map.of("error", "No se pudo calcular el total", "detalle", ex.getMessage())
+            ));
+        });
+    }
+
+    private Mono<ResponseEntity<Map<String, Object>>> sumarPresupuesto(List<Map<String, Object>> obras) {
+        double total = obras.stream()
+                .mapToDouble(o -> o.get("presupuesto") instanceof Number ? ((Number) o.get("presupuesto")).doubleValue() : 0.0)
+                .sum();
+        Map<String, Object> resp = new HashMap<>();
+        resp.put("totalPresupuesto", total);
+        resp.put("totalObras", obras.size());
+        return Mono.just(ResponseEntity.ok(resp));
+    }
+
+    private Set<String> splitCsv(String raw) {
+        if (raw == null || raw.isBlank()) return Set.of();
+        return Arrays.stream(raw.split(","))
+                .map(s -> s.trim().toUpperCase())
+                .filter(s -> !s.isEmpty())
+                .collect(Collectors.toSet());
+    }
+
     private static final List<String> ESTADOS_CON_FACTURACION = List.of("ADJUDICADA", "EN_PROGRESO", "FINALIZADA");
 
     private String calcularEstadoFacturacion(Map<String, Object> obra, List<Map<String, Object>> facturas) {

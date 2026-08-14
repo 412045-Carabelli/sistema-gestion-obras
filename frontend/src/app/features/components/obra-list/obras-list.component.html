@@ -120,6 +120,15 @@
             </td>
           </tr>
         </ng-template>
+
+        <ng-template pTemplate="footer">
+          <tr class="bg-gray-50">
+            <td colspan="6" class="text-right font-poppins font-semibold text-gray-700">Total</td>
+            <td class="text-right font-poppins font-bold text-gray-900">
+              {{ totalPresupuestoFiltrado | currency:'ARS':'symbol-narrow':'1.0-0' }}
+            </td>
+          </tr>
+        </ng-template>
       </p-table>
     </div>
 
@@ -170,6 +179,12 @@
               </div>
             }
           </div>
+        </div>
+      }
+      @if (obrasFiltradas.length > 0) {
+        <div class="flex items-center justify-between bg-white rounded-lg border border-gray-200 px-4 py-3">
+          <span class="text-xs font-poppins font-semibold text-gray-700">Total presupuesto</span>
+          <span class="text-sm font-poppins font-bold text-gray-900">{{ totalPresupuestoFiltrado | currency:'ARS':'symbol-narrow':'1.0-0' }}</span>
         </div>
       }
       @if (totalElements > pageSize) {
