@@ -377,9 +377,11 @@ services:
     ports:
       - "5678:5678"
     environment:
-      - N8N_HOST=localhost
+      - N8N_HOST=n8n.buildrr.cloud
       - N8N_PORT=5678
-      - N8N_PROTOCOL=http
+      - N8N_PROTOCOL=https
+      - N8N_EDITOR_BASE_URL=https://n8n.buildrr.cloud
+      - WEBHOOK_URL=https://n8n.buildrr.cloud/
       - NODE_ENV=production
       - TZ=America/Argentina/Córdoba
       - DB_TYPE=mssql
@@ -395,6 +397,7 @@ services:
         condition: service_healthy
     networks:
       - n8n_network
+      - dokploy-network
     restart: unless-stopped
     deploy:
       resources:
