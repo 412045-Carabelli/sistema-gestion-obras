@@ -332,7 +332,6 @@ export class ObrasDetailComponent implements OnInit, OnDestroy, AfterViewInit {
     this.progresoFisico = this.getProgresoFisico();
     this.refrescarObraDesdeBackend();
     this.obraStateService.setObra(this.obra);
-    this.movimientosRef?.recargarMovimientos();
   }
 
   onBeneficioGlobalActualizado(payload: { beneficio_global: boolean; beneficio: number }) {
