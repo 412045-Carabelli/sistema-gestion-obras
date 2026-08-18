@@ -6,6 +6,8 @@ import {SidebarComponent} from './shared/sidebar/sidebar.component';
 import {NavigationHistoryService} from './core/services/navigation-history.service';
 import {ChangelogModalComponent} from './shared/changelog-modal/changelog-modal.component';
 import {filter} from 'rxjs/operators';
+import {interval} from 'rxjs';
+import {SwUpdate, VersionReadyEvent} from '@angular/service-worker';
 import {AuthService} from './services/auth/auth.service';
 import {PlanService} from './services/plan/plan.service';
 import {PushNotificationService} from './services/push/push-notification.service';
@@ -40,7 +42,8 @@ export class AppComponent implements OnInit{
     private router: Router,
     private authService: AuthService,
     private planService: PlanService,
-    private pushService: PushNotificationService
+    private pushService: PushNotificationService,
+    private swUpdate: SwUpdate
   ) {
     (window as any).navHistoryDebug = this.navigationHistory;
   }
@@ -59,6 +62,7 @@ export class AppComponent implements OnInit{
 
   ngOnInit() {
     console.log("v1.2.4");
+    this.setupServiceWorkerUpdates();
     // Inicializar plan desde token existente (reload de página)
     // Se hace aquí y no en AuthService para evitar circular dep en DI
     const token = this.authService.getAccessToken();
@@ -80,6 +84,23 @@ export class AppComponent implements OnInit{
     if (!this.isPublicRoute) {
       this.trySubscribePush();
     }
+  }
+
+  private setupServiceWorkerUpdates(): void {
+    if (!this.swUpdate.isEnabled) return;
+
+    // Nueva version del bundle detectada (subida a prod) -> activar y refrescar sola.
+    this.swUpdate.versionUpdates
+      .pipe(filter((evt): evt is VersionReadyEvent => evt.type === 'VERSION_READY'))
+      .subscribe(() => {
+        this.swUpdate.activateUpdate().then(() => window.location.reload());
+      });
+
+    // El SW solo chequea update en la carga inicial; en una SPA de sesion larga
+    // hay que pedirlo explicitamente para no quedar pegado a un bundle viejo.
+    interval(15 * 60 * 1000).subscribe(() => {
+      this.swUpdate.checkForUpdate().catch(() => {});
+    });
   }
 
   private trySubscribePush(): void {
