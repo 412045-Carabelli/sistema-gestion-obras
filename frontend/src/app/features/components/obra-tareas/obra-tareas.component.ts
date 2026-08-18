@@ -1,4 +1,4 @@
-import {Component, EventEmitter, Input, OnChanges, Output} from '@angular/core';
+import {Component, EventEmitter, Input, OnChanges, Output, SimpleChanges} from '@angular/core';
 import {CommonModule, NgClass} from '@angular/common';
 import {FormsModule} from '@angular/forms';
 import {ButtonModule} from 'primeng/button';
@@ -73,8 +73,8 @@ export class ObraTareasComponent implements OnChanges {
     private messageService: MessageService
   ) {}
 
-  ngOnChanges() {
-    if (this.obraId) {
+  ngOnChanges(changes: SimpleChanges) {
+    if (this.obraId && changes['obraId']) {
       this.cargarAvancePagos();
     }
   }
@@ -183,6 +183,7 @@ export class ObraTareasComponent implements OnChanges {
         }
 
         this.tareasActualizadas.emit(this.tareas);
+        this.cargarAvancePagos();
         this.showAddTaskModal = false;
       },
       error: (err) => {
@@ -202,6 +203,7 @@ export class ObraTareasComponent implements OnChanges {
           t.id === tarea.id ? {...t, ...updated} : t
         );
         this.tareasActualizadas.emit(this.tareas);
+        this.cargarAvancePagos();
       },
       error: (err) => {
         this.messageService.add({
@@ -230,6 +232,7 @@ export class ObraTareasComponent implements OnChanges {
       next: updated => {
         this.tareas = this.tareas.map(t => (t.id === tarea.id ? {...t, ...updated, proveedor: t.proveedor} : t));
         this.tareasActualizadas.emit(this.tareas);
+        this.cargarAvancePagos();
       },
       error: (err) => {
         this.messageService.add({
@@ -246,6 +249,7 @@ export class ObraTareasComponent implements OnChanges {
       next: () => {
         this.tareas = this.tareas.filter(t => t.id !== id);
         this.tareasActualizadas.emit(this.tareas);
+        this.cargarAvancePagos();
         this.messageService.add({
           severity: 'success',
           summary: 'Tarea eliminada',
@@ -325,6 +329,7 @@ export class ObraTareasComponent implements OnChanges {
       next: updated => {
         this.tareas = this.tareas.map(t => (t.id === tarea.id ? {...t, ...updated, proveedor: t.proveedor} : t));
         this.tareasActualizadas.emit(this.tareas);
+        this.cargarAvancePagos();
       },
       error: (err) => {
         this.messageService.add({
