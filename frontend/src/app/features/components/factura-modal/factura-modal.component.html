@@ -24,6 +24,7 @@
             placeholder="Seleccionar cliente"
             styleClass="w-full"
             appendTo="body"
+            [disabled]="bloqueadaSeleccion"
             (onChange)="onClienteChange()"
           ></p-select>
           @if (form.get('id_cliente')?.invalid && form.get('id_cliente')?.touched) {
@@ -40,6 +41,7 @@
             placeholder="Seleccionar obra"
             styleClass="w-full"
             appendTo="body"
+            [disabled]="bloqueadaSeleccion"
             (onChange)="onObraChange()"
           ></p-select>
           @if (restanteObra != null) {

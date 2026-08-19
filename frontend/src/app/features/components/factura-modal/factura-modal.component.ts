@@ -62,6 +62,8 @@ export class FacturaModalComponent implements OnChanges, OnDestroy {
   @Input() mode: FacturaModalMode = 'crear';
   @Input() facturaId: number | null = null;
   @Input() obraIdPreseleccionado: number | null = null;
+  /** Obra (con su cliente) ya cargada por el padre cuando el modal se abre embebido en una obra: evita pegarle a /bff/clientes y /bff/obras solo para bloquear los selects. */
+  @Input() obraPreseleccionada: Obra | null = null;
 
   @Output() closed = new EventEmitter<void>();
   @Output() guardada = new EventEmitter<Factura>();
@@ -137,16 +139,38 @@ export class FacturaModalComponent implements OnChanges, OnDestroy {
     this.selectedFile = null;
     this.restanteObra = null;
     this.montoSugerido = null;
-    this.cargarCatalogos();
+
+    if (this.obraPreseleccionada) {
+      this.aplicarCatalogoDesdeObraPreseleccionada();
+    } else {
+      this.cargarCatalogos();
+    }
 
     if (this.mode === 'crear') {
       this.form = this.buildForm();
-      if (this.obraIdPreseleccionado) {
+      if (this.obraPreseleccionada) {
+        const cliente = this.obraPreseleccionada.cliente;
+        this.form.patchValue({
+          id_cliente: cliente ? Number(cliente.id) : null,
+          id_obra: Number(this.obraPreseleccionada.id)
+        });
+        this.actualizarRestanteObra(Number(this.obraPreseleccionada.id));
+      } else if (this.obraIdPreseleccionado) {
         this.form.patchValue({id_obra: this.obraIdPreseleccionado});
       }
     } else if (this.mode === 'detalle' && this.facturaId) {
       this.cargarDetalle(this.facturaId);
     }
+  }
+
+  /** Carga los combos de cliente/obra directo desde la obra ya cargada por el padre, sin llamadas a /bff/clientes ni /bff/obras. */
+  private aplicarCatalogoDesdeObraPreseleccionada(): void {
+    const obra = this.obraPreseleccionada;
+    if (!obra) return;
+    const cliente = obra.cliente;
+    this.clientes = cliente ? [{...cliente, id: Number(cliente.id)}] : [];
+    this.obras = [obra];
+    this.obrasFiltradas = [obra];
   }
 
   private limpiar(): void {
@@ -318,6 +342,10 @@ export class FacturaModalComponent implements OnChanges, OnDestroy {
     } else {
       this.form.get('monto')?.setValue(null);
     }
+  }
+
+  get bloqueadaSeleccion(): boolean {
+    return this.obraIdPreseleccionado != null;
   }
 
   get puedeGuardar(): boolean {
