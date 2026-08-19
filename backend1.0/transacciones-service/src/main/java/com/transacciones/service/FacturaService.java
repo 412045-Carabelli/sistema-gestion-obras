@@ -10,6 +10,7 @@ import com.transacciones.repository.TransaccionRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
@@ -23,7 +24,6 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.nio.file.StandardCopyOption;
 import java.time.LocalDate;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -36,6 +36,7 @@ public class FacturaService {
     private final FacturaRepository facturaRepository;
     private final TransaccionRepository transaccionRepository;
     private final ObraCostoClient obraCostoClient;
+    private final DocumentoClient documentoClient;
 
     @Value("${file.upload-dir}")
     private String uploadDirBase;
@@ -82,8 +83,8 @@ public class FacturaService {
         validarMontoContraPresupuesto(dto.getId_obra(), dto.getMonto(), null);
         // Funcionalidad "Impacta cta. cte." deshabilitada a pedido (checkbox removido del frontend).
         // Boolean impactaCtaCte = dto.getImpacta_cta_cte() != null ? dto.getImpacta_cta_cte() : false;
-        String relativePath = null;
         String nombreArchivo = null;
+        Long idDocumento = null;
         String estado = normalizarEstado(dto.getEstado());
         Double montoRestante = dto.getMonto_restante() != null ? dto.getMonto_restante() : dto.getMonto();
         if ("COBRADA".equals(estado)) {
@@ -91,7 +92,7 @@ public class FacturaService {
         }
 
         if (file != null && !file.isEmpty()) {
-            relativePath = guardarArchivo(dto.getId_cliente(), file);
+            idDocumento = documentoClient.subirDocumentoFactura(dto.getId_obra(), dto.getId_cliente(), file);
             nombreArchivo = file.getOriginalFilename();
         }
 
@@ -105,7 +106,7 @@ public class FacturaService {
                 .descripcion(dto.getDescripcion())
                 .estado(estado)
                 .nombreArchivo(nombreArchivo)
-                .pathArchivo(relativePath)
+                .idDocumento(idDocumento)
                 .activo(dto.getActivo() != null ? dto.getActivo() : true)
                 .impactaCtaCte(false)
                 .build();
@@ -154,10 +155,17 @@ public class FacturaService {
         // entity.setImpactaCtaCte(impactaCtaCte);
 
         if (file != null && !file.isEmpty()) {
-            eliminarArchivoSiExiste(entity.getPathArchivo());
-            String relativePath = guardarArchivo(dto.getId_cliente(), file);
-            entity.setPathArchivo(relativePath);
+            Long idDocumentoAnterior = entity.getIdDocumento();
+            String pathArchivoAnterior = entity.getPathArchivo();
+            Long idDocumento = documentoClient.subirDocumentoFactura(dto.getId_obra(), dto.getId_cliente(), file);
+            entity.setIdDocumento(idDocumento);
+            entity.setPathArchivo(null);
             entity.setNombreArchivo(file.getOriginalFilename());
+            if (idDocumentoAnterior != null) {
+                documentoClient.eliminarDocumento(idDocumentoAnterior);
+            } else {
+                eliminarArchivoSiExiste(pathArchivoAnterior);
+            }
         }
 
         // if (impactaCtaCte) {
@@ -177,7 +185,11 @@ public class FacturaService {
     public void eliminar(Long id) {
         Factura entity = facturaRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Factura no encontrada"));
-        eliminarArchivoSiExiste(entity.getPathArchivo());
+        if (entity.getIdDocumento() != null) {
+            documentoClient.eliminarDocumento(entity.getIdDocumento());
+        } else {
+            eliminarArchivoSiExiste(entity.getPathArchivo());
+        }
         if (entity.getIdTransaccion() != null) {
             transaccionRepository.deleteById(entity.getIdTransaccion());
         }
@@ -189,6 +201,22 @@ public class FacturaService {
     public ResponseEntity<Resource> descargarArchivo(Long id) {
         Factura entity = facturaRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Factura no encontrada"));
+
+        if (entity.getIdDocumento() != null) {
+            ResponseEntity<byte[]> docResponse = documentoClient.verDocumento(entity.getIdDocumento());
+            byte[] bytes = docResponse.getBody();
+            if (bytes == null) {
+                throw new RuntimeException("Archivo no encontrado en documentos-service");
+            }
+            MediaType contentType = docResponse.getHeaders().getContentType() != null
+                    ? docResponse.getHeaders().getContentType()
+                    : MediaType.APPLICATION_OCTET_STREAM;
+            return ResponseEntity.ok()
+                    .header(HttpHeaders.CONTENT_DISPOSITION,
+                            "inline; filename=\"" + (entity.getNombreArchivo() != null ? entity.getNombreArchivo() : "factura") + "\"")
+                    .contentType(contentType)
+                    .body(new ByteArrayResource(bytes));
+        }
 
         if (entity.getPathArchivo() == null || entity.getPathArchivo().isEmpty()) {
             throw new RuntimeException("La factura no tiene archivo adjunto");
@@ -218,24 +246,6 @@ public class FacturaService {
                 .body(resource);
     }
 
-    private String guardarArchivo(Long idCliente, MultipartFile file) {
-        String cleanName = sanitizeFilename(file.getOriginalFilename());
-        String fileName = System.currentTimeMillis() + "_" + cleanName;
-        Path folder = Paths.get(uploadDirBase, "facturas", String.valueOf(idCliente));
-        Path destPath = folder.resolve(fileName).normalize();
-
-        try {
-            Files.createDirectories(destPath.getParent());
-            Files.copy(file.getInputStream(), destPath, StandardCopyOption.REPLACE_EXISTING);
-        } catch (IOException e) {
-            throw new RuntimeException("No se pudo guardar el archivo de factura", e);
-        }
-
-        return Paths.get("facturas", String.valueOf(idCliente), fileName)
-                .toString()
-                .replace('\\', '/');
-    }
-
     private void eliminarArchivoSiExiste(String relativePath) {
         if (relativePath == null || relativePath.isEmpty()) {
             return;
@@ -246,13 +256,6 @@ public class FacturaService {
         } catch (IOException e) {
             // No interrumpir la eliminacion por fallas en el filesystem
         }
-    }
-
-    private String sanitizeFilename(String filename) {
-        if (filename == null || filename.isEmpty()) {
-            return "factura";
-        }
-        return filename.replaceAll("[^a-zA-Z0-9._-]", "_");
     }
 
     private FacturaDto toDto(Factura factura) {
@@ -269,6 +272,7 @@ public class FacturaService {
                 .estado(factura.getEstado())
                 .nombre_archivo(factura.getNombreArchivo())
                 .path_archivo(factura.getPathArchivo())
+                .id_documento(factura.getIdDocumento())
                 .activo(factura.getActivo())
                 .impacta_cta_cte(factura.getImpactaCtaCte())
                 .id_transaccion(factura.getIdTransaccion())

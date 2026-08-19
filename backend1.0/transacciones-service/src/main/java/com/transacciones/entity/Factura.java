@@ -49,6 +49,9 @@ public class Factura {
     @Column(name = "path_archivo")
     private String pathArchivo;
 
+    @Column(name = "id_documento")
+    private Long idDocumento;
+
     @Column(name = "activo")
     private Boolean activo = true;
 

@@ -73,6 +73,9 @@ export class FacturasListComponent implements OnInit, OnDestroy {
   @Input() obraId?: number;
   @Output() facturaClick = new EventEmitter<Factura>();
 
+  /** Obra + cliente ya cargados cuando el listado está acotado a una obra; se pasa al modal para bloquear los selects sin pegarle a /bff/clientes ni /bff/obras. */
+  obraActual: Obra | null = null;
+
   // Estados permitidos para facturación (deben coincidir con backend)
   private readonly ESTADOS_PERMITIDOS = [
     'ADJUDICADA',
@@ -295,6 +298,7 @@ export class FacturasListComponent implements OnInit, OnDestroy {
         const clienteObra = (obra as any).cliente as Cliente | undefined;
         this.clientes = clienteObra ? [clienteObra] : [];
         this.obras = [obra as Obra];
+        this.obraActual = obra as Obra;
         this.obrasById = new Map<number, Obra>([[Number(obra.id), obra as Obra]]);
         this.clientesIndex = clienteObra ? new Map([[Number(clienteObra.id), clienteObra.nombre]]) : new Map();
 
