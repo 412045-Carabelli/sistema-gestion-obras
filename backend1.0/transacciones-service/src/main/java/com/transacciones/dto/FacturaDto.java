@@ -22,6 +22,7 @@ public class FacturaDto {
     private String estado;
     private String nombre_archivo;
     private String path_archivo;
+    private Long id_documento;
     private Boolean activo;
     private Boolean impacta_cta_cte;
     private Long id_transaccion;
