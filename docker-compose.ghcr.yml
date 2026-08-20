@@ -481,35 +481,6 @@ services:
       - sgo_backend
       - dokploy-network
 
-  frezco-backup:
-    build: ./frezco-backup
-    container_name: frezco_backup
-    environment:
-      - DB_HOST=sqlserver
-      - DB_PORT=1433
-      - DB_NAME=frezco
-      - DB_USER=sa
-      - DB_PASSWORD=${DB_PASSWORD}
-    volumes:
-      - frezco_backup_data:/backups
-    depends_on:
-      frezco-crear-base:
-        condition: service_completed_successfully
-    restart: unless-stopped
-    deploy:
-      resources:
-        limits:
-          memory: 256M
-    networks:
-      - sgo_backend
-networks:
-  sgo_backend:
-    driver: bridge
-  n8n_network:
-    driver: bridge
-  dokploy-network:
-    external: true
-
 volumes:
   sqlserver_data_v2:
   migration_flags_v2:
