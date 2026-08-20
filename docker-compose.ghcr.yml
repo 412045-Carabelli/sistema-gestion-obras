@@ -419,6 +419,7 @@ services:
       - DB_PASSWORD=${DB_PASSWORD}
       - APP_USER=${FREZCO_APP_USER:-admin}
       - APP_PASSWORD=${FREZCO_APP_PASSWORD}
+      - CORS_ORIGENES=https://frezco.buildrr.cloud
       - JAVA_OPTS=-Xms64m -Xmx256m -XX:+UseG1GC -XX:MaxGCPauseMillis=200
     restart: unless-stopped
     deploy:
