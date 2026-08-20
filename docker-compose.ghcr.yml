@@ -434,6 +434,8 @@ services:
     container_name: frezco_frontend
     ports:
       - "4300:80"
+    environment:
+      - BACKEND_UPSTREAM=frezco-backend:8090
     depends_on:
       - frezco-backend
     restart: unless-stopped
