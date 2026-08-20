@@ -403,6 +403,7 @@ services:
       resources:
         limits:
           memory: 512M
+
   frezco-backend:
     pull_policy: always
     image: ghcr.io/412045-carabelli/frezco-backend:latest
@@ -443,6 +444,14 @@ services:
     networks:
       - sgo_backend
       - dokploy-network
+
+networks:
+  sgo_backend:
+    driver: bridge
+  n8n_network:
+    driver: bridge
+  dokploy-network:
+    external: true
 
 volumes:
   sqlserver_data_v2:
