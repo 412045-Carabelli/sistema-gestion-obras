@@ -403,40 +403,6 @@ services:
       resources:
         limits:
           memory: 512M
-
-    # =======================
-  # FrezCo. Base propia (frezco) en la misma instancia de SQL Server.
-  # Imagenes publicadas por .github/workflows/publish-ghcr.yml en el repo frezco.
-  # =======================
-
-  frezco-crear-base:
-    image: mcr.microsoft.com/mssql-tools
-    container_name: frezco_crear_base
-    volumes:
-      - ./frezco-db:/db:ro
-    environment:
-      - DB_HOST=sqlserver
-      - DB_PORT=1433
-      - DB_NAME=frezco
-      - DB_USER=sa
-      - DB_PASSWORD=${DB_PASSWORD}
-    entrypoint:
-      - /bin/bash
-      - -c
-      - |
-        for i in $$(seq 1 30); do
-          /opt/mssql-tools/bin/sqlcmd -S "$$DB_HOST,$$DB_PORT" -U "$$DB_USER" -P "$$DB_PASSWORD" -Q "SELECT 1" && break
-          echo "Esperando SQL Server ($$i)"; sleep 5
-        done
-        /opt/mssql-tools/bin/sqlcmd -S "$$DB_HOST,$$DB_PORT" -U "$$DB_USER" -P "$$DB_PASSWORD" \
-          -v DB_NAME="$$DB_NAME" -i /db/crear-base.sql
-    restart: "no"
-    depends_on:
-      sqlserver:
-        condition: service_healthy
-    networks:
-      - sgo_backend
-
   frezco-backend:
     pull_policy: always
     image: ghcr.io/412045-carabelli/frezco-backend:latest
@@ -453,9 +419,6 @@ services:
       - APP_USER=${FREZCO_APP_USER:-admin}
       - APP_PASSWORD=${FREZCO_APP_PASSWORD}
       - JAVA_OPTS=-Xms64m -Xmx256m -XX:+UseG1GC -XX:MaxGCPauseMillis=200
-    depends_on:
-      frezco-crear-base:
-        condition: service_completed_successfully
     restart: unless-stopped
     deploy:
       resources:
