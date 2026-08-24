@@ -72,6 +72,7 @@ export class FacturaModalComponent implements OnChanges, OnDestroy {
   viewMode: FacturaModalViewMode = 'crear';
   loading = false;
   guardando = false;
+  cargandoCatalogos = false;
 
   clientes: Cliente[] = [];
   obras: Obra[] = [];
@@ -141,8 +142,10 @@ export class FacturaModalComponent implements OnChanges, OnDestroy {
     this.montoSugerido = null;
 
     if (this.obraPreseleccionada) {
+      this.cargandoCatalogos = false;
       this.aplicarCatalogoDesdeObraPreseleccionada();
     } else {
+      this.cargandoCatalogos = true;
       this.cargarCatalogos();
     }
 
@@ -186,10 +189,18 @@ export class FacturaModalComponent implements OnChanges, OnDestroy {
   }
 
   private cargarCatalogos(): void {
-    this.clientesService.getClientes().subscribe({
+    let pendientes = 2;
+    const marcarListo = () => {
+      pendientes--;
+      if (pendientes === 0) this.cargandoCatalogos = false;
+    };
+
+    this.clientesService.getClientesSimple().subscribe({
       next: clientes => {
         this.clientes = clientes.map(c => ({...c, id: Number(c.id)}));
-      }
+        marcarListo();
+      },
+      error: () => marcarListo()
     });
     this.obrasService.getObras().subscribe({
       next: obras => {
@@ -198,7 +209,9 @@ export class FacturaModalComponent implements OnChanges, OnDestroy {
         if (this.obraIdPreseleccionado) {
           this.aplicarPreseleccionCliente();
         }
-      }
+        marcarListo();
+      },
+      error: () => marcarListo()
     });
   }
 
@@ -345,7 +358,7 @@ export class FacturaModalComponent implements OnChanges, OnDestroy {
   }
 
   get bloqueadaSeleccion(): boolean {
-    return this.obraIdPreseleccionado != null;
+    return this.obraIdPreseleccionado != null || this.cargandoCatalogos;
   }
 
   get puedeGuardar(): boolean {

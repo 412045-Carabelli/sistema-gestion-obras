@@ -40,6 +40,11 @@ public class TareaController {
         return service.obtenerTareasPorProveedor(idProveedor);
     }
 
+    @GetMapping("/obra/{idObra}")
+    public List<TareaResponse> obtenerTareasPorObra(@PathVariable("idObra") Long idObra) {
+        return service.obtenerTareasPorObra(idObra);
+    }
+
     @GetMapping("/antiguas")
     public List<TareaAntiguaAgendaResponse> obtenerTareasAntiguasAgenda(
             @RequestParam(name = "limit", defaultValue = "10") int limit,

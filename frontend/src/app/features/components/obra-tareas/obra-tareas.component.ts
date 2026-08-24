@@ -50,6 +50,7 @@ export class ObraTareasComponent implements OnChanges {
   @Output() tareasActualizadas = new EventEmitter<Tarea[]>();
 
   avancePagos: any = { items: [] };
+  cargandoAvancePagos = true;
 
   estadoOptions = [
     {label: 'Pendiente', value: 'PENDIENTE'},
@@ -80,11 +81,14 @@ export class ObraTareasComponent implements OnChanges {
   }
 
   private cargarAvancePagos() {
+    this.cargandoAvancePagos = true;
     this.reportesService.obtenerAvancePagosObra(this.obraId).subscribe({
       next: (data) => {
         this.avancePagos = data;
+        this.cargandoAvancePagos = false;
       },
       error: (err) => {
+        this.cargandoAvancePagos = false;
         this.messageService.add({
           severity: 'error',
           summary: 'Error',

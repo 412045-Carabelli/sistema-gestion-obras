@@ -77,7 +77,7 @@ public class AgendaBffController {
             @RequestParam(name = "soloActivas", defaultValue = "false") boolean soloActivas,
             @RequestParam(name = "ordenAntiguas", defaultValue = "false") boolean ordenAntiguas
     ) {
-        String uri = UriComponentsBuilder.fromUriString(AGENDA_TAREAS_URL + "/" + idObra)
+        String uri = UriComponentsBuilder.fromUriString(AGENDA_TAREAS_URL + "/obra/" + idObra)
                 .queryParamIfPresent("soloActivas", soloActivas ? java.util.Optional.of(true) : java.util.Optional.empty())
                 .queryParamIfPresent("ordenAntiguas", ordenAntiguas ? java.util.Optional.of(true) : java.util.Optional.empty())
                 .toUriString();

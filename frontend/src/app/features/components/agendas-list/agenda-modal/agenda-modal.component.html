@@ -56,8 +56,9 @@
           filterPlaceholder="Buscar obra..."
           styleClass="w-full"
           placeholder="Selecciona una obra"
-          [loading]="cargandoDatos()"
-          (onChange)="onObraChange()"
+          [loading]="cargandoDatos() || cargandoFiltro()"
+          [disabled]="!!obraFija || cargandoDatos() || cargandoFiltro()"
+          (onChange)="onFiltroCambiado('obraId')"
           appendTo="body">
         </p-dropdown>
       </div>
@@ -65,7 +66,7 @@
       <div>
         <label class="block text-sm font-poppins font-semibold mb-1 text-gray-700">Cliente</label>
         <p-dropdown
-          [options]="clientesFiltrados()"
+          [options]="clientesOptions()"
           optionLabel="label"
           optionValue="value"
           formControlName="clienteId"
@@ -74,20 +75,17 @@
           filterPlaceholder="Buscar cliente..."
           styleClass="w-full"
           placeholder="Selecciona un cliente"
-          [loading]="cargandoDatos()"
+          [loading]="cargandoDatos() || cargandoFiltro()"
+          [disabled]="cargandoDatos() || cargandoFiltro()"
+          (onChange)="onFiltroCambiado('clienteId')"
           appendTo="body">
         </p-dropdown>
-        @if (form?.get('obraId')?.value && clientesFiltrados().length === 0) {
-          <p class="text-orange-500 text-xs mt-1">
-            <i class="pi pi-info-circle text-xs mr-1"></i>No hay clientes en esta obra
-          </p>
-        }
       </div>
 
       <div>
         <label class="block text-sm font-poppins font-semibold mb-1 text-gray-700">Proveedor</label>
         <p-dropdown
-          [options]="proveedoresFiltrados()"
+          [options]="proveedoresOptions()"
           optionLabel="label"
           optionValue="value"
           formControlName="proveedorId"
@@ -96,7 +94,9 @@
           filterPlaceholder="Buscar proveedor..."
           styleClass="w-full"
           placeholder="Selecciona un proveedor"
-          [loading]="cargandoDatos()"
+          [loading]="cargandoDatos() || cargandoFiltro()"
+          [disabled]="cargandoDatos() || cargandoFiltro()"
+          (onChange)="onFiltroCambiado('proveedorId')"
           appendTo="body">
         </p-dropdown>
       </div>

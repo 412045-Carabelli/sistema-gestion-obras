@@ -1,14 +1,17 @@
-import {Component, Input, Output, EventEmitter, signal, effect, inject, input, computed} from '@angular/core';
+import {Component, Input, Output, EventEmitter, signal, effect, inject, input} from '@angular/core';
 import {CommonModule} from '@angular/common';
+import {HttpClient} from '@angular/common/http';
 import {FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators, AbstractControl, ValidationErrors} from '@angular/forms';
 import {ButtonModule} from 'primeng/button';
 import {InputTextModule} from 'primeng/inputtext';
 import {InputTextarea} from 'primeng/inputtextarea';
 import {DropdownModule} from 'primeng/dropdown';
 import {MessageService, ConfirmationService} from 'primeng/api';
+import {forkJoin, of, switchMap} from 'rxjs';
 import {ModalComponent} from '../../../../shared/modal/modal.component';
 
 import {Agenda, ESTADOS_AGENDA_OPCIONES, PRIORIDADES_AGENDA, Obra, Cliente, Proveedor} from '../../../../core/models/models';
+import {environment} from '../../../../../environments/environment';
 import {AgendasService} from '../../../../services/agendas/agendas.service';
 import {ObrasService} from '../../../../services/obras/obras.service';
 import {ClientesService} from '../../../../services/clientes/clientes.service';
@@ -33,6 +36,8 @@ import {ProveedoresService} from '../../../../services/proveedores/proveedores.s
 export class AgendaModalComponent {
   visible = input<boolean>(false);
   agenda = input<Agenda | null>(null);
+  /** Cuando se setea (usado embebido en Obras/Detalle), fija la obra y evita traer todas. */
+  @Input() obraFija?: Obra;
   @Output() onClose = new EventEmitter<void>();
   @Output() onGuardada = new EventEmitter<Agenda>();
   @Output() onEliminada = new EventEmitter<number>();
@@ -44,6 +49,7 @@ export class AgendaModalComponent {
   private obrasService = inject(ObrasService);
   private clientesService = inject(ClientesService);
   private proveedoresService = inject(ProveedoresService);
+  private http = inject(HttpClient);
 
   form!: FormGroup;
   guardando = signal(false);
@@ -54,21 +60,11 @@ export class AgendaModalComponent {
   obrasMap = signal<Map<number, Obra>>(new Map());
   clientesOptions = signal<Array<{label: string; value: number}>>([]);
   proveedoresOptions = signal<Array<{label: string; value: number}>>([]);
-  clientesFiltrados = computed(() => {
-    const obraId = this.form?.get('obraId')?.value;
-    if (!obraId) return this.clientesOptions();
-
-    const obra = this.obrasMap().get(obraId);
-    if (!obra || !obra.cliente) return [];
-
-    return this.clientesOptions().filter(c => c.value === obra.cliente.id);
-  });
-  proveedoresFiltrados = computed(() => {
-    const obraId = this.form?.get('obraId')?.value;
-    if (!obraId) return this.proveedoresOptions();
-
-    return this.proveedoresOptions();
-  });
+  /** Listas completas sin acotar por ningún filtro (para restaurar cuando se limpian todos). */
+  private obrasOptionsCompletas: Array<{label: string; value: number}> = [];
+  private clientesOptionsCompletas: Array<{label: string; value: number}> = [];
+  private proveedoresOptionsCompletas: Array<{label: string; value: number}> = [];
+  cargandoFiltro = signal(false);
   cargandoDatos = signal(false);
 
   constructor() {
@@ -85,71 +81,99 @@ export class AgendaModalComponent {
   private cargarDatos() {
     this.cargandoDatos.set(true);
 
-    this.obrasService.getObrasAll().subscribe({
-      next: (obras) => {
-        const EXCLUIDOS = ['PERDIDA', 'FINALIZADA'];
-        const obrasFiltradas = obras
-          .filter(o => {
-            const raw = o.obra_estado;
-            const estado = typeof raw === 'string'
-              ? raw.toUpperCase()
-              : ((raw as any)?.name ?? (raw as any)?.value ?? '').toString().toUpperCase();
-            return !EXCLUIDOS.includes(estado) && o.activo !== false;
-          })
-          .sort((a, b) => (a.nombre || '').localeCompare(b.nombre || '', 'es'));
-        const map = new Map<number, Obra>();
-        obrasFiltradas.forEach(o => map.set(o.id!, o));
-        this.obrasMap.set(map);
-        this.obrasOptions.set(
-          obrasFiltradas.map(o => ({ label: o.nombre, value: o.id! }))
-        );
-      },
-      error: () => {
-        this.messageService.add({
-          severity: 'warn',
-          summary: 'Aviso',
-          detail: 'No se pudieron cargar las obras'
-        });
-      }
-    });
+    if (this.obraFija) {
+      // Embebido en Obras/Detalle: la obra ya se conoce, no hace falta traer todas.
+      const map = new Map<number, Obra>();
+      map.set(this.obraFija.id!, this.obraFija);
+      this.obrasMap.set(map);
+      this.obrasOptions.set([{ label: this.obraFija.nombre, value: this.obraFija.id! }]);
+      this.clientesOptions.set(
+        this.obraFija.cliente ? [{ label: this.obraFija.cliente.nombre, value: this.obraFija.cliente.id }] : []
+      );
+    } else {
+      this.obrasService.getObrasSimple().subscribe({
+        next: (obras) => {
+          const EXCLUIDOS = ['PERDIDA', 'FINALIZADA'];
+          const obrasFiltradas = obras
+            .filter(o => {
+              const raw = o.obra_estado;
+              const estado = typeof raw === 'string'
+                ? raw.toUpperCase()
+                : ((raw as any)?.name ?? (raw as any)?.value ?? '').toString().toUpperCase();
+              return !EXCLUIDOS.includes(estado) && o.activo !== false;
+            })
+            .sort((a, b) => (a.nombre || '').localeCompare(b.nombre || '', 'es'));
+          const map = new Map<number, Obra>();
+          obrasFiltradas.forEach(o => map.set(o.id!, o));
+          this.obrasMap.set(map);
+          this.obrasOptionsCompletas = obrasFiltradas.map(o => ({ label: o.nombre, value: o.id! }));
+          this.obrasOptions.set(this.obrasOptionsCompletas);
+        },
+        error: () => {
+          this.messageService.add({
+            severity: 'warn',
+            summary: 'Aviso',
+            detail: 'No se pudieron cargar las obras'
+          });
+        }
+      });
 
-    this.clientesService.getClientes().subscribe({
-      next: (clientes) => {
-        const clientesActivos = clientes
-          .filter(c => c.activo !== false)
-          .sort((a, b) => (a.nombre || '').localeCompare(b.nombre || '', 'es'));
-        this.clientesOptions.set(
-          clientesActivos.map(c => ({ label: c.nombre, value: c.id }))
-        );
-      },
-      error: () => {
-        this.messageService.add({
-          severity: 'warn',
-          summary: 'Aviso',
-          detail: 'No se pudieron cargar los clientes'
-        });
-      }
-    });
+      this.clientesService.getClientesSimple().subscribe({
+        next: (clientes) => {
+          const clientesActivos = clientes
+            .filter(c => c.activo !== false)
+            .sort((a, b) => (a.nombre || '').localeCompare(b.nombre || '', 'es'));
+          this.clientesOptionsCompletas = clientesActivos.map(c => ({ label: c.nombre, value: c.id }));
+          this.clientesOptions.set(this.clientesOptionsCompletas);
+        },
+        error: () => {
+          this.messageService.add({
+            severity: 'warn',
+            summary: 'Aviso',
+            detail: 'No se pudieron cargar los clientes'
+          });
+        }
+      });
+    }
 
-    this.proveedoresService.getProveedores().subscribe({
-      next: (proveedores) => {
-        const proveedoresActivos = proveedores
-          .filter(p => p.activo !== false)
-          .sort((a, b) => (a.nombre || '').localeCompare(b.nombre || '', 'es'));
-        this.proveedoresOptions.set(
-          proveedoresActivos.map(p => ({ label: p.nombre, value: p.id }))
-        );
-        this.cargandoDatos.set(false);
-      },
-      error: () => {
-        this.cargandoDatos.set(false);
-        this.messageService.add({
-          severity: 'warn',
-          summary: 'Aviso',
-          detail: 'No se pudieron cargar los proveedores'
-        });
+    if (this.obraFija) {
+      // Embebido en Obras/Detalle: solo los proveedores con costos cargados en esta obra.
+      this.proveedoresOptions.set(
+        this.proveedoresDeObra(this.obraFija).map(p => ({ label: p.nombre, value: p.id! }))
+      );
+      this.cargandoDatos.set(false);
+    } else {
+      this.proveedoresService.getProveedoresSimple().subscribe({
+        next: (proveedores) => {
+          const proveedoresActivos = proveedores
+            .filter(p => p.activo !== false)
+            .sort((a, b) => (a.nombre || '').localeCompare(b.nombre || '', 'es'));
+          this.proveedoresOptionsCompletas = proveedoresActivos.map(p => ({ label: p.nombre, value: p.id }));
+          this.proveedoresOptions.set(this.proveedoresOptionsCompletas);
+          this.cargandoDatos.set(false);
+        },
+        error: () => {
+          this.cargandoDatos.set(false);
+          this.messageService.add({
+            severity: 'warn',
+            summary: 'Aviso',
+            detail: 'No se pudieron cargar los proveedores'
+          });
+        }
+      });
+    }
+  }
+
+  /** Proveedores únicos con costos cargados en la obra (evita pedir el catálogo completo). */
+  private proveedoresDeObra(obra: Obra): Proveedor[] {
+    const map = new Map<number, Proveedor>();
+    (obra.costos || []).forEach(c => {
+      const id = c.proveedor?.id ?? c.id_proveedor;
+      if (id && !map.has(id)) {
+        map.set(id, c.proveedor ?? ({ id, nombre: `Proveedor #${id}` } as Proveedor));
       }
     });
+    return [...map.values()].sort((a, b) => (a.nombre || '').localeCompare(b.nombre || ''));
   }
 
   private inicializarFormulario() {
@@ -191,13 +215,17 @@ export class AgendaModalComponent {
       titulo: [agenda?.titulo || '', Validators.required],
       estado: [agenda?.estado || 'PENDIENTE'],
       prioridad: [agenda?.prioridad || 'MEDIA'],
-      obraId: [agenda?.obraId || null],
-      clienteId: [agenda?.clienteId || null],
+      obraId: [agenda?.obraId || this.obraFija?.id || null],
+      clienteId: [agenda?.clienteId || this.obraFija?.cliente?.id || null],
       proveedorId: [agenda?.proveedorId || null],
       descripcion: [agenda?.descripcion || ''],
       fechaInicio: [fechaInicioFormato || null],
       fechaVencimiento: [fechaVencimientoFormato || null]
     }, { validators: this.validadorFechas() });
+
+    if (this.obraFija) {
+      this.form.get('obraId')?.disable();
+    }
   }
 
   private validadorFechas() {
@@ -226,17 +254,128 @@ export class AgendaModalComponent {
     };
   }
 
-  onObraChange() {
+  /**
+   * Filtro en cascada (obra / cliente / proveedor, cada uno opcional e independiente):
+   * - Obra elegida (1:1 con su cliente): autocompleta cliente y acota proveedores a los de esa obra.
+   * - Proveedor elegido: acota obras a las de ese proveedor, y clientes a los de esas obras.
+   * - Cliente elegido: acota obras a las de ese cliente, y proveedores a los de esas obras.
+   * - Nada elegido: vuelve a mostrar los catálogos completos.
+   * No se usa en contexto embebido (obraFija): ahí la obra ya viene fija y bloqueada.
+   */
+  onFiltroCambiado(origen: 'obraId' | 'clienteId' | 'proveedorId') {
+    if (this.obraFija) return;
+
     const obraId = this.form.get('obraId')?.value;
+    const proveedorId = this.form.get('proveedorId')?.value;
+    const clienteId = this.form.get('clienteId')?.value;
+
     if (obraId) {
-      this.form.patchValue({ clienteId: null, proveedorId: null });
+      // Obra→cliente es 1:1: el combo de cliente queda acotado a ÚNICAMENTE el de esa obra
+      // (se elija o se borre el valor, la opción disponible sigue siendo esa sola).
       const obra = this.obrasMap().get(obraId);
-      if (obra?.cliente) {
-        this.form.patchValue({ clienteId: obra.cliente.id });
+      this.clientesOptions.set(
+        obra?.cliente ? [{ label: obra.cliente.nombre, value: obra.cliente.id }] : []
+      );
+      // Autocompletar el valor solo cuando el cambio vino de elegir la obra — si el usuario
+      // después limpia el cliente a mano, no se lo volvemos a forzar (pero sigue siendo la
+      // única opción disponible en el combo).
+      if (origen === 'obraId' && obra?.cliente) {
+        this.form.patchValue({ clienteId: obra.cliente.id }, { emitEvent: false });
       }
-    } else {
-      this.form.patchValue({ clienteId: null, proveedorId: null });
+      this.cargandoFiltro.set(true);
+      this.http.get<Array<{id: number; nombre: string}>>(
+        `${environment.apiGateway}/bff/reportes/filtros/proveedores-por-obra?obraId=${obraId}`
+      ).subscribe({
+        next: (proveedores) => {
+          this.proveedoresOptions.set(
+            proveedores.map(p => ({ label: p.nombre, value: p.id })).sort((a, b) => a.label.localeCompare(b.label, 'es'))
+          );
+          this.cargandoFiltro.set(false);
+        },
+        error: () => {
+          this.cargandoFiltro.set(false);
+          this.avisoFiltro();
+        }
+      });
+      return;
     }
+
+    if (proveedorId) {
+      this.obrasOptions.set(this.obrasOptionsCompletas);
+      this.cargandoFiltro.set(true);
+      this.http.get<Array<{id: number; nombre: string}>>(
+        `${environment.apiGateway}/bff/reportes/filtros/obras-por-proveedor?proveedorId=${proveedorId}`
+      ).pipe(
+        switchMap(obras => {
+          this.obrasOptions.set(obras.map(o => ({ label: o.nombre, value: o.id })));
+          if (obras.length === 0) return of([] as Array<{id: number; nombre: string}>[]);
+          return forkJoin(obras.map(o =>
+            this.http.get<Array<{id: number; nombre: string}>>(
+              `${environment.apiGateway}/bff/reportes/filtros/clientes-por-obra?obraId=${o.id}`
+            )
+          ));
+        })
+      ).subscribe({
+        next: (results) => {
+          this.clientesOptions.set(this.mergeUnicos(results));
+          this.cargandoFiltro.set(false);
+        },
+        error: () => {
+          this.cargandoFiltro.set(false);
+          this.avisoFiltro();
+        }
+      });
+      return;
+    }
+
+    if (clienteId) {
+      this.proveedoresOptions.set(this.proveedoresOptionsCompletas);
+      this.cargandoFiltro.set(true);
+      this.http.get<Array<{id: number; nombre: string}>>(
+        `${environment.apiGateway}/bff/reportes/filtros/obras-por-cliente?clienteId=${clienteId}`
+      ).pipe(
+        switchMap(obras => {
+          this.obrasOptions.set(obras.map(o => ({ label: o.nombre, value: o.id })));
+          if (obras.length === 0) return of([] as Array<{id: number; nombre: string}>[]);
+          return forkJoin(obras.map(o =>
+            this.http.get<Array<{id: number; nombre: string}>>(
+              `${environment.apiGateway}/bff/reportes/filtros/proveedores-por-obra?obraId=${o.id}`
+            )
+          ));
+        })
+      ).subscribe({
+        next: (results) => {
+          this.proveedoresOptions.set(this.mergeUnicos(results));
+          this.cargandoFiltro.set(false);
+        },
+        error: () => {
+          this.cargandoFiltro.set(false);
+          this.avisoFiltro();
+        }
+      });
+      return;
+    }
+
+    // Ningún filtro activo: catálogos completos.
+    this.obrasOptions.set(this.obrasOptionsCompletas);
+    this.clientesOptions.set(this.clientesOptionsCompletas);
+    this.proveedoresOptions.set(this.proveedoresOptionsCompletas);
+  }
+
+  private mergeUnicos(grupos: Array<Array<{id: number; nombre: string}>>): Array<{label: string; value: number}> {
+    const set = new Map<number, string>();
+    grupos.forEach(grupo => grupo.forEach(item => set.set(item.id, item.nombre)));
+    return Array.from(set.entries())
+      .map(([value, label]) => ({ label, value }))
+      .sort((a, b) => a.label.localeCompare(b.label, 'es'));
+  }
+
+  private avisoFiltro() {
+    this.messageService.add({
+      severity: 'warn',
+      summary: 'Aviso',
+      detail: 'No se pudieron filtrar obras/clientes/proveedores'
+    });
   }
 
   guardar() {
@@ -250,7 +389,7 @@ export class AgendaModalComponent {
     }
 
     this.guardando.set(true);
-    const formValue = this.form.value;
+    const formValue = this.form.getRawValue();
 
     if (formValue.fechaInicio) {
       const [y, mo, d] = formValue.fechaInicio.split('-').map(Number);

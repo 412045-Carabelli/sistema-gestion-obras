@@ -155,49 +155,51 @@
   </div>
 } @placeholder {
   <div class="space-y-6 animate-pulse">
-    <!-- Filter bar skeleton -->
-    <div class="bg-white rounded-lg shadow-sm border border-gray-100 p-5">
-      <div class="flex flex-col lg:flex-row lg:items-end gap-4 justify-between">
-        <div class="flex flex-col sm:flex-row gap-3 flex-wrap flex-1">
-          <!-- 5 Filter inputs skeleton (including checkbox) -->
-          @for (i of [1, 2, 3, 4, 5]; track i) {
-            <div class="flex flex-col gap-1" [style.animation-delay]="(i * 100) + 'ms'">
-              <div class="h-3 bg-gray-200 rounded w-20"></div>
-              <div class="h-10 bg-gray-200 rounded sm:w-48 w-full"></div>
-            </div>
-          }
-        </div>
-        <!-- Button skeleton -->
-        <div class="flex gap-2">
-          <div class="h-10 bg-gray-200 rounded w-24" style="animation-delay: 500ms"></div>
+    @if (!obraId) {
+      <!-- Filter bar skeleton -->
+      <div class="bg-white rounded-lg shadow-sm border border-gray-100 p-5">
+        <div class="flex flex-col lg:flex-row lg:items-end gap-4 justify-between">
+          <div class="flex flex-col sm:flex-row gap-3 flex-wrap flex-1">
+            <!-- 5 Filter inputs skeleton (including checkbox) -->
+            @for (i of [1, 2, 3, 4, 5]; track i) {
+              <div class="flex flex-col gap-1" [style.animation-delay]="(i * 100) + 'ms'">
+                <div class="h-3 bg-gray-200 rounded w-20"></div>
+                <div class="h-10 bg-gray-200 rounded sm:w-48 w-full"></div>
+              </div>
+            }
+          </div>
+          <!-- Button skeleton -->
+          <div class="flex gap-2">
+            <div class="h-10 bg-gray-200 rounded w-24" style="animation-delay: 500ms"></div>
+          </div>
         </div>
       </div>
-    </div>
 
-    <!-- KPIs skeleton -->
-    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-      @for (i of [1, 2, 3, 4]; track i) {
-        <div class="bg-white rounded-xl shadow-md p-5 border-l-4 border-gray-200" [style.animation-delay]="(i * 100) + 'ms'">
-          <div class="h-4 bg-gray-200 rounded w-24 mb-2"></div>
-          <div class="h-8 bg-gray-300 rounded w-32"></div>
-        </div>
-      }
-    </div>
+      <!-- KPIs skeleton -->
+      <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+        @for (i of [1, 2, 3, 4]; track i) {
+          <div class="bg-white rounded-xl shadow-md p-5 border-l-4 border-gray-200" [style.animation-delay]="(i * 100) + 'ms'">
+            <div class="h-4 bg-gray-200 rounded w-24 mb-2"></div>
+            <div class="h-8 bg-gray-300 rounded w-32"></div>
+          </div>
+        }
+      </div>
+    }
 
     <!-- Table skeleton -->
     <div class="bg-white rounded-xl shadow-md overflow-hidden p-4">
       <!-- Header skeleton -->
       <div class="space-y-3">
         <div class="flex gap-4">
-          @for (col of [1, 2, 3, 4, 5, 6, 7, 8]; track col) {
+          @for (col of (obraId ? [1,2,3,4,5,6] : [1,2,3,4,5,6,7]); track col) {
             <div class="flex-1 h-4 bg-gray-100 rounded"></div>
           }
         </div>
 
         <!-- Table rows skeleton -->
-        @for (row of [1, 2, 3, 4, 5]; track row) {
+        @for (row of [1, 2, 3]; track row) {
           <div class="flex gap-4" [style.animation-delay]="(row * 50) + 'ms'">
-            @for (col of [1, 2, 3, 4, 5, 6, 7, 8]; track col) {
+            @for (col of (obraId ? [1,2,3,4,5,6] : [1,2,3,4,5,6,7]); track col) {
               <div class="flex-1 h-5 bg-gray-150 rounded"></div>
             }
           </div>
