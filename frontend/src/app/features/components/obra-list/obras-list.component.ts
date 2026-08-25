@@ -16,6 +16,7 @@ import {ObrasService} from '../../../services/obras/obras.service';
 import {Select} from 'primeng/select';
 import {EstadoFormatPipe} from '../../../shared/pipes/estado-format.pipe';
 import {GenericFilterBarComponent, FilterDefinition, FilterAction} from '../generic-filter-bar/generic-filter-bar.component';
+import {TableSkeletonComponent} from '../../../shared/table-skeleton/table-skeleton.component';
 import {exportarListadoPdf} from '../../../shared/utils/pdf-export.util';
 
 interface EstadoOption {
@@ -49,7 +50,8 @@ const ORDEN_ESTADOS = [
     CheckboxModule,
     MultiSelectModule,
     EstadoFormatPipe,
-    GenericFilterBarComponent
+    GenericFilterBarComponent,
+    TableSkeletonComponent
   ],
   templateUrl: './obras-list.component.html',
   styleUrls: ['./obras-list.component.css']

@@ -9,29 +9,16 @@
   <!-- ===================== FILTROS DE BÚSQUEDA ===================== -->
   <app-generic-filter-bar
     [filterDefinitions]="filterDefinitions"
+    [loading]="loading"
     (filterChange)="onFilterChange($event)"
     (clearFilters)="onClearFilters()"
   ></app-generic-filter-bar>
 
   <!-- ===================== LOADING ===================== -->
   @if (loading) {
-    <div class="space-y-6 animate-pulse">
-      <div class="bg-white rounded-xl shadow-md p-5">
-        <div class="h-5 w-1/4 bg-gray-200 rounded mb-4"></div>
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-          @for (item of [1,2]; track item) {
-            <div class="h-16 bg-gray-100 rounded-lg"></div>
-          }
-        </div>
-      </div>
-      <div class="bg-white rounded-xl shadow-md p-5">
-        <div class="h-5 w-1/3 bg-gray-200 rounded mb-4"></div>
-        <div class="space-y-3">
-          @for (row of [1,2,3]; track row) {
-            <div class="h-12 bg-gray-100 rounded-lg"></div>
-          }
-        </div>
-      </div>
+    <div class="space-y-6">
+      <app-table-skeleton [rows]="2"></app-table-skeleton>
+      <app-table-skeleton [rows]="3"></app-table-skeleton>
     </div>
   } @else {
     <!-- ===================== RESUMEN DE OBRAS ===================== -->

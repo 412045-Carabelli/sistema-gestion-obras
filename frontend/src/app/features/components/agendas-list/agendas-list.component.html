@@ -152,14 +152,11 @@
     } <!-- end @else lista -->
   </div>
 } @placeholder {
-  <div class="space-y-3 animate-pulse">
+  <div class="flex flex-col gap-4">
     @if (!obraId) {
-      <div class="h-10 bg-gray-100 rounded-lg"></div>
+      <app-generic-filter-bar [loading]="true"></app-generic-filter-bar>
     }
-    <div class="h-10 bg-gray-100 rounded-lg"></div>
-    @for (row of [1,2,3,4,5]; track row) {
-      <div class="h-10 bg-gray-100 rounded-lg"></div>
-    }
+    <app-table-skeleton [rows]="6"></app-table-skeleton>
   </div>
 }
 

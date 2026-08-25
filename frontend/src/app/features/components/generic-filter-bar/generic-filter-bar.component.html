@@ -1,3 +1,20 @@
+@if (loading) {
+  <div class="bg-white rounded-lg shadow-sm border border-gray-100 p-5 animate-pulse">
+    <div class="flex flex-col lg:flex-row lg:items-end gap-4 justify-between">
+      <div class="flex flex-col sm:flex-row gap-3 flex-wrap flex-1">
+        @for (i of skeletonItems; track i) {
+          <div class="flex flex-col gap-1">
+            <div class="h-3 bg-gray-100 rounded w-16"></div>
+            <div class="h-10 bg-gray-100 rounded sm:w-48 w-full"></div>
+          </div>
+        }
+      </div>
+      <div class="flex gap-2">
+        <div class="h-10 bg-gray-100 rounded w-24"></div>
+      </div>
+    </div>
+  </div>
+} @else {
 <div class="bg-white rounded-lg shadow-sm border border-gray-100 p-5">
   <form [formGroup]="form" class="flex flex-col lg:flex-row lg:items-end gap-4 justify-between">
     <!-- Filters Section -->
@@ -117,3 +134,4 @@
     </div>
   </form>
 </div>
+}

@@ -25,6 +25,8 @@ import {FacturaModalComponent} from '../factura-modal/factura-modal.component';
 import {FacturasStateService} from '../../../services/facturas/facturas-state.service';
 import {GenericFilterBarComponent, FilterDefinition, FilterAction} from '../generic-filter-bar/generic-filter-bar.component';
 import {KpiCardComponent} from '../../../shared/kpi-card/kpi-card.component';
+import {KpiSkeletonComponent} from '../../../shared/kpi-skeleton/kpi-skeleton.component';
+import {TableSkeletonComponent} from '../../../shared/table-skeleton/table-skeleton.component';
 import {exportarListadoPdf} from '../../../shared/utils/pdf-export.util';
 
 interface FacturaView extends Factura {
@@ -62,7 +64,9 @@ interface SelectOption<T> {
     FacturaModalComponent,
     ConfirmDialog,
     GenericFilterBarComponent,
-    KpiCardComponent
+    KpiCardComponent,
+    KpiSkeletonComponent,
+    TableSkeletonComponent
   ],
   providers: [MessageService, ConfirmationService],
   templateUrl: './facturas-list.component.html',

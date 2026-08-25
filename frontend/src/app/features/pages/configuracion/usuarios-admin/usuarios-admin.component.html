@@ -136,8 +136,11 @@
   }
 
   <!-- Tabla -->
+  @if (cargando) {
+    <app-table-skeleton [rows]="6"></app-table-skeleton>
+  } @else {
   <div class="bg-white rounded-xl border border-gray-200 overflow-hidden">
-    <p-table [value]="usuarios" [loading]="cargando" [rowHover]="true" styleClass="p-datatable-sm">
+    <p-table [value]="usuarios" [rowHover]="true" styleClass="p-datatable-sm">
       <ng-template pTemplate="header">
         <tr>
           <th class="font-poppins text-xs text-gray-500 uppercase">Nombre</th>
@@ -198,5 +201,6 @@
       </ng-template>
     </p-table>
   </div>
+  }
 
 </div>

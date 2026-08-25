@@ -58,6 +58,7 @@ import {Router} from '@angular/router';
 import {ResumenObrasComponent} from '../../components/resumen-obras/resumen-obras.component';
 import { LayoutHeaderComponent } from '../../../shared/layout-header/layout-header.component';
 import { GenericFilterBarComponent, FilterDefinition } from '../../components/generic-filter-bar/generic-filter-bar.component';
+import { TableSkeletonComponent } from '../../../shared/table-skeleton/table-skeleton.component';
 
 interface SelectOption<T> {
   label: string;
@@ -85,7 +86,8 @@ interface SelectOption<T> {
     ConfirmDialog,
     ResumenObrasComponent,
     LayoutHeaderComponent,
-    GenericFilterBarComponent
+    GenericFilterBarComponent,
+    TableSkeletonComponent
   ],
   providers: [MessageService, ConfirmationService],
   templateUrl: './reportes.component.html',

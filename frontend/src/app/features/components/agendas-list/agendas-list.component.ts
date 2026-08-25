@@ -30,6 +30,7 @@ import {WhatsAppService} from '../../../services/whatsapp/whatsapp.service';
 import {AgendaModalComponent} from './agenda-modal/agenda-modal.component';
 import {AgendasGanttComponent} from '../agendas-gantt/agendas-gantt.component';
 import {GenericFilterBarComponent, FilterDefinition, FilterAction, ViewToggleOption} from '../generic-filter-bar/generic-filter-bar.component';
+import {TableSkeletonComponent} from '../../../shared/table-skeleton/table-skeleton.component';
 
 interface EstadoOption {
   label: string;
@@ -57,7 +58,8 @@ interface EstadoOption {
     TooltipModule,
     AgendaModalComponent,
     AgendasGanttComponent,
-    GenericFilterBarComponent
+    GenericFilterBarComponent,
+    TableSkeletonComponent
   ],
   providers: [MessageService],
   templateUrl: './agendas-list.component.html',

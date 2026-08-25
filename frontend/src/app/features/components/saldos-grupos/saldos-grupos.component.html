@@ -1,8 +1,9 @@
 <p-toast position="bottom-right"></p-toast>
 
 @if (loading) {
-  <div class="flex justify-center items-center py-12">
-    <p-progressSpinner></p-progressSpinner>
+  <div class="space-y-6">
+    <app-table-skeleton [rows]="5"></app-table-skeleton>
+    <app-table-skeleton [rows]="5"></app-table-skeleton>
   </div>
 } @else {
   <!-- TABLA PROVEEDORES -->
