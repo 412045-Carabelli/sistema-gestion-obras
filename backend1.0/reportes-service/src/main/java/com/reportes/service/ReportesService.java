@@ -1491,35 +1491,43 @@ public class ReportesService {
             guardarMovimiento("COMISION_GENERAL", detalle.getMonto(), detalle.getObraNombre());
         }
 
-        // Incluir comisiones configuradas en las obras que no tengan registros en la tabla local.
-        // No tienen fecha propia, asi que si hay un filtro de fecha activo no sabemos si caen
-        // dentro del periodo -> se excluyen (comportamiento identico a "sin filtro" cuando no hay fecha).
-        if (!tieneFiltroFecha) {
-            for (ObraExternalDto obra : obrasPorId.values()) {
-                if (!Boolean.TRUE.equals(obra.getTieneComision())) {
-                    continue;
-                }
-                if (!obrasValidas.contains(obra.getId())) {
-                    continue;
-                }
-                if (obrasConComisionRegistrada.contains(obra.getId())) {
-                    continue;
-                }
-                BigDecimal monto = calcularMontoComision(obra);
-                if (monto.compareTo(BigDecimal.ZERO) <= 0) {
-                    continue;
-                }
-                ComisionesResponse.Detalle detalle = new ComisionesResponse.Detalle();
-                detalle.setObraId(obra.getId());
-                detalle.setObraNombre(obra.getNombre());
-                detalle.setMonto(monto);
-                BigDecimal pagosDetalle = pagosPorObra.getOrDefault(obra.getId(), BigDecimal.ZERO).min(monto);
-                detalle.setPagos(pagosDetalle);
-                detalle.setSaldo(saldoPositivo(monto.subtract(pagosDetalle)));
-                response.getDetalle().add(detalle);
-                total = total.add(monto);
-                pagos = pagos.add(pagosDetalle);
+        // Incluir comisiones configuradas en las obras que no tengan registros en la tabla local
+        // (obra.tiene_comision=true pero sin fila en Comision, ej. calculada al vuelo desde el
+        // presupuesto). No tienen fecha propia -> se usa fecha_adjudicada/fecha_inicio de la obra
+        // como referencia para el filtro de fecha, en vez de excluirlas siempre que haya un rango
+        // activo (la pantalla de Reportes SIEMPRE manda un rango por defecto de 30 dias, así que
+        // excluirlas de plano las dejaba fuera del reporte permanentemente).
+        for (ObraExternalDto obra : obrasPorId.values()) {
+            if (!Boolean.TRUE.equals(obra.getTieneComision())) {
+                continue;
             }
+            if (!obrasValidas.contains(obra.getId())) {
+                continue;
+            }
+            if (obrasConComisionRegistrada.contains(obra.getId())) {
+                continue;
+            }
+            if (tieneFiltroFecha) {
+                LocalDateTime fechaRef = obra.getFechaAdjudicada() != null ? obra.getFechaAdjudicada() : obra.getFechaInicio();
+                LocalDate fechaRefDate = fechaRef != null ? fechaRef.toLocalDate() : null;
+                if (!dentroDeRango(fechaRefDate, filtros.getFechaInicio(), filtros.getFechaFin())) {
+                    continue;
+                }
+            }
+            BigDecimal monto = calcularMontoComision(obra);
+            if (monto.compareTo(BigDecimal.ZERO) <= 0) {
+                continue;
+            }
+            ComisionesResponse.Detalle detalle = new ComisionesResponse.Detalle();
+            detalle.setObraId(obra.getId());
+            detalle.setObraNombre(obra.getNombre());
+            detalle.setMonto(monto);
+            BigDecimal pagosDetalle = pagosPorObra.getOrDefault(obra.getId(), BigDecimal.ZERO).min(monto);
+            detalle.setPagos(pagosDetalle);
+            detalle.setSaldo(saldoPositivo(monto.subtract(pagosDetalle)));
+            response.getDetalle().add(detalle);
+            total = total.add(monto);
+            pagos = pagos.add(pagosDetalle);
         }
 
         response.setTotalComision(total);
