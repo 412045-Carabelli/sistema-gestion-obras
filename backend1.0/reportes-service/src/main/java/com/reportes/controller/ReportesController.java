@@ -47,6 +47,15 @@ public class ReportesController {
         return ResponseEntity.ok(reportesService.generarDashboardConsolidado(filtro));
     }
 
+    @PostMapping("/financieros/reportes-consolidado")
+    public ResponseEntity<ReportesConsolidadoResponse> reportesConsolidado(
+            @RequestBody(required = false) ReportFilterRequest filtro,
+            @RequestHeader(value = "X-Organizacion-Id", required = false) Long organizacionId) {
+        if (filtro == null) filtro = new ReportFilterRequest();
+        filtro.setOrganizacionId(organizacionId);
+        return ResponseEntity.ok(reportesService.generarReporteConsolidado(filtro));
+    }
+
     @PostMapping("/financieros/deudas-globales")
     public ResponseEntity<DeudasGlobalesResponse> deudasGlobales(
             @RequestBody(required = false) ReportFilterRequest filtro,
@@ -136,9 +145,9 @@ public class ReportesController {
         return ResponseEntity.ok(reportesService.generarComisionesPorObra(obraId));
     }
 
-    @GetMapping("/comisiones/general")
-    public ResponseEntity<ComisionesResponse> comisionesGeneral() {
-        return ResponseEntity.ok(reportesService.generarComisionesGeneral());
+    @PostMapping("/comisiones/general")
+    public ResponseEntity<ComisionesResponse> comisionesGeneral(@RequestBody(required = false) ReportFilterRequest filtro) {
+        return ResponseEntity.ok(reportesService.generarComisionesGeneral(filtro));
     }
 
     // Filtros en cascada para deudas globales

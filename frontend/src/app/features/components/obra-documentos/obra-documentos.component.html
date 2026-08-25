@@ -13,6 +13,14 @@
     ></p-button>
   </div>
 
+  @if (loading) {
+    <div class="space-y-3 animate-pulse">
+      <div class="h-10 bg-gray-100 rounded-lg"></div>
+      @for (item of [1,2,3,4,5]; track item) {
+        <div class="h-10 bg-gray-100 rounded-lg"></div>
+      }
+    </div>
+  } @else {
   <p-table
     [paginator]="true"
     [rows]="5"
@@ -72,6 +80,7 @@
       </tr>
     </ng-template>
   </p-table>
+  }
 
   <!-- Modal detalle -->
   <p-dialog

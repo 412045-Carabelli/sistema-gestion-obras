@@ -30,6 +30,7 @@ import {WhatsAppService} from '../../../services/whatsapp/whatsapp.service';
 import {AgendaModalComponent} from './agenda-modal/agenda-modal.component';
 import {AgendasGanttComponent} from '../agendas-gantt/agendas-gantt.component';
 import {GenericFilterBarComponent, FilterDefinition, FilterAction, ViewToggleOption} from '../generic-filter-bar/generic-filter-bar.component';
+import {TableSkeletonComponent} from '../../../shared/table-skeleton/table-skeleton.component';
 
 interface EstadoOption {
   label: string;
@@ -57,7 +58,8 @@ interface EstadoOption {
     TooltipModule,
     AgendaModalComponent,
     AgendasGanttComponent,
-    GenericFilterBarComponent
+    GenericFilterBarComponent,
+    TableSkeletonComponent
   ],
   providers: [MessageService],
   templateUrl: './agendas-list.component.html',
@@ -66,6 +68,8 @@ interface EstadoOption {
 export class AgendasListComponent implements OnInit, OnDestroy {
   /** Cuando se setea, el listado queda acotado a esta obra (usado embebido en Obras/Detalle). */
   @Input() obraId?: number;
+  /** Obra completa cuando se usa embebido en Obras/Detalle: evita pedir todas las obras/clientes. */
+  @Input() obraFija?: Obra;
 
   private messageService = inject(MessageService);
   private agendasService = inject(AgendasService);
@@ -194,34 +198,57 @@ export class AgendasListComponent implements OnInit, OnDestroy {
   }
 
   private cargarDatos() {
-    this.obrasService.getObrasAll().subscribe({
-      next: (obras) => this.obras.set([...obras].sort((a, b) => (a.nombre || '').localeCompare(b.nombre || ''))),
-      error: () => {}
-    });
+    // La tabla (@defer when datosCargados) no debe mostrarse hasta que agendas Y los
+    // catálogos usados para resolver nombres (obra/cliente/proveedor) estén listos —
+    // si no, se ve la tabla con "N/A" hasta que los catálogos llegan.
+    let pendientes = this.obraFija ? 2 : 4; // proveedores+agendas, u obras+clientes+proveedores+agendas
+    const marcarListo = () => {
+      pendientes--;
+      if (pendientes === 0) this.datosCargados.set(true);
+    };
 
-    this.clientesService.getClientes().subscribe({
-      next: (clientes) => this.clientes.set([...clientes].sort((a, b) => (a.nombre || '').localeCompare(b.nombre || ''))),
-      error: () => {}
-    });
+    if (this.obraFija) {
+      // Embebido en Obras/Detalle: ya sabemos la obra y su cliente, no hace falta traer todo el catálogo.
+      this.obras.set([this.obraFija]);
+      this.clientes.set(this.obraFija.cliente ? [this.obraFija.cliente] : []);
+      // Proveedores: acá se usan solo para resolver nombres en la tabla (el combo del modal
+      // ya se acota solo a los de la obra por su cuenta) — una agenda puede referenciar
+      // cualquier proveedor, no solo los que tienen costos cargados en esta obra.
+      this.proveedoresService.getProveedoresSimple().subscribe({
+        next: (proveedores) => { this.proveedores.set([...proveedores].sort((a, b) => (a.nombre || '').localeCompare(b.nombre || ''))); marcarListo(); },
+        error: () => marcarListo()
+      });
+    } else {
+      this.obrasService.getObrasSimple().subscribe({
+        next: (obras) => { this.obras.set([...obras].sort((a, b) => (a.nombre || '').localeCompare(b.nombre || ''))); marcarListo(); },
+        error: () => marcarListo()
+      });
 
-    this.proveedoresService.getProveedores().subscribe({
-      next: (proveedores) => this.proveedores.set([...proveedores].sort((a, b) => (a.nombre || '').localeCompare(b.nombre || ''))),
-      error: () => {}
-    });
+      this.clientesService.getClientesSimple().subscribe({
+        next: (clientes) => { this.clientes.set([...clientes].sort((a, b) => (a.nombre || '').localeCompare(b.nombre || ''))); marcarListo(); },
+        error: () => marcarListo()
+      });
 
-    this.cargarAgendas();
+      this.proveedoresService.getProveedoresSimple().subscribe({
+        next: (proveedores) => { this.proveedores.set([...proveedores].sort((a, b) => (a.nombre || '').localeCompare(b.nombre || ''))); marcarListo(); },
+        error: () => marcarListo()
+      });
+    }
+
+    this.cargarAgendas(marcarListo);
   }
 
-  private cargarAgendas() {
+  private cargarAgendas(marcarListo?: () => void) {
     const fuente = this.obraId
       ? this.agendasService.getAgendasByObra(this.obraId)
       : this.agendasService.getAgendas();
     fuente.subscribe({
       next: (agendas: Agenda[]) => {
         this.agendas.set(agendas);
-        this.datosCargados.set(true);
+        marcarListo ? marcarListo() : this.datosCargados.set(true);
       },
       error: () => {
+        marcarListo?.();
         this.messageService.add({
           severity: 'error',
           summary: 'Error',
@@ -249,16 +276,7 @@ export class AgendasListComponent implements OnInit, OnDestroy {
   }
 
   onAgendaGuardada(agenda: Agenda) {
-    if (this.agendaSeleccionada()) {
-      const index = this.agendas().findIndex(a => a.id === agenda.id);
-      if (index > -1) {
-        const nuevasAgendas = [...this.agendas()];
-        nuevasAgendas[index] = agenda;
-        this.agendas.set(nuevasAgendas);
-      }
-    } else {
-      this.agendas.set([...this.agendas(), agenda]);
-    }
+    this.cargarAgendas();
     this.cerrarModal();
   }
 
@@ -315,19 +333,19 @@ export class AgendasListComponent implements OnInit, OnDestroy {
 
   getNombreObra(obraId: number | null | undefined): string {
     if (!obraId) return 'N/A';
-    const obra = this.obras().find(o => o.id === obraId);
+    const obra = this.obras().find(o => Number(o.id) === Number(obraId));
     return obra?.nombre || 'N/A';
   }
 
   getNombreCliente(clienteId: number | null | undefined): string {
     if (!clienteId) return 'N/A';
-    const cliente = this.clientes().find(c => c.id === clienteId);
+    const cliente = this.clientes().find(c => Number(c.id) === Number(clienteId));
     return cliente?.nombre || 'N/A';
   }
 
   getNombreProveedor(proveedorId: number | null | undefined): string {
     if (!proveedorId) return 'N/A';
-    const proveedor = this.proveedores().find(p => p.id === proveedorId);
+    const proveedor = this.proveedores().find(p => Number(p.id) === Number(proveedorId));
     return proveedor?.nombre || 'N/A';
   }
 

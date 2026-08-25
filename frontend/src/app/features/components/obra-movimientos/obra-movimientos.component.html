@@ -21,7 +21,14 @@
   </div>
 
   <!-- Tabla de movimientos -->
-  @if (transacciones.length > 0) {
+  @if (loadingMovimientos) {
+    <div class="space-y-3 animate-pulse">
+      <div class="h-10 bg-gray-100 rounded-lg"></div>
+      @for (item of [1,2,3,4,5]; track item) {
+        <div class="h-10 bg-gray-100 rounded-lg"></div>
+      }
+    </div>
+  } @else if (transacciones.length > 0) {
     <p-table
       [value]="transacciones"
       responsiveLayout="scroll"
@@ -48,7 +55,7 @@
           <td>
             <button
               type="button"
-              class="text-indigo-600 underline font-poppins font-semibold hover:text-indigo-800 hover:bg-indigo-50 px-1 rounded cursor-pointer"
+              class="text-indigo-600 underline font-poppins font-normal hover:text-indigo-800 hover:bg-indigo-50 px-1 rounded cursor-pointer"
               (click)="abrirDetalleMovimiento(t)"
             >
               {{ t.id }}

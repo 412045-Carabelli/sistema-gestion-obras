@@ -56,6 +56,7 @@ import {ProveedorQuickCreateComponent} from '../../components/proveedor-quick-cr
 export class ObrasCreateComponent implements OnInit {
   form: FormGroup;
   clientes: Cliente[] = [];
+  cargandoClientes = false;
   grupos: GrupoObra[] = [];
   gruposFiltered: GrupoObra[] = [];
   estadosRecords: { label: string; name: string }[] = [];
@@ -127,11 +128,14 @@ export class ObrasCreateComponent implements OnInit {
   }
 
   ngOnInit() {
-    this.clientesService.getClientes().subscribe(list =>
-      {
+    this.cargandoClientes = true;
+    this.clientesService.getClientes().subscribe({
+      next: (list) => {
         this.clientes = list.map(c => ({...c, id: Number(c.id)}));
-      }
-    );
+        this.cargandoClientes = false;
+      },
+      error: () => { this.cargandoClientes = false; }
+    });
 
     this.grupoObrasService.listar().subscribe(list =>
       this.grupos = list

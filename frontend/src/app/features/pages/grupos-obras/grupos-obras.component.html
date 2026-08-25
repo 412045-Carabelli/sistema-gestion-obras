@@ -53,7 +53,7 @@
 
           <ng-template let-grupo pTemplate="body">
             <tr class="cursor-pointer hover:bg-gray-50 transition-colors">
-              <td class="font-semibold text-gray-900 text-sm">{{ grupo.nombre }}</td>
+              <td class="font-normal text-gray-900 text-sm">{{ grupo.nombre }}</td>
               <td class="text-gray-700">{{ getNombreCliente(grupo.id_cliente) }}</td>
               <td class="text-center">
                 <i [class]="grupo.activo ? 'pi pi-check text-green-600' : 'pi pi-times text-red-600'"></i>

@@ -11,34 +11,7 @@
 
     @if (loading) {
       <!-- Skeleton de resultados durante la recarga (filtros, paginado, etc.) -->
-      <div class="flex flex-col gap-4 animate-pulse">
-        <div class="hidden lg:block bg-white rounded-lg border border-gray-200 p-4">
-          <div class="space-y-3">
-            <div class="h-5 bg-gray-200 rounded w-full"></div>
-            <div class="h-5 bg-gray-200 rounded w-11/12"></div>
-            <div class="h-5 bg-gray-200 rounded w-10/12"></div>
-            <div class="h-5 bg-gray-200 rounded w-9/12"></div>
-            <div class="h-5 bg-gray-200 rounded w-8/12"></div>
-          </div>
-        </div>
-        <div class="lg:hidden flex flex-col gap-3">
-          @for (i of [1, 2, 3]; track i) {
-            <div class="bg-white rounded-lg border border-gray-200 p-4" [style.animation-delay]="(i * 100) + 'ms'">
-              <div class="flex items-start justify-between gap-2 mb-3">
-                <div class="flex flex-col gap-1.5 flex-1">
-                  <div class="h-4 bg-gray-200 rounded w-2/3"></div>
-                  <div class="h-3 bg-gray-200 rounded w-1/2"></div>
-                </div>
-                <div class="h-5 bg-gray-200 rounded w-16"></div>
-              </div>
-              <div class="grid grid-cols-2 gap-3">
-                <div class="h-3 bg-gray-200 rounded w-full"></div>
-                <div class="h-3 bg-gray-200 rounded w-full"></div>
-              </div>
-            </div>
-          }
-        </div>
-      </div>
+      <app-table-skeleton [rows]="6"></app-table-skeleton>
     } @else {
 
     <!-- Tabla (tablet/desktop) -->
@@ -71,10 +44,10 @@
 
         <ng-template let-obra pTemplate="body">
           <tr (click)="onRowClick(obra)" class="cursor-pointer hover:bg-gray-50 transition-colors">
-            <td class="font-poppins font-semibold text-gray-600">{{ getNumeroOrden(obra) }}</td>
+            <td class="font-poppins font-normal text-gray-600">{{ getNumeroOrden(obra) }}</td>
             <td>
               <div class="flex flex-col gap-1">
-                <span class="font-poppins font-semibold text-gray-900 text-sm">{{ obra.nombre }}</span>
+                <span class="font-poppins font-normal text-gray-900 text-sm">{{ obra.nombre }}</span>
                 <span class="text-xs font-poppins font-normal text-gray-500">{{ obra.direccion }}</span>
               </div>
             </td>
@@ -93,10 +66,10 @@
             </td>
             <td>
               @if (obra.fecha_inicio) {
-                <div class="flex flex-col gap-1 text-xs text-gray-600">
-                  <span class="font-poppins font-normal">Desde: {{ obra.fecha_inicio | date:'dd/MM/yy' }}</span>
+                <div class="flex flex-col gap-1">
+                  <span class="font-poppins font-normal text-gray-700">{{ obra.fecha_inicio | date:'dd/MM/yy' }}</span>
                   @if (obra.fecha_fin) {
-                    <span class="font-poppins font-normal">Hasta: {{ obra.fecha_fin | date:'dd/MM/yy' }}</span>
+                    <span class="font-poppins font-normal text-xs text-gray-500">Hasta: {{ obra.fecha_fin | date:'dd/MM/yy' }}</span>
                   }
                 </div>
               } @else {
@@ -210,35 +183,8 @@
     }
   </div>
 } @placeholder {
-  <div class="flex flex-col gap-4 animate-pulse">
-    <!-- Filter bar skeleton -->
-    <div class="bg-white rounded-lg shadow-sm border border-gray-100 p-5">
-      <div class="flex flex-col lg:flex-row lg:items-end gap-4 justify-between">
-        <div class="flex flex-col sm:flex-row gap-3 flex-wrap flex-1">
-          <!-- 4 Filter inputs skeleton (including checkbox) -->
-          @for (i of [1, 2, 3, 4]; track i) {
-            <div class="flex flex-col gap-1" [style.animation-delay]="(i * 100) + 'ms'">
-              <div class="h-3 bg-gray-200 rounded w-20"></div>
-              <div class="h-10 bg-gray-200 rounded sm:w-48 w-full"></div>
-            </div>
-          }
-        </div>
-        <!-- Button skeleton -->
-        <div class="flex gap-2">
-          <div class="h-10 bg-gray-200 rounded w-24" style="animation-delay: 400ms"></div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Table skeleton -->
-    <div class="bg-white rounded-lg border border-gray-200 p-4">
-      <div class="space-y-3">
-        <div class="h-5 bg-gray-200 rounded w-full"></div>
-        <div class="h-5 bg-gray-200 rounded w-11/12"></div>
-        <div class="h-5 bg-gray-200 rounded w-10/12"></div>
-        <div class="h-5 bg-gray-200 rounded w-9/12"></div>
-        <div class="h-5 bg-gray-200 rounded w-8/12"></div>
-      </div>
-    </div>
+  <div class="flex flex-col gap-4">
+    <app-generic-filter-bar [loading]="true"></app-generic-filter-bar>
+    <app-table-skeleton [rows]="6"></app-table-skeleton>
   </div>
 }

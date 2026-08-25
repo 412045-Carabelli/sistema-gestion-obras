@@ -46,24 +46,97 @@ body {
    en componentes individuales para estos casos.
    ============================================================ */
 
-/* Cabecera */
+/* Contenedor — soft card: mismo radius que generic-filter-bar (rounded-lg), sombra suave, sin borde duro */
+.p-datatable {
+  border-radius: 0.5rem;
+  overflow: hidden;
+  border: 1px solid #f1f5f9;         /* slate-100 */
+  box-shadow: 0 1px 2px 0 rgba(15, 23, 42, 0.04), 0 1px 3px 0 rgba(15, 23, 42, 0.03);
+  animation: table-fade-in 0.3s ease;
+}
+
+/* Fade-in al terminar de cargar (reemplaza el skeleton), aplica a TODAS las p-table */
+@keyframes table-fade-in {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .p-datatable {
+    animation: none;
+  }
+}
+
+/* Fade-in genérico al terminar de cargar (pantallas de detalle: obra/cliente/proveedor) */
+.detail-fade-in {
+  animation: table-fade-in 0.3s ease;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .detail-fade-in {
+    animation: none;
+  }
+}
+
+/* Cabecera — sin línea dura, tipografía liviana */
 .p-datatable .p-datatable-thead > tr > th {
-  background-color: #f9fafb;   /* gray-50 */
-  color: #374151;               /* gray-700 */
+  background-color: #fafafa;
+  color: #64748b;                    /* slate-500 */
   font-weight: 600;
-  padding: 1rem;
-  border-bottom: 2px solid #e5e7eb;  /* gray-200 */
+  font-size: 0.75rem;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid #f1f5f9;  /* slate-100 */
+  white-space: nowrap;
 }
 
-/* Celdas */
+/* Contenido de la celda de cabecera en línea, ícono de orden alineado y del
+   mismo tamaño que el texto (por defecto el ícono SVG es más grande que el
+   label de 0.75rem, y sin nowrap el ícono cae en una segunda línea). */
+.p-datatable .p-datatable-thead > tr > th.p-sortable-column {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  width: 100%;
+}
+
+.p-datatable .p-datatable-sort-icon,
+.p-datatable .p-sortable-column-icon {
+  width: 0.7rem;
+  height: 0.7rem;
+  font-size: 0.7rem;
+  flex-shrink: 0;
+}
+
+/* Celdas — hairline sutil, más aire */
 .p-datatable .p-datatable-tbody > tr > td {
-  padding: 1rem;
-  border-bottom: 1px solid #f3f4f6;  /* gray-100 */
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid #f8fafc;  /* slate-50 */
+  color: #334155;                    /* slate-700 */
+  transition: background-color 150ms ease;
 }
 
-/* Hover de fila — valor canónico: gray-50 (#f9fafb) */
+.p-datatable .p-datatable-tbody > tr:last-child > td {
+  border-bottom: none;
+}
+
+/* Hover de fila — suave, con transición */
+.p-datatable .p-datatable-tbody > tr {
+  transition: background-color 150ms ease;
+}
+
 .p-datatable .p-datatable-tbody > tr:hover {
-  background-color: #f9fafb !important;
+  background-color: #f8fafc !important;  /* slate-50 */
+}
+
+/* Pie (fila de totales) — integrado, sin línea gruesa */
+.p-datatable .p-datatable-tfoot > tr > td {
+  padding: 0.85rem 1.25rem;
+  border-top: 1px solid #f1f5f9;    /* slate-100 */
+  background-color: #fafafa;
+  font-weight: 600;
+  color: #1e293b;                    /* slate-800 */
 }
 
 /* Tags de estado */
@@ -76,14 +149,14 @@ body {
 
 /* Paginador */
 .p-paginator {
-  padding: 1rem;
+  padding: 1rem 1.25rem;
   background-color: #ffffff;
-  border-top: 1px solid #e5e7eb;
+  border-top: 1px solid #f8fafc;   /* slate-50 */
 }
 
 .p-paginator .p-paginator-current {
-  color: #6b7280;
-  font-size: 0.875rem;
+  color: #94a3b8;                   /* slate-400 */
+  font-size: 0.8125rem;
 }
 
 /* Inputs y dropdowns */

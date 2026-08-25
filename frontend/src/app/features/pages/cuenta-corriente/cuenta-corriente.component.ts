@@ -5,12 +5,13 @@ import { DetalleDeudaCliente, DetalleDeudaProveedor, CuentaCorrienteClienteRespo
 import { DialogModule } from 'primeng/dialog';
 import { ButtonModule } from 'primeng/button';
 import { ReportesService } from '../../../services/reportes/reportes.service';
+import { TableSkeletonComponent } from '../../../shared/table-skeleton/table-skeleton.component';
 import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-cuenta-corriente',
   standalone: true,
-  imports: [CommonModule, CuentasCorrientesListComponent, DialogModule, ButtonModule, CurrencyPipe],
+  imports: [CommonModule, CuentasCorrientesListComponent, DialogModule, ButtonModule, CurrencyPipe, TableSkeletonComponent],
   template: `
     <app-cuentas-corrientes-list
       (clienteRowClicked)="abrirModalCliente($event)"
@@ -49,12 +50,7 @@ import { Subscription } from 'rxjs';
         </div>
 
         @if (cargandoModalCliente) {
-          <div class="flex items-center justify-center py-8">
-            <div class="text-center">
-              <div class="inline-block animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600 mb-2"></div>
-              <p class="text-gray-500 text-sm">Cargando...</p>
-            </div>
-          </div>
+          <app-table-skeleton [rows]="4"></app-table-skeleton>
         }
 
         @if (!cargandoModalCliente && cuentaCorrienteCliente) {
@@ -142,12 +138,7 @@ import { Subscription } from 'rxjs';
         </div>
 
         @if (cargandoModalProveedor) {
-          <div class="flex items-center justify-center py-8">
-            <div class="text-center">
-              <div class="inline-block animate-spin rounded-full h-6 w-6 border-b-2 border-orange-600 mb-2"></div>
-              <p class="text-gray-500 text-sm">Cargando...</p>
-            </div>
-          </div>
+          <app-table-skeleton [rows]="4"></app-table-skeleton>
         }
 
         @if (!cargandoModalProveedor && cuentaCorrienteProveedor) {

@@ -2,15 +2,15 @@ import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MessageService } from 'primeng/api';
 import { TableModule } from 'primeng/table';
-import { ProgressSpinnerModule } from 'primeng/progressspinner';
 import { Toast } from 'primeng/toast';
 import { SaldosGruposService, SaldoGrupoCliente, SaldoGrupoProveedor } from '../../../services/saldos-grupos/saldos-grupos.service';
+import { TableSkeletonComponent } from '../../../shared/table-skeleton/table-skeleton.component';
 import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-saldos-grupos',
   standalone: true,
-  imports: [CommonModule, TableModule, ProgressSpinnerModule, Toast],
+  imports: [CommonModule, TableModule, Toast, TableSkeletonComponent],
   providers: [MessageService],
   templateUrl: './saldos-grupos.component.html',
   styleUrls: ['./saldos-grupos.component.css']

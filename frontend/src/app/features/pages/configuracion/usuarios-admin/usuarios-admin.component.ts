@@ -14,6 +14,7 @@ import { MessageService, ConfirmationService } from 'primeng/api';
 import { Subscription } from 'rxjs';
 import { AuthService } from '../../../../services/auth/auth.service';
 import { UsuarioInfoResponse } from '../../../../core/models/models';
+import { TableSkeletonComponent } from '../../../../shared/table-skeleton/table-skeleton.component';
 
 @Component({
   selector: 'app-usuarios-admin',
@@ -29,7 +30,8 @@ import { UsuarioInfoResponse } from '../../../../core/models/models';
     TagModule,
     ToastModule,
     ConfirmDialogModule,
-    TooltipModule
+    TooltipModule,
+    TableSkeletonComponent
   ],
   providers: [MessageService, ConfirmationService],
   templateUrl: './usuarios-admin.component.html'

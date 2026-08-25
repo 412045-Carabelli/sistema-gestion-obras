@@ -303,6 +303,88 @@ public class ObraBffController {
     }
 
     // ================================
+    // 📜 GET - Listar Obras (simple, para combos/selects)
+    // Solo id, nombre, estado y cliente {id, nombre} — sin enriquecer grupo ni pegarle
+    // a clientes-service por cada obra (evita el N+1 de /bff/obras).
+    // ================================
+    @GetMapping("/simple")
+    public Mono<ResponseEntity<List<Map<String, Object>>>> getObrasSimple(
+            @RequestParam(required = false) String estados,
+            @RequestHeader(value = "X-Organizacion-Id", required = false) String organizacionId
+    ) {
+        WebClient client = webClientBuilder.build();
+
+        Mono<List<Map<String, Object>>> obrasMono = client.get()
+                .uri(uriBuilder -> {
+                    URI base = URI.create(OBRAS_URL + "/resumen");
+                    var builder = uriBuilder
+                            .scheme(base.getScheme())
+                            .host(base.getHost());
+                    if (base.getPort() != -1) {
+                        builder.port(base.getPort());
+                    }
+                    if (base.getPath() != null && !base.getPath().isEmpty()) {
+                        builder.path(base.getPath());
+                    }
+                    builder.queryParam("size", 1000);
+                    return builder.build();
+                })
+                .headers(h -> { if (organizacionId != null) h.set("X-Organizacion-Id", organizacionId); })
+                .retrieve()
+                .bodyToMono(new ParameterizedTypeReference<Map<String, Object>>() {})
+                .map(pageResult -> {
+                    @SuppressWarnings("unchecked")
+                    List<Map<String, Object>> content = (List<Map<String, Object>>) pageResult.getOrDefault("content", List.of());
+                    return content;
+                })
+                .onErrorResume(ex -> Mono.just(List.of()));
+
+        Mono<List<Map<String, Object>>> clientesMono = client.get()
+                .uri(CLIENTES_URL)
+                .headers(h -> { if (organizacionId != null) h.set("X-Organizacion-Id", organizacionId); })
+                .retrieve()
+                .bodyToFlux(new ParameterizedTypeReference<Map<String, Object>>() {})
+                .collectList()
+                .onErrorResume(ex -> Mono.just(List.of()));
+
+        return Mono.zip(obrasMono, clientesMono).map(tuple -> {
+            List<Map<String, Object>> obras = tuple.getT1();
+            Map<Long, String> clienteNombres = tuple.getT2().stream()
+                    .filter(c -> c.get("id") != null)
+                    .collect(Collectors.toMap(
+                            c -> ((Number) c.get("id")).longValue(),
+                            c -> String.valueOf(c.getOrDefault("nombre", "")),
+                            (a, b) -> a
+                    ));
+
+            Set<String> estadosFiltro = splitCsv(estados);
+
+            List<Map<String, Object>> slim = obras.stream()
+                    .filter(o -> estadosFiltro.isEmpty()
+                            || estadosFiltro.contains(String.valueOf(o.get("obra_estado")).toUpperCase()))
+                    .map(o -> {
+                        Map<String, Object> out = new HashMap<>();
+                        out.put("id", o.get("id"));
+                        out.put("nombre", o.get("nombre"));
+                        out.put("obra_estado", o.get("obra_estado"));
+                        out.put("activo", o.getOrDefault("activo", true));
+                        Object idClienteObj = o.get("id_cliente");
+                        if (idClienteObj != null) {
+                            Long idCliente = ((Number) idClienteObj).longValue();
+                            out.put("cliente", Map.of("id", idCliente, "nombre", clienteNombres.getOrDefault(idCliente, "")));
+                        }
+                        return out;
+                    })
+                    .toList();
+
+            return ResponseEntity.ok(slim);
+        }).onErrorResume(ex -> {
+            log.error("Error en /bff/obras/simple", ex);
+            return Mono.just(ResponseEntity.internalServerError().body(List.of()));
+        });
+    }
+
+    // ================================
     // GET - Ultimas condiciones/observaciones
     // ================================
     @GetMapping("/condiciones/ultima")

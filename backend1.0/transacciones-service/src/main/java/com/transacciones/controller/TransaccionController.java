@@ -42,9 +42,11 @@ public class TransaccionController {
             @RequestParam(name = "idObra", required = false) Long idObra,
             @RequestParam(name = "tipoAsociado", required = false) String tipoAsociado,
             @RequestParam(name = "idAsociado", required = false) Long idAsociado,
+            @RequestParam(name = "fechaInicio", required = false) @org.springframework.format.annotation.DateTimeFormat(iso = org.springframework.format.annotation.DateTimeFormat.ISO.DATE) java.time.LocalDate fechaInicio,
+            @RequestParam(name = "fechaFin", required = false) @org.springframework.format.annotation.DateTimeFormat(iso = org.springframework.format.annotation.DateTimeFormat.ISO.DATE) java.time.LocalDate fechaFin,
             @RequestHeader(value = "X-Organizacion-Id", defaultValue = "0") Long organizacionId) {
         Map<String, Object> result = transaccionConAsociadoRepository
-                .listarConAsociadosPaginado(page, size, idObra, tipoAsociado, idAsociado, organizacionId);
+                .listarConAsociadosPaginado(page, size, idObra, tipoAsociado, idAsociado, organizacionId, fechaInicio, fechaFin);
         return ResponseEntity.ok(result);
     }
 

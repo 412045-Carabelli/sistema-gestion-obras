@@ -14,6 +14,7 @@ import {forkJoin} from 'rxjs';
 import {Cliente, CondicionIva, CONDICION_IVA_LABELS} from '../../../core/models/models';
 import {ClientesService} from '../../../services/clientes/clientes.service';
 import {GenericFilterBarComponent, FilterDefinition, FilterAction} from '../generic-filter-bar/generic-filter-bar.component';
+import {TableSkeletonComponent} from '../../../shared/table-skeleton/table-skeleton.component';
 import {exportarListadoPdf} from '../../../shared/utils/pdf-export.util';
 
 @Component({
@@ -30,7 +31,8 @@ import {exportarListadoPdf} from '../../../shared/utils/pdf-export.util';
     InputIconModule,
     CheckboxModule,
     Select,
-    GenericFilterBarComponent
+    GenericFilterBarComponent,
+    TableSkeletonComponent
   ],
   templateUrl: './clientes-list.component.html',
   styleUrls: ['./clientes-list.component.css']

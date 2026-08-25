@@ -118,6 +118,7 @@ export class ObrasDetailComponent implements OnInit, OnDestroy, AfterViewInit {
   notasExpandida = false;
   notasOverflow = false;
   activeTab = '0';
+  tabsVisitados = new Set<string>();
 
   loading = true;
   private subs = new Subscription();
@@ -144,6 +145,7 @@ export class ObrasDetailComponent implements OnInit, OnDestroy, AfterViewInit {
     this.subs.add(this.route.queryParamMap.subscribe(params => {
       const tab = params.get('tab');
       this.activeTab = tab ?? '0';
+      this.tabsVisitados.add(this.activeTab);
     }));
     if (id) this.cargarDetalle(id);
   }
@@ -1209,6 +1211,7 @@ export class ObrasDetailComponent implements OnInit, OnDestroy, AfterViewInit {
   onTabChange(event: any): void {
     const newTab = String(event?.value ?? event?.index ?? event);
     this.activeTab = newTab;
+    this.tabsVisitados.add(newTab);
     this.router.navigate([], {
       relativeTo: this.route,
       queryParams: { tab: newTab },

@@ -45,10 +45,10 @@
         </ng-template>
         <ng-template let-agenda pTemplate="body">
           <tr class="hover:bg-gray-50 transition-colors">
-            <td class="font-poppins font-semibold">
+            <td class="font-poppins font-normal">
               <span (click)="abrirModalDetalle(agenda)" class="text-blue-600 underline cursor-pointer hover:text-blue-800">{{ agenda.id }}</span>
             </td>
-            <td><span class="font-poppins font-semibold text-gray-900 text-sm">{{ agenda.titulo }}</span></td>
+            <td><span class="font-poppins font-normal text-gray-900 text-sm">{{ agenda.titulo }}</span></td>
             @if (!obraId) {
               <td class="text-gray-600 text-sm font-poppins font-normal">{{ getNombreObra(agenda.obraId) }}</td>
             }
@@ -152,25 +152,11 @@
     } <!-- end @else lista -->
   </div>
 } @placeholder {
-  <div class="flex flex-col gap-4 animate-pulse">
-    <div class="bg-gray-200 rounded-lg h-32"></div>
-
-    <div class="bg-white p-4 rounded-lg border border-gray-200">
-      <div class="grid grid-cols-1 md:grid-cols-12 gap-4">
-        <div class="md:col-span-8 h-10 bg-gray-200 rounded"></div>
-        <div class="md:col-span-4 h-10 bg-gray-200 rounded"></div>
-      </div>
-    </div>
-
-    <div class="bg-white rounded-lg border border-gray-200 p-4">
-      <div class="space-y-3">
-        <div class="h-5 bg-gray-200 rounded w-full"></div>
-        <div class="h-5 bg-gray-200 rounded w-11/12"></div>
-        <div class="h-5 bg-gray-200 rounded w-10/12"></div>
-        <div class="h-5 bg-gray-200 rounded w-9/12"></div>
-        <div class="h-5 bg-gray-200 rounded w-8/12"></div>
-      </div>
-    </div>
+  <div class="flex flex-col gap-4">
+    @if (!obraId) {
+      <app-generic-filter-bar [loading]="true"></app-generic-filter-bar>
+    }
+    <app-table-skeleton [rows]="6"></app-table-skeleton>
   </div>
 }
 
@@ -178,6 +164,7 @@
 <app-agenda-modal
   [visible]="mostrarModal()"
   [agenda]="agendaSeleccionada()"
+  [obraFija]="obraFija"
   (onClose)="cerrarModal()"
   (onGuardada)="onAgendaGuardada($event)"
   (onEliminada)="onAgendaEliminada($event)">

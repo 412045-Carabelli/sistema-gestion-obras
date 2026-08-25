@@ -2,7 +2,7 @@
 <p-confirmDialog></p-confirmDialog>
 
 @defer (when obra) {
-    <div class="space-y-8 w-full mx-auto">
+    <div class="detail-fade-in space-y-8 w-full mx-auto">
       <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div class="flex flex-col gap-2">
           <h1 class="font-poppins font-bold text-gray-900">Resumen de la obra</h1>
@@ -177,7 +177,7 @@
 
       <!-- ===================== TABS MEJORADOS ===================== -->
       <div class="bg-white rounded-xl shadow-md overflow-hidden">
-        <p-tabs [value]="activeTab" (onChange)="onTabChange($event)" [scrollable]="true">
+        <p-tabs [value]="activeTab" (valueChange)="onTabChange($event)" [scrollable]="true">
           <p-tablist pStyleClass="border-b border-gray-200 px-6">
             <p-tab value="0" pStyleClass="px-6 py-4">
               <div class="flex items-center gap-3">
@@ -248,7 +248,7 @@
 
           <p-tabpanels pStyleClass="p-6">
             <p-tabpanel value="1">
-              @defer (when obra) {
+              @if (tabsVisitados.has('1')) {
                 <app-obra-tareas
                   [obraId]="obra.id!"
                   [obraNombre]="obra.nombre"
@@ -257,7 +257,7 @@
                   [costos]="costos"
                   (tareasActualizadas)="onTareasActualizadas($event)">
                 </app-obra-tareas>
-              } @placeholder {
+              } @else {
                 <div class="p-6 space-y-4 animate-pulse">
                   <div class="h-6 bg-gray-200 rounded w-1/4 mb-6"></div>
                   @for (item of [1,2,3]; track item) {
@@ -284,40 +284,58 @@
             </p-tabpanel>
 
             <p-tabpanel value="2">
-              <app-obra-movimientos
-                #movimientosRef
-                [clientes]="[obra.cliente]"
-                [proveedores]="proveedores"
-                [obraId]="obra.id!"
-                [obraNombre]="obra.nombre"
-                [obraEstado]="obra.obra_estado"
-                [presupuestoTotal]="obra.presupuesto ?? 0"
-                (costosActualizados)="onCostosActualizados($event)"
-                (movimientosActualizados)="onMovimientosActualizados()"
-              >
-              </app-obra-movimientos>
+              @if (tabsVisitados.has('2')) {
+                <app-obra-movimientos
+                  #movimientosRef
+                  [clientes]="[obra.cliente]"
+                  [proveedores]="proveedores"
+                  [obraId]="obra.id!"
+                  [obraNombre]="obra.nombre"
+                  [obraEstado]="obra.obra_estado"
+                  [presupuestoTotal]="obra.presupuesto ?? 0"
+                  (costosActualizados)="onCostosActualizados($event)"
+                  (movimientosActualizados)="onMovimientosActualizados()"
+                >
+                </app-obra-movimientos>
+              } @else {
+                <div class="p-6 space-y-4 animate-pulse">
+                  <div class="h-6 bg-gray-200 rounded w-1/4 mb-6"></div>
+                  @for (item of [1,2,3]; track item) {
+                    <div class="bg-gray-100 h-12 rounded-lg"></div>
+                  }
+                </div>
+              }
             </p-tabpanel>
 
             <p-tabpanel value="3">
-              <div class="p-4 space-y-5">
-                <div class="flex justify-between items-center flex-wrap gap-3">
-                  <div>
-                    <h2 class="font-poppins font-bold text-gray-900">Facturas</h2>
-                    <p class="text-gray-500 text-sm font-poppins font-normal mt-1">
-                      Facturas asociadas a la obra
-                    </p>
+              @if (tabsVisitados.has('3')) {
+                <div class="p-4 space-y-5">
+                  <div class="flex justify-between items-center flex-wrap gap-3">
+                    <div>
+                      <h2 class="font-poppins font-bold text-gray-900">Facturas</h2>
+                      <p class="text-gray-500 text-sm font-poppins font-normal mt-1">
+                        Facturas asociadas a la obra
+                      </p>
+                    </div>
+
+                    <p-button
+                      (onClick)="facturasStateService.triggerOpenCreate()"
+                      icon="pi pi-plus"
+                      label="Nueva Factura"
+                      styleClass="p-button-md p-button-primary"
+                    ></p-button>
                   </div>
 
-                  <p-button
-                    (onClick)="facturasStateService.triggerOpenCreate()"
-                    icon="pi pi-plus"
-                    label="Nueva Factura"
-                    styleClass="p-button-md p-button-primary"
-                  ></p-button>
+                  <app-facturas-list [obraId]="obra.id!"></app-facturas-list>
                 </div>
-
-                <app-facturas-list [obraId]="obra.id!"></app-facturas-list>
-              </div>
+              } @else {
+                <div class="p-6 space-y-4 animate-pulse">
+                  <div class="h-6 bg-gray-200 rounded w-1/4 mb-6"></div>
+                  @for (item of [1,2,3]; track item) {
+                    <div class="bg-gray-100 h-12 rounded-lg"></div>
+                  }
+                </div>
+              }
             </p-tabpanel>
 
             <p-tabpanel value="4">
@@ -358,38 +376,56 @@
             </p-tabpanel>
 
             <p-tabpanel value="5">
-              <div class="flex flex-col gap-6">
-                <app-obra-documentos
-                  [obraId]="obra.id!"
-                  [proveedores]="proveedores"
-                  [clientes]="[obra.cliente]"
-                ></app-obra-documentos>
+              @if (tabsVisitados.has('5')) {
+                <div class="flex flex-col gap-6">
+                  <app-obra-documentos
+                    [obraId]="obra.id!"
+                    [proveedores]="proveedores"
+                    [clientes]="[obra.cliente]"
+                  ></app-obra-documentos>
 
-                <div class="text-sm font-poppins font-normal text-gray-600">
-                  Este tab muestra solo documentos adjuntos.
+                  <div class="text-sm font-poppins font-normal text-gray-600">
+                    Este tab muestra solo documentos adjuntos.
+                  </div>
                 </div>
-              </div>
+              } @else {
+                <div class="p-6 space-y-4 animate-pulse">
+                  <div class="h-6 bg-gray-200 rounded w-1/4 mb-6"></div>
+                  @for (item of [1,2,3]; track item) {
+                    <div class="bg-gray-100 h-12 rounded-lg"></div>
+                  }
+                </div>
+              }
             </p-tabpanel>
 
             <p-tabpanel value="6">
-              <div class="p-4 space-y-5">
-                <div class="flex justify-between items-center flex-wrap gap-3">
-                  <div>
-                    <h2 class="font-poppins font-bold text-gray-900">Agenda</h2>
-                    <p class="text-gray-500 text-sm font-poppins font-normal mt-1">
-                      Tareas y recordatorios de la obra
-                    </p>
+              @if (tabsVisitados.has('6')) {
+                <div class="p-4 space-y-5">
+                  <div class="flex justify-between items-center flex-wrap gap-3">
+                    <div>
+                      <h2 class="font-poppins font-bold text-gray-900">Agenda</h2>
+                      <p class="text-gray-500 text-sm font-poppins font-normal mt-1">
+                        Tareas y recordatorios de la obra
+                      </p>
+                    </div>
+                    <p-button
+                      (onClick)="agendasService.emitirCrearNuevaAgenda()"
+                      icon="pi pi-plus"
+                      label="Nuevo Evento"
+                      styleClass="p-button-md p-button-primary"
+                    ></p-button>
                   </div>
-                  <p-button
-                    (onClick)="agendasService.emitirCrearNuevaAgenda()"
-                    icon="pi pi-plus"
-                    label="Nueva Tarea"
-                    styleClass="p-button-md p-button-primary"
-                  ></p-button>
-                </div>
 
-                <app-agendas-list [obraId]="obra.id!"></app-agendas-list>
-              </div>
+                  <app-agendas-list [obraId]="obra.id!" [obraFija]="obra"></app-agendas-list>
+                </div>
+              } @else {
+                <div class="p-6 space-y-4 animate-pulse">
+                  <div class="h-6 bg-gray-200 rounded w-1/4 mb-6"></div>
+                  @for (item of [1,2,3]; track item) {
+                    <div class="bg-gray-100 h-12 rounded-lg"></div>
+                  }
+                </div>
+              }
             </p-tabpanel>
 
           </p-tabpanels>

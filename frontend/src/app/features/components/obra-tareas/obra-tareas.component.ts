@@ -18,6 +18,7 @@ import {ObraCosto, Proveedor, Tarea} from '../../../core/models/models';
 import {ModalComponent} from '../../../shared/modal/modal.component';
 import {TareaPayload, TareasService} from '../../../services/tareas/tareas.service';
 import {ReportesService} from '../../../services/reportes/reportes.service';
+import {TableSkeletonComponent} from '../../../shared/table-skeleton/table-skeleton.component';
 
 @Component({
   selector: 'app-obra-tareas',
@@ -36,7 +37,8 @@ import {ReportesService} from '../../../services/reportes/reportes.service';
     TableModule,
     Tooltip,
     InputNumber,
-    EstadoFormatPipe
+    EstadoFormatPipe,
+    TableSkeletonComponent
   ],
   providers: [MessageService],
   templateUrl: './obra-tareas.component.html'
@@ -50,6 +52,7 @@ export class ObraTareasComponent implements OnChanges {
   @Output() tareasActualizadas = new EventEmitter<Tarea[]>();
 
   avancePagos: any = { items: [] };
+  cargandoAvancePagos = true;
 
   estadoOptions = [
     {label: 'Pendiente', value: 'PENDIENTE'},
@@ -80,11 +83,14 @@ export class ObraTareasComponent implements OnChanges {
   }
 
   private cargarAvancePagos() {
+    this.cargandoAvancePagos = true;
     this.reportesService.obtenerAvancePagosObra(this.obraId).subscribe({
       next: (data) => {
         this.avancePagos = data;
+        this.cargandoAvancePagos = false;
       },
       error: (err) => {
+        this.cargandoAvancePagos = false;
         this.messageService.add({
           severity: 'error',
           summary: 'Error',

@@ -17,10 +17,26 @@ public interface TareaRepository extends JpaRepository<Tarea, Long> {
     List<Tarea> findByOrganizacionIdOrderByCreadoEnAsc(Long organizacionId);
     List<Tarea> findByOrganizacionIdOrderByCreadoEnAsc(Long organizacionId, Pageable pageable);
     List<Tarea> findByProveedorId(Long proveedorId);
+    List<Tarea> findByObraId(Long obraId);
 
     @Query("SELECT t FROM Tarea t WHERE t.fechaVencimiento BETWEEN :desde AND :hasta AND t.estado <> :estadoExcluir")
     List<Tarea> findVencimientosProximos(
             @Param("desde") Instant desde,
             @Param("hasta") Instant hasta,
             @Param("estadoExcluir") EstadoTarea estadoExcluir);
+
+    @Query("SELECT t FROM Tarea t WHERE t.fechaVencimiento BETWEEN :desde AND :hasta AND t.estado <> :estadoExcluir " +
+            "AND (:organizacionId IS NULL OR t.organizacionId = :organizacionId) " +
+            "AND (:obraId IS NULL OR t.obraId = :obraId) " +
+            "AND (:clienteId IS NULL OR t.clienteId = :clienteId) " +
+            "AND (:proveedorId IS NULL OR t.proveedorId = :proveedorId) " +
+            "ORDER BY t.fechaVencimiento ASC")
+    List<Tarea> findVencimientosProximosPorOrganizacion(
+            @Param("desde") Instant desde,
+            @Param("hasta") Instant hasta,
+            @Param("estadoExcluir") EstadoTarea estadoExcluir,
+            @Param("organizacionId") Long organizacionId,
+            @Param("obraId") Long obraId,
+            @Param("clienteId") Long clienteId,
+            @Param("proveedorId") Long proveedorId);
 }

@@ -25,6 +25,7 @@ import { ClientesService } from '../../../services/clientes/clientes.service';
 import { ProveedoresService } from '../../../services/proveedores/proveedores.service';
 import { CostosService } from '../../../services/costos/costos.service';
 import { GenericFilterBarComponent, FilterDefinition, FilterAction } from '../generic-filter-bar/generic-filter-bar.component';
+import { TableSkeletonComponent } from '../../../shared/table-skeleton/table-skeleton.component';
 import { EstadoFormatPipe } from '../../../shared/pipes/estado-format.pipe';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
@@ -50,6 +51,7 @@ import autoTable from 'jspdf-autotable';
     TagModule,
     ModalComponent,
     GenericFilterBarComponent,
+    TableSkeletonComponent,
     EstadoFormatPipe
   ],
   templateUrl: './movimientos-list.component.html',
@@ -168,7 +170,7 @@ export class MovimientosListComponent implements OnInit {
       movimientosPage: this.movimientosService.listarConAsociados(this.currentPage, this.pageSize),
       obras: this.obrasService.getObrasParaMovimientos(),
       clientes: this.clientesService.getClientes(),
-      proveedores: this.proveedoresService.getProveedores()
+      proveedores: this.proveedoresService.getProveedoresSimple()
     }).subscribe({
       next: ({ movimientosPage, obras, clientes, proveedores }) => {
         this.movimientos = movimientosPage.content || [];
