@@ -5,6 +5,7 @@
       <app-generic-filter-bar
         [filterDefinitions]="filterDefinitions"
         [actions]="filterActions"
+        [viewToggle]="viewToggle"
         (filterChange)="onFilterChange($event)"
         (clearFilters)="onClearFilters()"
       ></app-generic-filter-bar>
@@ -21,6 +22,13 @@
           [valueFontSize]="18"
         ></app-kpi-card>
         <app-kpi-card
+          [title]="'Por facturar'"
+          [color]="'amber'"
+          [value]="(totalPorFacturar | currency:'ARS':'symbol':'1.0-2') ?? ''"
+          [tooltip]="'Obras con requiere factura sin facturas emitidas.'"
+          [valueFontSize]="18"
+        ></app-kpi-card>
+        <app-kpi-card
           [title]="'Cobrado'"
           [color]="'blue'"
           [value]="(totalCobrado | currency:'ARS':'symbol':'1.0-2') ?? ''"
@@ -34,16 +42,10 @@
           [tooltip]="'Facturado menos cobrado en obras facturadas.'"
           [valueFontSize]="18"
         ></app-kpi-card>
-        <app-kpi-card
-          [title]="'Por facturar'"
-          [color]="'amber'"
-          [value]="(totalPorFacturar | currency:'ARS':'symbol':'1.0-2') ?? ''"
-          [tooltip]="'Obras con requiere factura sin facturas emitidas.'"
-          [valueFontSize]="18"
-        ></app-kpi-card>
       </div>
     }
 
+    @if (obraId || vistaActual === 'facturado') {
     <!-- Tabla (tablet/desktop) -->
     <div class="hidden lg:block">
       <p-table
@@ -72,7 +74,7 @@
             class="hover:bg-emerald-50 hover:shadow-sm transition cursor-pointer"
             [ngClass]="rowIndex % 2 === 0 ? 'bg-white' : 'bg-gray-50'"
             (click)="onRowClick(factura)">
-            <td class="font-poppins font-semibold text-indigo-600">{{ factura.id }}</td>
+            <td class="font-poppins font-normal text-indigo-600">{{ factura.id }}</td>
             <td class="font-poppins font-normal text-gray-700">{{ factura.fecha | date:'dd/MM/yyyy' }}</td>
             <td class="font-poppins font-normal text-gray-700 max-w-[160px]">
               <span class="block truncate" [pTooltip]="factura.clienteNombre" tooltipPosition="top">{{ factura.clienteNombre }}</span>
@@ -152,6 +154,87 @@
         </div>
       }
     </div>
+    }
+
+    @if (!obraId && vistaActual === 'porFacturar') {
+    <!-- Tabla (tablet/desktop) -->
+    <div class="hidden lg:block">
+      <p-table
+        [value]="obrasPorFacturarFiltradas"
+        [paginator]="true"
+        [rows]="15"
+        responsiveLayout="scroll"
+        class="text-sm p-datatable-sm border border-gray-200 rounded-lg overflow-hidden">
+        <ng-template pTemplate="header">
+          <tr class="bg-gray-50 text-gray-700">
+            <th class="font-poppins font-semibold">Obra</th>
+            <th class="font-poppins font-semibold">Cliente</th>
+            <th class="font-poppins font-semibold text-center">Estado</th>
+            <th class="font-poppins font-semibold text-right">Presupuesto</th>
+            <th class="font-poppins font-semibold text-right">Facturado</th>
+            <th class="font-poppins font-semibold text-right">Por facturar</th>
+            <th class="font-poppins font-semibold text-center"></th>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="body" let-obra let-rowIndex="rowIndex">
+          <tr
+            class="hover:bg-amber-50 hover:shadow-sm transition cursor-pointer"
+            [ngClass]="rowIndex % 2 === 0 ? 'bg-white' : 'bg-gray-50'"
+            (click)="irAlObraDetalle(obra.id)">
+            <td class="font-poppins font-normal text-gray-700 max-w-[200px]">
+              <span class="block truncate" [pTooltip]="obra.nombre" tooltipPosition="top">{{ obra.nombre }}</span>
+            </td>
+            <td class="font-poppins font-normal text-gray-700 max-w-[160px]">
+              <span class="block truncate" [pTooltip]="obra.clienteNombre" tooltipPosition="top">{{ obra.clienteNombre }}</span>
+            </td>
+            <td class="text-center">
+              <p-tag [value]="obra.estado | estadoFormat" [severity]="getEstadoObraSeverity(obra.estado)" styleClass="text-xs"></p-tag>
+            </td>
+            <td class="text-right font-poppins font-normal text-gray-700">{{ obra.presupuesto | currency:'ARS':'symbol':'1.0-2' }}</td>
+            <td class="text-right font-poppins font-normal text-gray-700">{{ obra.facturado | currency:'ARS':'symbol':'1.0-2' }}</td>
+            <td class="text-right font-poppins font-semibold text-amber-600">{{ obra.porFacturar | currency:'ARS':'symbol':'1.0-2' }}</td>
+            <td class="text-center" (click)="$event.stopPropagation()">
+              <button type="button" pButton icon="pi pi-arrow-right" class="p-button-text p-button-sm text-gray-400" pTooltip="Ver obra" tooltipPosition="top" (click)="irAlObraDetalle(obra.id)"></button>
+            </td>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="emptymessage">
+          <tr>
+            <td colspan="7" class="text-center py-10 text-gray-500">
+              <i class="pi pi-check-circle text-4xl mb-2"></i>
+              <p class="font-poppins font-normal">No hay obras con saldo pendiente de facturar.</p>
+            </td>
+          </tr>
+        </ng-template>
+      </p-table>
+    </div>
+
+    <!-- Cards (mobile) -->
+    <div class="lg:hidden flex flex-col gap-3">
+      @if (obrasPorFacturarFiltradas.length === 0) {
+        <div class="flex flex-col items-center justify-center gap-2 text-gray-500 py-10">
+          <i class="pi pi-check-circle text-3xl"></i>
+          <p class="font-poppins font-normal">No hay obras con saldo pendiente de facturar.</p>
+        </div>
+      }
+      @for (obra of obrasPorFacturarFiltradas; track obra.id) {
+        <div
+          class="bg-white rounded-lg border border-gray-200 p-4 cursor-pointer hover:shadow-md transition-shadow"
+          (click)="irAlObraDetalle(obra.id)">
+          <div class="flex items-start justify-between gap-2 mb-2">
+            <div class="flex flex-col gap-0.5 flex-1 min-w-0">
+              <span class="font-poppins font-semibold text-gray-900 text-sm truncate">{{ obra.nombre }}</span>
+              <span class="font-poppins text-xs text-gray-500 truncate">{{ obra.clienteNombre }}</span>
+            </div>
+            <div class="flex flex-col items-end gap-1 flex-shrink-0">
+              <span class="font-poppins font-semibold text-amber-600">{{ obra.porFacturar | currency:'ARS':'symbol':'1.0-0' }}</span>
+              <p-tag [value]="obra.estado | estadoFormat" [severity]="getEstadoObraSeverity(obra.estado)" styleClass="text-xs"></p-tag>
+            </div>
+          </div>
+        </div>
+      }
+    </div>
+    }
   </div>
 } @placeholder {
   <div class="space-y-6">

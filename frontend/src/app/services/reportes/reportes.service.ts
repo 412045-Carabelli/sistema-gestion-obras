@@ -25,6 +25,7 @@ import {
   RankingClientesResponse,
   RankingProveedoresResponse,
   ReportFilter,
+  ReportesConsolidadoResponse,
   ResumenGeneralResponse,
   SaldosClienteResponse,
   SaldosProveedorResponse
@@ -63,6 +64,10 @@ export class ReportesService {
 
   getDashboardConsolidado(filtro?: ReportFilter): Observable<DashboardConsolidadoResponse> {
     return this.http.post<DashboardConsolidadoResponse>(`${this.apiUrl}/financieros/dashboard-consolidado`, filtro ?? {});
+  }
+
+  reportesConsolidado(filtro?: ReportFilter): Observable<ReportesConsolidadoResponse> {
+    return this.http.post<ReportesConsolidadoResponse>(`${this.apiUrl}/financieros/reportes-consolidado`, filtro ?? {});
   }
 
   getDeudasGlobales(filtro?: ReportFilter): Observable<DeudasGlobalesResponse> {

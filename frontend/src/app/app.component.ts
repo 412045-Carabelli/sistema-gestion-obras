@@ -1,6 +1,7 @@
 import {Component, OnInit} from '@angular/core';
 import {CommonModule} from '@angular/common';
 import {Router, RouterOutlet, NavigationEnd} from '@angular/router';
+import {trigger, transition, style, animate} from '@angular/animations';
 import {HeaderComponent} from './shared/header/header.component';
 import {SidebarComponent} from './shared/sidebar/sidebar.component';
 import {NavigationHistoryService} from './core/services/navigation-history.service';
@@ -31,11 +32,20 @@ function isPublicPath(): boolean {
     ChangelogModalComponent,
   ],
   templateUrl: './app.component.html',
-  styleUrls: ['./app.component.css']
+  styleUrls: ['./app.component.css'],
+  animations: [
+    trigger('routeFade', [
+      transition('* => *', [
+        style({ opacity: 0, transform: 'translateY(6px)' }),
+        animate('220ms ease-out', style({ opacity: 1, transform: 'translateY(0)' }))
+      ])
+    ])
+  ]
 })
 export class AppComponent implements OnInit{
   sidebarVisible: boolean = window.innerWidth >= 1024;
   isPublicRoute: boolean = isPublicPath();
+  routeAnimCounter = 0;
 
   constructor(
     private navigationHistory: NavigationHistoryService,
@@ -71,6 +81,7 @@ export class AppComponent implements OnInit{
       filter(e => e instanceof NavigationEnd)
     ).subscribe((e: NavigationEnd) => {
       const url = e.urlAfterRedirects;
+      this.routeAnimCounter++;
       this.isPublicRoute = PUBLIC_ROUTES.some(r => url.startsWith(r)) || EXACT_PUBLIC.includes(url);
       if (!this.isPublicRoute) {
         this.trySubscribePush();

@@ -44,10 +44,10 @@
 
         <ng-template let-obra pTemplate="body">
           <tr (click)="onRowClick(obra)" class="cursor-pointer hover:bg-gray-50 transition-colors">
-            <td class="font-poppins font-semibold text-gray-600">{{ getNumeroOrden(obra) }}</td>
+            <td class="font-poppins font-normal text-gray-600">{{ getNumeroOrden(obra) }}</td>
             <td>
               <div class="flex flex-col gap-1">
-                <span class="font-poppins font-semibold text-gray-900 text-sm">{{ obra.nombre }}</span>
+                <span class="font-poppins font-normal text-gray-900 text-sm">{{ obra.nombre }}</span>
                 <span class="text-xs font-poppins font-normal text-gray-500">{{ obra.direccion }}</span>
               </div>
             </td>
@@ -66,10 +66,10 @@
             </td>
             <td>
               @if (obra.fecha_inicio) {
-                <div class="flex flex-col gap-1 text-xs text-gray-600">
-                  <span class="font-poppins font-normal">Desde: {{ obra.fecha_inicio | date:'dd/MM/yy' }}</span>
+                <div class="flex flex-col gap-1">
+                  <span class="font-poppins font-normal text-gray-700">{{ obra.fecha_inicio | date:'dd/MM/yy' }}</span>
                   @if (obra.fecha_fin) {
-                    <span class="font-poppins font-normal">Hasta: {{ obra.fecha_fin | date:'dd/MM/yy' }}</span>
+                    <span class="font-poppins font-normal text-xs text-gray-500">Hasta: {{ obra.fecha_fin | date:'dd/MM/yy' }}</span>
                   }
                 </div>
               } @else {

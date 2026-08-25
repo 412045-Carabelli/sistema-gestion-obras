@@ -1,1 +1,3 @@
-/* estilos vacíos - usar Tailwind en el template */
+:host {
+  display: block;
+}

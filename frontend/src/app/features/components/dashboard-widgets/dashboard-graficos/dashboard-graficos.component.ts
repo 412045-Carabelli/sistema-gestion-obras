@@ -5,6 +5,7 @@ import { ProgressSpinnerModule } from 'primeng/progressspinner';
 import { ReportesService } from '../../../../services/reportes/reportes.service';
 import { DashboardGraficosResponse } from '../../../../core/models/models';
 import { Subscription } from 'rxjs';
+import { CHART_CATEGORICAL, chartFont, chartLegend, chartMoneyScale, chartCategoryScale, formatARSCompact } from '../../../../shared/chart-theme/chart-theme';
 
 const ESTADO_LABELS: Record<string, string> = {
   PENDIENTE: 'Pendiente',
@@ -19,18 +20,11 @@ const ESTADO_LABELS: Record<string, string> = {
   SIN_ESTADO: 'Sin estado',
 };
 
-const ESTADO_COLORS: Record<string, string> = {
-  PENDIENTE:         '#94a3b8', // gray-400
-  ADJUDICADA:        '#60a5fa', // blue-400
-  EN_PROGRESO:       '#f59e0b', // amber-400
-  COBRADA:           '#10b981', // emerald-500
-  FACTURADA:         '#6366f1', // indigo-500
-  FACTURADA_PARCIAL: '#a78bfa', // violet-400
-  FINALIZADA:        '#059669', // emerald-600
-  PERDIDA:           '#f87171', // red-400
-  CANCELADA:         '#9ca3af', // gray-400
-  SIN_ESTADO:        '#e5e7eb', // gray-200
-};
+// Orden categórico fijo (nunca ciclar/regenerar) — cada estado toma el siguiente slot disponible.
+const ESTADO_ORDEN = [
+  'EN_PROGRESO', 'ADJUDICADA', 'FINALIZADA', 'FACTURADA', 'COBRADA',
+  'FACTURADA_PARCIAL', 'PENDIENTE', 'PERDIDA', 'CANCELADA', 'SIN_ESTADO'
+];
 
 @Component({
   selector: 'app-dashboard-graficos',
@@ -79,24 +73,34 @@ export class DashboardGraficosComponent implements OnInit, OnDestroy {
     );
   }
 
+  private colorEstado(estado: string): string {
+    const idx = ESTADO_ORDEN.indexOf(estado);
+    return CHART_CATEGORICAL[idx >= 0 ? idx % CHART_CATEGORICAL.length : CHART_CATEGORICAL.length - 1];
+  }
+
   private construirPie(data: DashboardGraficosResponse): void {
     const estados = data.distribucionEstados ?? [];
     this.pieData = {
       labels: estados.map(e => ESTADO_LABELS[e.estado] ?? e.estado),
       datasets: [{
         data: estados.map(e => e.cantidad),
-        backgroundColor: estados.map(e => ESTADO_COLORS[e.estado] ?? '#94a3b8'),
-        borderColor: '#ffffff',
+        backgroundColor: estados.map(e => this.colorEstado(e.estado)),
+        borderColor: '#fcfcfb',
         borderWidth: 2,
       }]
     };
     this.pieOptions = {
       plugins: {
-        legend: {
-          position: 'bottom',
-          labels: { font: { family: 'Poppins', size: 12 }, padding: 16, usePointStyle: true }
-        },
+        legend: chartLegend('bottom'),
         tooltip: {
+          backgroundColor: '#ffffff',
+          titleColor: '#0b0b0b',
+          bodyColor: '#52514e',
+          borderColor: '#e1e0d9',
+          borderWidth: 1,
+          titleFont: chartFont(12, '600'),
+          bodyFont: chartFont(12),
+          padding: 10,
           callbacks: {
             label: (ctx: any) => {
               const total = estados.reduce((s, e) => s + e.cantidad, 0);
@@ -120,59 +124,49 @@ export class DashboardGraficosComponent implements OnInit, OnDestroy {
         {
           label: 'Presupuesto',
           data: obras.map(o => o.presupuesto ?? 0),
-          backgroundColor: 'rgba(99, 102, 241, 0.75)',
-          borderColor: 'rgb(99, 102, 241)',
-          borderWidth: 1,
+          backgroundColor: CHART_CATEGORICAL[0],
           borderRadius: 4,
+          borderSkipped: false,
+          maxBarThickness: 22,
         },
         {
           label: 'Cobrado',
           data: obras.map(o => o.totalCobros ?? 0),
-          backgroundColor: 'rgba(16, 185, 129, 0.75)',
-          borderColor: 'rgb(16, 185, 129)',
-          borderWidth: 1,
+          backgroundColor: CHART_CATEGORICAL[1],
           borderRadius: 4,
+          borderSkipped: false,
+          maxBarThickness: 22,
         },
         {
           label: 'Pagado',
           data: obras.map(o => o.totalPagos ?? 0),
-          backgroundColor: 'rgba(245, 158, 11, 0.75)',
-          borderColor: 'rgb(245, 158, 11)',
-          borderWidth: 1,
+          backgroundColor: CHART_CATEGORICAL[2],
           borderRadius: 4,
+          borderSkipped: false,
+          maxBarThickness: 22,
         },
       ]
     };
     this.barOptions = {
       plugins: {
-        legend: {
-          position: 'top',
-          labels: { font: { family: 'Poppins', size: 12 }, padding: 12, usePointStyle: true }
-        },
+        legend: chartLegend('top'),
         tooltip: {
+          backgroundColor: '#ffffff',
+          titleColor: '#0b0b0b',
+          bodyColor: '#52514e',
+          borderColor: '#e1e0d9',
+          borderWidth: 1,
+          titleFont: chartFont(12, '600'),
+          bodyFont: chartFont(12),
+          padding: 10,
           callbacks: {
-            label: (ctx: any) => {
-              const val: number = ctx.parsed.y ?? 0;
-              return ` ${ctx.dataset.label}: $${val.toLocaleString('es-AR', { minimumFractionDigits: 0 })}`;
-            }
+            label: (ctx: any) => ` ${ctx.dataset.label}: ${formatARSCompact(ctx.parsed.y)}`
           }
         }
       },
       responsive: true,
       maintainAspectRatio: false,
-      scales: {
-        x: {
-          ticks: { font: { family: 'Poppins', size: 11 } },
-          grid: { display: false }
-        },
-        y: {
-          ticks: {
-            font: { family: 'Poppins', size: 11 },
-            callback: (v: any) => '$' + Number(v).toLocaleString('es-AR', { minimumFractionDigits: 0 })
-          },
-          grid: { color: 'rgba(0,0,0,0.06)' }
-        }
-      }
+      scales: { x: chartCategoryScale(), y: chartMoneyScale() }
     };
   }
 }

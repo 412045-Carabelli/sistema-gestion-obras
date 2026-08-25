@@ -32,7 +32,7 @@
         <ng-template pTemplate="body" let-row>
           <tr class="cursor-pointer hover:bg-gray-50 transition-colors" (click)="irAObra(row.id_obra)">
             <td>
-              <div class="font-poppins font-semibold text-gray-800">{{ row.nombre }}</div>
+              <div class="font-poppins font-normal text-gray-800">{{ row.nombre }}</div>
               <div class="text-xs font-poppins font-normal text-gray-500">{{ row.descripcion || 'Sin descripción' }}</div>
             </td>
             <td>

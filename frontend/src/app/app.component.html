@@ -12,14 +12,16 @@
   <!-- 🧭 Container principal -->
   <div class="flex flex-1 overflow-hidden">
 
-    @if (!isPublicRoute && sidebarVisible) {
+    @if (!isPublicRoute) {
       <!-- 📌 Sidebar -->
       <app-sidebar [visible]="sidebarVisible" (navClicked)="isMobile && closeSidebar()"></app-sidebar>
     }
 
     <!-- 📄 Main Content -->
     <main class="flex-1 overflow-y-auto bg-gray-50 transition-all duration-300">
-      <router-outlet></router-outlet>
+      <div [@routeFade]="routeAnimCounter">
+        <router-outlet></router-outlet>
+      </div>
     </main>
 
   </div>

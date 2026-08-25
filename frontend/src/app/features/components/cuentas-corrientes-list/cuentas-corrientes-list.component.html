@@ -65,7 +65,7 @@
             <tbody>
               @for (item of datos?.detalleDeudaClientes ?? []; track item.obraId + '-' + item.clienteId) {
                 <tr class="border-t border-gray-100 hover:bg-gray-50 cursor-pointer transition-colors" (click)="onClienteRowClick(item)">
-                  <td class="px-4 py-3 font-poppins font-semibold text-gray-900 max-w-[120px] truncate" [pTooltip]="item.obraNombre" tooltipPosition="top">{{ item.obraNombre }}</td>
+                  <td class="px-4 py-3 font-poppins font-normal text-gray-900 max-w-[120px] truncate" [pTooltip]="item.obraNombre" tooltipPosition="top">{{ item.obraNombre }}</td>
                   <td class="px-4 py-3 font-poppins font-normal text-gray-700 max-w-[120px] truncate" [pTooltip]="item.clienteNombre" tooltipPosition="top">{{ item.clienteNombre }}</td>
                   <td class="px-4 py-3 text-right font-poppins font-semibold text-gray-800 whitespace-nowrap">{{ item.presupuesto | currency:'ARS':'symbol-narrow':'1.0-0' }}</td>
                   <td class="px-4 py-3 text-right text-green-800 font-poppins font-bold whitespace-nowrap">{{ item.cobrado | currency:'ARS':'symbol-narrow':'1.0-0' }}</td>
@@ -135,7 +135,7 @@
             <tbody>
               @for (item of datos?.detalleDeudaProveedores ?? []; track item.obraId + '-' + item.proveedorId) {
                 <tr class="border-t border-gray-100 hover:bg-gray-50 cursor-pointer transition-colors" (click)="onProveedorRowClick(item)">
-                  <td class="px-4 py-3 font-poppins font-semibold text-gray-900 max-w-[120px] truncate" [pTooltip]="item.obraNombre" tooltipPosition="top">{{ item.obraNombre }}</td>
+                  <td class="px-4 py-3 font-poppins font-normal text-gray-900 max-w-[120px] truncate" [pTooltip]="item.obraNombre" tooltipPosition="top">{{ item.obraNombre }}</td>
                   <td class="px-4 py-3 font-poppins font-normal text-gray-700 max-w-[120px] truncate" [pTooltip]="item.proveedorNombre" tooltipPosition="top">{{ item.proveedorNombre }}</td>
                   <td class="px-4 py-3 text-right font-poppins font-semibold text-gray-800 whitespace-nowrap">{{ item.presupuestado | currency:'ARS':'symbol-narrow':'1.0-0' }}</td>
                   <td class="px-4 py-3 text-right text-green-800 font-poppins font-bold whitespace-nowrap">{{ item.pagado | currency:'ARS':'symbol-narrow':'1.0-0' }}</td>

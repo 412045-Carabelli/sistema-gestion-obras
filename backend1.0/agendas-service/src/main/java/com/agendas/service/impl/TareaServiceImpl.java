@@ -20,6 +20,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.client.RestClientException;
 
+import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 
@@ -110,6 +111,18 @@ public class TareaServiceImpl implements TareaService {
         List<Tarea> tareas = (organizacionId != null && organizacionId > 0)
                 ? repository.findByOrganizacionIdOrderByCreadoEnAsc(organizacionId, pageable)
                 : repository.findAllByOrderByCreadoEnAsc(pageable);
+        return tareas.stream()
+                .map(this::mapearRespuestaEnriquecida)
+                .toList();
+    }
+
+    @Override
+    public List<TareaAntiguaAgendaResponse> obtenerVencimientosProximos(
+            int dias, Long organizacionId, Long obraId, Long clienteId, Long proveedorId) {
+        Instant desde = Instant.now();
+        Instant hasta = desde.plus(dias, java.time.temporal.ChronoUnit.DAYS);
+        List<Tarea> tareas = repository.findVencimientosProximosPorOrganizacion(
+                desde, hasta, EstadoTarea.COMPLETADA, organizacionId, obraId, clienteId, proveedorId);
         return tareas.stream()
                 .map(this::mapearRespuestaEnriquecida)
                 .toList();

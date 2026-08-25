@@ -2,6 +2,22 @@
   display: block;
 }
 
+/* Fade-in al terminar de cargar (reemplaza el skeleton) */
+.filter-bar-content {
+  animation: filter-bar-fade-in 0.3s ease;
+}
+
+@keyframes filter-bar-fade-in {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .filter-bar-content {
+    animation: none;
+  }
+}
+
 /* Smooth transitions for inputs */
 ::ng-deep .p-select,
 ::ng-deep .p-datepicker {

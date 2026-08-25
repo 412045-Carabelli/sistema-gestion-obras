@@ -45,10 +45,10 @@
         </ng-template>
         <ng-template let-agenda pTemplate="body">
           <tr class="hover:bg-gray-50 transition-colors">
-            <td class="font-poppins font-semibold">
+            <td class="font-poppins font-normal">
               <span (click)="abrirModalDetalle(agenda)" class="text-blue-600 underline cursor-pointer hover:text-blue-800">{{ agenda.id }}</span>
             </td>
-            <td><span class="font-poppins font-semibold text-gray-900 text-sm">{{ agenda.titulo }}</span></td>
+            <td><span class="font-poppins font-normal text-gray-900 text-sm">{{ agenda.titulo }}</span></td>
             @if (!obraId) {
               <td class="text-gray-600 text-sm font-poppins font-normal">{{ getNombreObra(agenda.obraId) }}</td>
             }

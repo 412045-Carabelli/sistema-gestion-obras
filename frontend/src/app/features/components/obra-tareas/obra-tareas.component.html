@@ -100,8 +100,8 @@
         class="cursor-pointer hover:bg-gray-100 transition-colors"
         (click)="verTarea(tarea)"
       >
-        <td class="font-poppins font-semibold text-gray-700">{{ tarea.numero_orden ?? '—' }}</td>
-        <td class="font-poppins font-semibold text-gray-900 w-[260px]">{{ tarea.nombre }}</td>
+        <td class="font-poppins font-normal text-gray-700">{{ tarea.numero_orden ?? '—' }}</td>
+        <td class="font-poppins font-normal text-gray-900 w-[260px]">{{ tarea.nombre }}</td>
         <td class="font-poppins font-normal">{{ tarea.proveedor?.nombre || ('Proveedor #' + tarea.id_proveedor) }}</td>
         <td>
           <p-tag
@@ -109,8 +109,8 @@
             [severity]="tarea.estado_tarea === 'COMPLETADA' ? 'success' : tarea.estado_tarea === 'EN_PROGRESO' ? 'info' : tarea.estado_tarea === 'PENDIENTE' ? 'secondary' : 'warning'">
           </p-tag>
         </td>
-        <td>{{ tarea.fecha_inicio ? (tarea.fecha_inicio | date:'dd/MM/yyyy') : 'â€”' }}</td>
-        <td class="text-right font-semibold">{{ tarea.porcentaje ?? 0 }}%</td>
+        <td class="font-poppins font-normal">{{ tarea.fecha_inicio ? (tarea.fecha_inicio | date:'dd/MM/yyyy') : 'â€”' }}</td>
+        <td class="text-right font-poppins font-normal">{{ tarea.porcentaje ?? 0 }}%</td>
         <td class="text-right">
           <div class="flex gap-1">
             <p-button

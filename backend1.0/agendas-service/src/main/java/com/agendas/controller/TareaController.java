@@ -45,6 +45,16 @@ public class TareaController {
         return service.obtenerTareasPorObra(idObra);
     }
 
+    @GetMapping("/vencimientos-proximos")
+    public List<TareaAntiguaAgendaResponse> vencimientosProximos(
+            @RequestParam(name = "dias", defaultValue = "7") int dias,
+            @RequestParam(name = "obraId", required = false) Long obraId,
+            @RequestParam(name = "clienteId", required = false) Long clienteId,
+            @RequestParam(name = "proveedorId", required = false) Long proveedorId,
+            @RequestHeader(value = "X-Organizacion-Id", required = false) Long organizacionId) {
+        return service.obtenerVencimientosProximos(dias, organizacionId, obraId, clienteId, proveedorId);
+    }
+
     @GetMapping("/antiguas")
     public List<TareaAntiguaAgendaResponse> obtenerTareasAntiguasAgenda(
             @RequestParam(name = "limit", defaultValue = "10") int limit,

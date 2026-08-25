@@ -393,6 +393,7 @@ export interface ReportFilter {
   fechaInicio?: string | Date;
   fechaFin?: string | Date;
   incluirSaldoCero?: boolean;
+  estados?: string[];
 }
 
 export interface DashboardFinancieroResponse {
@@ -428,6 +429,67 @@ export interface DashboardGraficosResponse {
     presupuestoTotal: number;
     porcentajeCobroGlobal: number;
   };
+}
+
+export interface KpisCuentaCorriente {
+  cobrado: number;
+  porCobrar: number;
+  pagado: number;
+  porPagar: number;
+  resultado: number;
+}
+
+export interface FacturacionPeriodoDetalle {
+  obraId: number;
+  obraNombre: string;
+  clienteId?: number;
+  clienteNombre?: string;
+  presupuesto: number;
+  facturado: number;
+  porFacturar: number;
+}
+
+export interface FacturacionPeriodoResponse {
+  totalFacturado: number;
+  totalPorFacturar: number;
+  detalle: FacturacionPeriodoDetalle[];
+}
+
+export interface MovimientoPeriodo {
+  id: number;
+  id_obra?: number;
+  nombre_obra?: string;
+  id_asociado?: number;
+  tipo_asociado?: string;
+  nombre_asociado?: string;
+  tipo_transaccion?: string;
+  fecha: string;
+  monto: number;
+  forma_pago?: string;
+  medio_pago?: string;
+  concepto?: string;
+}
+
+export interface VencimientoAgenda {
+  id: number;
+  titulo: string;
+  obraId?: number;
+  obraNombre?: string;
+  clienteId?: number;
+  clienteNombre?: string;
+  proveedorId?: number;
+  proveedorNombre?: string;
+  estado: string;
+  prioridad: string;
+  fechaVencimiento: string;
+}
+
+export interface ReportesConsolidadoResponse {
+  kpisCuentaCorriente: KpisCuentaCorriente;
+  facturacionPeriodo: FacturacionPeriodoResponse;
+  movimientosPeriodo: MovimientoPeriodo[];
+  movimientosPeriodoTotal: number;
+  vencimientosAgenda: VencimientoAgenda[];
 }
 
 export interface DashboardConsolidadoResponse {

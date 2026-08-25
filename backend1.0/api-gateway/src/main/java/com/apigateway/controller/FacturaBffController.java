@@ -283,7 +283,6 @@ public class FacturaBffController {
 
                     // Enriquecer facturas y agrupar por obra
                     Map<Long, List<Map<String, Object>>> facturasByObra = new HashMap<>();
-                    double totalFacturado = 0;
                     double totalCobrado = 0;
                     double totalPorCobrar = 0;
 
@@ -307,7 +306,6 @@ public class FacturaBffController {
                         }
 
                         double monto = ((Number) f.getOrDefault("monto", 0)).doubleValue();
-                        totalFacturado += monto;
 
                         String estado = (String) f.getOrDefault("estado", "EMITIDA");
                         if ("COBRADA".equalsIgnoreCase(estado)) {
@@ -321,6 +319,7 @@ public class FacturaBffController {
                     }
 
                     // Obras facturables con sus facturas agrupadas
+                    double totalFacturado = 0;
                     double totalPorFacturar = 0;
                     List<Map<String, Object>> obrasFacturacion = new ArrayList<>();
                     for (var o : obras) {
@@ -346,6 +345,7 @@ public class FacturaBffController {
                                 .mapToDouble(f -> ((Number) f.getOrDefault("monto", 0)).doubleValue())
                                 .sum();
                         double porFacturar = Math.max(0, presupuesto - facturado);
+                        totalFacturado += facturado;
                         totalPorFacturar += porFacturar;
 
                         Map<String, Object> obraFact = new LinkedHashMap<>();

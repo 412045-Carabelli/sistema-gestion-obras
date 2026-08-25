@@ -14,6 +14,7 @@ import com.reportes.entity.Comision;
 import com.reportes.entity.MovimientoReporte;
 import com.reportes.repository.ComisionRepository;
 import com.reportes.repository.DeudasGlobalesRepository;
+import com.reportes.repository.FacturacionPeriodoRepository;
 import com.reportes.repository.MovimientoReporteRepository;
 import com.reportes.service.pdf.PdfBuilder;
 import lombok.RequiredArgsConstructor;
@@ -43,6 +44,7 @@ public class ReportesService {
     private final ComisionRepository comisionRepository;
     private final MovimientoReporteRepository movimientoReporteRepository;
     private final DeudasGlobalesRepository deudasGlobalesRepository;
+    private final FacturacionPeriodoRepository facturacionPeriodoRepository;
     private final PdfBuilder pdfBuilder;
     private final JdbcTemplate jdbcTemplate;
 
@@ -57,6 +59,52 @@ public class ReportesService {
 
     @Value("${db.schema.proveedores:sgo_proveedores}")
     private String schemaProveedores;
+
+    /**
+     * Reporte consolidado para la pantalla de Reportes v2: kpis de cuenta corriente
+     * (reusa sp_dashboard_cuenta_corriente) y facturacion del periodo.
+     * Si no se especifica rango de fechas, aplica el default de 30 dias.
+     *
+     * Los 2 sub-llamados (KPIs y facturacion) son independientes entre si, asi que
+     * corren en paralelo (CompletableFuture) en vez de uno atras del otro: con
+     * llamadas secuenciales, la latencia total era la SUMA de cada red/DB hop y
+     * cualquier hiccup transitorio hacia que el timeout(30000) del frontend matara
+     * TODO el forkJoin de la pantalla (KPIs, facturacion, comisiones - todo junto),
+     * lo que se veia como "a veces carga, a veces no". En paralelo, la latencia es
+     * el MAX de los 2, no la suma.
+     *
+     * Movimientos del periodo y agenda ya no se calculan aca: la pantalla dejo de
+     * mostrar esas tablas, no tiene sentido pagar esas 2 llamadas de red extra en
+     * cada carga.
+     */
+    public ReportesConsolidadoResponse generarReporteConsolidado(ReportFilterRequest filtro) {
+        ReportFilterRequest filtros = filtroSeguro(filtro);
+        LocalDate fechaFin = filtros.getFechaFin() != null ? filtros.getFechaFin() : LocalDate.now();
+        LocalDate fechaInicio = filtros.getFechaInicio() != null ? filtros.getFechaInicio() : fechaFin.minusDays(30);
+
+        java.util.concurrent.CompletableFuture<DashboardCuentaCorrienteExternalDto> kpisFuture =
+                java.util.concurrent.CompletableFuture.supplyAsync(() -> transaccionesClient.obtenerCuentaCorriente(
+                        filtros.getObraId(), filtros.getClienteId(), filtros.getProveedorId(),
+                        fechaInicio, fechaFin, filtros.getOrganizacionId(), filtros.getEstados()));
+
+        java.util.concurrent.CompletableFuture<List<FacturacionPeriodoResponse.DetalleFacturacionObra>> facturacionFuture =
+                java.util.concurrent.CompletableFuture.supplyAsync(() -> facturacionPeriodoRepository.obtenerFacturacionPeriodo(
+                        filtros.getObraId(), filtros.getClienteId(), fechaInicio, fechaFin,
+                        filtros.getOrganizacionId(), filtros.getEstados()));
+
+        List<FacturacionPeriodoResponse.DetalleFacturacionObra> detalleFacturacion = facturacionFuture.join();
+        FacturacionPeriodoResponse facturacionPeriodo = new FacturacionPeriodoResponse();
+        facturacionPeriodo.setDetalle(detalleFacturacion);
+        facturacionPeriodo.setTotalFacturado(facturacionPeriodoRepository.sumar(
+                detalleFacturacion, FacturacionPeriodoResponse.DetalleFacturacionObra::getFacturado));
+        facturacionPeriodo.setTotalPorFacturar(facturacionPeriodoRepository.sumar(
+                detalleFacturacion, FacturacionPeriodoResponse.DetalleFacturacionObra::getPorFacturar));
+
+        ReportesConsolidadoResponse response = new ReportesConsolidadoResponse();
+        response.setKpisCuentaCorriente(kpisFuture.join());
+        response.setFacturacionPeriodo(facturacionPeriodo);
+        return response;
+    }
 
     public DashboardFinancieroResponse generarDashboardFinanciero(ReportFilterRequest filtro) {
         ReportFilterRequest filtros = filtroSeguro(filtro);
@@ -1395,12 +1443,17 @@ public class ReportesService {
         return response;
     }
 
-    public ComisionesResponse generarComisionesGeneral() {
+    public ComisionesResponse generarComisionesGeneral(ReportFilterRequest filtro) {
+        ReportFilterRequest filtros = filtroSeguro(filtro);
+        boolean tieneFiltroFecha = filtros.getFechaInicio() != null || filtros.getFechaFin() != null;
+
         ComisionesResponse response = new ComisionesResponse();
         List<Comision> comisiones = comisionRepository.findAll();
         Map<Long, ObraExternalDto> obrasPorId = mapearPorId(obrasClient.obtenerObras(), ObraExternalDto::getId);
         Set<Long> obrasValidas = obrasPorId.values().stream()
                 .filter(obra -> estadoGeneraDeuda(obra.getObraEstado()))
+                .filter(obra -> filtros.getObraId() == null || Objects.equals(obra.getId(), filtros.getObraId()))
+                .filter(obra -> filtros.getClienteId() == null || Objects.equals(obra.getIdCliente(), filtros.getClienteId()))
                 .map(ObraExternalDto::getId)
                 .filter(Objects::nonNull)
                 .collect(Collectors.toSet());
@@ -1413,6 +1466,9 @@ public class ReportesService {
 
         for (Comision comision : comisiones) {
             if (!obrasValidas.contains(comision.getIdObra())) {
+                continue;
+            }
+            if (tieneFiltroFecha && !dentroDeRango(comision.getFecha(), filtros.getFechaInicio(), filtros.getFechaFin())) {
                 continue;
             }
             obrasConComisionRegistrada.add(comision.getIdObra());
@@ -1435,31 +1491,35 @@ public class ReportesService {
             guardarMovimiento("COMISION_GENERAL", detalle.getMonto(), detalle.getObraNombre());
         }
 
-        // Incluir comisiones configuradas en las obras que no tengan registros en la tabla local
-        for (ObraExternalDto obra : obrasPorId.values()) {
-            if (!Boolean.TRUE.equals(obra.getTieneComision())) {
-                continue;
+        // Incluir comisiones configuradas en las obras que no tengan registros en la tabla local.
+        // No tienen fecha propia, asi que si hay un filtro de fecha activo no sabemos si caen
+        // dentro del periodo -> se excluyen (comportamiento identico a "sin filtro" cuando no hay fecha).
+        if (!tieneFiltroFecha) {
+            for (ObraExternalDto obra : obrasPorId.values()) {
+                if (!Boolean.TRUE.equals(obra.getTieneComision())) {
+                    continue;
+                }
+                if (!obrasValidas.contains(obra.getId())) {
+                    continue;
+                }
+                if (obrasConComisionRegistrada.contains(obra.getId())) {
+                    continue;
+                }
+                BigDecimal monto = calcularMontoComision(obra);
+                if (monto.compareTo(BigDecimal.ZERO) <= 0) {
+                    continue;
+                }
+                ComisionesResponse.Detalle detalle = new ComisionesResponse.Detalle();
+                detalle.setObraId(obra.getId());
+                detalle.setObraNombre(obra.getNombre());
+                detalle.setMonto(monto);
+                BigDecimal pagosDetalle = pagosPorObra.getOrDefault(obra.getId(), BigDecimal.ZERO).min(monto);
+                detalle.setPagos(pagosDetalle);
+                detalle.setSaldo(saldoPositivo(monto.subtract(pagosDetalle)));
+                response.getDetalle().add(detalle);
+                total = total.add(monto);
+                pagos = pagos.add(pagosDetalle);
             }
-            if (!obrasValidas.contains(obra.getId())) {
-                continue;
-            }
-            if (obrasConComisionRegistrada.contains(obra.getId())) {
-                continue;
-            }
-            BigDecimal monto = calcularMontoComision(obra);
-            if (monto.compareTo(BigDecimal.ZERO) <= 0) {
-                continue;
-            }
-            ComisionesResponse.Detalle detalle = new ComisionesResponse.Detalle();
-            detalle.setObraId(obra.getId());
-            detalle.setObraNombre(obra.getNombre());
-            detalle.setMonto(monto);
-            BigDecimal pagosDetalle = pagosPorObra.getOrDefault(obra.getId(), BigDecimal.ZERO).min(monto);
-            detalle.setPagos(pagosDetalle);
-            detalle.setSaldo(saldoPositivo(monto.subtract(pagosDetalle)));
-            response.getDetalle().add(detalle);
-            total = total.add(monto);
-            pagos = pagos.add(pagosDetalle);
         }
 
         response.setTotalComision(total);
