@@ -13,8 +13,18 @@ import { CommonModule } from '@angular/common';
 })
 export class KpiSkeletonComponent {
   @Input() count = 4;
+  /** Columnas del grid final (md+) que este skeleton debe imitar, para que cada tarjeta ocupe el ancho real de su columna. */
+  @Input() columns: 2 | 3 | 4 = 4;
 
   get items(): number[] {
     return Array.from({ length: this.count }, (_, i) => i);
+  }
+
+  get gridClass(): string {
+    switch (this.columns) {
+      case 2: return 'grid-cols-1 md:grid-cols-2';
+      case 3: return 'grid-cols-1 sm:grid-cols-2 md:grid-cols-3';
+      default: return 'grid-cols-1 sm:grid-cols-2 md:grid-cols-4';
+    }
   }
 }

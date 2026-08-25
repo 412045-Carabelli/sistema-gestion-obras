@@ -7,7 +7,7 @@ import {InputTextModule} from 'primeng/inputtext';
 import {InputTextarea} from 'primeng/inputtextarea';
 import {DropdownModule} from 'primeng/dropdown';
 import {MessageService, ConfirmationService} from 'primeng/api';
-import {forkJoin, of, switchMap} from 'rxjs';
+import {forkJoin, of, Subject, switchMap, tap, catchError} from 'rxjs';
 import {ModalComponent} from '../../../../shared/modal/modal.component';
 
 import {Agenda, ESTADOS_AGENDA_OPCIONES, PRIORIDADES_AGENDA, Obra, Cliente, Proveedor} from '../../../../core/models/models';
@@ -66,6 +66,7 @@ export class AgendaModalComponent {
   private proveedoresOptionsCompletas: Array<{label: string; value: number}> = [];
   cargandoFiltro = signal(false);
   cargandoDatos = signal(false);
+  private filtroTrigger$ = new Subject<'obraId' | 'clienteId' | 'proveedorId'>();
 
   constructor() {
     effect(() => {
@@ -76,6 +77,12 @@ export class AgendaModalComponent {
         this.inicializarFormulario();
       }
     });
+
+    // switchMap cancela el filtro anterior si el usuario cambia obra/cliente/proveedor
+    // rápido: sin esto, una respuesta vieja podía llegar después y pisar la más nueva.
+    this.filtroTrigger$.pipe(
+      switchMap(origen => this.ejecutarFiltro(origen))
+    ).subscribe();
   }
 
   private cargarDatos() {
@@ -264,7 +271,12 @@ export class AgendaModalComponent {
    */
   onFiltroCambiado(origen: 'obraId' | 'clienteId' | 'proveedorId') {
     if (this.obraFija) return;
+    this.filtroTrigger$.next(origen);
+  }
 
+  /** Devuelve el observable del filtro elegido en vez de suscribirse directo, para que el
+   * switchMap del constructor pueda cancelar la corrida anterior si el usuario cambia rápido. */
+  private ejecutarFiltro(origen: 'obraId' | 'clienteId' | 'proveedorId') {
     const obraId = this.form.get('obraId')?.value;
     const proveedorId = this.form.get('proveedorId')?.value;
     const clienteId = this.form.get('clienteId')?.value;
@@ -283,27 +295,27 @@ export class AgendaModalComponent {
         this.form.patchValue({ clienteId: obra.cliente.id }, { emitEvent: false });
       }
       this.cargandoFiltro.set(true);
-      this.http.get<Array<{id: number; nombre: string}>>(
+      return this.http.get<Array<{id: number; nombre: string}>>(
         `${environment.apiGateway}/bff/reportes/filtros/proveedores-por-obra?obraId=${obraId}`
-      ).subscribe({
-        next: (proveedores) => {
+      ).pipe(
+        tap(proveedores => {
           this.proveedoresOptions.set(
             proveedores.map(p => ({ label: p.nombre, value: p.id })).sort((a, b) => a.label.localeCompare(b.label, 'es'))
           );
           this.cargandoFiltro.set(false);
-        },
-        error: () => {
+        }),
+        catchError(() => {
           this.cargandoFiltro.set(false);
           this.avisoFiltro();
-        }
-      });
-      return;
+          return of(null);
+        })
+      );
     }
 
     if (proveedorId) {
       this.obrasOptions.set(this.obrasOptionsCompletas);
       this.cargandoFiltro.set(true);
-      this.http.get<Array<{id: number; nombre: string}>>(
+      return this.http.get<Array<{id: number; nombre: string}>>(
         `${environment.apiGateway}/bff/reportes/filtros/obras-por-proveedor?proveedorId=${proveedorId}`
       ).pipe(
         switchMap(obras => {
@@ -314,24 +326,23 @@ export class AgendaModalComponent {
               `${environment.apiGateway}/bff/reportes/filtros/clientes-por-obra?obraId=${o.id}`
             )
           ));
-        })
-      ).subscribe({
-        next: (results) => {
+        }),
+        tap(results => {
           this.clientesOptions.set(this.mergeUnicos(results));
           this.cargandoFiltro.set(false);
-        },
-        error: () => {
+        }),
+        catchError(() => {
           this.cargandoFiltro.set(false);
           this.avisoFiltro();
-        }
-      });
-      return;
+          return of(null);
+        })
+      );
     }
 
     if (clienteId) {
       this.proveedoresOptions.set(this.proveedoresOptionsCompletas);
       this.cargandoFiltro.set(true);
-      this.http.get<Array<{id: number; nombre: string}>>(
+      return this.http.get<Array<{id: number; nombre: string}>>(
         `${environment.apiGateway}/bff/reportes/filtros/obras-por-cliente?clienteId=${clienteId}`
       ).pipe(
         switchMap(obras => {
@@ -342,24 +353,24 @@ export class AgendaModalComponent {
               `${environment.apiGateway}/bff/reportes/filtros/proveedores-por-obra?obraId=${o.id}`
             )
           ));
-        })
-      ).subscribe({
-        next: (results) => {
+        }),
+        tap(results => {
           this.proveedoresOptions.set(this.mergeUnicos(results));
           this.cargandoFiltro.set(false);
-        },
-        error: () => {
+        }),
+        catchError(() => {
           this.cargandoFiltro.set(false);
           this.avisoFiltro();
-        }
-      });
-      return;
+          return of(null);
+        })
+      );
     }
 
     // Ningún filtro activo: catálogos completos.
     this.obrasOptions.set(this.obrasOptionsCompletas);
     this.clientesOptions.set(this.clientesOptionsCompletas);
     this.proveedoresOptions.set(this.proveedoresOptionsCompletas);
+    return of(null);
   }
 
   private mergeUnicos(grupos: Array<Array<{id: number; nombre: string}>>): Array<{label: string; value: number}> {

@@ -18,6 +18,7 @@ import {ObraCosto, Proveedor, Tarea} from '../../../core/models/models';
 import {ModalComponent} from '../../../shared/modal/modal.component';
 import {TareaPayload, TareasService} from '../../../services/tareas/tareas.service';
 import {ReportesService} from '../../../services/reportes/reportes.service';
+import {TableSkeletonComponent} from '../../../shared/table-skeleton/table-skeleton.component';
 
 @Component({
   selector: 'app-obra-tareas',
@@ -36,7 +37,8 @@ import {ReportesService} from '../../../services/reportes/reportes.service';
     TableModule,
     Tooltip,
     InputNumber,
-    EstadoFormatPipe
+    EstadoFormatPipe,
+    TableSkeletonComponent
   ],
   providers: [MessageService],
   templateUrl: './obra-tareas.component.html'

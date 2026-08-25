@@ -170,7 +170,7 @@ export class MovimientosListComponent implements OnInit {
       movimientosPage: this.movimientosService.listarConAsociados(this.currentPage, this.pageSize),
       obras: this.obrasService.getObrasParaMovimientos(),
       clientes: this.clientesService.getClientes(),
-      proveedores: this.proveedoresService.getProveedores()
+      proveedores: this.proveedoresService.getProveedoresSimple()
     }).subscribe({
       next: ({ movimientosPage, obras, clientes, proveedores }) => {
         this.movimientos = movimientosPage.content || [];

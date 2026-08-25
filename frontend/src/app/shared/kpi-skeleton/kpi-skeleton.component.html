@@ -1,4 +1,4 @@
-<div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6 animate-pulse">
+<div class="grid gap-6 animate-pulse" [ngClass]="gridClass">
   @for (item of items; track item) {
     <div class="bg-white rounded-xl border border-gray-100 p-6">
       <div class="h-3 bg-gray-200 rounded w-16 mb-3"></div>

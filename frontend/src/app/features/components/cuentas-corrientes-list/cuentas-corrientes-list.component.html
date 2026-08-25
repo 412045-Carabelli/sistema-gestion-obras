@@ -176,7 +176,7 @@
   } @placeholder {
     <div class="space-y-5">
       <app-generic-filter-bar [loading]="true"></app-generic-filter-bar>
-      <app-kpi-skeleton [count]="2"></app-kpi-skeleton>
+      <app-kpi-skeleton [count]="2" [columns]="2"></app-kpi-skeleton>
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-5">
         @for (table of [1, 2]; track table) {
           <div class="bg-white rounded-lg shadow p-5">
