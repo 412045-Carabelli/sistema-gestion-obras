@@ -6,39 +6,172 @@
 
 <div class="p-8 space-y-8 max-w-full mx-auto">
 
-  <!-- ===================== FILTROS DE BÚSQUEDA ===================== -->
+  <!-- ===================== 1. FILTRO DE PERÍODO ===================== -->
   <app-generic-filter-bar
     [filterDefinitions]="filterDefinitions"
+    [initialValues]="filterInitialValues"
+    [loading]="catalogosLoading"
     (filterChange)="onFilterChange($event)"
     (clearFilters)="onClearFilters()"
   ></app-generic-filter-bar>
 
   <!-- ===================== LOADING ===================== -->
   @if (loading) {
-    <div class="space-y-6 animate-pulse">
-      <div class="bg-white rounded-xl shadow-md p-5">
-        <div class="h-5 w-1/4 bg-gray-200 rounded mb-4"></div>
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-          @for (item of [1,2]; track item) {
-            <div class="h-16 bg-gray-100 rounded-lg"></div>
-          }
+    <div class="space-y-6">
+      <app-table-skeleton [rows]="2"></app-table-skeleton>
+      <app-table-skeleton [rows]="3"></app-table-skeleton>
+    </div>
+  } @else {
+
+    <!-- ===================== 2. KPIs ===================== -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div class="bg-white rounded-xl shadow-md p-6 border-l-4 border-green-500">
+        <div class="flex items-center gap-2 mb-2">
+          <i class="pi pi-arrow-up text-green-600"></i>
+          <span class="text-sm font-poppins font-semibold text-gray-600">Cobrado</span>
+        </div>
+        <div class="text-2xl font-poppins font-bold text-green-600">
+          {{ (reporteConsolidado?.kpisCuentaCorriente?.cobrado ?? 0) | currency:'ARS':'symbol-narrow':'1.0-0' }}
         </div>
       </div>
-      <div class="bg-white rounded-xl shadow-md p-5">
-        <div class="h-5 w-1/3 bg-gray-200 rounded mb-4"></div>
-        <div class="space-y-3">
-          @for (row of [1,2,3]; track row) {
-            <div class="h-12 bg-gray-100 rounded-lg"></div>
-          }
+
+      <div class="bg-white rounded-xl shadow-md p-6 border-l-4 border-emerald-500">
+        <div class="flex items-center gap-2 mb-2">
+          <i class="pi pi-wallet text-emerald-600"></i>
+          <span class="text-sm font-poppins font-semibold text-gray-600">Por cobrar</span>
+        </div>
+        <div class="text-2xl font-poppins font-bold text-emerald-700">
+          {{ (reporteConsolidado?.kpisCuentaCorriente?.porCobrar ?? 0) | currency:'ARS':'symbol-narrow':'1.0-0' }}
+        </div>
+      </div>
+
+      <div class="bg-white rounded-xl shadow-md p-6 border-l-4 border-red-500">
+        <div class="flex items-center gap-2 mb-2">
+          <i class="pi pi-arrow-down text-red-600"></i>
+          <span class="text-sm font-poppins font-semibold text-gray-600">Pagado</span>
+        </div>
+        <div class="text-2xl font-poppins font-bold text-red-600">
+          {{ (reporteConsolidado?.kpisCuentaCorriente?.pagado ?? 0) | currency:'ARS':'symbol-narrow':'1.0-0' }}
+        </div>
+      </div>
+
+      <div class="bg-white rounded-xl shadow-md p-6 border-l-4 border-amber-500">
+        <div class="flex items-center gap-2 mb-2">
+          <i class="pi pi-chart-line text-amber-600"></i>
+          <span class="text-sm font-poppins font-semibold text-gray-600">Por pagar</span>
+        </div>
+        <div class="text-2xl font-poppins font-bold text-amber-700">
+          {{ (reporteConsolidado?.kpisCuentaCorriente?.porPagar ?? 0) | currency:'ARS':'symbol-narrow':'1.0-0' }}
+        </div>
+      </div>
+
+      <div
+        class="rounded-xl shadow-md p-6 border-l-4"
+        [ngClass]="{
+          'bg-green-50 border-green-500': (reporteConsolidado?.kpisCuentaCorriente?.resultado ?? 0) > 0,
+          'bg-red-50 border-red-500': (reporteConsolidado?.kpisCuentaCorriente?.resultado ?? 0) < 0,
+          'bg-gray-50 border-gray-400': (reporteConsolidado?.kpisCuentaCorriente?.resultado ?? 0) === 0
+        }">
+        <div class="flex items-center gap-2 mb-2">
+          <i class="pi pi-chart-pie" [ngClass]="{
+            'text-green-600': (reporteConsolidado?.kpisCuentaCorriente?.resultado ?? 0) > 0,
+            'text-red-600': (reporteConsolidado?.kpisCuentaCorriente?.resultado ?? 0) < 0,
+            'text-gray-500': (reporteConsolidado?.kpisCuentaCorriente?.resultado ?? 0) === 0
+          }"></i>
+          <span class="text-sm font-poppins font-semibold text-gray-600">Resultado</span>
+        </div>
+        <div class="text-2xl font-poppins font-bold" [ngClass]="{
+          'text-green-700': (reporteConsolidado?.kpisCuentaCorriente?.resultado ?? 0) > 0,
+          'text-red-600': (reporteConsolidado?.kpisCuentaCorriente?.resultado ?? 0) < 0,
+          'text-gray-700': (reporteConsolidado?.kpisCuentaCorriente?.resultado ?? 0) === 0
+        }">
+          {{ (reporteConsolidado?.kpisCuentaCorriente?.resultado ?? 0) | currency:'ARS':'symbol-narrow':'1.0-0' }}
+        </div>
+      </div>
+
+      <div class="bg-white rounded-xl shadow-md p-6 border-l-4 border-indigo-500">
+        <div class="flex items-center gap-2 mb-2">
+          <i class="pi pi-file-check text-indigo-600"></i>
+          <span class="text-sm font-poppins font-semibold text-gray-600">Facturado</span>
+        </div>
+        <div class="text-2xl font-poppins font-bold text-indigo-700">
+          {{ (reporteConsolidado?.facturacionPeriodo?.totalFacturado ?? 0) | currency:'ARS':'symbol-narrow':'1.0-0' }}
+        </div>
+      </div>
+
+      <div class="bg-white rounded-xl shadow-md p-6 border-l-4 border-violet-500">
+        <div class="flex items-center gap-2 mb-2">
+          <i class="pi pi-file-edit text-violet-600"></i>
+          <span class="text-sm font-poppins font-semibold text-gray-600">Por facturar</span>
+        </div>
+        <div class="text-2xl font-poppins font-bold text-violet-700">
+          {{ (reporteConsolidado?.facturacionPeriodo?.totalPorFacturar ?? 0) | currency:'ARS':'symbol-narrow':'1.0-0' }}
+        </div>
+      </div>
+
+      <div class="bg-white rounded-xl shadow-md p-6 border-l-4 border-blue-500">
+        <div class="flex items-center gap-2 mb-2">
+          <i class="pi pi-percentage text-blue-600"></i>
+          <span class="text-sm font-poppins font-semibold text-gray-600">Comisiones</span>
+        </div>
+        <div class="text-2xl font-poppins font-bold text-blue-700">
+          {{ (comisiones?.totalComision ?? 0) | currency:'ARS':'symbol-narrow':'1.0-0' }}
         </div>
       </div>
     </div>
-  } @else {
-    <!-- ===================== RESUMEN DE OBRAS ===================== -->
-    <app-resumen-obras></app-resumen-obras>
 
-    <!-- ===================== COMISIONES ===================== -->
-    <div class="bg-white rounded-xl shadow-md p-6">
+    <!-- ===================== RESUMEN POR PROVEEDOR / CLIENTE ===================== -->
+    <app-resumen-obras [filtro]="activeFilter"></app-resumen-obras>
+
+    <!-- ===================== 3. REPORTES ===================== -->
+    <div class="flex flex-col gap-6">
+
+      <!-- Facturación por obra -->
+      <div class="bg-white rounded-xl shadow-md p-6">
+        <div class="flex items-center justify-between pb-3 mb-4 border-b border-gray-200">
+          <h2 class="font-poppins font-semibold text-gray-900 flex items-center gap-2">
+            <i class="pi pi-file-check text-indigo-600"></i>
+            Facturación por obra
+          </h2>
+        </div>
+        @if ((reporteConsolidado?.facturacionPeriodo?.detalle?.length ?? 0) > 0) {
+          <p-table [value]="reporteConsolidado?.facturacionPeriodo?.detalle || []" [paginator]="true" [rows]="8" responsiveLayout="scroll" styleClass="p-datatable-sm">
+            <ng-template pTemplate="header">
+              <tr>
+                <th class="text-left">Obra</th>
+                <th class="text-left">Cliente</th>
+                <th class="text-right">Presupuesto</th>
+                <th class="text-right">Facturado</th>
+                <th class="text-right">Por facturar</th>
+              </tr>
+            </ng-template>
+            <ng-template pTemplate="body" let-item>
+              <tr class="cursor-pointer hover:bg-gray-50 transition-colors" (click)="irAObra(item.obraId)">
+                <td>{{ item.obraNombre }}</td>
+                <td>{{ item.clienteNombre || '-' }}</td>
+                <td class="text-right">{{ item.presupuesto | currency:'ARS':'symbol-narrow':'1.0-0' }}</td>
+                <td class="text-right">{{ item.facturado | currency:'ARS':'symbol-narrow':'1.0-0' }}</td>
+                <td class="text-right font-semibold" [class.text-violet-700]="item.porFacturar > 0">
+                  {{ item.porFacturar | currency:'ARS':'symbol-narrow':'1.0-0' }}
+                </td>
+              </tr>
+            </ng-template>
+            <ng-template pTemplate="footer">
+              <tr class="font-bold bg-gray-100">
+                <td colspan="2">Totales Generales</td>
+                <td class="text-right">{{ totalPresupuestoFacturacion | currency:'ARS':'symbol-narrow':'1.0-0' }}</td>
+                <td class="text-right">{{ (reporteConsolidado?.facturacionPeriodo?.totalFacturado ?? 0) | currency:'ARS':'symbol-narrow':'1.0-0' }}</td>
+                <td class="text-right text-violet-700">{{ (reporteConsolidado?.facturacionPeriodo?.totalPorFacturar ?? 0) | currency:'ARS':'symbol-narrow':'1.0-0' }}</td>
+              </tr>
+            </ng-template>
+          </p-table>
+        } @else {
+          <p class="text-center text-gray-500 py-8">Sin facturación en el período.</p>
+        }
+      </div>
+
+      <!-- Comisiones -->
+      <div class="bg-white rounded-xl shadow-md p-6">
         <div class="flex items-center justify-between pb-3 mb-5 border-b border-gray-200">
           <h2 class="font-poppins font-semibold text-gray-900 flex items-center gap-2">
             <i class="pi pi-percentage text-indigo-600"></i>
@@ -55,50 +188,52 @@
           </p-button>
         </div>
 
-        <div class="flex items-center gap-3 mb-4 text-sm">
-          <span class="text-gray-600">Total comisiones:</span>
-          <span class="text-xl font-poppins font-bold text-indigo-700">{{ (comisiones?.totalComision ?? 0) | currency:'ARS':'symbol-narrow':'1.2-2' }}</span>
-          <span class="text-gray-500">| Pagado:</span>
-          <span class="text-gray-700">{{ (comisiones?.totalPagos ?? 0) | currency:'ARS':'symbol-narrow':'1.2-2' }}</span>
-          <span class="text-gray-500">| Saldo:</span>
-          <span class="font-poppins font-semibold text-slate-800">{{ (comisiones?.saldo ?? 0) | currency:'ARS':'symbol-narrow':'1.2-2' }}</span>
-        </div>
-
-        <p-table [value]="comisiones?.detalle || []" [paginator]="true" [rows]="10" responsiveLayout="scroll" styleClass="p-datatable-sm" [sortField]="'fecha'" [sortOrder]="-1">
-          <ng-template pTemplate="header">
-            <tr>
-              <th pSortableColumn="obraNombre" class="text-left">Obra <p-sortIcon field="obraNombre"></p-sortIcon></th>
-              <th pSortableColumn="fecha" class="text-center">Fecha <p-sortIcon field="fecha"></p-sortIcon></th>
-              <th pSortableColumn="monto" class="text-right">Monto <p-sortIcon field="monto"></p-sortIcon></th>
-              <th pSortableColumn="pagos" class="text-right">Pagado <p-sortIcon field="pagos"></p-sortIcon></th>
-              <th pSortableColumn="saldo" class="text-right">Saldo <p-sortIcon field="saldo"></p-sortIcon></th>
-            </tr>
-          </ng-template>
-          <ng-template pTemplate="body" let-item>
-            <tr class="cursor-pointer hover:bg-gray-50 transition-colors" (click)="irAObra(item.obraId)">
-              <td>{{ item.obraNombre || 'General' }}</td>
-              <td class="text-center text-gray-600 text-xs">{{ item.fecha ? (item.fecha | date:'dd/MM/yyyy') : '-' }}</td>
-              <td class="text-right">{{ item.monto | currency:'ARS':'symbol-narrow':'1.2-2' }}</td>
-              <td class="text-right">{{ item.pagos | currency:'ARS':'symbol-narrow':'1.2-2' }}</td>
-              <td class="text-right font-semibold" [class.text-green-700]="item.saldo <= 0" [class.text-slate-800]="item.saldo > 0">
-                {{ item.saldo | currency:'ARS':'symbol-narrow':'1.2-2' }}
-              </td>
-            </tr>
-          </ng-template>
-          <ng-template pTemplate="emptymessage">
-            <tr>
-              <td colspan="5" class="text-center text-gray-500 py-4">Sin comisiones registradas.</td>
-            </tr>
-          </ng-template>
-        </p-table>
+        @if ((comisiones?.detalle?.length ?? 0) > 0) {
+          <p-table [value]="comisiones?.detalle || []" [paginator]="true" [rows]="8" responsiveLayout="scroll" styleClass="p-datatable-sm" [sortField]="'saldo'" [sortOrder]="-1">
+            <ng-template pTemplate="header">
+              <tr>
+                <th pSortableColumn="obraNombre" class="text-left">Obra <p-sortIcon field="obraNombre"></p-sortIcon></th>
+                <th pSortableColumn="monto" class="text-right">Monto <p-sortIcon field="monto"></p-sortIcon></th>
+                <th pSortableColumn="pagos" class="text-right">Pagado <p-sortIcon field="pagos"></p-sortIcon></th>
+                <th pSortableColumn="saldo" class="text-right">Saldo <p-sortIcon field="saldo"></p-sortIcon></th>
+                <th class="text-center">Acción</th>
+              </tr>
+            </ng-template>
+            <ng-template pTemplate="body" let-item>
+              <tr class="hover:bg-gray-50 transition-colors">
+                <td class="cursor-pointer" (click)="irAObra(item.obraId)">{{ item.obraNombre || 'General' }}</td>
+                <td class="text-right">{{ item.monto | currency:'ARS':'symbol-narrow':'1.2-2' }}</td>
+                <td class="text-right">{{ item.pagos | currency:'ARS':'symbol-narrow':'1.2-2' }}</td>
+                <td class="text-right font-semibold" [class.text-green-700]="item.saldo <= 0" [class.text-slate-800]="item.saldo > 0">
+                  {{ item.saldo | currency:'ARS':'symbol-narrow':'1.2-2' }}
+                </td>
+                <td class="text-center">
+                  <p-button
+                    [label]="item.saldo <= 0 ? 'Pagada' : 'Pagar'"
+                    icon="pi pi-check"
+                    styleClass="p-button-sm"
+                    [loading]="pagandoComisionObraId === item.obraId"
+                    [disabled]="item.saldo <= 0 || !item.obraId || pagandoComisionObraId === item.obraId"
+                    (onClick)="pagarComisionReporte(item)">
+                  </p-button>
+                </td>
+              </tr>
+            </ng-template>
+            <ng-template pTemplate="footer">
+              <tr class="font-bold bg-gray-100">
+                <td>Totales Generales</td>
+                <td class="text-right">{{ (comisiones?.totalComision ?? 0) | currency:'ARS':'symbol-narrow':'1.2-2' }}</td>
+                <td class="text-right">{{ (comisiones?.totalPagos ?? 0) | currency:'ARS':'symbol-narrow':'1.2-2' }}</td>
+                <td class="text-right" [class.text-green-700]="(comisiones?.saldo ?? 0) <= 0">{{ (comisiones?.saldo ?? 0) | currency:'ARS':'symbol-narrow':'1.2-2' }}</td>
+                <td></td>
+              </tr>
+            </ng-template>
+          </p-table>
+        } @else {
+          <p class="text-center text-gray-500 py-8">Sin comisiones registradas.</p>
+        }
       </div>
+    </div>
 
   }
 </div>
-
-
-
-
-
-
-

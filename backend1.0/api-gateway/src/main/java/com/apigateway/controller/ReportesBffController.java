@@ -208,6 +208,11 @@ public class ReportesBffController {
         return proxyPost("/financieros/deudas-globales", filtro, new ParameterizedTypeReference<>() {});
     }
 
+    @PostMapping("/financieros/reportes-consolidado")
+    public Mono<ResponseEntity<Object>> reportesConsolidado(@RequestBody(required = false) Object filtro) {
+        return proxyPost("/financieros/reportes-consolidado", filtro, new ParameterizedTypeReference<>() {});
+    }
+
     @GetMapping("/dashboard/graficos")
     public Mono<ResponseEntity<Object>> dashboardGraficos(
             @RequestParam(defaultValue = "10") int topN) {
@@ -404,10 +409,8 @@ public class ReportesBffController {
     }
 
     @PostMapping("/financieros/comisiones")
-    public Mono<ResponseEntity<Object>> comisiones(@RequestBody(required = false) Map<String, Object> filtro) {
-        Long obraId = extractLong(filtro, "obraId");
-        String path = obraId != null ? "/comisiones/obra/" + obraId : "/comisiones/general";
-        return proxyGet(path, new ParameterizedTypeReference<>() {});
+    public Mono<ResponseEntity<Object>> comisiones(@RequestBody(required = false) Object filtro) {
+        return proxyPost("/comisiones/general", filtro, new ParameterizedTypeReference<>() {});
     }
 
 

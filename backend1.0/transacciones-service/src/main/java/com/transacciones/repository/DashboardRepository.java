@@ -7,6 +7,7 @@ import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.Query;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Repository;
 import java.math.BigDecimal;
 import java.sql.Date;
@@ -23,6 +24,14 @@ public class DashboardRepository {
 
   @PersistenceContext
   private EntityManager entityManager;
+
+  // sp_dashboard_cuenta_corriente referenciaba [sgo_obras] (nombre de PRODUCCION)
+  // hardcodeado. En dev los datos reales viven en sgo_obras_test, que coexiste en
+  // la misma instancia de SQL Server que sgo_obras -> la query no fallaba, leia
+  // silenciosamente 0 filas para obras que solo existen en dev. Mismo fix que V32
+  // le dio a los otros SPs cross-database.
+  @Value("${db.schema.obras:sgo_obras}")
+  private String schemaObras;
 
   /**
    * Obtiene los KPIs de cuenta corriente del dashboard.
@@ -42,7 +51,9 @@ public class DashboardRepository {
           "DECLARE @fechaInicio DATE = ?; " +
           "DECLARE @fechaFin DATE = ?; " +
           "DECLARE @organizacion_id BIGINT = ?; " +
-          "EXEC sp_dashboard_cuenta_corriente @obraId, @clienteId, @proveedorId, @fechaInicio, @fechaFin, @organizacion_id"
+          "DECLARE @estados NVARCHAR(500) = ?; " +
+          "DECLARE @schemaObras NVARCHAR(128) = ?; " +
+          "EXEC sp_dashboard_cuenta_corriente @obraId, @clienteId, @proveedorId, @fechaInicio, @fechaFin, @organizacion_id, @estados, @schemaObras"
       );
 
       query.setParameter(1, filtro.getObraId());
@@ -51,6 +62,9 @@ public class DashboardRepository {
       query.setParameter(4, filtro.getFechaInicio() != null ? Date.valueOf(filtro.getFechaInicio()) : null);
       query.setParameter(5, filtro.getFechaFin() != null ? Date.valueOf(filtro.getFechaFin()) : null);
       query.setParameter(6, filtro.getOrganizacionId());
+      query.setParameter(7, (filtro.getEstados() != null && !filtro.getEstados().isEmpty())
+          ? String.join(",", filtro.getEstados()) : null);
+      query.setParameter(8, schemaObras);
 
       @SuppressWarnings("unchecked")
       Object[] resultado = (Object[]) query.getSingleResult();

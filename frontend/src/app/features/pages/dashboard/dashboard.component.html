@@ -64,6 +64,7 @@
   <app-generic-filter-bar
     [filterDefinitions]="filterDefinitions"
     [actions]="[]"
+    [loading]="loadingGeneral"
     (filterChange)="onFilterChange($event)"
     (clearFilters)="onClearFilters()"
   ></app-generic-filter-bar>
@@ -144,6 +145,7 @@
       [filter]="true"
       filterBy="nombre"
       [showClear]="true"
+      [disabled]="loadingGeneral"
       appendTo="body"
       styleClass="w-full"
       (onChange)="onMovimientoObraSelect($event.value)"
@@ -268,6 +270,7 @@
       [filter]="true"
       filterBy="nombre"
       [showClear]="true"
+      [disabled]="loadingGeneral"
       appendTo="body"
       styleClass="w-full"
       (onChange)="onTareaObraSelect($event.value)"

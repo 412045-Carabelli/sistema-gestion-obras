@@ -5,16 +5,54 @@
   flex-shrink: 0;
   background-color: #e5e7eb;
   overflow-y: auto;
-  transition: transform 0.3s ease;
+  transition: width 0.25s ease, opacity 0.2s ease;
+}
+
+/* Oculto (botón del navbar): en desktop colapsa el ancho para que el
+   contenido principal ocupe el espacio con animación, en vez de
+   desmontar el componente (lo que cortaba la animación de golpe). */
+.sidebar-hidden {
+  width: 0;
+  opacity: 0;
+  overflow: hidden;
+  pointer-events: none;
 }
 
 /* Estilos para items de navegación */
 .nav-item {
   position: relative;
+  overflow: hidden;
+  animation: nav-item-in 0.3s ease backwards;
+}
+
+.nav-item::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 3px;
+  height: 0;
+  border-radius: 0 3px 3px 0;
+  background-color: #3b82f6;
+  transition: height 0.2s ease;
 }
 
 .nav-item:hover {
   background-color: rgba(0, 0, 0, 0.08);
+  transform: translateX(2px);
+}
+
+.nav-item:active {
+  transform: scale(0.98);
+}
+
+.nav-item-icon {
+  transition: transform 0.2s ease, color 0.2s ease;
+}
+
+.nav-item:hover .nav-item-icon {
+  transform: scale(1.12);
 }
 
 .nav-item.active-nav-item {
@@ -23,8 +61,29 @@
   font-weight: 600;
 }
 
+.nav-item.active-nav-item::before {
+  height: 60%;
+}
+
 .nav-item.active-nav-item i {
   color: #3b82f6;
+}
+
+@keyframes nav-item-in {
+  from {
+    opacity: 0;
+    transform: translateX(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .nav-item {
+    animation: none;
+  }
 }
 
 .sidebar-footer {
@@ -163,5 +222,12 @@
     top: 60px;
     z-index: 100;
     height: calc(100vh - 60px);
+    transition: transform 0.25s ease, opacity 0.2s ease;
+  }
+
+  /* En mobile es overlay: desliza en vez de colapsar ancho */
+  .sidebar-hidden {
+    width: 240px;
+    transform: translateX(-100%);
   }
 }

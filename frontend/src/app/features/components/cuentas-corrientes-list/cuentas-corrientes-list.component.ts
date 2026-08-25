@@ -16,6 +16,8 @@ import { TooltipModule } from 'primeng/tooltip';
 import { Subscription, forkJoin, of, switchMap, Observable } from 'rxjs';
 import { GenericFilterBarComponent, FilterDefinition, FilterAction } from '../generic-filter-bar/generic-filter-bar.component';
 import { KpiCardComponent } from '../../../shared/kpi-card/kpi-card.component';
+import { KpiSkeletonComponent } from '../../../shared/kpi-skeleton/kpi-skeleton.component';
+import { TableSkeletonComponent } from '../../../shared/table-skeleton/table-skeleton.component';
 import { ReportesService } from '../../../services/reportes/reportes.service';
 
 @Component({
@@ -29,7 +31,9 @@ import { ReportesService } from '../../../services/reportes/reportes.service';
     CardModule,
     TooltipModule,
     GenericFilterBarComponent,
-    KpiCardComponent
+    KpiCardComponent,
+    KpiSkeletonComponent,
+    TableSkeletonComponent
   ],
   templateUrl: './cuentas-corrientes-list.component.html',
   styleUrls: ['./cuentas-corrientes-list.component.css']

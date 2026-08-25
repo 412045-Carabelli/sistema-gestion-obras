@@ -33,6 +33,15 @@ public class TransaccionConAsociadoRepository {
      */
     @SuppressWarnings("unchecked")
     public Map<String, Object> listarConAsociadosPaginado(int page, int size, Long idObra, String tipoAsociado, Long idAsociado, Long organizacionId) {
+        return listarConAsociadosPaginado(page, size, idObra, tipoAsociado, idAsociado, organizacionId, null, null);
+    }
+
+    /**
+     * Igual que {@link #listarConAsociadosPaginado(int, int, Long, String, Long, Long)} pero
+     * con filtro opcional de rango de fecha, para el reporte de movimientos del periodo.
+     */
+    @SuppressWarnings("unchecked")
+    public Map<String, Object> listarConAsociadosPaginado(int page, int size, Long idObra, String tipoAsociado, Long idAsociado, Long organizacionId, LocalDate fechaInicio, LocalDate fechaFin) {
         try {
             StoredProcedureQuery spQuery = entityManager
                 .createStoredProcedureQuery("sp_transacciones_con_asociados_paginado");
@@ -42,19 +51,23 @@ public class TransaccionConAsociadoRepository {
             spQuery.registerStoredProcedureParameter(4, String.class, ParameterMode.IN);
             spQuery.registerStoredProcedureParameter(5, Long.class, ParameterMode.IN);
             spQuery.registerStoredProcedureParameter(6, Long.class, ParameterMode.IN);
+            spQuery.registerStoredProcedureParameter(7, java.sql.Date.class, ParameterMode.IN);
+            spQuery.registerStoredProcedureParameter(8, java.sql.Date.class, ParameterMode.IN);
             spQuery.setParameter(1, page);
             spQuery.setParameter(2, size);
             spQuery.setParameter(3, idObra);
             spQuery.setParameter(4, tipoAsociado);
             spQuery.setParameter(5, idAsociado);
             spQuery.setParameter(6, organizacionId > 0 ? organizacionId : null);
+            spQuery.setParameter(7, fechaInicio != null ? java.sql.Date.valueOf(fechaInicio) : null);
+            spQuery.setParameter(8, fechaFin != null ? java.sql.Date.valueOf(fechaFin) : null);
 
             List<Object[]> rows = (List<Object[]>) spQuery.getResultList();
 
             // El SP retorna 2 result sets: [0] = totalElements (scalar), resto = filas de datos.
             // Con JPA getResultList() solo obtenemos el primero (el SELECT de datos).
             // Ejecutamos count por separado para la paginación.
-            long total = transaccionRepository.contarConFiltros(idObra, tipoAsociado, idAsociado, organizacionId);
+            long total = transaccionRepository.contarConFiltros(idObra, tipoAsociado, idAsociado, organizacionId, fechaInicio, fechaFin);
 
             List<TransaccionConAsociadoDto> content = new ArrayList<>();
             for (Object[] row : rows) {

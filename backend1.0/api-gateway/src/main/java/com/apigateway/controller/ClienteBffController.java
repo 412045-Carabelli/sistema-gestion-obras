@@ -73,6 +73,34 @@ public class ClienteBffController {
     }
 
     // ================================
+    // 📥 GET - Listar clientes (simple, para combos/selects: solo id + nombre)
+    // ================================
+    @GetMapping("/simple")
+    public Mono<ResponseEntity<List<Map<String, Object>>>> getClientesSimple(
+            @RequestHeader(value = "X-Organizacion-Id", required = false) String organizacionId
+    ) {
+        WebClient client = webClientBuilder.build();
+
+        Flux<Map<String, Object>> clientesFlux = client.get()
+                .uri(CLIENTES_URL)
+                .headers(h -> { if (organizacionId != null) h.set("X-Organizacion-Id", organizacionId); })
+                .retrieve()
+                .bodyToFlux(new ParameterizedTypeReference<Map<String, Object>>() {});
+
+        return clientesFlux
+                .map(c -> {
+                    Map<String, Object> slim = new java.util.HashMap<>();
+                    slim.put("id", c.get("id"));
+                    slim.put("nombre", c.get("nombre"));
+                    slim.put("activo", c.getOrDefault("activo", true));
+                    return slim;
+                })
+                .collectList()
+                .map(ResponseEntity::ok)
+                .onErrorResume(ex -> Mono.just(ResponseEntity.internalServerError().body(List.of())));
+    }
+
+    // ================================
     // 📥 GET - Listar clientes CON DETALLES (paginado)
     // IMPORTANTE: Este endpoint debe ir ANTES de /{id} para evitar conflictos de routing
     // ================================

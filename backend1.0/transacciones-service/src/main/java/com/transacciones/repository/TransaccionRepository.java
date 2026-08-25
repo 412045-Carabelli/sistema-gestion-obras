@@ -49,13 +49,17 @@ public interface TransaccionRepository extends JpaRepository<Transaccion, Long> 
         "AND (:idObra IS NULL OR t.id_obra = :idObra) " +
         "AND (:tipoAsociado IS NULL OR t.tipo_asociado = :tipoAsociado) " +
         "AND (:idAsociado IS NULL OR t.id_asociado = :idAsociado) " +
-        "AND (:organizacionId = 0 OR t.organizacion_id = :organizacionId)"
+        "AND (:organizacionId = 0 OR t.organizacion_id = :organizacionId) " +
+        "AND (:fechaInicio IS NULL OR CAST(t.fecha AS DATE) >= :fechaInicio) " +
+        "AND (:fechaFin IS NULL OR CAST(t.fecha AS DATE) <= :fechaFin)"
     )
     long contarConFiltros(
         @Param("idObra") Long idObra,
         @Param("tipoAsociado") String tipoAsociado,
         @Param("idAsociado") Long idAsociado,
-        @Param("organizacionId") Long organizacionId
+        @Param("organizacionId") Long organizacionId,
+        @Param("fechaInicio") java.time.LocalDate fechaInicio,
+        @Param("fechaFin") java.time.LocalDate fechaFin
     );
 
     @Query(nativeQuery = true, value =

@@ -28,7 +28,7 @@
     </div>
   </div>
 } @else {
-  <div class="p-4 space-y-8 w-full mx-auto">
+  <div class="detail-fade-in p-4 space-y-8 w-full mx-auto">
       <!-- ===================== TARJETAS DE INFO PRINCIPAL ===================== -->
       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
 
@@ -182,8 +182,8 @@
                                         [binary]="true"></p-checkbox>
                           </td>
                         }
-                        <td class="font-mono text-sm font-semibold text-gray-600">{{ item.id }}</td>
-                        <td class="font-medium text-gray-900">{{ item.nombre }}</td>
+                        <td class="font-mono text-sm font-normal text-gray-600">{{ item.id }}</td>
+                        <td class="font-normal text-gray-900">{{ item.nombre }}</td>
                         <td>
                           <span class="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">
                             {{ item.estado | estadoFormat }}
@@ -293,7 +293,7 @@
                         <td class="px-6 py-5 whitespace-nowrap text-base">
                           <div class="flex items-center gap-2">
                             <i class="pi pi-building text-blue-600"></i>
-                            <span class="font-medium text-gray-900">{{ getNombreObra(tarea.id_obra) }}</span>
+                            <span class="font-normal text-gray-900">{{ getNombreObra(tarea.id_obra) }}</span>
                           </div>
                         </td>
                         <td class="px-6 py-5 whitespace-nowrap text-base text-gray-700">
@@ -308,7 +308,7 @@
                         <td class="px-6 py-5 whitespace-nowrap text-base text-gray-700">
                           {{ tarea.fecha_inicio ? (tarea.fecha_inicio | date:'dd/MM/yyyy') : '-' }}
                         </td>
-                        <td class="px-6 py-5 whitespace-nowrap text-right text-base font-semibold text-gray-900">
+                        <td class="px-6 py-5 whitespace-nowrap text-right text-base font-normal text-gray-900">
                           {{ tarea.porcentaje != null ? (tarea.porcentaje + '%') : '-' }}
                         </td>
                         <td class="px-6 py-5 whitespace-nowrap text-base">

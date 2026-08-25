@@ -242,13 +242,13 @@ export class AgendasGanttComponent implements OnInit, OnDestroy {
 
   private cargarDatos() {
     this.subscription.add(
-      this.obrasService.getObrasAll().subscribe({next: o => this.obras.set(o), error: () => {}})
+      this.obrasService.getObrasSimple().subscribe({next: o => this.obras.set(o), error: () => {}})
     );
     this.subscription.add(
-      this.clientesService.getClientes().subscribe({next: c => this.clientes.set(c), error: () => {}})
+      this.clientesService.getClientesSimple().subscribe({next: c => this.clientes.set(c), error: () => {}})
     );
     this.subscription.add(
-      this.proveedoresService.getProveedores().subscribe({next: p => this.proveedores.set(p), error: () => {}})
+      this.proveedoresService.getProveedoresSimple().subscribe({next: p => this.proveedores.set(p), error: () => {}})
     );
     this.subscription.add(
       this.agendasService.getAgendas().subscribe({

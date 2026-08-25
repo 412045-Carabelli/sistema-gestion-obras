@@ -78,6 +78,13 @@ export class ObrasService {
     return this.http.get<Obra[]>(this.apiUrl, {withCredentials: true, params});
   }
 
+  // Solo id, nombre, estado y cliente {id, nombre} — sin grupo, para combos/selects
+  getObrasSimple(estados?: string): Observable<Obra[]> {
+    let params = new HttpParams();
+    if (estados) params = params.set('estados', estados);
+    return this.http.get<Obra[]>(`${this.apiUrl}/simple`, {withCredentials: true, params});
+  }
+
   getObrasConDetalles(page = 0, size = 50, filtros: { estado?: string; activo?: boolean; q?: string } = {}): Observable<ObrasConDetallesResponse> {
     let params = new HttpParams().set('page', page).set('size', size);
     if (filtros.estado) params = params.set('estado', filtros.estado);

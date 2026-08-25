@@ -25,6 +25,7 @@
             styleClass="w-full"
             appendTo="body"
             [disabled]="bloqueadaSeleccion"
+            [loading]="cargandoCatalogos"
             (onChange)="onClienteChange()"
           ></p-select>
           @if (form.get('id_cliente')?.invalid && form.get('id_cliente')?.touched) {
@@ -42,6 +43,7 @@
             styleClass="w-full"
             appendTo="body"
             [disabled]="bloqueadaSeleccion"
+            [loading]="cargandoCatalogos"
             (onChange)="onObraChange()"
           ></p-select>
           @if (restanteObra != null) {

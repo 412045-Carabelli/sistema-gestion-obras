@@ -34,7 +34,7 @@
   </div>
 } @else {
   @defer (when cliente) {
-    <div class="p-4 space-y-8 w-full mx-auto">
+    <div class="detail-fade-in p-4 space-y-8 w-full mx-auto">
 
       <!-- ===================== TARJETAS DE INFO PRINCIPAL ===================== -->
       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -187,7 +187,7 @@
                         <td class="px-6 py-4 whitespace-nowrap">
                           <div class="flex items-center gap-2">
                             <i class="pi pi-building text-cyan-600"></i>
-                            <strong class="text-gray-900">{{ obra.nombre }}</strong>
+                            <span class="font-normal text-gray-900">{{ obra.nombre }}</span>
                           </div>
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap">

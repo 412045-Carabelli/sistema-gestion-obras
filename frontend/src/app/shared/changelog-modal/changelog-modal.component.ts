@@ -6,7 +6,7 @@ import { TagModule } from 'primeng/tag';
 import { Subscription } from 'rxjs';
 import { ChangelogService } from '../../services/changelog/changelog.service';
 
-const VERSION = 'v1.18.6';
+const VERSION = 'v1.18.24';
 const STORAGE_KEY = `sgo-changelog-seen-${VERSION}`;
 
 interface ChangeItem {
@@ -32,6 +32,22 @@ export class ChangelogModalComponent implements OnInit, OnDestroy {
   private sub = new Subscription();
 
   grupos: ChangeGroup[] = [
+    {
+      modulo: 'Mejoras 24-25/08/2026',
+      icon: 'pi pi-sparkles',
+      items: [
+        { texto: 'Movimientos: se arregló un bug de base de datos por el que la columna "Tipo Transacción" (cobro/pago) aparecía siempre vacía en el listado', estado: 'done' },
+        { texto: 'Reportes: si una tabla no tiene datos para el período/filtro elegido, ya no se muestra la tabla vacía, solo el mensaje "Sin datos"', estado: 'done' },
+        { texto: 'Reportes: los filtros de Obra, Cliente y Proveedor ahora se acotan entre sí (igual que en Cuentas Corrientes) — elegir un cliente deja solo sus obras y proveedores disponibles', estado: 'done' },
+        { texto: 'Reportes: al aplicar un filtro ya no se recarga toda la barra de filtros, solo los KPIs y las tablas', estado: 'done' },
+        { texto: 'Obras: la fecha de inicio en el listado se ve más grande y sin el prefijo "Desde:"', estado: 'done' },
+        { texto: 'Tablas: se pareja el redondeado de esquinas de todas las tablas con el de la barra de filtros, y se prolija el encabezado de columnas ordenables (el ícono de orden era más grande que el texto)', estado: 'done' },
+        { texto: 'Tablas: se uniformó el grosor de letra de las columnas de texto en todos los listados (antes algunas columnas aparecían en negrita sin motivo); montos y badges de estado siguen resaltados', estado: 'done' },
+        { texto: 'Tablas y barra de filtros: pequeña animación de aparición al terminar de cargar', estado: 'done' },
+        { texto: 'Menú lateral: se sacaron los títulos que separaban los grupos de opciones, se agrandó un poco el texto de las opciones y se agregaron animaciones (entrada de items, hover, y al mostrar/ocultar con el botón del header)', estado: 'done' },
+        { texto: 'Navegación: pequeña animación de transición al cambiar de página', estado: 'done' },
+      ]
+    },
     {
       modulo: 'Fixes Agosto 13/08/2026',
       icon: 'pi pi-check-circle',

@@ -22,6 +22,13 @@ export class ClientesService {
     );
   }
 
+  // Solo id + nombre (para combos/selects, aún más liviano que getClientes)
+  getClientesSimple(): Observable<Cliente[]> {
+    return this.http.get<Cliente[]>(`${this.apiUrl}/simple`).pipe(
+      map(list => list.map(c => this.normalize(c)))
+    );
+  }
+
   // Obtener todos con detalles (obras, saldos) - paginado
   getClientesConDetalles(page: number = 0, size: number = 50): Observable<any> {
     return this.http.get<any>(`${this.apiUrl}/con-detalles?page=${page}&size=${size}`).pipe(

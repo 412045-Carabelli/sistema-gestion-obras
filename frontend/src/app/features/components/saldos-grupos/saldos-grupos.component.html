@@ -1,8 +1,9 @@
 <p-toast position="bottom-right"></p-toast>
 
 @if (loading) {
-  <div class="flex justify-center items-center py-12">
-    <p-progressSpinner></p-progressSpinner>
+  <div class="space-y-6">
+    <app-table-skeleton [rows]="5"></app-table-skeleton>
+    <app-table-skeleton [rows]="5"></app-table-skeleton>
   </div>
 } @else {
   <!-- TABLA PROVEEDORES -->
@@ -47,7 +48,7 @@
       </ng-template>
       <ng-template pTemplate="body" let-item>
         <tr class="hover:bg-gray-50 transition-colors">
-          <td class="font-poppins font-semibold text-gray-700">{{ item.nombre_grupo }}</td>
+          <td class="font-poppins font-normal text-gray-700">{{ item.nombre_grupo }}</td>
           <td class="font-poppins font-normal">{{ item.nombre_proveedor }}</td>
           <td class="text-right font-poppins font-normal">{{ item.total_costos | currency:'ARS':'symbol-narrow':'1.2-2' }}</td>
           <td class="text-right text-green-700 font-poppins font-semibold">{{ item.total_pagos | currency:'ARS':'symbol-narrow':'1.2-2' }}</td>
@@ -106,8 +107,8 @@
       </ng-template>
       <ng-template pTemplate="body" let-item>
         <tr class="hover:bg-gray-50 transition-colors">
-          <td class="font-medium text-gray-700">{{ item.nombre_grupo }}</td>
-          <td>{{ item.nombre_cliente }}</td>
+          <td class="font-poppins font-normal text-gray-700">{{ item.nombre_grupo }}</td>
+          <td class="font-poppins font-normal">{{ item.nombre_cliente }}</td>
           <td class="text-right">{{ item.total_presupuesto | currency:'ARS':'symbol-narrow':'1.2-2' }}</td>
           <td class="text-right text-green-700 font-medium">{{ item.total_cobros | currency:'ARS':'symbol-narrow':'1.2-2' }}</td>
           <td class="text-right font-semibold" [ngClass]="{ 'text-blue-700': item.saldo_pendiente > 0, 'text-gray-500': item.saldo_pendiente <= 0 }">

@@ -23,8 +23,10 @@ import {ObrasService} from '../../../services/obras/obras.service';
 import {EstadoFormatPipe} from '../../../shared/pipes/estado-format.pipe';
 import {FacturaModalComponent} from '../factura-modal/factura-modal.component';
 import {FacturasStateService} from '../../../services/facturas/facturas-state.service';
-import {GenericFilterBarComponent, FilterDefinition, FilterAction} from '../generic-filter-bar/generic-filter-bar.component';
+import {GenericFilterBarComponent, FilterDefinition, FilterAction, ViewToggleOption} from '../generic-filter-bar/generic-filter-bar.component';
 import {KpiCardComponent} from '../../../shared/kpi-card/kpi-card.component';
+import {KpiSkeletonComponent} from '../../../shared/kpi-skeleton/kpi-skeleton.component';
+import {TableSkeletonComponent} from '../../../shared/table-skeleton/table-skeleton.component';
 import {exportarListadoPdf} from '../../../shared/utils/pdf-export.util';
 
 interface FacturaView extends Factura {
@@ -62,7 +64,9 @@ interface SelectOption<T> {
     FacturaModalComponent,
     ConfirmDialog,
     GenericFilterBarComponent,
-    KpiCardComponent
+    KpiCardComponent,
+    KpiSkeletonComponent,
+    TableSkeletonComponent
   ],
   providers: [MessageService, ConfirmationService],
   templateUrl: './facturas-list.component.html',
@@ -131,6 +135,10 @@ export class FacturasListComponent implements OnInit, OnDestroy {
   datosCargados = false;
   kpis: FacturasResumenResponse['kpis'] = { totalFacturado: 0, totalCobrado: 0, totalPorCobrar: 0, totalPorFacturar: 0 };
 
+  // Switch de vista: facturado (listado de facturas) vs por facturar (obras con saldo pendiente)
+  vistaActual: 'facturado' | 'porFacturar' = 'facturado';
+  viewToggle!: { options: ViewToggleOption[] };
+
   // Modal de factura (alta/detalle/edicion unificados)
   modalVisible = false;
   modalMode: 'crear' | 'detalle' = 'crear';
@@ -156,6 +164,12 @@ export class FacturasListComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit() {
+    this.viewToggle = {
+      options: [
+        { label: 'Facturado', icon: 'pi-receipt', callback: () => this.vistaActual = 'facturado', isActive: () => this.vistaActual === 'facturado' },
+        { label: 'Por facturar', icon: 'pi-clock', callback: () => this.vistaActual = 'porFacturar', isActive: () => this.vistaActual === 'porFacturar' }
+      ]
+    };
     this.setupFilterDefinitions();
     this.subscription.add(
       this.facturasStateService.openCreateModal$.subscribe(() => this.abrirModalCrear())
@@ -423,6 +437,11 @@ export class FacturasListComponent implements OnInit, OnDestroy {
   }
 
 
+  /** Obras con saldo pendiente de facturar (excluye las ya facturadas al 100%). */
+  get obrasPorFacturarFiltradas() {
+    return this.obrasFacturacionFiltradas.filter(o => Number(o.porFacturar || 0) > 0.01);
+  }
+
   get totalFacturado(): number {
     return Number(this.kpis.totalFacturado ?? 0);
   }
@@ -457,6 +476,24 @@ export class FacturasListComponent implements OnInit, OnDestroy {
       return this.obras.filter(o => Number(o.id_cliente || o.cliente?.id) === Number(this.clienteFiltro));
     }
     return this.obras;
+  }
+
+  /** Mismo mapping de colores que obras-list, para que el badge de estado sea consistente en toda la app. */
+  getEstadoObraSeverity(estadoNombre?: string): string {
+    if (!estadoNombre) return 'secondary';
+    const estado = (estadoNombre || '').toUpperCase().trim();
+    const severities: { [key: string]: string } = {
+      'PRESUPUESTADA': 'secondary',
+      'COTIZADA': 'warn',
+      'ADJUDICADA': 'success',
+      'EN_PROGRESO': 'info',
+      'FINALIZADA': 'contrast',
+      'PERDIDA': 'danger',
+      'FACTURADA_PARCIAL': 'success',
+      'FACTURADA': 'success',
+      'COBRADA': 'success'
+    };
+    return severities[estado] || 'secondary';
   }
 
   private obraEsFacturable(idObra?: number | null): boolean {

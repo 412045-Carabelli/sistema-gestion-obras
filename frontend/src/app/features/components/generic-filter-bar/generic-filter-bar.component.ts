@@ -55,6 +55,12 @@ export class GenericFilterBarComponent implements OnInit, OnDestroy, OnChanges {
   @Input() actions: FilterAction[] = [];
   @Input() viewToggle?: { options: ViewToggleOption[] };
   @Input() initialValues: Record<string, any> | null = null;
+  /** Mientras esté en true, se muestra el skeleton en vez del formulario (p.ej. mientras cargan las opciones de los selects). */
+  @Input() loading = false;
+
+  get skeletonItems(): number[] {
+    return Array.from({ length: this.filterDefinitions.length || 3 }, (_, i) => i);
+  }
   @Output() filterChange = new EventEmitter<Record<string, any>>();
   @Output() clearFilters = new EventEmitter<void>();
 

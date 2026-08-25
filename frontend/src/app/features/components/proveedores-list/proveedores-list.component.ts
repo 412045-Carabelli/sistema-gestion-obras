@@ -12,6 +12,7 @@ import {Proveedor} from '../../../core/models/models';
 import {ProveedoresService} from '../../../services/proveedores/proveedores.service';
 import {Router} from '@angular/router';
 import {GenericFilterBarComponent, FilterDefinition, FilterAction} from '../generic-filter-bar/generic-filter-bar.component';
+import {TableSkeletonComponent} from '../../../shared/table-skeleton/table-skeleton.component';
 import {exportarListadoPdf} from '../../../shared/utils/pdf-export.util';
 
 interface TipoOption { label: string; name: string | 'todos'; }
@@ -29,7 +30,8 @@ interface SaldoOption { label: string; value: 'todos' | 'con_saldo' | 'saldo_cer
     InputText,
     Select,
     CheckboxModule,
-    GenericFilterBarComponent
+    GenericFilterBarComponent,
+    TableSkeletonComponent
   ],
   templateUrl: './proveedores-list.component.html'
 })

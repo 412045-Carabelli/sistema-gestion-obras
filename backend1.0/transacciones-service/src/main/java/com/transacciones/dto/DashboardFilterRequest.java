@@ -47,4 +47,10 @@ public class DashboardFilterRequest {
    * Filtro por organización (obligatorio en contexto multiempresa)
    */
   private Long organizacionId;
+
+  /**
+   * Filtro por estados de obra (opcional). Restringe dentro del set de estados
+   * validos ya hardcodeado en el SP (interseccion), no lo reemplaza.
+   */
+  private java.util.List<String> estados;
 }
