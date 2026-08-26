@@ -205,10 +205,18 @@
                           {{ obra.saldo | currency:'ARS':'symbol':'1.0-2' }}
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap text-right">
-                          <button pButton type="button" class="p-button-text p-button-sm" icon="pi pi-download"
-                                  (click)="$event.stopPropagation(); generarCtaCte(obra.id)"
-                                  [loading]="generandoPdf"
-                                  pTooltip="Generar cta. cte."></button>
+                          <div class="flex justify-end gap-2">
+                            <button pButton type="button" class="p-button-text p-button-sm" icon="pi pi-eye"
+                                    (click)="$event.stopPropagation(); irAObraPorId(obra.id)"
+                                    pTooltip="Ver detalle" tooltipPosition="top"></button>
+                            <button pButton type="button" class="p-button-text p-button-sm" icon="pi pi-arrow-right-arrow-left"
+                                    (click)="$event.stopPropagation(); irAObraMovPorId(obra.id)"
+                                    pTooltip="Ver movimientos" tooltipPosition="top"></button>
+                            <button pButton type="button" class="p-button-text p-button-sm" icon="pi pi-download"
+                                    (click)="$event.stopPropagation(); generarCtaCte(obra.id)"
+                                    [loading]="generandoPdf"
+                                    pTooltip="Generar cta. cte." tooltipPosition="top"></button>
+                          </div>
                         </td>
                       </tr>
                     </ng-template>

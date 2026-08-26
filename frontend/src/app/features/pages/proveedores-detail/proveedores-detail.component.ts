@@ -150,7 +150,7 @@ export class ProveedoresDetailComponent implements OnInit, OnDestroy {
       proveedor: this.proveedoresService.getProveedorById(id),
       tareas: this.tareasService.getTareasByProveedor(id),
       transacciones: this.transaccionesService.getByAsociado('PROVEEDOR', id),
-      obras: this.obrasService.getObras(),
+      obras: this.obrasService.getObrasAll(),
       saldos: this.reportesService.getSaldosProveedor(id)
     })
       .subscribe({

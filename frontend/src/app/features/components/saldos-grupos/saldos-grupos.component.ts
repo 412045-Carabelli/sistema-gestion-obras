@@ -5,12 +5,13 @@ import { TableModule } from 'primeng/table';
 import { Toast } from 'primeng/toast';
 import { SaldosGruposService, SaldoGrupoCliente, SaldoGrupoProveedor } from '../../../services/saldos-grupos/saldos-grupos.service';
 import { TableSkeletonComponent } from '../../../shared/table-skeleton/table-skeleton.component';
+import { KpiCardComponent } from '../../../shared/kpi-card/kpi-card.component';
 import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-saldos-grupos',
   standalone: true,
-  imports: [CommonModule, TableModule, Toast, TableSkeletonComponent],
+  imports: [CommonModule, TableModule, Toast, TableSkeletonComponent, KpiCardComponent],
   providers: [MessageService],
   templateUrl: './saldos-grupos.component.html',
   styleUrls: ['./saldos-grupos.component.css']

@@ -927,6 +927,7 @@ export interface CatalogoCuentaCorriente {
 export interface Movimiento {
   id: number;
   id_obra: number;
+  nombre_obra?: string;
   id_asociado: number;
   tipo_asociado: string; // CLIENTE, PROVEEDOR
   nombre_asociado?: string;

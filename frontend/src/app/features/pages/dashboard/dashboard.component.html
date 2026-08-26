@@ -71,44 +71,37 @@
 
   <!-- ===================== KPIS DE DEUDAS GLOBALES ===================== -->
   @if (loadingKpis) {
-    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-      @for (i of [1,2,3,4]; track i) {
-        <div class="bg-white rounded-xl shadow-md p-5 border-l-4 border-gray-200">
-          <p-skeleton width="60%" height="12px" styleClass="mb-3"></p-skeleton>
-          <p-skeleton width="80%" height="28px"></p-skeleton>
-        </div>
-      }
-    </div>
+    <app-kpi-skeleton [count]="4" [columns]="4"></app-kpi-skeleton>
   } @else if (deudasGlobales) {
     <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-      <div
-        class="bg-white rounded-xl shadow-md p-5 border-l-4 border-emerald-500"
-        pTooltip="Total cobrado de clientes."
-        tooltipPosition="top">
-        <p class="text-xs font-poppins font-semibold text-emerald-700 uppercase">Cobrado Clientes</p>
-        <p class="text-2xl font-poppins font-bold text-gray-900">{{ cobradoClientesGlobal | currency:'ARS':'symbol':'1.0-0' }}</p>
-      </div>
-      <div
-        class="bg-white rounded-xl shadow-md p-5 border-l-4 border-blue-500"
-        pTooltip="Total pagado a proveedores."
-        tooltipPosition="top">
-        <p class="text-xs font-poppins font-semibold text-blue-700 uppercase">Pagado Proveedores</p>
-        <p class="text-2xl font-poppins font-bold text-gray-900">{{ pagadoProveedoresGlobal | currency:'ARS':'symbol':'1.0-0' }}</p>
-      </div>
-      <div
-        class="bg-white rounded-xl shadow-md p-5 border-l-4 border-rose-500"
-        pTooltip="Total pendiente de cobrar."
-        tooltipPosition="top">
-        <p class="text-xs font-poppins font-semibold text-rose-700 uppercase">Por Cobrar</p>
-        <p class="text-2xl font-poppins font-bold text-gray-900">{{ deudasGlobales?.deudaClientes | currency:'ARS':'symbol':'1.0-0' }}</p>
-      </div>
-      <div
-        class="bg-white rounded-xl shadow-md p-5 border-l-4 border-amber-500"
-        pTooltip="Total pendiente de pagar."
-        tooltipPosition="top">
-        <p class="text-xs font-poppins font-semibold text-amber-700 uppercase">Por Pagar</p>
-        <p class="text-2xl font-poppins font-bold text-gray-900">{{ deudasGlobales?.deudaProveedores | currency:'ARS':'symbol':'1.0-0' }}</p>
-      </div>
+      <app-kpi-card
+        [title]="'Cobrado Clientes'"
+        [color]="'green'"
+        [icon]="'pi pi-arrow-up'"
+        [value]="(cobradoClientesGlobal | currency:'ARS':'symbol-narrow':'1.0-0') ?? ''"
+        [tooltip]="'Total cobrado de clientes.'"
+      ></app-kpi-card>
+      <app-kpi-card
+        [title]="'Pagado Proveedores'"
+        [color]="'red'"
+        [icon]="'pi pi-arrow-down'"
+        [value]="(pagadoProveedoresGlobal | currency:'ARS':'symbol-narrow':'1.0-0') ?? ''"
+        [tooltip]="'Total pagado a proveedores.'"
+      ></app-kpi-card>
+      <app-kpi-card
+        [title]="'Por Cobrar'"
+        [color]="'emerald'"
+        [icon]="'pi pi-wallet'"
+        [value]="(deudasGlobales?.deudaClientes | currency:'ARS':'symbol-narrow':'1.0-0') ?? ''"
+        [tooltip]="'Total pendiente de cobrar.'"
+      ></app-kpi-card>
+      <app-kpi-card
+        [title]="'Por Pagar'"
+        [color]="'amber'"
+        [icon]="'pi pi-chart-line'"
+        [value]="(deudasGlobales?.deudaProveedores | currency:'ARS':'symbol-narrow':'1.0-0') ?? ''"
+        [tooltip]="'Total pendiente de pagar.'"
+      ></app-kpi-card>
     </div>
   }
 

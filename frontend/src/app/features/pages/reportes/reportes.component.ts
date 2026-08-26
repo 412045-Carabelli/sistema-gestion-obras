@@ -7,7 +7,7 @@ import pdfFonts from 'pdfmake/build/vfs_fonts';
 import {FormBuilder, ReactiveFormsModule} from '@angular/forms';
 
 (pdfMake as any).vfs = (pdfFonts as any)['vfs'];
-import {forkJoin, Observable, of, Subscription, switchMap} from 'rxjs';
+import {forkJoin, Observable, of, Subject, Subscription, switchMap} from 'rxjs';
 import {catchError, tap, map, timeout} from 'rxjs/operators';
 import {environment} from '../../../../environments/environment';
 import {
@@ -33,6 +33,7 @@ import {ProgressSpinnerModule} from 'primeng/progressspinner';
 import {Select} from 'primeng/select';
 import {DatePicker} from 'primeng/datepicker';
 import {Toast} from 'primeng/toast';
+import {TooltipModule} from 'primeng/tooltip';
 import {ConfirmDialog} from 'primeng/confirmdialog';
 import {ConfirmationService, MessageService} from 'primeng/api';
 import {ProveedoresService} from '../../../services/proveedores/proveedores.service';
@@ -42,6 +43,7 @@ import { LayoutHeaderComponent } from '../../../shared/layout-header/layout-head
 import { GenericFilterBarComponent, FilterDefinition } from '../../components/generic-filter-bar/generic-filter-bar.component';
 import { TableSkeletonComponent } from '../../../shared/table-skeleton/table-skeleton.component';
 import { TransaccionesService } from '../../../services/transacciones/transacciones.service';
+import { KpiCardComponent } from '../../../shared/kpi-card/kpi-card.component';
 
 interface SelectOption<T> {
   label: string;
@@ -66,11 +68,13 @@ interface SelectOption<T> {
     Select,
     DatePicker,
     Toast,
+    TooltipModule,
     ConfirmDialog,
     ResumenObrasComponent,
     LayoutHeaderComponent,
     GenericFilterBarComponent,
-    TableSkeletonComponent
+    TableSkeletonComponent,
+    KpiCardComponent
   ],
   providers: [MessageService, ConfirmationService],
   templateUrl: './reportes.component.html',
@@ -93,7 +97,8 @@ export class ReportesComponent implements OnInit, OnDestroy {
   loading = false;
   catalogosLoading = true;
   pagandoComisionObraId: number | null = null;
-  private filtrosSub?: Subscription;
+  private filtroChange$ = new Subject<Record<string, any>>();
+  private filtroChangeSub?: Subscription;
 
   constructor(
     private fb: FormBuilder,
@@ -115,12 +120,18 @@ export class ReportesComponent implements OnInit, OnDestroy {
     this.filterInitialValues = { fechaInicio: hace30Dias, fechaFin: hoy };
     this.currentFilters = { fechaInicio: hace30Dias, fechaFin: hoy };
 
+    this.filtroChangeSub = this.filtroChange$.pipe(
+      switchMap(filters => this.actualizarOpcionesConFiltros$(filters).pipe(
+        switchMap(() => this.loadReportes$())
+      ))
+    ).subscribe();
+
     this.loadCatalogos();
     this.loadReportes();
   }
 
   ngOnDestroy(): void {
-    this.filtrosSub?.unsubscribe();
+    this.filtroChangeSub?.unsubscribe();
   }
 
   private setupFilterDefinitions(): void {
@@ -161,103 +172,98 @@ export class ReportesComponent implements OnInit, OnDestroy {
 
   onFilterChange(filters: Record<string, any>): void {
     this.currentFilters = filters;
-    this.actualizarOpcionesConFiltros(filters).then(() => this.loadReportes$().subscribe());
+    this.filtroChange$.next(filters);
   }
 
   onClearFilters(): void {
     this.currentFilters = {};
-    this.setupFilterDefinitions();
-    this.loadReportes();
+    this.filtroChange$.next({});
   }
 
-  /** Filtrado en cascada: al elegir obra/cliente/proveedor, acota las opciones de los otros combos. */
-  private actualizarOpcionesConFiltros(filters: Record<string, any>): Promise<void> {
+  /**
+   * Filtrado en cascada: al elegir obra/cliente/proveedor, acota las opciones de los otros
+   * combos. Disparado desde un unico switchMap sobre filtroChange$ (ver ngOnInit): cada
+   * cambio de filtro (incluido "Limpiar") cancela automaticamente cualquier cascada o
+   * carga de reportes todavia en vuelo de la seleccion anterior, evitando que una respuesta
+   * vieja llegue tarde y pise los combos/KPIs con datos de un filtro que ya no esta activo.
+   */
+  private actualizarOpcionesConFiltros$(filters: Record<string, any>): Observable<void> {
     const obraId = filters['obraId'];
     const clienteId = filters['clienteId'];
     const proveedorId = filters['proveedorId'];
 
-    return new Promise(resolve => {
-      // Cliente: traer obras del cliente → proveedores de esas obras
-      if (clienteId) {
-        this.filtrosSub?.unsubscribe();
-        this.filtrosSub = this.http.get<Array<{id: number; nombre: string}>>(
-          `${environment.apiGateway}/bff/reportes/filtros/obras-por-cliente?clienteId=${clienteId}`
-        ).pipe(
-          switchMap(obras => {
-            this.actualizarOpcionesEnFilterBar('obraId', obras);
-            if (obras.length === 0) return of([]);
-            const provReqs = obras.map(o =>
-              this.http.get<Array<{id: number; nombre: string}>>(
-                `${environment.apiGateway}/bff/reportes/filtros/proveedores-por-obra?obraId=${o.id}`
-              )
-            );
-            return forkJoin(provReqs);
-          })
-        ).subscribe({
-          next: (results: any) => {
-            const provSet = new Map<number, string>();
-            results.forEach((provs: any) => provs.forEach((p: any) => provSet.set(p.id, p.nombre)));
-            this.actualizarOpcionesEnFilterBar('proveedorId',
-              Array.from(provSet.entries()).map(([id, nombre]) => ({id, nombre}))
-            );
-            resolve();
-          },
-          error: (err) => { console.error('Error al filtrar obras/proveedores por cliente', err); resolve(); }
-        });
-        return;
-      }
+    // Cliente: traer obras del cliente → proveedores de esas obras
+    if (clienteId) {
+      return this.http.get<Array<{id: number; nombre: string}>>(
+        `${environment.apiGateway}/bff/reportes/filtros/obras-por-cliente?clienteId=${clienteId}`
+      ).pipe(
+        switchMap(obras => {
+          this.actualizarOpcionesEnFilterBar('obraId', obras);
+          if (obras.length === 0) return of([]);
+          const provReqs = obras.map(o =>
+            this.http.get<Array<{id: number; nombre: string}>>(
+              `${environment.apiGateway}/bff/reportes/filtros/proveedores-por-obra?obraId=${o.id}`
+            )
+          );
+          return forkJoin(provReqs);
+        }),
+        tap((results: any) => {
+          const provSet = new Map<number, string>();
+          results.forEach((provs: any) => provs.forEach((p: any) => provSet.set(p.id, p.nombre)));
+          this.actualizarOpcionesEnFilterBar('proveedorId',
+            Array.from(provSet.entries()).map(([id, nombre]) => ({id, nombre}))
+          );
+        }),
+        catchError((err) => { console.error('Error al filtrar obras/proveedores por cliente', err); return of(null); }),
+        map(() => void 0)
+      );
+    }
 
-      // Proveedor: traer obras del proveedor → clientes de esas obras
-      if (proveedorId) {
-        this.filtrosSub?.unsubscribe();
-        this.filtrosSub = this.http.get<Array<{id: number; nombre: string}>>(
-          `${environment.apiGateway}/bff/reportes/filtros/obras-por-proveedor?proveedorId=${proveedorId}`
-        ).pipe(
-          switchMap(obras => {
-            this.actualizarOpcionesEnFilterBar('obraId', obras);
-            if (obras.length === 0) return of([]);
-            const climReqs = obras.map(o =>
-              this.http.get<Array<{id: number; nombre: string}>>(
-                `${environment.apiGateway}/bff/reportes/filtros/clientes-por-obra?obraId=${o.id}`
-              )
-            );
-            return forkJoin(climReqs);
-          })
-        ).subscribe({
-          next: (results: any) => {
-            const climSet = new Map<number, string>();
-            results.forEach((clientes: any) => clientes.forEach((c: any) => climSet.set(c.id, c.nombre)));
-            this.actualizarOpcionesEnFilterBar('clienteId',
-              Array.from(climSet.entries()).map(([id, nombre]) => ({id, nombre}))
-            );
-            resolve();
-          },
-          error: (err) => { console.error('Error al filtrar obras/clientes por proveedor', err); resolve(); }
-        });
-        return;
-      }
+    // Proveedor: traer obras del proveedor → clientes de esas obras
+    if (proveedorId) {
+      return this.http.get<Array<{id: number; nombre: string}>>(
+        `${environment.apiGateway}/bff/reportes/filtros/obras-por-proveedor?proveedorId=${proveedorId}`
+      ).pipe(
+        switchMap(obras => {
+          this.actualizarOpcionesEnFilterBar('obraId', obras);
+          if (obras.length === 0) return of([]);
+          const climReqs = obras.map(o =>
+            this.http.get<Array<{id: number; nombre: string}>>(
+              `${environment.apiGateway}/bff/reportes/filtros/clientes-por-obra?obraId=${o.id}`
+            )
+          );
+          return forkJoin(climReqs);
+        }),
+        tap((results: any) => {
+          const climSet = new Map<number, string>();
+          results.forEach((clientes: any) => clientes.forEach((c: any) => climSet.set(c.id, c.nombre)));
+          this.actualizarOpcionesEnFilterBar('clienteId',
+            Array.from(climSet.entries()).map(([id, nombre]) => ({id, nombre}))
+          );
+        }),
+        catchError((err) => { console.error('Error al filtrar obras/clientes por proveedor', err); return of(null); }),
+        map(() => void 0)
+      );
+    }
 
-      // Obra: traer proveedores y clientes de esa obra directamente
-      if (obraId) {
-        this.filtrosSub?.unsubscribe();
-        this.filtrosSub = forkJoin([
-          this.http.get<Array<{id: number; nombre: string}>>(`${environment.apiGateway}/bff/reportes/filtros/proveedores-por-obra?obraId=${obraId}`),
-          this.http.get<Array<{id: number; nombre: string}>>(`${environment.apiGateway}/bff/reportes/filtros/clientes-por-obra?obraId=${obraId}`)
-        ]).subscribe({
-          next: ([proveedores, clientes]) => {
-            this.actualizarOpcionesEnFilterBar('proveedorId', proveedores);
-            this.actualizarOpcionesEnFilterBar('clienteId', clientes);
-            resolve();
-          },
-          error: (err) => { console.error('Error al filtrar clientes/proveedores por obra', err); resolve(); }
-        });
-        return;
-      }
+    // Obra: traer proveedores y clientes de esa obra directamente
+    if (obraId) {
+      return forkJoin([
+        this.http.get<Array<{id: number; nombre: string}>>(`${environment.apiGateway}/bff/reportes/filtros/proveedores-por-obra?obraId=${obraId}`),
+        this.http.get<Array<{id: number; nombre: string}>>(`${environment.apiGateway}/bff/reportes/filtros/clientes-por-obra?obraId=${obraId}`)
+      ]).pipe(
+        tap(([proveedores, clientes]) => {
+          this.actualizarOpcionesEnFilterBar('proveedorId', proveedores);
+          this.actualizarOpcionesEnFilterBar('clienteId', clientes);
+        }),
+        catchError((err) => { console.error('Error al filtrar clientes/proveedores por obra', err); return of(null); }),
+        map(() => void 0)
+      );
+    }
 
-      // Sin filtro de entidad: restaurar catálogos completos
-      this.setupFilterDefinitions();
-      resolve();
-    });
+    // Sin filtro de entidad: restaurar catálogos completos
+    this.setupFilterDefinitions();
+    return of(void 0);
   }
 
   private actualizarOpcionesEnFilterBar(key: string, opciones: Array<{id: number; nombre: string}>): void {

@@ -120,7 +120,6 @@ export class FacturasListComponent implements OnInit, OnDestroy {
   private obrasById = new Map<number, Obra>();
   private clientesIndex = new Map<number, string>();
 
-  searchValue: string = '';
   clienteFiltro: number | 'todos' = 'todos';
   obraFiltro: number | 'todos' = 'todos';
   mostrarInactivos = false;
@@ -183,12 +182,6 @@ export class FacturasListComponent implements OnInit, OnDestroy {
 
   private setupFilterDefinitions(): void {
     this.filterDefinitions = [
-      {
-        key: 'search',
-        label: 'Buscar',
-        type: 'input',
-        placeholder: this.obraId ? 'Por nro. de factura' : 'Por cliente, obra o nro. de factura'
-      },
       // Cliente y Obra no aplican cuando el listado ya está acotado a una obra puntual.
       ...(this.obraId ? [] : [
         {
@@ -223,7 +216,6 @@ export class FacturasListComponent implements OnInit, OnDestroy {
 
   onFilterChange(filters: Record<string, any>): void {
     this.currentFilters = filters;
-    this.searchValue = filters['search'] || '';
     this.clienteFiltro = filters['cliente'] || 'todos';
     this.obraFiltro = filters['obra'] || 'todos';
     this.estadoFiltro = filters['estado'] || 'todos';
@@ -233,7 +225,6 @@ export class FacturasListComponent implements OnInit, OnDestroy {
 
   onClearFilters(): void {
     this.currentFilters = {};
-    this.searchValue = '';
     this.clienteFiltro = 'todos';
     this.obraFiltro = 'todos';
     this.estadoFiltro = 'todos';
@@ -350,13 +341,6 @@ export class FacturasListComponent implements OnInit, OnDestroy {
   applyFilter() {
     this.facturasFiltradas = this.facturas
       .filter(factura => {
-      const search = this.searchValue.trim().toLowerCase();
-      const matchesSearch = search
-        ? (factura.clienteNombre || '').toLowerCase().includes(search) ||
-        (factura.obraNombre || '').toLowerCase().includes(search) ||
-        String(factura.id || '').includes(search)
-        : true;
-
       const matchesCliente =
         this.clienteFiltro === 'todos'
           ? true
@@ -376,18 +360,12 @@ export class FacturasListComponent implements OnInit, OnDestroy {
         ? true
         : Boolean(factura.activo ?? true);
 
-      return matchesSearch && matchesCliente && matchesObra && matchesEstado && matchesActivo;
+      return matchesCliente && matchesObra && matchesEstado && matchesActivo;
     })
       .sort((a, b) => new Date(b.fecha ?? 0).getTime() - new Date(a.fecha ?? 0).getTime());
 
     this.obrasFacturacionFiltradas = this.obrasFacturacion
       .filter(obra => {
-        const search = this.searchValue.trim().toLowerCase();
-        const matchesSearch = search
-          ? (obra.clienteNombre || '').toLowerCase().includes(search) ||
-            (obra.nombre || '').toLowerCase().includes(search) ||
-            String(obra.id || '').includes(search)
-          : true;
         const matchesCliente =
           this.clienteFiltro === 'todos'
             ? true
@@ -396,7 +374,7 @@ export class FacturasListComponent implements OnInit, OnDestroy {
           this.obraFiltro === 'todos'
             ? true
             : Number(obra.id) === Number(this.obraFiltro);
-        return matchesSearch && matchesCliente && matchesObra;
+        return matchesCliente && matchesObra;
       })
       .sort((a, b) => Number(b.id ?? 0) - Number(a.id ?? 0));
   }
@@ -448,14 +426,6 @@ export class FacturasListComponent implements OnInit, OnDestroy {
 
   get totalPorFacturar(): number {
     return Number(this.kpis.totalPorFacturar ?? 0);
-  }
-
-  get totalCobrado(): number {
-    return Number(this.kpis.totalCobrado ?? 0);
-  }
-
-  get totalPorCobrar(): number {
-    return Number(this.kpis.totalPorCobrar ?? 0);
   }
 
   private get facturasScope(): FacturaView[] {

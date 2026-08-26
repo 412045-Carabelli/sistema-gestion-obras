@@ -10,7 +10,8 @@ import { CommonModule } from '@angular/common';
   selector: 'app-table-skeleton',
   standalone: true,
   imports: [CommonModule],
-  templateUrl: './table-skeleton.component.html'
+  templateUrl: './table-skeleton.component.html',
+  styles: [':host { display: block; }']
 })
 export class TableSkeletonComponent {
   @Input() rows = 6;

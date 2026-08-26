@@ -1,12 +1,19 @@
 <div
-  class="w-full h-full bg-white rounded-xl shadow-md p-5 flex flex-col justify-between"
+  class="w-full h-full rounded-xl shadow-md p-6 flex flex-col justify-between"
+  [style.backgroundColor]="backgroundColor"
   [style.borderLeftColor]="borderColor"
-  [style.borderLeftWidth.px]="4"
+  [style.borderLeftWidth.px]="6"
+  [style.minHeight.px]="minHeight || null"
   [pTooltip]="tooltip || ''"
   tooltipPosition="top">
   <div>
-    <p class="text-xs font-poppins font-semibold uppercase" [style.color]="textColor">{{ title }}</p>
-    <p [style.fontSize.px]="valueFontSize" class="font-poppins font-bold text-gray-900 line-clamp-2">{{ value }}</p>
+    <div class="flex items-center gap-2 mb-2">
+      @if (icon) {
+        <i [class]="icon" [style.color]="textColor"></i>
+      }
+      <span class="text-sm font-poppins font-semibold text-gray-600">{{ title }}</span>
+    </div>
+    <p [style.fontSize.px]="valueFontSize" class="font-poppins font-bold line-clamp-2" [style.color]="textColor">{{ value }}</p>
     @if (description) {
       <p class="text-xs text-gray-500 mt-1 line-clamp-2">{{ description }}</p>
     }

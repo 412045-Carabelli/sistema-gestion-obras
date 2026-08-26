@@ -3,8 +3,8 @@ import { CommonModule } from '@angular/common';
 import { ChartModule } from 'primeng/chart';
 import { ProgressSpinnerModule } from 'primeng/progressspinner';
 import { ReportesService } from '../../../../services/reportes/reportes.service';
-import { DashboardGraficosResponse } from '../../../../core/models/models';
-import { Subscription } from 'rxjs';
+import { DashboardGraficosResponse, DeudasGlobalesResponse } from '../../../../core/models/models';
+import { Subscription, forkJoin } from 'rxjs';
 import { CHART_CATEGORICAL, chartFont, chartLegend, chartMoneyScale, chartCategoryScale, formatARSCompact } from '../../../../shared/chart-theme/chart-theme';
 
 const ESTADO_LABELS: Record<string, string> = {
@@ -58,11 +58,14 @@ export class DashboardGraficosComponent implements OnInit, OnDestroy {
   private cargar(): void {
     this.loading = true;
     this.subs.add(
-      this.reportesService.getDashboardGraficos().subscribe({
-        next: (data) => {
-          this.datos = data;
-          this.construirPie(data);
-          this.construirBar(data);
+      forkJoin({
+        graficos: this.reportesService.getDashboardGraficos(),
+        deudas: this.reportesService.getDeudasGlobales()
+      }).subscribe({
+        next: ({ graficos, deudas }) => {
+          this.datos = graficos;
+          this.construirPie(graficos);
+          this.construirBar(deudas);
           this.loading = false;
         },
         error: (err) => {
@@ -115,32 +118,29 @@ export class DashboardGraficosComponent implements OnInit, OnDestroy {
     };
   }
 
-  private construirBar(data: DashboardGraficosResponse): void {
-    const obras = data.topObras ?? [];
-    const labels = obras.map(o => o.obraNombre.length > 22 ? o.obraNombre.substring(0, 20) + '…' : o.obraNombre);
+  private construirBar(deudas: DeudasGlobalesResponse): void {
+    const saldoPorCliente = new Map<number, { nombre: string; saldo: number }>();
+    for (const d of deudas.detalleDeudaClientes ?? []) {
+      const id = d.clienteId ?? 0;
+      if (!id) continue;
+      const acumulado = saldoPorCliente.get(id);
+      const nombre = d.clienteNombre || `Cliente #${id}`;
+      saldoPorCliente.set(id, { nombre, saldo: (acumulado?.saldo ?? 0) + (d.saldo ?? 0) });
+    }
+
+    const top5 = Array.from(saldoPorCliente.values())
+      .filter(c => c.saldo > 0)
+      .sort((a, b) => b.saldo - a.saldo)
+      .slice(0, 5);
+
+    const labels = top5.map(c => c.nombre.length > 22 ? c.nombre.substring(0, 20) + '…' : c.nombre);
     this.barData = {
       labels,
       datasets: [
         {
-          label: 'Presupuesto',
-          data: obras.map(o => o.presupuesto ?? 0),
-          backgroundColor: CHART_CATEGORICAL[0],
-          borderRadius: 4,
-          borderSkipped: false,
-          maxBarThickness: 22,
-        },
-        {
-          label: 'Cobrado',
-          data: obras.map(o => o.totalCobros ?? 0),
-          backgroundColor: CHART_CATEGORICAL[1],
-          borderRadius: 4,
-          borderSkipped: false,
-          maxBarThickness: 22,
-        },
-        {
-          label: 'Pagado',
-          data: obras.map(o => o.totalPagos ?? 0),
-          backgroundColor: CHART_CATEGORICAL[2],
+          label: 'Saldo pendiente',
+          data: top5.map(c => c.saldo),
+          backgroundColor: CHART_CATEGORICAL[7],
           borderRadius: 4,
           borderSkipped: false,
           maxBarThickness: 22,
@@ -148,8 +148,9 @@ export class DashboardGraficosComponent implements OnInit, OnDestroy {
       ]
     };
     this.barOptions = {
+      indexAxis: 'y',
       plugins: {
-        legend: chartLegend('top'),
+        legend: { display: false },
         tooltip: {
           backgroundColor: '#ffffff',
           titleColor: '#0b0b0b',
@@ -160,13 +161,13 @@ export class DashboardGraficosComponent implements OnInit, OnDestroy {
           bodyFont: chartFont(12),
           padding: 10,
           callbacks: {
-            label: (ctx: any) => ` ${ctx.dataset.label}: ${formatARSCompact(ctx.parsed.y)}`
+            label: (ctx: any) => ` ${formatARSCompact(ctx.parsed.x)}`
           }
         }
       },
       responsive: true,
       maintainAspectRatio: false,
-      scales: { x: chartCategoryScale(), y: chartMoneyScale() }
+      scales: { x: chartMoneyScale('x'), y: chartCategoryScale() }
     };
   }
 }

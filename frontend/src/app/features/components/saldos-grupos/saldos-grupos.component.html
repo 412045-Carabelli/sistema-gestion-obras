@@ -14,18 +14,24 @@
     </h3>
 
     <div class="grid grid-cols-3 gap-4 mb-6">
-      <div class="bg-amber-50 border border-amber-200 rounded-lg p-4">
-        <p class="text-xs font-poppins font-normal text-gray-600 uppercase tracking-wide font-semibold">Total Costos</p>
-        <p class="text-2xl font-poppins font-bold text-amber-700 mt-1">{{ totalPresupuestadoProveedores | currency:'ARS':'symbol-narrow':'1.2-2' }}</p>
-      </div>
-      <div class="bg-green-50 border border-green-200 rounded-lg p-4">
-        <p class="text-xs font-poppins font-normal text-gray-600 uppercase tracking-wide font-semibold">Total Pagado</p>
-        <p class="text-2xl font-poppins font-bold text-green-700 mt-1">{{ totalPagosProveedores | currency:'ARS':'symbol-narrow':'1.2-2' }}</p>
-      </div>
-      <div class="bg-red-50 border border-red-200 rounded-lg p-4">
-        <p class="text-xs font-poppins font-normal text-gray-600 uppercase tracking-wide font-semibold">Saldo Pendiente</p>
-        <p class="text-2xl font-poppins font-bold text-red-700 mt-1">{{ totalSaldoProveedores | currency:'ARS':'symbol-narrow':'1.2-2' }}</p>
-      </div>
+      <app-kpi-card
+        [title]="'Total Costos'"
+        [color]="'amber'"
+        [tinted]="true"
+        [value]="(totalPresupuestadoProveedores | currency:'ARS':'symbol-narrow':'1.2-2') ?? ''"
+      ></app-kpi-card>
+      <app-kpi-card
+        [title]="'Total Pagado'"
+        [color]="'green'"
+        [tinted]="true"
+        [value]="(totalPagosProveedores | currency:'ARS':'symbol-narrow':'1.2-2') ?? ''"
+      ></app-kpi-card>
+      <app-kpi-card
+        [title]="'Saldo Pendiente'"
+        [color]="'red'"
+        [tinted]="true"
+        [value]="(totalSaldoProveedores | currency:'ARS':'symbol-narrow':'1.2-2') ?? ''"
+      ></app-kpi-card>
     </div>
 
     <p-table
@@ -73,18 +79,24 @@
     </h3>
 
     <div class="grid grid-cols-3 gap-4 mb-6">
-      <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
-        <p class="text-xs font-poppins font-normal text-gray-600 uppercase tracking-wide font-semibold">Total Presupuesto</p>
-        <p class="text-2xl font-poppins font-bold text-blue-700 mt-1">{{ totalPresupuestadoClientes | currency:'ARS':'symbol-narrow':'1.2-2' }}</p>
-      </div>
-      <div class="bg-green-50 border border-green-200 rounded-lg p-4">
-        <p class="text-xs font-poppins font-normal text-gray-600 uppercase tracking-wide font-semibold">Total Cobrado</p>
-        <p class="text-2xl font-poppins font-bold text-green-700 mt-1">{{ totalCobrosClientes | currency:'ARS':'symbol-narrow':'1.2-2' }}</p>
-      </div>
-      <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
-        <p class="text-xs font-poppins font-normal text-gray-600 uppercase tracking-wide font-semibold">Saldo Pendiente</p>
-        <p class="text-2xl font-poppins font-bold text-blue-700 mt-1">{{ totalSaldoClientes | currency:'ARS':'symbol-narrow':'1.2-2' }}</p>
-      </div>
+      <app-kpi-card
+        [title]="'Total Presupuesto'"
+        [color]="'blue'"
+        [tinted]="true"
+        [value]="(totalPresupuestadoClientes | currency:'ARS':'symbol-narrow':'1.2-2') ?? ''"
+      ></app-kpi-card>
+      <app-kpi-card
+        [title]="'Total Cobrado'"
+        [color]="'green'"
+        [tinted]="true"
+        [value]="(totalCobrosClientes | currency:'ARS':'symbol-narrow':'1.2-2') ?? ''"
+      ></app-kpi-card>
+      <app-kpi-card
+        [title]="'Saldo Pendiente'"
+        [color]="'blue'"
+        [tinted]="true"
+        [value]="(totalSaldoClientes | currency:'ARS':'symbol-narrow':'1.2-2') ?? ''"
+      ></app-kpi-card>
     </div>
 
     <p-table
