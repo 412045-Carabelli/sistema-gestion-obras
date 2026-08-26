@@ -31,37 +31,30 @@
             <th pSortableColumn="tipo_asociado" class="text-left font-poppins font-semibold">Tipo Asociado <p-sortIcon field="tipo_asociado"></p-sortIcon></th>
             <th class="text-left font-poppins font-semibold">Asociado</th>
             <th pSortableColumn="tipo_transaccion" class="text-left font-poppins font-semibold">Tipo Transacción <p-sortIcon field="tipo_transaccion"></p-sortIcon></th>
-            <th pSortableColumn="forma_pago" class="text-left font-poppins font-semibold">Forma Pago <p-sortIcon field="forma_pago"></p-sortIcon></th>
             <th pSortableColumn="medio_pago" class="text-left font-poppins font-semibold">Medio Pago <p-sortIcon field="medio_pago"></p-sortIcon></th>
             <th pSortableColumn="monto" class="text-right font-poppins font-semibold">Monto <p-sortIcon field="monto"></p-sortIcon></th>
-            <th class="text-center font-poppins font-semibold">Acciones</th>
           </tr>
         </ng-template>
         <ng-template let-mov pTemplate="body">
           <tr class="cursor-pointer transition-colors" (click)="onRowClick(mov)">
             <td class="px-3 py-2 font-poppins font-normal">{{ mov.id }}</td>
             <td class="px-3 py-2 font-poppins font-normal">{{ mov.fecha | date:'dd/MM/yyyy' }}</td>
-            <td class="px-3 py-2 font-poppins font-normal">{{ mov.nombre_obra || getNombreObra(mov.id_obra) }}</td>
+            <td class="px-3 py-2 font-poppins font-normal max-w-[220px] truncate" [pTooltip]="mov.nombre_obra || getNombreObra(mov.id_obra)" tooltipPosition="top">{{ mov.nombre_obra || getNombreObra(mov.id_obra) }}</td>
             <td class="px-3 py-2 font-poppins font-normal">{{ mov.tipo_asociado | estadoFormat }}</td>
-            <td class="px-3 py-2 font-poppins font-normal">{{ getNombreAsociado(mov) }}</td>
+            <td class="px-3 py-2 font-poppins font-normal max-w-[180px] truncate" [pTooltip]="getNombreAsociado(mov)" tooltipPosition="top">{{ getNombreAsociado(mov) }}</td>
             <td class="px-3 py-2 font-poppins font-normal">
               <p-tag
                 [value]="mov.tipo_transaccion | estadoFormat"
                 [severity]="mov.tipo_transaccion === 'COBRO' ? 'success' : mov.tipo_transaccion === 'PAGO' ? 'danger' : 'info'"
               ></p-tag>
             </td>
-            <td class="px-3 py-2 font-poppins font-normal">{{ mov.forma_pago | estadoFormat }}</td>
             <td class="px-3 py-2 font-poppins font-normal">{{ mov.medio_pago || '-' }}</td>
             <td class="px-3 py-2 text-right font-poppins font-semibold">{{ mov.monto | currency:'ARS':'symbol-narrow':'1.0-2' }}</td>
-            <td class="px-3 py-2" (click)="$event.stopPropagation()">
-              <p-button icon="pi pi-pencil" [rounded]="true" [text]="true" severity="info" (click)="openEditModal(mov)" styleClass="p-button-sm"></p-button>
-              <p-button icon="pi pi-trash" [rounded]="true" [text]="true" severity="danger" (click)="eliminarMovimiento(mov)" styleClass="p-button-sm"></p-button>
-            </td>
           </tr>
         </ng-template>
         <ng-template pTemplate="emptymessage">
           <tr>
-            <td class="text-center py-10" colspan="10">
+            <td class="text-center py-10" colspan="8">
               <div class="flex flex-col items-center justify-center gap-2 text-gray-500">
                 <i class="pi pi-inbox text-3xl"></i>
                 <p class="text-base font-medium">No hay movimientos para mostrar</p>
@@ -152,7 +145,7 @@
         <label class="block text-sm font-poppins font-semibold mb-1 text-gray-700">Obra</label>
         <p-select
           [(ngModel)]="selectedObra"
-          [options]="obrasOptions"
+          [options]="modalObrasOptions"
           optionLabel="nombre"
           placeholder="Selecciona una obra"
           [filter]="true"
@@ -261,69 +254,62 @@
         </div>
       }
 
-      <!-- Tipo de movimiento (siempre 1 opción → tag) -->
-      @if (getTiposTransaccionDisponibles().length === 1) {
+      <!-- Tipo de movimiento + Condición de pago, misma fila -->
+      <div class="grid grid-cols-2 gap-3">
         <div>
           <label class="block text-sm font-poppins font-semibold mb-1 text-gray-700">
             Tipo de movimiento
           </label>
-          <p-tag
-            [value]="getTipoTransaccionDisponibleLabel()"
-            [severity]="getTipoTransaccionSeverity()"
-          ></p-tag>
+          @if (getTiposTransaccionDisponibles().length === 1) {
+            <p-tag
+              [value]="getTipoTransaccionDisponibleLabel()"
+              [severity]="getTipoTransaccionSeverity()"
+            ></p-tag>
+          } @else {
+            <p-select
+              [(ngModel)]="nuevoMovimiento.tipo_transaccion"
+              [options]="getTiposTransaccionDisponibles()"
+              optionLabel="label"
+              optionValue="name"
+              [disabled]="isViewMode"
+              placeholder="Seleccionar tipo"
+              styleClass="w-full"
+            ></p-select>
+          }
         </div>
-      }
 
-      <!-- Forma de pago (radio buttons) -->
-      <div>
-        <label class="block text-sm font-poppins font-semibold mb-1 text-gray-700">
-          Condición de pago/cobro (Total/Parcial)
-        </label>
-        <div class="flex items-center gap-6">
-          <div class="flex items-center gap-2">
-            <p-radiobutton
-              name="formaPago"
-              inputId="formaPagoParcial"
-              value="PARCIAL"
-              [(ngModel)]="nuevoMovimiento.forma_pago"
-              [disabled]="isViewMode"
-              (ngModelChange)="onFormaPagoChange($event)"
-              (onClick)="!isViewMode && onFormaPagoChange('PARCIAL')"
-            ></p-radiobutton>
-            <label for="formaPagoParcial" class="text-sm text-gray-700">Parcial</label>
-          </div>
-          <div class="flex items-center gap-2">
-            <p-radiobutton
-              name="formaPago"
-              inputId="formaPagoTotal"
-              value="TOTAL"
-              [(ngModel)]="nuevoMovimiento.forma_pago"
-              [disabled]="isViewMode"
-              (ngModelChange)="onFormaPagoChange($event)"
-              (onClick)="!isViewMode && onFormaPagoChange('TOTAL')"
-            ></p-radiobutton>
-            <label for="formaPagoTotal" class="text-sm text-gray-700">Total</label>
+        <div>
+          <label class="block text-sm font-poppins font-semibold mb-1 text-gray-700">
+            Condición (Total/Parcial)
+          </label>
+          <div class="flex items-center gap-6 mt-2">
+            <div class="flex items-center gap-2">
+              <p-radiobutton
+                name="formaPago"
+                inputId="formaPagoParcial"
+                value="PARCIAL"
+                [(ngModel)]="nuevoMovimiento.forma_pago"
+                [disabled]="isViewMode"
+                (ngModelChange)="onFormaPagoChange($event)"
+                (onClick)="!isViewMode && onFormaPagoChange('PARCIAL')"
+              ></p-radiobutton>
+              <label for="formaPagoParcial" class="text-sm text-gray-700">Parcial</label>
+            </div>
+            <div class="flex items-center gap-2">
+              <p-radiobutton
+                name="formaPago"
+                inputId="formaPagoTotal"
+                value="TOTAL"
+                [(ngModel)]="nuevoMovimiento.forma_pago"
+                [disabled]="isViewMode"
+                (ngModelChange)="onFormaPagoChange($event)"
+                (onClick)="!isViewMode && onFormaPagoChange('TOTAL')"
+              ></p-radiobutton>
+              <label for="formaPagoTotal" class="text-sm text-gray-700">Total</label>
+            </div>
           </div>
         </div>
       </div>
-
-      <!-- Tipo transacción si hay múltiples opciones -->
-      @if (getTiposTransaccionDisponibles().length > 1) {
-        <div>
-          <label class="block text-sm font-poppins font-semibold mb-1 text-gray-700">
-            Tipo de movimiento
-          </label>
-          <p-select
-            [(ngModel)]="nuevoMovimiento.tipo_transaccion"
-            [options]="getTiposTransaccionDisponibles()"
-            optionLabel="label"
-            optionValue="name"
-            [disabled]="isViewMode"
-            placeholder="Seleccionar tipo"
-            styleClass="w-full"
-          ></p-select>
-        </div>
-      }
 
       <!-- Medio de pago -->
       <div>

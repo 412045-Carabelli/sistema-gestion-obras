@@ -463,6 +463,16 @@ public class TransaccionService {
             ? new HashMap<>()
             : obtenerNombresObrasPorBatch(new ArrayList<>(obraIds));
 
+        // Pre-warm cache de nombres de asociados (cliente/proveedor) para evitar N+1
+        movimientos.stream()
+                .filter(t -> "CLIENTE".equals(t.getTipoAsociado()) && t.getIdAsociado() != null)
+                .map(Transaccion::getIdAsociado).distinct()
+                .forEach(this::obtenerNombreCliente);
+        movimientos.stream()
+                .filter(t -> "PROVEEDOR".equals(t.getTipoAsociado()) && t.getIdAsociado() != null)
+                .map(Transaccion::getIdAsociado).distinct()
+                .forEach(this::obtenerNombreProveedor);
+
         // Mapear transacciones con nombres precargados
         return movimientos.stream()
                 .map(t -> toMovimientoRecenteDTO(t, obraNombres.getOrDefault(t.getIdObra(), null)))
@@ -482,6 +492,7 @@ public class TransaccionService {
                 .obraNombre(obraNombre)
                 .asociadoId(transaccion.getIdAsociado())
                 .asociadoTipo(transaccion.getTipoAsociado())
+                .asociadoNombre(obtenerNombreAsociado(transaccion.getTipoAsociado(), transaccion.getIdAsociado()))
                 .tipoTransaccion(transaccion.getTipo_transaccion() != null ? transaccion.getTipo_transaccion().toString() : null)
                 .fecha(transaccion.getFecha())
                 .monto(transaccion.getMonto())

@@ -6,7 +6,7 @@ import { TagModule } from 'primeng/tag';
 import { Subscription } from 'rxjs';
 import { ChangelogService } from '../../services/changelog/changelog.service';
 
-const VERSION = 'v1.18.24';
+const VERSION = 'v1.18.30';
 const STORAGE_KEY = `sgo-changelog-seen-${VERSION}`;
 
 interface ChangeItem {
@@ -32,6 +32,21 @@ export class ChangelogModalComponent implements OnInit, OnDestroy {
   private sub = new Subscription();
 
   grupos: ChangeGroup[] = [
+    {
+      modulo: 'Mejoras 26/08/2026',
+      icon: 'pi pi-sparkles',
+      items: [
+        { texto: 'Dashboard y Reportes: los KPI ahora usan un único componente genérico en toda la app, con el mismo estilo visual (ícono, color de acento, animación) que ya tenían las tablas', estado: 'done' },
+        { texto: 'Dashboard: los últimos movimientos ya no muestran el tag Cobro/Pago ni "Total/Parcial" — se ve directamente el nombre del cliente/proveedor, y el backend ahora lo devuelve (antes decía "sin asociado" aunque hubiera uno)', estado: 'done' },
+        { texto: 'Dashboard: se reemplazó el gráfico "Top 5 obras — volumen financiero" (que nunca cargaba datos) por "Top 5 clientes — Mayor saldo pendiente"', estado: 'done' },
+        { texto: 'Dashboard: los ítems de Movimientos y Tareas pendientes ahora miden lo mismo de alto, y sus skeletons de carga coinciden en forma y cantidad con el contenido real', estado: 'done' },
+        { texto: 'Proveedores/Clientes (detalle): la obra ya no aparece como "Obra #N" en Movimientos y Tareas cuando es una obra vieja no traída por el listado paginado', estado: 'done' },
+        { texto: 'Proveedores/Clientes (detalle): las acciones "Ver Detalle"/"Ver Movimientos" de la tabla de obras ahora son íconos con tooltip', estado: 'done' },
+        { texto: 'Tipografía: se corrigió que la clase de fuente usada en toda la app no existiera realmente — algunas celdas de tabla (IDs) se veían con una tipografía distinta al resto', estado: 'done' },
+        { texto: 'Movimientos: se sacaron las columnas "Forma de pago" y "Acciones" de la tabla (clickear la fila ya abre ver/editar); Obra y Asociado truncan con "..." y tooltip si no entran', estado: 'done' },
+        { texto: 'Movimientos: en el modal de ver/editar, "Tipo de movimiento" y "Condición de pago" quedaron en la misma fila, y se corrigió que a veces el select de Obra apareciera vacío', estado: 'done' },
+      ]
+    },
     {
       modulo: 'Mejoras 24-25/08/2026',
       icon: 'pi pi-sparkles',

@@ -6,9 +6,7 @@ import { MessageService } from 'primeng/api';
 import { HttpErrorResponse, HttpClient } from '@angular/common/http';
 import { Toast } from 'primeng/toast';
 import { ProgressSpinnerModule } from 'primeng/progressspinner';
-import { SkeletonModule } from 'primeng/skeleton';
 import { Button } from 'primeng/button';
-import { TooltipModule } from 'primeng/tooltip';
 import {FlujoCajaResponse, MovimientoDashboard, ResumenGeneralResponse, Tarea, Obra, Cliente, Proveedor, Transaccion, ObraCosto, ReportFilter, DashboardFinancieroResponse, DashboardConsolidadoResponse, TareaAntiguaAgenda, MovimientoRecenteDTO} from '../../../core/models/models';
 import {TareasService} from '../../../services/tareas/tareas.service';
 import {ReportesService} from '../../../services/reportes/reportes.service';
@@ -28,13 +26,14 @@ import {FacturaModalComponent} from '../../components/factura-modal/factura-moda
 import {ProveedorQuickModalComponent} from '../../components/proveedor-quick-modal/proveedor-quick-modal.component';
 import {ClientesService} from '../../../services/clientes/clientes.service';
 import {ProveedoresService, CatalogoOption} from '../../../services/proveedores/proveedores.service';
-import {DashboardKpisComponent} from '../../components/dashboard-widgets/dashboard-kpis/dashboard-kpis.component';
 import {DashboardDeudasComponent} from '../../components/dashboard-widgets/dashboard-deudas/dashboard-deudas.component';
 import {DashboardTareasComponent} from '../../components/dashboard-widgets/dashboard-tareas/dashboard-tareas.component';
 import {DashboardMovimientosComponent} from '../../components/dashboard-widgets/dashboard-movimientos/dashboard-movimientos.component';
 import {DashboardGraficosComponent} from '../../components/dashboard-widgets/dashboard-graficos/dashboard-graficos.component';
 import { LayoutHeaderComponent } from '../../../shared/layout-header/layout-header.component';
 import { GenericFilterBarComponent, FilterDefinition } from '../../components/generic-filter-bar/generic-filter-bar.component';
+import { KpiCardComponent } from '../../../shared/kpi-card/kpi-card.component';
+import { KpiSkeletonComponent } from '../../../shared/kpi-skeleton/kpi-skeleton.component';
 import { environment } from '../../../../environments/environment';
 
 @Component({
@@ -55,15 +54,14 @@ import { environment } from '../../../../environments/environment';
     ModalComponent,
     FacturaModalComponent,
     ProveedorQuickModalComponent,
-    DashboardKpisComponent,
     DashboardDeudasComponent,
     DashboardTareasComponent,
     DashboardMovimientosComponent,
     DashboardGraficosComponent,
     LayoutHeaderComponent,
     GenericFilterBarComponent,
-    TooltipModule,
-    SkeletonModule
+    KpiCardComponent,
+    KpiSkeletonComponent
   ],
   providers: [MessageService],
   templateUrl: './dashboard.component.html',

@@ -12,7 +12,7 @@
   @if (datos) {
     <div class="grid gap-6 md:grid-cols-5">
       <!-- Cobrado -->
-      <div class="bg-white rounded-xl shadow-md p-6 border-l-4 border-green-500">
+      <div class="kpi-fade-in bg-white rounded-xl shadow-md p-6 border-l-4 border-green-500">
         <div class="flex items-center gap-2 mb-2">
           <i class="pi pi-arrow-up text-green-600"></i>
           <span class="text-sm font-poppins font-semibold text-gray-600">Cobrado</span>
@@ -23,7 +23,7 @@
       </div>
 
       <!-- Por cobrar -->
-      <div class="bg-white rounded-xl shadow-md p-6 border-l-4 border-emerald-500">
+      <div class="kpi-fade-in bg-white rounded-xl shadow-md p-6 border-l-4 border-emerald-500">
         <div class="flex items-center gap-2 mb-2">
           <i class="pi pi-wallet text-emerald-600"></i>
           <span class="text-sm font-poppins font-semibold text-gray-600">Por cobrar</span>
@@ -34,7 +34,7 @@
       </div>
 
       <!-- Pagado -->
-      <div class="bg-white rounded-xl shadow-md p-6 border-l-4 border-red-500">
+      <div class="kpi-fade-in bg-white rounded-xl shadow-md p-6 border-l-4 border-red-500">
         <div class="flex items-center gap-2 mb-2">
           <i class="pi pi-arrow-down text-red-600"></i>
           <span class="text-sm font-poppins font-semibold text-gray-600">Pagado</span>
@@ -45,7 +45,7 @@
       </div>
 
       <!-- Por pagar -->
-      <div class="bg-white rounded-xl shadow-md p-6 border-l-4 border-amber-500">
+      <div class="kpi-fade-in bg-white rounded-xl shadow-md p-6 border-l-4 border-amber-500">
         <div class="flex items-center gap-2 mb-2">
           <i class="pi pi-chart-line text-amber-600"></i>
           <span class="text-sm font-poppins font-semibold text-gray-600">Por pagar</span>
@@ -57,7 +57,7 @@
 
       <!-- Resultado -->
       <div
-        class="rounded-xl shadow-md p-6 border-l-4"
+        class="kpi-fade-in rounded-xl shadow-md p-6 border-l-4"
         [ngClass]="{
           'bg-green-50 border-green-500': datos.resultado > 0,
           'bg-red-50 border-red-500': datos.resultado < 0,

@@ -160,6 +160,11 @@ export class ClientesDetailComponent implements OnInit, OnDestroy {
     this.router.navigate(['/obras', id]);
   }
 
+  irAObraMovPorId(id: number) {
+    if (!Number.isFinite(id) || id <= 0) return;
+    this.router.navigate(['/obras', id], { queryParams: { tab: 2 } });
+  }
+
   irAObraDesdeMovimiento(mov: Transaccion) {
     const obraId = Number(mov?.id_obra ?? (mov as any)?.idObra ?? 0);
     if (!Number.isFinite(obraId) || obraId <= 0) return;
@@ -201,7 +206,7 @@ export class ClientesDetailComponent implements OnInit, OnDestroy {
 
     forkJoin({
       cliente: this.clientesService.getClienteById(idCliente),
-      obras: this.obrasService.getObras(),
+      obras: this.obrasService.getObrasAll(),
       transacciones: this.transaccionesService.getByAsociado('CLIENTE', idCliente),
       saldos: this.reportesService.getSaldosCliente(idCliente)
     }).subscribe({

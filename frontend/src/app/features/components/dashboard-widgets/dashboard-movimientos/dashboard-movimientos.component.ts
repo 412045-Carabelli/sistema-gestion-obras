@@ -55,11 +55,6 @@ export class DashboardMovimientosComponent implements OnInit, OnChanges, OnDestr
     return mov.asociadoNombre || '(sin asociado)';
   }
 
-  getTipoMovimiento(mov: MovimientoRecenteDTO): string {
-    const tipo = mov.tipo_movimiento || mov.tipo || mov.tipoTransaccion;
-    return tipo === 'INGRESO' || tipo === 'COBRO' ? 'Cobro' : tipo === 'EGRESO' || tipo === 'PAGO' ? 'Pago' : 'Movimiento';
-  }
-
   private cargar(): void {
     this.loading = true;
     this.subs.add(

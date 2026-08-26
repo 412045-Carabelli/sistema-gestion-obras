@@ -98,5 +98,5 @@ export class SidebarComponent implements OnInit {
     return this.menuGroups.flatMap(g => g.items);
   }
 
-  version: string = 'v1.18.24';
+  version: string = 'v1.18.30';
 }

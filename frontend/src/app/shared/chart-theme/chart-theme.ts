@@ -11,9 +11,9 @@ export const CHART_FONT_FAMILY = 'system-ui, -apple-system, "Segoe UI", Roboto, 
 export const CHART_INK = {
   primary: '#0b0b0b',
   secondary: '#52514e',
-  muted: '#898781',
-  grid: '#e1e0d9',
-  axis: '#c3c2b7',
+  muted: '#6b6a63',
+  grid: '#d4d3c9',
+  axis: '#a8a79b',
 };
 
 /** Azul secuencial (una sola familia de hue, más oscuro = "lo real/cobrado"). */

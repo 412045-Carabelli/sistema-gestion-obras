@@ -25,99 +25,64 @@
 
     <!-- ===================== 2. KPIs ===================== -->
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-      <div class="bg-white rounded-xl shadow-md p-6 border-l-4 border-green-500">
-        <div class="flex items-center gap-2 mb-2">
-          <i class="pi pi-arrow-up text-green-600"></i>
-          <span class="text-sm font-poppins font-semibold text-gray-600">Cobrado</span>
-        </div>
-        <div class="text-2xl font-poppins font-bold text-green-600">
-          {{ (reporteConsolidado?.kpisCuentaCorriente?.cobrado ?? 0) | currency:'ARS':'symbol-narrow':'1.0-0' }}
-        </div>
-      </div>
+      <app-kpi-card
+        [title]="'Cobrado'"
+        [color]="'green'"
+        [icon]="'pi pi-arrow-up'"
+        [value]="(reporteConsolidado?.kpisCuentaCorriente?.cobrado ?? 0 | currency:'ARS':'symbol-narrow':'1.0-0') ?? ''"
+      ></app-kpi-card>
 
-      <div class="bg-white rounded-xl shadow-md p-6 border-l-4 border-emerald-500">
-        <div class="flex items-center gap-2 mb-2">
-          <i class="pi pi-wallet text-emerald-600"></i>
-          <span class="text-sm font-poppins font-semibold text-gray-600">Por cobrar</span>
-        </div>
-        <div class="text-2xl font-poppins font-bold text-emerald-700">
-          {{ (reporteConsolidado?.kpisCuentaCorriente?.porCobrar ?? 0) | currency:'ARS':'symbol-narrow':'1.0-0' }}
-        </div>
-      </div>
+      <app-kpi-card
+        [title]="'Por cobrar'"
+        [color]="'emerald'"
+        [icon]="'pi pi-wallet'"
+        [value]="(reporteConsolidado?.kpisCuentaCorriente?.porCobrar ?? 0 | currency:'ARS':'symbol-narrow':'1.0-0') ?? ''"
+        [tooltip]="'Saldo pendiente a hoy (igual que Cuentas Corrientes). No depende del rango de fechas.'"
+      ></app-kpi-card>
 
-      <div class="bg-white rounded-xl shadow-md p-6 border-l-4 border-red-500">
-        <div class="flex items-center gap-2 mb-2">
-          <i class="pi pi-arrow-down text-red-600"></i>
-          <span class="text-sm font-poppins font-semibold text-gray-600">Pagado</span>
-        </div>
-        <div class="text-2xl font-poppins font-bold text-red-600">
-          {{ (reporteConsolidado?.kpisCuentaCorriente?.pagado ?? 0) | currency:'ARS':'symbol-narrow':'1.0-0' }}
-        </div>
-      </div>
+      <app-kpi-card
+        [title]="'Pagado'"
+        [color]="'red'"
+        [icon]="'pi pi-arrow-down'"
+        [value]="(reporteConsolidado?.kpisCuentaCorriente?.pagado ?? 0 | currency:'ARS':'symbol-narrow':'1.0-0') ?? ''"
+      ></app-kpi-card>
 
-      <div class="bg-white rounded-xl shadow-md p-6 border-l-4 border-amber-500">
-        <div class="flex items-center gap-2 mb-2">
-          <i class="pi pi-chart-line text-amber-600"></i>
-          <span class="text-sm font-poppins font-semibold text-gray-600">Por pagar</span>
-        </div>
-        <div class="text-2xl font-poppins font-bold text-amber-700">
-          {{ (reporteConsolidado?.kpisCuentaCorriente?.porPagar ?? 0) | currency:'ARS':'symbol-narrow':'1.0-0' }}
-        </div>
-      </div>
+      <app-kpi-card
+        [title]="'Por pagar'"
+        [color]="'amber'"
+        [icon]="'pi pi-chart-line'"
+        [value]="(reporteConsolidado?.kpisCuentaCorriente?.porPagar ?? 0 | currency:'ARS':'symbol-narrow':'1.0-0') ?? ''"
+        [tooltip]="'Saldo pendiente a hoy (igual que Cuentas Corrientes). No depende del rango de fechas.'"
+      ></app-kpi-card>
 
-      <div
-        class="rounded-xl shadow-md p-6 border-l-4"
-        [ngClass]="{
-          'bg-green-50 border-green-500': (reporteConsolidado?.kpisCuentaCorriente?.resultado ?? 0) > 0,
-          'bg-red-50 border-red-500': (reporteConsolidado?.kpisCuentaCorriente?.resultado ?? 0) < 0,
-          'bg-gray-50 border-gray-400': (reporteConsolidado?.kpisCuentaCorriente?.resultado ?? 0) === 0
-        }">
-        <div class="flex items-center gap-2 mb-2">
-          <i class="pi pi-chart-pie" [ngClass]="{
-            'text-green-600': (reporteConsolidado?.kpisCuentaCorriente?.resultado ?? 0) > 0,
-            'text-red-600': (reporteConsolidado?.kpisCuentaCorriente?.resultado ?? 0) < 0,
-            'text-gray-500': (reporteConsolidado?.kpisCuentaCorriente?.resultado ?? 0) === 0
-          }"></i>
-          <span class="text-sm font-poppins font-semibold text-gray-600">Resultado</span>
-        </div>
-        <div class="text-2xl font-poppins font-bold" [ngClass]="{
-          'text-green-700': (reporteConsolidado?.kpisCuentaCorriente?.resultado ?? 0) > 0,
-          'text-red-600': (reporteConsolidado?.kpisCuentaCorriente?.resultado ?? 0) < 0,
-          'text-gray-700': (reporteConsolidado?.kpisCuentaCorriente?.resultado ?? 0) === 0
-        }">
-          {{ (reporteConsolidado?.kpisCuentaCorriente?.resultado ?? 0) | currency:'ARS':'symbol-narrow':'1.0-0' }}
-        </div>
-      </div>
+      <app-kpi-card
+        [title]="'Resultado'"
+        [color]="(reporteConsolidado?.kpisCuentaCorriente?.resultado ?? 0) > 0 ? 'green' : (reporteConsolidado?.kpisCuentaCorriente?.resultado ?? 0) < 0 ? 'red' : 'gray'"
+        [icon]="'pi pi-chart-pie'"
+        [tinted]="true"
+        [value]="(reporteConsolidado?.kpisCuentaCorriente?.resultado ?? 0 | currency:'ARS':'symbol-narrow':'1.0-0') ?? ''"
+      ></app-kpi-card>
 
-      <div class="bg-white rounded-xl shadow-md p-6 border-l-4 border-indigo-500">
-        <div class="flex items-center gap-2 mb-2">
-          <i class="pi pi-file-check text-indigo-600"></i>
-          <span class="text-sm font-poppins font-semibold text-gray-600">Facturado</span>
-        </div>
-        <div class="text-2xl font-poppins font-bold text-indigo-700">
-          {{ (reporteConsolidado?.facturacionPeriodo?.totalFacturado ?? 0) | currency:'ARS':'symbol-narrow':'1.0-0' }}
-        </div>
-      </div>
+      <app-kpi-card
+        [title]="'Facturado'"
+        [color]="'indigo'"
+        [icon]="'pi pi-file-check'"
+        [value]="(reporteConsolidado?.facturacionPeriodo?.totalFacturado ?? 0 | currency:'ARS':'symbol-narrow':'1.0-0') ?? ''"
+      ></app-kpi-card>
 
-      <div class="bg-white rounded-xl shadow-md p-6 border-l-4 border-violet-500">
-        <div class="flex items-center gap-2 mb-2">
-          <i class="pi pi-file-edit text-violet-600"></i>
-          <span class="text-sm font-poppins font-semibold text-gray-600">Por facturar</span>
-        </div>
-        <div class="text-2xl font-poppins font-bold text-violet-700">
-          {{ (reporteConsolidado?.facturacionPeriodo?.totalPorFacturar ?? 0) | currency:'ARS':'symbol-narrow':'1.0-0' }}
-        </div>
-      </div>
+      <app-kpi-card
+        [title]="'Por facturar'"
+        [color]="'violet'"
+        [icon]="'pi pi-file-edit'"
+        [value]="(reporteConsolidado?.facturacionPeriodo?.totalPorFacturar ?? 0 | currency:'ARS':'symbol-narrow':'1.0-0') ?? ''"
+      ></app-kpi-card>
 
-      <div class="bg-white rounded-xl shadow-md p-6 border-l-4 border-blue-500">
-        <div class="flex items-center gap-2 mb-2">
-          <i class="pi pi-percentage text-blue-600"></i>
-          <span class="text-sm font-poppins font-semibold text-gray-600">Comisiones</span>
-        </div>
-        <div class="text-2xl font-poppins font-bold text-blue-700">
-          {{ (comisiones?.totalComision ?? 0) | currency:'ARS':'symbol-narrow':'1.0-0' }}
-        </div>
-      </div>
+      <app-kpi-card
+        [title]="'Comisiones'"
+        [color]="'blue'"
+        [icon]="'pi pi-percentage'"
+        [value]="(comisiones?.totalComision ?? 0 | currency:'ARS':'symbol-narrow':'1.0-0') ?? ''"
+      ></app-kpi-card>
     </div>
 
     <!-- ===================== RESUMEN POR PROVEEDOR / CLIENTE ===================== -->

@@ -1,0 +1,10 @@
+:host {
+  display: block;
+  animation: table-fade-in 0.3s ease;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :host {
+    animation: none;
+  }
+}

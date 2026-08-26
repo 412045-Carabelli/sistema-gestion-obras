@@ -3,6 +3,23 @@
 @import "quill/dist/quill.snow.css";
 
 /**
+ * `font-poppins` se usa en cientos de templates como si fuera la tipografía
+ * del sistema, pero Poppins nunca se cargó (no hay @font-face/Google Font) y
+ * esta clase nunca estuvo definida — era un no-op en toda la app, por eso
+ * el mismo tipo de celda podía terminar heredando distinto fallback del
+ * navegador según el elemento (ver AGENTS.md / chart-theme.ts). La definimos
+ * acá como utilidad real (Tailwind v4: `--font-*` en @theme genera `font-*`)
+ * para que TODO lo que ya usa la clase renderice con la misma familia.
+ */
+@theme {
+  --font-poppins: system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+}
+
+body {
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+}
+
+/**
  * Sistema de escalado de tipografía accesible
  * - Respeta preferencias del navegador/SO
  * - Usa CSS variables para personalización sin comprometer accesibilidad
@@ -74,6 +91,17 @@ body {
 
 @media (prefers-reduced-motion: reduce) {
   .detail-fade-in {
+    animation: none;
+  }
+}
+
+/* Fade-in genérico para tarjetas KPI (dashboards, reportes) */
+.kpi-fade-in {
+  animation: table-fade-in 0.3s ease;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .kpi-fade-in {
     animation: none;
   }
 }

@@ -9,7 +9,8 @@ import { CommonModule } from '@angular/common';
   selector: 'app-kpi-skeleton',
   standalone: true,
   imports: [CommonModule],
-  templateUrl: './kpi-skeleton.component.html'
+  templateUrl: './kpi-skeleton.component.html',
+  styles: [':host { display: block; }']
 })
 export class KpiSkeletonComponent {
   @Input() count = 4;

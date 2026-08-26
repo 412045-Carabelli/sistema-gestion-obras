@@ -13,6 +13,7 @@ import { DatePickerModule } from 'primeng/datepicker';
 import { ToastModule } from 'primeng/toast';
 import { RadioButtonModule } from 'primeng/radiobutton';
 import { TagModule } from 'primeng/tag';
+import { TooltipModule } from 'primeng/tooltip';
 import { MessageService } from 'primeng/api';
 import { forkJoin } from 'rxjs';
 import { ModalComponent } from '../../../shared/modal/modal.component';
@@ -49,6 +50,7 @@ import autoTable from 'jspdf-autotable';
     ToastModule,
     RadioButtonModule,
     TagModule,
+    TooltipModule,
     ModalComponent,
     GenericFilterBarComponent,
     TableSkeletonComponent,
@@ -85,6 +87,8 @@ export class MovimientosListComponent implements OnInit {
   // Opciones para filtros y modal
   obraNombresMap: { [key: number]: string } = {};
   obrasOptions: Obra[] = [];
+  /** obrasOptions + (si aplica) la obra del movimiento visto/editado, cuando no está en el filtro de obras activas para movimientos. */
+  modalObrasOptions: Obra[] = [];
   clientesOptions: Cliente[] = [];
   proveedoresOptions: Proveedor[] = [];
   costosObra: ObraCosto[] = [];
@@ -176,6 +180,7 @@ export class MovimientosListComponent implements OnInit {
         this.movimientos = movimientosPage.content || [];
         this.totalElements = movimientosPage.totalElements || 0;
         this.obrasOptions = obras.filter(o => o.activo !== false).sort((a, b) => (a.nombre || '').localeCompare(b.nombre || ''));
+        this.modalObrasOptions = this.obrasOptions;
         this.clientesOptions = [...clientes].sort((a, b) => (a.nombre || '').localeCompare(b.nombre || ''));
         this.proveedoresOptions = [...proveedores].sort((a, b) => (a.nombre || '').localeCompare(b.nombre || ''));
 
@@ -411,6 +416,7 @@ export class MovimientosListComponent implements OnInit {
   openCreateModal(): void {
     this.modoEdicion = false;
     this.isViewMode = false;
+    this.modalObrasOptions = this.obrasOptions;
     this.selectedObra = null;
     this.selectedCliente = null;
     this.selectedProveedor = null;
@@ -439,6 +445,17 @@ export class MovimientosListComponent implements OnInit {
   private _poblarModal(mov: Movimiento): void {
     this.tipoEntidad = (mov.tipo_asociado || 'CLIENTE').toUpperCase() as 'CLIENTE' | 'PROVEEDOR';
     this.selectedObra = this.obrasOptions.find(o => o.id === mov.id_obra) || null;
+
+    // La obra del movimiento puede no estar en obrasOptions (filtrado a estados activos):
+    // si falta, la agregamos igual para poder mostrarla en el select de ver/editar.
+    if (!this.selectedObra && mov.id_obra) {
+      const obraFallback = { id: mov.id_obra, nombre: mov.nombre_obra || this.getNombreObra(mov.id_obra) } as Obra;
+      this.modalObrasOptions = [...this.obrasOptions, obraFallback];
+      this.selectedObra = obraFallback;
+    } else {
+      this.modalObrasOptions = this.obrasOptions;
+    }
+
     this.selectedCliente = null;
     this.selectedProveedor = null;
 

@@ -182,7 +182,7 @@
                                         [binary]="true"></p-checkbox>
                           </td>
                         }
-                        <td class="font-mono text-sm font-normal text-gray-600">{{ item.id }}</td>
+                        <td class="font-poppins text-sm font-normal text-gray-600">{{ item.id }}</td>
                         <td class="font-normal text-gray-900">{{ item.nombre }}</td>
                         <td>
                           <span class="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">
@@ -194,18 +194,16 @@
                         <td class="text-right text-emerald-700 font-semibold">{{ item.saldo | currency:'ARS':'symbol':'1.0-2' }}</td>
                         <td class="text-right">
                           <div class="flex justify-end gap-2">
-                            <button pButton type="button" class="p-button-text p-button-sm"
-                                    (click)="$event.stopPropagation(); irADetalleObra(item.id)">
-                              Ver Detalle
-                            </button>
-                            <button pButton type="button" class="p-button-text p-button-sm"
-                                    (click)="$event.stopPropagation(); irADetalleObraMov(item.id)">
-                              Ver Movimientos
-                            </button>
+                            <button pButton type="button" class="p-button-text p-button-sm" icon="pi pi-eye"
+                                    (click)="$event.stopPropagation(); irADetalleObra(item.id)"
+                                    pTooltip="Ver detalle" tooltipPosition="top"></button>
+                            <button pButton type="button" class="p-button-text p-button-sm" icon="pi pi-arrow-right-arrow-left"
+                                    (click)="$event.stopPropagation(); irADetalleObraMov(item.id)"
+                                    pTooltip="Ver movimientos" tooltipPosition="top"></button>
                             <button pButton type="button" class="p-button-text p-button-sm" icon="pi pi-download"
                                     (click)="$event.stopPropagation(); generarCtaCte(item.id)"
                                     [loading]="generandoPdf"
-                                    pTooltip="Generar cta. cte."></button>
+                                    pTooltip="Generar cta. cte." tooltipPosition="top"></button>
                           </div>
                         </td>
                       </tr>

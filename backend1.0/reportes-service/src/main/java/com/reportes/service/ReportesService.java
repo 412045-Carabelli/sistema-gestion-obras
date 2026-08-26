@@ -82,15 +82,69 @@ public class ReportesService {
         LocalDate fechaFin = filtros.getFechaFin() != null ? filtros.getFechaFin() : LocalDate.now();
         LocalDate fechaInicio = filtros.getFechaInicio() != null ? filtros.getFechaInicio() : fechaFin.minusDays(30);
 
-        java.util.concurrent.CompletableFuture<DashboardCuentaCorrienteExternalDto> kpisFuture =
-                java.util.concurrent.CompletableFuture.supplyAsync(() -> transaccionesClient.obtenerCuentaCorriente(
-                        filtros.getObraId(), filtros.getClienteId(), filtros.getProveedorId(),
-                        fechaInicio, fechaFin, filtros.getOrganizacionId(), filtros.getEstados()));
+        // Por cobrar/por pagar: misma fuente Y mismos parametros que Cuentas Corrientes
+        // (generarDeudasGlobales sin fechaInicio/fechaFin) para que ambas pantallas muestren
+        // siempre el mismo numero. Saldo pendiente es un corte a hoy, no un total por periodo:
+        // si se le pasan fechas, la query resta solo los cobros/pagos dentro de esa ventana y
+        // el saldo se infla con montos que en realidad ya se cobraron/pagaron fuera del rango.
+        // El filtro de fechas de esta pantalla solo aplica a la facturacion del periodo.
+        ReportFilterRequest filtrosSinFecha = new ReportFilterRequest();
+        filtrosSinFecha.setGrupoId(filtros.getGrupoId());
+        filtrosSinFecha.setObraId(filtros.getObraId());
+        filtrosSinFecha.setObraIds(filtros.getObraIds());
+        filtrosSinFecha.setClienteId(filtros.getClienteId());
+        filtrosSinFecha.setProveedorId(filtros.getProveedorId());
+        filtrosSinFecha.setOrganizacionId(filtros.getOrganizacionId());
+        filtrosSinFecha.setIncluirSaldoCero(filtros.getIncluirSaldoCero());
+        filtrosSinFecha.setEstados(filtros.getEstados());
+        java.util.concurrent.CompletableFuture<DeudasGlobalesResponse> deudasFuture =
+                java.util.concurrent.CompletableFuture.supplyAsync(() -> generarDeudasGlobales(filtrosSinFecha));
+
+        // Cobrado/Pagado si son flujo del periodo: a diferencia del saldo, tiene sentido que
+        // respeten el filtro de fechas de la pantalla. Se pide con las fechas originales
+        // (filtros, no filtrosSinFecha) para que el date-range filter se note en estas dos
+        // tarjetas, sin afectar el saldo pendiente de arriba.
+        // incluirSaldoCero forzado a true: el SP de deudas descarta filas con saldo <= 0
+        // (obra/proveedor ya saldado) salvo que se pida explicitamente. Si un proveedor quedo
+        // en $0 de saldo justo por un pago dentro del periodo, esa fila desaparece y el pago
+        // no se contaria en "Pagado" -- se lo dejamos ver aunque ya no tenga saldo pendiente.
+        ReportFilterRequest filtrosPeriodo = new ReportFilterRequest();
+        filtrosPeriodo.setGrupoId(filtros.getGrupoId());
+        filtrosPeriodo.setObraId(filtros.getObraId());
+        filtrosPeriodo.setObraIds(filtros.getObraIds());
+        filtrosPeriodo.setClienteId(filtros.getClienteId());
+        filtrosPeriodo.setProveedorId(filtros.getProveedorId());
+        filtrosPeriodo.setOrganizacionId(filtros.getOrganizacionId());
+        filtrosPeriodo.setFechaInicio(filtros.getFechaInicio());
+        filtrosPeriodo.setFechaFin(filtros.getFechaFin());
+        filtrosPeriodo.setEstados(filtros.getEstados());
+        filtrosPeriodo.setIncluirSaldoCero(true);
+        java.util.concurrent.CompletableFuture<DeudasGlobalesResponse> deudasPeriodoFuture =
+                java.util.concurrent.CompletableFuture.supplyAsync(() -> generarDeudasGlobales(filtrosPeriodo));
 
         java.util.concurrent.CompletableFuture<List<FacturacionPeriodoResponse.DetalleFacturacionObra>> facturacionFuture =
                 java.util.concurrent.CompletableFuture.supplyAsync(() -> facturacionPeriodoRepository.obtenerFacturacionPeriodo(
                         filtros.getObraId(), filtros.getClienteId(), fechaInicio, fechaFin,
                         filtros.getOrganizacionId(), filtros.getEstados()));
+
+        DeudasGlobalesResponse deudas = deudasFuture.join();
+        DeudasGlobalesResponse deudasPeriodo = deudasPeriodoFuture.join();
+
+        BigDecimal cobrado = deudasPeriodo.getDetalleDeudaClientes().stream()
+                .map(DeudasGlobalesResponse.DetalleDeudaCliente::getCobrado)
+                .filter(Objects::nonNull)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+        BigDecimal pagado = deudasPeriodo.getDetalleDeudaProveedores().stream()
+                .map(DeudasGlobalesResponse.DetalleDeudaProveedor::getPagado)
+                .filter(Objects::nonNull)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        DashboardCuentaCorrienteExternalDto kpisCuentaCorriente = new DashboardCuentaCorrienteExternalDto();
+        kpisCuentaCorriente.setCobrado(cobrado);
+        kpisCuentaCorriente.setPorCobrar(deudas.getDeudaClientes());
+        kpisCuentaCorriente.setPagado(pagado);
+        kpisCuentaCorriente.setPorPagar(deudas.getDeudaProveedores());
+        kpisCuentaCorriente.setResultado(cobrado.subtract(pagado));
 
         List<FacturacionPeriodoResponse.DetalleFacturacionObra> detalleFacturacion = facturacionFuture.join();
         FacturacionPeriodoResponse facturacionPeriodo = new FacturacionPeriodoResponse();
@@ -101,7 +155,7 @@ public class ReportesService {
                 detalleFacturacion, FacturacionPeriodoResponse.DetalleFacturacionObra::getPorFacturar));
 
         ReportesConsolidadoResponse response = new ReportesConsolidadoResponse();
-        response.setKpisCuentaCorriente(kpisFuture.join());
+        response.setKpisCuentaCorriente(kpisCuentaCorriente);
         response.setFacturacionPeriodo(facturacionPeriodo);
         return response;
     }
