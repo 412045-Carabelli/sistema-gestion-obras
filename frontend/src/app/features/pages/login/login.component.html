@@ -7,6 +7,15 @@
     <div class="glow glow-2"></div>
   </div>
 
+  <a *ngIf="isLoggedIn(); else backHome" (click)="volverAlDashboard()" class="login-back-link">
+    <i class="pi pi-arrow-left"></i> <span class="login-back-text">Volver al dashboard</span>
+  </a>
+  <ng-template #backHome>
+    <a (click)="volverAlInicio()" class="login-back-link">
+      <i class="pi pi-arrow-left"></i> <span class="login-back-text">Volver al inicio</span>
+    </a>
+  </ng-template>
+
   <div class="login-wrapper">
     <div class="login-brand">
       <img src="/buildr-logo.svg" alt="buildrr" class="login-logo" />
@@ -60,6 +69,11 @@
           }
         </button>
       </form>
+
+      <p class="login-footer">
+        ¿No tenés cuenta?
+        <a (click)="goToRegister()" class="login-footer-link">Creá una</a>
+      </p>
     </div>
   </div>
 </div>

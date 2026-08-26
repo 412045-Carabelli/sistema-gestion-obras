@@ -54,6 +54,8 @@ export class AgendaModalComponent {
   form!: FormGroup;
   guardando = signal(false);
   esEdicion = signal(false);
+  /** Al abrir el detalle de una agenda existente arranca todo deshabilitado; "Editar" lo habilita. */
+  modoSoloLectura = signal(false);
   estadosOptions = ESTADOS_AGENDA_OPCIONES;
   prioridadesOptions = PRIORIDADES_AGENDA;
   obrasOptions = signal<Array<{label: string; value: number}>>([]);
@@ -186,6 +188,8 @@ export class AgendaModalComponent {
   private inicializarFormulario() {
     const agenda = this.agenda();
     this.esEdicion.set(!!agenda?.id);
+    // Ver detalle de una agenda existente arranca solo lectura; una nueva se puede completar directo.
+    this.modoSoloLectura.set(!!agenda?.id);
 
     let fechaInicioFormato: string | null = null;
     let fechaVencimientoFormato: string | null = null;
@@ -474,6 +478,10 @@ export class AgendaModalComponent {
 
   cerrar() {
     this.onClose.emit();
+  }
+
+  habilitarEdicion() {
+    this.modoSoloLectura.set(false);
   }
 
   getEstadoLabel(estado: string): string {

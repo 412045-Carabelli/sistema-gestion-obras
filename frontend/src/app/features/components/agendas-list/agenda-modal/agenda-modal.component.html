@@ -1,7 +1,12 @@
 <app-modal
   [visible]="visible()"
-  [title]="esEdicion() ? 'Editar Evento' : 'Nuevo Evento'"
+  [title]="modoSoloLectura() ? 'Ver Evento' : (esEdicion() ? 'Editar Evento' : 'Nuevo Evento')"
   [width]="'700px'"
+  [viewMode]="modoSoloLectura()"
+  [showDelete]="esEdicion()"
+  [deleteLoading]="guardando()"
+  (deleted)="eliminar()"
+  (edit)="habilitarEdicion()"
   [confirmLabel]="'Guardar'"
   [confirmDisabled]="!form?.valid"
   [confirmLoading]="guardando()"
@@ -10,36 +15,39 @@
 
   <form [formGroup]="form!" class="space-y-4" *ngIf="form">
 
-    <!-- Título -->
-    <div>
-      <label class="block text-sm font-poppins font-semibold mb-1 text-gray-700">
-        Título <span class="text-red-500">*</span>
-      </label>
-      <input
-        pInputText
-        formControlName="titulo"
-        class="w-full"
-        placeholder="Ej: Instalación de puertas"
-        [class.ng-invalid]="form?.get('titulo')?.invalid && form?.get('titulo')?.touched">
-      @if (form?.get('titulo')?.invalid && form?.get('titulo')?.touched) {
-        <p class="text-red-500 text-xs mt-1 flex items-center gap-1">
-          <i class="pi pi-exclamation-circle text-xs"></i>
-          Este campo es obligatorio
-        </p>
-      }
-    </div>
+    <!-- Título + Prioridad -->
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div class="md:col-span-3">
+        <label class="block text-sm font-poppins font-semibold mb-1 text-gray-700">
+          Título <span class="text-red-500">*</span>
+        </label>
+        <input
+          pInputText
+          formControlName="titulo"
+          class="w-full"
+          placeholder="Ej: Instalación de puertas"
+          [disabled]="modoSoloLectura()"
+          [class.ng-invalid]="form?.get('titulo')?.invalid && form?.get('titulo')?.touched">
+        @if (form?.get('titulo')?.invalid && form?.get('titulo')?.touched) {
+          <p class="text-red-500 text-xs mt-1 flex items-center gap-1">
+            <i class="pi pi-exclamation-circle text-xs"></i>
+            Este campo es obligatorio
+          </p>
+        }
+      </div>
 
-    <!-- Prioridad -->
-    <div>
-      <label class="block text-sm font-poppins font-semibold mb-1 text-gray-700">Prioridad</label>
-      <p-dropdown
-        [options]="prioridadesOptions"
-        optionLabel="label"
-        optionValue="value"
-        formControlName="prioridad"
-        styleClass="w-full"
-        appendTo="body">
-      </p-dropdown>
+      <div>
+        <label class="block text-sm font-poppins font-semibold mb-1 text-gray-700">Prioridad</label>
+        <p-dropdown
+          [options]="prioridadesOptions"
+          optionLabel="label"
+          optionValue="value"
+          formControlName="prioridad"
+          styleClass="w-full"
+          [disabled]="modoSoloLectura()"
+          appendTo="body">
+        </p-dropdown>
+      </div>
     </div>
 
     <!-- Obra, Cliente, Proveedor -->
@@ -57,7 +65,7 @@
           styleClass="w-full"
           placeholder="Selecciona una obra"
           [loading]="cargandoDatos() || cargandoFiltro()"
-          [disabled]="!!obraFija || cargandoDatos() || cargandoFiltro()"
+          [disabled]="!!obraFija || cargandoDatos() || cargandoFiltro() || modoSoloLectura()"
           (onChange)="onFiltroCambiado('obraId')"
           appendTo="body">
         </p-dropdown>
@@ -76,7 +84,7 @@
           styleClass="w-full"
           placeholder="Selecciona un cliente"
           [loading]="cargandoDatos() || cargandoFiltro()"
-          [disabled]="cargandoDatos() || cargandoFiltro()"
+          [disabled]="cargandoDatos() || cargandoFiltro() || modoSoloLectura()"
           (onChange)="onFiltroCambiado('clienteId')"
           appendTo="body">
         </p-dropdown>
@@ -95,50 +103,52 @@
           styleClass="w-full"
           placeholder="Selecciona un proveedor"
           [loading]="cargandoDatos() || cargandoFiltro()"
-          [disabled]="cargandoDatos() || cargandoFiltro()"
+          [disabled]="cargandoDatos() || cargandoFiltro() || modoSoloLectura()"
           (onChange)="onFiltroCambiado('proveedorId')"
           appendTo="body">
         </p-dropdown>
       </div>
     </div>
 
-    <!-- Descripción -->
-    <div>
-      <label class="block text-sm font-poppins font-semibold mb-1 text-gray-700">Descripción</label>
-      <textarea
-        pInputTextarea
-        formControlName="descripcion"
-        class="w-full"
-        rows="3"
-        placeholder="Detalles adicionales (opcional)">
-      </textarea>
-    </div>
-
-    <!-- Fechas -->
+    <!-- Descripción + Fechas -->
     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-      <div>
-        <label class="block text-sm font-poppins font-semibold mb-1 text-gray-700">Fecha de Inicio</label>
-        <input pInputText formControlName="fechaInicio" type="date" class="w-full">
+      <div class="flex flex-col h-full">
+        <label class="block text-sm font-poppins font-semibold mb-1 text-gray-700">Descripción</label>
+        <textarea
+          pInputTextarea
+          formControlName="descripcion"
+          class="w-full resize-none flex-1"
+          placeholder="Detalles adicionales (opcional)"
+          [disabled]="modoSoloLectura()">
+        </textarea>
       </div>
-      <div>
-        <label class="block text-sm font-poppins font-semibold mb-1 text-gray-700">Fecha de Vencimiento</label>
-        <input
-          pInputText
-          formControlName="fechaVencimiento"
-          type="date"
-          class="w-full"
-          [class.ng-invalid]="form?.get('fechaVencimiento')?.hasError('fechaMenorQueInicio') && form?.get('fechaVencimiento')?.touched">
-        @if (form?.get('fechaVencimiento')?.hasError('fechaMenorQueInicio') && form?.get('fechaVencimiento')?.touched) {
-          <p class="text-red-500 text-xs mt-1 flex items-center gap-1">
-            <i class="pi pi-exclamation-circle text-xs"></i>
-            La fecha de vencimiento no puede ser anterior a la fecha de inicio
-          </p>
-        }
+
+      <div class="flex flex-col gap-4">
+        <div>
+          <label class="block text-sm font-poppins font-semibold mb-1 text-gray-700">Fecha de Inicio</label>
+          <input pInputText formControlName="fechaInicio" type="date" class="w-full" [disabled]="modoSoloLectura()">
+        </div>
+        <div>
+          <label class="block text-sm font-poppins font-semibold mb-1 text-gray-700">Fecha de Vencimiento</label>
+          <input
+            pInputText
+            formControlName="fechaVencimiento"
+            type="date"
+            class="w-full"
+            [disabled]="modoSoloLectura()"
+            [class.ng-invalid]="form?.get('fechaVencimiento')?.hasError('fechaMenorQueInicio') && form?.get('fechaVencimiento')?.touched">
+          @if (form?.get('fechaVencimiento')?.hasError('fechaMenorQueInicio') && form?.get('fechaVencimiento')?.touched) {
+            <p class="text-red-500 text-xs mt-1 flex items-center gap-1">
+              <i class="pi pi-exclamation-circle text-xs"></i>
+              La fecha de vencimiento no puede ser anterior a la fecha de inicio
+            </p>
+          }
+        </div>
       </div>
     </div>
 
-    <!-- Eliminar (solo edición) -->
-    @if (esEdicion()) {
+    <!-- Eliminar evento (edición activa; en modo solo lectura el botón vive en el footer del modal) -->
+    @if (esEdicion() && !modoSoloLectura()) {
       <div class="pt-2 border-t border-gray-100">
         <button
           pButton

@@ -134,7 +134,11 @@
     (confirmed)="guardarMovimiento()"
     [title]="isViewMode ? 'Ver movimiento' : (modoEdicion ? 'Editar movimiento' : 'Nuevo movimiento')"
     [visible]="showModal"
-    [showFooter]="!isViewMode"
+    [viewMode]="isViewMode"
+    [showDelete]="true"
+    [deleteLoading]="eliminandoMovimiento"
+    (deleted)="eliminarMovimiento(nuevoMovimiento)"
+    (edit)="isViewMode = false; modoEdicion = true"
     [confirmLoading]="guardandoMovimiento"
     [confirmDisabled]="guardandoMovimiento"
   >
@@ -241,14 +245,14 @@
       </div>
 
       <!-- Saldo del asociado seleccionado -->
-      @if (!isViewMode && selectedCliente) {
-        <div class="text-xs font-poppins font-normal text-gray-500 flex flex-col gap-1 bg-green-50 border border-green-100 rounded p-2">
-          <div>Total obra: {{ (selectedCliente.totalCliente ?? 0) | currency:'ARS' }}</div>
-          <div>Cobrado: {{ (selectedCliente.cobrosRealizados ?? 0) | currency:'ARS' }}</div>
-          <div class="font-semibold text-green-700">Por cobrar: {{ (selectedCliente.saldoCliente ?? 0) | currency:'ARS' }}</div>
+      @if (selectedCliente) {
+        <div class="text-xs font-poppins font-normal text-gray-500 flex flex-nowrap items-center justify-between gap-2 bg-green-50 border border-green-100 rounded p-2">
+          <span class="truncate">Total obra: {{ (selectedCliente.totalCliente ?? 0) | currency:'ARS':'symbol-narrow':'1.0-0' }}</span>
+          <span class="truncate">Cobrado: {{ (selectedCliente.cobrosRealizados ?? 0) | currency:'ARS':'symbol-narrow':'1.0-0' }}</span>
+          <span class="font-semibold text-green-700 truncate">Por cobrar: {{ (selectedCliente.saldoCliente ?? 0) | currency:'ARS':'symbol-narrow':'1.0-0' }}</span>
         </div>
       }
-      @if (!isViewMode && selectedProveedor) {
+      @if (selectedProveedor) {
         <div class="text-xs font-poppins font-normal text-gray-500 flex flex-col gap-1 bg-red-50 border border-red-100 rounded p-2">
           <div class="font-semibold text-red-700">Saldo a pagar: {{ getSaldoProveedor(selectedProveedor.id) | currency:'ARS' }}</div>
         </div>
@@ -311,39 +315,40 @@
         </div>
       </div>
 
-      <!-- Medio de pago -->
-      <div>
-        <label class="block text-sm font-poppins font-semibold mb-1 text-gray-700">
-          Medio de pago/cobro
-        </label>
-        <input
-          type="text"
-          pInputText
-          [(ngModel)]="nuevoMovimiento.medio_pago"
-          [disabled]="isViewMode"
-          class="w-full"
-          placeholder="Ej: Transferencia, Efectivo, Cheque"
-        />
-      </div>
+      <!-- Medio de pago + Concepto -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+        <div>
+          <label class="block text-sm font-poppins font-semibold mb-1 text-gray-700">
+            Medio de pago/cobro
+          </label>
+          <input
+            type="text"
+            pInputText
+            [(ngModel)]="nuevoMovimiento.medio_pago"
+            [disabled]="isViewMode"
+            class="w-full"
+            placeholder="Ej: Transferencia, Efectivo, Cheque"
+          />
+        </div>
 
-      <!-- Concepto -->
-      <div>
-        <label class="block text-sm font-poppins font-semibold mb-1 text-gray-700">
-          Concepto <span class="text-gray-500 text-xs">(opcional)</span>
-        </label>
-        <input
-          type="text"
-          pInputText
-          [(ngModel)]="nuevoMovimiento.concepto"
-          [disabled]="isViewMode"
-          class="w-full"
-          placeholder="Ej: Adelanto de pago, Comisión, etc."
-        />
+        <div>
+          <label class="block text-sm font-poppins font-semibold mb-1 text-gray-700">
+            Concepto <span class="text-gray-500 text-xs">(opcional)</span>
+          </label>
+          <input
+            type="text"
+            pInputText
+            [(ngModel)]="nuevoMovimiento.concepto"
+            [disabled]="isViewMode"
+            class="w-full"
+            placeholder="Ej: Adelanto de pago, Comisión, etc."
+          />
+        </div>
       </div>
 
       <!-- Monto y Fecha -->
-      <div class="flex gap-5">
-        <div class="flex flex-col w-1/2">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+        <div>
           <label class="block text-sm font-poppins font-semibold mb-1 text-gray-700">Monto</label>
           <p-inputNumber
             [(ngModel)]="nuevoMovimiento.monto"
@@ -360,7 +365,7 @@
           ></p-inputNumber>
         </div>
 
-        <div class="flex flex-col w-1/2">
+        <div>
           <label class="block text-sm font-poppins font-semibold mb-1 text-gray-700">Fecha</label>
           <p-datepicker
             [(ngModel)]="nuevoMovimiento.fecha"
@@ -371,36 +376,6 @@
           ></p-datepicker>
         </div>
       </div>
-
-      <!-- Botones view mode -->
-      @if (isViewMode) {
-        <div class="flex justify-between items-center gap-2 mt-4">
-          <p-button
-            type="button"
-            label="Eliminar"
-            icon="pi pi-trash"
-            (click)="eliminarMovimiento(nuevoMovimiento)"
-            severity="danger"
-            [text]="true">
-          </p-button>
-          <div class="flex gap-2">
-            <p-button
-              type="button"
-              label="Cerrar"
-              icon="pi pi-times"
-              (click)="cerrarModal()"
-              severity="secondary">
-            </p-button>
-            <p-button
-              type="button"
-              label="Editar"
-              icon="pi pi-pencil"
-              (click)="isViewMode = false; modoEdicion = true"
-              severity="info">
-            </p-button>
-          </div>
-        </div>
-      }
     </div>
   </app-modal>
 

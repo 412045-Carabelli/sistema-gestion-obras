@@ -63,13 +63,24 @@ body {
    en componentes individuales para estos casos.
    ============================================================ */
 
-/* Contenedor — soft card: mismo radius que generic-filter-bar (rounded-lg), sombra suave, sin borde duro */
+/* Contenedor — soft card: mismo radius que generic-filter-bar (rounded-lg), sombra suave, sin borde duro. */
 .p-datatable {
   border-radius: 0.5rem;
   overflow: hidden;
   border: 1px solid #f1f5f9;         /* slate-100 */
   box-shadow: 0 1px 2px 0 rgba(15, 23, 42, 0.04), 0 1px 3px 0 rgba(15, 23, 42, 0.03);
   animation: table-fade-in 0.3s ease;
+}
+
+/* Cuando el p-table ya está envuelto en un div con su propio borde (patrón
+   `div.border.rounded-lg` usado en obras-list/agendas-list/usuarios-admin/etc.),
+   ese wrapper ya pone la card — el borde propio del .p-datatable queda duplicado
+   pegado al borde real, y se ve como una segunda línea (a veces de otro color,
+   según qué componente inyectó su CSS de PrimeNG último en el <head>). */
+.border .p-datatable {
+  border: none;
+  box-shadow: none;
+  border-radius: 0;
 }
 
 /* Fade-in al terminar de cargar (reemplaza el skeleton), aplica a TODAS las p-table */

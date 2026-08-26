@@ -80,6 +80,18 @@ export class RegisterComponent implements OnInit {
     this.router.navigate(['/login']);
   }
 
+  isLoggedIn(): boolean {
+    return this.authService.isLoggedIn();
+  }
+
+  volverAlDashboard(): void {
+    this.router.navigate(['/dashboard']);
+  }
+
+  volverAlInicio(): void {
+    this.router.navigate(['/home']);
+  }
+
   private passwordMatchValidator(group: AbstractControl): ValidationErrors | null {
     const password = group.get('password')?.value;
     const confirmPassword = group.get('confirmPassword')?.value;

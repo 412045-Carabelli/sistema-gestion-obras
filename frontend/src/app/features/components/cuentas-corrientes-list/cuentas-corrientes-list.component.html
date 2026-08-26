@@ -31,10 +31,10 @@
     }
 
     <!-- Tablas lado a lado -->
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-5">
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-5 items-stretch">
     <!-- Tabla Clientes -->
     @if (datos?.detalleDeudaClientes !== undefined) {
-      <div class="bg-white rounded-lg shadow p-5">
+      <div class="bg-white rounded-lg shadow p-5 detail-fade-in flex flex-col h-full">
         <div class="flex items-center justify-between mb-4">
           <h3 class="font-poppins font-semibold text-gray-800 flex items-center gap-2">
             <i class="pi pi-users text-green-600"></i>
@@ -51,7 +51,7 @@
           ></p-button>
         </div>
         <!-- Tabla (md+) -->
-        <div class="hidden md:block overflow-x-auto">
+        <div class="hidden md:block overflow-x-auto flex-1">
           <table class="w-full text-sm">
             <thead class="bg-green-50 text-green-800">
               <tr>
@@ -104,7 +104,7 @@
 
     <!-- Tabla Proveedores -->
     @if (datos?.detalleDeudaProveedores !== undefined) {
-      <div class="bg-white rounded-lg shadow p-5">
+      <div class="bg-white rounded-lg shadow p-5 detail-fade-in flex flex-col h-full">
         <div class="flex items-center justify-between mb-4">
           <h3 class="font-poppins font-semibold text-gray-800 flex items-center gap-2">
             <i class="pi pi-briefcase text-red-600"></i>
@@ -121,7 +121,7 @@
           ></p-button>
         </div>
         <!-- Tabla (md+) -->
-        <div class="hidden md:block overflow-x-auto">
+        <div class="hidden md:block overflow-x-auto flex-1">
           <table class="w-full text-sm">
             <thead class="bg-red-50 text-red-800">
               <tr>

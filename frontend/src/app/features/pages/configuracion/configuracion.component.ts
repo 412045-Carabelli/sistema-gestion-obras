@@ -102,6 +102,10 @@ export class ConfiguracionComponent implements OnInit, OnDestroy {
     this.sub.unsubscribe();
   }
 
+  get hayCambiosSinGuardar(): boolean {
+    return this.formPerfil.dirty || (this.isAdmin && this.formEmpresa.dirty);
+  }
+
   get phoneVacio(): boolean {
     return !(this.formEmpresa.get('whatsapp_owner_phone')?.value?.trim());
   }
@@ -139,6 +143,7 @@ export class ConfiguracionComponent implements OnInit, OnDestroy {
         this.configuracionService.guardar({ logo_url: res.url }).subscribe({
           next: () => {
             this.logoUploading = false;
+            this.formEmpresa.get('logo_url')?.markAsPristine();
             this.messageService.add({ severity: 'success', summary: 'Logo guardado', detail: 'El logo se actualizó correctamente' });
           },
           error: () => {
@@ -160,6 +165,7 @@ export class ConfiguracionComponent implements OnInit, OnDestroy {
     this.configuracionService.guardar(this.formEmpresa.getRawValue()).subscribe({
       next: () => {
         this.guardandoEmpresa = false;
+        this.formEmpresa.markAsPristine();
         this.messageService.add({ severity: 'success', summary: 'Guardado', detail: 'Configuración actualizada' });
       },
       error: () => {
@@ -169,12 +175,29 @@ export class ConfiguracionComponent implements OnInit, OnDestroy {
     });
   }
 
+  guardarTodo(): void {
+    if (this.formPerfil.invalid) {
+      this.formPerfil.markAllAsTouched();
+    } else {
+      this.guardarPerfil();
+    }
+
+    if (this.isAdmin) {
+      if (this.formEmpresa.invalid) {
+        this.formEmpresa.markAllAsTouched();
+      } else {
+        this.guardarEmpresa();
+      }
+    }
+  }
+
   guardarPerfil(): void {
     if (this.formPerfil.invalid || this.guardandoPerfil) return;
     this.guardandoPerfil = true;
     this.authService.updatePerfil(this.formPerfil.getRawValue()).subscribe({
       next: () => {
         this.guardandoPerfil = false;
+        this.formPerfil.markAsPristine();
         this.messageService.add({ severity: 'success', summary: 'Guardado', detail: 'Perfil actualizado' });
       },
       error: (err) => {

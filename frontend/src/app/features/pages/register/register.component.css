@@ -8,7 +8,7 @@
 /* ── Page layout ── */
 .login-page {
   position: relative;
-  min-height: 100vh;
+  height: 100vh;
   background: #0e0e0e;
   display: flex;
   align-items: center;
@@ -56,12 +56,12 @@
   position: relative;
   z-index: 1;
   width: 100%;
-  max-width: 460px;
+  max-width: 560px;
   padding: 24px 16px;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 32px;
+  gap: 20px;
 }
 
 /* ── Brand / logo ── */
@@ -79,12 +79,41 @@
   background: rgba(255, 255, 255, 0.04);
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 16px;
-  padding: 36px 32px;
+  padding: 28px 32px;
   backdrop-filter: blur(12px);
 }
 
+.login-back-link {
+  position: absolute;
+  top: 24px;
+  left: 24px;
+  z-index: 2;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.85rem;
+  color: #888;
+  cursor: pointer;
+  transition: color 0.2s;
+}
+
+.login-back-link:hover {
+  color: #E8FF47;
+}
+
+@media (max-width: 480px) {
+  .login-back-link {
+    top: 16px;
+    left: 16px;
+  }
+
+  .login-back-text {
+    display: none;
+  }
+}
+
 .login-card-header {
-  margin-bottom: 28px;
+  margin-bottom: 20px;
   text-align: center;
 }
 
@@ -104,9 +133,17 @@
 
 /* ── Form ── */
 .login-form {
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px 16px;
+}
+
+.login-form .field:nth-of-type(1) {
+  grid-column: 1 / -1;
+}
+
+.login-form .btn-submit {
+  grid-column: 1 / -1;
 }
 
 .field {
@@ -208,7 +245,18 @@
   text-decoration: underline;
 }
 
-@media (max-width: 480px) {
+@media (max-width: 640px) {
+  .login-page {
+    height: auto;
+    min-height: 100vh;
+    overflow-y: auto;
+  }
+
+  .login-form {
+    display: flex;
+    flex-direction: column;
+  }
+
   .login-card {
     padding: 24px 20px;
   }

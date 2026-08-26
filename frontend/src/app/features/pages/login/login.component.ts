@@ -84,4 +84,16 @@ export class LoginComponent implements OnInit {
   goToRegister(): void {
     this.router.navigate(['/register']);
   }
+
+  isLoggedIn(): boolean {
+    return this.authService.isLoggedIn();
+  }
+
+  volverAlDashboard(): void {
+    this.router.navigate(['/dashboard']);
+  }
+
+  volverAlInicio(): void {
+    this.router.navigate(['/home']);
+  }
 }

@@ -27,6 +27,7 @@ import { LayoutHeaderComponent } from '../../shared/layout-header/layout-header.
 export class MovimientosLayoutComponent implements OnInit, OnDestroy {
   currentRoute: string = '';
   movimiento?: Movimiento;
+  datosListaCargados = false;
 
   private subscription = new Subscription();
 
@@ -55,6 +56,11 @@ export class MovimientosLayoutComponent implements OnInit, OnDestroy {
     this.subscription.add(
       this.movimientoStateService.movimientoActual$.subscribe(movimiento => {
         this.movimiento = movimiento || undefined;
+      })
+    );
+    this.subscription.add(
+      this.movimientoStateService.datosCargados$.subscribe(cargados => {
+        this.datosListaCargados = cargados;
       })
     );
   }

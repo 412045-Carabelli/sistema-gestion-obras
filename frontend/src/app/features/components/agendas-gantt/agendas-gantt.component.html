@@ -225,6 +225,7 @@
 <app-agenda-modal
   [visible]="mostrarModal()"
   [agenda]="agendaSeleccionada()"
+  [obraFija]="obraFija"
   (onClose)="cerrarModal()"
   (onGuardada)="onAgendaGuardada($event)"
   (onEliminada)="onAgendaEliminada($event)">

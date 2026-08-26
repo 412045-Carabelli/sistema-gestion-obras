@@ -2,8 +2,31 @@
 
 @defer (when datosCargados(); on interaction; prefetch on timer(2s)) {
   <div class="flex flex-col gap-4">
-    <!-- Filtros - Generic Filter Bar (no aplica cuando el listado ya está acotado a una obra) -->
-    @if (!obraId) {
+    <!-- Acotado a una obra: sin filtros que mostrar, controles sueltos (sin la card de filtros) -->
+    @if (obraId) {
+      <div class="flex flex-wrap items-center justify-between gap-3">
+        <div class="flex bg-gray-100 rounded-lg p-0.5 gap-0.5 items-center h-[2.375rem]">
+          @for (opt of viewToggle.options; track opt.label) {
+            <button type="button"
+               (click)="opt.callback()"
+               class="flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium transition-all border-0 cursor-pointer"
+               [class.bg-white]="opt.isActive?.()"
+               [class.shadow-sm]="opt.isActive?.()"
+               [class.text-gray-900]="opt.isActive?.()"
+               [class.text-gray-500]="!opt.isActive?.()">
+              <i [class]="'pi ' + opt.icon + ' text-sm'"></i>
+              <span>{{ opt.label }}</span>
+            </button>
+          }
+        </div>
+        <div class="flex gap-2">
+          @for (action of filterActions; track action.label) {
+            <p-button type="button" [label]="action.label" [icon]="action.icon" severity="primary" [loading]="action.loading || false" (onClick)="action.callback()"></p-button>
+          }
+        </div>
+      </div>
+    } @else {
+      <!-- Filtros - Generic Filter Bar -->
       <app-generic-filter-bar
         [filterDefinitions]="filterDefinitions"
         [actions]="filterActions"
@@ -14,7 +37,7 @@
     }
 
     @if (vistaActual() === 'gantt') {
-      <app-agendas-gantt [modoEmbebido]="true" (volverALista)="vistaActual.set('lista')"></app-agendas-gantt>
+      <app-agendas-gantt [modoEmbebido]="true" [obraId]="obraId" [obraFija]="obraFija" (volverALista)="vistaActual.set('lista')"></app-agendas-gantt>
     } @else {
 
     <!-- Tabla (tablet/desktop) -->
@@ -44,10 +67,8 @@
           </tr>
         </ng-template>
         <ng-template let-agenda pTemplate="body">
-          <tr class="hover:bg-gray-50 transition-colors">
-            <td class="font-poppins font-normal">
-              <span (click)="abrirModalDetalle(agenda)" class="text-blue-600 underline cursor-pointer hover:text-blue-800">{{ agenda.id }}</span>
-            </td>
+          <tr class="hover:bg-gray-50 transition-colors cursor-pointer" (click)="abrirModalDetalle(agenda)">
+            <td class="font-poppins font-normal">{{ agenda.id }}</td>
             <td><span class="font-poppins font-normal text-gray-900 text-sm">{{ agenda.titulo }}</span></td>
             @if (!obraId) {
               <td class="text-gray-600 text-sm font-poppins font-normal">{{ getNombreObra(agenda.obraId) }}</td>
@@ -65,7 +86,7 @@
               @if (agenda.creadoEn) { <span>{{ agenda.creadoEn | date:'dd/MM/yy' }}</span> }
               @else { <span class="text-gray-400">-</span> }
             </td>
-            <td class="text-center">
+            <td class="text-center" (click)="$event.stopPropagation()">
               <div class="flex justify-center gap-2">
                 @if (agenda.estado === 'PENDIENTE') {
                   <button pButton type="button" icon="pi pi-step-forward" class="p-button-text p-button-sm p-button-success" (click)="cambiarEstado(agenda, 'EN_PROGRESO')"></button>
@@ -100,12 +121,10 @@
         </div>
       }
       @for (agenda of agendasFiltradas(); track agenda.id) {
-        <div class="bg-white rounded-lg border border-gray-200 p-4 hover:shadow-md transition-shadow">
+        <div class="bg-white rounded-lg border border-gray-200 p-4 hover:shadow-md transition-shadow cursor-pointer" (click)="abrirModalDetalle(agenda)">
           <div class="flex items-start justify-between gap-2 mb-2">
             <div class="flex-1 min-w-0">
-              <span
-                class="font-poppins font-semibold text-gray-900 text-sm cursor-pointer hover:text-blue-700"
-                (click)="abrirModalDetalle(agenda)">
+              <span class="font-poppins font-normal text-gray-900 text-sm">
                 #{{ agenda.id }} — {{ agenda.titulo }}
               </span>
             </div>
@@ -115,13 +134,13 @@
             @if (!obraId && getNombreObra(agenda.obraId)) {
               <div class="flex flex-col">
                 <span class="text-gray-400">Obra</span>
-                <span class="text-gray-700 font-poppins font-medium">{{ getNombreObra(agenda.obraId) }}</span>
+                <span class="text-gray-700 font-poppins font-normal">{{ getNombreObra(agenda.obraId) }}</span>
               </div>
             }
             @if (getNombreCliente(agenda.clienteId)) {
               <div class="flex flex-col">
                 <span class="text-gray-400">Cliente</span>
-                <span class="text-gray-700 font-poppins font-medium">{{ getNombreCliente(agenda.clienteId) }}</span>
+                <span class="text-gray-700 font-poppins font-normal">{{ getNombreCliente(agenda.clienteId) }}</span>
               </div>
             }
             @if (agenda.fechaVencimiento) {
@@ -137,7 +156,7 @@
               </div>
             }
           </div>
-          <div class="flex justify-end mt-3 pt-2 border-t border-gray-100">
+          <div class="flex justify-end mt-3 pt-2 border-t border-gray-100" (click)="$event.stopPropagation()">
             @if (agenda.estado === 'PENDIENTE') {
               <button pButton type="button" icon="pi pi-step-forward" label="Iniciar" class="p-button-text p-button-sm p-button-success" (click)="cambiarEstado(agenda, 'EN_PROGRESO')"></button>
             } @else if (agenda.estado === 'EN_PROGRESO') {
