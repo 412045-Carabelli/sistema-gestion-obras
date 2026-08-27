@@ -87,7 +87,7 @@ class ObraServiceImplTest {
         when(obraRepo.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
         when(costoRepo.findByObra_IdAndActivoTrue(100L)).thenReturn(List.of());
 
-        service.crear(dto, null);
+        service.crear(dto);
 
         ArgumentCaptor<Obra> captor = ArgumentCaptor.forClass(Obra.class);
         verify(obraRepo).save(captor.capture());
@@ -193,10 +193,9 @@ class ObraServiceImplTest {
         Page<Obra> page = new PageImpl<>(List.of(o1, o2), PageRequest.of(0, 2), 2);
 
         when(obraRepo.findAll(any(PageRequest.class))).thenReturn(page);
-        when(costoRepo.findByObra_IdAndActivoTrue(1L)).thenReturn(List.of());
-        when(costoRepo.findByObra_IdAndActivoTrue(2L)).thenReturn(List.of());
+        when(costoRepo.findByObra_IdIn(any())).thenReturn(List.of());
 
-        Page<ObraDTO> result = service.listar(PageRequest.of(0, 2), null);
+        Page<ObraDTO> result = service.listar(null, PageRequest.of(0, 2));
 
         assertEquals(2, result.getTotalElements());
         assertEquals(2, result.getContent().size());
@@ -229,14 +228,16 @@ class ObraServiceImplTest {
 
         service.actualizar(9L, dto);
 
+        // actualizar() guarda dos veces: una con los campos editados, otra tras recalcular
+        // el presupuesto desde los costos (que acá están vacíos -> presupuesto queda en 0).
         ArgumentCaptor<Obra> captor = ArgumentCaptor.forClass(Obra.class);
-        verify(obraRepo).save(captor.capture());
+        verify(obraRepo, times(2)).save(captor.capture());
         Obra saved = captor.getValue();
 
         assertEquals("Nuevo", saved.getNombre());
         assertEquals("Dir", saved.getDireccion());
         assertEquals(EstadoObraEnum.FINALIZADA, saved.getEstadoObra());
-        assertEquals(new BigDecimal("100"), saved.getPresupuesto());
+        assertEquals(BigDecimal.ZERO, saved.getPresupuesto());
         assertEquals(Boolean.TRUE, saved.getRequiereFactura());
     }
 
@@ -258,7 +259,7 @@ class ObraServiceImplTest {
         service.actualizar(11L, dto);
 
         ArgumentCaptor<Obra> captor = ArgumentCaptor.forClass(Obra.class);
-        verify(obraRepo).save(captor.capture());
+        verify(obraRepo, times(2)).save(captor.capture());
         assertEquals(EstadoObraEnum.EN_PROGRESO, captor.getValue().getEstadoObra());
     }
 

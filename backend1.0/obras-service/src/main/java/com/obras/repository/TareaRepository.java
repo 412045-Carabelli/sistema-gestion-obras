@@ -22,6 +22,8 @@ public interface TareaRepository extends JpaRepository<Tarea, Long> {
 
     List<Tarea> findByIdProveedorAndActivoTrue(Long idProveedor);
 
+    List<Tarea> findByIdObraInAndActivoTrueOrderByFechaInicioAsc(List<Long> idObras);
+
     long countByIdObraAndEstadoTareaAndActivoTrue(Long idObra, EstadoTareaEnum estado);
 
     long countByIdObraAndNumeroOrdenAndActivoTrue(Long idObra, Long numeroOrden);

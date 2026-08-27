@@ -52,6 +52,10 @@ const MONTH_NAMES_SHORT = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago
 })
 export class AgendasGanttComponent implements OnInit, OnDestroy {
   @Input() modoEmbebido = false;
+  /** Cuando se setea, el Gantt queda acotado a esta obra (usado embebido en Obras/Detalle). */
+  @Input() obraId?: number;
+  /** Obra completa cuando se usa embebido en Obras/Detalle: evita pedir todas las obras. */
+  @Input() obraFija?: Obra;
   @Output() volverALista = new EventEmitter<void>();
 
   private agendasService = inject(AgendasService);
@@ -241,17 +245,27 @@ export class AgendasGanttComponent implements OnInit, OnDestroy {
   }
 
   private cargarDatos() {
-    this.subscription.add(
-      this.obrasService.getObrasSimple().subscribe({next: o => this.obras.set(o), error: () => {}})
-    );
-    this.subscription.add(
-      this.clientesService.getClientesSimple().subscribe({next: c => this.clientes.set(c), error: () => {}})
-    );
+    if (this.obraFija) {
+      // Embebido en Obras/Detalle: ya sabemos la obra, no hace falta traer el catálogo completo.
+      this.obras.set([this.obraFija]);
+      this.clientes.set(this.obraFija.cliente ? [this.obraFija.cliente] : []);
+    } else {
+      this.subscription.add(
+        this.obrasService.getObrasSimple().subscribe({next: o => this.obras.set(o), error: () => {}})
+      );
+      this.subscription.add(
+        this.clientesService.getClientesSimple().subscribe({next: c => this.clientes.set(c), error: () => {}})
+      );
+    }
     this.subscription.add(
       this.proveedoresService.getProveedoresSimple().subscribe({next: p => this.proveedores.set(p), error: () => {}})
     );
+
+    const fuente = this.obraId
+      ? this.agendasService.getAgendasByObra(this.obraId)
+      : this.agendasService.getAgendas();
     this.subscription.add(
-      this.agendasService.getAgendas().subscribe({
+      fuente.subscribe({
         next: (agendas) => {
           this.agendas.set(agendas);
           this.datosCargados.set(true);
@@ -290,7 +304,7 @@ export class AgendasGanttComponent implements OnInit, OnDestroy {
   toggleViewMode(mode: 'month' | 'week') {this.viewMode.set(mode);}
 
   abrirModalCrear() {
-    this.agendaSeleccionada.set(null);
+    this.agendaSeleccionada.set(this.obraId ? ({obraId: this.obraId} as Agenda) : null);
     this.mostrarModal.set(true);
   }
 

@@ -1,7 +1,7 @@
 import {Injectable} from '@angular/core';
 import {HttpClient} from '@angular/common/http';
 import {BehaviorSubject, Observable, tap} from 'rxjs';
-import {EstadoTarea, Proveedor, Tarea, TareaAntiguaAgenda} from '../../core/models/models';
+import {EstadoTarea, Proveedor, Tarea, TareaAntiguaAgenda, TareaCronograma} from '../../core/models/models';
 import {environment} from '../../../environments/environment';
 
 export interface TareaPayload {
@@ -15,6 +15,7 @@ export interface TareaPayload {
   descripcion?: string;
    porcentaje?: number;
   fecha_inicio?: string;
+  fecha_fin?: string;
 }
 
 @Injectable({providedIn: 'root'})
@@ -25,6 +26,11 @@ export class TareasService {
   tareas$ = this.tareasSubject.asObservable();
 
   constructor(private http: HttpClient) {
+  }
+
+  // ✅ Todas las tareas activas de la organización, cruzando obras (módulo general Diagrama de Gantt)
+  getTareasActivas(): Observable<TareaCronograma[]> {
+    return this.http.get<TareaCronograma[]>(this.apiUrl);
   }
 
   // ✅ Obtener tareas de una obra

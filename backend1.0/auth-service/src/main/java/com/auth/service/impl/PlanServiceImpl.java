@@ -6,6 +6,7 @@ import com.auth.dto.PlanResponse;
 import com.auth.entity.Organizacion;
 import com.auth.entity.Plan;
 import com.auth.entity.Suscripcion;
+import com.auth.exception.AuthException;
 import com.auth.exception.ResourceNotFoundException;
 import com.auth.repository.OrganizacionRepository;
 import com.auth.repository.PlanRepository;
@@ -16,6 +17,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -111,6 +115,39 @@ public class PlanServiceImpl implements PlanService {
                     suscripcionRepository.save(s);
                     log.info("Suscripción {} cancelada para organización {}", s.getId(), organizacionId);
                 });
+    }
+
+    @Override
+    public MiPlanResponse iniciarPrueba(Long organizacionId) {
+        Organizacion org = organizacionRepository.findById(organizacionId)
+                .orElseThrow(() -> new ResourceNotFoundException("Organización " + organizacionId + " no existe"));
+
+        suscripcionRepository.findActivaByOrganizacionId(organizacionId).ifPresent(s -> {
+            throw new AuthException("Tu organización ya tiene una suscripción activa");
+        });
+
+        Plan planProfesional = planRepository.findByCodigo("PROFESIONAL")
+                .orElseThrow(() -> new IllegalStateException("Plan PROFESIONAL no configurado"));
+
+        Instant ahora = Instant.now();
+        Suscripcion suscripcion = Suscripcion.builder()
+                .organizacionId(organizacionId)
+                .plan(planProfesional)
+                .estado("TRIAL")
+                .ciclo("MENSUAL")
+                .precioBaseUsd(planProfesional.getPrecioMensualUsd())
+                .descuentoAplicadoUsd(BigDecimal.ZERO)
+                .precioFinalUsd(BigDecimal.ZERO)
+                .fechaInicio(ahora)
+                .fechaVencimiento(ahora.plus(15, ChronoUnit.DAYS))
+                .build();
+        suscripcionRepository.save(suscripcion);
+
+        org.setPlan(planProfesional);
+        organizacionRepository.save(org);
+
+        log.info("Prueba de 15 días iniciada para organización {} (plan PROFESIONAL)", organizacionId);
+        return obtenerMiPlan(organizacionId);
     }
 
     // --- helpers privados ---

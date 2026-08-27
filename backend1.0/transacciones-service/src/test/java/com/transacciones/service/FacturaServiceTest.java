@@ -3,8 +3,6 @@ package com.transacciones.service;
 import com.transacciones.dto.FacturaDto;
 import com.transacciones.dto.ObraResumenDto;
 import com.transacciones.entity.Factura;
-import com.transacciones.entity.Transaccion;
-import com.transacciones.enums.TipoTransaccionEnum;
 import com.transacciones.repository.FacturaRepository;
 import com.transacciones.repository.TransaccionRepository;
 import org.junit.jupiter.api.Test;
@@ -42,14 +40,14 @@ class FacturaServiceTest {
     @Mock
     private ObraCostoClient obraCostoClient;
 
+    @Mock
+    private DocumentoClient documentoClient;
+
     @InjectMocks
     private FacturaService service;
 
     @Captor
     private ArgumentCaptor<Factura> facturaCaptor;
-
-    @Captor
-    private ArgumentCaptor<Transaccion> transaccionCaptor;
 
     @TempDir
     Path tempDir;
@@ -100,34 +98,26 @@ class FacturaServiceTest {
     }
 
     @Test
-    void crear_con_impacto_crea_transaccion() {
+    void crear_con_impacto_no_crea_transaccion_funcionalidad_deshabilitada() {
+        // "Impacta cta. cte." está deshabilitada a pedido (ver FacturaService.crear):
+        // aunque el DTO pida impactar, no debe tocar transaccionRepository para nada.
         ObraResumenDto obra = new ObraResumenDto();
         obra.setPresupuesto(200d);
         when(obraCostoClient.obtenerObra(2L)).thenReturn(obra);
         when(facturaRepository.findByIdObra(2L)).thenReturn(List.of());
-        when(transaccionRepository.sumarCobrosPorObra(2L)).thenReturn(0d);
-        when(transaccionRepository.save(any(Transaccion.class))).thenAnswer(invocation -> {
-            Transaccion t = invocation.getArgument(0);
-            t.setId(9L);
-            return t;
-        });
         when(facturaRepository.save(any(Factura.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
         FacturaDto dto = baseDto();
         dto.setImpacta_cta_cte(true);
 
-        service.crear(dto, null);
+        FacturaDto result = service.crear(dto, null);
 
-        verify(transaccionRepository).save(transaccionCaptor.capture());
-        assertEquals("CLIENTE", transaccionCaptor.getValue().getTipoAsociado());
-        assertEquals(TipoTransaccionEnum.COBRO, transaccionCaptor.getValue().getTipo_transaccion());
-        verify(facturaRepository).save(facturaCaptor.capture());
-        assertEquals(9L, facturaCaptor.getValue().getIdTransaccion());
+        verify(transaccionRepository, never()).save(any());
+        assertNull(result.getId_transaccion());
     }
 
     @Test
-    void crear_con_archivo_guarda_path_y_nombre() {
-        ReflectionTestUtils.setField(service, "uploadDirBase", tempDir.toString());
+    void crear_con_archivo_lo_sube_a_documentos_service() {
         ObraResumenDto obra = new ObraResumenDto();
         obra.setPresupuesto(200d);
         when(obraCostoClient.obtenerObra(2L)).thenReturn(obra);
@@ -136,13 +126,14 @@ class FacturaServiceTest {
 
         FacturaDto dto = baseDto();
         MockMultipartFile file = new MockMultipartFile("file", "mi factura.pdf", "application/pdf", "data".getBytes());
+        when(documentoClient.subirDocumentoFactura(2L, 1L, file)).thenReturn(77L);
 
         service.crear(dto, file);
 
         verify(facturaRepository).save(facturaCaptor.capture());
         Factura saved = facturaCaptor.getValue();
-        assertNotNull(saved.getPathArchivo());
-        assertTrue(saved.getPathArchivo().startsWith("facturas/1/"));
+        assertEquals(77L, saved.getIdDocumento());
+        assertNull(saved.getPathArchivo());
         assertEquals("mi factura.pdf", saved.getNombreArchivo());
     }
 
@@ -198,17 +189,21 @@ class FacturaServiceTest {
 
         FacturaDto dto = baseDto();
         MockMultipartFile file = new MockMultipartFile("file", "nuevo.txt", "text/plain", "data".getBytes());
+        when(documentoClient.subirDocumentoFactura(2L, 1L, file)).thenReturn(88L);
 
         service.actualizar(11L, dto, file);
 
         assertFalse(Files.exists(oldFile));
         verify(facturaRepository).save(facturaCaptor.capture());
         assertEquals("nuevo.txt", facturaCaptor.getValue().getNombreArchivo());
-        assertNotNull(facturaCaptor.getValue().getPathArchivo());
+        assertEquals(88L, facturaCaptor.getValue().getIdDocumento());
+        assertNull(facturaCaptor.getValue().getPathArchivo());
     }
 
     @Test
-    void actualizar_sin_impacto_elimina_transaccion() {
+    void actualizar_sin_impacto_no_toca_transaccion() {
+        // Funcionalidad deshabilitada: actualizar ya no borra la transacción asociada
+        // aunque impacta_cta_cte venga en false, para no alterar datos históricos.
         Factura existente = Factura.builder()
                 .id(1L)
                 .idCliente(1L)
@@ -230,13 +225,13 @@ class FacturaServiceTest {
 
         service.actualizar(1L, dto, null);
 
-        verify(transaccionRepository).deleteById(10L);
+        verify(transaccionRepository, never()).deleteById(any());
         verify(facturaRepository).save(facturaCaptor.capture());
-        assertNull(facturaCaptor.getValue().getIdTransaccion());
+        assertEquals(10L, facturaCaptor.getValue().getIdTransaccion());
     }
 
     @Test
-    void actualizar_con_impacto_crea_o_actualiza_transaccion_existente() {
+    void actualizar_con_impacto_no_crea_ni_actualiza_transaccion_funcionalidad_deshabilitada() {
         Factura existente = Factura.builder()
                 .id(12L)
                 .idCliente(1L)
@@ -251,12 +246,6 @@ class FacturaServiceTest {
         obra.setPresupuesto(200d);
         when(obraCostoClient.obtenerObra(2L)).thenReturn(obra);
         when(facturaRepository.findByIdObra(2L)).thenReturn(List.of(existente));
-        when(transaccionRepository.sumarCobrosPorObra(2L)).thenReturn(0d);
-        Transaccion transaccionExistente = new Transaccion();
-        transaccionExistente.setId(20L);
-        transaccionExistente.setIdObra(2L);
-        when(transaccionRepository.findById(20L)).thenReturn(Optional.of(transaccionExistente));
-        when(transaccionRepository.save(any(Transaccion.class))).thenAnswer(invocation -> invocation.getArgument(0));
         when(facturaRepository.save(any(Factura.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
         FacturaDto dto = baseDto();
@@ -264,8 +253,7 @@ class FacturaServiceTest {
 
         service.actualizar(12L, dto, null);
 
-        verify(transaccionRepository).save(transaccionCaptor.capture());
-        assertEquals(20L, transaccionCaptor.getValue().getId());
+        verify(transaccionRepository, never()).save(any());
         verify(facturaRepository).save(facturaCaptor.capture());
         assertEquals(20L, facturaCaptor.getValue().getIdTransaccion());
     }

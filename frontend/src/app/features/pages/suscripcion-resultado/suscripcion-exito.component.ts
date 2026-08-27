@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
 import { PlanService } from '../../../services/plan/plan.service';
+import { OnboardingService } from '../../../core/services/onboarding.service';
 import { environment } from '../../../../environments/environment';
 import { catchError, of } from 'rxjs';
 
@@ -20,7 +21,7 @@ import { catchError, of } from 'rxjs';
         <p class="estado-badge" [class.pendiente]="estadoLocal() === 'PENDIENTE_PAGO'">
           Estado: {{ estadoLocal() || 'verificando...' }}
         </p>
-        <button class="btn-primary" (click)="irAlDashboard()">Ir al Dashboard</button>
+        <button class="btn-primary" (click)="continuar()">{{ enOnboarding ? 'Configurar mi empresa' : 'Ir al Dashboard' }}</button>
       </div>
       <ng-template #loader>
         <div class="resultado-card exito">
@@ -46,7 +47,12 @@ import { catchError, of } from 'rxjs';
 export class SuscripcionExitoComponent implements OnInit {
   private router = inject(Router);
   private planService = inject(PlanService);
+  private onboardingService = inject(OnboardingService);
   private http = inject(HttpClient);
+
+  get enOnboarding(): boolean {
+    return this.onboardingService.activo();
+  }
 
   cargando = signal(true);
   estadoLocal = signal<string>('');
@@ -67,7 +73,7 @@ export class SuscripcionExitoComponent implements OnInit {
     });
   }
 
-  irAlDashboard(): void {
-    this.router.navigate(['/dashboard']);
+  continuar(): void {
+    this.router.navigate([this.enOnboarding ? '/configuracion' : '/dashboard']);
   }
 }

@@ -34,7 +34,7 @@ class ProveedorBffControllerTest {
         ResponseEntity<List<Map<String, Object>>> listResp = controller.getAllProveedores(null, null, null, null, "1").block();
         ResponseEntity<List<Map<String, Object>>> listAllResp = controller.getAllProveedoresSinFiltro().block();
         ResponseEntity<Map<String, Object>> getResp = controller.getProveedorById(1L).block();
-        ResponseEntity<Map<String, Object>> createResp = controller.crearProveedor(Map.of("x", 1), null, null, null).block();
+        ResponseEntity<Map<String, Object>> createResp = controller.crearProveedor(Map.of("x", 1), null, null, null, null).block();
         ResponseEntity<Map<String, Object>> updateResp = controller.actualizarProveedor(1L, Map.of("x", 2)).block();
         ResponseEntity<Void> deleteResp = controller.eliminarProveedor(1L).block();
 

@@ -63,10 +63,11 @@ class ObrasControllerTest {
         dto.setId_cliente(1L);
         dto.setId_grupo(1L);
 
-        when(svc.crear(any(), any())).thenReturn(dto);
+        when(svc.crear(any())).thenReturn(dto);
 
         mockMvc.perform(post("/api/obras")
                 .contentType(MediaType.APPLICATION_JSON)
+                .header("X-Plan-Limites", "{\"maxObrasActivas\":null}")
                 .content(objectMapper.writeValueAsString(dto)))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.id").value(1L))
@@ -98,7 +99,7 @@ class ObrasControllerTest {
     void listar_ok() throws Exception {
         ObraDTO dto = new ObraDTO();
         dto.setId(3L);
-        when(svc.listar(any(Pageable.class), any())).thenReturn(new PageImpl<>(List.of(dto)));
+        when(svc.listar(any(), any(Pageable.class))).thenReturn(new PageImpl<>(List.of(dto)));
 
         mockMvc.perform(get("/api/obras"))
             .andExpect(status().isOk())

@@ -32,7 +32,7 @@
     <p-table
       [value]="transacciones"
       responsiveLayout="scroll"
-      class="text-sm p-datatable-sm border border-gray-200 rounded-lg overflow-hidden"
+      class="text-sm p-datatable-smborder-gray-200 rounded-lg overflow-hidden"
     >
       <ng-template pTemplate="header">
         <tr class="bg-gray-50 text-gray-700">
@@ -306,27 +306,33 @@
         ></p-select>
       }
 
-      <label class="block text-sm font-poppins font-semibold mb-1 text-gray-700">
-        Medio de pago/cobro
-      </label>
-      <input
-        type="text"
-        pInputText
-        [(ngModel)]="nuevoMovimiento.medio_pago"
-        class="w-full"
-        placeholder="Ej: Transferencia, Efectivo, Cheque"
-      />
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+        <div>
+          <label class="block text-sm font-poppins font-semibold mb-1 text-gray-700">
+            Medio de pago/cobro
+          </label>
+          <input
+            type="text"
+            pInputText
+            [(ngModel)]="nuevoMovimiento.medio_pago"
+            class="w-full"
+            placeholder="Ej: Transferencia, Efectivo, Cheque"
+          />
+        </div>
 
-      <label class="block text-sm font-poppins font-semibold mb-1 text-gray-700">
-        Concepto <span class="text-gray-500 text-xs">(opcional)</span>
-      </label>
-      <input
-        type="text"
-        pInputText
-        [(ngModel)]="nuevoMovimiento.concepto"
-        class="w-full"
-        placeholder="Ej: Adelanto de pago, Comisión, etc."
-      />
+        <div>
+          <label class="block text-sm font-poppins font-semibold mb-1 text-gray-700">
+            Concepto <span class="text-gray-500 text-xs">(opcional)</span>
+          </label>
+          <input
+            type="text"
+            pInputText
+            [(ngModel)]="nuevoMovimiento.concepto"
+            class="w-full"
+            placeholder="Ej: Adelanto de pago, Comisión, etc."
+          />
+        </div>
+      </div>
 
       <!-- Monto y Fecha -->
       <div class="flex gap-5">

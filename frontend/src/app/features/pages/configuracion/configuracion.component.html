@@ -2,11 +2,8 @@
 
 <div class="config-layout">
 
-  <!-- Columna izquierda -->
-  <div class="config-col">
-
     <!-- Mi perfil -->
-    <div class="config-card">
+    <div class="config-card config-card--left">
       <h2 class="config-card-title">
         <i class="pi pi-user"></i> Mi perfil
       </h2>
@@ -32,16 +29,68 @@
           <input pInputText formControlName="email" type="email" class="w-full" placeholder="tu@email.com">
           <small class="text-red-600" *ngIf="formPerfil.get('email')?.invalid && formPerfil.get('email')?.touched">Email válido requerido</small>
         </div>
-        <div class="flex justify-end">
-          <p-button type="submit" label="Guardar perfil" icon="pi pi-save"
-            [loading]="guardandoPerfil" [disabled]="formPerfil.invalid || guardandoPerfil" severity="secondary">
-          </p-button>
-        </div>
       </form>
     </div>
 
+    <!-- Empresa (solo ADMIN) — misma fila que Mi perfil -->
+    @if (isAdmin) {
+      <form [formGroup]="formEmpresa" (ngSubmit)="guardarEmpresa()" style="display: contents">
+        <div class="config-card config-card--right">
+          <h2 class="config-card-title">
+            <i class="pi pi-building"></i> Empresa
+          </h2>
+          <div class="space-y-4">
+            <div class="grid grid-cols-2 gap-3">
+              <div>
+                <label class="field-label">Nombre de la empresa <span class="text-red-500">*</span></label>
+                <input pInputText formControlName="empresa_nombre" class="w-full" placeholder="Ej: Meliquina Construcciones">
+              </div>
+              <div>
+                <label class="field-label">Nombre del propietario <span class="text-red-500">*</span></label>
+                <input pInputText formControlName="propietario_nombre" class="w-full" placeholder="Ej: Pablo Pezzini">
+                <p class="text-xs text-gray-400 mt-1">Aparece en el header como "Bienvenido, [nombre]".</p>
+              </div>
+            </div>
+            <div>
+              <label class="field-label">Logo de la empresa</label>
+              <div
+                class="border-2 border-dashed rounded-lg p-6 text-center transition-colors cursor-pointer"
+                [class.border-blue-400]="logoDragOver"
+                [class.bg-blue-50]="logoDragOver"
+                [class.border-gray-300]="!logoDragOver"
+                [class.bg-gray-50]="!logoDragOver"
+                (dragover)="onLogoDragOver($event)"
+                (dragleave)="onLogoDragLeave()"
+                (drop)="onLogoDrop($event)"
+                (click)="logoFileInput.click()">
+
+                @if (logoUploading) {
+                  <div class="flex flex-col items-center gap-2">
+                    <i class="pi pi-spin pi-spinner text-2xl text-blue-500"></i>
+                    <span class="text-sm text-gray-500 font-poppins">Subiendo...</span>
+                  </div>
+                } @else if (formEmpresa.get('logo_url')?.value) {
+                  <div class="flex flex-col items-center gap-3">
+                    <img [src]="formEmpresa.get('logo_url')?.value" alt="Logo" class="h-16 object-contain" onerror="this.style.display='none'">
+                    <span class="text-xs text-gray-400 font-poppins">Clic o arrastrá para reemplazar</span>
+                  </div>
+                } @else {
+                  <div class="flex flex-col items-center gap-2">
+                    <i class="pi pi-image text-3xl text-gray-400"></i>
+                    <span class="text-sm text-gray-600 font-poppins font-semibold">Arrastrá tu logo aquí</span>
+                    <span class="text-xs text-gray-400 font-poppins">o clic para seleccionar · PNG, JPG, SVG</span>
+                  </div>
+                }
+              </div>
+              <input #logoFileInput type="file" accept="image/*" class="hidden" (change)="onLogoFileSelected($event)">
+            </div>
+          </div>
+        </div>
+      </form>
+    }
+
     <!-- Cambiar contraseña -->
-    <div class="config-card">
+    <div class="config-card config-card--left">
       <h2 class="config-card-title">
         <i class="pi pi-lock"></i> Cambiar contraseña
       </h2>
@@ -78,101 +127,46 @@
       </form>
     </div>
 
-  </div>
-
-  <!-- Columna derecha (solo ADMIN) -->
-  @if (isAdmin) {
-    <form [formGroup]="formEmpresa" (ngSubmit)="guardarEmpresa()" class="config-col">
-
-      <!-- Datos empresa -->
-      <div class="config-card">
-        <h2 class="config-card-title">
-          <i class="pi pi-building"></i> Empresa
-        </h2>
-        <div class="space-y-4">
+    <!-- WhatsApp (solo ADMIN) — misma fila que Cambiar contraseña -->
+    @if (isAdmin) {
+      <form [formGroup]="formEmpresa" style="display: contents">
+        <div class="config-card config-card--right">
+          <h2 class="config-card-title">
+            <i class="pi pi-comment"></i> Notificaciones WhatsApp
+          </h2>
           <div>
-            <label class="field-label">Nombre de la empresa <span class="text-red-500">*</span></label>
-            <input pInputText formControlName="empresa_nombre" class="w-full" placeholder="Ej: Meliquina Construcciones">
-          </div>
-          <div>
-            <label class="field-label">Nombre del propietario <span class="text-red-500">*</span></label>
-            <input pInputText formControlName="propietario_nombre" class="w-full" placeholder="Ej: Pablo Pezzini">
-            <p class="text-xs text-gray-400 mt-1">Aparece en el header como "Bienvenido, [nombre]".</p>
-          </div>
-          <div>
-            <label class="field-label">Logo de la empresa</label>
-            <div
-              class="border-2 border-dashed rounded-lg p-6 text-center transition-colors cursor-pointer"
-              [class.border-blue-400]="logoDragOver"
-              [class.bg-blue-50]="logoDragOver"
-              [class.border-gray-300]="!logoDragOver"
-              [class.bg-gray-50]="!logoDragOver"
-              (dragover)="onLogoDragOver($event)"
-              (dragleave)="onLogoDragLeave()"
-              (drop)="onLogoDrop($event)"
-              (click)="logoFileInput.click()">
+            <label class="field-label">Teléfono responsable</label>
+            <input pInputText formControlName="whatsapp_owner_phone" class="w-full"
+              placeholder="549XXXXXXXXXX (sin + ni espacios)">
+            <p class="text-xs text-gray-400 mt-1">
+              Formato: <strong>549</strong> + código de área (sin 0) + número (sin 15). Ej: <strong>5491123456789</strong>
+            </p>
 
-              @if (logoUploading) {
-                <div class="flex flex-col items-center gap-2">
-                  <i class="pi pi-spin pi-spinner text-2xl text-blue-500"></i>
-                  <span class="text-sm text-gray-500 font-poppins">Subiendo...</span>
+            @if (phoneVacio) {
+              <div class="mt-3 flex items-start gap-2 bg-amber-50 border border-amber-200 rounded-lg p-3">
+                <i class="pi pi-exclamation-triangle text-amber-500 mt-0.5 flex-shrink-0"></i>
+                <div>
+                  <p class="text-sm font-poppins font-semibold text-amber-800">Sin teléfono configurado</p>
+                  <p class="text-xs text-amber-700 mt-0.5">No se enviarán notificaciones de agenda por WhatsApp.</p>
                 </div>
-              } @else if (formEmpresa.get('logo_url')?.value) {
-                <div class="flex flex-col items-center gap-3">
-                  <img [src]="formEmpresa.get('logo_url')?.value" alt="Logo" class="h-16 object-contain" onerror="this.style.display='none'">
-                  <span class="text-xs text-gray-400 font-poppins">Clic o arrastrá para reemplazar</span>
-                </div>
-              } @else {
-                <div class="flex flex-col items-center gap-2">
-                  <i class="pi pi-image text-3xl text-gray-400"></i>
-                  <span class="text-sm text-gray-600 font-poppins font-semibold">Arrastrá tu logo aquí</span>
-                  <span class="text-xs text-gray-400 font-poppins">o clic para seleccionar · PNG, JPG, SVG</span>
-                </div>
-              }
-            </div>
-            <input #logoFileInput type="file" accept="image/*" class="hidden" (change)="onLogoFileSelected($event)">
-          </div>
-        </div>
-      </div>
-
-      <!-- WhatsApp -->
-      <div class="config-card">
-        <h2 class="config-card-title">
-          <i class="pi pi-comment"></i> Notificaciones WhatsApp
-        </h2>
-        <div>
-          <label class="field-label">Teléfono responsable</label>
-          <input pInputText formControlName="whatsapp_owner_phone" class="w-full"
-            placeholder="549XXXXXXXXXX (sin + ni espacios)">
-          <p class="text-xs text-gray-400 mt-1">
-            Formato: <strong>549</strong> + código de área (sin 0) + número (sin 15). Ej: <strong>5491123456789</strong>
-          </p>
-
-          @if (phoneVacio) {
-            <div class="mt-3 flex items-start gap-2 bg-amber-50 border border-amber-200 rounded-lg p-3">
-              <i class="pi pi-exclamation-triangle text-amber-500 mt-0.5 flex-shrink-0"></i>
-              <div>
-                <p class="text-sm font-poppins font-semibold text-amber-800">Sin teléfono configurado</p>
-                <p class="text-xs text-amber-700 mt-0.5">No se enviarán notificaciones de agenda por WhatsApp.</p>
               </div>
-            </div>
-          } @else {
-            <div class="mt-3 flex items-center gap-2 bg-green-50 border border-green-200 rounded-lg p-3">
-              <i class="pi pi-check-circle text-green-500 flex-shrink-0"></i>
-              <p class="text-sm font-poppins text-green-800">Las notificaciones se enviarán al número configurado.</p>
-            </div>
-          }
+            } @else {
+              <div class="mt-3 flex items-center gap-2 bg-green-50 border border-green-200 rounded-lg p-3">
+                <i class="pi pi-check-circle text-green-500 flex-shrink-0"></i>
+                <p class="text-sm font-poppins text-green-800">Las notificaciones se enviarán al número configurado.</p>
+              </div>
+            }
+          </div>
         </div>
-      </div>
+      </form>
+    }
 
-      <!-- Guardar -->
-      <div class="flex justify-end">
-        <p-button type="submit" label="Guardar cambios" icon="pi pi-save"
-          [loading]="guardandoEmpresa" [disabled]="formEmpresa.invalid || guardandoEmpresa">
-        </p-button>
-      </div>
+</div>
 
-    </form>
-  }
-
+<!-- Guardar (global): perfil + empresa, un solo botón para todo -->
+<div class="flex justify-end mt-5">
+  <p-button label="Guardar cambios" icon="pi pi-save" (onClick)="guardarTodo()"
+    [loading]="guardandoPerfil || guardandoEmpresa"
+    [disabled]="!hayCambiosSinGuardar || guardandoPerfil || guardandoEmpresa">
+  </p-button>
 </div>

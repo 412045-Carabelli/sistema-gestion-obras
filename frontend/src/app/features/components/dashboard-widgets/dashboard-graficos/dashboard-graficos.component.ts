@@ -20,11 +20,22 @@ const ESTADO_LABELS: Record<string, string> = {
   SIN_ESTADO: 'Sin estado',
 };
 
-// Orden categórico fijo (nunca ciclar/regenerar) — cada estado toma el siguiente slot disponible.
-const ESTADO_ORDEN = [
-  'EN_PROGRESO', 'ADJUDICADA', 'FINALIZADA', 'FACTURADA', 'COBRADA',
-  'FACTURADA_PARCIAL', 'PENDIENTE', 'PERDIDA', 'CANCELADA', 'SIN_ESTADO'
-];
+// Mismos colores que los badges de estado del listado de obras (obras-list.component.ts
+// getEstadoSeverity) — success/info/warn/danger/contrast/secondary de PrimeNG Aura.
+const ESTADO_COLORS: Record<string, string> = {
+  PRESUPUESTADA: '#64748b',       // secondary
+  COTIZADA: '#ea580c',            // warn
+  ADJUDICADA: '#16a34a',          // success
+  EN_PROGRESO: '#0284c7',         // info
+  FINALIZADA: '#111827',          // contrast
+  PERDIDA: '#dc2626',             // danger
+  FACTURADA_PARCIAL: '#16a34a',   // success
+  FACTURADA: '#16a34a',           // success
+  COBRADA: '#16a34a',             // success
+  PENDIENTE: '#64748b',
+  CANCELADA: '#dc2626',
+  SIN_ESTADO: '#64748b',
+};
 
 @Component({
   selector: 'app-dashboard-graficos',
@@ -77,8 +88,7 @@ export class DashboardGraficosComponent implements OnInit, OnDestroy {
   }
 
   private colorEstado(estado: string): string {
-    const idx = ESTADO_ORDEN.indexOf(estado);
-    return CHART_CATEGORICAL[idx >= 0 ? idx % CHART_CATEGORICAL.length : CHART_CATEGORICAL.length - 1];
+    return ESTADO_COLORS[estado] ?? '#64748b';
   }
 
   private construirPie(data: DashboardGraficosResponse): void {

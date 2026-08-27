@@ -1,6 +1,6 @@
 import { Injectable, signal, computed, inject, Injector } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { catchError, of } from 'rxjs';
+import { catchError, map, of, tap } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import {
   PlanConfig,
@@ -72,6 +72,38 @@ export class PlanService {
   /** Limpia el plan al hacer logout */
   clear(): void {
     this._planConfig.set(null);
+  }
+
+  /** Inicia la prueba gratuita de 15 días (acceso completo a PROFESIONAL). Usar tras registro. */
+  iniciarPrueba() {
+    const http = this.injector.get(HttpClient);
+    return http.post<any>(`${this.apiUrl}/auth/mi-suscripcion/prueba`, {}).pipe(
+      tap(() => this.fetchMiPlan())
+    );
+  }
+
+  /**
+   * Consulta en vivo el estado real de la suscripción (ACTIVA/TRIAL/VENCIDA/etc).
+   * Usado por planActivoGuard antes de cada navegación a una ruta protegida —
+   * evita depender del claim optimista 'ACTIVA' que trae el JWT recién logueado.
+   * 'FREE' significa que la organización nunca contrató nada (usuario nuevo);
+   * cualquier otro estado no permitido implica que tuvo una suscripción y se cayó.
+   *
+   * Ojo: suscripcionEstado sale de la fila en `suscripciones`, que puede no existir
+   * aunque la organización SÍ tenga un plan pago asignado directamente (org.plan) —
+   * por eso también se permite el acceso si planCodigo no es FREE, sin importar el
+   * estado de la suscripción.
+   */
+  verificarAcceso() {
+    const http = this.injector.get(HttpClient);
+    return http.get<any>(`${this.apiUrl}/auth/mi-plan`).pipe(
+      tap(data => this._planConfig.set(this.mapBackendResponse(data))),
+      map(data => ({
+        ok: data.planCodigo !== 'FREE' || data.suscripcionEstado === 'ACTIVA' || data.suscripcionEstado === 'TRIAL',
+        estado: data.suscripcionEstado as string
+      })),
+      catchError(() => of({ ok: false, estado: 'FREE' }))
+    );
   }
 
   // --- Feature gating ---

@@ -1,25 +1,36 @@
-/* Layout de 2 columnas en desktop/tablet, 1 en mobile */
+/* Layout de 2 columnas en desktop/tablet, 1 en mobile. Cada card se ubica explícitamente
+   en su columna (izquierda: Mi perfil/Contraseña, derecha: Empresa/WhatsApp) para que
+   queden pareadas fila a fila y `align-items: stretch` las estire a la misma altura. */
 .config-layout {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 24px;
-  align-items: start;
+  align-items: stretch;
   width: 100%;
+}
+
+.config-card--left {
+  grid-column: 1;
+}
+
+.config-card--right {
+  grid-column: 2;
 }
 
 @media (max-width: 900px) {
   .config-layout {
     grid-template-columns: 1fr;
   }
-}
 
-.config-col {
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
+  .config-card--left,
+  .config-card--right {
+    grid-column: 1;
+  }
 }
 
 .config-card {
+  display: flex;
+  flex-direction: column;
   background: #fff;
   border-radius: 12px;
   border: 1px solid #e5e7eb;

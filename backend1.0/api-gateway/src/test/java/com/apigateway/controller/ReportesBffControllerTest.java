@@ -25,9 +25,8 @@ class ReportesBffControllerTest {
         stub.stub(HttpMethod.POST, baseUrl + "/financieros/dashboard", HttpStatus.OK, Map.of("total", 99));
         stub.stub(HttpMethod.POST, baseUrl + "/financieros/pendientes", HttpStatus.OK, Map.of("total", 3));
         stub.stub(HttpMethod.GET, baseUrl + "/cuenta-corriente/obra/1", HttpStatus.OK, Map.of("obraId", 1));
-        stub.stub(HttpMethod.GET, baseUrl + "/cuenta-corriente/proveedor/10", HttpStatus.OK, Map.of("proveedorId", 10));
-        stub.stub(HttpMethod.GET, baseUrl + "/comisiones/obra/1", HttpStatus.OK, Map.of("obraId", 1));
-        stub.stub(HttpMethod.GET, baseUrl + "/comisiones/general", HttpStatus.OK, Map.of("total", 4));
+        stub.stub(HttpMethod.POST, baseUrl + "/financieros/cuenta-corriente-proveedor", HttpStatus.OK, Map.of("proveedorId", 10));
+        stub.stub(HttpMethod.POST, baseUrl + "/comisiones/general", HttpStatus.OK, Map.of("total", 4));
         stub.stub(HttpMethod.POST, baseUrl + "/operativos/estado-obras", HttpStatus.OK, Map.of("total", 5));
         stub.stub(HttpMethod.POST, baseUrl + "/operativos/avance-tareas", HttpStatus.OK, Map.of("total", 6));
         stub.stub(HttpMethod.POST, baseUrl + "/operativos/costos-categoria", HttpStatus.OK, Map.of("total", 7));
@@ -76,10 +75,8 @@ class ReportesBffControllerTest {
         assertThat(notas.getBody()).hasSize(1);
         assertThat(nota.getStatusCode()).isEqualTo(HttpStatus.OK);
 
+        // cuentaCorrienteObra valida obraId requerido; cuentaCorrienteProveedor solo proxea el filtro tal cual.
         ResponseEntity<Object> badObra = controller.cuentaCorrienteObra(Map.of()).block();
-        ResponseEntity<Object> badProv = controller.cuentaCorrienteProveedor(Map.of()).block();
-
         assertThat(badObra.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
-        assertThat(badProv.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
     }
 }

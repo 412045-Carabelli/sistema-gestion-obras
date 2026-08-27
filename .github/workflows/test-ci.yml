@@ -79,6 +79,11 @@ jobs:
           key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
           restore-keys: ${{ runner.os }}-maven-
 
+      - name: Install parent POM
+        run: |
+          cd backend1.0
+          mvn -B -N install
+
       - name: Install common module
         run: |
           cd backend1.0/common

@@ -1,0 +1,274 @@
+@if (!modoEmbebido) {
+<app-layout-header type="list" title="Diagrama de Gantt" subtitle="Cronograma de gremios y proveedores en tus obras adjudicadas">
+  <p-button
+    header-actions
+    label="Nueva Tarea"
+    icon="pi pi-plus"
+    (onClick)="abrirModalCrear()"
+    class="btn-mobile-icon"
+    styleClass="p-button">
+  </p-button>
+</app-layout-header>
+}
+
+<div [class.p-5]="!modoEmbebido" [class.bg-gray-50]="!modoEmbebido">
+<p-toast position="bottom-right"></p-toast>
+<p-confirmDialog></p-confirmDialog>
+
+@if (!datosCargados()) {
+  <app-table-skeleton [rows]="6"></app-table-skeleton>
+} @else {
+
+<!-- Barra de filtros + controles -->
+<div class="bg-white rounded-lg shadow-sm border border-gray-100 p-4 mb-4">
+  <div class="gantt-bar-wrapper">
+    <div class="gantt-bar-filters">
+      <div class="filter-field">
+        <label class="filter-label">Buscar</label>
+        <input
+          pInputText
+          [value]="searchValue()"
+          (input)="onSearchInput($event)"
+          placeholder="Tarea, proveedor o gremio"
+          class="filter-input" />
+      </div>
+
+      @if (!modoEmbebido) {
+      <div class="filter-field">
+        <label class="filter-label">Obra</label>
+        <p-select
+          [ngModel]="obraFiltro()"
+          (ngModelChange)="onObraFiltroChange($event)"
+          [options]="obraFiltroOptions()"
+          optionLabel="label"
+          optionValue="value"
+          placeholder="Todas"
+          [showClear]="true"
+          [filter]="true"
+          appendTo="body"
+          styleClass="filter-select">
+        </p-select>
+      </div>
+      }
+    </div>
+
+    <div class="filter-actions">
+      <p-button label="Limpiar" icon="pi pi-times" severity="secondary" (onClick)="onClearFilters()"></p-button>
+    </div>
+  </div>
+</div>
+
+<!-- Controles gantt: año + leyenda -->
+<div class="gantt-controls-row">
+  <div class="gantt-controls-left">
+    <div class="filter-field">
+      <label class="filter-label">Año</label>
+      <div class="ctrl-year">
+        <button class="ctrl-year-btn" (click)="prevYear()"><i class="pi pi-chevron-left"></i></button>
+        <span class="ctrl-year-label">{{ yearSelected() }}</span>
+        <button class="ctrl-year-btn" (click)="nextYear()"><i class="pi pi-chevron-right"></i></button>
+      </div>
+    </div>
+  </div>
+
+  <div class="gantt-legend-bar">
+    <span class="legend-item">
+      <span class="legend-dot dot-pendiente"></span>
+      <span class="legend-text">Pendiente ({{ resumen().pendiente }})</span>
+    </span>
+    <span class="legend-item">
+      <span class="legend-dot dot-en-progreso"></span>
+      <span class="legend-text">En Progreso ({{ resumen().enProgreso }})</span>
+    </span>
+    <span class="legend-item">
+      <span class="legend-dot dot-completada"></span>
+      <span class="legend-text">Completada ({{ resumen().completada }})</span>
+    </span>
+  </div>
+</div>
+
+<!-- Tabla Gantt -->
+<div class="gantt-outer">
+  @if (ganttRows().length === 0) {
+    <div class="gantt-empty">
+      <i class="pi pi-calendar text-4xl mb-2 text-gray-300"></i>
+      <p class="text-gray-500 font-medium">No hay tareas para mostrar</p>
+      <p class="text-gray-400 text-sm">
+        @if (!modoEmbebido && obrasAdjudicadas().length === 0) {
+          No tenés obras adjudicadas o en progreso todavía.
+        } @else {
+          Cambiá los filtros o cargá una nueva tarea.
+        }
+      </p>
+    </div>
+  } @else {
+    <div class="gantt-scroll-wrapper">
+      <div class="gantt-table">
+
+        <!-- Cabecera -->
+        <div class="gantt-row gantt-header-row">
+          <div class="gantt-label-col">
+            <span class="header-label-text">Tarea</span>
+          </div>
+          <div class="gantt-timeline-col">
+            @for (month of months(); track month.index) {
+              <div
+                class="gantt-month-cell"
+                [class.gantt-month-alt]="month.index % 2 === 1"
+                [style.left.%]="month.left"
+                [style.width.%]="month.width">
+                {{ month.name }}
+              </div>
+            }
+          </div>
+        </div>
+
+        <!-- Filas de datos -->
+        @for (row of ganttRows(); track row.tarea.id; let odd = $odd) {
+          <div
+            class="gantt-row gantt-data-row"
+            [class.gantt-row-odd]="odd"
+            [class.gantt-row-completed]="row.tarea.estado_tarea === 'COMPLETADA'"
+            (click)="abrirModalDetalle(row)">
+
+            <div class="gantt-label-col" [class.gantt-label-odd]="odd">
+              <div class="task-name-wrapper">
+                <span class="task-dot" [ngClass]="row.dotClass"></span>
+                <div class="task-info">
+                  <span class="task-title" [title]="row.tarea.nombre">{{ row.tarea.nombre }}</span>
+                  <span class="task-sub">
+                    @if (!modoEmbebido) { {{ row.tarea.obra_nombre }} }
+                    @if (row.tarea.proveedor_nombre) { @if (!modoEmbebido) { · } {{ row.tarea.proveedor_nombre }} }
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <div class="gantt-timeline-col">
+              @for (month of months(); track month.index) {
+                <div class="gantt-bg-cell" [class.gantt-bg-alt]="month.index % 2 === 1"
+                  [style.left.%]="month.left" [style.width.%]="month.width"></div>
+              }
+
+              @if (todayPercent() >= 0) {
+                <div class="today-line" [style.left.%]="todayPercent()">
+                  <span class="today-label">Hoy</span>
+                </div>
+              }
+
+              @if (row.hasBar) {
+                <div
+                  class="gantt-bar"
+                  [ngClass]="row.barClass"
+                  [style.left.%]="row.startPercent"
+                  [style.width.%]="row.widthPercent"
+                  [title]="row.tooltipText">
+                  <span class="bar-label">{{ row.tarea.nombre }}</span>
+                </div>
+              } @else {
+                <div class="no-date-badge">Sin fechas</div>
+              }
+            </div>
+          </div>
+        }
+
+      </div>
+    </div>
+  }
+</div>
+
+@if (ganttRows().length > 0) {
+  <div class="gantt-footer">
+    <span>{{ resumen().total }} tarea{{ resumen().total !== 1 ? 's' : '' }} — {{ yearSelected() }}</span>
+  </div>
+}
+
+}
+</div>
+
+<!-- Modal crear/editar tarea -->
+<app-modal
+  [visible]="mostrarModal()"
+  [title]="form.id ? 'Editar tarea' : 'Nueva tarea'"
+  [width]="'560px'"
+  [confirmLabel]="'Guardar'"
+  [confirmDisabled]="guardando()"
+  [confirmLoading]="guardando()"
+  (closed)="cerrarModal()"
+  (confirmed)="guardar()">
+
+  <div class="space-y-4">
+    @if (!modoEmbebido) {
+      <div>
+        <label class="block text-sm font-poppins font-semibold mb-1 text-gray-700">Obra <span class="text-red-500">*</span></label>
+        <p-select
+          [(ngModel)]="form.id_obra"
+          (ngModelChange)="onObraFormChange($event)"
+          [options]="obrasOptions()"
+          optionLabel="label"
+          optionValue="value"
+          [filter]="true"
+          filterPlaceholder="Buscar obra..."
+          placeholder="Seleccioná una obra"
+          styleClass="w-full"
+          appendTo="body">
+        </p-select>
+      </div>
+    }
+
+    <div>
+      <label class="block text-sm font-poppins font-semibold mb-1 text-gray-700">Proveedor / Gremio <span class="text-red-500">*</span></label>
+      <p-select
+        [(ngModel)]="form.id_proveedor"
+        [options]="proveedoresDeObraForm()"
+        optionLabel="label"
+        optionValue="value"
+        [filter]="true"
+        filterPlaceholder="Buscar proveedor..."
+        [placeholder]="form.id_obra ? 'Seleccioná un proveedor' : 'Elegí primero la obra'"
+        [loading]="cargandoProveedores()"
+        [disabled]="!form.id_obra"
+        styleClass="w-full"
+        appendTo="body">
+      </p-select>
+      @if (form.id_obra && !cargandoProveedores() && proveedoresDeObraForm().length === 0) {
+        <p class="text-xs text-amber-600 mt-1">Esta obra no tiene proveedores con costos cargados todavía.</p>
+      }
+    </div>
+
+    <div>
+      <label class="block text-sm font-poppins font-semibold mb-1 text-gray-700">Tarea <span class="text-red-500">*</span></label>
+      <input pInputText [(ngModel)]="form.nombre" class="w-full" placeholder="Ej: Contrapiso" />
+    </div>
+
+    <div class="grid grid-cols-2 gap-4">
+      <div>
+        <label class="block text-sm font-poppins font-semibold mb-1 text-gray-700">Fecha de inicio</label>
+        <input pInputText type="date" [(ngModel)]="form.fecha_inicio" class="w-full" />
+      </div>
+      <div>
+        <label class="block text-sm font-poppins font-semibold mb-1 text-gray-700">Fecha de fin</label>
+        <input pInputText type="date" [(ngModel)]="form.fecha_fin" class="w-full" />
+      </div>
+    </div>
+
+    <div>
+      <label class="block text-sm font-poppins font-semibold mb-1 text-gray-700">Descripción</label>
+      <textarea pInputTextarea [(ngModel)]="form.descripcion" class="w-full resize-none" rows="3" placeholder="Detalles adicionales (opcional)"></textarea>
+    </div>
+
+    @if (form.id) {
+      <div class="pt-2 border-t border-gray-100">
+        <button
+          pButton
+          type="button"
+          label="Eliminar tarea"
+          icon="pi pi-trash"
+          class="p-button-danger p-button-text p-button-sm"
+          [disabled]="guardando()"
+          (click)="eliminar()">
+        </button>
+      </div>
+    }
+  </div>
+</app-modal>

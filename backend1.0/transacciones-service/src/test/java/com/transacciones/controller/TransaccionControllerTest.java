@@ -3,6 +3,7 @@ package com.transacciones.controller;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.transacciones.dto.TransaccionDto;
 import com.transacciones.enums.TipoTransaccionEnum;
+import com.transacciones.repository.TransaccionConAsociadoRepository;
 import com.transacciones.repository.TransaccionRepository;
 import com.transacciones.service.TransaccionService;
 import org.junit.jupiter.api.Test;
@@ -37,10 +38,13 @@ class TransaccionControllerTest {
     @MockBean
     private TransaccionRepository transaccionRepository;
 
+    @MockBean
+    private TransaccionConAsociadoRepository transaccionConAsociadoRepository;
+
     @Test
     void listar_ok() throws Exception {
         TransaccionDto dto = TransaccionDto.builder().id(1L).build();
-        when(transaccionService.listar()).thenReturn(List.of(dto));
+        when(transaccionService.listar(any())).thenReturn(List.of(dto));
 
         mockMvc.perform(get("/api/transacciones"))
             .andExpect(status().isOk())
@@ -99,6 +103,7 @@ class TransaccionControllerTest {
         when(transaccionService.crear(any())).thenReturn(dto);
 
         mockMvc.perform(post("/api/transacciones")
+                .header("X-Plan-Limites", "{\"maxTransaccionesMes\":null}")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(dto)))
             .andExpect(status().isOk())

@@ -19,8 +19,22 @@ export class ModalComponent {
   @Input() confirmDisabled: boolean = false;     // deshabilitar botón de acción
   @Input() confirmLoading: boolean = false;      // loading en botón de acción
 
+  /**
+   * Modo "ver detalle": reemplaza el footer estándar (Cancelar/Guardar) por
+   * Cerrar/Editar (+ Eliminar opcional a la izquierda), siempre en el mismo
+   * footer fijo del diálogo — así "ver" y "editar" usan exactamente el mismo
+   * layout, sin que el contenido crezca ni mueva los botones de lugar.
+   */
+  @Input() viewMode: boolean = false;
+  @Input() showDelete: boolean = false;
+  @Input() deleteLabel: string = 'Eliminar';
+  @Input() deleteLoading: boolean = false;
+  @Input() editLabel: string = 'Editar';
+
   @Output() closed = new EventEmitter<void>();   // evento al cerrar
   @Output() confirmed = new EventEmitter<void>(); // evento de confirmar
+  @Output() deleted = new EventEmitter<void>();   // evento de eliminar (viewMode)
+  @Output() edit = new EventEmitter<void>();      // evento de pasar a edición (viewMode)
 
   close() {
     this.closed.emit();

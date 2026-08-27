@@ -1,6 +1,7 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators, AbstractControl, ValidationErrors } from '@angular/forms';
+import { Router } from '@angular/router';
 import { ButtonModule } from 'primeng/button';
 import { InputTextModule } from 'primeng/inputtext';
 import { PasswordModule } from 'primeng/password';
@@ -11,6 +12,7 @@ import { Subscription } from 'rxjs';
 import { ConfiguracionService, CONFIG_KEYS } from '../../../services/configuracion/configuracion.service';
 import { AuthService } from '../../../services/auth/auth.service';
 import { DocumentosService } from '../../../services/documentos/documentos.service';
+import { OnboardingService } from '../../../core/services/onboarding.service';
 
 function passwordsMatch(control: AbstractControl): ValidationErrors | null {
   const newPass = control.get('newPassword')?.value;
@@ -52,8 +54,14 @@ export class ConfiguracionComponent implements OnInit, OnDestroy {
     private configuracionService: ConfiguracionService,
     private authService: AuthService,
     private documentosService: DocumentosService,
-    private messageService: MessageService
+    private messageService: MessageService,
+    private onboardingService: OnboardingService,
+    private router: Router
   ) {}
+
+  get enOnboarding(): boolean {
+    return this.onboardingService.activo();
+  }
 
   get isAdmin(): boolean {
     return this.authService.getCurrentUser()?.rol === 'ADMIN';
@@ -102,6 +110,10 @@ export class ConfiguracionComponent implements OnInit, OnDestroy {
     this.sub.unsubscribe();
   }
 
+  get hayCambiosSinGuardar(): boolean {
+    return this.formPerfil.dirty || (this.isAdmin && this.formEmpresa.dirty);
+  }
+
   get phoneVacio(): boolean {
     return !(this.formEmpresa.get('whatsapp_owner_phone')?.value?.trim());
   }
@@ -139,6 +151,7 @@ export class ConfiguracionComponent implements OnInit, OnDestroy {
         this.configuracionService.guardar({ logo_url: res.url }).subscribe({
           next: () => {
             this.logoUploading = false;
+            this.formEmpresa.get('logo_url')?.markAsPristine();
             this.messageService.add({ severity: 'success', summary: 'Logo guardado', detail: 'El logo se actualizó correctamente' });
           },
           error: () => {
@@ -160,6 +173,16 @@ export class ConfiguracionComponent implements OnInit, OnDestroy {
     this.configuracionService.guardar(this.formEmpresa.getRawValue()).subscribe({
       next: () => {
         this.guardandoEmpresa = false;
+        this.formEmpresa.markAsPristine();
+
+        if (this.enOnboarding) {
+          // Último paso del alta guiada: empresa configurada, listo para usar el sistema
+          this.messageService.add({ severity: 'success', summary: '¡Todo listo!', detail: 'Tu empresa está configurada' });
+          this.onboardingService.finalizar();
+          setTimeout(() => this.router.navigate(['/dashboard']), 800);
+          return;
+        }
+
         this.messageService.add({ severity: 'success', summary: 'Guardado', detail: 'Configuración actualizada' });
       },
       error: () => {
@@ -169,12 +192,29 @@ export class ConfiguracionComponent implements OnInit, OnDestroy {
     });
   }
 
+  guardarTodo(): void {
+    if (this.formPerfil.invalid) {
+      this.formPerfil.markAllAsTouched();
+    } else {
+      this.guardarPerfil();
+    }
+
+    if (this.isAdmin) {
+      if (this.formEmpresa.invalid) {
+        this.formEmpresa.markAllAsTouched();
+      } else {
+        this.guardarEmpresa();
+      }
+    }
+  }
+
   guardarPerfil(): void {
     if (this.formPerfil.invalid || this.guardandoPerfil) return;
     this.guardandoPerfil = true;
     this.authService.updatePerfil(this.formPerfil.getRawValue()).subscribe({
       next: () => {
         this.guardandoPerfil = false;
+        this.formPerfil.markAsPristine();
         this.messageService.add({ severity: 'success', summary: 'Guardado', detail: 'Perfil actualizado' });
       },
       error: (err) => {

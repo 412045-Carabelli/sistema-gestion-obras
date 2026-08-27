@@ -29,6 +29,8 @@ import java.util.Map;
 @Slf4j
 public class TareaServiceImpl implements TareaService {
 
+    private static final long DIAS_VENCIMIENTO_DEFAULT = 5;
+
     private static final Map<String, EstadoTarea> ESTADOS_VALIDOS = Map.of(
             "PENDIENTE", EstadoTarea.PENDIENTE,
             "EN_PROGRESO", EstadoTarea.EN_PROGRESO,
@@ -155,7 +157,10 @@ public class TareaServiceImpl implements TareaService {
         tarea.setEstado(ESTADOS_VALIDOS.get(request.getEstado().toUpperCase()));
         tarea.setDescripcion(request.getDescripcion());
         tarea.setFechaInicio(request.getFechaInicio());
-        tarea.setFechaVencimiento(request.getFechaVencimiento());
+        // Anotador puro: si no viene vencimiento, recordatorio automático a 5 días.
+        tarea.setFechaVencimiento(request.getFechaVencimiento() != null
+                ? request.getFechaVencimiento()
+                : Instant.now().plus(DIAS_VENCIMIENTO_DEFAULT, java.time.temporal.ChronoUnit.DAYS));
         tarea.setPrioridad(request.getPrioridad() != null ? request.getPrioridad().toUpperCase() : "MEDIA");
         return tarea;
     }

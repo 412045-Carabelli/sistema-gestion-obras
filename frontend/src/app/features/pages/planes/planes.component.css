@@ -1,37 +1,27 @@
 /* ===== BASE ===== */
-:host { display: block; }
+:host { display: block; height: 100%; }
 
 .planes-page {
-  min-height: 100vh;
+  height: 100%;
+  overflow: hidden;
   background: #0a0a0a;
+  background-image:
+    radial-gradient(circle at 15% 0%, rgba(232,255,71,0.06), transparent 45%),
+    radial-gradient(circle at 85% 20%, rgba(59,130,246,0.08), transparent 40%);
   color: #F0F0F0;
   font-family: "Space Grotesk", sans-serif;
-  padding: 0 0 80px;
+  padding: 0 0 20px;
+  display: flex;
+  flex-direction: column;
 }
 
 /* ===== HEADER ===== */
 .planes-header {
-  padding: 32px 48px 0;
+  padding: 20px 48px 0;
   max-width: 1280px;
   margin: 0 auto;
+  width: 100%;
 }
-
-.btn-back {
-  background: transparent;
-  border: 1px solid rgba(255,255,255,0.12);
-  color: #aaa;
-  padding: 8px 16px;
-  border-radius: 8px;
-  cursor: pointer;
-  font-family: inherit;
-  font-size: 0.88rem;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  transition: border-color 0.2s, color 0.2s;
-  margin-bottom: 48px;
-}
-.btn-back:hover { border-color: #E8FF47; color: #E8FF47; }
 
 .planes-hero { text-align: center; }
 
@@ -42,13 +32,13 @@
   background: rgba(232,255,71,0.08);
   border: 1px solid rgba(232,255,71,0.2);
   color: #E8FF47;
-  font-size: 0.78rem;
+  font-size: 0.72rem;
   font-weight: 600;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  padding: 6px 16px;
+  padding: 5px 14px;
   border-radius: 100px;
-  margin-bottom: 24px;
+  margin-bottom: 10px;
 }
 .badge-dot {
   width: 6px; height: 6px;
@@ -57,18 +47,18 @@
 }
 
 .planes-title {
-  font-size: clamp(2rem, 4vw, 3rem);
+  font-size: clamp(1.4rem, 2.6vw, 1.9rem);
   font-weight: 700;
   line-height: 1.15;
   letter-spacing: 0.01em;
-  margin: 0 0 16px;
+  margin: 0 0 6px;
 }
 .lime { color: #E8FF47; }
 
 .planes-sub {
-  font-size: 1rem;
+  font-size: 0.9rem;
   color: #888;
-  margin: 0 0 32px;
+  margin: 0 0 14px;
 }
 
 /* ===== FEATURE ALERT ===== */
@@ -79,62 +69,31 @@
   background: rgba(255, 165, 0, 0.08);
   border: 1px solid rgba(255, 165, 0, 0.25);
   color: #ffb347;
-  padding: 12px 24px;
+  padding: 10px 20px;
   border-radius: 10px;
-  font-size: 0.9rem;
-  margin-bottom: 32px;
+  font-size: 0.85rem;
+  margin-bottom: 14px;
 }
 .feature-alert strong { color: #ffd280; }
+.feature-alert:not(:last-child) { margin-bottom: 10px; }
 
-/* ===== CICLO TOGGLE ===== */
-.ciclo-toggle {
-  display: inline-flex;
-  background: #161616;
-  border: 1px solid rgba(255,255,255,0.08);
-  border-radius: 10px;
-  padding: 4px;
-  gap: 4px;
-  margin-bottom: 56px;
-}
-.ciclo-btn {
-  background: transparent;
-  border: none;
-  color: #888;
-  font-family: inherit;
-  font-size: 0.9rem;
-  font-weight: 500;
-  padding: 8px 20px;
-  border-radius: 7px;
-  cursor: pointer;
-  transition: background 0.2s, color 0.2s;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-.ciclo-btn.active {
-  background: rgba(232,255,71,0.1);
-  color: #E8FF47;
-  font-weight: 600;
-}
-.ahorro-badge {
-  background: #E8FF47;
-  color: #0e0e0e;
-  font-size: 0.68rem;
-  font-weight: 700;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
-  padding: 2px 8px;
-  border-radius: 100px;
+.feature-alert.blocked-alert {
+  background: rgba(239, 68, 68, 0.08);
+  border-color: rgba(239, 68, 68, 0.3);
+  color: #fca5a5;
+  text-align: left;
 }
 
 /* ===== GRID DE PLANES ===== */
 .planes-grid {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(3, 1fr);
   gap: 20px;
   max-width: 1280px;
   margin: 0 auto;
-  padding: 0 48px;
+  padding: 6px 48px 0;
+  width: 100%;
+  flex: 1;
 }
 
 /* ===== PLAN CARD ===== */
@@ -142,11 +101,11 @@
   background: #161616;
   border: 1px solid rgba(255,255,255,0.08);
   border-radius: 16px;
-  padding: 28px 24px;
+  padding: 18px 20px;
   position: relative;
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 10px;
   transition: border-color 0.25s, transform 0.25s;
 }
 .plan-card:hover { border-color: rgba(232,255,71,0.2); transform: translateY(-3px); }
@@ -179,52 +138,55 @@
 }
 
 .plan-header { display: flex; flex-direction: column; gap: 6px; }
-.plan-name { font-size: 1.15rem; font-weight: 700; color: #F0F0F0; letter-spacing: 0.02em; }
-.plan-desc { font-size: 0.82rem; color: #666; line-height: 1.5; margin: 0; }
+.plan-name { font-size: 1.05rem; font-weight: 700; color: #F0F0F0; letter-spacing: 0.02em; }
+.plan-desc { font-size: 0.78rem; color: #666; line-height: 1.3; margin: 0; }
 
 /* ===== PRECIO ===== */
-.plan-price-wrap { display: flex; flex-direction: column; gap: 4px; }
+.plan-price-wrap { display: flex; flex-direction: column; gap: 2px; }
 .price-row { display: flex; align-items: baseline; gap: 4px; }
-.currency { font-size: 0.9rem; color: #888; font-weight: 500; }
-.plan-price { font-size: 2.2rem; font-weight: 700; color: #E8FF47; letter-spacing: 0.01em; line-height: 1; }
-.period { font-size: 0.85rem; color: #666; }
+.currency { font-size: 0.85rem; color: #888; font-weight: 500; }
+.plan-price { font-size: 1.7rem; font-weight: 700; color: #E8FF47; letter-spacing: 0.01em; line-height: 1; }
+.period { font-size: 0.8rem; color: #666; }
 .precio-anual { font-size: 0.75rem; color: #555; }
 
 /* ===== DIVIDER ===== */
 .plan-divider { height: 1px; background: rgba(255,255,255,0.06); }
 
 /* ===== LÍMITES ===== */
-.limites-section { display: flex; flex-direction: column; gap: 8px; }
-.section-label { font-size: 0.72rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: #555; }
+.limites-section { display: flex; flex-direction: column; gap: 5px; }
+.section-label { font-size: 0.68rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: #555; }
 .limites-list {
   list-style: none; padding: 0; margin: 0;
-  display: flex; flex-direction: column; gap: 6px;
+  display: grid; grid-template-columns: 1fr 1fr;
+  gap: 4px 8px;
 }
 .limites-list li {
-  font-size: 0.82rem; color: #999;
-  display: flex; align-items: center; gap: 8px;
+  font-size: 0.76rem; color: #999;
+  display: flex; align-items: center; gap: 6px;
 }
-.limites-list li i { color: #444; font-size: 0.8rem; width: 14px; text-align: center; }
+.limites-list li:last-child { grid-column: 1 / -1; }
+.limites-list li i { color: #444; font-size: 0.75rem; width: 12px; text-align: center; flex-shrink: 0; }
 
 /* ===== FEATURES ===== */
 .plan-features {
   list-style: none; padding: 0; margin: 0;
-  display: flex; flex-direction: column; gap: 8px;
+  display: grid; grid-template-columns: 1fr 1fr;
+  gap: 4px 8px;
   flex: 1;
 }
 .plan-features li {
-  font-size: 0.85rem; color: #c0c0c0;
-  display: flex; align-items: center; gap: 10px;
+  font-size: 0.78rem; color: #c0c0c0;
+  display: flex; align-items: center; gap: 6px;
 }
 .plan-features li.locked { color: #444; }
-.check { color: #E8FF47; font-size: 0.8rem; }
-.cross { color: #333; font-size: 0.8rem; }
+.check { color: #E8FF47; font-size: 0.78rem; flex-shrink: 0; }
+.cross { color: #333; font-size: 0.78rem; flex-shrink: 0; }
 
 /* ===== CTA ===== */
 .btn-plan {
   margin-top: auto;
   width: 100%;
-  padding: 12px;
+  padding: 9px;
   border-radius: 10px;
   font-family: "Space Grotesk", sans-serif;
   font-size: 0.9rem;
@@ -250,35 +212,16 @@
 }
 .btn-plan:disabled { opacity: 0.7; cursor: not-allowed; }
 
-/* ===== GARANTÍAS ===== */
-.garantias {
-  display: flex;
-  justify-content: center;
-  gap: 48px;
-  flex-wrap: wrap;
-  margin-top: 64px;
-  padding: 0 48px;
-  max-width: 1280px;
-  margin-left: auto;
-  margin-right: auto;
-}
-.garantia-item {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  font-size: 0.88rem;
-  color: #666;
-}
-.garantia-item i { color: #E8FF47; font-size: 1rem; }
-
 /* ===== RESPONSIVE ===== */
+/* Con 2+ filas de cards (tablet/mobile) ya no entra todo en un alto de pantalla:
+   se habilita scroll vertical en vez de recortar contenido. */
 @media (max-width: 1100px) {
+  .planes-page { height: auto; min-height: 100%; overflow-y: auto; }
   .planes-grid { grid-template-columns: repeat(2, 1fr); }
 }
 @media (max-width: 640px) {
-  .planes-header, .planes-grid, .garantias { padding: 0 20px; }
+  .planes-header, .planes-grid { padding: 0 20px; }
   .planes-header { padding-top: 24px; }
-  .planes-grid { grid-template-columns: 1fr; }
-  .garantias { gap: 24px; flex-direction: column; align-items: center; }
+  .planes-grid { grid-template-columns: 1fr; padding-bottom: 24px; }
   .planes-title { font-size: 1.8rem; }
 }

@@ -1,10 +1,11 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators, AbstractControl, ValidationErrors } from '@angular/forms';
 import { Router } from '@angular/router';
 import { MessageService } from 'primeng/api';
 import { ToastModule } from 'primeng/toast';
 import { AuthService } from '../../../services/auth/auth.service';
+import { OnboardingService } from '../../../core/services/onboarding.service';
 import { RegisterRequest } from '../../../core/models/models';
 
 @Component({
@@ -16,15 +17,14 @@ import { RegisterRequest } from '../../../core/models/models';
   styleUrls: ['./register.component.css']
 })
 export class RegisterComponent implements OnInit {
+  private fb = inject(FormBuilder);
+  private authService = inject(AuthService);
+  private onboardingService = inject(OnboardingService);
+  private messageService = inject(MessageService);
+  private router = inject(Router);
+
   form!: FormGroup;
   loading = false;
-
-  constructor(
-    private fb: FormBuilder,
-    private authService: AuthService,
-    private messageService: MessageService,
-    private router: Router
-  ) {}
 
   ngOnInit(): void {
     this.form = this.fb.group({
@@ -47,22 +47,26 @@ export class RegisterComponent implements OnInit {
 
     this.authService.register(request).subscribe({
       next: () => {
+        this.loading = false;
         this.messageService.add({
           severity: 'success',
-          summary: 'Éxito',
-          detail: 'Cuenta creada correctamente. Iniciando sesión...'
+          summary: 'Cuenta creada',
+          detail: 'Ahora elegí tu plan'
         });
-        setTimeout(() => {
-          // Si venía de la landing queriendo contratar un plan
-          const pendingCheckout = sessionStorage.getItem('pending_checkout');
-          if (pendingCheckout) {
-            sessionStorage.removeItem('pending_checkout');
-            const { plan, ciclo } = JSON.parse(pendingCheckout);
-            this.router.navigate(['/checkout'], { queryParams: { plan, ciclo } });
-          } else {
-            this.router.navigate(['/dashboard']);
-          }
-        }, 1500);
+
+        // A partir de acá arranca el flujo guiado: elegir plan → configurar empresa
+        this.onboardingService.iniciar();
+
+        // Si venía de la landing queriendo contratar un plan puntual, saltar directo al pago
+        const pendingCheckout = sessionStorage.getItem('pending_checkout');
+        if (pendingCheckout) {
+          sessionStorage.removeItem('pending_checkout');
+          const { plan, ciclo } = JSON.parse(pendingCheckout);
+          setTimeout(() => this.router.navigate(['/checkout'], { queryParams: { plan, ciclo } }), 800);
+          return;
+        }
+
+        setTimeout(() => this.router.navigate(['/planes']), 800);
       },
       error: (err) => {
         this.loading = false;
@@ -78,6 +82,18 @@ export class RegisterComponent implements OnInit {
 
   goToLogin(): void {
     this.router.navigate(['/login']);
+  }
+
+  isLoggedIn(): boolean {
+    return this.authService.isLoggedIn();
+  }
+
+  volverAlDashboard(): void {
+    this.router.navigate(['/dashboard']);
+  }
+
+  volverAlInicio(): void {
+    this.router.navigate(['/home']);
   }
 
   private passwordMatchValidator(group: AbstractControl): ValidationErrors | null {

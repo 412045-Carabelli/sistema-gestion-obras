@@ -73,6 +73,7 @@ export class SidebarComponent implements OnInit {
       label: 'Gestión de Obras',
       items: [
         { label: 'Obras',       icon: 'pi-building',  path: '/obras' },
+        { label: 'Diagrama de Gantt', icon: 'pi-calendar-plus', path: '/diagrama-gantt' },
         { label: 'Agendas',     icon: 'pi-calendar',  path: '/agendas',    feature: 'agenda' },
         { label: 'Clientes',    icon: 'pi-users',     path: '/clientes' },
         { label: 'Proveedores', icon: 'pi-truck',     path: '/proveedores' }
@@ -98,5 +99,5 @@ export class SidebarComponent implements OnInit {
     return this.menuGroups.flatMap(g => g.items);
   }
 
-  version: string = 'v1.18.30';
+  version: string = 'v1.19.34';
 }

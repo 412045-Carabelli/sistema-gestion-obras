@@ -55,21 +55,33 @@
       </div>
 
       @if (viewMode === 'editar') {
-        <div>
-          <label class="block text-sm font-poppins font-semibold mb-1 text-gray-700">Estado</label>
-          <p-select
-            formControlName="estado"
-            [options]="estadoOptions"
-            optionLabel="label"
-            optionValue="value"
-            placeholder="Seleccionar estado"
-            styleClass="w-full"
-            appendTo="body"
-          ></p-select>
+        <div class="flex gap-4">
+          <div class="flex-1">
+            <label class="block text-sm font-poppins font-semibold mb-1 text-gray-700">Estado</label>
+            <p-select
+              formControlName="estado"
+              [options]="estadoOptions"
+              optionLabel="label"
+              optionValue="value"
+              placeholder="Seleccionar estado"
+              styleClass="w-full"
+              appendTo="body"
+            ></p-select>
+          </div>
+          <div class="w-36 flex-shrink-0">
+            <label class="block text-sm font-poppins font-semibold mb-1 text-gray-700">Fecha</label>
+            <p-datepicker
+              formControlName="fecha"
+              appendTo="body"
+              styleClass="w-full"
+              dateFormat="dd/mm/yy"
+            ></p-datepicker>
+            @if (form.get('fecha')?.invalid && form.get('fecha')?.touched) {
+              <small class="text-red-600 text-xs mt-1 block">La fecha es obligatoria.</small>
+            }
+          </div>
         </div>
-      }
-
-      <div class="grid grid-cols-2 gap-4">
+      } @else {
         <div>
           <label class="block text-sm font-poppins font-semibold mb-1 text-gray-700">Fecha</label>
           <p-datepicker
@@ -82,21 +94,21 @@
             <small class="text-red-600 text-xs mt-1 block">La fecha es obligatoria.</small>
           }
         </div>
-        <div>
-          <label class="block text-sm font-poppins font-semibold mb-1 text-gray-700">Monto</label>
-          <p-inputNumber
-            formControlName="monto"
-            styleClass="w-full"
-            mode="decimal"
-            locale="es-AR"
-          ></p-inputNumber>
-          @if (form.get('monto')?.invalid && form.get('monto')?.touched) {
-            <small class="text-red-600 text-xs mt-1 block">Ingresá un monto válido.</small>
-          }
-          <div class="flex flex-wrap gap-2 mt-2">
+      }
+
+      <div>
+        <label class="block text-sm font-poppins font-semibold mb-1 text-gray-700">Monto</label>
+        <div class="flex items-stretch gap-2">
+            <p-inputNumber
+              formControlName="monto"
+              styleClass="w-full"
+              class="flex-1"
+              mode="decimal"
+              locale="es-AR"
+            ></p-inputNumber>
             <button
               type="button"
-              class="px-3 py-1 rounded-md border border-emerald-200 text-emerald-700 text-xs font-semibold hover:bg-emerald-50"
+              class="px-3 rounded-md border border-emerald-200 text-emerald-700 text-xs font-semibold hover:bg-emerald-50"
               (click)="aplicarMontoTotal()"
               [disabled]="restanteObra == null"
             >
@@ -104,30 +116,34 @@
             </button>
             <button
               type="button"
-              class="px-3 py-1 rounded-md border border-blue-200 text-blue-700 text-xs font-semibold hover:bg-blue-50"
+              class="px-3 rounded-md border border-blue-200 text-blue-700 text-xs font-semibold hover:bg-blue-50"
               (click)="aplicarMontoParcial()"
             >
               Parcial
             </button>
           </div>
-        </div>
+        @if (form.get('monto')?.invalid && form.get('monto')?.touched) {
+          <small class="text-red-600 text-xs mt-1 block">Ingresá un monto válido.</small>
+        }
       </div>
 
       <div>
         <label class="block text-sm font-poppins font-semibold mb-1 text-gray-700">Descripcion</label>
-        <p-editor formControlName="descripcion" [style]="{ height: '160px' }"></p-editor>
+        <p-editor formControlName="descripcion" [style]="{ height: '100px' }"></p-editor>
       </div>
 
       <div>
         <label class="block text-sm font-poppins font-semibold mb-1 text-gray-700">Adjuntar factura (opcional)</label>
-        <p-fileUpload
-          mode="basic"
-          chooseLabel="Seleccionar archivo"
-          chooseIcon="pi pi-upload"
-          accept=".jpg,.jpeg,.png,.pdf"
-          [auto]="false"
-          (onSelect)="onFileSelected($event)"
-        ></p-fileUpload>
+        <div class="flex justify-start">
+          <p-fileUpload
+            mode="basic"
+            chooseLabel="Seleccionar archivo"
+            chooseIcon="pi pi-upload"
+            accept=".jpg,.jpeg,.png,.pdf"
+            [auto]="false"
+            (onSelect)="onFileSelected($event)"
+          ></p-fileUpload>
+        </div>
         @if (selectedFile) {
           <div class="flex items-center gap-2 text-sm text-gray-700 mt-1">
             <span>{{ selectedFile.name }}</span>

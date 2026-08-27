@@ -23,4 +23,7 @@ public interface PlanService {
 
     // Cancela la suscripción activa (pasa a CANCELADA, no elimina)
     void cancelarSuscripcion(Long organizacionId);
+
+    // Inicia una prueba gratuita de 15 días con acceso completo (plan PROFESIONAL)
+    MiPlanResponse iniciarPrueba(Long organizacionId);
 }

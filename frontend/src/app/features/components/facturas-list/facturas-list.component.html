@@ -41,7 +41,7 @@
         [sortField]="'fecha'"
         [sortOrder]="-1"
         responsiveLayout="scroll"
-        class="text-sm p-datatable-sm border border-gray-200 rounded-lg overflow-hidden">
+        class="text-sm p-datatable-sm border-gray-200 rounded-lg overflow-hidden">
         <ng-template pTemplate="header">
           <tr class="bg-gray-50 text-gray-700">
             <th pSortableColumn="id" class="font-poppins font-semibold">ID <p-sortIcon field="id"></p-sortIcon></th>
@@ -225,8 +225,8 @@
 } @placeholder {
   <div class="space-y-6">
     @if (!obraId) {
-      <app-generic-filter-bar [loading]="true"></app-generic-filter-bar>
-      <app-kpi-skeleton [count]="4"></app-kpi-skeleton>
+      <app-generic-filter-bar [filterDefinitions]="filterDefinitions" [loading]="true"></app-generic-filter-bar>
+      <app-kpi-skeleton [count]="2" [columns]="2"></app-kpi-skeleton>
     }
     <app-table-skeleton [rows]="4"></app-table-skeleton>
   </div>

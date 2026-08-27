@@ -21,6 +21,7 @@ import { ModalComponent } from '../../../shared/modal/modal.component';
 import { Movimiento, Obra, ObraCosto, Cliente, Proveedor } from '../../../core/models/models';
 import { MovimientosService } from '../../../services/movimientos/movimientos.service';
 import { MovimientosModalService } from '../../../services/movimientos/movimientos-modal.service';
+import { MovimientosStateService } from '../../../services/movimientos/movimientos-state.service';
 import { ObrasService } from '../../../services/obras/obras.service';
 import { ClientesService } from '../../../services/clientes/clientes.service';
 import { ProveedoresService } from '../../../services/proveedores/proveedores.service';
@@ -122,10 +123,12 @@ export class MovimientosListComponent implements OnInit {
     private clientesService: ClientesService,
     private proveedoresService: ProveedoresService,
     private costosService: CostosService,
-    private messageService: MessageService
+    private messageService: MessageService,
+    private movimientosStateService: MovimientosStateService
   ) {}
 
   ngOnInit() {
+    this.movimientosStateService.setDatosCargados(false);
     this.cargarDatos();
     this.movimientosModalService.abrirModal$.subscribe(() => {
       this.openCreateModal();
@@ -191,6 +194,7 @@ export class MovimientosListComponent implements OnInit {
         this.setupFilterDefinitions();
         this.applyFilter();
         this.datosCargados = true;
+        this.movimientosStateService.setDatosCargados(true);
       },
       error: (err) => {
         console.error('Error cargando datos:', err);
@@ -200,6 +204,7 @@ export class MovimientosListComponent implements OnInit {
           detail: 'No se pudieron cargar los datos'
         });
         this.datosCargados = true;
+        this.movimientosStateService.setDatosCargados(true);
       }
     });
   }
