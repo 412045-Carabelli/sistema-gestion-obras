@@ -89,6 +89,7 @@ class FacturaControllerTest {
 
         mockMvc.perform(multipart("/api/facturas")
                 .file(file)
+                .header("X-Plan-Features", "{\"facturas\":true}")
                 .param("id_cliente", "1")
                 .param("id_obra", "2")
                 .param("monto", "100.5")

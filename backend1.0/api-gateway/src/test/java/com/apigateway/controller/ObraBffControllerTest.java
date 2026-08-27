@@ -50,7 +50,7 @@ class ObraBffControllerTest {
         ReflectionTestUtils.setField(controller, "TAREAS_URL", tareasUrl);
         ReflectionTestUtils.setField(controller, "PROVEEDORES_URL", proveedoresUrl);
 
-        ResponseEntity<Map<String, Object>> crear = controller.crearObra(Map.of("x", 1), null, null, null).block();
+        ResponseEntity<Map<String, Object>> crear = controller.crearObra(Map.of("x", 1), null, null, null, null).block();
         ResponseEntity<Map<String, Object>> actualizar = controller.actualizarObra(1L, Map.of("x", 2), null).block();
         ResponseEntity<Object> cambiarEstado = controller.cambiarEstadoObra(1L, "EN_PROGRESO").block();
         ResponseEntity<Object> actualizarActivo = controller.actualizarActivo(1L).block();

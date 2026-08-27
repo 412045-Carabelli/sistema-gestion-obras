@@ -36,7 +36,7 @@ class ClienteBffControllerTest {
 
         ResponseEntity<List<Map<String, Object>>> listResp = controller.getAllClientes(null, null, null, null, null).block();
         ResponseEntity<Map<String, Object>> getResp = controller.getClienteById(1L).block();
-        ResponseEntity<Map<String, Object>> createResp = controller.createCliente(Map.of("nombre", "A"), null, null, null).block();
+        ResponseEntity<Map<String, Object>> createResp = controller.createCliente(Map.of("nombre", "A"), null, null, null, null).block();
         ResponseEntity<Map<String, Object>> updateResp = controller.updateCliente(1L, Map.of("nombre", "B")).block();
         ResponseEntity<Object> deleteResp = controller.deleteCliente(1L).block();
         ResponseEntity<List<Map<String, Object>>> ivaResp = controller.getCondicionIva().block();
