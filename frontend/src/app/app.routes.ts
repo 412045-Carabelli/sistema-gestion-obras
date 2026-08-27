@@ -1,6 +1,7 @@
 import {Routes} from '@angular/router';
 import {authGuard, authMatchGuard, adminGuard} from './core/guards/auth.guard';
 import {planGuard} from './core/guards/plan.guard';
+import {planActivoGuard} from './core/guards/plan-activo.guard';
 import {ConfiguracionLayoutComponent} from './features/pages/configuracion/configuracion-layout.component';
 import {ConfiguracionComponent} from './features/pages/configuracion/configuracion.component';
 import {UsuariosAdminComponent} from './features/pages/configuracion/usuarios-admin/usuarios-admin.component';
@@ -79,20 +80,20 @@ export const routes: Routes = [
     loadComponent: () => import('./features/pages/dashboard/dashboard.component')
       .then(m => m.DashboardComponent),
     canMatch: [authMatchGuard],
-    canActivate: [authGuard]
+    canActivate: [authGuard, planActivoGuard]
   },
   {
     path: 'tareas',
     loadComponent: () => import('./features/pages/tareas/tareas.component')
       .then(m => m.TareasComponent),
     canMatch: [authMatchGuard],
-    canActivate: [authGuard]
+    canActivate: [authGuard, planActivoGuard]
   },
   {
     path: 'obras',
     component: ObrasLayoutComponent,
     canMatch: [authMatchGuard],
-    canActivate: [authGuard],
+    canActivate: [authGuard, planActivoGuard],
     children: [
       {path: '', component: ObrasListComponent},
       {path: 'nueva', component: ObrasCreateComponent},
@@ -104,7 +105,7 @@ export const routes: Routes = [
     path: 'clientes',
     component: ClientesLayoutComponent,
     canMatch: [authMatchGuard],
-    canActivate: [authGuard],
+    canActivate: [authGuard, planActivoGuard],
     children: [
       {path: '', component: ClientesListComponent},
       {path: 'nueva', component: ClientesCreateComponent},
@@ -116,7 +117,7 @@ export const routes: Routes = [
     path: 'proveedores',
     component: ProveedoresLayoutComponent,
     canMatch: [authMatchGuard],
-    canActivate: [authGuard],
+    canActivate: [authGuard, planActivoGuard],
     children: [
       {path: '', component: ProveedoresListComponent},
       {path: 'nueva', component: ProveedoresCreateComponent},
@@ -128,7 +129,7 @@ export const routes: Routes = [
     path: 'facturas',
     component: FacturasLayoutComponent,
     canMatch: [authMatchGuard],
-    canActivate: [authGuard, planGuard('facturas')],
+    canActivate: [authGuard, planActivoGuard, planGuard('facturas')],
     children: [
       {path: '', component: FacturasListComponent},
     ],
@@ -137,18 +138,25 @@ export const routes: Routes = [
     path: 'agendas',
     component: AgendasLayoutComponent,
     canMatch: [authMatchGuard],
-    canActivate: [authGuard, planGuard('agenda')],
+    canActivate: [authGuard, planActivoGuard, planGuard('agenda')],
     children: [
       {path: '', component: AgendasListComponent},
       {path: 'gantt', component: AgendasGanttComponent},
     ],
   },
-  {path: 'reportes', component: ReportesComponent, canMatch: [authMatchGuard], canActivate: [authGuard]},
+  {path: 'reportes', component: ReportesComponent, canMatch: [authMatchGuard], canActivate: [authGuard, planActivoGuard]},
+  {
+    path: 'diagrama-gantt',
+    loadComponent: () => import('./features/pages/diagrama-gantt/diagrama-gantt.component')
+      .then(m => m.DiagramaGanttComponent),
+    canMatch: [authMatchGuard],
+    canActivate: [authGuard, planActivoGuard]
+  },
   {
     path: 'grupos',
     component: GruposLayoutComponent,
     canMatch: [authMatchGuard],
-    canActivate: [authGuard, planGuard('grupos_obras')],
+    canActivate: [authGuard, planActivoGuard, planGuard('grupos_obras')],
     children: [
       {path: '', component: GruposObrasComponent},
     ],
@@ -157,7 +165,7 @@ export const routes: Routes = [
     path: 'cuentas-corrientes',
     component: CuentaCorrienteLayoutComponent,
     canMatch: [authMatchGuard],
-    canActivate: [authGuard],
+    canActivate: [authGuard, planActivoGuard],
     children: [
       {path: '', component: CuentaCorrienteComponent},
     ],
@@ -166,7 +174,7 @@ export const routes: Routes = [
     path: 'movimientos',
     component: MovimientosLayoutComponent,
     canMatch: [authMatchGuard],
-    canActivate: [authGuard],
+    canActivate: [authGuard, planActivoGuard],
     children: [
       {path: '', component: MovimientosListComponent},
     ],

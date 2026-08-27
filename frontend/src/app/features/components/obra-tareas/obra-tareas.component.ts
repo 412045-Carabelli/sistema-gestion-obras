@@ -1,4 +1,4 @@
-import {Component, EventEmitter, Input, OnChanges, Output, SimpleChanges} from '@angular/core';
+import {Component, EventEmitter, Input, OnChanges, Output, SimpleChanges, ViewChild, signal} from '@angular/core';
 import {CommonModule, NgClass} from '@angular/common';
 import {FormsModule} from '@angular/forms';
 import {ButtonModule} from 'primeng/button';
@@ -19,6 +19,7 @@ import {ModalComponent} from '../../../shared/modal/modal.component';
 import {TareaPayload, TareasService} from '../../../services/tareas/tareas.service';
 import {ReportesService} from '../../../services/reportes/reportes.service';
 import {TableSkeletonComponent} from '../../../shared/table-skeleton/table-skeleton.component';
+import {DiagramaGanttComponent} from '../../pages/diagrama-gantt/diagrama-gantt.component';
 
 @Component({
   selector: 'app-obra-tareas',
@@ -38,7 +39,8 @@ import {TableSkeletonComponent} from '../../../shared/table-skeleton/table-skele
     Tooltip,
     InputNumber,
     EstadoFormatPipe,
-    TableSkeletonComponent
+    TableSkeletonComponent,
+    DiagramaGanttComponent
   ],
   providers: [MessageService],
   templateUrl: './obra-tareas.component.html'
@@ -53,6 +55,8 @@ export class ObraTareasComponent implements OnChanges {
 
   avancePagos: any = { items: [] };
   cargandoAvancePagos = true;
+  vistaActual = signal<'lista' | 'gantt'>('lista');
+  @ViewChild(DiagramaGanttComponent) ganttComponent?: DiagramaGanttComponent;
 
   estadoOptions = [
     {label: 'Pendiente', value: 'PENDIENTE'},
@@ -103,6 +107,14 @@ export class ObraTareasComponent implements OnChanges {
   get proveedoresFiltrados(): Proveedor[] {
     const manoObra = (this.proveedores || []).filter(p => this.esProveedorManoDeObra(p));
     return manoObra.length ? manoObra : (this.proveedores || []);
+  }
+
+  abrirNuevaTarea() {
+    if (this.vistaActual() === 'gantt') {
+      this.ganttComponent?.abrirModalCrear();
+      return;
+    }
+    this.abrirModal();
   }
 
   abrirModal() {

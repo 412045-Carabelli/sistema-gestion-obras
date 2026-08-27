@@ -1,0 +1,108 @@
+@import url("https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&display=swap");
+
+:host {
+  display: block;
+  font-family: "Space Grotesk", sans-serif;
+}
+
+.ob-header {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  background: #0e0e0e;
+  padding: 12px 24px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.ob-logo {
+  height: 26px;
+  flex-shrink: 0;
+}
+
+.ob-stepper {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.ob-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.ob-dot {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: #888;
+  font-size: 0.72rem;
+  font-weight: 700;
+  transition: background 0.2s, border-color 0.2s, color 0.2s;
+}
+
+.ob-item.active .ob-dot {
+  background: #E8FF47;
+  border-color: #E8FF47;
+  color: #0e0e0e;
+}
+
+.ob-item.done .ob-dot {
+  background: rgba(232, 255, 71, 0.15);
+  border-color: #E8FF47;
+  color: #E8FF47;
+}
+
+.ob-label {
+  font-size: 0.8rem;
+  color: #888;
+  white-space: nowrap;
+}
+
+.ob-item.active .ob-label {
+  color: #F0F0F0;
+  font-weight: 600;
+}
+
+.ob-line {
+  width: 32px;
+  height: 2px;
+  background: rgba(255, 255, 255, 0.12);
+  transition: background 0.2s;
+}
+
+.ob-line.done {
+  background: #E8FF47;
+}
+
+.ob-spacer {
+  width: 26px;
+  flex-shrink: 0;
+}
+
+@media (max-width: 640px) {
+  .ob-header {
+    padding: 10px 12px;
+    gap: 8px;
+  }
+
+  .ob-logo,
+  .ob-spacer {
+    display: none;
+  }
+
+  .ob-line {
+    width: 16px;
+  }
+
+  .ob-label {
+    display: none;
+  }
+}

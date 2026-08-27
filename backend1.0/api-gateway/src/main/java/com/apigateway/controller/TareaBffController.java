@@ -22,6 +22,21 @@ public class TareaBffController {
 
     private final WebClient.Builder webClientBuilder;
 
+    // ✅ Todas las tareas activas de la organización (módulo general Diagrama de Gantt)
+    @GetMapping
+    public Mono<ResponseEntity<List<Map<String, Object>>>> getTareasActivas(
+            @RequestHeader(value = "X-Organizacion-Id", required = false) String organizacionId
+    ) {
+        return webClientBuilder.build()
+                .get()
+                .uri(TAREAS_URL)
+                .headers(h -> { if (organizacionId != null) h.set("X-Organizacion-Id", organizacionId); })
+                .retrieve()
+                .bodyToFlux(new ParameterizedTypeReference<Map<String, Object>>() {})
+                .collectList()
+                .map(ResponseEntity::ok);
+    }
+
     // ✅ Tareas por obra
     @GetMapping("/{idObra}")
     public Mono<ResponseEntity<List<Map<String, Object>>>> getTareasPorObra(

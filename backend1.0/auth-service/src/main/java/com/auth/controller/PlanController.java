@@ -72,4 +72,14 @@ public class PlanController {
         planService.cancelarSuscripcion(organizacionId);
         return ResponseEntity.noContent().build();
     }
+
+    // Inicia la prueba gratuita de 15 días (acceso completo a PROFESIONAL) — usado desde el stepper de registro
+    @PostMapping("/auth/mi-suscripcion/prueba")
+    public ResponseEntity<MiPlanResponse> iniciarPrueba(
+            @RequestHeader(value = "X-Organizacion-Id", required = false) Long organizacionId) {
+        if (organizacionId == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+        return ResponseEntity.ok(planService.iniciarPrueba(organizacionId));
+    }
 }

@@ -3,13 +3,15 @@
 
     <!-- Menu Toggle & Logo -->
     <div class="flex items-center gap-4">
-      <p-button
-        (onClick)="onToggleMenu()"
-        [rounded]="true"
-        [text]="true"
-        icon="pi pi-bars"
-        styleClass="text-gray-700">
-      </p-button>
+      @if (showMenuToggle) {
+        <p-button
+          (onClick)="onToggleMenu()"
+          [rounded]="true"
+          [text]="true"
+          icon="pi pi-bars"
+          styleClass="text-gray-700">
+        </p-button>
+      }
 
       @if (logoUrl) {
         <div class="flex items-center">

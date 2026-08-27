@@ -1,6 +1,7 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators, AbstractControl, ValidationErrors } from '@angular/forms';
+import { Router } from '@angular/router';
 import { ButtonModule } from 'primeng/button';
 import { InputTextModule } from 'primeng/inputtext';
 import { PasswordModule } from 'primeng/password';
@@ -11,6 +12,7 @@ import { Subscription } from 'rxjs';
 import { ConfiguracionService, CONFIG_KEYS } from '../../../services/configuracion/configuracion.service';
 import { AuthService } from '../../../services/auth/auth.service';
 import { DocumentosService } from '../../../services/documentos/documentos.service';
+import { OnboardingService } from '../../../core/services/onboarding.service';
 
 function passwordsMatch(control: AbstractControl): ValidationErrors | null {
   const newPass = control.get('newPassword')?.value;
@@ -52,8 +54,14 @@ export class ConfiguracionComponent implements OnInit, OnDestroy {
     private configuracionService: ConfiguracionService,
     private authService: AuthService,
     private documentosService: DocumentosService,
-    private messageService: MessageService
+    private messageService: MessageService,
+    private onboardingService: OnboardingService,
+    private router: Router
   ) {}
+
+  get enOnboarding(): boolean {
+    return this.onboardingService.activo();
+  }
 
   get isAdmin(): boolean {
     return this.authService.getCurrentUser()?.rol === 'ADMIN';
@@ -166,6 +174,15 @@ export class ConfiguracionComponent implements OnInit, OnDestroy {
       next: () => {
         this.guardandoEmpresa = false;
         this.formEmpresa.markAsPristine();
+
+        if (this.enOnboarding) {
+          // Último paso del alta guiada: empresa configurada, listo para usar el sistema
+          this.messageService.add({ severity: 'success', summary: '¡Todo listo!', detail: 'Tu empresa está configurada' });
+          this.onboardingService.finalizar();
+          setTimeout(() => this.router.navigate(['/dashboard']), 800);
+          return;
+        }
+
         this.messageService.add({ severity: 'success', summary: 'Guardado', detail: 'Configuración actualizada' });
       },
       error: () => {

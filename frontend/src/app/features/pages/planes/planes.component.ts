@@ -6,7 +6,6 @@ import { ToastModule } from 'primeng/toast';
 import { MessageService } from 'primeng/api';
 import { catchError, of } from 'rxjs';
 import { PlanService } from '../../../services/plan/plan.service';
-import { LayoutHeaderComponent } from '../../../shared/layout-header/layout-header.component';
 import { environment } from '../../../../environments/environment';
 import { PlanCodigo, PlanFeature } from '../../../core/models/models';
 
@@ -35,7 +34,7 @@ interface PlanUI {
   templateUrl: './planes.component.html',
   styleUrls: ['./planes.component.css'],
   standalone: true,
-  imports: [CommonModule, ToastModule, LayoutHeaderComponent],
+  imports: [CommonModule, ToastModule],
   providers: [MessageService]
 })
 export class PlanesComponent implements OnInit {
@@ -47,6 +46,7 @@ export class PlanesComponent implements OnInit {
   planService = inject(PlanService);
 
   featureRequerida = signal<string | null>(null);
+  accesoBloqueado = signal(false);
   cargando = signal(true);
   planes = signal<PlanUI[]>([]);
 
@@ -55,6 +55,7 @@ export class PlanesComponent implements OnInit {
   ngOnInit(): void {
     const feature = this.route.snapshot.queryParamMap.get('feature');
     if (feature) this.featureRequerida.set(feature);
+    if (this.route.snapshot.queryParamMap.get('bloqueado')) this.accesoBloqueado.set(true);
     this.cargarPlanes();
   }
 
@@ -143,11 +144,4 @@ export class PlanesComponent implements OnInit {
       queryParams: { plan: plan.codigo, ciclo: 'mensual' }
     });
   }
-
-  garantias = [
-    { icon: 'pi-shield',     label: 'Sin permanencia' },
-    { icon: 'pi-refresh',    label: 'Cambiá cuando quieras' },
-    { icon: 'pi-lock',       label: 'Pago seguro' },
-    { icon: 'pi-headphones', label: 'Soporte por WhatsApp' },
-  ];
 }

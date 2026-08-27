@@ -1,25 +1,53 @@
 package com.obras.service.impl;
 
+import com.obras.dto.TareaCronogramaResponse;
 import com.obras.dto.TareaDTO;
+import com.obras.dto.external.ProveedorExternalDto;
+import com.obras.entity.Obra;
 import com.obras.entity.Tarea;
+import com.obras.enums.EstadoObraEnum;
 import com.obras.enums.EstadoTareaEnum;
+import com.obras.repository.ObraRepository;
 import com.obras.repository.TareaRepository;
 import com.obras.service.TareaService;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.client.RestClientException;
+import org.springframework.web.client.RestTemplate;
 
 import java.time.Instant;
+import java.util.EnumSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
 @Transactional
+@Slf4j
 public class TareaServiceImpl implements TareaService {
 
+    private static final Set<EstadoObraEnum> ESTADOS_ACTIVOS = EnumSet.of(
+            EstadoObraEnum.ADJUDICADA,
+            EstadoObraEnum.EN_PROGRESO,
+            EstadoObraEnum.FINALIZADA
+    );
+
     private final TareaRepository tareaRepo;
+    private final ObraRepository obraRepo;
+    private final RestTemplate restTemplate;
+
+    @Value("${services.proveedores.url:http://proveedores-service:8083/api/proveedores}")
+    private String proveedoresServiceUrl;
 
     @Override
     public TareaDTO crear(TareaDTO dto) {
@@ -93,6 +121,69 @@ public class TareaServiceImpl implements TareaService {
                 .stream()
                 .map(this::toDto)
                 .collect(Collectors.toList());
+    }
+
+    @Transactional(readOnly = true)
+    @Override
+    public List<TareaCronogramaResponse> tareasActivasDeOrganizacion(Long organizacionId) {
+        List<Obra> obras = obraRepo.findByOrganizacionIdAndEstadoObraIn(organizacionId, ESTADOS_ACTIVOS);
+        if (obras.isEmpty()) {
+            return List.of();
+        }
+        Map<Long, Obra> obraPorId = obras.stream().collect(Collectors.toMap(Obra::getId, o -> o));
+        List<Tarea> tareas = tareaRepo.findByIdObraInAndActivoTrueOrderByFechaInicioAsc(
+                obraPorId.keySet().stream().toList()
+        );
+        Map<Long, ProveedorExternalDto> proveedoresPorId = obtenerProveedores(organizacionId);
+
+        return tareas.stream()
+                .map(t -> toCronogramaResponse(t, obraPorId.get(t.getIdObra()), proveedoresPorId.get(t.getIdProveedor())))
+                .toList();
+    }
+
+    /** Trae de una sola vez el catálogo de proveedores de la organización, para no pegarle
+     * al servicio de proveedores una vez por tarea. */
+    private Map<Long, ProveedorExternalDto> obtenerProveedores(Long organizacionId) {
+        try {
+            HttpHeaders headers = new HttpHeaders();
+            headers.add("X-Organizacion-Id", String.valueOf(organizacionId));
+            ResponseEntity<ProveedorExternalDto[]> response = restTemplate.exchange(
+                    proveedoresServiceUrl + "/simple",
+                    HttpMethod.GET,
+                    new HttpEntity<>(headers),
+                    ProveedorExternalDto[].class
+            );
+            ProveedorExternalDto[] proveedores = response.getBody();
+            if (proveedores == null) {
+                return Map.of();
+            }
+            return List.of(proveedores).stream()
+                    .collect(Collectors.toMap(ProveedorExternalDto::getId, p -> p, (a, b) -> a));
+        } catch (RestClientException ex) {
+            log.warn("No se pudo obtener el catálogo de proveedores para el Gantt: {}", ex.getMessage());
+            return Map.of();
+        }
+    }
+
+    private TareaCronogramaResponse toCronogramaResponse(Tarea tarea, Obra obra, ProveedorExternalDto proveedor) {
+        TareaCronogramaResponse response = new TareaCronogramaResponse();
+        response.setId(tarea.getId());
+        response.setId_obra(tarea.getIdObra());
+        response.setObra_nombre(obra != null ? obra.getNombre() : null);
+        response.setObra_estado(obra != null && obra.getEstadoObra() != null ? obra.getEstadoObra().name() : null);
+        response.setId_proveedor(tarea.getIdProveedor());
+        response.setProveedor_nombre(proveedor != null ? proveedor.getNombre() : null);
+        response.setGremio_id(proveedor != null ? proveedor.getGremio_id() : null);
+        response.setGremio_nombre(proveedor != null ? proveedor.getGremio_nombre() : null);
+        response.setNumero_orden(tarea.getNumeroOrden());
+        response.setEstado_tarea(tarea.getEstadoTarea());
+        response.setNombre(tarea.getNombre());
+        response.setDescripcion(tarea.getDescripcion());
+        response.setPorcentaje(tarea.getPorcentaje());
+        response.setFecha_inicio(tarea.getFechaInicio());
+        response.setFecha_fin(tarea.getFechaFin());
+        response.setCreado_en(tarea.getCreadoEn());
+        return response;
     }
 
     private TareaDTO toDto(Tarea entity) {

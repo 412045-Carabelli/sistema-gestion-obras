@@ -4,3 +4,13 @@
   height: 100vh;
 }
 
+/* El wrapper de la animación de ruta y su contenido deben heredar el alto
+   completo de <main> — si no, páginas con fondo propio (ej. /planes,
+   /checkout) dejan un resto del bg-gray-50 de <main> asomando abajo. */
+main > div.ng-trigger-routeFade {
+  height: 100%;
+}
+::ng-deep main > div.ng-trigger-routeFade > * {
+  height: 100%;
+}
+

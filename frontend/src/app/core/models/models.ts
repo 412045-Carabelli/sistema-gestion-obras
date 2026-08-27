@@ -309,6 +309,26 @@ export interface Tarea {
   tipo_actualizacion?: string;
 }
 
+/** Tarea enriquecida con nombre de obra/proveedor/gremio — para el módulo general Diagrama de Gantt. */
+export interface TareaCronograma {
+  id: number;
+  id_obra: number;
+  obra_nombre?: string;
+  obra_estado?: string;
+  id_proveedor?: number;
+  proveedor_nombre?: string;
+  gremio_id?: number;
+  gremio_nombre?: string;
+  numero_orden?: number;
+  estado_tarea: string;
+  nombre: string;
+  descripcion?: string;
+  porcentaje?: number;
+  fecha_inicio?: string;
+  fecha_fin?: string;
+  creado_en?: string;
+}
+
 export interface TareaAntiguaAgenda {
   id: number;
   titulo: string;

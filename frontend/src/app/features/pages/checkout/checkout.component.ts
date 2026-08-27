@@ -7,7 +7,6 @@ import { ToastModule } from 'primeng/toast';
 import { MessageService } from 'primeng/api';
 import { catchError, of } from 'rxjs';
 import { MercadoPagoService } from '../../../services/mercadopago/mercadopago.service';
-import { LayoutHeaderComponent } from '../../../shared/layout-header/layout-header.component';
 import { environment } from '../../../../environments/environment';
 
 @Component({
@@ -15,7 +14,7 @@ import { environment } from '../../../../environments/environment';
   templateUrl: './checkout.component.html',
   styleUrls: ['./checkout.component.css'],
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, ToastModule, LayoutHeaderComponent],
+  imports: [CommonModule, ReactiveFormsModule, ToastModule],
   providers: [MessageService]
 })
 export class CheckoutComponent implements OnInit {

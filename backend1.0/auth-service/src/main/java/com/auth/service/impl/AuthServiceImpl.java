@@ -60,12 +60,13 @@ public class AuthServiceImpl implements AuthService {
       throw new UserAlreadyExistsException("Usuario ya existe");
     }
 
-    // Crear usuario
+    // Crear usuario — es dueño de la organización que está creando, así que es ADMIN
+    // (la sección de configuración de empresa del frontend depende de este rol)
     Usuario usuario = Usuario.builder()
         .email(request.getEmail())
         .username(request.getUsername())
         .passwordHash(passwordEncoder.encode(request.getPassword()))
-        .rol("USER")
+        .rol("ADMIN")
         .activo(Boolean.TRUE)
         .intentosFallidos(0)
         .build();

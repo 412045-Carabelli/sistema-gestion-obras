@@ -4,6 +4,7 @@ import {Router, RouterOutlet, NavigationEnd} from '@angular/router';
 import {trigger, transition, style, animate} from '@angular/animations';
 import {HeaderComponent} from './shared/header/header.component';
 import {SidebarComponent} from './shared/sidebar/sidebar.component';
+import {OnboardingStepperComponent} from './shared/onboarding-stepper/onboarding-stepper.component';
 import {NavigationHistoryService} from './core/services/navigation-history.service';
 import {ChangelogModalComponent} from './shared/changelog-modal/changelog-modal.component';
 import {filter} from 'rxjs/operators';
@@ -12,9 +13,17 @@ import {SwUpdate, VersionReadyEvent} from '@angular/service-worker';
 import {AuthService} from './services/auth/auth.service';
 import {PlanService} from './services/plan/plan.service';
 import {PushNotificationService} from './services/push/push-notification.service';
+import {OnboardingService} from './core/services/onboarding.service';
 
 const PUBLIC_ROUTES = ['/login', '/register'];
 const EXACT_PUBLIC = ['/', '/home', '/terminos', '/privacidad'];
+// /planes y /checkout siempre muestran el stepper (paso "Elegir plan") en vez del
+// navbar/sidebar normal, sea o no una alta nueva — es donde se elige/paga el plan.
+const STEPPER_SIEMPRE = ['/planes', '/checkout'];
+// Rutas que solo muestran el stepper mientras el alta guiada está en curso
+// (register → elegir plan → configurar empresa). Fuera de una alta nueva,
+// /configuracion se ve como la pantalla de ajustes normal, con navbar y sidebar.
+const STEPPER_SOLO_ONBOARDING = ['/configuracion', '/suscripcion'];
 
 function isPublicPath(): boolean {
   const path = window.location.pathname;
@@ -29,15 +38,19 @@ function isPublicPath(): boolean {
     RouterOutlet,
     HeaderComponent,
     SidebarComponent,
+    OnboardingStepperComponent,
     ChangelogModalComponent,
   ],
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.css'],
   animations: [
+    // Solo opacity — un transform aquí puede quedar "pegado" a mitad de
+    // camino en algunas navegaciones rápidas, desplazando el layout con
+    // fondo propio (ej. /planes, /checkout) y dejando asomar el bg de <main>.
     trigger('routeFade', [
       transition('* => *', [
-        style({ opacity: 0, transform: 'translateY(6px)' }),
-        animate('220ms ease-out', style({ opacity: 1, transform: 'translateY(0)' }))
+        style({ opacity: 0 }),
+        animate('220ms ease-out', style({ opacity: 1 }))
       ])
     ])
   ]
@@ -45,6 +58,9 @@ function isPublicPath(): boolean {
 export class AppComponent implements OnInit{
   sidebarVisible: boolean = window.innerWidth >= 1024;
   isPublicRoute: boolean = isPublicPath();
+  hideSidebar: boolean = false;
+  showStepper: boolean = false;
+  stepperPaso: 2 | 3 = 2;
   routeAnimCounter = 0;
 
   constructor(
@@ -53,9 +69,19 @@ export class AppComponent implements OnInit{
     private authService: AuthService,
     private planService: PlanService,
     private pushService: PushNotificationService,
+    private onboardingService: OnboardingService,
     private swUpdate: SwUpdate
   ) {
     (window as any).navHistoryDebug = this.navigationHistory;
+    this.updateLayoutFlags(window.location.pathname);
+  }
+
+  private updateLayoutFlags(url: string): void {
+    const siempre = STEPPER_SIEMPRE.some(r => url.startsWith(r));
+    const soloOnboarding = STEPPER_SOLO_ONBOARDING.some(r => url.startsWith(r)) && this.onboardingService.activo();
+    this.showStepper = siempre || soloOnboarding;
+    this.hideSidebar = this.showStepper;
+    this.stepperPaso = url.startsWith('/configuracion') ? 3 : 2;
   }
 
   get isMobile(): boolean {
@@ -83,6 +109,7 @@ export class AppComponent implements OnInit{
       const url = e.urlAfterRedirects;
       this.routeAnimCounter++;
       this.isPublicRoute = PUBLIC_ROUTES.some(r => url.startsWith(r)) || EXACT_PUBLIC.includes(url);
+      this.updateLayoutFlags(url);
       if (!this.isPublicRoute) {
         this.trySubscribePush();
       }
@@ -92,6 +119,7 @@ export class AppComponent implements OnInit{
     });
     const url = this.router.url;
     this.isPublicRoute = PUBLIC_ROUTES.some(r => url.startsWith(r)) || EXACT_PUBLIC.includes(url);
+    this.updateLayoutFlags(url);
     if (!this.isPublicRoute) {
       this.trySubscribePush();
     }

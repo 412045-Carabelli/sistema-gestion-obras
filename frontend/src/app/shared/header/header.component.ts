@@ -1,4 +1,4 @@
-import { Component, EventEmitter, OnInit, OnDestroy, Output, ViewChild } from '@angular/core';
+import { Component, EventEmitter, Input, OnInit, OnDestroy, Output, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { ButtonModule } from 'primeng/button';
@@ -23,6 +23,7 @@ import { Menu } from 'primeng/menu';
   styleUrls: ['./header.component.css']
 })
 export class HeaderComponent implements OnInit, OnDestroy {
+  @Input() showMenuToggle: boolean = true;
   @Output() toggleMenu = new EventEmitter<void>();
   @ViewChild('userMenu') userMenu!: Menu;
 

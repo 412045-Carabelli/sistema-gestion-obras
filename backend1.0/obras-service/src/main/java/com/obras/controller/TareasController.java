@@ -1,5 +1,6 @@
 package com.obras.controller;
 
+import com.obras.dto.TareaCronogramaResponse;
 import com.obras.dto.TareaDTO;
 import com.obras.entity.Obra;
 import com.obras.enums.EstadoObraEnum;
@@ -26,6 +27,13 @@ public class TareasController {
             EstadoObraEnum.EN_PROGRESO,
             EstadoObraEnum.FINALIZADA
     );
+
+    /** Todas las tareas activas de la organización, cruzando obras — para el módulo general Diagrama de Gantt. */
+    @GetMapping
+    public List<TareaCronogramaResponse> tareasActivasDeOrganizacion(
+            @RequestHeader(value = "X-Organizacion-Id", defaultValue = "0") Long organizacionId) {
+        return svc.tareasActivasDeOrganizacion(organizacionId);
+    }
 
     @GetMapping("/{idObra}")
     public List<TareaDTO> tareas(

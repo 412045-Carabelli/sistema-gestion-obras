@@ -60,7 +60,6 @@
           [color]="'blue'"
           [value]="obra.cliente.nombre"
           [valueFontSize]="14"
-          [minHeight]="140"
         ></app-kpi-card>
 
         <!-- KPI Presupuesto -->
@@ -69,7 +68,6 @@
           [color]="'green'"
           [value]="(obra.presupuesto | currency:'ARS') ?? ''"
           [valueFontSize]="14"
-          [minHeight]="140"
         ></app-kpi-card>
 
         <!-- KPI Costos -->
@@ -79,7 +77,6 @@
           [value]="(totalCostosBase | currency:'ARS') ?? ''"
           [description]="'Subtotal sin beneficio'"
           [valueFontSize]="14"
-          [minHeight]="140"
         ></app-kpi-card>
 
         <!-- KPI Beneficio -->
@@ -90,7 +87,6 @@
           [tooltip]="'Suma de los beneficios aplicados a cada costo (global o individual).'"
           [description]="'Actualizado con la matriz de costos'"
           [valueFontSize]="14"
-          [minHeight]="140"
         ></app-kpi-card>
 
       </div>

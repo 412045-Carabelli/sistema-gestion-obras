@@ -6,7 +6,7 @@ import { TagModule } from 'primeng/tag';
 import { Subscription } from 'rxjs';
 import { ChangelogService } from '../../services/changelog/changelog.service';
 
-const VERSION = 'v1.18.30';
+const VERSION = 'v1.19.34';
 const STORAGE_KEY = `sgo-changelog-seen-${VERSION}`;
 
 interface ChangeItem {
@@ -32,6 +32,20 @@ export class ChangelogModalComponent implements OnInit, OnDestroy {
   private sub = new Subscription();
 
   grupos: ChangeGroup[] = [
+    {
+      modulo: 'Mejoras 27/08/2026',
+      icon: 'pi pi-sparkles',
+      items: [
+        { texto: 'Agenda: ahora es un anotador puro, sin obra/cliente/proveedor obligatorios; la fecha de vencimiento se autocompleta a 5 días si no se carga una', estado: 'done' },
+        { texto: 'Nuevo módulo "Diagrama de Gantt": cronograma de gremios/proveedores cruzando todas las obras adjudicadas, con vista tipo Gantt y carga de tareas por obra', estado: 'done' },
+        { texto: 'Obras (tab Tareas): switch Lista/Gantt para ver el cronograma de esa obra específica, con su propio botón "Nueva Tarea"', estado: 'done' },
+        { texto: 'Facturación: el skeleton de carga ahora coincide en forma y cantidad con los filtros y KPIs reales', estado: 'done' },
+        { texto: 'Cuentas Corrientes: las tablas de "por cobrar" y "por pagar" ahora miden lo mismo de alto y tienen animación de entrada', estado: 'done' },
+        { texto: 'Tablas: se corrigió una línea de borde duplicada que aparecía con color inconsistente en algunos listados', estado: 'done' },
+        { texto: 'Configuración: "Nombre de la empresa" y "Nombre del propietario" quedaron en la misma fila; un solo botón "Guardar cambios" para todo, deshabilitado si no hay cambios sin guardar', estado: 'done' },
+        { texto: 'Obras (detalle): las tarjetas de Cliente/Presupuesto/Costos/Beneficio ya no tienen espacio en blanco de más', estado: 'done' },
+      ]
+    },
     {
       modulo: 'Mejoras 26/08/2026',
       icon: 'pi pi-sparkles',

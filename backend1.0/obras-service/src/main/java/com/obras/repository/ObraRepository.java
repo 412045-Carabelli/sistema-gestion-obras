@@ -8,6 +8,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.util.Collection;
 import java.util.List;
 
 public interface ObraRepository extends JpaRepository<Obra, Long> {
@@ -16,6 +17,7 @@ public interface ObraRepository extends JpaRepository<Obra, Long> {
     long countByOrganizacionIdAndActivoTrue(Long organizacionId);
     Page<Obra> findByIdCliente(Long idCliente, Pageable pageable);
     Page<Obra> findByIdClienteAndOrganizacionId(Long idCliente, Long organizacionId, Pageable pageable);
+    List<Obra> findByOrganizacionIdAndEstadoObraIn(Long organizacionId, Collection<EstadoObraEnum> estados);
 
     @Query("""
         select o from Obra o
