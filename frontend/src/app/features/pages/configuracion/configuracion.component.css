@@ -64,3 +64,86 @@
   color: #374151;
   margin-bottom: 4px;
 }
+
+/* ===== Tema oscuro cuando el paso vive dentro del stepper de onboarding ===== */
+@import url("https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&display=swap");
+
+.config-layout.onboarding {
+  font-family: 'Space Grotesk', sans-serif;
+  max-width: 1000px;
+  margin: 0 auto;
+}
+
+.config-layout.onboarding .config-card {
+  background: #161616;
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+.config-layout.onboarding .config-card-title {
+  color: #F0F0F0;
+}
+
+.config-layout.onboarding .config-card-title i {
+  color: #E8FF47;
+}
+
+.config-layout.onboarding .config-card-sub,
+.config-layout.onboarding .field-label,
+.config-layout.onboarding p {
+  color: #888;
+}
+
+.config-layout.onboarding .field-label {
+  color: #ccc;
+}
+
+.config-layout.onboarding input[pInputText] {
+  background: #0e0e0e;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: #F0F0F0;
+}
+
+.config-layout.onboarding input[pInputText]::placeholder {
+  color: #555;
+}
+
+.config-layout.onboarding ::ng-deep .p-password input {
+  background: #0e0e0e;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: #F0F0F0;
+}
+
+.config-layout.onboarding ::ng-deep .p-button {
+  background: #E8FF47;
+  border-color: #E8FF47;
+  color: #0e0e0e;
+  font-weight: 700;
+}
+
+.config-layout.onboarding ::ng-deep .p-button:not(:disabled):hover {
+  background: #d4eb2e;
+  border-color: #d4eb2e;
+}
+
+.config-layout.onboarding .border-dashed {
+  background: #0e0e0e !important;
+  border-color: rgba(255, 255, 255, 0.15) !important;
+}
+
+.config-actions-onboarding {
+  max-width: 1000px;
+  margin: 0 auto;
+  margin-top: 2rem;
+}
+
+.config-actions-onboarding ::ng-deep .p-button {
+  background: #E8FF47;
+  border-color: #E8FF47;
+  color: #0e0e0e;
+  font-weight: 700;
+}
+
+.config-actions-onboarding ::ng-deep .p-button:not(:disabled):hover {
+  background: #d4eb2e;
+  border-color: #d4eb2e;
+}

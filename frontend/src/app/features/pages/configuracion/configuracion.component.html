@@ -1,6 +1,6 @@
 <p-toast position="bottom-right"></p-toast>
 
-<div class="config-layout">
+<div class="config-layout" [class.onboarding]="enOnboarding">
 
     <!-- Mi perfil -->
     <div class="config-card config-card--left">
@@ -16,18 +16,18 @@
           <div>
             <label class="field-label">Nombre <span class="text-red-500">*</span></label>
             <input pInputText formControlName="nombre" class="w-full" placeholder="Tu nombre">
-            <small class="text-red-600" *ngIf="formPerfil.get('nombre')?.invalid && formPerfil.get('nombre')?.touched">Requerido</small>
+            <small class="text-red-600 block" style="min-height:1rem" [class.invisible]="!(formPerfil.get('nombre')?.invalid && formPerfil.get('nombre')?.touched)">Requerido</small>
           </div>
           <div>
             <label class="field-label">Apellido <span class="text-red-500">*</span></label>
             <input pInputText formControlName="apellido" class="w-full" placeholder="Tu apellido">
-            <small class="text-red-600" *ngIf="formPerfil.get('apellido')?.invalid && formPerfil.get('apellido')?.touched">Requerido</small>
+            <small class="text-red-600 block" style="min-height:1rem" [class.invisible]="!(formPerfil.get('apellido')?.invalid && formPerfil.get('apellido')?.touched)">Requerido</small>
           </div>
         </div>
         <div>
           <label class="field-label">Email <span class="text-red-500">*</span></label>
           <input pInputText formControlName="email" type="email" class="w-full" placeholder="tu@email.com">
-          <small class="text-red-600" *ngIf="formPerfil.get('email')?.invalid && formPerfil.get('email')?.touched">Email válido requerido</small>
+          <small class="text-red-600 block" style="min-height:1rem" [class.invisible]="!(formPerfil.get('email')?.invalid && formPerfil.get('email')?.touched)">Email válido requerido</small>
         </div>
       </form>
     </div>
@@ -44,11 +44,12 @@
               <div>
                 <label class="field-label">Nombre de la empresa <span class="text-red-500">*</span></label>
                 <input pInputText formControlName="empresa_nombre" class="w-full" placeholder="Ej: Meliquina Construcciones">
+                <small class="text-red-600 block" style="min-height:1rem" [class.invisible]="!(formEmpresa.get('empresa_nombre')?.invalid && formEmpresa.get('empresa_nombre')?.touched)">Requerido</small>
               </div>
               <div>
                 <label class="field-label">Nombre del propietario <span class="text-red-500">*</span></label>
                 <input pInputText formControlName="propietario_nombre" class="w-full" placeholder="Ej: Pablo Pezzini">
-                <p class="text-xs text-gray-400 mt-1">Aparece en el header como "Bienvenido, [nombre]".</p>
+                <small class="text-red-600 block" style="min-height:1rem" [class.invisible]="!(formEmpresa.get('propietario_nombre')?.invalid && formEmpresa.get('propietario_nombre')?.touched)">Requerido</small>
               </div>
             </div>
             <div>
@@ -89,51 +90,54 @@
       </form>
     }
 
-    <!-- Cambiar contraseña -->
-    <div class="config-card config-card--left">
-      <h2 class="config-card-title">
-        <i class="pi pi-lock"></i> Cambiar contraseña
-      </h2>
+    <!-- Cambiar contraseña (no aplica recién registrado, en onboarding) -->
+    @if (!enOnboarding) {
+      <div class="config-card config-card--left">
+        <h2 class="config-card-title">
+          <i class="pi pi-lock"></i> Cambiar contraseña
+        </h2>
 
-      <form [formGroup]="formPassword" (ngSubmit)="cambiarPassword()" class="space-y-4">
-        <div>
-          <label class="field-label">Contraseña actual</label>
-          <p-password formControlName="currentPassword" [feedback]="false" [toggleMask]="true"
-            styleClass="w-full" inputStyleClass="w-full">
-          </p-password>
-        </div>
-        <div class="grid grid-cols-2 gap-3">
+        <form [formGroup]="formPassword" (ngSubmit)="cambiarPassword()" class="space-y-4">
           <div>
-            <label class="field-label">Nueva contraseña</label>
-            <p-password formControlName="newPassword" [toggleMask]="true"
-              styleClass="w-full" inputStyleClass="w-full"
-              promptLabel="Ingresá una contraseña" weakLabel="Débil" mediumLabel="Media" strongLabel="Fuerte">
-            </p-password>
-            <small class="text-red-600" *ngIf="formPassword.get('newPassword')?.invalid && formPassword.get('newPassword')?.touched">Mínimo 8 caracteres</small>
-          </div>
-          <div>
-            <label class="field-label">Confirmar</label>
-            <p-password formControlName="confirmPassword" [feedback]="false" [toggleMask]="true"
+            <label class="field-label">Contraseña actual</label>
+            <p-password formControlName="currentPassword" [feedback]="false" [toggleMask]="true"
               styleClass="w-full" inputStyleClass="w-full">
             </p-password>
-            <small class="text-red-600" *ngIf="formPassword.errors?.['passwordMismatch']">Las contraseñas no coinciden</small>
           </div>
-        </div>
-        <div class="flex justify-end">
-          <p-button type="submit" label="Cambiar contraseña" icon="pi pi-lock"
-            [loading]="guardandoPassword" [disabled]="formPassword.invalid || guardandoPassword" severity="secondary">
-          </p-button>
-        </div>
-      </form>
-    </div>
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="field-label">Nueva contraseña</label>
+              <p-password formControlName="newPassword" [toggleMask]="true"
+                styleClass="w-full" inputStyleClass="w-full"
+                promptLabel="Ingresá una contraseña" weakLabel="Débil" mediumLabel="Media" strongLabel="Fuerte">
+              </p-password>
+              <small class="text-red-600" *ngIf="formPassword.get('newPassword')?.invalid && formPassword.get('newPassword')?.touched">Mínimo 8 caracteres</small>
+            </div>
+            <div>
+              <label class="field-label">Confirmar</label>
+              <p-password formControlName="confirmPassword" [feedback]="false" [toggleMask]="true"
+                styleClass="w-full" inputStyleClass="w-full">
+              </p-password>
+              <small class="text-red-600" *ngIf="formPassword.errors?.['passwordMismatch']">Las contraseñas no coinciden</small>
+            </div>
+          </div>
+          <div class="flex justify-end">
+            <p-button type="submit" label="Cambiar contraseña" icon="pi pi-lock"
+              [loading]="guardandoPassword" [disabled]="formPassword.invalid || guardandoPassword" severity="secondary">
+            </p-button>
+          </div>
+        </form>
+      </div>
+    }
 
-    <!-- WhatsApp (solo ADMIN) — misma fila que Cambiar contraseña -->
-    @if (isAdmin) {
+    <!-- WhatsApp (solo ADMIN, solo si el plan lo incluye) — misma fila que Cambiar contraseña -->
+    @if (isAdmin && puedeWhatsapp) {
       <form [formGroup]="formEmpresa" style="display: contents">
         <div class="config-card config-card--right">
           <h2 class="config-card-title">
             <i class="pi pi-comment"></i> Notificaciones WhatsApp
           </h2>
+
           <div>
             <label class="field-label">Teléfono responsable</label>
             <input pInputText formControlName="whatsapp_owner_phone" class="w-full"
@@ -164,8 +168,8 @@
 </div>
 
 <!-- Guardar (global): perfil + empresa, un solo botón para todo -->
-<div class="flex justify-end mt-5">
-  <p-button label="Guardar cambios" icon="pi pi-save" (onClick)="guardarTodo()"
+<div class="flex justify-end mt-5" [class.config-actions-onboarding]="enOnboarding">
+  <p-button [label]="enOnboarding ? 'Finalizar y entrar a Buildrr' : 'Guardar cambios'" icon="pi pi-save" (onClick)="guardarTodo()"
     [loading]="guardandoPerfil || guardandoEmpresa"
     [disabled]="!hayCambiosSinGuardar || guardandoPerfil || guardandoEmpresa">
   </p-button>

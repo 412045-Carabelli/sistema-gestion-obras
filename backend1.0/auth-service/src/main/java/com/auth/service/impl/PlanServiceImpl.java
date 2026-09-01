@@ -95,7 +95,7 @@ public class PlanServiceImpl implements PlanService {
                 .findActivaByOrganizacionId(organizacionId)
                 .orElse(null);
 
-        return buildMiPlanResponse(plan, suscripcion);
+        return buildMiPlanResponse(org, plan, suscripcion);
     }
 
     @Override
@@ -181,7 +181,7 @@ public class PlanServiceImpl implements PlanService {
         return plan;
     }
 
-    private MiPlanResponse buildMiPlanResponse(Plan plan, Suscripcion suscripcion) {
+    private MiPlanResponse buildMiPlanResponse(Organizacion org, Plan plan, Suscripcion suscripcion) {
         List<String> features = new ArrayList<>();
         if (Boolean.TRUE.equals(plan.getTieneFacturas())) features.add("facturas");
         if (Boolean.TRUE.equals(plan.getTieneAgenda())) features.add("agenda");
@@ -192,6 +192,7 @@ public class PlanServiceImpl implements PlanService {
         if (Boolean.TRUE.equals(plan.getTieneApiAccess())) features.add("api_access");
 
         return MiPlanResponse.builder()
+                .organizacionNombre(org.getNombre())
                 .planCodigo(plan.getCodigo())
                 .planNombre(plan.getNombre())
                 .precioMensualUsd(plan.getPrecioMensualUsd())

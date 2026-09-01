@@ -17,13 +17,14 @@ import {OnboardingService} from './core/services/onboarding.service';
 
 const PUBLIC_ROUTES = ['/login', '/register'];
 const EXACT_PUBLIC = ['/', '/home', '/terminos', '/privacidad'];
-// /planes y /checkout siempre muestran el stepper (paso "Elegir plan") en vez del
-// navbar/sidebar normal, sea o no una alta nueva — es donde se elige/paga el plan.
-const STEPPER_SIEMPRE = ['/planes', '/checkout'];
+// /planes, /checkout y /suscripcion siempre muestran el stepper (en vez del
+// navbar/sidebar normal), sea o no una alta nueva — es todo el circuito de elegir
+// y pagar el plan, incluida la confirmación del pago.
+const STEPPER_SIEMPRE = ['/planes', '/checkout', '/suscripcion'];
 // Rutas que solo muestran el stepper mientras el alta guiada está en curso
 // (register → elegir plan → configurar empresa). Fuera de una alta nueva,
 // /configuracion se ve como la pantalla de ajustes normal, con navbar y sidebar.
-const STEPPER_SOLO_ONBOARDING = ['/configuracion', '/suscripcion'];
+const STEPPER_SOLO_ONBOARDING = ['/configuracion'];
 
 function isPublicPath(): boolean {
   const path = window.location.pathname;
@@ -78,10 +79,19 @@ export class AppComponent implements OnInit{
 
   private updateLayoutFlags(url: string): void {
     const siempre = STEPPER_SIEMPRE.some(r => url.startsWith(r));
+    const esRutaOnboarding = siempre || STEPPER_SOLO_ONBOARDING.some(r => url.startsWith(r));
+    // Apenas el usuario navega a cualquier pantalla normal del sistema (dashboard, obras,
+    // etc.) se da por terminada el alta guiada — así el flag nunca queda pegado en una
+    // pestaña donde el usuario abandonó el onboarding a mitad de camino sin terminarlo.
+    if (!this.isPublicRoute && !esRutaOnboarding) {
+      this.onboardingService.finalizar();
+    }
     const soloOnboarding = STEPPER_SOLO_ONBOARDING.some(r => url.startsWith(r)) && this.onboardingService.activo();
     this.showStepper = siempre || soloOnboarding;
     this.hideSidebar = this.showStepper;
-    this.stepperPaso = url.startsWith('/configuracion') ? 3 : 2;
+    // /suscripcion es la confirmación del pago: el paso "Elegir plan" ya está
+    // resuelto en ese punto, lo siguiente es configurar la empresa.
+    this.stepperPaso = (url.startsWith('/configuracion') || url.startsWith('/suscripcion')) ? 3 : 2;
   }
 
   get isMobile(): boolean {

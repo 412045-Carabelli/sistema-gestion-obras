@@ -36,6 +36,7 @@ export interface PlanFeatures {
 }
 
 export interface PlanConfig {
+  organizacionNombre?: string;
   planCodigo: PlanCodigo;
   planNombre: string;
   precioMensualUsd: number;

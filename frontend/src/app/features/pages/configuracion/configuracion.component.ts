@@ -1,4 +1,5 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
+import { toObservable } from '@angular/core/rxjs-interop';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators, AbstractControl, ValidationErrors } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -8,11 +9,13 @@ import { PasswordModule } from 'primeng/password';
 import { ToastModule } from 'primeng/toast';
 import { DividerModule } from 'primeng/divider';
 import { MessageService } from 'primeng/api';
-import { Subscription } from 'rxjs';
+import { Subscription, combineLatest, Observable } from 'rxjs';
 import { ConfiguracionService, CONFIG_KEYS } from '../../../services/configuracion/configuracion.service';
 import { AuthService } from '../../../services/auth/auth.service';
 import { DocumentosService } from '../../../services/documentos/documentos.service';
 import { OnboardingService } from '../../../core/services/onboarding.service';
+import { PlanService } from '../../../services/plan/plan.service';
+import { PlanConfig } from '../../../core/models/models';
 
 function passwordsMatch(control: AbstractControl): ValidationErrors | null {
   const newPass = control.get('newPassword')?.value;
@@ -46,6 +49,11 @@ export class ConfiguracionComponent implements OnInit, OnDestroy {
   logoUploading = false;
   logoDragOver = false;
   private sub = new Subscription();
+  // toObservable() exige contexto de inyección — se asigna en el body del constructor
+  // (no como field initializer: esos corren ANTES que las parameter properties, así
+  // que this.planService todavía no existiría; y tampoco en ngOnInit, ahí ya se salió
+  // del contexto de inyección y tira NG0203, cortando en seco el resto del bloque).
+  private planConfig$: Observable<PlanConfig | null>;
 
   readonly CONFIG_KEYS = CONFIG_KEYS;
 
@@ -56,11 +64,19 @@ export class ConfiguracionComponent implements OnInit, OnDestroy {
     private documentosService: DocumentosService,
     private messageService: MessageService,
     private onboardingService: OnboardingService,
+    private planService: PlanService,
     private router: Router
-  ) {}
+  ) {
+    this.planConfig$ = toObservable(this.planService.planConfig);
+  }
 
   get enOnboarding(): boolean {
     return this.onboardingService.activo();
+  }
+
+  /** WhatsApp bot es feature paga — planes sin el feature no pueden cargar el teléfono. */
+  get puedeWhatsapp(): boolean {
+    return this.planService.canAccess('whatsapp_bot');
   }
 
   get isAdmin(): boolean {
@@ -93,15 +109,26 @@ export class ConfiguracionComponent implements OnInit, OnDestroy {
     }, { validators: passwordsMatch });
 
     this.sub.add(
-      this.configuracionService.config$.subscribe(config => {
-        if (Object.keys(config).length > 0) {
-          this.formEmpresa.patchValue({
-            empresa_nombre: config[CONFIG_KEYS.EMPRESA_NOMBRE] ?? '',
-            propietario_nombre: config[CONFIG_KEYS.PROPIETARIO_NOMBRE] ?? '',
-            whatsapp_owner_phone: config[CONFIG_KEYS.WHATSAPP_PHONE] ?? '',
-            logo_url: config[CONFIG_KEYS.LOGO_URL] ?? ''
-          });
+      // combineLatest en vez de solo config$: organizacionNombre (planService) suele
+      // resolver más tarde que config$ tras un reload — si solo escucháramos config$,
+      // el prefill se calculaba una sola vez con el plan todavía sin cargar y quedaba
+      // pegado en vacío para siempre (config$ no vuelve a emitir por su cuenta).
+      combineLatest([
+        this.configuracionService.config$,
+        this.planConfig$
+      ]).subscribe(([config, planConfig]) => {
+        // organizacionNombre viene del alta (register) — se usa como default mientras
+        // no se haya guardado explícitamente un nombre de empresa distinto. No lo
+        // pisamos si el usuario ya está escribiendo el suyo.
+        if (!this.formEmpresa.get('empresa_nombre')?.dirty) {
+          const nombreOrg = planConfig?.organizacionNombre ?? '';
+          this.formEmpresa.get('empresa_nombre')?.setValue(config[CONFIG_KEYS.EMPRESA_NOMBRE] || nombreOrg);
         }
+        this.formEmpresa.patchValue({
+          propietario_nombre: config[CONFIG_KEYS.PROPIETARIO_NOMBRE] ?? '',
+          whatsapp_owner_phone: config[CONFIG_KEYS.WHATSAPP_PHONE] ?? '',
+          logo_url: config[CONFIG_KEYS.LOGO_URL] ?? ''
+        });
       })
     );
   }
@@ -193,6 +220,17 @@ export class ConfiguracionComponent implements OnInit, OnDestroy {
   }
 
   guardarTodo(): void {
+    const empresaInvalida = this.isAdmin && this.formEmpresa.invalid;
+
+    // En onboarding es un solo paso atómico "Finalizar": si algo es inválido no se guarda
+    // nada todavía — evita el toast confuso de "Perfil actualizado" mientras Empresa
+    // sigue sin completar (y sin eso, tampoco hay redirect al dashboard).
+    if (this.enOnboarding && (this.formPerfil.invalid || empresaInvalida)) {
+      this.formPerfil.markAllAsTouched();
+      this.formEmpresa.markAllAsTouched();
+      return;
+    }
+
     if (this.formPerfil.invalid) {
       this.formPerfil.markAllAsTouched();
     } else {

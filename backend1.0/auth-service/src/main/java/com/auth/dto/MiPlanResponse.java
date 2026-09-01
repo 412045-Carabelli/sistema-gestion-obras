@@ -17,6 +17,9 @@ import java.util.List;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class MiPlanResponse {
 
+    // Organización
+    private String organizacionNombre;
+
     // Plan actual
     private String planCodigo;
     private String planNombre;
