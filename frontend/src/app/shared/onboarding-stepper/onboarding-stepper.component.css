@@ -82,9 +82,26 @@
   background: #E8FF47;
 }
 
-.ob-spacer {
-  width: 26px;
+.ob-logout {
+  display: flex;
+  align-items: center;
+  gap: 6px;
   flex-shrink: 0;
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 6px;
+  padding: 6px 12px;
+  color: #888;
+  font-family: inherit;
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: border-color 0.2s, color 0.2s;
+}
+
+.ob-logout:hover {
+  border-color: #E8FF47;
+  color: #E8FF47;
 }
 
 @media (max-width: 640px) {
@@ -93,8 +110,7 @@
     gap: 8px;
   }
 
-  .ob-logo,
-  .ob-spacer {
+  .ob-logo {
     display: none;
   }
 
@@ -104,5 +120,13 @@
 
   .ob-label {
     display: none;
+  }
+
+  .ob-logout-label {
+    display: none;
+  }
+
+  .ob-logout {
+    padding: 6px 8px;
   }
 }
