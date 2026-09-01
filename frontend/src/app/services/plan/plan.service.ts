@@ -166,6 +166,7 @@ export class PlanService {
 
   private mapBackendResponse(data: any): PlanConfig {
     return {
+      organizacionNombre: data.organizacionNombre,
       planCodigo: data.planCodigo,
       planNombre: data.planNombre,
       precioMensualUsd: data.precioMensualUsd,

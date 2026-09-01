@@ -274,6 +274,10 @@ services:
       - VAPID_PRIVATE_KEY=${VAPID_PRIVATE_KEY}
       - VAPID_SUBJECT=${VAPID_SUBJECT:-mailto:admin@buildrr.cloud}
       - PUSH_INTERNAL_SECRET=${PUSH_INTERNAL_SECRET}
+      - MP_ACCESS_TOKEN=${MP_ACCESS_TOKEN}
+      - MP_WEBHOOK_SECRET=${MP_WEBHOOK_SECRET}
+      - MP_PAYER_EMAIL_OVERRIDE=${MP_PAYER_EMAIL_OVERRIDE:-}
+      - APP_BASE_URL=${APP_BASE_URL:-https://buildrr.cloud}
       - JAVA_TOOL_OPTIONS=-Xms64m -Xmx256m -XX:+UseSerialGC -XX:ReservedCodeCacheSize=64m -XX:MaxMetaspaceSize=128m -XX:MaxDirectMemorySize=32m -Xss256k -Dserver.tomcat.threads.max=20 -Dserver.tomcat.threads.min-spare=5
     depends_on:
       sqlserver:

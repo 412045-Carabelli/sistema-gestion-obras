@@ -1,9 +1,11 @@
-<app-layout-header type="list" [title]="headerTitle" [subtitle]="headerSubtitle">
-</app-layout-header>
+@if (!enOnboarding) {
+  <app-layout-header type="list" [title]="headerTitle" [subtitle]="headerSubtitle">
+  </app-layout-header>
+}
 
-<div class="p-5 bg-gray-50">
+<div class="p-5" [class.bg-gray-50]="!enOnboarding" [class.config-onboarding-shell]="enOnboarding">
 
-  @if (isAdmin) {
+  @if (isAdmin && !enOnboarding) {
     <nav class="flex gap-1 mb-6 border-b border-gray-200">
       <a
         routerLink="/configuracion"

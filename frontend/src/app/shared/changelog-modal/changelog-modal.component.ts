@@ -6,7 +6,7 @@ import { TagModule } from 'primeng/tag';
 import { Subscription } from 'rxjs';
 import { ChangelogService } from '../../services/changelog/changelog.service';
 
-const VERSION = 'v1.19.34';
+const VERSION = 'v1.19.35';
 const STORAGE_KEY = `sgo-changelog-seen-${VERSION}`;
 
 interface ChangeItem {
@@ -32,6 +32,18 @@ export class ChangelogModalComponent implements OnInit, OnDestroy {
   private sub = new Subscription();
 
   grupos: ChangeGroup[] = [
+    {
+      modulo: 'Mejoras 01/09/2026',
+      icon: 'pi pi-sparkles',
+      items: [
+        { texto: 'Mercado Pago: se habilitó el modo sandbox (credenciales de prueba) para poder testear suscripciones sin cobrar dinero real', estado: 'done' },
+        { texto: 'Alta de cuenta: el paso 3 "Configurar empresa" ahora es el formulario real (nombre, perfil, WhatsApp), con el mismo estilo oscuro del stepper, en vez de una pantalla de éxito separada', estado: 'done' },
+        { texto: 'Alta de cuenta: "Nombre de la empresa" se precarga con el nombre puesto al registrarse, ya no lo vuelve a pedir vacío', estado: 'done' },
+        { texto: 'Configuración: el campo de notificaciones WhatsApp solo aparece si el plan contratado lo incluye', estado: 'done' },
+        { texto: 'Configuración: se corrigió que entrar desde el menú normal (ya con la empresa configurada) a veces mostraba otra vez la pantalla de alta guiada en lugar de la configuración normal', estado: 'done' },
+        { texto: 'Configuración: "Finalizar" ya no guarda datos a medias si falta un campo requerido, y los campos vacíos ahora muestran el aviso en rojo', estado: 'done' },
+      ]
+    },
     {
       modulo: 'Mejoras 27/08/2026',
       icon: 'pi pi-sparkles',
