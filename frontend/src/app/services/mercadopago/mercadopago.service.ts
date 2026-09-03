@@ -7,6 +7,8 @@ export interface MpIniciarRequest {
   planId: number;
   ciclo: 'MENSUAL' | 'ANUAL';
   codigoDescuento?: string;
+  /** Email con el que se va a pagar en MP — puede ser distinto al de la cuenta. */
+  payerEmail?: string;
 }
 
 export interface MpIniciarResponse {

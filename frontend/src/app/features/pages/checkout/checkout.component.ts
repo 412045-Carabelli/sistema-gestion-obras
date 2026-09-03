@@ -1,12 +1,13 @@
 import { Component, OnInit, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ReactiveFormsModule, FormBuilder, FormGroup } from '@angular/forms';
+import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
 import { ToastModule } from 'primeng/toast';
 import { MessageService } from 'primeng/api';
 import { catchError, of } from 'rxjs';
 import { MercadoPagoService } from '../../../services/mercadopago/mercadopago.service';
+import { AuthService } from '../../../services/auth/auth.service';
 import { environment } from '../../../../environments/environment';
 
 @Component({
@@ -25,6 +26,7 @@ export class CheckoutComponent implements OnInit {
   private mpService = inject(MercadoPagoService);
   private messageService = inject(MessageService);
   private fb = inject(FormBuilder);
+  private authService = inject(AuthService);
 
   planCodigo = signal('');
   ciclo = signal<'MENSUAL' | 'ANUAL'>('MENSUAL');
@@ -33,7 +35,12 @@ export class CheckoutComponent implements OnInit {
   procesando = signal(false);
 
   form: FormGroup = this.fb.group({
-    codigoDescuento: ['']
+    codigoDescuento: [''],
+    // Siempre visible, precargado con el email de la cuenta: Mercado Pago exige que
+    // coincida con la cuenta MP logueada al pagar (no con el email de registro acá),
+    // y si no coinciden falla directo en la pantalla de MP con un error críptico. Mejor
+    // aclararlo antes de que pase, no dejar que el usuario se choque con eso sin avisar.
+    payerEmail: ['', [Validators.required, Validators.email]]
   });
 
   ngOnInit(): void {
@@ -41,6 +48,7 @@ export class CheckoutComponent implements OnInit {
     const cicloParam = this.route.snapshot.queryParamMap.get('ciclo') ?? 'mensual';
     this.planCodigo.set(planParam.toUpperCase());
     this.ciclo.set(cicloParam.toUpperCase() as 'MENSUAL' | 'ANUAL');
+    this.form.get('payerEmail')?.setValue(this.authService.getCurrentUser()?.email ?? '');
     this.cargarPlan();
   }
 
@@ -71,13 +79,20 @@ export class CheckoutComponent implements OnInit {
     const plan = this.planDetalle();
     if (!plan) return;
 
+    if (this.form.get('payerEmail')?.invalid) {
+      this.form.get('payerEmail')?.markAsTouched();
+      return;
+    }
+
     this.procesando.set(true);
     const codigoDescuento = this.form.get('codigoDescuento')?.value?.trim() || undefined;
+    const payerEmail = this.form.get('payerEmail')?.value?.trim();
 
     this.mpService.iniciarSuscripcion({
       planId: plan.id,
       ciclo: this.ciclo(),
-      codigoDescuento
+      codigoDescuento,
+      payerEmail
     }).pipe(
       catchError(err => {
         const msg = err?.error?.message ?? 'Error al iniciar el pago. Intentá más tarde.';
