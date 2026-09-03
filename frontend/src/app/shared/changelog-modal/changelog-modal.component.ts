@@ -6,7 +6,7 @@ import { TagModule } from 'primeng/tag';
 import { Subscription } from 'rxjs';
 import { ChangelogService } from '../../services/changelog/changelog.service';
 
-const VERSION = 'v1.19.35';
+const VERSION = 'v1.19.36';
 const STORAGE_KEY = `sgo-changelog-seen-${VERSION}`;
 
 interface ChangeItem {
@@ -32,6 +32,13 @@ export class ChangelogModalComponent implements OnInit, OnDestroy {
   private sub = new Subscription();
 
   grupos: ChangeGroup[] = [
+    {
+      modulo: 'Mejoras 02/09/2026',
+      icon: 'pi pi-sparkles',
+      items: [
+        { texto: 'Checkout: nuevo campo "Email de tu cuenta de Mercado Pago" (independiente del email de registro) — MP exige que coincida con la cuenta logueada al pagar, y sin esto el pago fallaba sin explicación', estado: 'done' },
+      ]
+    },
     {
       modulo: 'Mejoras 01/09/2026',
       icon: 'pi pi-sparkles',

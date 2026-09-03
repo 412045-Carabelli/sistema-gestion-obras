@@ -112,11 +112,14 @@ public class MercadoPagoServiceImpl implements MercadoPagoService {
                 });
 
         // 4. Obtener email del payer (requerido por MP)
-        // En sandbox: usar override (debe ser email de cuenta compradora de prueba MP)
-        // En producción: usar email real del usuario
+        // Prioridad: override de sandbox (testing) > email de pago elegido en el checkout
+        // (puede ser distinto al de la cuenta: MP exige que coincida con la cuenta MP
+        // logueada, no con quien usa el sistema) > email de la cuenta como default.
         String payerEmail;
         if (payerEmailOverride != null && !payerEmailOverride.isBlank()) {
             payerEmail = payerEmailOverride;
+        } else if (request.getPayerEmail() != null && !request.getPayerEmail().isBlank()) {
+            payerEmail = request.getPayerEmail();
         } else {
             payerEmail = usuarioRepository.findByUsername(username)
                     .map(u -> u.getEmail())

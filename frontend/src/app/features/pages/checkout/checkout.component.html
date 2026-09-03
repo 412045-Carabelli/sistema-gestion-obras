@@ -21,7 +21,24 @@
       <!-- Columna derecha: descuento + pago -->
       <div class="checkout-col checkout-col-pago">
         <div class="descuento-section" [formGroup]="form">
-          <label for="codigoDescuento">Código de descuento (opcional)</label>
+          <label for="payerEmail">Email de tu cuenta de Mercado Pago</label>
+          <input
+            id="payerEmail"
+            type="email"
+            formControlName="payerEmail"
+            placeholder="tu-email-de-mercadopago@ejemplo.com"
+            class="input-descuento"
+          />
+          <small class="text-red-600" *ngIf="form.get('payerEmail')?.invalid && form.get('payerEmail')?.touched">
+            Ingresá un email válido
+          </small>
+          <p class="precio-nota" style="margin-top:4px">
+            Con este email vas a iniciar sesión en Mercado Pago al pagar. Si tu cuenta de MP
+            usa un email distinto al de tu registro acá, cambialo por ese — si no coinciden,
+            Mercado Pago rechaza el pago.
+          </p>
+
+          <label for="codigoDescuento" style="margin-top:16px">Código de descuento (opcional)</label>
           <input
             id="codigoDescuento"
             type="text"

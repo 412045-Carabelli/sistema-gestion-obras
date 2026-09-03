@@ -234,7 +234,7 @@ export class LandingComponent implements OnInit, AfterViewInit, OnDestroy {
       this.contactForm.markAllAsTouched();
       return;
     }
-    this.messageService.add({ severity: 'success', summary: '¡Gracias!', detail: 'Nos pondremos en contacto pronto.' });
+    this.messageService.add({ severity: 'success', summary: 'Gracias', detail: 'Nos pondremos en contacto pronto.' });
     this.contactForm.reset();
   }
 }

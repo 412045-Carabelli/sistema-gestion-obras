@@ -6,6 +6,42 @@
   background: #0e0e0e;
   color: #F0F0F0;
   overflow-x: hidden;
+  position: relative;
+}
+
+:host::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  opacity: 0.035;
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+.skip-link {
+  position: absolute;
+  top: -48px;
+  left: 12px;
+  z-index: 300;
+  background: #E8FF47;
+  color: #0e0e0e;
+  padding: 10px 18px;
+  border-radius: 8px;
+  font-weight: 700;
+  font-size: 0.9rem;
+  text-decoration: none;
+  transition: top 0.2s;
+}
+.skip-link:focus { top: 12px; }
+
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+textarea:focus-visible {
+  outline: 2px solid #E8FF47;
+  outline-offset: 2px;
 }
 
 .lime { color: #E8FF47; }
@@ -73,6 +109,7 @@
   letter-spacing: 0.03em;
 }
 .btn-login:hover { background: #E8FF47; color: #0e0e0e; }
+.btn-login:active { transform: scale(0.98); }
 
 .hamburger {
   display: none;
@@ -131,7 +168,7 @@
 }
 
 .hero {
-  min-height: 100vh;
+  min-height: 100dvh;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -209,6 +246,7 @@
   letter-spacing: 0.01em;
   margin-bottom: 24px;
   color: #F0F0F0;
+  text-wrap: balance;
 }
 .hero-sub {
   font-size: 1.1rem;
@@ -240,6 +278,10 @@
   transform: translateY(-2px);
   box-shadow: 0 8px 32px rgba(232,255,71,0.25);
 }
+.btn-primary:active:not(:disabled) {
+  transform: translateY(0) scale(0.98);
+  box-shadow: 0 4px 16px rgba(232,255,71,0.2);
+}
 .btn-primary:disabled { opacity: 0.6; cursor: not-allowed; }
 .btn-ghost {
   background: transparent;
@@ -254,6 +296,7 @@
   transition: border-color 0.2s, color 0.2s;
 }
 .btn-ghost:hover { border-color: #E8FF47; color: #E8FF47; }
+.btn-ghost:active { transform: scale(0.98); }
 .hero-stats {
   display: flex;
   align-items: center;
@@ -266,6 +309,7 @@
   font-weight: 700;
   color: #F0F0F0;
   letter-spacing: 0.01em;
+  font-variant-numeric: tabular-nums;
 }
 .stat-label { font-size: 0.8rem; color: #666; }
 .stat-div { width: 1px; height: 36px; background: rgba(255,255,255,0.1); }
@@ -312,7 +356,7 @@
   gap: 6px;
 }
 .kpi-label { font-size: 0.7rem; color: #666; }
-.kpi-val { font-size: 1.1rem; font-weight: 700; color: #F0F0F0; }
+.kpi-val { font-size: 1.1rem; font-weight: 700; color: #F0F0F0; font-variant-numeric: tabular-nums; }
 .kpi-val.lime { color: #E8FF47; }
 .mock-chart { background: #1a1a1a; border-radius: 10px; padding: 16px; }
 .bar-wrap { display: flex; align-items: flex-end; gap: 8px; height: 80px; }
@@ -353,6 +397,7 @@
   line-height: 1.15;
   letter-spacing: 0.01em;
   margin-bottom: 16px;
+  text-wrap: balance;
 }
 .section-header p { color: #888; font-size: 1rem; line-height: 1.7; max-width: 520px; margin: 0 auto; }
 
@@ -408,7 +453,7 @@
 }
 .plan-name { font-size: 1.2rem; font-weight: 700; color: #F0F0F0; letter-spacing: 0.02em; }
 .plan-price-wrap { display: flex; align-items: baseline; gap: 6px; }
-.plan-price { font-size: 2.4rem; font-weight: 700; color: #E8FF47; letter-spacing: 0.01em; }
+.plan-price { font-size: 2.4rem; font-weight: 700; color: #E8FF47; letter-spacing: 0.01em; font-variant-numeric: tabular-nums; }
 .plan-price-sub { font-size: 0.85rem; color: #777; }
 .plan-desc { font-size: 0.85rem; color: #777; line-height: 1.6; }
 .plan-limites { border-bottom: 1px solid rgba(255,255,255,0.06); padding-bottom: 12px; margin-bottom: 4px; }
@@ -436,6 +481,7 @@
   letter-spacing: 0.02em;
 }
 .btn-plan:hover { border-color: #E8FF47; color: #E8FF47; }
+.btn-plan:active { transform: scale(0.98); }
 .btn-plan.lime-btn { background: #E8FF47; border-color: #E8FF47; color: #0e0e0e; }
 .btn-plan.lime-btn:hover { background: #d4e93a; color: #0e0e0e; }
 
@@ -477,6 +523,7 @@
 .contact-left h2 {
   font-size: clamp(1.8rem, 3vw, 2.6rem);
   font-weight: 700; line-height: 1.2; letter-spacing: 0.01em; margin: 16px 0 20px;
+  text-wrap: balance;
 }
 .contact-left p { color: #777; font-size: 1rem; line-height: 1.7; margin-bottom: 32px; }
 .contact-info { display: flex; flex-direction: column; gap: 12px; }
