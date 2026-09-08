@@ -3,6 +3,7 @@ package com.transacciones.service;
 import com.transacciones.dto.FacturaDto;
 import com.transacciones.dto.ObraResumenDto;
 import com.transacciones.entity.Factura;
+import com.transacciones.entity.Transaccion;
 import com.transacciones.repository.FacturaRepository;
 import com.transacciones.repository.TransaccionRepository;
 import org.junit.jupiter.api.Test;
@@ -98,9 +99,8 @@ class FacturaServiceTest {
     }
 
     @Test
-    void crear_con_impacto_no_crea_transaccion_funcionalidad_deshabilitada() {
-        // "Impacta cta. cte." está deshabilitada a pedido (ver FacturaService.crear):
-        // aunque el DTO pida impactar, no debe tocar transaccionRepository para nada.
+    void crear_estado_emitida_no_crea_transaccion() {
+        // Solo una factura COBRADA impacta cta. cte.; EMITIDA no debe tocar transaccionRepository.
         ObraResumenDto obra = new ObraResumenDto();
         obra.setPresupuesto(200d);
         when(obraCostoClient.obtenerObra(2L)).thenReturn(obra);
@@ -108,12 +108,33 @@ class FacturaServiceTest {
         when(facturaRepository.save(any(Factura.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
         FacturaDto dto = baseDto();
-        dto.setImpacta_cta_cte(true);
 
         FacturaDto result = service.crear(dto, null);
 
         verify(transaccionRepository, never()).save(any());
         assertNull(result.getId_transaccion());
+    }
+
+    @Test
+    void crear_estado_cobrada_crea_transaccion_en_cta_cte() {
+        ObraResumenDto obra = new ObraResumenDto();
+        obra.setPresupuesto(200d);
+        when(obraCostoClient.obtenerObra(2L)).thenReturn(obra);
+        when(facturaRepository.findByIdObra(2L)).thenReturn(List.of());
+        when(facturaRepository.save(any(Factura.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        when(transaccionRepository.save(any(Transaccion.class))).thenAnswer(invocation -> {
+            Transaccion t = invocation.getArgument(0);
+            t.setId(99L);
+            return t;
+        });
+
+        FacturaDto dto = baseDto();
+        dto.setEstado("COBRADA");
+
+        FacturaDto result = service.crear(dto, null);
+
+        verify(transaccionRepository).save(any(Transaccion.class));
+        assertEquals(99L, result.getId_transaccion());
     }
 
     @Test
@@ -201,16 +222,13 @@ class FacturaServiceTest {
     }
 
     @Test
-    void actualizar_sin_impacto_no_toca_transaccion() {
-        // Funcionalidad deshabilitada: actualizar ya no borra la transacción asociada
-        // aunque impacta_cta_cte venga en false, para no alterar datos históricos.
+    void actualizar_manteniendo_emitida_sin_transaccion_no_toca_nada() {
         Factura existente = Factura.builder()
                 .id(1L)
                 .idCliente(1L)
                 .idObra(2L)
                 .monto(100d)
                 .montoRestante(0d)
-                .idTransaccion(10L)
                 .fecha(LocalDate.now())
                 .build();
         when(facturaRepository.findById(1L)).thenReturn(Optional.of(existente));
@@ -221,24 +239,23 @@ class FacturaServiceTest {
         when(facturaRepository.save(any(Factura.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
         FacturaDto dto = baseDto();
-        dto.setImpacta_cta_cte(false);
 
         service.actualizar(1L, dto, null);
 
+        verify(transaccionRepository, never()).save(any());
         verify(transaccionRepository, never()).deleteById(any());
         verify(facturaRepository).save(facturaCaptor.capture());
-        assertEquals(10L, facturaCaptor.getValue().getIdTransaccion());
+        assertNull(facturaCaptor.getValue().getIdTransaccion());
     }
 
     @Test
-    void actualizar_con_impacto_no_crea_ni_actualiza_transaccion_funcionalidad_deshabilitada() {
+    void actualizar_a_cobrada_crea_transaccion_en_cta_cte() {
         Factura existente = Factura.builder()
                 .id(12L)
                 .idCliente(1L)
                 .idObra(2L)
                 .monto(100d)
                 .montoRestante(0d)
-                .idTransaccion(20L)
                 .fecha(LocalDate.now())
                 .build();
         when(facturaRepository.findById(12L)).thenReturn(Optional.of(existente));
@@ -247,15 +264,50 @@ class FacturaServiceTest {
         when(obraCostoClient.obtenerObra(2L)).thenReturn(obra);
         when(facturaRepository.findByIdObra(2L)).thenReturn(List.of(existente));
         when(facturaRepository.save(any(Factura.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        when(transaccionRepository.save(any(Transaccion.class))).thenAnswer(invocation -> {
+            Transaccion t = invocation.getArgument(0);
+            t.setId(99L);
+            return t;
+        });
 
         FacturaDto dto = baseDto();
-        dto.setImpacta_cta_cte(true);
+        dto.setEstado("COBRADA");
 
         service.actualizar(12L, dto, null);
 
+        verify(transaccionRepository).save(any(Transaccion.class));
+        verify(facturaRepository).save(facturaCaptor.capture());
+        assertEquals(99L, facturaCaptor.getValue().getIdTransaccion());
+    }
+
+    @Test
+    void actualizar_de_cobrada_a_emitida_borra_transaccion() {
+        Factura existente = Factura.builder()
+                .id(13L)
+                .idCliente(1L)
+                .idObra(2L)
+                .monto(100d)
+                .montoRestante(0d)
+                .idTransaccion(20L)
+                .estado("COBRADA")
+                .fecha(LocalDate.now())
+                .build();
+        when(facturaRepository.findById(13L)).thenReturn(Optional.of(existente));
+        ObraResumenDto obra = new ObraResumenDto();
+        obra.setPresupuesto(200d);
+        when(obraCostoClient.obtenerObra(2L)).thenReturn(obra);
+        when(facturaRepository.findByIdObra(2L)).thenReturn(List.of(existente));
+        when(facturaRepository.save(any(Factura.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        FacturaDto dto = baseDto();
+        dto.setEstado("EMITIDA");
+
+        service.actualizar(13L, dto, null);
+
+        verify(transaccionRepository).deleteById(20L);
         verify(transaccionRepository, never()).save(any());
         verify(facturaRepository).save(facturaCaptor.capture());
-        assertEquals(20L, facturaCaptor.getValue().getIdTransaccion());
+        assertNull(facturaCaptor.getValue().getIdTransaccion());
     }
 
     @Test
