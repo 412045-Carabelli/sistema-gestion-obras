@@ -82,7 +82,7 @@ export class SidebarComponent implements OnInit {
     {
       label: 'Financiero',
       items: [
-        { label: 'Movimientos',        icon: 'pi-arrow-right-arrow-left', path: '/movimientos' },
+        { label: 'Caja/Bancos',        icon: 'pi-arrow-right-arrow-left', path: '/movimientos' },
         { label: 'Facturación',        icon: 'pi-receipt',                path: '/facturas',          feature: 'facturas' },
         { label: 'Cuentas Corrientes', icon: 'pi-wallet',                 path: '/cuentas-corrientes' }
       ]
@@ -99,5 +99,5 @@ export class SidebarComponent implements OnInit {
     return this.menuGroups.flatMap(g => g.items);
   }
 
-  version: string = 'v1.19.36';
+  version: string = 'v1.19.37';
 }

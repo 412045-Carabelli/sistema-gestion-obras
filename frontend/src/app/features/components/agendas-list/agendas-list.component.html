@@ -25,7 +25,6 @@
         styleClass="p-datatable-sm">
         <ng-template pTemplate="header">
           <tr>
-            <th pSortableColumn="id" class="text-left font-poppins font-semibold w-20">N° <p-sortIcon field="id"></p-sortIcon></th>
             <th pSortableColumn="titulo" class="text-left font-poppins font-semibold">Título <p-sortIcon field="titulo"></p-sortIcon></th>
             @if (!obraId) {
               <th pSortableColumn="obraId" class="text-left font-poppins font-semibold">Obra <p-sortIcon field="obraId"></p-sortIcon></th>
@@ -34,14 +33,17 @@
             <th pSortableColumn="proveedorId" class="text-left font-poppins font-semibold">Proveedor <p-sortIcon field="proveedorId"></p-sortIcon></th>
             <th pSortableColumn="estado" class="text-left font-poppins font-semibold">Estado <p-sortIcon field="estado"></p-sortIcon></th>
             <th pSortableColumn="fechaVencimiento" class="text-left font-poppins font-semibold">Vencimiento <p-sortIcon field="fechaVencimiento"></p-sortIcon></th>
-            <th pSortableColumn="creadoEn" class="text-left font-poppins font-semibold">Fecha Alta <p-sortIcon field="creadoEn"></p-sortIcon></th>
             <th class="text-center font-poppins font-semibold w-20">Acciones</th>
           </tr>
         </ng-template>
         <ng-template let-agenda pTemplate="body">
           <tr class="hover:bg-gray-50 transition-colors cursor-pointer" (click)="abrirModalDetalle(agenda)">
-            <td class="font-poppins font-normal">{{ agenda.id }}</td>
-            <td><span class="font-poppins font-normal text-gray-900 text-sm">{{ agenda.titulo }}</span></td>
+            <td>
+              <span class="font-poppins font-normal text-gray-900 text-sm">{{ agenda.titulo }}</span>
+              @if (agenda.descripcion) {
+                <p class="text-xs text-gray-400 font-poppins font-normal truncate max-w-xs">{{ agenda.descripcion }}</p>
+              }
+            </td>
             @if (!obraId) {
               <td class="text-gray-600 text-sm font-poppins font-normal">{{ getNombreObra(agenda.obraId) }}</td>
             }
@@ -52,10 +54,6 @@
             </td>
             <td class="text-gray-600 text-sm">
               @if (agenda.fechaVencimiento) { <span>{{ agenda.fechaVencimiento | date:'dd/MM/yy' }}</span> }
-              @else { <span class="text-gray-400">-</span> }
-            </td>
-            <td class="text-gray-600 text-sm">
-              @if (agenda.creadoEn) { <span>{{ agenda.creadoEn | date:'dd/MM/yy' }}</span> }
               @else { <span class="text-gray-400">-</span> }
             </td>
             <td class="text-center" (click)="$event.stopPropagation()">
@@ -73,7 +71,7 @@
         </ng-template>
         <ng-template pTemplate="emptymessage">
           <tr>
-            <td class="text-center py-10" [attr.colspan]="obraId ? 8 : 9">
+            <td class="text-center py-10" [attr.colspan]="obraId ? 6 : 7">
               <div class="flex flex-col items-center justify-center gap-2 text-gray-500">
                 <i class="pi pi-inbox text-3xl"></i>
                 <p class="text-base font-medium">No hay agendas para mostrar</p>

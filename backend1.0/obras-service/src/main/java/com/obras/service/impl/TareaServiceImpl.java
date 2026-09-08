@@ -36,10 +36,11 @@ import java.util.stream.Collectors;
 @Slf4j
 public class TareaServiceImpl implements TareaService {
 
+    // FINALIZADA queda afuera a propósito: una obra finalizada no debe impactar el
+    // Diagrama de Gantt general, aunque sus tareas nunca se hayan marcado como completadas.
     private static final Set<EstadoObraEnum> ESTADOS_ACTIVOS = EnumSet.of(
             EstadoObraEnum.ADJUDICADA,
-            EstadoObraEnum.EN_PROGRESO,
-            EstadoObraEnum.FINALIZADA
+            EstadoObraEnum.EN_PROGRESO
     );
 
     private final TareaRepository tareaRepo;

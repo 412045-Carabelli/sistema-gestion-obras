@@ -202,6 +202,12 @@ public class ObraServiceImpl implements ObraService {
             existing.setEstadoObra(parseEstado(dto.getObra_estado()));
         }
 
+        if (existing.getEstadoObra() == EstadoObraEnum.FINALIZADA) {
+            // La obra finalizada anula el resto de parametros del Gantt: sus tareas
+            // pasan a completadas aunque nunca se hayan marcado como tales.
+            tareaRepo.completarPorObra(existing.getId());
+        }
+
         Obra saved = obraRepo.save(existing);
         // Recalcular presupuesto desde costos para mantener consistencia con el detail
         TotalesObra totales = calcularTotalesObra(saved);
@@ -221,6 +227,12 @@ public class ObraServiceImpl implements ObraService {
 
         EstadoObraEnum nuevoEstado = estado != null ? estado : EstadoObraEnum.PRESUPUESTADA;
         obra.setEstadoObra(nuevoEstado);
+
+        if (nuevoEstado == EstadoObraEnum.FINALIZADA) {
+            // La obra finalizada anula el resto de parametros del Gantt: sus tareas
+            // pasan a completadas aunque nunca se hayan marcado como tales.
+            tareaRepo.completarPorObra(idObra);
+        }
 
         obraRepo.save(obra);
     }

@@ -115,6 +115,8 @@ export class ObrasDetailComponent implements OnInit, OnDestroy, AfterViewInit {
   memoriaExpandida = false;
   editandoMemoria = false;
   memoriaTemp = '';
+  editandoNotas = false;
+  notasTemp = '';
   notasExpandida = false;
   notasOverflow = false;
   activeTab = '0';
@@ -245,7 +247,51 @@ export class ObrasDetailComponent implements OnInit, OnDestroy, AfterViewInit {
       return;
     }
 
+    if (estadoNormalizado === 'FINALIZADA') {
+      this.verificarSaldosAntesDeFinalizar(estadoNormalizado);
+      return;
+    }
+
     this.confirmarCambioEstado(estadoNormalizado);
+  }
+
+  /** FINALIZADA debería reservarse para obras sin saldo pendiente: avisa (no bloquea) si
+   * el cliente o los proveedores todavía tienen saldo distinto de cero en esta obra. */
+  private verificarSaldosAntesDeFinalizar(estadoNormalizado: string): void {
+    if (!this.obra?.id) return;
+    const obraId = this.obra.id;
+
+    this.reportesService.getDeudasGlobales({ obraId, incluirSaldoCero: true }).subscribe({
+      next: (deudas) => {
+        const saldoCliente = (deudas.detalleDeudaClientes ?? [])
+          .reduce((sum, d) => sum + Number(d.saldo ?? 0), 0);
+        const saldoProveedores = (deudas.detalleDeudaProveedores ?? [])
+          .reduce((sum, d) => sum + Number(d.saldo ?? 0), 0);
+
+        if (saldoCliente <= 0.01 && saldoProveedores <= 0.01) {
+          this.confirmarCambioEstado(estadoNormalizado);
+          return;
+        }
+
+        this.confirmationService.confirm({
+          header: 'Saldo pendiente',
+          message: `Esta obra todavia tiene saldo pendiente (cliente: ${this.formatCurrencyAr(saldoCliente)}, proveedores: ${this.formatCurrencyAr(saldoProveedores)}). ¿Marcarla como FINALIZADA de todos modos?`,
+          icon: 'pi pi-exclamation-triangle',
+          acceptLabel: 'Finalizar igual',
+          rejectLabel: 'Cancelar',
+          accept: () => this.confirmarCambioEstado(estadoNormalizado),
+          reject: () => { this.estadoSeleccionado = this.obra?.obra_estado ?? null; }
+        });
+      },
+      error: () => {
+        // Si no se pudo verificar el saldo, no bloquear el cambio de estado.
+        this.confirmarCambioEstado(estadoNormalizado);
+      }
+    });
+  }
+
+  private formatCurrencyAr(valor: number): string {
+    return new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS', minimumFractionDigits: 0 }).format(valor);
   }
 
   cancelarCambioEstado() {
@@ -601,6 +647,59 @@ export class ObrasDetailComponent implements OnInit, OnDestroy, AfterViewInit {
       },
       error: () => {
         this.messageService.add({ severity: 'error', summary: 'Error', detail: 'No se pudo guardar la memoria descriptiva' });
+      }
+    });
+  }
+
+  iniciarEditarNotas() {
+    this.notasTemp = this.obra.notas || '';
+    this.editandoNotas = true;
+  }
+
+  cancelarEditarNotas() {
+    this.editandoNotas = false;
+    this.notasTemp = '';
+  }
+
+  guardarNotas() {
+    if (!this.obra?.id) return;
+    const idCliente = this.obra.cliente?.id ?? (this.obra as any).id_cliente;
+    const estadoRaw = this.obra.obra_estado;
+    const estadoNormalizado: any = typeof estadoRaw === 'string'
+      ? estadoRaw
+      : (estadoRaw as any)?.name ?? (estadoRaw as any)?.value ?? estadoRaw;
+
+    const payload: any = {
+      id_cliente: idCliente,
+      obra_estado: estadoNormalizado,
+      nombre: this.obra.nombre,
+      direccion: this.obra.direccion,
+      fecha_inicio: this.toDateTimeString(this.obra.fecha_inicio),
+      fecha_presupuesto: this.toDateTimeString(this.obra.fecha_presupuesto),
+      fecha_fin: this.toDateTimeString(this.obra.fecha_fin),
+      fecha_adjudicada: this.toDateTimeString(this.obra.fecha_adjudicada),
+      fecha_perdida: this.toDateTimeString(this.obra.fecha_perdida),
+      tiene_comision: this.obra.tiene_comision ?? false,
+      presupuesto: this.obra.presupuesto,
+      beneficio_global: this.obra.beneficio_global,
+      beneficio: this.obra.beneficio,
+      comision: this.obra.comision,
+      notas: this.notasTemp,
+      memoria_descriptiva: this.obra.memoria_descriptiva,
+      condiciones_presupuesto: this.obra.condiciones_presupuesto,
+      observaciones_presupuesto: this.obra.observaciones_presupuesto,
+      requiere_factura: this.obra.requiere_factura
+    };
+
+    this.obraService.updateObra(this.obra.id!, payload).subscribe({
+      next: (updated) => {
+        this.obra = { ...this.obra, ...updated, notas: this.notasTemp };
+        this.editandoNotas = false;
+        this.notasTemp = '';
+        this.messageService.add({ severity: 'success', summary: 'Guardado', detail: 'Notas actualizadas' });
+      },
+      error: () => {
+        this.messageService.add({ severity: 'error', summary: 'Error', detail: 'No se pudieron guardar las notas' });
       }
     });
   }

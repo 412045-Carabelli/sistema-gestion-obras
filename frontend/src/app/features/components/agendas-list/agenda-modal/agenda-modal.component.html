@@ -50,9 +50,8 @@
       </div>
     </div>
 
-    <!-- Obra, Cliente, Proveedor: solo cuando la agenda está embebida en una obra (Obras/Detalle).
-         El módulo general de Agenda es un anotador puro, sin vincular a obra/cliente/proveedor. -->
-    @if (obraFija) {
+    <!-- Obra: fija (deshabilitada) cuando la agenda está embebida en una obra (Obras/Detalle);
+         en el módulo general se elige libremente, con cascada hacia cliente/proveedor. -->
     <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
       <div>
         <label class="block text-sm font-poppins font-semibold mb-1 text-gray-700">Obra</label>
@@ -61,9 +60,13 @@
           optionLabel="label"
           optionValue="value"
           formControlName="obraId"
+          [showClear]="!obraFija"
+          [filter]="!obraFija"
+          filterPlaceholder="Buscar obra..."
           styleClass="w-full"
           placeholder="Selecciona una obra"
-          [disabled]="true"
+          [disabled]="!!obraFija || modoSoloLectura()"
+          (onChange)="onObraSeleccionada()"
           appendTo="body">
         </p-dropdown>
       </div>
@@ -75,9 +78,13 @@
           optionLabel="label"
           optionValue="value"
           formControlName="clienteId"
+          [showClear]="!obraFija"
+          [filter]="!obraFija"
+          filterPlaceholder="Buscar cliente..."
           styleClass="w-full"
           placeholder="Selecciona un cliente"
-          [disabled]="true"
+          [disabled]="!!obraFija || modoSoloLectura()"
+          (onChange)="onClienteSeleccionado()"
           appendTo="body">
         </p-dropdown>
       </div>
@@ -99,7 +106,6 @@
         </p-dropdown>
       </div>
     </div>
-    }
 
     <!-- Descripción + Fechas -->
     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">

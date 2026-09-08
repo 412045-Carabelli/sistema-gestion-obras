@@ -7,9 +7,11 @@ import {InputIcon} from 'primeng/inputicon';
 import {InputText} from 'primeng/inputtext';
 import {Select} from 'primeng/select';
 import {CheckboxModule} from 'primeng/checkbox';
+import {TooltipModule} from 'primeng/tooltip';
 import {forkJoin} from 'rxjs';
 import {Proveedor} from '../../../core/models/models';
 import {ProveedoresService} from '../../../services/proveedores/proveedores.service';
+import {ReportesService} from '../../../services/reportes/reportes.service';
 import {Router} from '@angular/router';
 import {GenericFilterBarComponent, FilterDefinition, FilterAction} from '../generic-filter-bar/generic-filter-bar.component';
 import {TableSkeletonComponent} from '../../../shared/table-skeleton/table-skeleton.component';
@@ -30,6 +32,7 @@ interface SaldoOption { label: string; value: 'todos' | 'con_saldo' | 'saldo_cer
     InputText,
     Select,
     CheckboxModule,
+    TooltipModule,
     GenericFilterBarComponent,
     TableSkeletonComponent
   ],
@@ -64,6 +67,7 @@ export class ProveedoresListComponent implements OnInit {
 
   constructor(
     private service: ProveedoresService,
+    private reportesService: ReportesService,
     private router: Router
   ) {
   }
@@ -71,12 +75,19 @@ export class ProveedoresListComponent implements OnInit {
   ngOnInit() {
     forkJoin({
       proveedores: this.service.getProveedoresAll(),
-      tipos: this.service.getTipos()
+      tipos: this.service.getTipos(),
+      deudas: this.reportesService.getDeudasGlobales({incluirSaldoCero: true})
     }).subscribe({
-      next: ({proveedores, tipos}) => {
+      next: ({proveedores, tipos, deudas}) => {
         this.proveedores = proveedores;
         this.tiposRecords = tipos;
         this.tipoOptions = [ {label: 'Todos', name: 'todos'}, ...this.tiposRecords.map(r => ({label: r.label, name: r.name})) ];
+        (deudas.detalleDeudaProveedores ?? []).forEach(d => {
+          const id = Number(d.proveedorId ?? 0);
+          if (!id) return;
+          this.saldosProveedor[id] = (this.saldosProveedor[id] ?? 0) + Number(d.saldo ?? 0);
+          this.totalesProveedor[id] = (this.totalesProveedor[id] ?? 0) + Number(d.presupuestado ?? 0);
+        });
         this.setupFilterDefinitions(tipos);
         this.applyFilter();
         this.datosCargados = true;

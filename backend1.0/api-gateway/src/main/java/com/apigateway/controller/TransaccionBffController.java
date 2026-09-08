@@ -57,15 +57,22 @@ public class TransaccionBffController {
     public Mono<ResponseEntity<Map<String, Object>>> getAllConAsociados(
             @RequestParam(name = "page", defaultValue = "0") int page,
             @RequestParam(name = "size", defaultValue = "50") int size,
+            @RequestParam(name = "fechaInicio", required = false) String fechaInicio,
+            @RequestParam(name = "fechaFin", required = false) String fechaFin,
             @RequestHeader(value = "X-Organizacion-Id", defaultValue = "0") String organizacionId
     ) {
         WebClient client = webClientBuilder.build();
 
-        String url = UriComponentsBuilder.fromHttpUrl(TRANSACCIONES_URL + "/con-asociados")
+        UriComponentsBuilder urlBuilder = UriComponentsBuilder.fromHttpUrl(TRANSACCIONES_URL + "/con-asociados")
                 .queryParam("page", page)
-                .queryParam("size", size)
-                .build()
-                .toUriString();
+                .queryParam("size", size);
+        if (fechaInicio != null) {
+            urlBuilder.queryParam("fechaInicio", fechaInicio);
+        }
+        if (fechaFin != null) {
+            urlBuilder.queryParam("fechaFin", fechaFin);
+        }
+        String url = urlBuilder.build().toUriString();
 
         return client.get()
                 .uri(url)

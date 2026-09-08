@@ -240,6 +240,15 @@
                 </div>
               </div>
             </p-tab>
+            <p-tab value="7" pStyleClass="px-6 py-4">
+              <div class="flex items-center gap-3">
+                <i class="pi pi-file-edit"></i>
+                <div class="flex flex-col leading-tight">
+                  <span class="font-poppins font-semibold text-sm">Notas</span>
+                  <span class="text-xs font-poppins font-normal text-gray-500">Anotaciones libres</span>
+                </div>
+              </div>
+            </p-tab>
           </p-tablist>
 
           <p-tabpanels pStyleClass="p-6">
@@ -422,6 +431,42 @@
                   }
                 </div>
               }
+            </p-tabpanel>
+
+            <p-tabpanel value="7">
+              <div class="p-6 space-y-4">
+                <div class="bg-gray-50 border border-gray-100 rounded-lg p-4">
+                  <p class="text-sm font-normal text-gray-500">
+                    <i class="pi pi-info-circle mr-2"></i>
+                    Talonario de notas libres. Sin fecha ni relación con Agenda o Tareas.
+                  </p>
+                </div>
+                @if (editandoNotas) {
+                  <div class="space-y-3">
+                    <textarea
+                      [(ngModel)]="notasTemp"
+                      rows="10"
+                      class="w-full border rounded-lg p-3 text-sm"
+                      placeholder="Escribí una nota...">
+                    </textarea>
+                    <div class="flex gap-2 justify-end">
+                      <button pButton type="button" label="Cancelar" class="p-button-text p-button-sm" (click)="cancelarEditarNotas()"></button>
+                      <button pButton type="button" label="Guardar" icon="pi pi-check" class="p-button-sm" (click)="guardarNotas()"></button>
+                    </div>
+                  </div>
+                } @else if (obra.notas) {
+                  <div class="flex justify-end mb-2">
+                    <button pButton type="button" icon="pi pi-pencil" label="Editar" class="p-button-text p-button-sm" (click)="iniciarEditarNotas()"></button>
+                  </div>
+                  <div class="bg-white rounded-lg border border-gray-200 p-6 whitespace-pre-wrap text-gray-700 leading-relaxed">{{ obra.notas }}</div>
+                } @else {
+                  <div class="text-center py-12">
+                    <i class="pi pi-inbox text-4xl text-gray-300 mb-3"></i>
+                    <p class="text-gray-500 font-poppins font-semibold">Sin notas</p>
+                    <button pButton type="button" icon="pi pi-plus" label="Agregar nota" class="p-button-text p-button-sm mt-3" (click)="iniciarEditarNotas()"></button>
+                  </div>
+                }
+              </div>
             </p-tabpanel>
 
           </p-tabpanels>

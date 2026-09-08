@@ -161,20 +161,22 @@ export class MovimientosListComponent implements OnInit {
       },
       {
         key: 'fechaInicio',
-        label: 'Fecha Inicio',
+        label: 'Desde',
         type: 'date'
       },
       {
         key: 'fechaFin',
-        label: 'Fecha Fin',
+        label: 'Hasta',
         type: 'date'
       }
     ];
   }
 
   private cargarDatos(): void {
+    const fechaInicioStr = this.fechaInicio ? this.formatFechaISO(this.fechaInicio) : null;
+    const fechaFinStr = this.fechaFin ? this.formatFechaISO(this.fechaFin) : null;
     forkJoin({
-      movimientosPage: this.movimientosService.listarConAsociados(this.currentPage, this.pageSize),
+      movimientosPage: this.movimientosService.listarConAsociados(this.currentPage, this.pageSize, fechaInicioStr, fechaFinStr),
       obras: this.obrasService.getObrasParaMovimientos(),
       clientes: this.clientesService.getClientes(),
       proveedores: this.proveedoresService.getProveedoresSimple()
@@ -212,17 +214,40 @@ export class MovimientosListComponent implements OnInit {
   onFilterChange(filters: Record<string, any>): void {
     this.searchValue = filters['search'] || '';
     this.tipoTransaccionFiltro = filters['tipoTransaccion'] || 'todos';
-    this.fechaInicio = filters['fechaInicio'] ? new Date(filters['fechaInicio']) : null;
-    this.fechaFin = filters['fechaFin'] ? new Date(filters['fechaFin']) : null;
-    this.applyFilter();
+    const nuevaFechaInicio = filters['fechaInicio'] ? new Date(filters['fechaInicio']) : null;
+    const nuevaFechaFin = filters['fechaFin'] ? new Date(filters['fechaFin']) : null;
+    const cambioFecha = nuevaFechaInicio?.getTime() !== this.fechaInicio?.getTime()
+      || nuevaFechaFin?.getTime() !== this.fechaFin?.getTime();
+    this.fechaInicio = nuevaFechaInicio;
+    this.fechaFin = nuevaFechaFin;
+
+    if (cambioFecha) {
+      this.currentPage = 0;
+      this.cargarDatos();
+    } else {
+      this.applyFilter();
+    }
   }
 
   onClearFilters(): void {
+    const habiaFecha = !!this.fechaInicio || !!this.fechaFin;
     this.searchValue = '';
     this.tipoTransaccionFiltro = 'todos';
     this.fechaInicio = null;
     this.fechaFin = null;
-    this.applyFilter();
+    if (habiaFecha) {
+      this.currentPage = 0;
+      this.cargarDatos();
+    } else {
+      this.applyFilter();
+    }
+  }
+
+  private formatFechaISO(fecha: Date): string {
+    const year = fecha.getFullYear();
+    const month = String(fecha.getMonth() + 1).padStart(2, '0');
+    const day = String(fecha.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
   }
 
   applyFilter() {
@@ -236,13 +261,25 @@ export class MovimientosListComponent implements OnInit {
           ? true
           : mov.tipo_transaccion === this.tipoTransaccionFiltro;
 
-        const movFecha = new Date(mov.fecha);
-        const matchesFechaInicio = !this.fechaInicio || movFecha >= this.fechaInicio;
-        const matchesFechaFin = !this.fechaFin || movFecha <= this.fechaFin;
-
-        return matchesSearch && matchesTipoTransaccion && matchesFechaInicio && matchesFechaFin;
+        return matchesSearch && matchesTipoTransaccion;
       })
       .sort((a, b) => new Date(b.fecha).getTime() - new Date(a.fecha).getTime());
+  }
+
+  get subtotalCobros(): number {
+    return this.movimientosFiltrados
+      .filter(m => (m.tipo_transaccion || '').toString().toUpperCase() === 'COBRO')
+      .reduce((acc, m) => acc + Number(m.monto ?? 0), 0);
+  }
+
+  get subtotalPagos(): number {
+    return this.movimientosFiltrados
+      .filter(m => (m.tipo_transaccion || '').toString().toUpperCase() === 'PAGO')
+      .reduce((acc, m) => acc + Number(m.monto ?? 0), 0);
+  }
+
+  get subtotalNeto(): number {
+    return this.subtotalCobros - this.subtotalPagos;
   }
 
   getNombreObra(id: number): string {

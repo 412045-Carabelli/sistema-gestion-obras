@@ -835,7 +835,7 @@ export class ObraMovimientosComponent implements OnInit {
     });
   }
 
-  private proveedoresDeObra(): Proveedor[] {
+  proveedoresDeObra(): Proveedor[] {
     const ids = new Set<number>();
     (this.costosObra || []).forEach(c => {
       const id = Number((c as any)?.proveedor?.id ?? (c as any)?.id_proveedor ?? 0);

@@ -12,8 +12,11 @@ export class MovimientosService {
 
   constructor(private http: HttpClient) {}
 
-  listarConAsociados(page: number = 0, size: number = 50): Observable<any> {
-    return this.http.get<any>(`${this.bffUrl}/con-asociados?page=${page}&size=${size}`);
+  listarConAsociados(page: number = 0, size: number = 50, fechaInicio?: string | null, fechaFin?: string | null): Observable<any> {
+    let url = `${this.bffUrl}/con-asociados?page=${page}&size=${size}`;
+    if (fechaInicio) url += `&fechaInicio=${fechaInicio}`;
+    if (fechaFin) url += `&fechaFin=${fechaFin}`;
+    return this.http.get<any>(url);
   }
 
   listar(): Observable<Movimiento[]> {

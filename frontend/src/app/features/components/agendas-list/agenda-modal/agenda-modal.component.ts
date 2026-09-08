@@ -10,6 +10,10 @@ import {ModalComponent} from '../../../../shared/modal/modal.component';
 
 import {Agenda, ESTADOS_AGENDA_OPCIONES, PRIORIDADES_AGENDA, Obra, Proveedor} from '../../../../core/models/models';
 import {AgendasService} from '../../../../services/agendas/agendas.service';
+import {ObrasService} from '../../../../services/obras/obras.service';
+import {ClientesService} from '../../../../services/clientes/clientes.service';
+import {ProveedoresService} from '../../../../services/proveedores/proveedores.service';
+import {forkJoin} from 'rxjs';
 
 const DIAS_VENCIMIENTO_DEFAULT = 5;
 
@@ -39,6 +43,9 @@ export class AgendaModalComponent {
   @Output() onEliminada = new EventEmitter<number>();
 
   private agendasService = inject(AgendasService);
+  private obrasService = inject(ObrasService);
+  private clientesService = inject(ClientesService);
+  private proveedoresService = inject(ProveedoresService);
   private messageService = inject(MessageService);
   private confirmationService = inject(ConfirmationService);
   private fb = inject(FormBuilder);
@@ -55,6 +62,11 @@ export class AgendaModalComponent {
   proveedoresOptions = signal<Array<{label: string; value: number}>>([]);
   cargandoDatos = signal(false);
 
+  /** Catálogos completos (módulo general, sin obraFija) para armar los filtros en cascada. */
+  private todasLasObras: Obra[] = [];
+  private todosLosClientes: Array<{label: string; value: number}> = [];
+  private todosLosProveedores: Array<{label: string; value: number}> = [];
+
   constructor() {
     effect(() => {
       const visible = this.visible();
@@ -66,19 +78,87 @@ export class AgendaModalComponent {
     });
   }
 
-  /** La agenda es un anotador puro: solo cuando está embebida en una obra (Obras/Detalle)
-   * se resuelven obra/cliente/proveedor, y directo desde la obra ya en memoria (sin pedir catálogos). */
+  /** Embebida en una obra (Obras/Detalle): obra/cliente/proveedor se resuelven directo desde la
+   * obra ya en memoria (sin pedir catálogos). Módulo general de Agenda: trae los 3 catálogos
+   * completos y arma filtros en cascada (obra → cliente + proveedores; cliente → obras). */
   private cargarDatos() {
-    if (!this.obraFija) return;
+    if (this.obraFija) {
+      const obra = this.obraFija;
+      this.obrasOptions.set([{ label: obra.nombre, value: obra.id! }]);
+      this.clientesOptions.set(
+        obra.cliente ? [{ label: obra.cliente.nombre, value: obra.cliente.id }] : []
+      );
+      this.proveedoresOptions.set(
+        this.proveedoresDeObra(obra).map(p => ({ label: p.nombre, value: p.id! }))
+      );
+      return;
+    }
 
-    const obra = this.obraFija;
-    this.obrasOptions.set([{ label: obra.nombre, value: obra.id! }]);
+    this.cargandoDatos.set(true);
+    forkJoin({
+      obras: this.obrasService.getObras(),
+      clientes: this.clientesService.getClientes(),
+      proveedores: this.proveedoresService.getProveedoresSimple()
+    }).subscribe({
+      next: ({ obras, clientes, proveedores }) => {
+        this.todasLasObras = obras || [];
+        this.todosLosClientes = (clientes || [])
+          .map(c => ({ label: c.nombre, value: c.id! }))
+          .sort((a, b) => a.label.localeCompare(b.label));
+        this.todosLosProveedores = (proveedores || [])
+          .map(p => ({ label: p.nombre, value: p.id! }))
+          .sort((a, b) => a.label.localeCompare(b.label));
+
+        this.obrasOptions.set(
+          this.todasLasObras
+            .map(o => ({ label: o.nombre, value: o.id! }))
+            .sort((a, b) => a.label.localeCompare(b.label))
+        );
+        this.clientesOptions.set(this.todosLosClientes);
+        this.proveedoresOptions.set(this.todosLosProveedores);
+        this.cargandoDatos.set(false);
+      },
+      error: () => this.cargandoDatos.set(false)
+    });
+  }
+
+  /** Cascada: al elegir obra, autocompleta cliente y acota proveedores a los de esa obra. */
+  onObraSeleccionada(): void {
+    if (this.obraFija) return;
+    const obraId = this.form.get('obraId')?.value;
+    if (!obraId) {
+      this.clientesOptions.set(this.todosLosClientes);
+      this.proveedoresOptions.set(this.todosLosProveedores);
+      return;
+    }
+    const obra = this.todasLasObras.find(o => Number(o.id) === Number(obraId));
+    if (!obra) return;
+
     this.clientesOptions.set(
-      obra.cliente ? [{ label: obra.cliente.nombre, value: obra.cliente.id }] : []
+      obra.cliente ? [{ label: obra.cliente.nombre, value: obra.cliente.id }] : this.todosLosClientes
     );
+    this.form.patchValue({ clienteId: obra.cliente?.id ?? null });
+
+    const proveedoresObra = this.proveedoresDeObra(obra);
     this.proveedoresOptions.set(
-      this.proveedoresDeObra(obra).map(p => ({ label: p.nombre, value: p.id! }))
+      proveedoresObra.length
+        ? proveedoresObra.map(p => ({ label: p.nombre, value: p.id! }))
+        : this.todosLosProveedores
     );
+  }
+
+  /** Cascada: al elegir cliente (sin obra todavía), acota el filtro de obras a las suyas. */
+  onClienteSeleccionado(): void {
+    if (this.obraFija) return;
+    const clienteId = this.form.get('clienteId')?.value;
+    if (!clienteId) {
+      this.obrasOptions.set(
+        this.todasLasObras.map(o => ({ label: o.nombre, value: o.id! })).sort((a, b) => a.label.localeCompare(b.label))
+      );
+      return;
+    }
+    const obrasDelCliente = this.todasLasObras.filter(o => Number(o.cliente?.id ?? o.id_cliente) === Number(clienteId));
+    this.obrasOptions.set(obrasDelCliente.map(o => ({ label: o.nombre, value: o.id! })));
   }
 
   /** Proveedores únicos con costos cargados en la obra (evita pedir el catálogo completo). */
