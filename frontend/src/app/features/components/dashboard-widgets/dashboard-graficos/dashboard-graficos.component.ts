@@ -3,7 +3,8 @@ import { CommonModule } from '@angular/common';
 import { ChartModule } from 'primeng/chart';
 import { ProgressSpinnerModule } from 'primeng/progressspinner';
 import { ReportesService } from '../../../../services/reportes/reportes.service';
-import { DashboardGraficosResponse, DeudasGlobalesResponse } from '../../../../core/models/models';
+import { ObrasService } from '../../../../services/obras/obras.service';
+import { DashboardGraficosResponse, Obra } from '../../../../core/models/models';
 import { Subscription, forkJoin } from 'rxjs';
 import { CHART_CATEGORICAL, chartFont, chartLegend, chartMoneyScale, chartCategoryScale, formatARSCompact } from '../../../../shared/chart-theme/chart-theme';
 
@@ -56,7 +57,7 @@ export class DashboardGraficosComponent implements OnInit, OnDestroy {
 
   private subs = new Subscription();
 
-  constructor(private reportesService: ReportesService) {}
+  constructor(private reportesService: ReportesService, private obrasService: ObrasService) {}
 
   ngOnInit(): void {
     this.cargar();
@@ -71,12 +72,12 @@ export class DashboardGraficosComponent implements OnInit, OnDestroy {
     this.subs.add(
       forkJoin({
         graficos: this.reportesService.getDashboardGraficos(),
-        deudas: this.reportesService.getDeudasGlobales()
+        obras: this.obrasService.getObrasAll()
       }).subscribe({
-        next: ({ graficos, deudas }) => {
+        next: ({ graficos, obras }) => {
           this.datos = graficos;
           this.construirPie(graficos);
-          this.construirBar(deudas);
+          this.construirBar(obras);
           this.loading = false;
         },
         error: (err) => {
@@ -128,19 +129,19 @@ export class DashboardGraficosComponent implements OnInit, OnDestroy {
     };
   }
 
-  private construirBar(deudas: DeudasGlobalesResponse): void {
-    const saldoPorCliente = new Map<number, { nombre: string; saldo: number }>();
-    for (const d of deudas.detalleDeudaClientes ?? []) {
-      const id = d.clienteId ?? 0;
+  private construirBar(obras: Obra[]): void {
+    const montoPorCliente = new Map<number, { nombre: string; monto: number }>();
+    for (const o of obras ?? []) {
+      const id = o.id_cliente ?? o.cliente?.id;
       if (!id) continue;
-      const acumulado = saldoPorCliente.get(id);
-      const nombre = d.clienteNombre || `Cliente #${id}`;
-      saldoPorCliente.set(id, { nombre, saldo: (acumulado?.saldo ?? 0) + (d.saldo ?? 0) });
+      const acumulado = montoPorCliente.get(id);
+      const nombre = o.cliente?.nombre || `Cliente #${id}`;
+      montoPorCliente.set(id, { nombre, monto: (acumulado?.monto ?? 0) + (o.presupuesto ?? 0) });
     }
 
-    const top5 = Array.from(saldoPorCliente.values())
-      .filter(c => c.saldo > 0)
-      .sort((a, b) => b.saldo - a.saldo)
+    const top5 = Array.from(montoPorCliente.values())
+      .filter(c => c.monto > 0)
+      .sort((a, b) => b.monto - a.monto)
       .slice(0, 5);
 
     const labels = top5.map(c => c.nombre.length > 22 ? c.nombre.substring(0, 20) + '…' : c.nombre);
@@ -148,8 +149,8 @@ export class DashboardGraficosComponent implements OnInit, OnDestroy {
       labels,
       datasets: [
         {
-          label: 'Saldo pendiente',
-          data: top5.map(c => c.saldo),
+          label: 'Monto de obras',
+          data: top5.map(c => c.monto),
           backgroundColor: CHART_CATEGORICAL[7],
           borderRadius: 4,
           borderSkipped: false,

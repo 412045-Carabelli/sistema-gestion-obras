@@ -105,15 +105,53 @@ export class ObrasListComponent implements OnInit {
   ngOnInit() {
     this.route.queryParams.subscribe(params => {
       const nuevoEstado = this.parseEstadoFiltro(params['estado'] ?? null);
-      this.filtrosIniciales = {...this.filtrosIniciales, estado: nuevoEstado};
-      if (this.datosCargados && JSON.stringify(nuevoEstado) !== JSON.stringify(this.estadoFiltro)) {
-        this.estadoFiltro = nuevoEstado;
+      const nuevoSearch = params['search'] || '';
+      const nuevoFacturacion: string[] = params['facturacion'] ? params['facturacion'].split(',').filter(Boolean) : [];
+      const nuevoInactivos = params['mostrarInactivos'] === 'true';
+
+      this.filtrosIniciales = {
+        ...this.filtrosIniciales,
+        estado: nuevoEstado,
+        search: nuevoSearch,
+        facturacion: params['facturacion'] || null,
+        mostrarInactivos: nuevoInactivos
+      };
+
+      const cambioServer =
+        JSON.stringify(nuevoEstado) !== JSON.stringify(this.estadoFiltro) ||
+        nuevoInactivos !== this.mostrarInactivos;
+      const cambioCliente =
+        nuevoSearch !== this.searchValue ||
+        JSON.stringify(nuevoFacturacion) !== JSON.stringify(this.estadoFacturacionFiltro);
+
+      this.estadoFiltro = nuevoEstado;
+      this.searchValue = nuevoSearch;
+      this.estadoFacturacionFiltro = nuevoFacturacion;
+      this.mostrarInactivos = nuevoInactivos;
+
+      if (this.datosCargados && cambioServer) {
         this.recargar();
-      } else {
-        this.estadoFiltro = nuevoEstado;
+      } else if (this.datosCargados && cambioCliente) {
+        this.aplicarFiltroFacturacion();
       }
     });
     this.cargarPagina(0);
+  }
+
+  /** Persiste los filtros activos en la URL para que "volver atrás" desde el detalle
+   * de una obra (o un refresh) los restaure, en vez de resetear el listado. */
+  private sincronizarQueryParams(): void {
+    this.router.navigate([], {
+      relativeTo: this.route,
+      queryParams: {
+        estado: this.estadoFiltro.length ? this.estadoFiltro.join(',') : null,
+        search: this.searchValue || null,
+        facturacion: this.estadoFacturacionFiltro.length ? this.estadoFacturacionFiltro.join(',') : null,
+        mostrarInactivos: this.mostrarInactivos ? 'true' : null
+      },
+      queryParamsHandling: 'merge',
+      replaceUrl: true
+    });
   }
 
   private recargar() {
@@ -306,6 +344,7 @@ export class ObrasListComponent implements OnInit {
     } else {
       this.aplicarFiltroFacturacion();
     }
+    this.sincronizarQueryParams();
   }
 
   onClearFilters(): void {
@@ -315,6 +354,7 @@ export class ObrasListComponent implements OnInit {
     this.estadoFacturacionFiltro = [];
     this.mostrarInactivos = false;
     this.recargar();
+    this.sincronizarQueryParams();
   }
 
   private parseEstadoFiltro(raw: string | string[] | null): string[] {

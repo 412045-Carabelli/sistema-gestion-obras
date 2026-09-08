@@ -15,7 +15,8 @@
         [tableStyle]="{ 'min-width': '100%' }"
         [value]="clientesFiltrados"
         [paginator]="true"
-        [rows]="8"
+        [rows]="20"
+        [rowsPerPageOptions]="[20, 50, 100]"
         [sortField]="'nombre'"
         [sortOrder]="1"
         responsiveLayout="scroll"
@@ -24,21 +25,21 @@
         <ng-template pTemplate="header">
           <tr>
             <th pSortableColumn="nombre" class="text-left font-poppins font-semibold">Nombre <p-sortIcon field="nombre"></p-sortIcon></th>
-            <th pSortableColumn="contacto" class="text-left font-poppins font-semibold">Contacto <p-sortIcon field="contacto"></p-sortIcon></th>
-            <th pSortableColumn="telefono" class="text-left font-poppins font-semibold">Telefono <p-sortIcon field="telefono"></p-sortIcon></th>
-            <th pSortableColumn="email" class="text-left font-poppins font-semibold">Email <p-sortIcon field="email"></p-sortIcon></th>
+            <th pSortableColumn="contacto" class="text-left font-poppins font-semibold w-32">Contacto <p-sortIcon field="contacto"></p-sortIcon></th>
+            <th pSortableColumn="telefono" class="text-left font-poppins font-semibold w-32">Telefono <p-sortIcon field="telefono"></p-sortIcon></th>
+            <th pSortableColumn="email" class="text-left font-poppins font-semibold w-48">Email <p-sortIcon field="email"></p-sortIcon></th>
             <th pSortableColumn="direccion" class="text-left font-poppins font-semibold">Direccion <p-sortIcon field="direccion"></p-sortIcon></th>
-            <th pSortableColumn="cuit" class="text-left font-poppins font-semibold">DNI/CUIT <p-sortIcon field="cuit"></p-sortIcon></th>
+            <th pSortableColumn="cuit" class="text-left font-poppins font-semibold w-36">DNI/CUIT <p-sortIcon field="cuit"></p-sortIcon></th>
           </tr>
         </ng-template>
         <ng-template let-c pTemplate="body">
           <tr (click)="onRowClick(c)" class="cursor-pointer transition-colors">
             <td class="font-poppins font-normal">{{ c.nombre }}</td>
-            <td class="font-poppins font-normal">{{ c.contacto || '-' }}</td>
-            <td class="font-poppins font-normal">{{ c.telefono || '-' }}</td>
-            <td class="font-poppins font-normal">{{ c.email || '-' }}</td>
-            <td class="font-poppins font-normal">{{ c.direccion || '-' }}</td>
-            <td class="font-poppins font-normal">{{ c.cuit || '-' }}</td>
+            <td class="font-poppins font-normal truncate max-w-[8rem]" [pTooltip]="c.contacto" [tooltipDisabled]="!c.contacto">{{ c.contacto || '-' }}</td>
+            <td class="font-poppins font-normal whitespace-nowrap">{{ c.telefono || '-' }}</td>
+            <td class="font-poppins font-normal truncate max-w-[12rem]" [pTooltip]="c.email" [tooltipDisabled]="!c.email">{{ c.email || '-' }}</td>
+            <td class="font-poppins font-normal truncate max-w-xs" [pTooltip]="c.direccion" [tooltipDisabled]="!c.direccion">{{ c.direccion || '-' }}</td>
+            <td class="font-poppins font-normal whitespace-nowrap">{{ c.cuit || '-' }}</td>
           </tr>
         </ng-template>
         <ng-template pTemplate="emptymessage">

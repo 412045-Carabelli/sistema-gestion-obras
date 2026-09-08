@@ -371,7 +371,13 @@ export class DashboardComponent implements OnInit {
       clienteId: this.filtrosDashboard.cliente?.id,
       proveedorId: this.filtrosDashboard.proveedor?.id,
       fechaInicio: this.filtrosActivos.fechaInicio,
-      fechaFin: this.filtrosActivos.fechaFin
+      fechaFin: this.filtrosActivos.fechaFin,
+      // El SP de deudas descarta filas con saldo <= 0 (obra/cliente/proveedor ya saldado).
+      // "Cobrado"/"Pagado" son totales históricos, no el saldo pendiente: si se excluyen
+      // esas filas, un cliente/proveedor que quedó en $0 desaparece y su cobro/pago ya
+      // no se contabiliza. incluirSaldoCero=true no afecta a "Por cobrar"/"Por pagar"
+      // (esas filas ya suman 0). Mismo criterio que generarReporteConsolidado.
+      incluirSaldoCero: true
     };
 
     this.http.post<any>(deudasUrl, filtro).subscribe({

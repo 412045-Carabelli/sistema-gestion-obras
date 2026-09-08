@@ -81,8 +81,6 @@ public class FacturaService {
     @Transactional
     public FacturaDto crear(FacturaDto dto, MultipartFile file) {
         validarMontoContraPresupuesto(dto.getId_obra(), dto.getMonto(), null);
-        // Funcionalidad "Impacta cta. cte." deshabilitada a pedido (checkbox removido del frontend).
-        // Boolean impactaCtaCte = dto.getImpacta_cta_cte() != null ? dto.getImpacta_cta_cte() : false;
         String nombreArchivo = null;
         Long idDocumento = null;
         String estado = normalizarEstado(dto.getEstado());
@@ -96,6 +94,8 @@ public class FacturaService {
             nombreArchivo = file.getOriginalFilename();
         }
 
+        boolean estaCobrada = "COBRADA".equals(estado);
+
         Factura entity = Factura.builder()
                 .empresaId(dto.getEmpresa_id())
                 .idCliente(dto.getId_cliente())
@@ -108,13 +108,13 @@ public class FacturaService {
                 .nombreArchivo(nombreArchivo)
                 .idDocumento(idDocumento)
                 .activo(dto.getActivo() != null ? dto.getActivo() : true)
-                .impactaCtaCte(false)
+                .impactaCtaCte(estaCobrada)
                 .build();
 
-        // if (impactaCtaCte) {
-        //     Transaccion movimiento = crearOActualizarMovimiento(entity, null);
-        //     entity.setIdTransaccion(movimiento.getId());
-        // }
+        if (estaCobrada) {
+            Transaccion movimiento = crearOActualizarMovimiento(entity, null);
+            entity.setIdTransaccion(movimiento.getId());
+        }
 
         Factura saved = facturaRepository.save(entity);
         actualizarEstadoObraSegunFacturacion(saved.getIdObra());
@@ -127,11 +127,6 @@ public class FacturaService {
                 .orElseThrow(() -> new RuntimeException("Factura no encontrada"));
 
         validarMontoContraPresupuesto(dto.getId_obra(), dto.getMonto(), id);
-
-        // Funcionalidad "Impacta cta. cte." deshabilitada a pedido (checkbox removido del frontend).
-        // No se toca entity.impactaCtaCte ni se crea/borra el movimiento asociado, para no alterar
-        // datos historicos de facturas que ya tenian este flag activo.
-        // Boolean impactaCtaCte = dto.getImpacta_cta_cte() != null ? dto.getImpacta_cta_cte() : false;
 
         entity.setIdCliente(dto.getId_cliente());
         entity.setIdObra(dto.getId_obra());
@@ -152,7 +147,6 @@ public class FacturaService {
             entity.setMontoRestante(entity.getMonto());
         }
         entity.setActivo(dto.getActivo() != null ? dto.getActivo() : entity.getActivo());
-        // entity.setImpactaCtaCte(impactaCtaCte);
 
         if (file != null && !file.isEmpty()) {
             Long idDocumentoAnterior = entity.getIdDocumento();
@@ -168,13 +162,15 @@ public class FacturaService {
             }
         }
 
-        // if (impactaCtaCte) {
-        //     Transaccion movimiento = crearOActualizarMovimiento(entity, entity.getIdTransaccion());
-        //     entity.setIdTransaccion(movimiento.getId());
-        // } else if (entity.getIdTransaccion() != null) {
-        //     transaccionRepository.deleteById(entity.getIdTransaccion());
-        //     entity.setIdTransaccion(null);
-        // }
+        boolean estaCobrada = "COBRADA".equals(entity.getEstado());
+        entity.setImpactaCtaCte(estaCobrada);
+        if (estaCobrada) {
+            Transaccion movimiento = crearOActualizarMovimiento(entity, entity.getIdTransaccion());
+            entity.setIdTransaccion(movimiento.getId());
+        } else if (entity.getIdTransaccion() != null) {
+            transaccionRepository.deleteById(entity.getIdTransaccion());
+            entity.setIdTransaccion(null);
+        }
 
         Factura saved = facturaRepository.save(entity);
         actualizarEstadoObraSegunFacturacion(saved.getIdObra());

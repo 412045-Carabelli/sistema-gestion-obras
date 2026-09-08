@@ -8,14 +8,18 @@ import {TagModule} from 'primeng/tag';
 import {IconFieldModule} from 'primeng/iconfield';
 import {InputIconModule} from 'primeng/inputicon';
 import {CheckboxModule} from 'primeng/checkbox';
+import {TooltipModule} from 'primeng/tooltip';
 import {Select} from 'primeng/select';
 import {forkJoin} from 'rxjs';
 
 import {Cliente, CondicionIva, CONDICION_IVA_LABELS} from '../../../core/models/models';
 import {ClientesService} from '../../../services/clientes/clientes.service';
+import {ReportesService} from '../../../services/reportes/reportes.service';
 import {GenericFilterBarComponent, FilterDefinition, FilterAction} from '../generic-filter-bar/generic-filter-bar.component';
 import {TableSkeletonComponent} from '../../../shared/table-skeleton/table-skeleton.component';
 import {exportarListadoPdf} from '../../../shared/utils/pdf-export.util';
+
+interface SaldoOption { label: string; value: 'todos' | 'con_saldo' | 'saldo_cero_o_menor'; }
 
 @Component({
   selector: 'app-clientes-list',
@@ -30,6 +34,7 @@ import {exportarListadoPdf} from '../../../shared/utils/pdf-export.util';
     IconFieldModule,
     InputIconModule,
     CheckboxModule,
+    TooltipModule,
     Select,
     GenericFilterBarComponent,
     TableSkeletonComponent
@@ -43,14 +48,19 @@ export class ClientesListComponent implements OnInit {
 
   clientesFiltrados: Cliente[] = [];
   datosCargados = false;
-  ivaOptions: { label: string; name: string }[] = [];
+  saldoOptions: SaldoOption[] = [
+    {label: 'Todos', value: 'todos'},
+    {label: 'Con saldo', value: 'con_saldo'},
+    {label: 'Saldo = 0 o < 0', value: 'saldo_cero_o_menor'}
+  ];
+  saldosCliente: Record<number, number> = {};
   filterDefinitions: FilterDefinition[] = [];
   filterActions: FilterAction[] = [
     { label: 'Exportar PDF', icon: 'pi pi-file-pdf', severity: 'danger', callback: () => this.exportarPdf() }
   ];
 
   searchValue: string = '';
-  condicionIvaFiltro: string | 'todos' = 'todos';
+  saldoFiltro: 'todos' | 'con_saldo' | 'saldo_cero_o_menor' = 'todos';
   mostrarInactivos = false;
 
   currentPage = 0;
@@ -59,24 +69,26 @@ export class ClientesListComponent implements OnInit {
 
   constructor(
     private router: Router,
-    private clientesService: ClientesService
+    private clientesService: ClientesService,
+    private reportesService: ReportesService
   ) {
   }
 
   ngOnInit() {
     forkJoin({
       clientesPage: this.clientesService.getClientesConDetalles(this.currentPage, this.pageSize),
-      condicionesIva: this.clientesService.getCondicionesIva()
+      deudas: this.reportesService.getDeudasGlobales({incluirSaldoCero: true})
     }).subscribe({
-      next: ({clientesPage, condicionesIva}) => {
+      next: ({clientesPage, deudas}) => {
         this.clientes = (clientesPage.content || []).map((c: Cliente) => ({...c, id: Number(c.id)}));
         this.totalElements = clientesPage.totalElements || 0;
-        this.ivaOptions = [
-          {label: 'Todas', name: 'todos'},
-          ...condicionesIva
-        ];
+        (deudas.detalleDeudaClientes ?? []).forEach(d => {
+          const id = Number(d.clienteId ?? 0);
+          if (!id) return;
+          this.saldosCliente[id] = (this.saldosCliente[id] ?? 0) + Number(d.saldo ?? 0);
+        });
 
-        this.setupFilterDefinitions(condicionesIva);
+        this.setupFilterDefinitions();
         this.applyFilter();
         this.datosCargados = true;
       },
@@ -89,7 +101,7 @@ export class ClientesListComponent implements OnInit {
     // Defer will auto-prefetch after 2s and load on interaction
   }
 
-  private setupFilterDefinitions(condicionesIva: { label: string; name: string }[]): void {
+  private setupFilterDefinitions(): void {
     this.filterDefinitions = [
       {
         key: 'search',
@@ -98,29 +110,31 @@ export class ClientesListComponent implements OnInit {
         placeholder: 'Nombre, contacto, email...'
       },
       {
-        key: 'condicionIva',
-        label: 'Condición IVA',
+        key: 'saldo',
+        label: 'Saldo',
         type: 'select',
-        placeholder: 'Todas',
-        options: [
-          { label: 'Todas', value: 'todos' },
-          ...condicionesIva.map((c) => ({ label: c.label, value: c.name }))
-        ]
+        placeholder: 'Todos',
+        options: this.saldoOptions.map((s) => ({ label: s.label, value: s.value }))
       }
     ];
   }
 
   onFilterChange(filters: Record<string, any>): void {
     this.searchValue = filters['search'] || '';
-    this.condicionIvaFiltro = filters['condicionIva'] || 'todos';
+    this.saldoFiltro = filters['saldo'] || 'todos';
     this.applyFilter();
   }
 
   onClearFilters(): void {
     this.searchValue = '';
-    this.condicionIvaFiltro = 'todos';
+    this.saldoFiltro = 'todos';
     this.mostrarInactivos = false;
     this.applyFilter();
+  }
+
+  obtenerSaldoCliente(id?: number): number {
+    if (!id) return 0;
+    return this.saldosCliente[id] ?? 0;
   }
 
   // 🔍 Filtrado por búsqueda y activo
@@ -136,31 +150,24 @@ export class ClientesListComponent implements OnInit {
         (cliente.email?.toLowerCase().includes(this.searchValue.toLowerCase()) ?? false)
         : true;
 
-      const condicionCliente = (cliente.condicionIva ?? cliente.condicion_iva ?? '')
-        .toString()
-        .trim()
-        .toUpperCase()
-        .replace(/\s+/g, '_');
-
-      const matchesCondicion =
-        this.condicionIvaFiltro === 'todos'
-          ? true
-          : condicionCliente === this.condicionIvaFiltro;
-
       const matchesActivo = this.mostrarInactivos
         ? true
         : Boolean(cliente.activo ?? true);
 
-      return matchesSearch && matchesCondicion && matchesActivo;
+      const saldo = this.obtenerSaldoCliente(cliente.id);
+      const matchesSaldo =
+        this.saldoFiltro === 'todos'
+          ? true
+          : this.saldoFiltro === 'con_saldo'
+            ? saldo > 0.01
+            : saldo <= 0.01;
+
+      return matchesSearch && matchesActivo && matchesSaldo;
     })
       .sort((a, b) => this.compararTexto(a.nombre, b.nombre));
   }
 
   onMostrarInactivosChange() {
-    this.applyFilter();
-  }
-
-  onCondicionIvaChange() {
     this.applyFilter();
   }
 

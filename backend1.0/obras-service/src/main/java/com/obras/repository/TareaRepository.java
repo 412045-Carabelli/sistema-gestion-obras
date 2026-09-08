@@ -56,4 +56,8 @@ public interface TareaRepository extends JpaRepository<Tarea, Long> {
     @Query("update Tarea t set t.activo = true, t.bajaObra = false where t.idObra = :idObra and t.activo = false and t.bajaObra = true")
     int activarPorObra(@Param("idObra") Long idObra);
 
+    @Modifying
+    @Query("update Tarea t set t.estadoTarea = com.obras.enums.EstadoTareaEnum.COMPLETADA where t.idObra = :idObra and t.activo = true and t.estadoTarea <> com.obras.enums.EstadoTareaEnum.COMPLETADA")
+    int completarPorObra(@Param("idObra") Long idObra);
+
 }

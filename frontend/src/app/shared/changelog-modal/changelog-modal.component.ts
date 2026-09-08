@@ -6,7 +6,7 @@ import { TagModule } from 'primeng/tag';
 import { Subscription } from 'rxjs';
 import { ChangelogService } from '../../services/changelog/changelog.service';
 
-const VERSION = 'v1.19.36';
+const VERSION = 'v1.19.37';
 const STORAGE_KEY = `sgo-changelog-seen-${VERSION}`;
 
 interface ChangeItem {
@@ -33,111 +33,25 @@ export class ChangelogModalComponent implements OnInit, OnDestroy {
 
   grupos: ChangeGroup[] = [
     {
-      modulo: 'Mejoras 02/09/2026',
-      icon: 'pi pi-sparkles',
-      items: [
-        { texto: 'Checkout: nuevo campo "Email de tu cuenta de Mercado Pago" (independiente del email de registro) — MP exige que coincida con la cuenta logueada al pagar, y sin esto el pago fallaba sin explicación', estado: 'done' },
-      ]
-    },
-    {
-      modulo: 'Mejoras 01/09/2026',
-      icon: 'pi pi-sparkles',
-      items: [
-        { texto: 'Mercado Pago: se habilitó el modo sandbox (credenciales de prueba) para poder testear suscripciones sin cobrar dinero real', estado: 'done' },
-        { texto: 'Alta de cuenta: el paso 3 "Configurar empresa" ahora es el formulario real (nombre, perfil, WhatsApp), con el mismo estilo oscuro del stepper, en vez de una pantalla de éxito separada', estado: 'done' },
-        { texto: 'Alta de cuenta: "Nombre de la empresa" se precarga con el nombre puesto al registrarse, ya no lo vuelve a pedir vacío', estado: 'done' },
-        { texto: 'Configuración: el campo de notificaciones WhatsApp solo aparece si el plan contratado lo incluye', estado: 'done' },
-        { texto: 'Configuración: se corrigió que entrar desde el menú normal (ya con la empresa configurada) a veces mostraba otra vez la pantalla de alta guiada en lugar de la configuración normal', estado: 'done' },
-        { texto: 'Configuración: "Finalizar" ya no guarda datos a medias si falta un campo requerido, y los campos vacíos ahora muestran el aviso en rojo', estado: 'done' },
-      ]
-    },
-    {
-      modulo: 'Mejoras 27/08/2026',
-      icon: 'pi pi-sparkles',
-      items: [
-        { texto: 'Agenda: ahora es un anotador puro, sin obra/cliente/proveedor obligatorios; la fecha de vencimiento se autocompleta a 5 días si no se carga una', estado: 'done' },
-        { texto: 'Nuevo módulo "Diagrama de Gantt": cronograma de gremios/proveedores cruzando todas las obras adjudicadas, con vista tipo Gantt y carga de tareas por obra', estado: 'done' },
-        { texto: 'Obras (tab Tareas): switch Lista/Gantt para ver el cronograma de esa obra específica, con su propio botón "Nueva Tarea"', estado: 'done' },
-        { texto: 'Facturación: el skeleton de carga ahora coincide en forma y cantidad con los filtros y KPIs reales', estado: 'done' },
-        { texto: 'Cuentas Corrientes: las tablas de "por cobrar" y "por pagar" ahora miden lo mismo de alto y tienen animación de entrada', estado: 'done' },
-        { texto: 'Tablas: se corrigió una línea de borde duplicada que aparecía con color inconsistente en algunos listados', estado: 'done' },
-        { texto: 'Configuración: "Nombre de la empresa" y "Nombre del propietario" quedaron en la misma fila; un solo botón "Guardar cambios" para todo, deshabilitado si no hay cambios sin guardar', estado: 'done' },
-        { texto: 'Obras (detalle): las tarjetas de Cliente/Presupuesto/Costos/Beneficio ya no tienen espacio en blanco de más', estado: 'done' },
-      ]
-    },
-    {
-      modulo: 'Mejoras 26/08/2026',
-      icon: 'pi pi-sparkles',
-      items: [
-        { texto: 'Dashboard y Reportes: los KPI ahora usan un único componente genérico en toda la app, con el mismo estilo visual (ícono, color de acento, animación) que ya tenían las tablas', estado: 'done' },
-        { texto: 'Dashboard: los últimos movimientos ya no muestran el tag Cobro/Pago ni "Total/Parcial" — se ve directamente el nombre del cliente/proveedor, y el backend ahora lo devuelve (antes decía "sin asociado" aunque hubiera uno)', estado: 'done' },
-        { texto: 'Dashboard: se reemplazó el gráfico "Top 5 obras — volumen financiero" (que nunca cargaba datos) por "Top 5 clientes — Mayor saldo pendiente"', estado: 'done' },
-        { texto: 'Dashboard: los ítems de Movimientos y Tareas pendientes ahora miden lo mismo de alto, y sus skeletons de carga coinciden en forma y cantidad con el contenido real', estado: 'done' },
-        { texto: 'Proveedores/Clientes (detalle): la obra ya no aparece como "Obra #N" en Movimientos y Tareas cuando es una obra vieja no traída por el listado paginado', estado: 'done' },
-        { texto: 'Proveedores/Clientes (detalle): las acciones "Ver Detalle"/"Ver Movimientos" de la tabla de obras ahora son íconos con tooltip', estado: 'done' },
-        { texto: 'Tipografía: se corrigió que la clase de fuente usada en toda la app no existiera realmente — algunas celdas de tabla (IDs) se veían con una tipografía distinta al resto', estado: 'done' },
-        { texto: 'Movimientos: se sacaron las columnas "Forma de pago" y "Acciones" de la tabla (clickear la fila ya abre ver/editar); Obra y Asociado truncan con "..." y tooltip si no entran', estado: 'done' },
-        { texto: 'Movimientos: en el modal de ver/editar, "Tipo de movimiento" y "Condición de pago" quedaron en la misma fila, y se corrigió que a veces el select de Obra apareciera vacío', estado: 'done' },
-      ]
-    },
-    {
-      modulo: 'Mejoras 24-25/08/2026',
-      icon: 'pi pi-sparkles',
-      items: [
-        { texto: 'Movimientos: se arregló un bug de base de datos por el que la columna "Tipo Transacción" (cobro/pago) aparecía siempre vacía en el listado', estado: 'done' },
-        { texto: 'Reportes: si una tabla no tiene datos para el período/filtro elegido, ya no se muestra la tabla vacía, solo el mensaje "Sin datos"', estado: 'done' },
-        { texto: 'Reportes: los filtros de Obra, Cliente y Proveedor ahora se acotan entre sí (igual que en Cuentas Corrientes) — elegir un cliente deja solo sus obras y proveedores disponibles', estado: 'done' },
-        { texto: 'Reportes: al aplicar un filtro ya no se recarga toda la barra de filtros, solo los KPIs y las tablas', estado: 'done' },
-        { texto: 'Obras: la fecha de inicio en el listado se ve más grande y sin el prefijo "Desde:"', estado: 'done' },
-        { texto: 'Tablas: se pareja el redondeado de esquinas de todas las tablas con el de la barra de filtros, y se prolija el encabezado de columnas ordenables (el ícono de orden era más grande que el texto)', estado: 'done' },
-        { texto: 'Tablas: se uniformó el grosor de letra de las columnas de texto en todos los listados (antes algunas columnas aparecían en negrita sin motivo); montos y badges de estado siguen resaltados', estado: 'done' },
-        { texto: 'Tablas y barra de filtros: pequeña animación de aparición al terminar de cargar', estado: 'done' },
-        { texto: 'Menú lateral: se sacaron los títulos que separaban los grupos de opciones, se agrandó un poco el texto de las opciones y se agregaron animaciones (entrada de items, hover, y al mostrar/ocultar con el botón del header)', estado: 'done' },
-        { texto: 'Navegación: pequeña animación de transición al cambiar de página', estado: 'done' },
-      ]
-    },
-    {
-      modulo: 'Fixes Agosto 13/08/2026',
+      modulo: 'Fixes Pablo 08/09/2026',
       icon: 'pi pi-check-circle',
       items: [
-        { texto: 'Cuentas Corrientes: el PDF general muestra el nombre del proveedor filtrado (antes decía "Todos los proveedores") y ya no mezcla pagos de otros proveedores', estado: 'done' },
-        { texto: 'Cuentas Corrientes: costos adicionales/ajustes sin proveedor ya no aparecen como deuda a proveedores (fila fantasma con proveedor NULL en el listado y en el KPI "por pagar" del dashboard)', estado: 'done' },
-        { texto: 'Cuentas Corrientes: el PDF general de proveedor ya no superpone "Obra: [nombre]" con el título "Detalle de Obras"', estado: 'done' },
-        { texto: 'Memoria descriptiva (obras-detail): se perdía el formato (viñetas, negrita, alineación) al guardar y volver a ver', estado: 'done' },
-        { texto: 'Agendas: al abrir una tarea inexistente el backend devolvía 500 y la pantalla quedaba clavada — ahora devuelve 404', estado: 'done' },
-        { texto: 'Sesión: se extiende de 15 minutos a 1 hora; al expirar y volver a loguear, redirige a la página donde estabas', estado: 'done' },
-        { texto: 'Presupuesto de obra: pagar la comisión daba error (organizacion_id NULL); labels "Costos originales" / "Costos adicionales" / "Demasía de obra" separados y ordenados', estado: 'done' },
-        { texto: 'Presupuesto de obra: "Total pagos" del detalle de movimientos incluía el pago de comisión, dando un saldo de proveedores distinto al del listado de cuentas corrientes', estado: 'done' },
-        { texto: 'Alta de obra: crear cliente y crear proveedor son ahora una opción dentro del select correspondiente (antes botón aparte)', estado: 'done' },
-        { texto: 'Movimientos: se agrega badge de color al tipo de transacción (cobro/pago) en el listado', estado: 'done' },
-        { texto: 'Listado de obras: no se podía ordenar por columna (el modo de paginación por servidor ignoraba el criterio de orden)', estado: 'done' },
-      ]
-    },
-    {
-      modulo: 'Fixes Agosto 10/08/2026',
-      icon: 'pi pi-check-circle',
-      items: [
-        { texto: 'Obras: fila de total con la sumatoria de presupuesto en el listado filtrado (todas las páginas, no solo la visible)', estado: 'done' },
-        { texto: 'Facturas: modal de edición unificado con el de detalle (mismo ancho, mismos campos), mensajes de error visibles y bloqueo de guardado sin cambios', estado: 'done' },
-        { texto: 'Facturas: no se podían crear ni editar — los mensajes de error quedaban invisibles y el gateway no reenviaba el plan al validar la funcionalidad', estado: 'done' },
-        { texto: 'Modales: ya no se pueden arrastrar por la pantalla', estado: 'done' },
-        { texto: 'Cuentas Corrientes: las obras COTIZADAS (cotización aún no confirmada) ya no impactan en el saldo de clientes ni proveedores', estado: 'done' },
-        { texto: 'Cuentas Corrientes: nuevo filtro "Incluir obras sin deuda (saldo 0)" en el listado y en el PDF/Excel exportado', estado: 'done' },
-      ]
-    },
-    {
-      modulo: 'Fixes Pablo 28/07/2026',
-      icon: 'pi pi-check-circle',
-      items: [
-        { texto: 'Verificar obras que muestran detalle de facturación pendiente sin estar marcadas para facturar (ej. Talar Center - Ingresos y rampas)', estado: 'done' },
-        { texto: 'Cuentas Corrientes: al filtrar por proveedor, el filtro de obra ofrece solo las obras en las que participa', estado: 'done' },
-        { texto: 'Verificar formato de texto al editar la memoria descriptiva de una obra', estado: 'done' },
-        { texto: 'Habilitar impresión/exportación en todos los listados filtrados (ej. obras adjudicadas)', estado: 'done' },
-        { texto: 'Módulo Facturas: poder revisar el PDF de una factura ya cargada', estado: 'done' },
-        { texto: 'Botón "Impacta en Cta Cte" daba error: se quita', estado: 'done' },
-        { texto: 'Restaurar opción COTIZADA en estados de obras', estado: 'done' },
-        { texto: 'PDF de cuenta corriente (cliente + obra): respeta la obra seleccionada en vez de traer todas', estado: 'done' },
-        { texto: 'Al seleccionar cliente, el filtro de obras muestra solo las obras de ese cliente', estado: 'done' },
+        { texto: 'Movimientos: el filtro de fecha no traía resultados fuera de la página ya cargada (el rango no llegaba al backend, se filtraba solo sobre los primeros 50 registros)', estado: 'done' },
+        { texto: 'Dashboard: el gráfico "Top 5 clientes" ahora muestra el mayor monto de obras acumulado, no la deuda', estado: 'done' },
+        { texto: 'Dashboard: los KPI "Cobrado"/"Pagado" excluían a clientes y proveedores que ya habían saldado su cuenta ($0)', estado: 'done' },
+        { texto: 'Facturación: marcar una factura como "Cobrada" ahora genera el movimiento en cuenta corriente correspondiente (y lo borra si vuelve a "Emitida")', estado: 'done' },
+        { texto: 'Obras: el botón "atrás" del navegador ya no resetea los filtros del listado', estado: 'done' },
+        { texto: 'Diagrama de Gantt: las obras finalizadas ya no aparecen; al finalizar una obra, sus tareas pasan automáticamente a completadas', estado: 'done' },
+        { texto: 'Obras: al pasar una obra a estado FINALIZADA, avisa si el cliente o los proveedores todavía tienen saldo pendiente', estado: 'done' },
+        { texto: 'Agenda (módulo general): permite elegir obra/cliente/proveedor con filtros en cascada al crear un evento', estado: 'done' },
+        { texto: 'Nueva Factura (acceso rápido del dashboard): el filtro de cliente solo muestra los que tienen obras en condiciones de facturar', estado: 'done' },
+        { texto: 'Movimientos (modal dentro de una obra): el selector de proveedor solo muestra los que participan en esa obra', estado: 'done' },
+        { texto: 'Nueva Tarea (acceso rápido del dashboard): se saca el campo "Nro de orden" (se asigna automático)', estado: 'done' },
+        { texto: 'Agenda (listado general): se sacan las columnas ID y Fecha de Alta, se agrega vista previa de la descripción', estado: 'done' },
+        { texto: 'Clientes/Proveedores: más resultados por página (8 → 20/50/100) y columnas angostas con "..." y tooltip para texto largo', estado: 'done' },
+        { texto: 'Clientes: el filtro "Condición IVA" se reemplaza por un filtro de Saldo (de paso se corrigió que el mismo filtro en Proveedores nunca traía datos)', estado: 'done' },
+        { texto: 'Movimientos: se renombra a "Caja/Bancos", filtros "Desde"/"Hasta", fila de subtotales (cobros/pagos/neto)', estado: 'done' },
+        { texto: 'Obras: nuevo tab "Notas" — anotaciones libres, sin fecha ni relación con Agenda o Tareas', estado: 'done' },
       ]
     },
   ];

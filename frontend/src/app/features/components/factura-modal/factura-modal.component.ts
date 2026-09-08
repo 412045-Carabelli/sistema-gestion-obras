@@ -190,14 +190,18 @@ export class FacturaModalComponent implements OnChanges, OnDestroy {
 
   private cargarCatalogos(): void {
     let pendientes = 2;
+    let clientesCargados: Cliente[] = [];
     const marcarListo = () => {
       pendientes--;
-      if (pendientes === 0) this.cargandoCatalogos = false;
+      if (pendientes === 0) {
+        this.filtrarClientesConObraFacturable(clientesCargados);
+        this.cargandoCatalogos = false;
+      }
     };
 
     this.clientesService.getClientesSimple().subscribe({
       next: clientes => {
-        this.clientes = clientes.map(c => ({...c, id: Number(c.id)}));
+        clientesCargados = clientes.map(c => ({...c, id: Number(c.id)}));
         marcarListo();
       },
       error: () => marcarListo()
@@ -213,6 +217,16 @@ export class FacturaModalComponent implements OnChanges, OnDestroy {
       },
       error: () => marcarListo()
     });
+  }
+
+  /** Solo clientes con al menos una obra en un estadío en el que podría facturar (ADJUDICADA/EN_PROGRESO/FINALIZADA, etc.). */
+  private filtrarClientesConObraFacturable(clientes: Cliente[]): void {
+    const idsClientesConObra = new Set(
+      this.obras
+        .filter(o => this.esObraDisponibleParaFacturar(o))
+        .map(o => Number(o.id_cliente ?? o.cliente?.id ?? 0))
+    );
+    this.clientes = clientes.filter(c => idsClientesConObra.has(Number(c.id)));
   }
 
   private aplicarPreseleccionCliente(): void {
