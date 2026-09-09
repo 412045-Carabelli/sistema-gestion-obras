@@ -77,6 +77,7 @@ export class FacturaModalComponent implements OnChanges, OnDestroy {
   clientes: Cliente[] = [];
   obras: Obra[] = [];
   obrasFiltradas: Obra[] = [];
+  private facturadoPorObra: Record<number, number> = {};
   selectedFile: File | null = null;
   restanteObra: number | null = null;
   montoSugerido: number | null = null;
@@ -189,7 +190,7 @@ export class FacturaModalComponent implements OnChanges, OnDestroy {
   }
 
   private cargarCatalogos(): void {
-    let pendientes = 2;
+    let pendientes = 3;
     let clientesCargados: Cliente[] = [];
     const marcarListo = () => {
       pendientes--;
@@ -217,10 +218,40 @@ export class FacturaModalComponent implements OnChanges, OnDestroy {
       },
       error: () => marcarListo()
     });
+    this.facturasService.getFacturas().subscribe({
+      next: facturas => {
+        this.facturadoPorObra = {};
+        (facturas || []).forEach(f => {
+          const idObra = Number((f as any).id_obra ?? 0);
+          if (!idObra) return;
+          this.facturadoPorObra[idObra] = (this.facturadoPorObra[idObra] ?? 0) + Number(f.monto ?? 0);
+        });
+        marcarListo();
+      },
+      error: () => marcarListo()
+    });
   }
 
-  /** Solo clientes con al menos una obra en un estadío en el que podría facturar (ADJUDICADA/EN_PROGRESO/FINALIZADA, etc.). */
+  /** Monto sin facturar de una obra (presupuesto - facturado histórico). */
+  private pendienteFacturarObra(obra: Obra): number {
+    const presupuesto = Number(obra.presupuesto ?? 0);
+    const facturado = this.facturadoPorObra[Number(obra.id ?? 0)] ?? 0;
+    return Math.max(0, presupuesto - facturado);
+  }
+
+  /** Total pendiente de facturar de un cliente, sumando sus obras en condiciones de facturar. */
+  pendienteFacturarCliente(clienteId: number): number {
+    return this.obras
+      .filter(o => Number(o.id_cliente ?? o.cliente?.id ?? 0) === Number(clienteId) && this.esObraDisponibleParaFacturar(o))
+      .reduce((sum, o) => sum + this.pendienteFacturarObra(o), 0);
+  }
+
+  /** Solo clientes con al menos una obra en condiciones de facturar Y con saldo pendiente
+   * de facturar (obras ya facturadas al 100% no deben ofrecer el cliente). */
   private filtrarClientesConObraFacturable(clientes: Cliente[]): void {
+    // Recién acá terminaron de llegar obras + facturas: recalculamos la lista de obras
+    // filtradas para que "pendiente de facturar" quede bien evaluado (no con facturado=0).
+    this.actualizarObrasFiltradas();
     const idsClientesConObra = new Set(
       this.obras
         .filter(o => this.esObraDisponibleParaFacturar(o))
@@ -614,7 +645,9 @@ export class FacturaModalComponent implements OnChanges, OnDestroy {
       return false;
     }
     const estadoNormalizado = this.sanitizarEstado(String(obra.obra_estado || ''));
-    return this.ESTADOS_PERMITIDOS.includes(estadoNormalizado);
+    if (!this.ESTADOS_PERMITIDOS.includes(estadoNormalizado)) return false;
+    // Una obra ya facturada al 100% no tiene sentido ofrecerla para una factura nueva.
+    return this.pendienteFacturarObra(obra) > 0.01;
   }
 
   private actualizarRestanteObra(obraId: number, excluirFacturaId?: number): void {

@@ -129,9 +129,17 @@ export class DashboardGraficosComponent implements OnInit, OnDestroy {
     };
   }
 
+  // Estadíos a partir de ADJUDICADA: antes de eso la obra puede no concretarse
+  // (PRESUPUESTADA/COTIZADA) o haberse perdido, y no debe valorizar al cliente.
+  private static readonly ESTADOS_DESDE_ADJUDICADA = new Set([
+    'ADJUDICADA', 'EN_PROGRESO', 'FINALIZADA', 'FACTURADA', 'FACTURADA_PARCIAL', 'COBRADA'
+  ]);
+
   private construirBar(obras: Obra[]): void {
     const montoPorCliente = new Map<number, { nombre: string; monto: number }>();
     for (const o of obras ?? []) {
+      const estado = (o.obra_estado || '').toString().toUpperCase();
+      if (!DashboardGraficosComponent.ESTADOS_DESDE_ADJUDICADA.has(estado)) continue;
       const id = o.id_cliente ?? o.cliente?.id;
       if (!id) continue;
       const acumulado = montoPorCliente.get(id);
