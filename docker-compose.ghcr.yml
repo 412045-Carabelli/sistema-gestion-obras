@@ -452,6 +452,49 @@ services:
       - sgo_backend
       - dokploy-network
 
+  feedback-backend:
+    pull_policy: always
+    image: ghcr.io/412045-carabelli/buildrr-feedback-backend:latest
+    container_name: buildrr_feedback_backend
+    ports:
+      - "${FEEDBACK_BACKEND_PORT:-8091}:8090"
+    environment:
+      - SPRING_PROFILES_ACTIVE=prod
+      - DB_HOST=sqlserver
+      - DB_PORT=1433
+      - DB_NAME=buildr_supp
+      - DB_USER=sa
+      - DB_PASSWORD=${DB_PASSWORD}
+      - DOCUMENTOS_SERVICE_URL=http://documentos-service:8087/api/documentos
+      - JAVA_OPTS=-Xms64m -Xmx256m -XX:+UseG1GC -XX:MaxGCPauseMillis=200
+    depends_on:
+      sqlserver:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - sgo_backend
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+
+  feedback-frontend:
+    pull_policy: always
+    image: ghcr.io/412045-carabelli/buildrr-feedback-frontend:latest
+    container_name: buildrr_feedback_frontend
+    ports:
+      - "${FEEDBACK_FRONTEND_PORT:-4301}:80"
+    depends_on:
+      - feedback-backend
+    restart: unless-stopped
+    networks:
+      - sgo_backend
+      - dokploy-network
+    deploy:
+      resources:
+        limits:
+          memory: 128M
+
 networks:
   sgo_backend:
     driver: bridge
