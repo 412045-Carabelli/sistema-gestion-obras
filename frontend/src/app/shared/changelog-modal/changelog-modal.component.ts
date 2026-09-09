@@ -6,7 +6,7 @@ import { TagModule } from 'primeng/tag';
 import { Subscription } from 'rxjs';
 import { ChangelogService } from '../../services/changelog/changelog.service';
 
-const VERSION = 'v1.19.37';
+const VERSION = 'v1.19.38';
 const STORAGE_KEY = `sgo-changelog-seen-${VERSION}`;
 
 interface ChangeItem {
@@ -32,6 +32,17 @@ export class ChangelogModalComponent implements OnInit, OnDestroy {
   private sub = new Subscription();
 
   grupos: ChangeGroup[] = [
+    {
+      modulo: 'Fixes Pablo 09/09/2026',
+      icon: 'pi pi-check-circle',
+      items: [
+        { texto: 'Dashboard: "Top 5 clientes" ahora solo cuenta obras desde estadío ADJUDICADA en adelante (antes incluía presupuestadas/cotizadas/perdidas)', estado: 'done' },
+        { texto: 'Agenda (módulo general): el filtro de obra ya no ofrece obras FINALIZADAS/PERDIDAS/CANCELADAS, solo las activas', estado: 'done' },
+        { texto: 'Agenda (módulo general): al abrir una agenda existente, cliente y proveedor aparecen pre-filtrados según la obra ya asignada', estado: 'done' },
+        { texto: 'Nueva Factura (acceso rápido del dashboard): el filtro de cliente excluye a los que ya facturaron el 100% de sus obras, y muestra el monto pendiente de facturar en el combo', estado: 'done' },
+        { texto: 'Nueva Tarea (acceso rápido del dashboard): al elegir la obra se listan sus tareas existentes para poder editar el avance/estado, no solo crear tareas nuevas', estado: 'done' },
+      ]
+    },
     {
       modulo: 'Fixes Pablo 08/09/2026',
       icon: 'pi pi-check-circle',
