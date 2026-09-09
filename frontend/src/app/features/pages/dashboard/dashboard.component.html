@@ -248,7 +248,7 @@
 <app-modal
   (closed)="cerrarTareaModal()"
   (confirmed)="guardarTareaRapida()"
-  [title]="'Nueva tarea'"
+  [title]="tareaSeleccionada ? 'Editar tarea' : 'Nueva tarea'"
   [visible]="showTareaModal"
   [confirmLoading]="guardandoTarea"
   [confirmDisabled]="guardandoTarea"
@@ -268,6 +268,33 @@
       styleClass="w-full"
       (onChange)="onTareaObraSelect($event.value)"
     ></p-select>
+
+    @if (tareaObra) {
+      <div class="border border-gray-200 rounded-lg p-2 max-h-40 overflow-y-auto">
+        <div class="text-xs font-poppins font-semibold text-gray-500 mb-1 flex justify-between items-center">
+          <span>Tareas de esta obra ({{ tareasObraExistentes.length }})</span>
+          @if (tareaSeleccionada) {
+            <button pButton type="button" label="Nueva tarea" class="p-button-text p-button-sm" (click)="cancelarEdicionTarea()"></button>
+          }
+        </div>
+        @if (cargandoTareasObra) {
+          <p class="text-xs text-gray-400 font-poppins">Cargando...</p>
+        } @else if (tareasObraExistentes.length === 0) {
+          <p class="text-xs text-gray-400 font-poppins">Sin tareas cargadas todavia.</p>
+        } @else {
+          @for (t of tareasObraExistentes; track t.id) {
+            <div
+              class="flex justify-between items-center px-2 py-1 rounded cursor-pointer text-sm font-poppins"
+              [class.bg-blue-50]="tareaSeleccionada?.id === t.id"
+              (click)="seleccionarTareaExistente(t)"
+            >
+              <span class="truncate">{{ t.nombre }}</span>
+              <span class="text-xs text-gray-500 flex-shrink-0 ml-2">{{ t.porcentaje ?? 0 }}%</span>
+            </div>
+          }
+        }
+      </div>
+    }
 
     <label class="block text-sm font-poppins font-semibold mb-1 text-gray-700">Proveedor</label>
     <p-select

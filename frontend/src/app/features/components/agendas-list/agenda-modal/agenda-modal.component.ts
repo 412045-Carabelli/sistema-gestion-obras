@@ -101,7 +101,10 @@ export class AgendaModalComponent {
       proveedores: this.proveedoresService.getProveedoresSimple()
     }).subscribe({
       next: ({ obras, clientes, proveedores }) => {
-        this.todasLasObras = obras || [];
+        const ESTADOS_EXCLUIDOS = new Set(['FINALIZADA', 'PERDIDA', 'CANCELADA']);
+        this.todasLasObras = (obras || []).filter(o =>
+          !ESTADOS_EXCLUIDOS.has((o.obra_estado || '').toString().toUpperCase())
+        );
         this.todosLosClientes = (clientes || [])
           .map(c => ({ label: c.nombre, value: c.id! }))
           .sort((a, b) => a.label.localeCompare(b.label));
@@ -116,6 +119,14 @@ export class AgendaModalComponent {
         );
         this.clientesOptions.set(this.todosLosClientes);
         this.proveedoresOptions.set(this.todosLosProveedores);
+
+        // Si la agenda que se está viendo/editando ya tenía obra asignada, acotar de
+        // entrada las opciones de cliente/proveedor a los de esa obra (sin pisar los
+        // valores ya guardados, solo la lista de opciones del combo).
+        const obraIdActual = this.form?.get('obraId')?.value;
+        if (obraIdActual) {
+          this.acotarOpcionesPorObra(obraIdActual);
+        }
         this.cargandoDatos.set(false);
       },
       error: () => this.cargandoDatos.set(false)
@@ -131,13 +142,20 @@ export class AgendaModalComponent {
       this.proveedoresOptions.set(this.todosLosProveedores);
       return;
     }
-    const obra = this.todasLasObras.find(o => Number(o.id) === Number(obraId));
+    const obra = this.acotarOpcionesPorObra(obraId);
     if (!obra) return;
+    this.form.patchValue({ clienteId: obra.cliente?.id ?? null });
+  }
+
+  /** Acota las opciones de cliente/proveedor a los de una obra dada, sin tocar los
+   * valores ya seleccionados en el form (usado también al abrir una agenda existente). */
+  private acotarOpcionesPorObra(obraId: number): Obra | undefined {
+    const obra = this.todasLasObras.find(o => Number(o.id) === Number(obraId));
+    if (!obra) return undefined;
 
     this.clientesOptions.set(
       obra.cliente ? [{ label: obra.cliente.nombre, value: obra.cliente.id }] : this.todosLosClientes
     );
-    this.form.patchValue({ clienteId: obra.cliente?.id ?? null });
 
     const proveedoresObra = this.proveedoresDeObra(obra);
     this.proveedoresOptions.set(
@@ -145,6 +163,7 @@ export class AgendaModalComponent {
         ? proveedoresObra.map(p => ({ label: p.nombre, value: p.id! }))
         : this.todosLosProveedores
     );
+    return obra;
   }
 
   /** Cascada: al elegir cliente (sin obra todavía), acota el filtro de obras a las suyas. */

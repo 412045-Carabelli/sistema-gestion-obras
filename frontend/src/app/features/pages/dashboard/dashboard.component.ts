@@ -128,6 +128,9 @@ export class DashboardComponent implements OnInit {
   tareaObraDetalle: Obra | null = null;
   tareaProveedoresObra: Proveedor[] = [];
   tareaProveedor: Proveedor | null = null;
+  tareasObraExistentes: Tarea[] = [];
+  tareaSeleccionada: Tarea | null = null;
+  cargandoTareasObra = false;
   tareaForm: Partial<Tarea> = {
     nombre: '',
     descripcion: '',
@@ -633,12 +636,50 @@ export class DashboardComponent implements OnInit {
     this.tareaObraDetalle = null;
     this.tareaProveedor = null;
     this.tareaProveedoresObra = [];
+    this.tareasObraExistentes = [];
+    this.cancelarEdicionTarea();
 
     if (!obra?.id) return;
     this.obrasService.getObraById(obra.id).subscribe(detalle => {
       this.tareaObraDetalle = detalle;
       this.tareaProveedoresObra = this.proveedoresDeObra(detalle);
     });
+
+    this.cargandoTareasObra = true;
+    this.tareasService.getTareasByObra(obra.id).subscribe({
+      next: tareas => {
+        this.tareasObraExistentes = tareas || [];
+        this.cargandoTareasObra = false;
+      },
+      error: () => this.cargandoTareasObra = false
+    });
+  }
+
+  /** Selecciona una tarea existente para editar su avance/estado, en vez de crear una nueva. */
+  seleccionarTareaExistente(tarea: Tarea) {
+    this.tareaSeleccionada = tarea;
+    this.tareaProveedor = this.tareaProveedoresObra.find(p => Number(p.id) === Number(tarea.id_proveedor)) || null;
+    this.tareaForm = {
+      nombre: tarea.nombre,
+      descripcion: tarea.descripcion ?? '',
+      estado_tarea: tarea.estado_tarea,
+      numero_orden: tarea.numero_orden,
+      porcentaje: tarea.porcentaje ?? 0,
+      fecha_inicio: tarea.fecha_inicio
+    };
+  }
+
+  cancelarEdicionTarea() {
+    this.tareaSeleccionada = null;
+    this.tareaProveedor = null;
+    this.tareaForm = {
+      nombre: '',
+      descripcion: '',
+      estado_tarea: 'PENDIENTE',
+      numero_orden: undefined,
+      porcentaje: 0,
+      fecha_inicio: new Date().toISOString()
+    };
   }
 
   guardarTareaRapida() {
@@ -670,7 +711,7 @@ export class DashboardComponent implements OnInit {
     const payload = {
       id_obra: this.tareaObra.id,
       id_proveedor: this.tareaProveedor.id,
-      estado_tarea: 'PENDIENTE',
+      estado_tarea: this.tareaSeleccionada?.estado_tarea ?? 'PENDIENTE',
       numero_orden: this.tareaForm.numero_orden ?? undefined,
       nombre: this.tareaForm.nombre,
       descripcion: this.tareaForm.descripcion ?? '',
@@ -678,15 +719,20 @@ export class DashboardComponent implements OnInit {
       fecha_inicio: this.normalizarFechaInicio(this.tareaForm.fecha_inicio)
     };
 
+    const editando = this.tareaSeleccionada;
+    const operacion = editando?.id
+      ? this.tareasService.updateTarea(editando.id, payload as any)
+      : this.tareasService.createTarea(payload as any);
+
     this.guardandoTarea = true;
-    this.tareasService.createTarea(payload as any).subscribe({
+    operacion.subscribe({
       next: () => {
         this.guardandoTarea = false;
         this.showTareaModal = false;
         this.messageService.add({
           severity: 'success',
-          summary: 'Tarea creada',
-          detail: 'Se creo la tarea correctamente.'
+          summary: editando ? 'Tarea actualizada' : 'Tarea creada',
+          detail: editando ? 'Se actualizo el avance de la tarea.' : 'Se creo la tarea correctamente.'
         });
       },
       error: (err) => {
@@ -694,7 +740,7 @@ export class DashboardComponent implements OnInit {
         this.messageService.add({
           severity: 'error',
           summary: 'Error',
-          detail: this.obtenerMensajeError(err, 'No se pudo crear la tarea.')
+          detail: this.obtenerMensajeError(err, editando ? 'No se pudo actualizar la tarea.' : 'No se pudo crear la tarea.')
         });
       }
     });
@@ -1603,6 +1649,8 @@ export class DashboardComponent implements OnInit {
     this.tareaObraDetalle = null;
     this.tareaProveedor = null;
     this.tareaProveedoresObra = [];
+    this.tareasObraExistentes = [];
+    this.tareaSeleccionada = null;
     this.tareaForm = {
       nombre: '',
       descripcion: '',
