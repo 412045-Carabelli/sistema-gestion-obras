@@ -309,7 +309,7 @@ services:
       - SERVICES_REPORTES_URL=http://reportes-service:8084/api/reportes
       - JWT_SECRET=${JWT_SECRET}
       - PUSH_INTERNAL_SECRET=${PUSH_INTERNAL_SECRET}
-      - CORS_ALLOWED_ORIGINS=http://localhost:4200,https://buildrr.cloud,http://buildrr.cloud
+      - CORS_ALLOWED_ORIGINS=http://localhost:4200,https://buildrr.cloud,http://buildrr.cloud,https://soporte.buildrr.cloud
       - JAVA_TOOL_OPTIONS=-Xms64m -Xmx256m -XX:+UseSerialGC -XX:ReservedCodeCacheSize=64m -XX:MaxMetaspaceSize=128m -XX:MaxDirectMemorySize=32m -Xss256k -Dserver.tomcat.threads.max=20 -Dserver.tomcat.threads.min-spare=5
     depends_on:
       obras-service:
