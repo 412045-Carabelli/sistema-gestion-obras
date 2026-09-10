@@ -4,6 +4,8 @@ import com.documentos.dto.DocumentoDto;
 import com.documentos.entity.Documento;
 import com.documentos.enums.TipoDocumentoEnum;
 import com.documentos.repository.DocumentoRepository;
+import com.documentos.strategy.DocumentoDestinoStrategyResolver;
+import com.documentos.strategy.SgoDocumentoStrategy;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import org.mockito.Mockito;
@@ -28,10 +30,14 @@ class DocumentoServiceTest {
     @TempDir
     Path tempDir;
 
+    private static DocumentoDestinoStrategyResolver resolver() {
+        return new DocumentoDestinoStrategyResolver(List.of(new SgoDocumentoStrategy()));
+    }
+
     @Test
     void createWithFileReactive_guardaDocumento() {
         DocumentoRepository repo = Mockito.mock(DocumentoRepository.class);
-        DocumentoService service = new DocumentoService(tempDir.toString(), repo, null, false, "documentos", "logos", "http://localhost:9000");
+        DocumentoService service = new DocumentoService(tempDir.toString(), repo, null, false, "documentos", "logos", "http://localhost:9000", resolver());
 
         FilePart filePart = Mockito.mock(FilePart.class);
         when(filePart.filename()).thenReturn("archivo.pdf");
@@ -50,7 +56,9 @@ class DocumentoServiceTest {
                 "obs",
                 null,
                 null,
-                filePart
+                filePart,
+                null,
+                null
         );
 
         StepVerifier.create(mono)
@@ -67,7 +75,7 @@ class DocumentoServiceTest {
     @Test
     void finders_y_delete() {
         DocumentoRepository repo = Mockito.mock(DocumentoRepository.class);
-        DocumentoService service = new DocumentoService(tempDir.toString(), repo, null, false, "documentos", "logos", "http://localhost:9000");
+        DocumentoService service = new DocumentoService(tempDir.toString(), repo, null, false, "documentos", "logos", "http://localhost:9000", resolver());
 
         Documento doc = new Documento();
         doc.setIdDocumento(1L);
@@ -90,7 +98,7 @@ class DocumentoServiceTest {
     @Test
     void findById_notFound() {
         DocumentoRepository repo = Mockito.mock(DocumentoRepository.class);
-        DocumentoService service = new DocumentoService(tempDir.toString(), repo, null, false, "documentos", "logos", "http://localhost:9000");
+        DocumentoService service = new DocumentoService(tempDir.toString(), repo, null, false, "documentos", "logos", "http://localhost:9000", resolver());
         when(repo.findById(99L)).thenReturn(Optional.empty());
 
         StepVerifier.create(service.findById(99L))
@@ -101,7 +109,7 @@ class DocumentoServiceTest {
     @Test
     void downloadFile_ok_y_archivoNoEncontrado() throws Exception {
         DocumentoRepository repo = Mockito.mock(DocumentoRepository.class);
-        DocumentoService service = new DocumentoService(tempDir.toString(), repo, null, false, "documentos", "logos", "http://localhost:9000");
+        DocumentoService service = new DocumentoService(tempDir.toString(), repo, null, false, "documentos", "logos", "http://localhost:9000", resolver());
 
         Path rel = Path.of("obras/1/archivo.txt");
         Path abs = tempDir.resolve(rel);
@@ -131,14 +139,14 @@ class DocumentoServiceTest {
         when(repo.findById(2L)).thenReturn(Optional.of(docMissing));
 
         StepVerifier.create(service.downloadFile(2L))
-                .expectErrorMatches(err -> err instanceof RuntimeException && err.getMessage().contains("Archivo no encontrado"))
+                .expectErrorMatches(err -> err instanceof RuntimeException && err.getMessage().contains("ya no existe en el almacenamiento"))
                 .verify();
     }
 
     @Test
     void createWithFileReactive_conAsociado() {
         DocumentoRepository repo = Mockito.mock(DocumentoRepository.class);
-        DocumentoService service = new DocumentoService(tempDir.toString(), repo, null, false, "documentos", "logos", "http://localhost:9000");
+        DocumentoService service = new DocumentoService(tempDir.toString(), repo, null, false, "documentos", "logos", "http://localhost:9000", resolver());
 
         FilePart filePart = Mockito.mock(FilePart.class);
         when(filePart.filename()).thenReturn("doc.pdf");
@@ -157,7 +165,9 @@ class DocumentoServiceTest {
                 null,
                 "5",
                 "CLIENTE",
-                filePart
+                filePart,
+                null,
+                null
         );
 
         StepVerifier.create(mono)

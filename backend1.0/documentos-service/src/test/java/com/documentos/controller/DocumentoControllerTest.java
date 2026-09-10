@@ -25,13 +25,13 @@ class DocumentoControllerTest {
         DocumentoController controller = new DocumentoController(service);
 
         FilePart filePart = Mockito.mock(FilePart.class);
-        when(service.createWithFileReactive(any(), any(), any(), any(), any(), any()))
+        when(service.createWithFileReactive(any(), any(), any(), any(), any(), any(), any(), any()))
                 .thenReturn(Mono.just(new DocumentoDto()));
 
         ResponseEntity<DocumentoDto> ok = controller.create(
-                "1", "FACTURA", null, null, null, filePart).block();
+                "1", "FACTURA", null, null, null, filePart, null, null).block();
         ResponseEntity<DocumentoDto> bad = controller.create(
-                "1", "INVALIDO", null, null, null, filePart).block();
+                "1", "INVALIDO", null, null, null, filePart, null, null).block();
 
         assertThat(ok.getStatusCode().is2xxSuccessful()).isTrue();
         assertThat(bad.getStatusCode().is4xxClientError()).isTrue();

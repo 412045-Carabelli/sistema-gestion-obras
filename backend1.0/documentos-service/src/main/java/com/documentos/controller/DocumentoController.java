@@ -1,7 +1,9 @@
 package com.documentos.controller;
 
 import com.documentos.dto.DocumentoDto;
+import com.documentos.enums.Producto;
 import com.documentos.enums.TipoDocumentoEnum;
+import com.documentos.exception.AccesoDocumentoInvalidoException;
 import com.documentos.exception.ArchivoNoEncontradoException;
 import com.documentos.service.DocumentoService;
 import org.springframework.core.io.Resource;
@@ -46,7 +48,9 @@ public class DocumentoController {
             @RequestPart(value = "id_asociado", required = false) String idAsociado,
             @RequestPart(value = "tipo_asociado", required = false) String tipoAsociado,
             @RequestPart(value = "observacion", required = false) String observacion,
-            @RequestPart(value = "file", required = false) FilePart filePart
+            @RequestPart(value = "file", required = false) FilePart filePart,
+            @RequestPart(value = "producto", required = false) String producto,
+            @RequestPart(value = "organizacion_id", required = false) String organizacionId
     ) {
         // Convert String to Enum
         TipoDocumentoEnum tipoEnum = TipoDocumentoEnum.OTRO;
@@ -58,9 +62,22 @@ public class DocumentoController {
             }
         }
 
+        Producto productoEnum = null;
+        if (producto != null && !producto.isBlank()) {
+            try {
+                productoEnum = Producto.valueOf(producto.toUpperCase());
+            } catch (IllegalArgumentException e) {
+                return Mono.just(ResponseEntity.badRequest().build());
+            }
+        }
+        Long organizacionIdLong = (organizacionId != null && !organizacionId.isBlank())
+                ? Long.parseLong(organizacionId) : null;
+
         return documentoService.createWithFileReactive(
-                        idObra, tipoEnum, observacion, idAsociado, tipoAsociado, filePart)
+                        idObra, tipoEnum, observacion, idAsociado, tipoAsociado, filePart, productoEnum, organizacionIdLong)
                 .map(dto -> ResponseEntity.status(HttpStatus.CREATED).body(dto))
+                .onErrorResume(AccesoDocumentoInvalidoException.class,
+                        ex -> Mono.just(ResponseEntity.status(HttpStatus.FORBIDDEN).build()))
                 .onErrorResume(ex -> {
                     log.error("Error en operación de documentos", ex);
                     return Mono.just(ResponseEntity.internalServerError().build());

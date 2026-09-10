@@ -24,6 +24,8 @@ public class DocumentosMapper {
         dto.setObservacion(entity.getObservacion());
         dto.setCreado_en(entity.getCreadoEn() != null ? entity.getCreadoEn().format(DATETIME_FORMATTER) : null);
         dto.setTipo_documento(entity.getTipoDocumento());
+        dto.setProducto(entity.getProducto());
+        dto.setOrganizacion_id(entity.getOrganizacionId());
         return dto;
     }
 
@@ -38,6 +40,10 @@ public class DocumentosMapper {
         entity.setFecha(java.time.LocalDate.parse(dto.getFecha(), DATE_FORMATTER));
         entity.setObservacion(dto.getObservacion());
         entity.setTipoDocumento(dto.getTipo_documento());
+        if (dto.getProducto() != null) {
+            entity.setProducto(dto.getProducto());
+        }
+        entity.setOrganizacionId(dto.getOrganizacion_id());
         return entity;
     }
 }
