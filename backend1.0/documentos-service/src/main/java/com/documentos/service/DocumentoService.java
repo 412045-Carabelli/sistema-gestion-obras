@@ -2,10 +2,13 @@ package com.documentos.service;
 
 import com.documentos.dto.DocumentoDto;
 import com.documentos.entity.Documento;
+import com.documentos.enums.Producto;
 import com.documentos.enums.TipoDocumentoEnum;
 import com.documentos.exception.ArchivoNoEncontradoException;
 import com.documentos.mapper.DocumentosMapper;
 import com.documentos.repository.DocumentoRepository;
+import com.documentos.strategy.DocumentoDestinoStrategy;
+import com.documentos.strategy.DocumentoDestinoStrategyResolver;
 import io.minio.GetObjectArgs;
 import io.minio.MinioClient;
 import io.minio.RemoveObjectArgs;
@@ -51,6 +54,7 @@ public class DocumentoService {
 
     private final String logosBucket;
     private final String minioPublicUrl;
+    private final DocumentoDestinoStrategyResolver destinoStrategyResolver;
 
     @Autowired
     public DocumentoService(@Value("${file.upload-dir}") String uploadDirBase,
@@ -59,7 +63,8 @@ public class DocumentoService {
                             @Value("${minio.enabled:false}") boolean minioEnabled,
                             @Value("${minio.bucket:documentos}") String minioBucket,
                             @Value("${minio.logos-bucket:logos}") String logosBucket,
-                            @Value("${minio.public-url:http://localhost:9000}") String minioPublicUrl) {
+                            @Value("${minio.public-url:http://localhost:9000}") String minioPublicUrl,
+                            DocumentoDestinoStrategyResolver destinoStrategyResolver) {
         this.uploadDirBase = uploadDirBase;
         this.documentoRepository = documentoRepository;
         this.minioClient = minioClient;
@@ -67,6 +72,7 @@ public class DocumentoService {
         this.minioBucket = minioBucket;
         this.logosBucket = logosBucket;
         this.minioPublicUrl = minioPublicUrl;
+        this.destinoStrategyResolver = destinoStrategyResolver;
     }
 
     public Mono<DocumentoDto> createWithFileReactive(
@@ -75,7 +81,9 @@ public class DocumentoService {
             String observacion,
             String idAsociado,
             String tipoAsociado,
-            FilePart filePart) {
+            FilePart filePart,
+            Producto producto,
+            Long organizacionId) {
 
         boolean tieneArchivo = filePart != null && filePart.filename() != null && !filePart.filename().isBlank();
         boolean tieneObservacion = observacion != null && !observacion.trim().isEmpty();
@@ -83,9 +91,12 @@ public class DocumentoService {
             return Mono.error(new IllegalArgumentException("Debes indicar un archivo o una nota."));
         }
 
-        String folder = (tipoAsociado != null && !tipoAsociado.isEmpty())
-                ? tipoAsociado.toLowerCase() + "s/" + idAsociado
-                : "obras/" + (idObra != null ? idObra : "sin-obra");
+        Producto productoResuelto = producto != null ? producto : Producto.SGO;
+        Long idObraLong = idObra != null ? Long.parseLong(idObra) : null;
+        DocumentoDestinoStrategy destino = destinoStrategyResolver.resolver(productoResuelto);
+        destino.validarAcceso(organizacionId, idObraLong);
+
+        String folder = destino.armarPrefijo(tipoAsociado, idAsociado != null ? Long.parseLong(idAsociado) : null, idObraLong);
 
         String relativePath = tieneArchivo ? folder + "/" + filePart.filename() : "";
         Path destPath = tieneArchivo
@@ -120,6 +131,8 @@ public class DocumentoService {
                     dto.setObservacion(observacion);
                     dto.setFecha(LocalDate.now().toString());
                     dto.setTipo_documento(tipoDocumento);
+                    dto.setProducto(productoResuelto);
+                    dto.setOrganizacion_id(organizacionId);
 
                     Documento entity = DocumentosMapper.toEntity(dto);
                     Documento saved = documentoRepository.save(entity);

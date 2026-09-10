@@ -1,5 +1,6 @@
 package com.documentos.entity;
 
+import com.documentos.enums.Producto;
 import com.documentos.enums.TipoDocumentoEnum;
 import jakarta.persistence.*;
 import lombok.Getter;
@@ -45,5 +46,12 @@ public class Documento {
     @Enumerated(EnumType.STRING)
     @Column(name = "id_tipo_documento", nullable = false)
     private TipoDocumentoEnum tipoDocumento;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "producto", nullable = false, length = 20)
+    private Producto producto = Producto.SGO;
+
+    @Column(name = "organizacion_id")
+    private Long organizacionId;
 
 }
